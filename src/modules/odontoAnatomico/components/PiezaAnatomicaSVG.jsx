@@ -1,7 +1,7 @@
 import React, { memo } from 'react'
 import { HALLAZGOS_ANATOMICOS } from '../constants/odontoAnatomicoConstants'
 
-export const PiezaAnatomicaSVG = memo(({ numero, estadoPieza = {}, onCaraClick }) => {
+export const PiezaAnatomicaSVG = memo(({ numero, estadoPieza = {}, onCaraClick, onPiezaClick }) => {
   const obtenerColorCara = (cara) => {
     const hallazgoId = estadoPieza[cara]
     const hallazgo = HALLAZGOS_ANATOMICOS.find(h => h.id === hallazgoId)
@@ -14,7 +14,7 @@ export const PiezaAnatomicaSVG = memo(({ numero, estadoPieza = {}, onCaraClick }
     <div className="flex flex-col items-center p-1 bg-white border border-gray-200 rounded-xl hover:border-black transition-all">
       <span className="text-[10px] font-bold text-gray-800 mb-1">{numero}</span>
 
-      <div className="relative w-10 h-10">
+      <div className="relative w-10 h-10 cursor-pointer" onClick={() => onPiezaClick && onPiezaClick(numero)}>
         <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-2xs">
           {/* Cara Superior (Vestibular / Palatino) */}
           <polygon
@@ -23,7 +23,10 @@ export const PiezaAnatomicaSVG = memo(({ numero, estadoPieza = {}, onCaraClick }
             stroke="#9CA3AF"
             strokeWidth="2"
             className="cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => onCaraClick(numero, 'superior')}
+            onClick={(e) => {
+              e.stopPropagation()
+              onCaraClick(numero, 'superior')
+            }}
           />
           {/* Cara Derecha (Distal / Mesial) */}
           <polygon
@@ -32,7 +35,10 @@ export const PiezaAnatomicaSVG = memo(({ numero, estadoPieza = {}, onCaraClick }
             stroke="#9CA3AF"
             strokeWidth="2"
             className="cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => onCaraClick(numero, 'derecha')}
+            onClick={(e) => {
+              e.stopPropagation()
+              onCaraClick(numero, 'derecha')
+            }}
           />
           {/* Cara Inferior (Lingual / Vestibular) */}
           <polygon
@@ -41,7 +47,10 @@ export const PiezaAnatomicaSVG = memo(({ numero, estadoPieza = {}, onCaraClick }
             stroke="#9CA3AF"
             strokeWidth="2"
             className="cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => onCaraClick(numero, 'inferior')}
+            onClick={(e) => {
+              e.stopPropagation()
+              onCaraClick(numero, 'inferior')
+            }}
           />
           {/* Cara Izquierda (Mesial / Distal) */}
           <polygon
@@ -50,7 +59,10 @@ export const PiezaAnatomicaSVG = memo(({ numero, estadoPieza = {}, onCaraClick }
             stroke="#9CA3AF"
             strokeWidth="2"
             className="cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => onCaraClick(numero, 'izquierda')}
+            onClick={(e) => {
+              e.stopPropagation()
+              onCaraClick(numero, 'izquierda')
+            }}
           />
           {/* Cara Centro (Oclusal / Incisal) */}
           <polygon
@@ -59,12 +71,23 @@ export const PiezaAnatomicaSVG = memo(({ numero, estadoPieza = {}, onCaraClick }
             stroke="#9CA3AF"
             strokeWidth="2"
             className="cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => onCaraClick(numero, 'centro')}
+            onClick={(e) => {
+              e.stopPropagation()
+              onCaraClick(numero, 'centro')
+            }}
           />
         </svg>
 
+        {/* Overlay de Pieza Ausente / Exodoncia con soporte para clic y remoción */}
         {esAusente && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-lg text-white font-black text-xs">
+          <div
+            onClick={(e) => {
+              e.stopPropagation()
+              onPiezaClick(numero)
+            }}
+            title="Haga clic para desmarcar o cambiar estado"
+            className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-lg text-white font-black text-xs cursor-pointer hover:bg-black/80 transition-colors"
+          >
             ✕
           </div>
         )}

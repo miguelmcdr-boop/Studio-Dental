@@ -28,11 +28,56 @@ export const OdontoAnatomicoModulo = memo(({ pacienteId }) => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(odontoData))
   }, [odontoData, STORAGE_KEY])
 
+  // Clic en una cara individual
   const handleCaraClick = (numero, cara) => {
     setOdontoData(prev => {
       const estadoPieza = prev[numero] || {}
-      const nuevoEstado = { ...estadoPieza, [cara]: hallazgoActivo }
+      
+      // Si la cara ya tenía este hallazgo, conmutar a 'sano' (limpiar)
+      const nuevoHallazgo = estadoPieza[cara] === hallazgoActivo ? 'sano' : hallazgoActivo
+
+      const nuevoEstado = { ...estadoPieza, [cara]: nuevoHallazgo }
+      
+      // Si todas las caras quedan en sano, limpiar la pieza
+      const tieneHallazgos = Object.values(nuevoEstado).some(val => val && val !== 'sano')
+      if (!tieneHallazgos) {
+        const copia = { ...prev }
+        delete copia[numero]
+        return copia
+      }
+
       return { ...prev, [numero]: nuevoEstado }
+    })
+  }
+
+  // Clic en toda la pieza o en la marca de ausente
+  const handlePiezaClick = (numero) => {
+    setOdontoData(prev => {
+      const estadoPieza = prev[numero] || {}
+      const esAusente = Object.values(estadoPieza).includes('ausente')
+
+      // Si la pieza ya es ausente o la herramienta activa es 'sano', limpiamos la pieza
+      if (esAusente || hallazgoActivo === 'sano') {
+        const copia = { ...prev }
+        delete copia[numero]
+        return copia
+      }
+
+      // Si la herramienta activa es 'ausente', marcamos todas las caras como ausentes
+      if (hallazgoActivo === 'ausente') {
+        return {
+          ...prev,
+          [numero]: {
+            superior: 'ausente',
+            derecha: 'ausente',
+            inferior: 'ausente',
+            izquierda: 'ausente',
+            centro: 'ausente'
+          }
+        }
+      }
+
+      return prev
     })
   }
 
@@ -46,7 +91,7 @@ export const OdontoAnatomicoModulo = memo(({ pacienteId }) => {
           <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider">
             🦷 Odontograma Anatómico 5 Caras
           </h3>
-          <p className="text-gray-500 text-[11px]">Mapeo anatómico por caras dentarias (FDI).</p>
+          <p className="text-gray-500 text-[11px]">Mapeo anatómico por caras dentarias (FDI). Haz clic en una cara o pieza para marcar/desmarcar.</p>
         </div>
 
         <button
@@ -87,6 +132,7 @@ export const OdontoAnatomicoModulo = memo(({ pacienteId }) => {
                 numero={num}
                 estadoPieza={odontoData[num]}
                 onCaraClick={handleCaraClick}
+                onPiezaClick={handlePiezaClick}
               />
             ))}
           </div>
@@ -103,6 +149,7 @@ export const OdontoAnatomicoModulo = memo(({ pacienteId }) => {
                   numero={num}
                   estadoPieza={odontoData[num]}
                   onCaraClick={handleCaraClick}
+                  onPiezaClick={handlePiezaClick}
                 />
               ))}
             </div>
@@ -120,6 +167,7 @@ export const OdontoAnatomicoModulo = memo(({ pacienteId }) => {
                   numero={num}
                   estadoPieza={odontoData[num]}
                   onCaraClick={handleCaraClick}
+                  onPiezaClick={handlePiezaClick}
                 />
               ))}
             </div>
@@ -135,6 +183,7 @@ export const OdontoAnatomicoModulo = memo(({ pacienteId }) => {
                 numero={num}
                 estadoPieza={odontoData[num]}
                 onCaraClick={handleCaraClick}
+                onPiezaClick={handlePiezaClick}
               />
             ))}
           </div>

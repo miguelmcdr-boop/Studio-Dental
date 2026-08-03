@@ -13,7 +13,7 @@ import { ComunicacionesModulo } from './modules/ComunicacionesModulo'
 import { InventarioModulo } from './modules/InventarioModulo'
 import { ReportesModulo } from './modules/ReportesModulo'
 import { ConfiguracionModulo } from './modules/ConfiguracionModulo'
-import { FichaPaciente } from './modules/FichaPaciente'
+import { FichaPaciente } from './modules/pacientes'
 import { FinanzasModulo } from './modules/finanzas/FinanzasModulo'
 
 // Login y Sidebar

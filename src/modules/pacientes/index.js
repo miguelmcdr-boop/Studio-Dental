@@ -1,0 +1,1 @@
+export { FichaPacienteModulo as FichaPaciente } from './FichaPacienteModulo'
