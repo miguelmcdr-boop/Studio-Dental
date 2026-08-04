@@ -9,12 +9,12 @@ import { UrgenciasGesModulo } from './modules/urgenciasGes'
 import { EsterilizacionModulo } from './modules/esterilizacion'
 import { LaboratorioModulo } from './modules/laboratorio'
 import { PrestacionesModulo } from './modules/prestaciones'
+import { PresupuestosModulo } from './modules/presupuestos'
+import { PagosModulo } from './modules/pagos'
+import { ComunicacionesModulo } from './modules/comunicaciones'
 
 // Otros Módulos Desacoplados
 import { DashboardModulo } from './modules/DashboardModulo'
-import { PresupuestosGlobalesModulo } from './modules/PresupuestosGlobalesModulo'
-import { PagosModulo } from './modules/PagosModulo'
-import { ComunicacionesModulo } from './modules/ComunicacionesModulo'
 import { ReportesModulo } from './modules/ReportesModulo'
 import { ConfiguracionModulo } from './modules/ConfiguracionModulo'
 
@@ -240,13 +240,19 @@ function App() {
   const [pacienteSeleccionado, setPacienteSeleccionado] = useState(null)
   const [mostrarModalNuevo, setMostrarModalNuevo] = useState(false)
 
-  // 💡 LECTURA SÍNCRONA DE ARANCEL Y PACKS PARA PLAN DE TRATAMIENTO
+  // 💡 LECTURA NORMALIZADA Y SINCRONIZADA DE ARANCEL Y PACKS
   const [prestacionesArancel, setPrestacionesArancel] = useState(() => {
     const saved = localStorage.getItem('clinica_arancel_prestaciones')
     if (saved) {
       try {
         const parsed = JSON.parse(saved)
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map(p => ({
+            ...p,
+            precio: parseFloat(p.precio ?? p.precioParticular) || 0,
+            precioParticular: parseFloat(p.precioParticular ?? p.precio) || 0
+          }))
+        }
       } catch (e) {
         console.error('Error al leer arancel:', e)
       }
@@ -264,6 +270,35 @@ function App() {
       { id: 10, nombre: 'Instalación de Implante Óseo-Integrado', especialidad: 'Implantología', precio: 480000, precioParticular: 480000, precioFonasa: 420000, codigoFonasa: '01-06-001' }
     ]
   })
+
+  // 💡 Listener en App.jsx para refrescar las props globales cuando cambie localStorage
+  useEffect(() => {
+    const handleArancelGlobalSync = () => {
+      const saved = localStorage.getItem('clinica_arancel_prestaciones')
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved)
+          if (Array.isArray(parsed)) {
+            setPrestacionesArancel(parsed.map(p => ({
+              ...p,
+              precio: parseFloat(p.precio ?? p.precioParticular) || 0,
+              precioParticular: parseFloat(p.precioParticular ?? p.precio) || 0
+            })))
+          }
+        } catch (e) {
+          console.error(e)
+        }
+      }
+    }
+
+    window.addEventListener('storage', handleArancelGlobalSync)
+    window.addEventListener('arancel_actualizado', handleArancelGlobalSync)
+
+    return () => {
+      window.removeEventListener('storage', handleArancelGlobalSync)
+      window.removeEventListener('arancel_actualizado', handleArancelGlobalSync)
+    }
+  }, [])
 
   const [nuevoPaciente, setNuevoPaciente] = useState({
     nombre: '', rut: '', telefono: '', edad: '', prevision: 'Fonasa', alergias: '', email: '', direccion: '', ocupacion: '', contactoEmergencia: ''
@@ -395,15 +430,17 @@ function App() {
         )}
 
         {activeSection === 'Presupuestos' && (
-          <PresupuestosGlobalesModulo 
+          <PresupuestosModulo 
             pacientes={pacientes} 
+            prestaciones={prestacionesArancel}
             setPacienteSeleccionado={setPacienteSeleccionado} 
             setActiveSection={setActiveSection} 
+            userProfile={userProfile}
           />
         )}
 
         {activeSection === 'Pagos' && (
-          <PagosModulo pacientes={pacientes} />
+          <PagosModulo pacientes={pacientes} userProfile={userProfile} />
         )}
 
         {activeSection === 'Finanzas' && (

@@ -1,0 +1,1 @@
+export { PagosModulo as PagosModulo } from './PagosModulo'

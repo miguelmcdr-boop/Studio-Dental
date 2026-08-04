@@ -6,7 +6,11 @@ import { calcularResumenArancel } from '../utils/prestacionesCalculations'
 export const usePrestaciones = (prestacionesProp, setPrestacionesProp) => {
   const [prestaciones, setPrestaciones] = useState(() => {
     const guardadas = prestacionesStorageService.obtenerPrestaciones(ARANCEL_DEFAULT)
-    return guardadas && guardadas.length > 0 ? guardadas : ARANCEL_DEFAULT
+    return (guardadas && guardadas.length > 0 ? guardadas : ARANCEL_DEFAULT).map(p => ({
+      ...p,
+      precio: parseFloat(p.precio ?? p.precioParticular) || 0,
+      precioParticular: parseFloat(p.precioParticular ?? p.precio) || 0
+    }))
   })
 
   const [paquetes, setPaquetes] = useState(() => 
@@ -16,23 +20,32 @@ export const usePrestaciones = (prestacionesProp, setPrestacionesProp) => {
   const [busqueda, setBusqueda] = useState('')
   const [especialidadFiltro, setEspecialidadFiltro] = useState('Todas')
 
-  // 💡 Sincronización Global con evento para forzar re-render en FichaPaciente
+  // 💡 Sincronizador global reactivo
   const guardarYSincronizarGlobal = useCallback((nuevasPrestaciones) => {
-    setPrestaciones(nuevasPrestaciones)
-    prestacionesStorageService.guardarPrestaciones(nuevasPrestaciones)
+    const normalizadas = nuevasPrestaciones.map(p => ({
+      ...p,
+      precio: parseFloat(p.precio ?? p.precioParticular) || 0,
+      precioParticular: parseFloat(p.precioParticular ?? p.precio) || 0
+    }))
+
+    setPrestaciones(normalizadas)
+    prestacionesStorageService.guardarPrestaciones(normalizadas)
     
     if (setPrestacionesProp) {
-      setPrestacionesProp(nuevasPrestaciones)
+      setPrestacionesProp(normalizadas)
     }
 
-    // Disparar evento para que la Ficha del Paciente se entere al instante
     window.dispatchEvent(new Event('storage'))
-    window.dispatchEvent(new CustomEvent('arancel_actualizado', { detail: nuevasPrestaciones }))
+    window.dispatchEvent(new CustomEvent('arancel_actualizado', { detail: normalizadas }))
   }, [setPrestacionesProp])
 
   useEffect(() => {
     if (prestacionesProp && prestacionesProp.length > 0) {
-      setPrestaciones(prestacionesProp)
+      setPrestaciones(prestacionesProp.map(p => ({
+        ...p,
+        precio: parseFloat(p.precio ?? p.precioParticular) || 0,
+        precioParticular: parseFloat(p.precioParticular ?? p.precio) || 0
+      })))
     }
   }, [prestacionesProp])
 
@@ -50,22 +63,22 @@ export const usePrestaciones = (prestacionesProp, setPrestacionesProp) => {
 
   const agregarOActualizarPrestacion = useCallback((prestacionData) => {
     let actualizadas = []
-    const existe = prestaciones.some(p => p.id === prestacionData.id)
+    const existe = prestaciones.some(p => String(p.id) === String(prestacionData.id))
 
-    const valPrecio = parseFloat(prestacionData.precioParticular || prestacionData.precio) || 0
+    const valPrecio = parseFloat(prestacionData.precioParticular ?? prestacionData.precio) || 0
 
     const prestacionNormalizada = {
       id: prestacionData.id || Date.now(),
       nombre: prestacionData.nombre,
       especialidad: prestacionData.especialidad || 'General',
-      precio: valPrecio, // 👈 Clave fundamental para Plan de Tratamiento
+      precio: valPrecio,
       precioParticular: valPrecio,
       precioFonasa: parseFloat(prestacionData.precioFonasa) || 0,
       codigoFonasa: prestacionData.codigoFonasa || ''
     }
 
     if (existe) {
-      actualizadas = prestaciones.map(p => p.id === prestacionData.id ? prestacionNormalizada : p)
+      actualizadas = prestaciones.map(p => String(p.id) === String(prestacionData.id) ? prestacionNormalizada : p)
     } else {
       actualizadas = [prestacionNormalizada, ...prestaciones]
     }
@@ -75,7 +88,7 @@ export const usePrestaciones = (prestacionesProp, setPrestacionesProp) => {
 
   const eliminarPrestacion = useCallback((id) => {
     if (window.confirm('¿Estás seguro de eliminar este procedimiento del arancel?')) {
-      const actualizadas = prestaciones.filter(p => p.id !== id)
+      const actualizadas = prestaciones.filter(p => String(p.id) !== String(id))
       guardarYSincronizarGlobal(actualizadas)
     }
   }, [prestaciones, guardarYSincronizarGlobal])
@@ -83,7 +96,7 @@ export const usePrestaciones = (prestacionesProp, setPrestacionesProp) => {
   const aplicarReajusteMasivo = useCallback((porcentaje) => {
     const factor = 1 + (parseFloat(porcentaje) || 0) / 100
     const actualizadas = prestaciones.map(p => {
-      const pParticular = Math.round((parseFloat(p.precioParticular || p.precio) || 0) * factor)
+      const pParticular = Math.round((parseFloat(p.precioParticular ?? p.precio) || 0) * factor)
       return {
         ...p,
         precio: pParticular,
@@ -94,39 +107,56 @@ export const usePrestaciones = (prestacionesProp, setPrestacionesProp) => {
     guardarYSincronizarGlobal(actualizadas)
   }, [prestaciones, guardarYSincronizarGlobal])
 
-  const agregarPaquete = useCallback((nuevoPack) => {
-    const valPrecio = parseFloat(nuevoPack.precioCombo) || 0
+  // 💡 Crear o Editar Paquetes Promocionales
+  const agregarOEditarPaquete = useCallback((nuevoPack) => {
+    const valPrecio = typeof nuevoPack.precioCombo === 'number'
+      ? nuevoPack.precioCombo
+      : parseFloat(String(nuevoPack.precioCombo).replace(/[^0-9]/g, '')) || 0
+
+    const packId = nuevoPack.id || Date.now()
+    const nombreLimpio = nuevoPack.nombre.startsWith('🎁') ? nuevoPack.nombre : `🎁 ${nuevoPack.nombre}`
+
     const packNormalizado = {
-      id: Date.now(),
-      nombre: `🎁 ${nuevoPack.nombre}`,
+      id: packId,
+      nombre: nombreLimpio,
       especialidad: 'Pack Promocional',
-      precio: valPrecio, // 👈 Clave fundamental para Plan de Tratamiento
+      precio: valPrecio,
       precioParticular: valPrecio,
       precioFonasa: valPrecio,
+      precioCombo: valPrecio,
       descripcion: nuevoPack.descripcion,
       ahorroEstimado: nuevoPack.ahorroEstimado
     }
 
     setPaquetes(prev => {
-      const actualizados = [packNormalizado, ...prev]
+      const existe = prev.some(p => String(p.id) === String(packId))
+      const actualizados = existe
+        ? prev.map(p => String(p.id) === String(packId) ? packNormalizado : p)
+        : [packNormalizado, ...prev]
       prestacionesStorageService.guardarPaquetes(actualizados)
       return actualizados
     })
 
-    // Inyección ininterrumpida al arancel principal
-    const actualizadasArancel = [packNormalizado, ...prestaciones]
+    // Sincronizar en el catálogo de arancel general para Plan de Tratamiento
+    const existeEnArancel = prestaciones.some(p => String(p.id) === String(packId))
+    const actualizadasArancel = existeEnArancel
+      ? prestaciones.map(p => String(p.id) === String(packId) ? packNormalizado : p)
+      : [packNormalizado, ...prestaciones]
+
     guardarYSincronizarGlobal(actualizadasArancel)
   }, [prestaciones, guardarYSincronizarGlobal])
 
   const eliminarPaquete = useCallback((id) => {
-    setPaquetes(prev => {
-      const actualizados = prev.filter(p => p.id !== id)
-      prestacionesStorageService.guardarPaquetes(actualizados)
-      return actualizados
-    })
+    if (window.confirm('¿Estás seguro de eliminar este paquete o promoción?')) {
+      setPaquetes(prev => {
+        const actualizados = prev.filter(p => String(p.id) !== String(id))
+        prestacionesStorageService.guardarPaquetes(actualizados)
+        return actualizados
+      })
 
-    const actualizadasArancel = prestaciones.filter(p => p.id !== id)
-    guardarYSincronizarGlobal(actualizadasArancel)
+      const actualizadasArancel = prestaciones.filter(p => String(p.id) !== String(id))
+      guardarYSincronizarGlobal(actualizadasArancel)
+    }
   }, [prestaciones, guardarYSincronizarGlobal])
 
   return {
@@ -140,7 +170,7 @@ export const usePrestaciones = (prestacionesProp, setPrestacionesProp) => {
     agregarOActualizarPrestacion,
     eliminarPrestacion,
     aplicarReajusteMasivo,
-    agregarPaquete,
+    agregarPaquete: agregarOEditarPaquete,
     eliminarPaquete
   }
 }

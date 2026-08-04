@@ -8,7 +8,7 @@ import { ModalNuevaPrestacion } from './components/ModalNuevaPrestacion'
 import { ReajusteMasivoModal } from './components/ReajusteMasivoModal'
 
 export const PrestacionesModulo = memo(({ prestaciones: prestacionesProp, setPrestaciones: setPrestacionesProp }) => {
-  const [tabActual, setTabActual] = useState('arancel') // 'arancel' | 'paquetes'
+  const [tabActual, setTabActual] = useState('arancel')
   const [modalAbierto, setModalAbierto] = useState(false)
   const [modalReajusteAbierto, setModalReajusteAbierto] = useState(false)
   const [prestacionEditar, setPrestacionEditar] = useState(null)
@@ -125,7 +125,7 @@ export const PrestacionesModulo = memo(({ prestaciones: prestacionesProp, setPre
       {tabActual === 'paquetes' && (
         <PaquetesClinicosManager
           paquetes={paquetes}
-          alAgregarPaquete={agregarPaquete}
+          alGuardarPaquete={agregarPaquete}
           alEliminarPaquete={eliminarPaquete}
         />
       )}

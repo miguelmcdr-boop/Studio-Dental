@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react'
+import React, { memo, useState, useEffect } from 'react'
 import { DienteSVG } from '../../../components/DienteSVG'
 import { PERMANENTE_SUPERIOR, PERMANENTE_INFERIOR } from '../constants/pacientesConstants'
 import { obtenerDescuentoConvenio } from '../utils/pacientesCalculations'
@@ -7,7 +7,7 @@ import { pacientesStorageService } from '../services/pacientesStorageService'
 export const PresupuestoSection = memo(({
   paciente,
   userProfile,
-  prestacionesArancel,
+  prestacionesArancel: prestacionesProp = [],
   itemsPresupuesto,
   setItemsPresupuesto,
   abonos,
@@ -17,6 +17,20 @@ export const PresupuestoSection = memo(({
   totalAbonado,
   saldoPendiente
 }) => {
+  // 💡 Estado local sincronizado en tiempo real con el arancel global
+  const [arancelActualizado, setArancelActualizado] = useState(() => {
+    const saved = localStorage.getItem('clinica_arancel_prestaciones')
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed
+      } catch (e) {
+        console.error(e)
+      }
+    }
+    return prestacionesProp
+  })
+
   const [convenioAplicado, setConvenioAplicado] = useState(paciente.prevision || 'Particular')
   const [piezaPresupuesto, setPiezaPresupuesto] = useState('')
   const [prestacionSeleccionadaId, setPrestacionSeleccionadaId] = useState('')
@@ -28,15 +42,49 @@ export const PresupuestoSection = memo(({
   const [montoAbono, setValorAbono] = useState('')
   const [metodoPagoAbono, setMetodoPagoAbono] = useState('Efectivo')
 
+  // 💡 Sincronizador de arancel en tiempo real
+  useEffect(() => {
+    const handleRefrescarArancel = () => {
+      const saved = localStorage.getItem('clinica_arancel_prestaciones')
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved)
+          if (Array.isArray(parsed)) setArancelActualizado(parsed)
+        } catch (e) {
+          console.error(e)
+        }
+      }
+    }
+
+    window.addEventListener('storage', handleRefrescarArancel)
+    window.addEventListener('arancel_actualizado', handleRefrescarArancel)
+
+    return () => {
+      window.removeEventListener('storage', handleRefrescarArancel)
+      window.removeEventListener('arancel_actualizado', handleRefrescarArancel)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (prestacionesProp && prestacionesProp.length > 0) {
+      setArancelActualizado(prestacionesProp)
+    }
+  }, [prestacionesProp])
+
   const handleSeleccionarPrestacion = (id, convenioNombre = convenioAplicado) => {
     setPrestacionSeleccionadaId(id)
-    const prest = prestacionesArancel.find(p => p.id === parseInt(id))
+    if (!id) return
+
+    // 💡 Búsqueda blindada por String
+    const prest = arancelActualizado.find(p => String(p.id) === String(id))
     if (prest) {
+      const precioBase = parseFloat(prest.precio ?? prest.precioParticular) || 0
       setNombrePrestacion(prest.nombre)
-      setPrecioBaseOriginal(prest.precio)
+      setPrecioBaseOriginal(precioBase)
+      
       const pctDesc = obtenerDescuentoConvenio(convenioNombre)
       setPorcentajeDescuentoAplicado(pctDesc)
-      const precioConDescuento = Math.round(prest.precio * (1 - pctDesc / 100))
+      const precioConDescuento = Math.round(precioBase * (1 - pctDesc / 100))
       setValorPrestacion(precioConDescuento)
     }
   }
@@ -122,9 +170,9 @@ export const PresupuestoSection = memo(({
               className="px-2.5 py-1 border rounded-lg bg-emerald-50 text-emerald-900 font-bold border-emerald-300"
             >
               <option value="Particular">Particular (Sin Descuento)</option>
-              <option value="Fonasa">Fonasa</option>
-              <option value="Isapre">Isapre</option>
-              <option value="Empresa">Convenio Institucional / Empresa</option>
+              <option value="Fonasa">Fonasa (-15%)</option>
+              <option value="Isapre">Isapre (-20%)</option>
+              <option value="Empresa">Convenio Institucional (-25%)</option>
             </select>
           </div>
         </div>
@@ -142,18 +190,21 @@ export const PresupuestoSection = memo(({
           </div>
 
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-gray-600 mb-1 font-semibold">Seleccionar de tu Arancel</label>
+            <label className="block text-gray-600 mb-1 font-semibold">Catálogo & Packs ({arancelActualizado.length})</label>
             <select
               value={prestacionSeleccionadaId}
               onChange={(e) => handleSeleccionarPrestacion(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg bg-white font-semibold"
+              className="w-full px-3 py-2 border rounded-lg bg-white font-semibold text-xs"
             >
-              <option value="">-- Buscar en catálogo de prestaciones --</option>
-              {prestacionesArancel.map(p => (
-                <option key={p.id} value={p.id}>
-                  [{p.especialidad}] {p.nombre} — Base: ${p.precio.toLocaleString('es-CL')}
-                </option>
-              ))}
+              <option value="">-- Buscar en catálogo de prestaciones o packs --</option>
+              {arancelActualizado.map(p => {
+                const precioMostrar = parseFloat(p.precio ?? p.precioParticular) || 0
+                return (
+                  <option key={p.id} value={p.id}>
+                    [{p.especialidad || 'General'}] {p.nombre} — Base: ${precioMostrar.toLocaleString('es-CL')} CLP
+                  </option>
+                )
+              })}
             </select>
           </div>
 
@@ -188,8 +239,8 @@ export const PresupuestoSection = memo(({
 
         {precioBaseOriginal > 0 && porcentajeDescuentoAplicado > 0 && (
           <div className="text-[11px] bg-emerald-50 text-emerald-800 p-2 rounded-lg border border-emerald-200 flex justify-between items-center">
-            <span>🏷️ Descuento por Convenio (<strong>{convenioAplicado}</strong>): -{porcentajeDescuentoAplicado}% aplicado al precio base.</span>
-            <span>Precio Original: <del>${precioBaseOriginal.toLocaleString('es-CL')}</del> → Final: <strong>${parseInt(valorPrestacion).toLocaleString('es-CL')} CLP</strong></span>
+            <span>🏷️ Descuento aplicado por Convenio (<strong>{convenioAplicado}</strong>): -{porcentajeDescuentoAplicado}%</span>
+            <span>Precio Base: <del>${precioBaseOriginal.toLocaleString('es-CL')}</del> → Precio Final: <strong>${parseInt(valorPrestacion).toLocaleString('es-CL')} CLP</strong></span>
           </div>
         )}
       </div>
