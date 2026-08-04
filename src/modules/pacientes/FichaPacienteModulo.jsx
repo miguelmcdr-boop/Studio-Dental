@@ -14,7 +14,7 @@ import { AdjuntosSection } from './components/AdjuntosSection'
 import { ModalEditarPaciente } from './components/ModalEditarPaciente'
 
 // Especialidades Externas
-import { OdontogramaModulo } from '../OdontogramaModulo'
+import { OdontogramaModulo } from '../odontograma'
 import { OdontoAnatomicoModulo } from '../odontoAnatomico/OdontoAnatomicoModulo'
 import { PeriodontogramaModulo } from '../periodontograma/PeriodontogramaModulo'
 import { QuirurgicoModulo } from '../quirurgico/QuirurgicoModulo'

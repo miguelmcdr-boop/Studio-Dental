@@ -1,0 +1,1 @@
+export { OdontogramaModulo } from './OdontogramaModulo'

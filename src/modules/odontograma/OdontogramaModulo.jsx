@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { DienteSVG } from '../components/DienteSVG'
+import { DienteSVG } from '../../components/DienteSVG'
 
 export const OdontogramaModulo = ({ odontograma = {}, guardarOdontograma, esEvolucion = false }) => {
   const [tipoDenticion, setTipoDenticion] = useState('permanente')
