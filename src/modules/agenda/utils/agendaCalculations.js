@@ -1,20 +1,39 @@
-export const obtenerFechaHoyISO = () => {
-  const hoy = new Date()
-  return hoy.toISOString().split('T')[0]
+/**
+ * Utilidades para verificación de disponibilidad de Box y tiempos
+ */
+
+export const verificarDisponibilidadBox = (citas = [], boxId, fechaIso, horaInicio, idExcluir = null) => {
+  return !citas.some(c => {
+    if (idExcluir && String(c.id) === String(idExcluir)) return false
+    if (c.boxId !== boxId || c.fechaIso !== fechaIso || c.estado === 'NoAsiste') return false
+
+    // Detección de solapamiento
+    return (horaInicio >= c.horaInicio && horaInicio < c.horaFin)
+  })
 }
 
-export const formatearFechaLegible = (fechaISO) => {
-  if (!fechaISO) return ''
-  const partes = fechaISO.split('-')
-  if (partes.length !== 3) return fechaISO
-  return `${partes[2]}/${partes[1]}/${partes[0]}`
-}
+export const calcularResumenAgenda = (citas = []) => {
+  const hoyIso = new Date().toISOString().split('T')[0]
+  const citasHoy = citas.filter(c => c.fechaIso === hoyIso || c.fecha === new Date().toLocaleDateString('es-CL'))
 
-export const generarMensajeWhatsappRecordatorio = (cita, paciente, profesionalNombre) => {
-  const fecha = formatearFechaLegible(cita.fecha)
-  const telClean = (paciente?.telefono || '').replace(/\s+/g, '').replace('+', '').replace(/-/g, '')
-  
-  const mensaje = `Hola ${paciente?.nombre || 'Paciente'}, te recordamos tu cita odontológica programada para el día ${fecha} a las ${cita.horaInicio} hrs en ${cita.box} con el/la ${profesionalNombre || 'Dr.'}.\n\nPor favor confirma tu asistencia respondiendo a este mensaje.`
-  
-  return `https://api.whatsapp.com/send?phone=${telClean}&text=${encodeURIComponent(mensaje)}`
+  let agendadosCount = 0
+  let enEsperaCount = 0
+  let enSillonCount = 0
+  let finalizadosCount = 0
+
+  citasHoy.forEach(c => {
+    if (c.estado === 'Agendado') agendadosCount++
+    if (c.estado === 'EnEspera') enEsperaCount++
+    if (c.estado === 'EnSillon') enSillonCount++
+    if (c.estado === 'Finalizado') finalizadosCount++
+  })
+
+  return {
+    totalHoy: citasHoy.length,
+    agendadosCount,
+    enEsperaCount,
+    enSillonCount,
+    finalizadosCount,
+    citasHoy
+  }
 }

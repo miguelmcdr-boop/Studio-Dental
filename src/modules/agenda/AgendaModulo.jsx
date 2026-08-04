@@ -1,69 +1,90 @@
 import React, { memo, useState } from 'react'
+import { BOXES_DENTALES } from './constants/agendaConstants'
 import { useAgenda } from './hooks/useAgenda'
-import { AgendaCalendarioHeader } from './components/AgendaCalendarioHeader'
+import { AgendaSummaryCards } from './components/AgendaSummaryCards'
+import { AgendaViewSelector } from './components/AgendaViewSelector'
 import { CitaCard } from './components/CitaCard'
 import { ModalNuevaCita } from './components/ModalNuevaCita'
 
 export const AgendaModulo = memo(({ pacientes = [], userProfile, alSeleccionarPaciente }) => {
   const [modalAbierto, setModalAbierto] = useState(false)
+  const [citaEditar, setCitaEditar] = useState(null)
 
   const {
-    citasFiltradas,
-    fechaSeleccionada,
-    setFechaSeleccionada,
+    citas,
+    resumen,
+    fechaSeleccionadaIso,
+    setFechaSeleccionadaIso,
     boxFiltro,
     setBoxFiltro,
-    busquedaPaciente,
-    setBusquedaPaciente,
-    agregarCita,
-    actualizarEstadoCita,
+    agendarOActualizarCita,
+    cambiarEstadoCita,
     eliminarCita
   } = useAgenda()
 
+  const handleAbrirNuevo = () => {
+    setCitaEditar(null)
+    setModalAbierto(true)
+  }
+
+  const handleAbrirEditar = (cita) => {
+    setCitaEditar(cita)
+    setModalAbierto(true)
+  }
+
   return (
     <div className="space-y-6">
-      <AgendaCalendarioHeader
-        fechaSeleccionada={fechaSeleccionada}
-        setFechaSeleccionada={setFechaSeleccionada}
+      <div className="flex justify-between items-center flex-wrap gap-3 print:hidden">
+        <div>
+          <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider">📅 Agenda Multi-Box & Control de Sillones</h2>
+          <p className="text-xs text-gray-500">Gestión de flujo de pacientes, sala de espera y asignación de boxes odontológicos.</p>
+        </div>
+
+        <button
+          onClick={handleAbrirNuevo}
+          className="bg-black text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-gray-800 transition-colors shadow-xs cursor-pointer"
+        >
+          + Agendar Nueva Cita
+        </button>
+      </div>
+
+      <div className="print:hidden">
+        <AgendaSummaryCards resumen={resumen} />
+      </div>
+
+      <AgendaViewSelector
+        fechaSeleccionadaIso={fechaSeleccionadaIso}
+        setFechaSeleccionadaIso={setFechaSeleccionadaIso}
         boxFiltro={boxFiltro}
         setBoxFiltro={setBoxFiltro}
-        busquedaPaciente={busquedaPaciente}
-        setBusquedaPaciente={setBusquedaPaciente}
-        onAbrirModalNuevaCita={() => setModalAbierto(true)}
       />
 
-      <div className="space-y-3">
-        <h4 className="font-bold text-xs text-gray-700 uppercase tracking-wider">
-          Citas Programadas ({citasFiltradas.length})
-        </h4>
-
-        {citasFiltradas.length === 0 ? (
-          <div className="bg-white border border-gray-200 rounded-2xl p-10 text-center text-xs text-gray-400">
-            <p className="text-2xl mb-1">📅</p>
-            <p className="font-semibold">No hay citas registradas para los filtros seleccionados.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {citasFiltradas.map(cita => (
-              <CitaCard
-                key={cita.id}
-                cita={cita}
-                pacientes={pacientes}
-                userProfile={userProfile}
-                onActualizarEstado={actualizarEstadoCita}
-                onEliminarCita={eliminarCita}
-                onAbrirFichaPaciente={alSeleccionarPaciente}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+      {citas.length === 0 ? (
+        <div className="p-10 text-center text-xs text-gray-400 bg-white border border-gray-200 rounded-2xl">
+          No hay citas agendadas para la fecha y box seleccionado.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {citas.map(cita => (
+            <CitaCard
+              key={cita.id}
+              cita={cita}
+              pacientes={pacientes}
+              onCambiarEstado={cambiarEstadoCita}
+              onEditar={handleAbrirEditar}
+              onEliminar={eliminarCita}
+              alSeleccionarPaciente={alSeleccionarPaciente}
+            />
+          ))}
+        </div>
+      )}
 
       {modalAbierto && (
         <ModalNuevaCita
+          citaEditar={citaEditar}
           pacientes={pacientes}
-          fechaDefecto={fechaSeleccionada}
-          alGuardar={agregarCita}
+          userProfile={userProfile}
+          alGuardar={agendarOActualizarCita}
           alCerrar={() => setModalAbierto(false)}
         />
       )}

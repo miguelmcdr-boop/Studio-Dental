@@ -1,21 +1,26 @@
-const STORAGE_KEY_CITAS = 'studio_dental_citas_agenda'
+/**
+ * Persistencia en LocalStorage para Agenda Multi-Box
+ */
+
+const STORAGE_KEY_AGENDA = 'studio_dental_agenda_citas_v3'
 
 export const agendaStorageService = {
-  obtenerCitas: () => {
+  obtenerCitas: (defaults = []) => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY_CITAS)
-      return saved ? JSON.parse(saved) : []
+      const saved = localStorage.getItem(STORAGE_KEY_AGENDA)
+      return saved ? JSON.parse(saved) : defaults
     } catch (e) {
-      console.error('Error al leer citas de localStorage:', e)
-      return []
+      console.error('Error al leer citas de agenda:', e)
+      return defaults
     }
   },
 
   guardarCitas: (citas) => {
     try {
-      localStorage.setItem(STORAGE_KEY_CITAS, JSON.stringify(citas))
+      localStorage.setItem(STORAGE_KEY_AGENDA, JSON.stringify(citas))
+      window.dispatchEvent(new Event('storage'))
     } catch (e) {
-      console.error('Error al guardar citas en localStorage:', e)
+      console.error('Error al guardar citas:', e)
     }
   }
 }
