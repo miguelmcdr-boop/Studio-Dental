@@ -1,56 +1,61 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
-import { TIPOS_CONVENIO } from '../constants/finanzasConstants'
-import { calcularPrecioConConvenio, calcularLiquidacionEspecialista } from '../utils/finanzasCalculations'
+import { useState, useMemo, useCallback } from 'react'
+import { CONVENIOS_DEFAULT } from '../constants/finanzasConstants'
+import { finanzasStorageService } from '../services/finanzasStorageService'
+import { calcularBalanceCaja } from '../utils/finanzasCalculations'
 
 export const useFinanzas = () => {
-  const STORAGE_KEY_CONVENIOS = 'finanzas_config_convenios'
-  const STORAGE_KEY_LIQUIDACIONES = 'finanzas_historial_liquidaciones'
+  const [movimientos, setMovimientos] = useState(() => 
+    finanzasStorageService.obtenerMovimientos([])
+  )
+  const [convenios, setConvenios] = useState(() => 
+    finanzasStorageService.obtenerConvenios(CONVENIOS_DEFAULT)
+  )
+  const [filtroTipo, setFiltroTipo] = useState('todos')
 
-  const [convenios, setConvenios] = useState(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_CONVENIOS)
-      return saved ? JSON.parse(saved) : TIPOS_CONVENIO
-    } catch (e) {
-      return TIPOS_CONVENIO
-    }
-  })
+  const balance = useMemo(() => calcularBalanceCaja(movimientos), [movimientos])
 
-  const [liquidaciones, setLiquidaciones] = useState(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_LIQUIDACIONES)
-      return saved ? JSON.parse(saved) : []
-    } catch (e) {
-      return []
-    }
-  })
+  const movimientosFiltrados = useMemo(() => {
+    if (filtroTipo === 'todos') return movimientos
+    return movimientos.filter(m => m.tipo === filtroTipo)
+  }, [movimientos, filtroTipo])
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY_CONVENIOS, JSON.stringify(convenios))
-  }, [convenios])
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY_LIQUIDACIONES, JSON.stringify(liquidaciones))
-  }, [liquidaciones])
-
-  const actualizarDescuentoConvenio = useCallback((idConvenio, nuevoPorcentaje) => {
-    setConvenios(prev => prev.map(c => c.id === idConvenio ? { ...c, descuentoDefecto: parseFloat(nuevoPorcentaje) || 0 } : c))
+  const agregarMovimiento = useCallback((nuevoMov) => {
+    setMovimientos(prev => {
+      const actualizados = [nuevoMov, ...prev]
+      finanzasStorageService.guardarMovimientos(actualizados)
+      return actualizados
+    })
   }, [])
 
-  const guardarLiquidacion = useCallback((nuevaLiquidacion) => {
-    setLiquidaciones(prev => [{ id: Date.now(), fecha: new Date().toLocaleDateString('es-CL'), ...nuevaLiquidacion }, ...prev])
+  const eliminarMovimiento = useCallback((idMov) => {
+    if (window.confirm('¿Estás seguro de eliminar este registro del flujo de caja?')) {
+      setMovimientos(prev => {
+        const actualizados = prev.filter(m => m.id !== idMov)
+        finanzasStorageService.guardarMovimientos(actualizados)
+        return actualizados
+      })
+    }
   }, [])
 
-  const eliminarLiquidacion = useCallback((id) => {
-    setLiquidaciones(prev => prev.filter(l => l.id !== id))
+  const actualizarDescuentoConvenio = useCallback((idConvenio, nuevoDescuento) => {
+    setConvenios(prev => {
+      const actualizados = prev.map(c => 
+        c.id === idConvenio ? { ...c, descuentoDefecto: parseFloat(nuevoDescuento) || 0 } : c
+      )
+      finanzasStorageService.guardarConvenios(actualizados)
+      return actualizados
+    })
   }, [])
 
   return {
+    movimientos: movimientosFiltrados,
+    movimientosTotales: movimientos,
     convenios,
-    liquidaciones,
-    actualizarDescuentoConvenio,
-    guardarLiquidacion,
-    eliminarLiquidacion,
-    calcularPrecioConConvenio,
-    calcularLiquidacionEspecialista
+    balance,
+    filtroTipo,
+    setFiltroTipo,
+    agregarMovimiento,
+    eliminarMovimiento,
+    actualizarDescuentoConvenio
   }
 }

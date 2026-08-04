@@ -1,0 +1,1 @@
+export { FinanzasModulo as FinanzasModulo } from './FinanzasModulo'

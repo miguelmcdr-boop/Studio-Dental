@@ -1,0 +1,1 @@
+export { PrestacionesModulo as PrestacionesModulo } from './PrestacionesModulo'

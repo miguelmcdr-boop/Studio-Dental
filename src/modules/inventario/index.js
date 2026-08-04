@@ -1,0 +1,1 @@
+export { InventarioModulo as InventarioModulo } from './InventarioModulo'

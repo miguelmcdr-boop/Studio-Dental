@@ -1,22 +1,24 @@
 import React, { useState, useEffect } from 'react'
 
-// Importación de Módulos Desacoplados (< 400 líneas cada uno)
-import { AgendaModulo } from './modules/AgendaModulo'
-import { UrgenciasGesModulo } from './modules/UrgenciasGesModulo'
-import { EsterilizacionModulo } from './modules/EsterilizacionModulo'
-import { LaboratorioModulo } from './modules/LaboratorioModulo'
-import { PrestacionesModulo } from './modules/PrestacionesModulo'
+// Importación de Módulos Desacoplados bajo Constitución v3.0.0 (Public API)
+import { Agenda as AgendaModulo } from './modules/agenda'
+import { FichaPaciente } from './modules/pacientes'
+import { FinanzasModulo } from './modules/finanzas'
+import { InventarioModulo } from './modules/inventario'
+import { UrgenciasGesModulo } from './modules/urgenciasGes'
+import { EsterilizacionModulo } from './modules/esterilizacion'
+import { LaboratorioModulo } from './modules/laboratorio'
+import { PrestacionesModulo } from './modules/prestaciones'
+
+// Otros Módulos Desacoplados
 import { DashboardModulo } from './modules/DashboardModulo'
 import { PresupuestosGlobalesModulo } from './modules/PresupuestosGlobalesModulo'
 import { PagosModulo } from './modules/PagosModulo'
 import { ComunicacionesModulo } from './modules/ComunicacionesModulo'
-import { InventarioModulo } from './modules/InventarioModulo'
 import { ReportesModulo } from './modules/ReportesModulo'
 import { ConfiguracionModulo } from './modules/ConfiguracionModulo'
-import { FichaPaciente } from './modules/pacientes'
-import { FinanzasModulo } from './modules/finanzas/FinanzasModulo'
 
-// Login y Sidebar
+// Pantalla de Login
 const LoginScreen = ({ onLogin }) => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -141,6 +143,7 @@ const LoginScreen = ({ onLogin }) => {
   )
 }
 
+// Sidebar de Navegación Nivel Superior
 const Sidebar = ({ userProfile, activeSection, setActiveSection, onLogout }) => {
   const [colapsado, setColapsado] = useState(false)
 
@@ -237,20 +240,28 @@ function App() {
   const [pacienteSeleccionado, setPacienteSeleccionado] = useState(null)
   const [mostrarModalNuevo, setMostrarModalNuevo] = useState(false)
 
+  // 💡 LECTURA SÍNCRONA DE ARANCEL Y PACKS PARA PLAN DE TRATAMIENTO
   const [prestacionesArancel, setPrestacionesArancel] = useState(() => {
     const saved = localStorage.getItem('clinica_arancel_prestaciones')
-    if (saved) return JSON.parse(saved)
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed
+      } catch (e) {
+        console.error('Error al leer arancel:', e)
+      }
+    }
     return [
-      { id: 1, nombre: 'Evaluación Clínica y Diagnóstico', especialidad: 'Diagnóstico/Prevención', precio: 25000 },
-      { id: 2, nombre: 'Limpieza Dental UDA + Destartraje', especialidad: 'Diagnóstico/Prevención', precio: 35000 },
-      { id: 3, nombre: 'Obturación Resina Simple (1 Cara)', especialidad: 'Operatoria', precio: 35000 },
-      { id: 4, nombre: 'Obturación Resina Compuesta (2-3 Caras)', especialidad: 'Operatoria', precio: 45000 },
-      { id: 5, nombre: 'Incrustación Estética Cerámica/Composite', especialidad: 'Operatoria', precio: 120000 },
-      { id: 6, nombre: 'Tratamiento de Endodoncia Unirradicular', especialidad: 'Endodoncia', precio: 110000 },
-      { id: 7, nombre: 'Tratamiento de Endodoncia Multirradicular', especialidad: 'Endodoncia', precio: 160000 },
-      { id: 8, nombre: 'Exodoncia Pieza Permanente', especialidad: 'Cirugía', precio: 40000 },
-      { id: 9, nombre: 'Corona de Zirconio / Porcelana', especialidad: 'Rehabilitación/Prótesis', precio: 280000 },
-      { id: 10, nombre: 'Instalación Implante Óseo-Integrado', especialidad: 'Implantología', precio: 480000 }
+      { id: 1, nombre: 'Evaluación Clínica y Diagnóstico Integral', especialidad: 'Diagnóstico y Prevención', precio: 25000, precioParticular: 25000, precioFonasa: 15000, codigoFonasa: '01-01-001' },
+      { id: 2, nombre: 'Limpieza Dental UDA + Destartraje Ultrasonido', especialidad: 'Diagnóstico y Prevención', precio: 35000, precioParticular: 35000, precioFonasa: 22000, codigoFonasa: '01-01-005' },
+      { id: 3, nombre: 'Obturación Resina Simple (1 Cara)', especialidad: 'Operatoria / Estética', precio: 35000, precioParticular: 35000, precioFonasa: 28000, codigoFonasa: '01-02-010' },
+      { id: 4, nombre: 'Obturación Resina Compuesta (2-3 Caras)', especialidad: 'Operatoria / Estética', precio: 45000, precioParticular: 45000, precioFonasa: 36000, codigoFonasa: '01-02-012' },
+      { id: 5, nombre: 'Incrustación Estética Cerámica / Composite', especialidad: 'Operatoria / Estética', precio: 120000, precioParticular: 120000, precioFonasa: 95000, codigoFonasa: '01-02-025' },
+      { id: 6, nombre: 'Tratamiento de Endodoncia Unirradicular', especialidad: 'Endodoncia', precio: 110000, precioParticular: 110000, precioFonasa: 85000, codigoFonasa: '01-03-001' },
+      { id: 7, nombre: 'Tratamiento de Endodoncia Multirradicular', especialidad: 'Endodoncia', precio: 160000, precioParticular: 160000, precioFonasa: 130000, codigoFonasa: '01-03-003' },
+      { id: 8, nombre: 'Exodoncia Pieza Permanente Simple', especialidad: 'Cirugía Bucal y Maxilofacial', precio: 40000, precioParticular: 40000, precioFonasa: 30000, codigoFonasa: '01-04-001' },
+      { id: 9, nombre: 'Corona de Zirconio Monolítico / E-Max', especialidad: 'Rehabilitación y Prótesis', precio: 280000, precioParticular: 280000, precioFonasa: 240000, codigoFonasa: '01-05-015' },
+      { id: 10, nombre: 'Instalación de Implante Óseo-Integrado', especialidad: 'Implantología', precio: 480000, precioParticular: 480000, precioFonasa: 420000, codigoFonasa: '01-06-001' }
     ]
   })
 
@@ -356,13 +367,28 @@ function App() {
           />
         )}
 
-        {activeSection === 'Agenda' && <AgendaModulo pacientes={pacientes} />}
+        {activeSection === 'Agenda' && (
+          <AgendaModulo 
+            pacientes={pacientes} 
+            userProfile={userProfile}
+            alSeleccionarPaciente={(paciente) => {
+              setPacienteSeleccionado(paciente)
+              setActiveSection('Pacientes')
+            }}
+          />
+        )}
 
-        {activeSection === 'Urgencias y GES' && <UrgenciasGesModulo pacientes={pacientes} userProfile={userProfile} />}
+        {activeSection === 'Urgencias y GES' && (
+          <UrgenciasGesModulo pacientes={pacientes} userProfile={userProfile} />
+        )}
 
-        {activeSection === 'Esterilización' && <EsterilizacionModulo />}
+        {activeSection === 'Esterilización' && (
+          <EsterilizacionModulo userProfile={userProfile} />
+        )}
 
-        {activeSection === 'Laboratorio' && <LaboratorioModulo pacientes={pacientes} />}
+        {activeSection === 'Laboratorio' && (
+          <LaboratorioModulo pacientes={pacientes} userProfile={userProfile} />
+        )}
 
         {activeSection === 'Prestaciones' && (
           <PrestacionesModulo prestaciones={prestacionesArancel} setPrestaciones={setPrestacionesArancel} />
@@ -380,15 +406,15 @@ function App() {
           <PagosModulo pacientes={pacientes} />
         )}
 
-        {activeSection === 'Finanzas' && <FinanzasModulo />}
+        {activeSection === 'Finanzas' && (
+          <FinanzasModulo pacientes={pacientes} />
+        )}
 
         {activeSection === 'Comunicaciones' && (
           <ComunicacionesModulo pacientes={pacientes} userProfile={userProfile} />
         )}
 
-        {activeSection === 'Inventario' && (
-          <InventarioModulo />
-        )}
+        {activeSection === 'Inventario' && <InventarioModulo />}
 
         {activeSection === 'Reportes' && (
           <ReportesModulo pacientes={pacientes} />

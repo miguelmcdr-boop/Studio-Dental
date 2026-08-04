@@ -1,39 +1,66 @@
 /**
- * Motor de Cálculos Financieros y Liquidaciones
+ * Utilidades puras de cálculo financiero, cierres de caja y comisiones
  */
 
-/**
- * Aplica el porcentaje de descuento del convenio al precio base de la prestación
- */
-export const calcularPrecioConConvenio = (precioBase, PorcentajeDescuento) => {
-  const base = parseInt(precioBase, 10) || 0
-  const desc = parseFloat(PorcentajeDescuento) || 0
-  if (base <= 0) return 0
-  if (desc <= 0) return base
-  
-  const montoDescuento = Math.round(base * (desc / 100))
-  return Math.max(0, base - montoDescuento)
+export const formatearCLP = (monto) => {
+  return `$${(parseInt(monto) || 0).toLocaleString('es-CL')} CLP`
 }
 
-/**
- * Calcula la liquidación de honorarios para un especialista
- */
-export const calcularLiquidacionEspecialista = (totalRealizado, porcentajeEspecialista, costoMateriales = 0) => {
-  const total = parseInt(totalRealizado, 10) || 0
-  const pct = parseFloat(porcentajeEspecialista) || 50
-  const mat = parseInt(costoMateriales, 10) || 0
+export const calcularBalanceCaja = (movimientos = []) => {
+  let totalIngresos = 0
+  let totalEgresos = 0
+  let totalEfectivo = 0
+  let totalTarjetas = 0
+  let totalTransferencias = 0
 
-  const baseLiquidable = Math.max(0, total - mat)
-  const pagoEspecialista = Math.round(baseLiquidable * (pct / 100))
-  const margenClinica = total - pagoEspecialista
+  movimientos.forEach(m => {
+    const monto = parseInt(m.monto) || 0
+    if (m.tipo === 'ingreso') {
+      totalIngresos += monto
+      if (m.metodoPago === 'Efectivo') totalEfectivo += monto
+      else if (m.metodoPago === 'Débito' || m.metodoPago === 'Crédito') totalTarjetas += monto
+      else if (m.metodoPago === 'Transferencia') totalTransferencias += monto
+    } else if (m.tipo === 'egreso') {
+      totalEgresos += monto
+      if (m.metodoPago === 'Efectivo') totalEfectivo -= monto
+    }
+  })
 
   return {
-    totalRealizado: total,
-    costoMateriales: mat,
-    baseLiquidable,
-    pagoEspecialista,
-    margenClinica,
-    pctEspecialista: pct,
-    pctClinica: 100 - pct
+    totalIngresos,
+    totalEgresos,
+    saldoNeto: totalIngresos - totalEgresos,
+    totalEfectivo,
+    totalTarjetas,
+    totalTransferencias
+  }
+}
+
+export const calcularBoletaHonorarios = (valorInput = 0, modo = 'bruto', pctRetencion = 13.75) => {
+  const monto = parseFloat(valorInput) || 0
+  const tasa = pctRetencion / 100
+
+  if (modo === 'bruto') {
+    const bruto = monto
+    const retencion = Math.round(bruto * tasa)
+    const liquido = Math.round(bruto - retencion)
+    return { bruto, retencion, liquido }
+  } else {
+    const bruto = Math.round(monto / (1 - tasa))
+    const retencion = Math.round(bruto * tasa)
+    const liquido = Math.round(bruto - retencion)
+    return { bruto, retencion, liquido }
+  }
+}
+
+export const calcularMontoComision = (valorPrestacion = 0, pctComision = 60) => {
+  const total = parseFloat(valorPrestacion) || 0
+  const pct = parseFloat(pctComision) || 0
+  const montoEspecialista = Math.round(total * (pct / 100))
+  const clinicaMonto = total - montoEspecialista
+
+  return {
+    montoEspecialista,
+    clinicaMonto
   }
 }
