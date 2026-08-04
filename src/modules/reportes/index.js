@@ -1,0 +1,1 @@
+export { ReportesModulo as ReportesModulo } from './ReportesModulo'

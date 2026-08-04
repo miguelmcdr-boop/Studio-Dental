@@ -12,11 +12,9 @@ import { PrestacionesModulo } from './modules/prestaciones'
 import { PresupuestosModulo } from './modules/presupuestos'
 import { PagosModulo } from './modules/pagos'
 import { ComunicacionesModulo } from './modules/comunicaciones'
-
-// Otros Módulos Desacoplados
-import { DashboardModulo } from './modules/DashboardModulo'
-import { ReportesModulo } from './modules/ReportesModulo'
-import { ConfiguracionModulo } from './modules/ConfiguracionModulo'
+import { ReportesModulo } from './modules/reportes'
+import { ConfiguracionModulo } from './modules/configuracion'
+import { DashboardModulo } from './modules/dashboard'
 
 // Pantalla de Login
 const LoginScreen = ({ onLogin }) => {
@@ -454,7 +452,7 @@ function App() {
         {activeSection === 'Inventario' && <InventarioModulo />}
 
         {activeSection === 'Reportes' && (
-          <ReportesModulo pacientes={pacientes} />
+          <ReportesModulo pacientes={pacientes} userProfile={userProfile} />
         )}
 
         {activeSection === 'Configuración' && (

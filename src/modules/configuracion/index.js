@@ -1,0 +1,1 @@
+export { ConfiguracionModulo as ConfiguracionModulo } from './ConfiguracionModulo'
