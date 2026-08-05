@@ -63,7 +63,7 @@ export const presupuestosStorageService = {
         const existentesRaw = localStorage.getItem(keyItems)
         if (existentesRaw) {
           const existentes = JSON.parse(existentesRaw)
-          
+
           if (itemsABorrar.length > 0) {
             const idsABorrar = new Set(itemsABorrar.map(i => i.id))
             const filtrados = existentes.filter(i => !idsABorrar.has(i.id))
@@ -79,6 +79,19 @@ export const presupuestosStorageService = {
       window.dispatchEvent(new CustomEvent('presupuestos_actualizados'))
     } catch (e) {
       console.error('Error al eliminar presupuesto bidireccionalmente:', e)
+    }
+  },
+
+  // Actualiza el estado (Emitido, Aprobado, Rechazado, etc.) de un presupuesto creado directamente
+  actualizarEstadoPresupuesto: (presupuestoId, nuevoEstado) => {
+    try {
+      const guardados = presupuestosStorageService.obtenerPresupuestos([])
+      const actualizados = guardados.map(p =>
+        p.id === presupuestoId ? { ...p, estado: nuevoEstado } : p
+      )
+      presupuestosStorageService.guardarPresupuestos(actualizados)
+    } catch (e) {
+      console.error('Error al actualizar el estado del presupuesto:', e)
     }
   },
 

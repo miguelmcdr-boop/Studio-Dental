@@ -1,11 +1,12 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { presupuestosStorageService } from '../services/presupuestosStorageService'
+import { calcularResumenPresupuestos } from '../utils/presupuestosCalculations'
 
 export const usePresupuestos = (pacientes = [], prestaciones = []) => {
   const [presupuestos, setPresupuestos] = useState([])
   const [modalNuevoAbierto, setModalNuevoAbierto] = useState(false)
   const [presupuestoImprimir, setPresupuestoImprimir] = useState(null)
-  const [filtroEstado, setFiltroEstado] = useState('Todos')
+  const [estadoFiltro, setEstadoFiltro] = useState('Todos')
   const [busqueda, setBusqueda] = useState('')
 
   const cargarPresupuestos = useCallback(() => {
@@ -30,10 +31,15 @@ export const usePresupuestos = (pacientes = [], prestaciones = []) => {
     }
   }, [cargarPresupuestos])
 
-  const guardarNuevoPresupuesto = useCallback((nuevoPresupuesto) => {
+  const agregarPresupuesto = useCallback((nuevoPresupuesto) => {
     const directos = presupuestosStorageService.obtenerPresupuestos([])
     const actualizados = [nuevoPresupuesto, ...directos]
     presupuestosStorageService.guardarPresupuestos(actualizados)
+    cargarPresupuestos()
+  }, [cargarPresupuestos])
+
+  const cambiarEstadoPresupuesto = useCallback((presupuestoId, nuevoEstado) => {
+    presupuestosStorageService.actualizarEstadoPresupuesto(presupuestoId, nuevoEstado)
     cargarPresupuestos()
   }, [cargarPresupuestos])
 
@@ -44,17 +50,33 @@ export const usePresupuestos = (pacientes = [], prestaciones = []) => {
     }
   }, [cargarPresupuestos])
 
+  const resumen = useMemo(() => calcularResumenPresupuestos(presupuestos), [presupuestos])
+
+  const presupuestosFiltrados = useMemo(() => {
+    return presupuestos.filter(p => {
+      const coincideEstado = estadoFiltro === 'Todos' || p.estado === estadoFiltro
+      const texto = busqueda.trim().toLowerCase()
+      const coincideBusqueda = !texto ||
+        p.folio?.toLowerCase().includes(texto) ||
+        p.pacienteNombre?.toLowerCase().includes(texto) ||
+        p.pacienteRut?.toLowerCase().includes(texto)
+      return coincideEstado && coincideBusqueda
+    })
+  }, [presupuestos, estadoFiltro, busqueda])
+
   return {
-    presupuestos,
+    presupuestos: presupuestosFiltrados,
+    resumen,
     modalNuevoAbierto,
     setModalNuevoAbierto,
     presupuestoImprimir,
     setPresupuestoImprimir,
-    filtroEstado,
-    setFiltroEstado,
+    estadoFiltro,
+    setEstadoFiltro,
     busqueda,
     setBusqueda,
-    guardarNuevoPresupuesto,
+    agregarPresupuesto,
+    cambiarEstadoPresupuesto,
     eliminarPresupuesto
   }
 }
