@@ -10,7 +10,14 @@ const ESTADOS_COLORES = {
   endodoncia: 'fill-purple-500 stroke-purple-600',
 }
 
-export const DienteSVG = ({ numero, estadosPieza, modoSeleccionado, alHacerClicCara, alSeleccionarPieza, piezaActiva }) => {
+export const DienteSVG = ({
+  numero,
+  estadosPieza,
+  modoSeleccionado,
+  alHacerClicCara,
+  alSeleccionarPieza,
+  piezaActiva
+}) => {
   const esActivo = piezaActiva === numero
   const estadoGeneral = estadosPieza?.general || 'sano'
 
@@ -23,25 +30,46 @@ export const DienteSVG = ({ numero, estadosPieza, modoSeleccionado, alHacerClicC
   return (
     <div 
       onClick={() => alSeleccionarPieza && alSeleccionarPieza(numero)}
-      className={`flex flex-col items-center cursor-pointer p-1 rounded-lg transition-all ${
-        esActivo ? 'bg-blue-50 border border-blue-400 shadow-sm scale-105' : 'hover:bg-gray-100'
+      className={`flex flex-col items-center cursor-pointer p-1.5 rounded-xl transition-all ${
+        esActivo ? 'bg-blue-50 border-2 border-blue-500 shadow-md scale-105' : 'hover:bg-gray-100 border border-transparent'
       }`}
     >
-      <span className="text-[10px] font-bold text-gray-700 mb-0.5">{numero}</span>
+      <span className="text-[11px] font-extrabold text-gray-800 mb-1">{numero}</span>
       <div className="relative">
         {(estadoGeneral === 'ausente' || estadoGeneral === 'indicacion_exodoncia') && (
-          <div className="absolute inset-0 flex items-center justify-center z-10 text-red-600 font-bold text-lg select-none">✕</div>
+          <div className="absolute inset-0 flex items-center justify-center z-10 text-red-600 font-black text-xl select-none bg-white/60 rounded-lg">✕</div>
         )}
         {estadoGeneral === 'implante' && (
-          <div className="absolute inset-0 flex items-center justify-center z-10 text-gray-900 font-bold text-[8px] bg-gray-200/90 rounded px-0.5">IMP</div>
+          <div className="absolute inset-0 flex items-center justify-center z-10 text-gray-900 font-extrabold text-[9px] bg-gray-200/90 rounded px-1 border border-gray-400">IMP</div>
         )}
 
-        <svg width="30" height="30" viewBox="0 0 100 100" className="drop-shadow-sm">
-          <polygon points="15,15 85,15 70,30 30,30" className={`${obtenerColorCara('vestibular')} transition-colors cursor-pointer hover:opacity-80`} onClick={(e) => { e.stopPropagation(); alHacerClicCara && alHacerClicCara(numero, 'vestibular', modoSeleccionado) }} />
-          <polygon points="85,15 85,85 70,70 70,30" className={`${obtenerColorCara('distal')} transition-colors cursor-pointer hover:opacity-80`} onClick={(e) => { e.stopPropagation(); alHacerClicCara && alHacerClicCara(numero, 'distal', modoSeleccionado) }} />
-          <polygon points="15,85 85,85 70,70 30,70" className={`${obtenerColorCara('palatino')} transition-colors cursor-pointer hover:opacity-80`} onClick={(e) => { e.stopPropagation(); alHacerClicCara && alHacerClicCara(numero, 'palatino', modoSeleccionado) }} />
-          <polygon points="15,15 15,85 30,70 30,30" className={`${obtenerColorCara('mesial')} transition-colors cursor-pointer hover:opacity-80`} onClick={(e) => { e.stopPropagation(); alHacerClicCara && alHacerClicCara(numero, 'mesial', modoSeleccionado) }} />
-          <polygon points="30,30 70,30 70,70 30,70" className={`${obtenerColorCara('oclusal')} transition-colors cursor-pointer hover:opacity-80`} onClick={(e) => { e.stopPropagation(); alHacerClicCara && alHacerClicCara(numero, 'oclusal', modoSeleccionado) }} />
+        {/* 💡 SVG Ampliado de 30px a 44px x 44px para máxima comodidad al hacer clic */}
+        <svg width="44" height="44" viewBox="0 0 100 100" className="drop-shadow-xs">
+          <polygon
+            points="15,15 85,15 70,30 30,30"
+            className={`${obtenerColorCara('vestibular')} transition-colors cursor-pointer hover:opacity-75 stroke-2`}
+            onClick={(e) => { e.stopPropagation(); alHacerClicCara && alHacerClicCara(numero, 'vestibular', modoSeleccionado) }}
+          />
+          <polygon
+            points="85,15 85,85 70,70 70,30"
+            className={`${obtenerColorCara('distal')} transition-colors cursor-pointer hover:opacity-75 stroke-2`}
+            onClick={(e) => { e.stopPropagation(); alHacerClicCara && alHacerClicCara(numero, 'distal', modoSeleccionado) }}
+          />
+          <polygon
+            points="15,85 85,85 70,70 30,70"
+            className={`${obtenerColorCara('palatino')} transition-colors cursor-pointer hover:opacity-75 stroke-2`}
+            onClick={(e) => { e.stopPropagation(); alHacerClicCara && alHacerClicCara(numero, 'palatino', modoSeleccionado) }}
+          />
+          <polygon
+            points="15,15 15,85 30,70 30,30"
+            className={`${obtenerColorCara('mesial')} transition-colors cursor-pointer hover:opacity-75 stroke-2`}
+            onClick={(e) => { e.stopPropagation(); alHacerClicCara && alHacerClicCara(numero, 'mesial', modoSeleccionado) }}
+          />
+          <polygon
+            points="30,30 70,30 70,70 30,70"
+            className={`${obtenerColorCara('oclusal')} transition-colors cursor-pointer hover:opacity-75 stroke-2`}
+            onClick={(e) => { e.stopPropagation(); alHacerClicCara && alHacerClicCara(numero, 'oclusal', modoSeleccionado) }}
+          />
         </svg>
       </div>
     </div>

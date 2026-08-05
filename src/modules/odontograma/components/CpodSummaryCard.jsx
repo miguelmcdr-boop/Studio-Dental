@@ -1,6 +1,8 @@
 import React, { memo } from 'react'
 
 export const CpodSummaryCard = memo(({ cpodStats }) => {
+  if (!cpodStats) return null
+
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-xs mb-6 text-xs space-y-3 print:hidden">
       <div className="flex justify-between items-center border-b pb-2 flex-wrap gap-2">

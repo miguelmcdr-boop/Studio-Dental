@@ -9,7 +9,7 @@ export const calcularIndiceCPOD = (odontograma = {}) => {
   let obturados = 0
   let sanos = 0
 
-  const piezasKeys = Object.keys(odontograma)
+  const piezasKeys = Object.keys(odontograma || {})
 
   piezasKeys.forEach(num => {
     const pieza = odontograma[num]

@@ -17,7 +17,6 @@ import { ModalEditarPaciente } from './components/ModalEditarPaciente'
 
 // Especialidades Externas (Módulos Encapsulados)
 import { OdontogramaModulo } from '../odontograma'
-import { OdontoAnatomicoModulo } from '../odontoAnatomico/OdontoAnatomicoModulo'
 import { PeriodontogramaModulo } from '../periodontograma/PeriodontogramaModulo'
 import { QuirurgicoModulo } from '../quirurgico/QuirurgicoModulo'
 import { OdontopediatriaModulo } from '../odontopediatria/OdontopediatriaModulo'
@@ -135,17 +134,50 @@ export const FichaPacienteModulo = memo(({
         </div>
       )}
 
+      {tabActiva === 'Odontograma Inicial' && (
+        <div className="print:hidden text-base scale-100 transition-all">
+          <OdontogramaModulo
+            odontograma={odontogramaInicial}
+            odontogramaComparar={odontogramaEvolucion}
+            guardarOdontograma={guardarInicial}
+          />
+        </div>
+      )}
+
+      {tabActiva === 'Odontograma Evolución' && (
+        <div className="print:hidden text-base scale-100 transition-all">
+          <OdontogramaModulo
+            odontograma={odontogramaEvolucion}
+            odontogramaComparar={odontogramaInicial}
+            guardarOdontograma={guardarEvolucion}
+            esEvolucion={true}
+          />
+        </div>
+      )}
+
+      {tabActiva === 'Plan de Tratamiento' && (
+        <PresupuestoSection
+          paciente={paciente}
+          userProfile={userProfile}
+          prestacionesArancel={prestacionesArancel}
+          itemsPresupuesto={itemsPresupuesto}
+          setItemsPresupuesto={setItemsPresupuesto}
+          abonos={abonos}
+          setAbonos={setAbonos}
+          odontogramaInicial={odontogramaInicial}
+          totalPresupuesto={totalPresupuesto}
+          totalAbonado={totalAbonado}
+          saldoPendiente={saldoPendiente}
+          evolucionesNotas={evolucionesNotas}
+          setEvolucionesNotas={setEvolucionesNotas}
+        />
+      )}
+
       {tabActiva === 'Consentimientos' && (
         <ConsentimientosSection
           paciente={paciente}
           userProfile={userProfile}
         />
-      )}
-
-      {tabActiva === 'Odontograma Anatómico' && (
-        <div className="print:hidden">
-          <OdontoAnatomicoModulo pacienteId={paciente.id} />
-        </div>
       )}
 
       {tabActiva === 'Periodontograma' && (
@@ -170,24 +202,6 @@ export const FichaPacienteModulo = memo(({
         <div className="print:hidden">
           <SmileDesignModulo pacienteId={paciente.id} />
         </div>
-      )}
-
-      {tabActiva === 'Plan de Tratamiento' && (
-        <PresupuestoSection
-          paciente={paciente}
-          userProfile={userProfile}
-          prestacionesArancel={prestacionesArancel}
-          itemsPresupuesto={itemsPresupuesto}
-          setItemsPresupuesto={setItemsPresupuesto}
-          abonos={abonos}
-          setAbonos={setAbonos}
-          odontogramaInicial={odontogramaInicial}
-          totalPresupuesto={totalPresupuesto}
-          totalAbonado={totalAbonado}
-          saldoPendiente={saldoPendiente}
-          evolucionesNotas={evolucionesNotas}
-          setEvolucionesNotas={setEvolucionesNotas}
-        />
       )}
 
       {tabActiva === 'Recetas Médicas' && (
@@ -219,18 +233,6 @@ export const FichaPacienteModulo = memo(({
 
       {(tabActiva === 'Fotografías Clínicas' || tabActiva === 'Radiografías') && (
         <AdjuntosSection tabActiva={tabActiva} />
-      )}
-
-      {tabActiva === 'Odontograma Inicial' && (
-        <div className="print:hidden">
-          <OdontogramaModulo odontograma={odontogramaInicial} guardarOdontograma={guardarInicial} />
-        </div>
-      )}
-
-      {tabActiva === 'Odontograma Evolución' && (
-        <div className="print:hidden">
-          <OdontogramaModulo odontograma={odontogramaEvolucion} guardarOdontograma={guardarEvolucion} esEvolucion={true} />
-        </div>
       )}
 
       {mostrarEditarDatos && (

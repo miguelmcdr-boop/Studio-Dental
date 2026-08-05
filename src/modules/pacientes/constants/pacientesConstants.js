@@ -1,11 +1,10 @@
 export const TABS_FICHA_PACIENTE = [
   'Línea de Tiempo',
   'Ficha Clínica',
-  'Plan de Tratamiento',
-  'Consentimientos',
   'Odontograma Inicial',
   'Odontograma Evolución',
-  'Odontograma Anatómico',
+  'Plan de Tratamiento',
+  'Consentimientos',
   'Periodontograma',
   'Endodoncia & Implantes',
   'Odontopediatría',
