@@ -18,6 +18,7 @@ export const AgendaModulo = memo(({ alVerFichaPaciente }) => {
     modalNuevoBloqueoAbierto,
     setModalNuevoBloqueoAbierto,
     guardarCita,
+    eliminarCita,
     cambiarEstadoCita,
     enviarWhatsAppConfirmacion
   } = useAgenda()
@@ -41,7 +42,7 @@ export const AgendaModulo = memo(({ alVerFichaPaciente }) => {
           <button
             type="button"
             onClick={irAHoy}
-            className="px-3.5 py-2.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-800 font-extrabold text-xs hover:bg-blue-100 cursor-pointer shadow-2xs flex items-center gap-1.5"
+            className="px-3.5 py-2.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-800 font-extrabold text-xs hover:bg-blue-100 cursor-pointer shadow-2xs flex items-center gap-1.5 transition-all"
           >
             📅 Hoy
           </button>
@@ -56,7 +57,7 @@ export const AgendaModulo = memo(({ alVerFichaPaciente }) => {
           <button
             type="button"
             onClick={() => setModalNuevoBloqueoAbierto(true)}
-            className="px-3.5 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold border border-gray-300 transition-all cursor-pointer flex items-center gap-1.5"
+            className="px-3.5 py-2.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-800 text-xs font-bold border border-red-200 transition-all cursor-pointer flex items-center gap-1.5"
           >
             ⛔ Añadir Bloqueo
           </button>
@@ -108,6 +109,7 @@ export const AgendaModulo = memo(({ alVerFichaPaciente }) => {
                           alCambiarEstado={cambiarEstadoCita}
                           alEnviarWhatsApp={enviarWhatsAppConfirmacion}
                           alVerFicha={alVerFichaPaciente}
+                          alEliminar={eliminarCita}
                         />
                       ))
                     )}
@@ -131,6 +133,7 @@ export const AgendaModulo = memo(({ alVerFichaPaciente }) => {
 
       {modalNuevoBloqueoAbierto && (
         <ModalNuevoBloqueo
+          fechaPredeterminada={fechaSeleccionada}
           alGuardar={guardarCita}
           alCerrar={() => setModalNuevoBloqueoAbierto(false)}
         />

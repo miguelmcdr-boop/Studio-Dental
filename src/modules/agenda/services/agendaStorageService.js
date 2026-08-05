@@ -1,5 +1,5 @@
 /**
- * Persistencia en LocalStorage para Agenda Multi-Box
+ * Persistencia en LocalStorage para Agenda Multi-Box (v3.0.0 Enterprise)
  */
 
 const STORAGE_KEY_AGENDA = 'studio_dental_agenda_citas_v3'
@@ -24,3 +24,5 @@ export const agendaStorageService = {
     }
   }
 }
+
+export default agendaStorageService
