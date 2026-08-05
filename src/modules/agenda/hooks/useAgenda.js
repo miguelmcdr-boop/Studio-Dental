@@ -2,9 +2,9 @@ import { useState, useEffect, useCallback } from 'react'
 import { agendaStorageService } from '../services/agendaStorageService'
 import { pacientesStorageService } from '../../pacientes/services/pacientesStorageService'
 
-export const useAgenda = () => {
+export const useAgenda = (pacientesProp = null) => {
   const [citas, setCitas] = useState([])
-  const [pacientes, setPacientes] = useState([])
+  const [pacientes, setPacientes] = useState(pacientesProp || [])
   const [vista, setVista] = useState('box')
   const [fechaSeleccionada, setFechaSeleccionada] = useState(
     new Date().toISOString().split('T')[0]
@@ -12,20 +12,16 @@ export const useAgenda = () => {
   const [modalNuevaCitaAbierto, setModalNuevaCitaAbierto] = useState(false)
   const [modalNuevoBloqueoAbierto, setModalNuevoBloqueoAbierto] = useState(false)
 
-  // Cargar citas y pacientes sincronizados de forma defensiva
+  // Cargar citas y pacientes de forma reactiva
   const cargarDatos = useCallback(() => {
     const citasGuardadas = agendaStorageService?.obtenerCitas ? agendaStorageService.obtenerCitas() : []
-
-    let pacientesGuardados = []
-    if (pacientesStorageService?.obtenerPacientes) {
-      pacientesGuardados = pacientesStorageService.obtenerPacientes()
-    } else if (pacientesStorageService?.obtenerItem) {
-      pacientesGuardados = pacientesStorageService.obtenerItem('pacientes_data', [])
-    }
+    
+    // Si App.jsx envió la lista por props, se priorizan las props
+    const pacientesGuardados = pacientesProp || pacientesStorageService.obtenerPacientes()
 
     setCitas(citasGuardadas || [])
     setPacientes(pacientesGuardados || [])
-  }, [])
+  }, [pacientesProp])
 
   useEffect(() => {
     cargarDatos()
@@ -33,11 +29,17 @@ export const useAgenda = () => {
     return () => window.removeEventListener('storage', cargarDatos)
   }, [cargarDatos])
 
+  useEffect(() => {
+    if (pacientesProp) {
+      setPacientes(pacientesProp)
+    }
+  }, [pacientesProp])
+
   const irAHoy = useCallback(() => {
     setFechaSeleccionada(new Date().toISOString().split('T')[0])
   }, [])
 
-  // Guardar cita + auto-creación de ficha en Módulo Pacientes si es registro Express
+  // Guardar cita + auto-creación de ficha clínica si es registro Express
   const guardarCita = useCallback((nuevaCita, crearFichaSiExpress = false) => {
     let pacienteFinalId = nuevaCita.pacienteId
 
@@ -48,18 +50,16 @@ export const useAgenda = () => {
         telefono: nuevaCita.pacienteTelefono || '',
         rut: nuevaCita.pacienteRut || '',
         email: '',
+        prevision: 'Particular',
+        alergias: '',
         motivoConsulta: nuevaCita.trataMiento || 'Agendado desde Agenda Multi-Box',
         fechaIngreso: new Date().toISOString().split('T')[0]
       }
 
-      const pacientesActuales = pacientesStorageService?.obtenerPacientes
-        ? pacientesStorageService.obtenerPacientes()
-        : []
-      const pacientesActualizados = [...pacientesActuales, nuevoPacienteObj]
+      const pacientesActuales = pacientesStorageService.obtenerPacientes()
+      const pacientesActualizados = [nuevoPacienteObj, ...pacientesActuales]
 
-      if (pacientesStorageService?.guardarPacientes) {
-        pacientesStorageService.guardarPacientes(pacientesActualizados)
-      }
+      pacientesStorageService.guardarPacientes(pacientesActualizados)
       setPacientes(pacientesActualizados)
 
       pacienteFinalId = nuevoPacienteObj.id

@@ -6,7 +6,7 @@ import { ModalNuevaCita } from './components/ModalNuevaCita'
 import { ModalNuevoBloqueo } from './components/ModalNuevoBloqueo'
 import { SILLONES_DENTALES } from './constants/agendaConstants'
 
-export const AgendaModulo = memo(({ alVerFichaPaciente }) => {
+export const AgendaModulo = memo(({ pacientes: pacientesProp = [], alSeleccionarPaciente, alVerFichaPaciente }) => {
   const {
     citas,
     pacientes,
@@ -21,13 +21,14 @@ export const AgendaModulo = memo(({ alVerFichaPaciente }) => {
     eliminarCita,
     cambiarEstadoCita,
     enviarWhatsAppConfirmacion
-  } = useAgenda()
+  } = useAgenda(pacientesProp)
 
   const citasDelDia = citas.filter(c => c.fecha === fechaSeleccionada)
+  const funcionVerFicha = alSeleccionarPaciente || alVerFichaPaciente
 
   return (
     <div className="space-y-6">
-      {/* Cabecera Principal Limpia y Directa */}
+      {/* Cabecera Principal */}
       <div className="flex justify-between items-center flex-wrap gap-4">
         <div>
           <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight flex items-center gap-2">
@@ -72,10 +73,10 @@ export const AgendaModulo = memo(({ alVerFichaPaciente }) => {
         </div>
       </div>
 
-      {/* KPI Cards Directas */}
+      {/* KPI Cards */}
       <AgendaSummaryCards citas={citasDelDia} />
 
-      {/* Parrilla Multi-Box / Sillón Dental */}
+      {/* Parrilla Multi-Box */}
       <div className="bg-gray-50 border border-gray-200 rounded-3xl p-6 overflow-x-auto shadow-2xs">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 min-w-[800px]">
           {SILLONES_DENTALES.map(box => {
@@ -108,7 +109,7 @@ export const AgendaModulo = memo(({ alVerFichaPaciente }) => {
                           cita={cita}
                           alCambiarEstado={cambiarEstadoCita}
                           alEnviarWhatsApp={enviarWhatsAppConfirmacion}
-                          alVerFicha={alVerFichaPaciente}
+                          alVerFicha={funcionVerFicha}
                           alEliminar={eliminarCita}
                         />
                       ))
