@@ -408,6 +408,9 @@ function App() {
               setPacienteSeleccionado(paciente)
               setActiveSection('Pacientes')
             }}
+            alCrearPacienteRapido={(nuevoPac) => {
+              setPacientes(prev => [nuevoPac, ...prev])
+            }}
           />
         )}
 

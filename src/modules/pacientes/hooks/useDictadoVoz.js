@@ -1,36 +1,74 @@
-import { useState, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 
-export const useDictadoVoz = (onTextoDictado) => {
-  const [escuchandoVoz, setEscuchandoVoz] = useState(false)
+export const useDictadoVoz = () => {
+  const [escuchando, setEscuchando] = useState(false)
+  const [textoDictado, setTextoDictado] = useState('')
+  const [soporteNativo, setSoporteNativo] = useState(false)
+  const recognitionRef = useRef(null)
 
-  const toggleDictadoVoz = useCallback(() => {
+  useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
-    if (!SpeechRecognition) {
-      alert('Tu navegador no soporta el dictado por voz. Te recomendamos usar Google Chrome o Microsoft Edge.')
-      return
+    if (SpeechRecognition) {
+      setSoporteNativo(true)
+      const recognition = new SpeechRecognition()
+      recognition.continuous = true
+      recognition.interimResults = true
+      recognition.lang = 'es-CL' // Idioma español Chile / Latinoamérica
+
+      recognition.onresult = (event) => {
+        let transcripcionActual = ''
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcripcionActual += event.results[i][0].transcript
+        }
+        setTextoDictado(transcripcionActual)
+      }
+
+      recognition.onerror = (event) => {
+        console.error('Error en reconocimiento de voz:', event.error)
+        setEscuchando(false)
+      }
+
+      recognition.onend = () => {
+        setEscuchando(false)
+      }
+
+      recognitionRef.current = recognition
     }
+  }, [])
 
-    if (escuchandoVoz) {
-      setEscuchandoVoz(false)
-      return
+  const iniciarDictado = useCallback(() => {
+    if (recognitionRef.current && !escuchando) {
+      setTextoDictado('')
+      try {
+        recognitionRef.current.start()
+        setEscuchando(true)
+      } catch (e) {
+        console.error(e)
+      }
     }
+  }, [escuchando])
 
-    const recognition = new SpeechRecognition()
-    recognition.lang = 'es-CL'
-    recognition.continuous = true
-    recognition.interimResults = false
-
-    recognition.onstart = () => setEscuchandoVoz(true)
-    recognition.onend = () => setEscuchandoVoz(false)
-    recognition.onerror = () => setEscuchandoVoz(false)
-
-    recognition.onresult = (event) => {
-      const textoDictado = event.results[event.results.length - 1][0].transcript
-      onTextoDictado(textoDictado)
+  const detenerDictado = useCallback(() => {
+    if (recognitionRef.current && escuchando) {
+      try {
+        recognitionRef.current.stop()
+        setEscuchando(false)
+      } catch (e) {
+        console.error(e)
+      }
     }
+  }, [escuchando])
 
-    recognition.start()
-  }, [escuchandoVoz, onTextoDictado])
+  const limpiarDictado = useCallback(() => {
+    setTextoDictado('')
+  }, [])
 
-  return { escuchandoVoz, toggleDictadoVoz }
+  return {
+    escuchando,
+    textoDictado,
+    soporteNativo,
+    iniciarDictado,
+    detenerDictado,
+    limpiarDictado
+  }
 }

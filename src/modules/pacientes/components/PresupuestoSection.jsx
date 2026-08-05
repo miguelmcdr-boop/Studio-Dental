@@ -3,21 +3,24 @@ import { DienteSVG } from '../../../components/DienteSVG'
 import { PERMANENTE_SUPERIOR, PERMANENTE_INFERIOR } from '../constants/pacientesConstants'
 import { obtenerDescuentoConvenio } from '../utils/pacientesCalculations'
 import { pacientesStorageService } from '../services/pacientesStorageService'
+import { descontarStockPorTratamiento } from '../../inventario/utils/inventarioCalculations'
 
 export const PresupuestoSection = memo(({
   paciente,
   userProfile,
   prestacionesArancel: prestacionesProp = [],
-  itemsPresupuesto,
-  setItemsPresupuesto,
-  abonos,
-  setAbonos,
-  odontogramaInicial,
-  totalPresupuesto,
-  totalAbonado,
-  saldoPendiente
+  itemsPresupuesto = [],
+  setItemsPresupuesto = () => {},
+  abonos = [],
+  setAbonos = () => {},
+  odontogramaInicial = {},
+  totalPresupuesto = 0,
+  totalAbonado = 0,
+  saldoPendiente = 0,
+  evolucionesNotas = [],
+  setEvolucionesNotas = () => {}
 }) => {
-  // 💡 Estado local sincronizado en tiempo real con el arancel global
+  // Sincronización en tiempo real con el arancel global
   const [arancelActualizado, setArancelActualizado] = useState(() => {
     const saved = localStorage.getItem('clinica_arancel_prestaciones')
     if (saved) {
@@ -42,7 +45,6 @@ export const PresupuestoSection = memo(({
   const [montoAbono, setValorAbono] = useState('')
   const [metodoPagoAbono, setMetodoPagoAbono] = useState('Efectivo')
 
-  // 💡 Sincronizador de arancel en tiempo real
   useEffect(() => {
     const handleRefrescarArancel = () => {
       const saved = localStorage.getItem('clinica_arancel_prestaciones')
@@ -75,7 +77,6 @@ export const PresupuestoSection = memo(({
     setPrestacionSeleccionadaId(id)
     if (!id) return
 
-    // 💡 Búsqueda blindada por String
     const prest = arancelActualizado.find(p => String(p.id) === String(id))
     if (prest) {
       const precioBase = parseFloat(prest.precio ?? prest.precioParticular) || 0
@@ -120,10 +121,52 @@ export const PresupuestoSection = memo(({
     setPorcentajeDescuentoAplicado(0)
   }
 
+  // 💡 COHESIÓN CLÍNICA & REBAJA DE INVENTARIO
   const handleCambiarEstadoItem = (id, nuevoEstado) => {
-    const actualizados = itemsPresupuesto.map(item => item.id === id ? { ...item, estado: nuevoEstado } : item)
+    let itemRealizado = null
+
+    const actualizados = itemsPresupuesto.map(item => {
+      if (item.id === id) {
+        if (nuevoEstado === 'Realizado' && item.estado !== 'Realizado') {
+          itemRealizado = item
+        }
+        return { ...item, estado: nuevoEstado }
+      }
+      return item
+    })
+
     setItemsPresupuesto(actualizados)
     pacientesStorageService.guardarItem(`presupuesto_items_${paciente.id}`, actualizados)
+
+    if (itemRealizado) {
+      // 1. Cohesión con Bitácora de Evoluciones
+      if (setEvolucionesNotas) {
+        const fechaHora = new Date().toLocaleDateString('es-CL') + ' ' + new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })
+        const profesional = userProfile?.nombreCompleto || 'Cirujano Dentista'
+        
+        const nuevaNotaEvolucion = {
+          id: Date.now(),
+          fecha: fechaHora,
+          texto: `✅ TRATAMIENTO REALIZADO: ${itemRealizado.prestacion} (Pieza: ${itemRealizado.pieza}) — Ejecutado por: ${profesional}`
+        }
+
+        const notasActualizadas = [nuevaNotaEvolucion, ...evolucionesNotas]
+        setEvolucionesNotas(notasActualizadas)
+        pacientesStorageService.guardarItem(`evoluciones_notas_${paciente.id}`, notasActualizadas)
+      }
+
+      // 2. Cohesión con Inventario (Rebaja Automática de Stock)
+      try {
+        const inventarioGuardado = JSON.parse(localStorage.getItem('clinica_inventario_stock') || '[]')
+        if (Array.isArray(inventarioGuardado) && inventarioGuardado.length > 0 && typeof descontarStockPorTratamiento === 'function') {
+          const inventarioActualizado = descontarStockPorTratamiento(inventarioGuardado, itemRealizado.prestacion)
+          localStorage.setItem('clinica_inventario_stock', JSON.stringify(inventarioActualizado))
+          window.dispatchEvent(new CustomEvent('inventario_actualizado'))
+        }
+      } catch (e) {
+        console.error('Error al descontar inventario:', e)
+      }
+    }
   }
 
   const handleEliminarItem = (id) => {
@@ -158,6 +201,7 @@ export const PresupuestoSection = memo(({
 
   return (
     <div>
+      {/* Selector y Formulario de Agregar Prestación */}
       <div className="bg-gray-50 p-4 border border-gray-200 rounded-2xl mb-6 print:hidden space-y-4">
         <div className="flex justify-between items-center border-b pb-2 flex-wrap gap-2">
           <h4 className="font-bold text-xs text-gray-800 uppercase tracking-wider">Añadir Prestación al Plan de Tratamiento</h4>
@@ -232,7 +276,7 @@ export const PresupuestoSection = memo(({
             />
           </div>
 
-          <button type="submit" className="bg-black text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800">
+          <button type="submit" className="bg-black text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 cursor-pointer">
             + Agregar al Presupuesto
           </button>
         </form>
@@ -245,6 +289,7 @@ export const PresupuestoSection = memo(({
         )}
       </div>
 
+      {/* Formulario de Registrar Abono */}
       <div className="bg-white p-4 border border-gray-200 rounded-2xl mb-6 print:hidden">
         <h4 className="font-bold text-xs text-gray-800 mb-3 uppercase tracking-wider">Registrar Abono / Pago del Paciente</h4>
         <form onSubmit={handleAgregarAbono} className="flex flex-wrap gap-3 items-end text-xs">
@@ -264,7 +309,7 @@ export const PresupuestoSection = memo(({
             <select
               value={metodoPagoAbono}
               onChange={(e) => setMetodoPagoAbono(e.target.value)}
-              className="px-3 py-2 border rounded-lg bg-white"
+              className="px-3 py-2 border rounded-lg bg-white font-semibold"
             >
               <option value="Efectivo">Efectivo</option>
               <option value="Transferencia">Transferencia Bancaria</option>
@@ -273,7 +318,7 @@ export const PresupuestoSection = memo(({
             </select>
           </div>
 
-          <button type="submit" className="bg-green-700 text-white font-semibold px-4 py-2 rounded-lg hover:bg-green-800">
+          <button type="submit" className="bg-green-700 text-white font-semibold px-4 py-2 rounded-lg hover:bg-green-800 cursor-pointer">
             + Registrar Abono
           </button>
         </form>
@@ -285,7 +330,7 @@ export const PresupuestoSection = memo(({
               {abonos.map(a => (
                 <div key={a.id} className="flex justify-between items-center bg-gray-50 px-3 py-1.5 rounded-lg border text-xs">
                   <span><strong className="text-gray-800">${a.monto.toLocaleString('es-CL')} CLP</strong> — {a.metodoPago} ({a.fecha})</span>
-                  <button onClick={() => handleEliminarAbono(a.id)} className="text-red-500 hover:text-red-700 font-bold ml-2">🗑️ Borrar</button>
+                  <button onClick={() => handleEliminarAbono(a.id)} className="text-red-500 hover:text-red-700 font-bold ml-2 cursor-pointer">🗑️ Borrar</button>
                 </div>
               ))}
             </div>
@@ -293,12 +338,14 @@ export const PresupuestoSection = memo(({
         )}
       </div>
 
+      {/* Botón de Impresión A4 */}
       <div className="flex justify-end mb-4 print:hidden">
-        <button onClick={() => window.print()} className="bg-black text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-gray-800 shadow-sm">
-          🖨️ Imprimir Presupuesto con Odontograma (PDF)
+        <button onClick={() => window.print()} className="bg-black text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-gray-800 shadow-sm flex items-center gap-2 cursor-pointer">
+          🖨️ Imprimir Presupuesto con Odontograma (A4)
         </button>
       </div>
 
+      {/* Documento Imprimible del Presupuesto */}
       <div className="bg-white border border-gray-200 rounded-2xl p-8 print:border-none print:p-0">
         <div className="border-b-2 border-black pb-4 mb-6 flex justify-between items-start">
           <div>
@@ -319,8 +366,9 @@ export const PresupuestoSection = memo(({
           <p><span className="font-bold">Previsión:</span> {paciente.prevision || 'Particular'}</p>
         </div>
 
+        {/* Odontograma Integrado en Impresión */}
         <div className="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200 print:bg-white print:border">
-          <h4 className="text-[11px] font-bold text-gray-600 uppercase mb-3 text-center">Estado del Odontograma Inicial</h4>
+          <h4 className="text-[11px] font-bold text-gray-600 uppercase mb-3 text-center">Estado de Dentición (Odontograma Clínico)</h4>
           <div className="flex flex-col gap-2 items-center">
             <div className="flex gap-0.5 justify-center">
               {PERMANENTE_SUPERIOR.map(num => (
@@ -361,7 +409,13 @@ export const PresupuestoSection = memo(({
                       <select
                         value={item.estado || 'Pendiente'}
                         onChange={(e) => handleCambiarEstadoItem(item.id, e.target.value)}
-                        className="bg-gray-100 border text-[11px] rounded px-2 py-0.5 font-semibold print:border-none print:bg-transparent"
+                        className={`text-[11px] rounded-lg px-2.5 py-1 font-bold border border-transparent transition-all cursor-pointer print:border-none print:bg-transparent ${
+                          item.estado === 'Realizado'
+                            ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                            : item.estado === 'En Proceso'
+                            ? 'bg-blue-100 text-blue-800 border-blue-300'
+                            : 'bg-amber-100 text-amber-800 border-amber-300'
+                        }`}
                       >
                         <option value="Pendiente">🟡 Pendiente</option>
                         <option value="En Proceso">🔵 En Proceso</option>
@@ -370,7 +424,7 @@ export const PresupuestoSection = memo(({
                     </td>
                     <td className="p-3 text-right font-medium text-gray-900">${item.valor.toLocaleString('es-CL')} CLP</td>
                     <td className="p-3 text-right print:hidden">
-                      <button onClick={() => handleEliminarItem(item.id)} className="text-red-500 hover:text-red-700 font-bold">✕</button>
+                      <button onClick={() => handleEliminarItem(item.id)} className="text-red-500 hover:text-red-700 font-bold cursor-pointer">✕</button>
                     </td>
                   </tr>
                 ))}
@@ -385,8 +439,8 @@ export const PresupuestoSection = memo(({
 
             <div className="hidden print:block mt-20 pt-10 border-t border-gray-300 text-center">
               <div className="w-64 mx-auto border-t border-black pt-2">
-                <p className="font-bold text-xs">{userProfile?.nombreCompleto}</p>
-                <p className="text-[10px] text-gray-600">{userProfile?.especialidad}</p>
+                <p className="font-bold text-xs">{userProfile?.nombreCompleto || 'Dr. Miguel Díaz Rodríguez'}</p>
+                <p className="text-[10px] text-gray-600">{userProfile?.especialidad || 'Cirujano Dentista'}</p>
               </div>
             </div>
           </div>

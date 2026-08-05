@@ -1,8 +1,15 @@
 import React, { memo, useState, useEffect } from 'react'
 import { BOXES_DENTALES, ESTADOS_CITA_GOLD } from '../constants/agendaConstants'
 
-export const ModalNuevaCita = memo(({ citaEditar, pacientes = [], userProfile, alGuardar, alCerrar }) => {
+export const ModalNuevaCita = memo(({ citaEditar, pacientes = [], userProfile, alGuardar, alCrearPacienteRapido, alCerrar }) => {
   const [pacienteId, setPacienteId] = useState('')
+  const [crearNuevoPaciente, setCrearNuevoPaciente] = useState(false)
+  
+  // Campos Paciente Nuevo Express
+  const [nuevoNombre, setNuevoNombre] = useState('')
+  const [nuevoRut, setNuevoRut] = useState('')
+  const [nuevoTelefono, setNuevoTelefono] = useState('')
+
   const [fechaIso, setFechaIso] = useState(new Date().toISOString().split('T')[0])
   const [horaInicio, setHoraInicio] = useState('09:00')
   const [horaFin, setHoraFin] = useState('09:30')
@@ -28,20 +35,43 @@ export const ModalNuevaCita = memo(({ citaEditar, pacientes = [], userProfile, a
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (!pacienteId && estado !== 'Bloqueo') {
-      alert('Selecciona un paciente.')
-      return
+
+    let pacFinal = null
+
+    if (crearNuevoPaciente) {
+      if (!nuevoNombre || !nuevoRut) {
+        alert('Por favor ingresa el nombre y RUT del nuevo paciente.')
+        return
+      }
+
+      pacFinal = {
+        id: Date.now(),
+        nombre: nuevoNombre.trim(),
+        rut: nuevoRut.trim(),
+        telefono: nuevoTelefono.trim(),
+        edad: '30',
+        prevision: 'Particular'
+      }
+
+      if (alCrearPacienteRapido) {
+        alCrearPacienteRapido(pacFinal)
+      }
+    } else {
+      if (!pacienteId && estado !== 'Bloqueo') {
+        alert('Selecciona un paciente o activa la opción de crear paciente express.')
+        return
+      }
+      pacFinal = pacientes.find(p => String(p.id) === String(pacienteId))
     }
 
-    const pac = pacientes.find(p => String(p.id) === String(pacienteId))
     const fechaObj = new Date(fechaIso + 'T00:00:00')
 
     const citaFinal = {
       id: citaEditar ? citaEditar.id : Date.now(),
-      pacienteId: pac?.id,
-      pacienteNombre: pac?.nombre || 'Bloqueo de Box',
-      pacienteRut: pac?.rut || 'N/A',
-      pacienteTelefono: pac?.telefono || '',
+      pacienteId: pacFinal?.id,
+      pacienteNombre: pacFinal?.nombre || 'Bloqueo de Box',
+      pacienteRut: pacFinal?.rut || 'N/A',
+      pacienteTelefono: pacFinal?.telefono || '',
       fecha: fechaObj.toLocaleDateString('es-CL'),
       fechaIso,
       horaInicio,
@@ -70,18 +100,58 @@ export const ModalNuevaCita = memo(({ citaEditar, pacientes = [], userProfile, a
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3">
-          <div>
-            <label className="block font-semibold text-gray-700 mb-1">Paciente Destinatario *</label>
-            <select
-              value={pacienteId}
-              onChange={(e) => setPacienteId(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-bold"
-            >
-              <option value="">-- Seleccionar paciente --</option>
-              {pacientes.map(p => (
-                <option key={p.id} value={p.id}>{p.nombre} ({p.rut})</option>
-              ))}
-            </select>
+          <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-2">
+            <div className="flex justify-between items-center">
+              <label className="font-bold text-gray-800">Paciente Destinatario *</label>
+              <button
+                type="button"
+                onClick={() => setCrearNuevoPaciente(!crearNuevoPaciente)}
+                className="text-blue-600 font-bold hover:underline text-[11px]"
+              >
+                {crearNuevoPaciente ? '← Elegir de la lista' : '➕ Nuevo Paciente Express'}
+              </button>
+            </div>
+
+            {!crearNuevoPaciente ? (
+              <select
+                value={pacienteId}
+                onChange={(e) => setPacienteId(e.target.value)}
+                className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-bold"
+              >
+                <option value="">-- Seleccionar paciente del directorio --</option>
+                {pacientes.map(p => (
+                  <option key={p.id} value={p.id}>{p.nombre} ({p.rut})</option>
+                ))}
+              </select>
+            ) : (
+              <div className="space-y-2 pt-1">
+                <div>
+                  <input
+                    type="text"
+                    placeholder="Nombre completo *"
+                    value={nuevoNombre}
+                    onChange={(e) => setNuevoNombre(e.target.value)}
+                    className="w-full p-2 rounded-lg border border-gray-300 bg-white font-semibold"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="text"
+                    placeholder="RUT (Ej: 12.345.678-9) *"
+                    value={nuevoRut}
+                    onChange={(e) => setNuevoRut(e.target.value)}
+                    className="w-full p-2 rounded-lg border border-gray-300 bg-white"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Teléfono (+569...)"
+                    value={nuevoTelefono}
+                    onChange={(e) => setNuevoTelefono(e.target.value)}
+                    className="w-full p-2 rounded-lg border border-gray-300 bg-white"
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-3">

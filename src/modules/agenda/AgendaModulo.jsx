@@ -6,7 +6,7 @@ import { AgendaViewSelector } from './components/AgendaViewSelector'
 import { CitaCard } from './components/CitaCard'
 import { ModalNuevaCita } from './components/ModalNuevaCita'
 
-export const AgendaModulo = memo(({ pacientes = [], userProfile, alSeleccionarPaciente }) => {
+export const AgendaModulo = memo(({ pacientes = [], userProfile, alSeleccionarPaciente, alCrearPacienteRapido }) => {
   const [modalAbierto, setModalAbierto] = useState(false)
   const [citaEditar, setCitaEditar] = useState(null)
 
@@ -85,6 +85,7 @@ export const AgendaModulo = memo(({ pacientes = [], userProfile, alSeleccionarPa
           pacientes={pacientes}
           userProfile={userProfile}
           alGuardar={agendarOActualizarCita}
+          alCrearPacienteRapido={alCrearPacienteRapido}
           alCerrar={() => setModalAbierto(false)}
         />
       )}

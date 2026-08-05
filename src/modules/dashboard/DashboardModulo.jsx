@@ -2,6 +2,7 @@ import React, { memo } from 'react'
 import { useDashboard } from './hooks/useDashboard'
 import { DashboardHeader } from './components/DashboardHeader'
 import { DashboardKpiCards } from './components/DashboardKpiCards'
+import { SalaEsperaWidget } from './components/SalaEsperaWidget'
 import { CitasHoyWidget } from './components/CitasHoyWidget'
 import { AccesosRapidosWidget } from './components/AccesosRapidosWidget'
 
@@ -21,15 +22,22 @@ export const DashboardModulo = memo(({ userProfile, pacientes = [], setPacienteS
 
       <DashboardKpiCards resumen={resumen} />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <SalaEsperaWidget
+          enEspera={resumen.enEspera}
+          enAtencion={resumen.enAtencion}
+          pacientes={pacientes}
+          alSeleccionarPaciente={handleVerFichaPaciente}
+        />
+
         <CitasHoyWidget
           citasHoy={resumen.citasHoy}
           pacientes={pacientes}
           alSeleccionarPaciente={handleVerFichaPaciente}
         />
-
-        <AccesosRapidosWidget setActiveSection={setActiveSection} />
       </div>
+
+      <AccesosRapidosWidget setActiveSection={setActiveSection} />
     </div>
   )
 })

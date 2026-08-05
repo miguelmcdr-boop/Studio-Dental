@@ -3,17 +3,19 @@ import { TABS_FICHA_PACIENTE } from './constants/pacientesConstants'
 import { useFichaPaciente } from './hooks/useFichaPaciente'
 
 // Subcomponentes Internos
+import { TimelineClinicoWidget } from './components/TimelineClinicoWidget'
 import { AnamnesisSection } from './components/AnamnesisSection'
 import { BitacoraSection } from './components/BitacoraSection'
 import { PresupuestoSection } from './components/PresupuestoSection'
 import { RecetasSection } from './components/RecetasSection'
 import { PostOperatorioSection } from './components/PostOperatorioSection'
 import { CertificadosSection } from './components/CertificadosSection'
+import { ConsentimientosSection } from './components/ConsentimientosSection'
 import { CalculadoraAnestesiaSection } from './components/CalculadoraAnestesiaSection'
 import { AdjuntosSection } from './components/AdjuntosSection'
 import { ModalEditarPaciente } from './components/ModalEditarPaciente'
 
-// Especialidades Externas
+// Especialidades Externas (Módulos Encapsulados)
 import { OdontogramaModulo } from '../odontograma'
 import { OdontoAnatomicoModulo } from '../odontoAnatomico/OdontoAnatomicoModulo'
 import { PeriodontogramaModulo } from '../periodontograma/PeriodontogramaModulo'
@@ -48,6 +50,8 @@ export const FichaPacienteModulo = memo(({
     setRecetas,
     evolucionesNotas,
     setEvolucionesNotas,
+    certificados,
+    setCertificados,
     totalPresupuesto,
     totalAbonado,
     saldoPendiente
@@ -57,13 +61,13 @@ export const FichaPacienteModulo = memo(({
     <div>
       {/* Botones Volver / Eliminar */}
       <div className="flex justify-between items-center mb-4 print:hidden">
-        <button onClick={alVolver} className="text-xs font-semibold text-gray-500 hover:text-black flex items-center gap-1">
+        <button onClick={alVolver} className="text-xs font-semibold text-gray-500 hover:text-black flex items-center gap-1 cursor-pointer">
           ← Volver a la lista de pacientes
         </button>
 
         <button
           onClick={() => alEliminarPaciente(paciente.id)}
-          className="text-xs font-semibold text-red-600 hover:text-red-800 bg-red-50 border border-red-200 px-3 py-1.5 rounded-lg"
+          className="text-xs font-semibold text-red-600 hover:text-red-800 bg-red-50 border border-red-200 px-3 py-1.5 rounded-lg cursor-pointer"
         >
           🗑️ Eliminar Paciente
         </button>
@@ -76,7 +80,7 @@ export const FichaPacienteModulo = memo(({
             <h2 className="text-2xl font-bold text-gray-900">{paciente.nombre}</h2>
             <button
               onClick={() => setMostrarEditarDatos(true)}
-              className="text-xs bg-white border border-gray-300 font-semibold px-2.5 py-1 rounded-lg hover:bg-gray-100"
+              className="text-xs bg-white border border-gray-300 font-semibold px-2.5 py-1 rounded-lg hover:bg-gray-100 cursor-pointer"
             >
               ✏️ Editar Datos
             </button>
@@ -105,7 +109,7 @@ export const FichaPacienteModulo = memo(({
           <button
             key={tab}
             onClick={() => setTabActiva(tab)}
-            className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all whitespace-nowrap ${
+            className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
               tabActiva === tab ? 'border-black text-black' : 'border-transparent text-gray-500 hover:text-gray-800'
             }`}
           >
@@ -115,11 +119,27 @@ export const FichaPacienteModulo = memo(({
       </div>
 
       {/* Renderizado de Secciones */}
+      {tabActiva === 'Línea de Tiempo' && (
+        <TimelineClinicoWidget
+          evolucionesNotas={evolucionesNotas}
+          itemsPresupuesto={itemsPresupuesto}
+          recetas={recetas}
+          certificados={certificados}
+        />
+      )}
+
       {tabActiva === 'Ficha Clínica' && (
         <div className="space-y-6 print:hidden">
           <AnamnesisSection fichaData={fichaData} handleFichaChange={handleFichaChange} />
           <BitacoraSection pacienteId={paciente.id} evolucionesNotas={evolucionesNotas} setEvolucionesNotas={setEvolucionesNotas} />
         </div>
+      )}
+
+      {tabActiva === 'Consentimientos' && (
+        <ConsentimientosSection
+          paciente={paciente}
+          userProfile={userProfile}
+        />
       )}
 
       {tabActiva === 'Odontograma Anatómico' && (
@@ -165,6 +185,8 @@ export const FichaPacienteModulo = memo(({
           totalPresupuesto={totalPresupuesto}
           totalAbonado={totalAbonado}
           saldoPendiente={saldoPendiente}
+          evolucionesNotas={evolucionesNotas}
+          setEvolucionesNotas={setEvolucionesNotas}
         />
       )}
 
@@ -187,10 +209,15 @@ export const FichaPacienteModulo = memo(({
       )}
 
       {tabActiva === 'Certificados' && (
-        <CertificadosSection paciente={paciente} userProfile={userProfile} />
+        <CertificadosSection
+          paciente={paciente}
+          userProfile={userProfile}
+          certificados={certificados}
+          setCertificados={setCertificados}
+        />
       )}
 
-      {(tabActiva === 'Consentimientos' || tabActiva === 'Fotografías Clínicas' || tabActiva === 'Radiografías') && (
+      {(tabActiva === 'Fotografías Clínicas' || tabActiva === 'Radiografías') && (
         <AdjuntosSection tabActiva={tabActiva} />
       )}
 

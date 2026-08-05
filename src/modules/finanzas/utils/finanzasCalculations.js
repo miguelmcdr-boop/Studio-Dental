@@ -6,7 +6,7 @@ export const formatearCLP = (monto) => {
   return `$${(parseInt(monto) || 0).toLocaleString('es-CL')} CLP`
 }
 
-export const calcularBalanceCaja = (movimientos = []) => {
+export const calcularBalanceFinanzas = (movimientos = []) => {
   let totalIngresos = 0
   let totalEgresos = 0
   let totalEfectivo = 0
@@ -15,12 +15,14 @@ export const calcularBalanceCaja = (movimientos = []) => {
 
   movimientos.forEach(m => {
     const monto = parseInt(m.monto) || 0
-    if (m.tipo === 'ingreso') {
+    const tipo = (m.tipo || '').toLowerCase()
+
+    if (tipo === 'ingreso') {
       totalIngresos += monto
       if (m.metodoPago === 'Efectivo') totalEfectivo += monto
       else if (m.metodoPago === 'Débito' || m.metodoPago === 'Crédito') totalTarjetas += monto
       else if (m.metodoPago === 'Transferencia') totalTransferencias += monto
-    } else if (m.tipo === 'egreso') {
+    } else if (tipo === 'egreso') {
       totalEgresos += monto
       if (m.metodoPago === 'Efectivo') totalEfectivo -= monto
     }
@@ -35,6 +37,9 @@ export const calcularBalanceCaja = (movimientos = []) => {
     totalTransferencias
   }
 }
+
+// Alias para mantener compatibilidad con componentes que llamen a calcularBalanceCaja
+export const calcularBalanceCaja = calcularBalanceFinanzas
 
 export const calcularBoletaHonorarios = (valorInput = 0, modo = 'bruto', pctRetencion = 13.75) => {
   const monto = parseFloat(valorInput) || 0

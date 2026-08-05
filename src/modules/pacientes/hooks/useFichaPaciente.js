@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { pacientesStorageService } from '../services/pacientesStorageService'
-import { obtenerDescuentoConvenio } from '../utils/pacientesCalculations'
 
 export const useFichaPaciente = (paciente, alActualizarPaciente) => {
   const [tabActiva, setTabActiva] = useState('Ficha Clínica')
@@ -8,16 +7,19 @@ export const useFichaPaciente = (paciente, alActualizarPaciente) => {
   const [odontogramaEvolucion, setOdontogramaEvolucion] = useState({})
   
   const [itemsPresupuesto, setItemsPresupuesto] = useState(() => 
-    pacientesStorageService.obtenerItem(`presupuesto_items_${paciente.id}`)
+    pacientesStorageService.obtenerItem(`presupuesto_items_${paciente.id}`, [])
   )
   const [abonos, setAbonos] = useState(() => 
-    pacientesStorageService.obtenerItem(`abonos_${paciente.id}`)
+    pacientesStorageService.obtenerItem(`abonos_${paciente.id}`, [])
   )
   const [recetas, setRecetas] = useState(() => 
-    pacientesStorageService.obtenerItem(`recetas_${paciente.id}`)
+    pacientesStorageService.obtenerItem(`recetas_${paciente.id}`, [])
   )
   const [evolucionesNotas, setEvolucionesNotas] = useState(() => 
-    pacientesStorageService.obtenerItem(`evoluciones_notas_${paciente.id}`)
+    pacientesStorageService.obtenerItem(`evoluciones_notas_${paciente.id}`, [])
+  )
+  const [certificados, setCertificados] = useState(() => 
+    pacientesStorageService.obtenerItem(`certificados_${paciente.id}`, [])
   )
 
   const [fichaData, setFichaData] = useState({
@@ -60,8 +62,8 @@ export const useFichaPaciente = (paciente, alActualizarPaciente) => {
     pacientesStorageService.guardarItem(`odonto_evolucion_${paciente.id}`, nuevoOdonto)
   }, [paciente.id])
 
-  const totalPresupuesto = useMemo(() => itemsPresupuesto.reduce((acc, curr) => acc + curr.valor, 0), [itemsPresupuesto])
-  const totalAbonado = useMemo(() => abonos.reduce((acc, curr) => acc + curr.monto, 0), [abonos])
+  const totalPresupuesto = useMemo(() => (itemsPresupuesto || []).reduce((acc, curr) => acc + (curr.valor || 0), 0), [itemsPresupuesto])
+  const totalAbonado = useMemo(() => (abonos || []).reduce((acc, curr) => acc + (curr.monto || 0), 0), [abonos])
   const saldoPendiente = totalPresupuesto - totalAbonado
 
   return {
@@ -81,6 +83,8 @@ export const useFichaPaciente = (paciente, alActualizarPaciente) => {
     setRecetas,
     evolucionesNotas,
     setEvolucionesNotas,
+    certificados,
+    setCertificados,
     totalPresupuesto,
     totalAbonado,
     saldoPendiente

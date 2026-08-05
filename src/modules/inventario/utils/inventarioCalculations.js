@@ -1,10 +1,10 @@
 /**
- * Utilidades puras para evaluación de inventario y alertas
+ * Utilidades puras para evaluación de inventario, alertas y descuento de stock
  */
 
 export const evaluarEstadoStock = (item) => {
-  const cantidad = parseInt(item.cantidad) || 0
-  const minimo = parseInt(item.minimoCritico) || 0
+  const cantidad = parseInt(item.cantidad ?? item.stockActual) || 0
+  const minimo = parseInt(item.minimoCritico ?? item.stockMinimo) || 0
 
   if (cantidad === 0) {
     return { id: 'agotado', texto: '🔴 Agotado', colorBg: 'bg-red-100', colorText: 'text-red-900' }
@@ -16,7 +16,7 @@ export const evaluarEstadoStock = (item) => {
 }
 
 export const evaluarVencimiento = (fechaVencimiento) => {
-  if (!fechaVencimiento) return { diasRestantes: 999, estado: 'ok' }
+  if (!fechaVencimiento) return { diasRestantes: 999, estado: 'ok', texto: 'Vigente' }
 
   const hoy = new Date()
   const fechaVenc = new Date(fechaVencimiento)
@@ -49,8 +49,8 @@ export const calcularResumenInventario = (items = []) => {
       porVencerCount++
     }
 
-    const cant = parseInt(item.cantidad) || 0
-    const precio = parseFloat(item.precioUnitario) || 0
+    const cant = parseInt(item.cantidad ?? item.stockActual) || 0
+    const precio = parseFloat(item.precioUnitario ?? item.precio) || 0
     valorTotalInventario += (cant * precio)
   })
 
@@ -60,4 +60,57 @@ export const calcularResumenInventario = (items = []) => {
     porVencerCount,
     valorTotalInventario
   }
+}
+
+export const INSUMOS_POR_PRESTACION_DEFAULT = {
+  Operatoria: [
+    { nombreInsumo: 'Resina Compuesta A2/A3', cantidad: 1, unidad: 'Jeringa/Dosis' },
+    { nombreInsumo: 'Adhesivo Dental Universal', cantidad: 1, unidad: 'Gota/Dosis' },
+    { nombreInsumo: 'Kit de Examen & Babero Disposables', cantidad: 1, unidad: 'Set' }
+  ],
+  Endodoncia: [
+    { nombreInsumo: 'Limas de Endodoncia Rotatorias', cantidad: 1, unidad: 'Pieza' },
+    { nombreInsumo: 'Hipoclorito de Sodio 5.25%', cantidad: 1, unidad: 'Jeringa/Irrigación' },
+    { nombreInsumo: 'Conos de Gutapercha', cantidad: 1, unidad: 'Set' }
+  ],
+  Cirugia: [
+    { nombreInsumo: 'Cartucho Anestesia Lidocaína/Epinefrina', cantidad: 2, unidad: 'Tubo' },
+    { nombreInsumo: 'Hoja de Bisturí #15', cantidad: 1, unidad: 'Unidad' },
+    { nombreInsumo: 'Hilo de Sutura Seda/Nylon 3-0', cantidad: 1, unidad: 'Unidad' }
+  ],
+  Limpieza: [
+    { nombreInsumo: 'Pasta Profiláctica + Cepillo', cantidad: 1, unidad: 'Dosis' },
+    { nombreInsumo: 'Eyector de Saliva Disposables', cantidad: 2, unidad: 'Unidad' }
+  ]
+}
+
+export const descontarStockPorTratamiento = (inventarioActual = [], nombrePrestacion = '') => {
+  const nombreLower = nombrePrestacion.toLowerCase()
+  let categoriaCoincidente = 'Operatoria'
+
+  if (nombreLower.includes('endo') || nombreLower.includes('conducto')) {
+    categoriaCoincidente = 'Endodoncia'
+  } else if (nombreLower.includes('exodoncia') || nombreLower.includes('cirugía') || nombreLower.includes('implante')) {
+    categoriaCoincidente = 'Cirugia'
+  } else if (nombreLower.includes('limpieza') || nombreLower.includes('destartraje') || nombreLower.includes('profilaxis')) {
+    categoriaCoincidente = 'Limpieza'
+  }
+
+  const insumosARebajar = INSUMOS_POR_PRESTACION_DEFAULT[categoriaCoincidente] || INSUMOS_POR_PRESTACION_DEFAULT.Operatoria
+
+  const inventarioActualizado = inventarioActual.map(item => {
+    const coincidencia = insumosARebajar.find(ins => 
+      (item.nombre || '').toLowerCase().includes(ins.nombreInsumo.toLowerCase()) ||
+      ins.nombreInsumo.toLowerCase().includes((item.nombre || '').toLowerCase())
+    )
+
+    if (coincidencia) {
+      const stockPrev = parseInt(item.cantidad ?? item.stockActual) || 0
+      const nuevoStock = Math.max(0, stockPrev - coincidencia.cantidad)
+      return { ...item, cantidad: nuevoStock, stockActual: nuevoStock }
+    }
+    return item
+  })
+
+  return inventarioActualizado
 }

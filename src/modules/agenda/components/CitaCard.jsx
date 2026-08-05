@@ -6,11 +6,32 @@ export const CitaCard = memo(({ cita, onCambiarEstado, onEditar, onEliminar, alS
   const configEstado = ESTADOS_CITA_GOLD.find(e => e.id === cita.estado) || ESTADOS_CITA_GOLD[0]
   const paciente = pacientes.find(p => String(p.id) === String(cita.pacienteId))
 
+  const handleEnviarWhatsapp = () => {
+    const telefonoLimpio = (cita.pacienteTelefono || '').replace(/[^0-9]/g, '')
+    if (!telefonoLimpio) {
+      alert('El paciente no tiene un número de teléfono válido registrado.')
+      return
+    }
+
+    const mensaje = encodeURIComponent(
+      `Hola ${cita.pacienteNombre}, te saludamos de Studio Dental. Te recordamos tu cita agendada para el día ${cita.fecha || cita.fechaIso} a las ${cita.horaInicio} hrs en el ${boxObj.nombre} con el/la ${cita.doctorNombre}. Por favor respóndenos a este mensaje para confirmar tu asistencia. ¡Te esperamos!`
+    )
+
+    window.open(`https://wa.me/${telefonoLimpio}?text=${mensaje}`, '_blank')
+  }
+
   return (
     <div className={`p-4 border rounded-2xl shadow-xs space-y-3 bg-white ${boxObj.colorBorder}`}>
       <div className="flex justify-between items-start border-b pb-2 flex-wrap gap-2">
         <div>
-          <span className="font-extrabold text-sm text-gray-900 block">{cita.pacienteNombre}</span>
+          <div className="flex items-center gap-2">
+            <span className="font-extrabold text-sm text-gray-900 block">{cita.pacienteNombre}</span>
+            {paciente?.alergias && paciente.alergias.toLowerCase() !== 'ninguna' && (
+              <span className="text-[10px] bg-red-100 text-red-800 font-bold px-1.5 py-0.5 rounded border border-red-200" title={`Alergias: ${paciente.alergias}`}>
+                ⚠️ Alergia
+              </span>
+            )}
+          </div>
           <span className="text-[10px] text-gray-500 block">RUT: {cita.pacienteRut} | Tel: {cita.pacienteTelefono || 'N/I'}</span>
         </div>
 
@@ -51,15 +72,25 @@ export const CitaCard = memo(({ cita, onCambiarEstado, onEditar, onEliminar, alS
         </p>
       )}
 
-      <div className="flex justify-between items-center pt-2 border-t text-[11px] print:hidden">
-        {paciente && alSeleccionarPaciente ? (
+      <div className="flex justify-between items-center pt-2 border-t text-[11px] print:hidden flex-wrap gap-2">
+        <div className="flex gap-3 items-center">
+          {paciente && alSeleccionarPaciente ? (
+            <button
+              onClick={() => alSeleccionarPaciente(paciente)}
+              className="text-blue-600 font-bold hover:underline flex items-center gap-1"
+            >
+              👥 Ir a Ficha Clínica →
+            </button>
+          ) : <span />}
+
           <button
-            onClick={() => alSeleccionarPaciente(paciente)}
-            className="text-blue-600 font-bold hover:underline"
+            onClick={handleEnviarWhatsapp}
+            className="text-emerald-700 font-bold hover:text-emerald-900 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-lg text-[10px] flex items-center gap-1"
+            title="Enviar recordatorio por WhatsApp"
           >
-            👥 Ir a Ficha Clínica →
+            💬 WhatsApp
           </button>
-        ) : <span />}
+        </div>
 
         <div className="flex gap-2">
           <button onClick={() => onEditar(cita)} className="text-gray-600 font-bold hover:text-black">✏️ Editar</button>
