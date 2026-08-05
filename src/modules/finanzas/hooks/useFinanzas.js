@@ -1,10 +1,16 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { finanzasStorageService } from '../services/finanzasStorageService'
 import { calcularBalanceFinanzas } from '../utils/finanzasCalculations'
+import { CONVENIOS_DEFAULT } from '../constants/finanzasConstants'
 
 export const useFinanzas = (pacientes = []) => {
   const [movimientosManuales, setMovimientosManuales] = useState(() =>
     finanzasStorageService.obtenerMovimientos([])
+  )
+
+  // NUEVO: estado de convenios, requerido por ConveniosManager
+  const [convenios, setConvenios] = useState(() =>
+    finanzasStorageService.obtenerConvenios(CONVENIOS_DEFAULT)
   )
 
   const [fechaArqueo, setFechaArqueo] = useState(
@@ -103,6 +109,17 @@ export const useFinanzas = (pacientes = []) => {
     }
   }, [])
 
+  // NUEVO: actualizar el % de descuento por defecto de un convenio
+  const actualizarDescuentoConvenio = useCallback((convenioId, nuevoDescuento) => {
+    setConvenios(prev => {
+      const actualizados = prev.map(c =>
+        c.id === convenioId ? { ...c, descuentoDefecto: parseFloat(nuevoDescuento) || 0 } : c
+      )
+      finanzasStorageService.guardarConvenios(actualizados)
+      return actualizados
+    })
+  }, [])
+
   return {
     movimientos: movimientosConsolidadosTotal,
     transaccionesDiaArqueo,
@@ -111,6 +128,8 @@ export const useFinanzas = (pacientes = []) => {
     balanceGlobal,
     agregarMovimiento,
     eliminarMovimiento,
-    recargarTransaccionesConsolidadas
+    recargarTransaccionesConsolidadas,
+    convenios,
+    actualizarDescuentoConvenio
   }
 }

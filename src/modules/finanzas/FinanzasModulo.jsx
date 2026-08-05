@@ -4,6 +4,9 @@ import { BalanceCajaCards } from './components/BalanceCajaCards'
 import { ArqueoCajaDiario } from './components/ArqueoCajaDiario'
 import { TablaMovimientos } from './components/TablaMovimientos'
 import { ModalNuevoMovimiento } from './components/ModalNuevoMovimiento'
+import { CuentasPendientes } from './components/CuentasPendientes'
+import { ConveniosManager } from './components/ConveniosManager'
+import { CalculadoraBoletas } from './components/CalculadoraBoletas'
 
 export const FinanzasModulo = memo(({ pacientes = [], userProfile }) => {
   const [tabActiva, setTabActiva] = useState('Arqueo de Caja')
@@ -16,8 +19,18 @@ export const FinanzasModulo = memo(({ pacientes = [], userProfile }) => {
     setFechaArqueo,
     balanceGlobal,
     agregarMovimiento,
-    eliminarMovimiento
+    eliminarMovimiento,
+    convenios,
+    actualizarDescuentoConvenio
   } = useFinanzas(pacientes)
+
+  const TABS = [
+    'Arqueo de Caja',
+    'Historial Global de Movimientos',
+    'Cuentas Pendientes',
+    'Convenios',
+    'Calculadora de Boletas'
+  ]
 
   return (
     <div className="space-y-6">
@@ -40,8 +53,8 @@ export const FinanzasModulo = memo(({ pacientes = [], userProfile }) => {
       </div>
 
       {/* Navegación por Pestañas */}
-      <div className="flex gap-2 border-b border-gray-200 print:hidden">
-        {['Arqueo de Caja', 'Historial Global de Movimientos'].map(tab => (
+      <div className="flex gap-2 border-b border-gray-200 print:hidden flex-wrap">
+        {TABS.map(tab => (
           <button
             key={tab}
             onClick={() => setTabActiva(tab)}
@@ -66,7 +79,28 @@ export const FinanzasModulo = memo(({ pacientes = [], userProfile }) => {
 
       {tabActiva === 'Historial Global de Movimientos' && (
         <div className="print:hidden">
-          <TablaMovimientos movimientos={movimientos} alEliminar={eliminarMovimiento} />
+          <TablaMovimientos movimientos={movimientos} onEliminar={eliminarMovimiento} />
+        </div>
+      )}
+
+      {tabActiva === 'Cuentas Pendientes' && (
+        <div className="print:hidden">
+          <CuentasPendientes pacientes={pacientes} />
+        </div>
+      )}
+
+      {tabActiva === 'Convenios' && (
+        <div className="print:hidden">
+          <ConveniosManager
+            convenios={convenios}
+            onActualizarDescuento={actualizarDescuentoConvenio}
+          />
+        </div>
+      )}
+
+      {tabActiva === 'Calculadora de Boletas' && (
+        <div className="print:hidden">
+          <CalculadoraBoletas alRegistrarGastoHonorario={agregarMovimiento} />
         </div>
       )}
 

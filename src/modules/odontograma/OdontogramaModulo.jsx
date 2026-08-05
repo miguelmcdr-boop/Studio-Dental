@@ -107,7 +107,7 @@ export const OdontogramaModulo = memo(({
       </div>
 
       {/* Grid de Odontograma Split con ancho contenedor independiente */}
-      <div className={`grid gap-6 ${modoComparativoSplit ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-1'}`}>
+      <div className="grid grid-cols-1 gap-6">
         
         {/* Panel 1: Odontograma Inicial */}
         <div className="bg-white border border-gray-200 rounded-3xl p-5 shadow-xs">
