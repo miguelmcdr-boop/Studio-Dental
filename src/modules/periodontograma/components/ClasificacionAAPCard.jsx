@@ -1,0 +1,52 @@
+import React, { memo } from 'react'
+
+export const ClasificacionAAPCard = memo(({ indices, factoresRiesgo, setFactoresRiesgo }) => {
+  return (
+    <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xs space-y-4 text-xs mb-6 print:hidden">
+      <div className="flex justify-between items-center border-b pb-2 flex-wrap gap-2">
+        <h4 className="font-extrabold text-gray-900 uppercase tracking-wider text-[11px] flex items-center gap-2">
+          <span>🏆</span> Diagnóstico Periodontal Estándar AAP/EFP (Chicago 2017)
+        </h4>
+
+        {/* Factores Moduladores de Riesgo */}
+        <div className="flex items-center gap-3 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-200">
+          <span className="font-bold text-gray-600 text-[10px]">Factores Moduladores de Riesgo:</span>
+          <label className="flex items-center gap-1 font-bold text-gray-800 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={factoresRiesgo.fumador}
+              onChange={(e) => setFactoresRiesgo(prev => ({ ...prev, fumador: e.target.checked }))}
+              className="rounded text-black focus:ring-0"
+            />
+            🚬 Tabaquismo
+          </label>
+          <label className="flex items-center gap-1 font-bold text-gray-800 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={factoresRiesgo.diabetes}
+              onChange={(e) => setFactoresRiesgo(prev => ({ ...prev, diabetes: e.target.checked }))}
+              className="rounded text-black focus:ring-0"
+            />
+            🩺 Diabetes
+          </label>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className={`p-4 rounded-xl border ${indices.colorEtapa} space-y-1`}>
+          <span className="text-[10px] font-extrabold uppercase tracking-wider block opacity-75">Estadificación (Severidad / Extensión)</span>
+          <span className="text-base font-black block">{indices.diagnosticoSugerido}</span>
+          <span className="text-[10px] block opacity-80">Calculado en base a sondaje máximo ({indices.maxSondaje}mm) y porcentaje BOP ({indices.porcentajeSangrado}%).</span>
+        </div>
+
+        <div className="p-4 rounded-xl bg-purple-50 border border-purple-200 text-purple-950 space-y-1">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider block text-purple-800">Gradación (Tasa de Progresión)</span>
+          <span className="text-base font-black block">{indices.gradoAAP}</span>
+          <span className="text-[10px] text-purple-700 block">Basado en factores modificadores del hospedero e inflamación activa.</span>
+        </div>
+      </div>
+    </div>
+  )
+})
+
+ClasificacionAAPCard.displayName = 'ClasificacionAAPCard'
