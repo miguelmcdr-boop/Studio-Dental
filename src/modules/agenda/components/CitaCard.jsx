@@ -1,101 +1,86 @@
 import React, { memo } from 'react'
-import { BOXES_DENTALES, ESTADOS_CITA_GOLD } from '../constants/agendaConstants'
 
-export const CitaCard = memo(({ cita, onCambiarEstado, onEditar, onEliminar, alSeleccionarPaciente, pacientes = [] }) => {
-  const boxObj = BOXES_DENTALES.find(b => b.id === cita.boxId) || BOXES_DENTALES[0]
-  const configEstado = ESTADOS_CITA_GOLD.find(e => e.id === cita.estado) || ESTADOS_CITA_GOLD[0]
-  const paciente = pacientes.find(p => String(p.id) === String(cita.pacienteId))
+export const CitaCard = memo(({
+  cita,
+  alHacerClic,
+  alCambiarEstado,
+  alEnviarWhatsApp,
+  alVerFicha
+}) => {
+  const esBloqueo = cita.esBloqueo
 
-  const handleEnviarWhatsapp = () => {
-    const telefonoLimpio = (cita.pacienteTelefono || '').replace(/[^0-9]/g, '')
-    if (!telefonoLimpio) {
-      alert('El paciente no tiene un número de teléfono válido registrado.')
-      return
-    }
-
-    const mensaje = encodeURIComponent(
-      `Hola ${cita.pacienteNombre}, te saludamos de Studio Dental. Te recordamos tu cita agendada para el día ${cita.fecha || cita.fechaIso} a las ${cita.horaInicio} hrs en el ${boxObj.nombre} con el/la ${cita.doctorNombre}. Por favor respóndenos a este mensaje para confirmar tu asistencia. ¡Te esperamos!`
+  if (esBloqueo) {
+    return (
+      <div className="p-2.5 rounded-xl border border-dashed border-gray-300 bg-gray-100/80 text-gray-700 text-xs flex justify-between items-center my-1">
+        <span className="font-extrabold text-[11px] flex items-center gap-1.5">
+          ⛔ {cita.motivoBloqueo || 'Bloqueo Horario'} ({cita.horaInicio} - {cita.horaFin})
+        </span>
+        <span className="text-[10px] bg-white px-2 py-0.5 rounded border border-gray-200 font-bold">
+          {cita.boxAsignado || 'Box Reservado'}
+        </span>
+      </div>
     )
-
-    window.open(`https://wa.me/${telefonoLimpio}?text=${mensaje}`, '_blank')
   }
 
   return (
-    <div className={`p-4 border rounded-2xl shadow-xs space-y-3 bg-white ${boxObj.colorBorder}`}>
-      <div className="flex justify-between items-start border-b pb-2 flex-wrap gap-2">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="font-extrabold text-sm text-gray-900 block">{cita.pacienteNombre}</span>
-            {paciente?.alergias && paciente.alergias.toLowerCase() !== 'ninguna' && (
-              <span className="text-[10px] bg-red-100 text-red-800 font-bold px-1.5 py-0.5 rounded border border-red-200" title={`Alergias: ${paciente.alergias}`}>
-                ⚠️ Alergia
-              </span>
-            )}
-          </div>
-          <span className="text-[10px] text-gray-500 block">RUT: {cita.pacienteRut} | Tel: {cita.pacienteTelefono || 'N/I'}</span>
-        </div>
-
-        <div className="flex items-center gap-1">
-          <select
-            value={cita.estado}
-            onChange={(e) => onCambiarEstado(cita.id, e.target.value)}
-            className={`px-2.5 py-1 rounded-xl font-black text-[10px] border bg-white cursor-pointer ${configEstado.colorText} ${configEstado.colorBorder}`}
-          >
-            {ESTADOS_CITA_GOLD.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
-          </select>
-        </div>
+    <div
+      onClick={() => alHacerClic && alHacerClic(cita)}
+      className={`p-3 rounded-2xl border transition-all cursor-pointer shadow-2xs space-y-2 bg-white ${
+        cita.estado === 'En Sillón'
+          ? 'border-purple-500 ring-2 ring-purple-400/30 bg-purple-50/20'
+          : cita.estado === 'Confirmado'
+          ? 'border-emerald-300 bg-emerald-50/10'
+          : 'border-gray-200 hover:border-black'
+      }`}
+    >
+      <div className="flex justify-between items-center text-xs">
+        <span className="font-black text-gray-900 text-[11px]">
+          ⏰ {cita.horaInicio} - {cita.horaFin} ({cita.duracionMinutos || 30} min)
+        </span>
+        <select
+          value={cita.estado || 'Agendado'}
+          onClick={(e) => e.stopPropagation()}
+          onChange={(e) => alCambiarEstado && alCambiarEstado(cita.id, e.target.value)}
+          className="text-[10px] font-extrabold rounded-lg px-2 py-0.5 border bg-white focus:outline-none cursor-pointer"
+        >
+          <option value="Agendado">🔵 Agendado</option>
+          <option value="Confirmado">🟢 Confirmado</option>
+          <option value="En Espera">🟡 En Sala de Espera</option>
+          <option value="En Sillón">🟣 En Sillón</option>
+          <option value="Atendido">⚪ Atendido</option>
+          <option value="Anulado">🔴 Anulado</option>
+        </select>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 text-[11px]">
-        <div>
-          <span className="font-semibold text-gray-600 block">Horario & Box:</span>
-          <span className="font-black text-gray-900">{cita.horaInicio} - {cita.horaFin} hrs</span>
-          <span className="text-[10px] font-bold text-gray-600 block mt-0.5">{boxObj.nombre}</span>
-        </div>
-
-        <div>
-          <span className="font-semibold text-gray-600 block">Tratamiento / Motivo:</span>
-          <span className="font-bold text-gray-800">{cita.motivo}</span>
-          <span className="text-[10px] text-gray-500 block">{cita.doctorNombre}</span>
-        </div>
-      </div>
-
-      {cita.horaLlegadaEspera && cita.estado === 'EnEspera' && (
-        <div className="p-2 bg-amber-50 text-amber-900 rounded-lg border border-amber-200 text-[10px] font-bold">
-          ⏳ Llegó a recepción a las {cita.horaLlegadaEspera} hrs (En espera)
-        </div>
-      )}
-
-      {cita.observaciones && (
-        <p className="text-[10px] text-gray-600 italic bg-gray-50 p-2 rounded-lg border">
-          📌 {cita.observaciones}
+      <div>
+        <h4 className="font-black text-sm text-gray-900 leading-tight">{cita.pacienteNombre}</h4>
+        <p className="text-[11px] font-medium text-gray-500 flex justify-between pt-0.5">
+          <span>🩺 {cita.trataMiento || cita.motivo || 'Consulta Clínica'}</span>
+          <span className="font-bold text-gray-700">{cita.boxAsignado || 'Sillón 1'}</span>
         </p>
-      )}
+      </div>
 
-      <div className="flex justify-between items-center pt-2 border-t text-[11px] print:hidden flex-wrap gap-2">
-        <div className="flex gap-3 items-center">
-          {paciente && alSeleccionarPaciente ? (
-            <button
-              onClick={() => alSeleccionarPaciente(paciente)}
-              className="text-blue-600 font-bold hover:underline flex items-center gap-1"
-            >
-              👥 Ir a Ficha Clínica →
-            </button>
-          ) : <span />}
+      <div className="flex justify-between items-center pt-1 border-t border-gray-100 text-[10px]">
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); alVerFicha && alVerFicha(cita.pacienteId) }}
+          className="font-bold text-blue-600 hover:underline cursor-pointer flex items-center gap-1"
+        >
+          📁 Ver Ficha
+        </button>
 
-          <button
-            onClick={handleEnviarWhatsapp}
-            className="text-emerald-700 font-bold hover:text-emerald-900 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-lg text-[10px] flex items-center gap-1"
-            title="Enviar recordatorio por WhatsApp"
-          >
-            💬 WhatsApp
-          </button>
-        </div>
-
-        <div className="flex gap-2">
-          <button onClick={() => onEditar(cita)} className="text-gray-600 font-bold hover:text-black">✏️ Editar</button>
-          <button onClick={() => onEliminar(cita.id)} className="text-red-500 font-bold hover:text-red-700">🗑️ Cancelar</button>
-        </div>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation()
+            if (alEnviarWhatsApp) {
+              alEnviarWhatsApp(cita)
+            }
+          }}
+          className="font-black text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-2.5 py-1 rounded-lg cursor-pointer flex items-center gap-1"
+        >
+          📲 Confirmar WhatsApp
+        </button>
       </div>
     </div>
   )

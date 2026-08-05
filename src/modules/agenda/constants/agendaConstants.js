@@ -1,56 +1,27 @@
-/**
- * Constantes Gold Standard para la Agenda Multi-Box
- */
-
-export const BOXES_DENTALES = [
-  { id: 'box_1', nombre: '🦷 Box 1 (General / Operatoria)', colorBg: 'bg-blue-50', colorBorder: 'border-blue-300' },
-  { id: 'box_2', nombre: '🔬 Box 2 (Endodoncia / Cirugía)', colorBg: 'bg-purple-50', colorBorder: 'border-purple-300' },
-  { id: 'box_3', nombre: '✨ Box 3 (Estética / Ortodoncia)', colorBg: 'bg-emerald-50', colorBorder: 'border-emerald-300' },
-  { id: 'box_higiene', nombre: '🧼 Box Higiene / Profilaxis', colorBg: 'bg-amber-50', colorBorder: 'border-amber-300' }
+export const SILLONES_DENTALES = [
+  { id: 'sillon_1', nombre: 'Sillón 1 - Odontología General', especialidad: 'Evaluación y Restauraciones' },
+  { id: 'sillon_2', nombre: 'Sillón 2 - Higiene & Ortodoncia', especialidad: 'Limpieza, Profilaxis y Frenillos' },
+  { id: 'box_3', nombre: 'Box 3 - Quirúrgico & Implantes', especialidad: 'Cirugías y Periodoncia' }
 ]
 
-export const ESTADOS_CITA_GOLD = [
-  { id: 'Agendado', nombre: '📅 Agendado', colorBg: 'bg-blue-100', colorText: 'text-blue-900', colorBorder: 'border-blue-300' },
-  { id: 'EnEspera', nombre: '⏳ En Sala de Espera', colorBg: 'bg-amber-100', colorText: 'text-amber-900', colorBorder: 'border-amber-300' },
-  { id: 'EnSillon', nombre: '🟢 En Sillón / Atención', colorBg: 'bg-emerald-100', colorText: 'text-emerald-900', colorBorder: 'border-emerald-300' },
-  { id: 'Finalizado', nombre: '✅ Finalizado', colorBg: 'bg-gray-100', colorText: 'text-gray-800', colorBorder: 'border-gray-300' },
-  { id: 'NoAsiste', nombre: '🔴 No Asiste (No-Show)', colorBg: 'bg-red-100', colorText: 'text-red-900', colorBorder: 'border-red-300' },
-  { id: 'Bloqueo', nombre: '🔒 Bloqueo / Mantenimiento', colorBg: 'bg-gray-200', colorText: 'text-gray-700', colorBorder: 'border-gray-400' }
+export const BOXES_DENTALES = SILLONES_DENTALES
+
+export const TIPOS_BLOQUEO_AGENDA = [
+  { id: 'almuerzo', label: '🍱 Horario de Almuerzo', color: 'bg-gray-200 text-gray-800' },
+  { id: 'reunion', label: '👥 Reunión Clínica / Administrativa', color: 'bg-amber-100 text-amber-900' },
+  { id: 'mantenimiento', label: '🛠️ Mantenimiento de Sillón / Box', color: 'bg-red-100 text-red-900' },
+  { id: 'urgencia_reserva', label: '🚨 Reserva Exclusiva Urgencias', color: 'bg-purple-100 text-purple-900' }
 ]
 
-export const CITAS_DEFAULT = [
-  {
-    id: 501,
-    pacienteId: 1,
-    pacienteNombre: 'Camila Silva Morales',
-    pacienteRut: '18.452.123-K',
-    pacienteTelefono: '+56 9 8765 4321',
-    fecha: new Date().toLocaleDateString('es-CL'),
-    fechaIso: new Date().toISOString().split('T')[0],
-    horaInicio: '09:00',
-    horaFin: '09:30',
-    boxId: 'box_1',
-    doctorNombre: 'Dr. Miguel Díaz',
-    motivo: 'Evaluación de Corona Zirconio',
-    estado: 'EnSillon',
-    horaLlegadaEspera: '08:55',
-    observaciones: 'Paciente puntual. Presenta sensibilidad leve.'
-  },
-  {
-    id: 502,
-    pacienteId: 2,
-    pacienteNombre: 'Carlos Mendoza Vera',
-    pacienteRut: '15.321.987-4',
-    pacienteTelefono: '+56 9 1234 5678',
-    fecha: new Date().toLocaleDateString('es-CL'),
-    fechaIso: new Date().toISOString().split('T')[0],
-    horaInicio: '10:00',
-    horaFin: '10:45',
-    boxId: 'box_2',
-    doctorNombre: 'Dr. Miguel Díaz',
-    motivo: 'Endodoncia Unirradicular',
-    estado: 'EnEspera',
-    horaLlegadaEspera: '09:50',
-    observaciones: 'Requiere anestesia sin vasoconstrictor por hipertensión.'
-  }
-]
+export const ESTADOS_CITA = {
+  AGENDADO: { id: 'Agendado', label: '🔵 Agendado', color: 'bg-blue-100 text-blue-800' },
+  CONFIRMADO: { id: 'Confirmado', label: '🟢 Confirmado', color: 'bg-emerald-100 text-emerald-800' },
+  SALA_ESPERA: { id: 'En Espera', label: '🟡 En Sala de Espera', color: 'bg-amber-100 text-amber-900' },
+  EN_SILLON: { id: 'En Sillón', label: '🟣 En Sillón', color: 'bg-purple-100 text-purple-900' },
+  ATENDIDO: { id: 'Atendido', label: '⚪ Atendido', color: 'bg-gray-100 text-gray-700' },
+  ANULADO: { id: 'Anulado', label: '🔴 Anulado', color: 'bg-red-100 text-red-800' }
+}
+
+// 💡 Exportamos un Arreglo Mapeable seguro para ModalNuevaCita.jsx
+export const ESTADOS_CITA_GOLD = Object.values(ESTADOS_CITA)
+export const ESTADOS_CITA_WORLD_CLASS = ESTADOS_CITA_GOLD
