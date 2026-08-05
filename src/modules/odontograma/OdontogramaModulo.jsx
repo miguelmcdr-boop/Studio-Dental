@@ -37,8 +37,8 @@ export const OdontogramaModulo = memo(({
   const piezasInferiores = tipoDenticion === 'permanente' ? PERMANENTE_INFERIOR : TEMPORAL_INFERIOR
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Barra Superior */}
+    <div className="space-y-6 w-full max-w-full">
+      {/* Barra Superior de Control */}
       <div className="flex justify-between items-center mb-4 flex-wrap gap-3 print:hidden">
         <div className="flex gap-2">
           <button
@@ -84,7 +84,7 @@ export const OdontogramaModulo = memo(({
       {/* Tarjeta CPO-D */}
       <CpodSummaryCard cpodStats={cpodStats} />
 
-      {/* Paleta de Herramientas Ampliada */}
+      {/* Paleta de Herramientas */}
       <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 flex flex-wrap gap-2.5 items-center text-xs print:hidden shadow-2xs">
         <span className="font-extrabold text-gray-600 uppercase mr-2 text-[11px] tracking-wider">Herramienta:</span>
         {HERRAMIENTAS_ODONTOGRAMA.map(h => (
@@ -106,69 +106,104 @@ export const OdontogramaModulo = memo(({
         <button type="button" onClick={() => handleEstadoGeneral('indicacion_exodoncia')} className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white border border-red-300 text-red-800 hover:bg-red-50 cursor-pointer">Exodoncia</button>
       </div>
 
-      {/* Renderizado Gráfico Tamaño Holgado (Large View HD) */}
-      <div className={`grid gap-6 ${modoComparativoSplit ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
-        {/* Odontograma Principal */}
-        <div className="bg-white border border-gray-200 rounded-3xl p-8 shadow-xs overflow-x-auto space-y-8">
+      {/* Grid de Odontograma Split con ancho contenedor independiente */}
+      <div className={`grid gap-6 ${modoComparativoSplit ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-1'}`}>
+        
+        {/* Panel 1: Odontograma Inicial */}
+        <div className="bg-white border border-gray-200 rounded-3xl p-5 shadow-xs">
           {modoComparativoSplit && (
-            <h3 className="font-black text-xs text-gray-800 uppercase tracking-wider mb-2 text-center bg-gray-50 p-2.5 rounded-xl border">
-              Odontograma Diagnóstico Actual
+            <h3 className="font-black text-xs text-gray-800 uppercase tracking-wider mb-4 text-center bg-gray-100 p-2.5 rounded-xl border">
+              Odontograma Diagnóstico Inicial (Antes)
             </h3>
           )}
 
-          <div>
-            <h3 className="text-xs font-extrabold text-gray-400 uppercase tracking-widest mb-4 text-center">Arcada Superior (Maxilar)</h3>
-            <div className="flex justify-center gap-2.5 min-w-[700px] py-2">
-              {piezasSuperiores.map(num => (
-                <div key={num} className="scale-110 transform transition-transform hover:scale-125">
-                  <DienteSVG numero={num} estadosPieza={odontograma[num]} modoSeleccionado={modoSeleccionado} alHacerClicCara={handleCaraClick} alSeleccionarPieza={setPiezaActiva} piezaActiva={piezaActiva} />
+          <div className="w-full overflow-x-auto pb-3">
+            <div className="min-w-[850px] space-y-6 px-2">
+              {/* Arcada Superior */}
+              <div>
+                <h3 className="text-[11px] font-extrabold text-gray-400 uppercase tracking-widest mb-3 text-center">
+                  Arcada Superior (Maxilar)
+                </h3>
+                <div className="flex justify-center items-center gap-1.5">
+                  {piezasSuperiores.map(num => (
+                    <div key={num} className="transform hover:scale-110 transition-transform">
+                      <DienteSVG
+                        numero={num}
+                        estadosPieza={odontograma[num]}
+                        modoSeleccionado={modoSeleccionado}
+                        alHacerClicCara={handleCaraClick}
+                        alSeleccionarPieza={setPiezaActiva}
+                        piezaActiva={piezaActiva}
+                      />
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
 
-          <div className="border-t border-gray-200 my-6"></div>
+              <div className="border-t border-gray-200 my-3"></div>
 
-          <div>
-            <h3 className="text-xs font-extrabold text-gray-400 uppercase tracking-widest mb-4 text-center">Arcada Inferior (Mandíbula)</h3>
-            <div className="flex justify-center gap-2.5 min-w-[700px] py-2">
-              {piezasInferiores.map(num => (
-                <div key={num} className="scale-110 transform transition-transform hover:scale-125">
-                  <DienteSVG numero={num} estadosPieza={odontograma[num]} modoSeleccionado={modoSeleccionado} alHacerClicCara={handleCaraClick} alSeleccionarPieza={setPiezaActiva} piezaActiva={piezaActiva} />
+              {/* Arcada Inferior */}
+              <div>
+                <h3 className="text-[11px] font-extrabold text-gray-400 uppercase tracking-widest mb-3 text-center">
+                  Arcada Inferior (Mandíbula)
+                </h3>
+                <div className="flex justify-center items-center gap-1.5">
+                  {piezasInferiores.map(num => (
+                    <div key={num} className="transform hover:scale-110 transition-transform">
+                      <DienteSVG
+                        numero={num}
+                        estadosPieza={odontograma[num]}
+                        modoSeleccionado={modoSeleccionado}
+                        alHacerClicCara={handleCaraClick}
+                        alSeleccionarPieza={setPiezaActiva}
+                        piezaActiva={piezaActiva}
+                      />
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Odontograma Comparativo en Split */}
+        {/* Panel 2: Odontograma Evolución (Split) */}
         {modoComparativoSplit && odontogramaComparar && (
-          <div className="bg-emerald-50/50 border border-emerald-200 rounded-3xl p-8 shadow-xs overflow-x-auto space-y-8">
-            <h3 className="font-black text-xs text-emerald-900 uppercase tracking-wider mb-2 text-center bg-white p-2.5 rounded-xl border border-emerald-300">
-              Odontograma Proyectado / Post-Tratamiento
+          <div className="bg-emerald-50/40 border border-emerald-200 rounded-3xl p-5 shadow-xs">
+            <h3 className="font-black text-xs text-emerald-900 uppercase tracking-wider mb-4 text-center bg-white p-2.5 rounded-xl border border-emerald-300">
+              Odontograma Evolución (Tratamientos Realizados / Después)
             </h3>
 
-            <div>
-              <h3 className="text-xs font-extrabold text-emerald-700 uppercase tracking-widest mb-4 text-center">Arcada Superior</h3>
-              <div className="flex justify-center gap-2 min-w-[650px] py-2">
-                {piezasSuperiores.map(num => (
-                  <div key={num} className="scale-105">
-                    <DienteSVG numero={num} estadosPieza={odontogramaComparar[num]} />
+            <div className="w-full overflow-x-auto pb-3">
+              <div className="min-w-[850px] space-y-6 px-2">
+                {/* Arcada Superior Comparativa */}
+                <div>
+                  <h3 className="text-[11px] font-extrabold text-emerald-700 uppercase tracking-widest mb-3 text-center">
+                    Arcada Superior
+                  </h3>
+                  <div className="flex justify-center items-center gap-1.5">
+                    {piezasSuperiores.map(num => (
+                      <div key={num}>
+                        <DienteSVG numero={num} estadosPieza={odontogramaComparar[num]} />
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
 
-            <div className="border-t border-emerald-200 my-6"></div>
+                <div className="border-t border-emerald-200 my-3"></div>
 
-            <div>
-              <h3 className="text-xs font-extrabold text-emerald-700 uppercase tracking-widest mb-4 text-center">Arcada Inferior</h3>
-              <div className="flex justify-center gap-2 min-w-[650px] py-2">
-                {piezasInferiores.map(num => (
-                  <div key={num} className="scale-105">
-                    <DienteSVG numero={num} estadosPieza={odontogramaComparar[num]} />
+                {/* Arcada Inferior Comparativa */}
+                <div>
+                  <h3 className="text-[11px] font-extrabold text-emerald-700 uppercase tracking-widest mb-3 text-center">
+                    Arcada Inferior
+                  </h3>
+                  <div className="flex justify-center items-center gap-1.5">
+                    {piezasInferiores.map(num => (
+                      <div key={num}>
+                        <DienteSVG numero={num} estadosPieza={odontogramaComparar[num]} />
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </div>
               </div>
             </div>
           </div>
