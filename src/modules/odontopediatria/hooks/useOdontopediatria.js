@@ -13,7 +13,8 @@ export const useOdontopediatria = (pacienteId) => {
         mapaOleary: {},
         piezasPresentesOleary: 20,
         habitosNocivos: { chupete: false, succionDigital: false, deglucionAtipica: false, respiradorBucal: false },
-        dentosanaRegistrada: false
+        dentosanaRegistrada: false,
+        mapaDentosana: {}
       }
     } catch (e) {
       return { gradoFrankl: 3, observacionConducta: '', mapaOleary: {}, piezasPresentesOleary: 20 }
@@ -49,6 +50,13 @@ export const useOdontopediatria = (pacienteId) => {
     })
   }, [])
 
+  const toggleEstadoPiezaDentosana = useCallback((piezaId, estado) => {
+    setDatosPediatria(prev => ({
+      ...prev,
+      mapaDentosana: { ...prev.mapaDentosana, [piezaId]: estado }
+    }))
+  }, [])
+
   const actualizarAtributo = useCallback((campo, valor) => {
     setDatosPediatria(prev => ({ ...prev, [campo]: valor }))
   }, [])
@@ -58,6 +66,7 @@ export const useOdontopediatria = (pacienteId) => {
     porcentajeOLeary,
     cambiarFrankl,
     toggleCaraOleary,
-    actualizarAtributo
+    actualizarAtributo,
+    toggleEstadoPiezaDentosana
   }
 }

@@ -1,6 +1,6 @@
 import React, { memo, useState, useMemo } from 'react'
 import { SILLONES_DENTALES } from '../constants/agendaConstants'
-import { obtenerFechaLocalISO } from '.../utils/dateUtils' 
+import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
 
 // Tratamientos prediseñados para selección ultra rápida
 const TRATAMIENTOS_RAPIDOS = [

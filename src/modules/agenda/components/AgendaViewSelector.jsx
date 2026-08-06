@@ -1,5 +1,6 @@
 import React, { memo } from 'react'
 import { BOXES_DENTALES } from '../constants/agendaConstants'
+import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
 
 export const AgendaViewSelector = memo(({
   fechaSeleccionadaIso,

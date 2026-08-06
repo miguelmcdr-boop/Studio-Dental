@@ -445,7 +445,7 @@ function App() {
         )}
 
         {activeSection === 'Finanzas' && (
-          <FinanzasModulo pacientes={pacientes} />
+          <FinanzasModulo pacientes={pacientes} userProfile={userProfile} />
         )}
 
         {activeSection === 'Comunicaciones' && (

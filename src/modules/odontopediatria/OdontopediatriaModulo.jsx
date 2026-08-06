@@ -2,6 +2,7 @@ import React, { memo } from 'react'
 import { useOdontopediatria } from './hooks/useOdontopediatria'
 import { EscalaFrankl } from './components/EscalaFrankl'
 import { IndiceOLeary } from './components/IndiceOLeary'
+import { OdontogramaTemporal } from './components/OdontogramaTemporal'
 
 export const OdontopediatriaModulo = memo(({ pacienteId }) => {
   const {
@@ -9,7 +10,8 @@ export const OdontopediatriaModulo = memo(({ pacienteId }) => {
     porcentajeOLeary,
     cambiarFrankl,
     toggleCaraOleary,
-    actualizarAtributo
+    actualizarAtributo,
+    toggleEstadoPiezaDentosana
   } = useOdontopediatria(pacienteId)
 
   return (
@@ -29,6 +31,12 @@ export const OdontopediatriaModulo = memo(({ pacienteId }) => {
         piezasPresentes={datosPediatria.piezasPresentesOleary}
         onToggleCara={toggleCaraOleary}
         onCambiarPiezasPresentes={actualizarAtributo}
+      />
+
+      {/* Odontograma Temporal / Dentición Decidua */}
+      <OdontogramaTemporal
+        datosDentosana={datosPediatria.mapaDentosana}
+        onToggleEstadoPieza={toggleEstadoPiezaDentosana}
       />
     </div>
   )

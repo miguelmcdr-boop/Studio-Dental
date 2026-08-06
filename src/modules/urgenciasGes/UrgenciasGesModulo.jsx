@@ -1,6 +1,6 @@
 import React, { memo } from 'react'
 import { useUrgenciasGes } from './hooks/useUrgenciasGes'
-import { FormConstanciaGes } from './components/FormConstanciaGes'
+import { FormRegistroGes } from './components/FormRegistroUrgencia'
 import { DocumentoImpresoGes } from './components/DocumentoImpresoGes'
 
 export const UrgenciasGesModulo = memo(({ pacientes = [], userProfile }) => {
@@ -20,7 +20,7 @@ export const UrgenciasGesModulo = memo(({ pacientes = [], userProfile }) => {
       </div>
 
       <div className="print:hidden">
-        <FormConstanciaGes pacientes={pacientes} alRegistrar={registrarAtencion} />
+        <FormRegistroGes pacientes={pacientes} alRegistrar={registrarAtencion} />
       </div>
 
       {atencionSeleccionada ? (
