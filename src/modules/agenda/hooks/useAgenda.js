@@ -10,6 +10,8 @@ export const useAgenda = (pacientesProp = null) => {
   const [fechaSeleccionada, setFechaSeleccionada] = useState(
     obtenerFechaLocalISO()
   )
+  const [boxFiltro, setBoxFiltro] = useState('Todos')
+  const [doctorFiltro, setDoctorFiltro] = useState('Todos')
   const [modalNuevaCitaAbierto, setModalNuevaCitaAbierto] = useState(false)
   const [modalNuevoBloqueoAbierto, setModalNuevoBloqueoAbierto] = useState(false)
 
@@ -152,6 +154,10 @@ export const useAgenda = (pacientesProp = null) => {
     setVista,
     fechaSeleccionada,
     setFechaSeleccionada,
+    boxFiltro,
+    setBoxFiltro,
+    doctorFiltro,
+    setDoctorFiltro,
     irAHoy,
     modalNuevaCitaAbierto,
     setModalNuevaCitaAbierto,

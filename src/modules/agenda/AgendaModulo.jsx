@@ -1,6 +1,7 @@
 import React, { memo } from 'react'
 import { useAgenda } from './hooks/useAgenda'
 import { AgendaSummaryCards } from './components/AgendaSummaryCards'
+import { AgendaViewSelector } from './components/AgendaViewSelector'
 import { CitaCard } from './components/CitaCard'
 import { ModalNuevaCita } from './components/ModalNuevaCita'
 import { ModalNuevoBloqueo } from './components/ModalNuevoBloqueo'
@@ -12,7 +13,10 @@ export const AgendaModulo = memo(({ pacientes: pacientesProp = [], alSeleccionar
     pacientes,
     fechaSeleccionada,
     setFechaSeleccionada,
-    irAHoy,
+    boxFiltro,
+    setBoxFiltro,
+    doctorFiltro,
+    setDoctorFiltro,
     modalNuevaCitaAbierto,
     setModalNuevaCitaAbierto,
     modalNuevoBloqueoAbierto,
@@ -25,6 +29,10 @@ export const AgendaModulo = memo(({ pacientes: pacientesProp = [], alSeleccionar
 
   const citasDelDia = citas.filter(c => c.fecha === fechaSeleccionada)
   const funcionVerFicha = alSeleccionarPaciente || alVerFichaPaciente
+
+  const boxesAMostrar = boxFiltro === 'Todos'
+    ? SILLONES_DENTALES
+    : SILLONES_DENTALES.filter(b => b.nombre === boxFiltro)
 
   return (
     <div className="space-y-6">
@@ -40,21 +48,6 @@ export const AgendaModulo = memo(({ pacientes: pacientesProp = [], alSeleccionar
         </div>
 
         <div className="flex items-center gap-2.5 flex-wrap">
-          <button
-            type="button"
-            onClick={irAHoy}
-            className="px-3.5 py-2.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-800 font-extrabold text-xs hover:bg-blue-100 cursor-pointer shadow-2xs flex items-center gap-1.5 transition-all"
-          >
-            📅 Hoy
-          </button>
-
-          <input
-            type="date"
-            value={fechaSeleccionada}
-            onChange={(e) => setFechaSeleccionada(e.target.value)}
-            className="p-2.5 rounded-xl border border-gray-300 font-bold text-xs bg-white focus:outline-none focus:border-black shadow-2xs cursor-pointer"
-          />
-
           <button
             type="button"
             onClick={() => setModalNuevoBloqueoAbierto(true)}
@@ -73,13 +66,24 @@ export const AgendaModulo = memo(({ pacientes: pacientesProp = [], alSeleccionar
         </div>
       </div>
 
+      {/* Selector de Fecha + Filtro por Box/Doctor */}
+      <AgendaViewSelector
+        fechaSeleccionadaIso={fechaSeleccionada}
+        setFechaSeleccionadaIso={setFechaSeleccionada}
+        boxFiltro={boxFiltro}
+        setBoxFiltro={setBoxFiltro}
+        doctorFiltro={doctorFiltro}
+        setDoctorFiltro={setDoctorFiltro}
+        doctoresDisponibles={[]}
+      />
+
       {/* KPI Cards */}
       <AgendaSummaryCards citas={citasDelDia} />
 
       {/* Parrilla Multi-Box */}
       <div className="bg-gray-50 border border-gray-200 rounded-3xl p-6 overflow-x-auto shadow-2xs">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 min-w-[800px]">
-          {SILLONES_DENTALES.map(box => {
+          {boxesAMostrar.map(box => {
             const citasBox = citasDelDia.filter(
               c => c.boxAsignado === box.nombre || c.boxAsignado === 'Todos los Boxes' || (!c.boxAsignado && box.id === 'sillon_1')
             )

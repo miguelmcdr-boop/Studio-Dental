@@ -43,7 +43,7 @@ export const AgendaViewSelector = memo(({
           >
             <option value="Todos">Todos los Boxes Sillones</option>
             {BOXES_DENTALES.map(b => (
-              <option key={b.id} value={b.id}>{b.nombre}</option>
+              <option key={b.id} value={b.nombre}>{b.nombre}</option>
             ))}
           </select>
         </div>
