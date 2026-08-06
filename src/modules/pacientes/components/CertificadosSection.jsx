@@ -1,5 +1,6 @@
 import React, { memo, useState } from 'react'
 import { pacientesStorageService } from '../services/pacientesStorageService'
+import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
 
 export const CertificadosSection = memo(({
   paciente,
@@ -8,7 +9,7 @@ export const CertificadosSection = memo(({
   setCertificados = () => {}
 }) => {
   const [tipoCertificado, setTipoCertificado] = useState('asistencia')
-  const [fechaAtencion, setFechaAtencion] = useState(new Date().toISOString().split('T')[0])
+  const [fechaAtencion, setFechaAtencion] = useState(obtenerFechaLocalISO())
   const [horaInicio, setHoraInicio] = useState('10:00')
   const [horaFin, setHoraFin] = useState('11:00')
   const [diasReposo, setDiasReposo] = useState('1')

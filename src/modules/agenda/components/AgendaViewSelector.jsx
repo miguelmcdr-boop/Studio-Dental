@@ -11,7 +11,7 @@ export const AgendaViewSelector = memo(({
   doctoresDisponibles = []
 }) => {
   const handleHoy = () => {
-    setFechaSeleccionadaIso(new Date().toISOString().split('T')[0])
+   setFechaSeleccionadaIso(obtenerFechaLocalISO())
   }
 
   return (

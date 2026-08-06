@@ -1,6 +1,7 @@
 import React, { memo, useState, useEffect } from 'react'
 import { TIPOS_TRABAJO_SUGERIDOS } from '../constants/laboratorioConstants'
 import { generarCodigoOrdenLab, buscarTarifaSugerida } from '../utils/laboratorioCalculations'
+import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
 
 export const ModalNuevaOrden = memo(({ pacientes = [], laboratorios = [], alGuardar, alCerrar }) => {
   const [pacienteId, setPacienteId] = useState('')
@@ -8,7 +9,7 @@ export const ModalNuevaOrden = memo(({ pacientes = [], laboratorios = [], alGuar
   const [tipoTrabajo, setTipoTrabajo] = useState('')
   const [piezaDientaria, setPiezaDientaria] = useState('')
   const [colorGuia, setColorGuia] = useState('A2')
-  const [fechaEnvio, setFechaEnvio] = useState(new Date().toISOString().split('T')[0])
+  const [fechaEnvio, setFechaEnvio] = useState(obtenerFechaLocalISO())
   const [fechaEntregaPrometida, setFechaEntregaPrometida] = useState('')
   const [costoLaboratorio, setCostoLaboratorio] = useState('')
   const [indicacionesTecnicas, setIndicacionesTecnicas] = useState('')

@@ -1,10 +1,11 @@
 import React, { memo, useState } from 'react'
 import { TIPOS_BLOQUEO_AGENDA, SILLONES_DENTALES } from '../constants/agendaConstants'
+import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
 
 export const ModalNuevoBloqueo = memo(({ fechaPredeterminada, alGuardar, alCerrar }) => {
   const [form, setForm] = useState({
     motivoBloqueo: '🍱 Horario de Almuerzo',
-    fecha: fechaPredeterminada || new Date().toISOString().split('T')[0],
+    fecha: fechaPredeterminada || obtenerFechaLocalISO(),
     horaInicio: '13:00',
     horaFin: '14:00',
     boxAsignado: 'Todos los Boxes',

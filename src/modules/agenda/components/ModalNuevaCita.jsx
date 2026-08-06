@@ -1,5 +1,6 @@
 import React, { memo, useState, useMemo } from 'react'
 import { SILLONES_DENTALES } from '../constants/agendaConstants'
+import { obtenerFechaLocalISO } from '.../utils/dateUtils' 
 
 // Tratamientos prediseñados para selección ultra rápida
 const TRATAMIENTOS_RAPIDOS = [
@@ -27,7 +28,7 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
   // Datos Cita
   const [tratamiento, setTratamiento] = useState(TRATAMIENTOS_RAPIDOS[0])
   const [boxAsignado, setBoxAsignado] = useState(SILLONES_DENTALES[0]?.nombre || 'Sillón 1 - Odontología General')
-  const [fecha, setFecha] = useState(fechaPredeterminada || new Date().toISOString().split('T')[0])
+  const [fecha, setFecha] = useState(fechaPredeterminada || obtenerFechaLocalISO())
   const [horaInicio, setHoraInicio] = useState('09:00')
   const [duracionMinutos, setDuracionMinutos] = useState(30)
   const [observaciones, setObservaciones] = useState('')

@@ -1,3 +1,5 @@
+import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
+
 /**
  * Persistencia en LocalStorage para Presupuestos y Fichas de Pacientes
  * Cumple con la norma de resiliencia Offline-First (Constitución v3.0.0)
@@ -125,7 +127,7 @@ export const presupuestosStorageService = {
           pacienteId: p.id,
           pacienteNombre: p.nombre,
           pacienteRut: p.rut,
-          fechaEmision: new Date().toISOString().split('T')[0],
+          fechaEmision: obtenerFechaLocalISO(),
           convenio: p.prevision || 'Particular',
           montoTotal: total,
           montoAbonado: abonado,

@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import { CLINICA_DEFAULT, PARAMETROS_AGENDA_DEFAULT } from '../constants/configuracionConstants'
 import { configuracionStorageService } from '../services/configuracionStorageService'
 import { descargarArchivoBackupJSON } from '../utils/configuracionCalculations'
+import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
 
 export const useConfiguracion = (userProfileProps, setUserProfileProps) => {
   const [datosClinica, setDatosClinica] = useState(() => 
@@ -35,7 +36,7 @@ export const useConfiguracion = (userProfileProps, setUserProfileProps) => {
 
   const ejecutarExportacionBackup = useCallback(() => {
     const backupObj = configuracionStorageService.exportarBaseDeDatosCompleta()
-    const fecha = new Date().toISOString().split('T')[0]
+    const fecha = obtenerFechaLocalISO()
     descargarArchivoBackupJSON(backupObj, `Backup_StudioDental_${fecha}.json`)
   }, [])
 

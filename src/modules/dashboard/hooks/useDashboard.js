@@ -8,9 +8,9 @@ export const useDashboard = (pacientes = []) => {
 
   const cargarDatos = useCallback(() => {
     try {
-      const citasStorage = JSON.parse(localStorage.getItem('clinica_citas') || '[]')
-      const pagosStorage = JSON.parse(localStorage.getItem('clinica_historial_pagos') || '[]')
-      const presupuestosStorage = JSON.parse(localStorage.getItem('clinica_presupuestos_globales') || '[]')
+      const citasStorage = JSON.parse(localStorage.getItem('studio_dental_agenda_citas_v3') || '[]')
+      const pagosStorage = JSON.parse(localStorage.getItem('studio_dental_pagos_historial_v3') || '[]')
+      const presupuestosStorage = JSON.parse(localStorage.getItem('studio_dental_presupuestos_globales') || '[]')
 
       // Recolectar abonos de presupuestos individuales para sumar a pagos
       const abonosGlobales = []

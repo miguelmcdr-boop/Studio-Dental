@@ -1,13 +1,14 @@
+import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
+
 /**
  * Analítica avanzada y cálculos para el Dashboard World-Class
  */
 
 export const calcularResumenJornada = (pacientes = [], citas = [], pagos = [], presupuestos = []) => {
-  const hoyStr = new Date().toLocaleDateString('es-CL')
-  const hoyIso = new Date().toISOString().split('T')[0]
+  const hoyIso = obtenerFechaLocalISO()
 
   // 1. Filtrar citas de hoy
-  const citasHoy = citas.filter(c => c.fecha === hoyStr || c.fechaIso === hoyIso)
+  const citasHoy = citas.filter(c => c.fecha === hoyIso)
   
   // 2. Pacientes en Sala de Espera y en Atención
   const enEspera = citasHoy.filter(c => c.estado === 'EnEspera' || c.estado === 'En Espera')

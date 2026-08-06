@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback } from 'react'
 import { agendaStorageService } from '../services/agendaStorageService'
 import { pacientesStorageService } from '../../pacientes/services/pacientesStorageService'
+import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
 
 export const useAgenda = (pacientesProp = null) => {
   const [citas, setCitas] = useState([])
   const [pacientes, setPacientes] = useState(pacientesProp || [])
   const [vista, setVista] = useState('box')
   const [fechaSeleccionada, setFechaSeleccionada] = useState(
-    new Date().toISOString().split('T')[0]
+    obtenerFechaLocalISO()
   )
   const [modalNuevaCitaAbierto, setModalNuevaCitaAbierto] = useState(false)
   const [modalNuevoBloqueoAbierto, setModalNuevoBloqueoAbierto] = useState(false)
@@ -36,7 +37,7 @@ export const useAgenda = (pacientesProp = null) => {
   }, [pacientesProp])
 
   const irAHoy = useCallback(() => {
-    setFechaSeleccionada(new Date().toISOString().split('T')[0])
+    setFechaSeleccionada(obtenerFechaLocalISO())
   }, [])
 
   // Guardar cita + auto-creación de ficha clínica si es registro Express
@@ -53,7 +54,7 @@ export const useAgenda = (pacientesProp = null) => {
         prevision: 'Particular',
         alergias: '',
         motivoConsulta: nuevaCita.trataMiento || 'Agendado desde Agenda Multi-Box',
-        fechaIngreso: new Date().toISOString().split('T')[0]
+        fechaIngreso: obtenerFechaLocalISO()
       }
 
       const pacientesActuales = pacientesStorageService.obtenerPacientes()

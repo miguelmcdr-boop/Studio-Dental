@@ -1,3 +1,5 @@
+import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
+
 /**
  * Utilidades para verificación de disponibilidad de Box y tiempos
  */
@@ -13,7 +15,7 @@ export const verificarDisponibilidadBox = (citas = [], boxId, fechaIso, horaInic
 }
 
 export const calcularResumenAgenda = (citas = []) => {
-  const hoyIso = new Date().toISOString().split('T')[0]
+  const hoyIso = obtenerFechaLocalISO()
   const citasHoy = citas.filter(c => c.fechaIso === hoyIso || c.fecha === new Date().toLocaleDateString('es-CL'))
 
   let agendadosCount = 0

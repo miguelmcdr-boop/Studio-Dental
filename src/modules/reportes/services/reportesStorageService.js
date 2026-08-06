@@ -8,7 +8,7 @@ export const reportesStorageService = {
       const pacSaved = localStorage.getItem('clinica_lista_pacientes')
       const pagSaved = localStorage.getItem('studio_dental_pagos_historial_v3') || localStorage.getItem('studio_dental_pagos_historial')
       const presSaved = localStorage.getItem('studio_dental_presupuestos_globales')
-      const citasSaved = localStorage.getItem('clinica_lista_citas')
+      const citasSaved = localStorage.getItem('studio_dental_agenda_citas_v3')
 
       return {
         pacientes: pacSaved ? JSON.parse(pacSaved) : [],

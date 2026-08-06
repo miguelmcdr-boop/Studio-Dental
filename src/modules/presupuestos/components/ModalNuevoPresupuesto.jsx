@@ -1,6 +1,7 @@
 import React, { memo, useState, useEffect } from 'react'
 import { generarFolioPresupuesto } from '../utils/presupuestosCalculations'
 import { presupuestosStorageService } from '../services/presupuestosStorageService'
+import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
 
 export const ModalNuevoPresupuesto = memo(({ pacientes = [], prestaciones = [], alGuardar, alCerrar }) => {
   const [pacienteId, setPacienteId] = useState('')
@@ -110,7 +111,7 @@ export const ModalNuevoPresupuesto = memo(({ pacientes = [], prestaciones = [], 
       pacienteId: pac?.id,
       pacienteNombre: pac?.nombre || 'Paciente',
       pacienteRut: pac?.rut || 'N/I',
-      fechaEmision: new Date().toISOString().split('T')[0],
+      fechaEmision: obtenerFechaLocalISO(),
       vigenciaDias: 30,
       convenio,
       montoTotal,

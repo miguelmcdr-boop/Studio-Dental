@@ -25,7 +25,7 @@ export const useFinanzas = (pacientes = []) => {
 
     // 1. Cargar Pagos Globales
     try {
-      const pagosGlobales = JSON.parse(localStorage.getItem('clinica_historial_pagos') || '[]')
+      const pagosGlobales = JSON.parse(localStorage.getItem('studio_dental_pagos_historial_v3') || '[]')
       if (Array.isArray(pagosGlobales)) {
         pagosGlobales.forEach(p => {
           listaConsolidada.push({

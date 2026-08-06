@@ -2,7 +2,7 @@ import { VADEMECUM_ODONTOLOGICO } from '../../../data/vademecum'
 
 export const obtenerDescuentoConvenio = (nombreConvenio) => {
   try {
-    const saved = localStorage.getItem('finanzas_config_convenios')
+    const saved = localStorage.getItem('studio_dental_finanzas_convenios')
     if (!saved) return 0
     const convenios = JSON.parse(saved)
     const encontrado = convenios.find(c => 
