@@ -3,9 +3,16 @@ import React, { memo } from 'react'
 export const TarjetaPieza = memo(({ numero, piezaData = {}, onChange }) => {
   const ausente = !!piezaData.ausente
 
+  // Fail-Safe Clinical Default (Constitución, Cap. V.2): un sitio de sondaje
+  // que el profesional aún no ha registrado debe quedar en `null`, nunca en
+  // `0`. Antes, escribir en UN solo sitio de una cara rellenaba los otros 2
+  // sitios con 0 de inmediato, y ese 0 se mostraba en el input como si fuera
+  // una medición real (0mm = sitio sano), disfrazando un examen incompleto
+  // como uno completo y sano.
   const handleSondajeChange = (cara, campo, idx, valor) => {
-    const actual = [...(piezaData[cara]?.[campo] || [0, 0, 0])]
-    actual[idx] = parseInt(valor, 10) || 0
+    const actual = [...(piezaData[cara]?.[campo] || [null, null, null])]
+    const parsed = parseInt(valor, 10)
+    actual[idx] = Number.isNaN(parsed) ? null : parsed
     onChange(numero, cara, campo, actual)
   }
 

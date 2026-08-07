@@ -32,6 +32,13 @@ export const ClasificacionAAPCard = memo(({ indices, factoresRiesgo, setFactores
         </div>
       </div>
 
+      {indices.diagnosticoConcluyente === false && (
+        <div className="p-3 rounded-xl bg-amber-50 border-2 border-amber-400 text-amber-900 text-[11px] font-semibold">
+          ⚠ Sondaje incompleto: {indices.sitiosSinRegistrar} de {indices.sitiosTotales} sitios sin registrar.
+          El diagnóstico AAP no se calcula hasta completar al menos el 80% del sondaje de las piezas presentes.
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className={`p-4 rounded-xl border ${indices.colorEtapa} space-y-1`}>
           <span className="text-[10px] font-extrabold uppercase tracking-wider block opacity-75">Estadificación (Severidad / Extensión)</span>

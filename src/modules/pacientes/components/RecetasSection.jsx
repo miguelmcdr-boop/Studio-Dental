@@ -61,7 +61,11 @@ export const RecetasSection = memo(({ paciente, userProfile, alergiasPaciente, r
         
         {alertaFarmaco && (
           <div className={`p-4 rounded-xl border mb-4 text-xs ${
-            alertaFarmaco.tipo === 'critica' ? 'bg-red-100 border-red-300 text-red-900' : 'bg-yellow-100 border-yellow-300 text-yellow-900'
+            alertaFarmaco.tipo === 'critica'
+              ? 'bg-red-100 border-red-300 text-red-900'
+              : alertaFarmaco.tipo === 'sin_datos'
+                ? 'bg-amber-100 border-amber-300 text-amber-900'
+                : 'bg-yellow-100 border-yellow-300 text-yellow-900'
           }`}>
             <p className="font-bold text-sm">{alertaFarmaco.mensaje}</p>
             <p className="mt-1 font-semibold">{alertaFarmaco.sugerencia}</p>
@@ -110,6 +114,11 @@ export const RecetasSection = memo(({ paciente, userProfile, alergiasPaciente, r
             + Emitir Receta
           </button>
         </form>
+
+        <p className="text-[10px] text-gray-400 mt-3">
+          La validación automática de alergias cubre únicamente Penicilinas/Betalactámicos y AINEs.
+          Para cualquier otro fármaco, verifique manualmente los antecedentes alérgicos del paciente.
+        </p>
       </div>
 
       <div className="flex justify-end mb-4 print:hidden">

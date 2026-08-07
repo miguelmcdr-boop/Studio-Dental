@@ -61,12 +61,15 @@ describe('calcularClasificacionAAP', () => {
 })
 
 describe('calcularIndicesPeriodontales', () => {
-  it('retorna todo en cero para piezasData vacío o indefinido', () => {
+  it('retorna todo en cero para piezasData vacío o indefinido, diagnóstico concluyente por defecto', () => {
     const r = calcularIndicesPeriodontales({})
     expect(r.sitiosTotales).toBe(0)
+    expect(r.sitiosRegistrados).toBe(0)
+    expect(r.sitiosSinRegistrar).toBe(0)
     expect(r.porcentajeSangrado).toBe(0)
     expect(r.indiceOLeary).toBe(0)
     expect(r.maxSondaje).toBe(0)
+    expect(r.diagnosticoConcluyente).toBe(true) // sin piezas evaluables no hay "cobertura insuficiente" que señalar
     expect(calcularIndicesPeriodontales(undefined).sitiosTotales).toBe(0)
   })
 
@@ -77,7 +80,7 @@ describe('calcularIndicesPeriodontales', () => {
     expect(calcularIndicesPeriodontales(piezasData).sitiosTotales).toBe(0)
   })
 
-  it('cuenta 3 sitios por cara evaluada (vestibular + palatino) y calcula porcentajes', () => {
+  it('cuenta 3 sitios por cara evaluada (vestibular + palatino) y calcula porcentajes sobre sitios registrados', () => {
     const piezasData = {
       11: {
         vestibular: { sondaje: [3, 3, 3], sangrado: [true, false, false], placa: [true, true, false] },
@@ -86,31 +89,101 @@ describe('calcularIndicesPeriodontales', () => {
     }
     const r = calcularIndicesPeriodontales(piezasData)
     expect(r.sitiosTotales).toBe(6)
+    expect(r.sitiosRegistrados).toBe(6)
+    expect(r.sitiosSinRegistrar).toBe(0)
     expect(r.sitiosSangrado).toBe(1)
     expect(r.sitiosPlaca).toBe(2)
     expect(r.maxSondaje).toBe(3)
     expect(r.porcentajeSangrado).toBe(Math.round((1 / 6) * 100))
     expect(r.indiceOLeary).toBe(Math.round((2 / 6) * 100))
+    expect(r.diagnosticoConcluyente).toBe(true)
   })
 
-  it('trata profundidades de sondaje inválidas como 0 en vez de romper el cálculo', () => {
+  // ===========================================================================
+  // ✅ COMPORTAMIENTO CORREGIDO (F1-04b) — Fail-Safe Clinical Default
+  // Sitios sin registrar NUNCA se cuentan como sanos (0mm). Se excluyen de
+  // los promedios y se contabilizan en sitiosSinRegistrar. Antes de F1-04b,
+  // este mismo caso se trataba como 3 sitios sanos y podía arrojar
+  // "Salud Periodontal" con un examen que en realidad nunca se completó.
+  // ===========================================================================
+  it('sondaje no registrado (null/undefined/inválido) se excluye de los promedios, no se cuenta como sano', () => {
     const piezasData = {
       11: {
         vestibular: { sondaje: ['x', null, undefined], sangrado: [false, false, false], placa: [false, false, false] },
       },
     }
     const r = calcularIndicesPeriodontales(piezasData)
-    expect(r.maxSondaje).toBe(0)
     expect(r.sitiosTotales).toBe(3)
+    expect(r.sitiosRegistrados).toBe(0)
+    expect(r.sitiosSinRegistrar).toBe(3)
+    expect(r.maxSondaje).toBe(0)
+    // Cobertura 0% → diagnóstico NO concluyente, no "Salud Periodontal"
+    expect(r.diagnosticoConcluyente).toBe(false)
+    expect(r.diagnosticoSugerido).toMatch(/Sondaje Incompleto/i)
   })
 
-  it('deriva diagnosticoSugerido y gradoAAP a partir de los índices calculados', () => {
+  it('con cobertura de sondaje exactamente en el umbral (80%), el diagnóstico SÍ es concluyente', () => {
+    // 15 sitios totales (5 caras x 3), 12 registrados = 80% exacto
+    const piezasData = {
+      11: { vestibular: { sondaje: [2, 2, 2] }, palatino: { sondaje: [2, 2, 2] } },
+      12: { vestibular: { sondaje: [2, 2, 2] }, palatino: { sondaje: [2, 2, 2] } },
+      13: { vestibular: { sondaje: [null, null, null] } },
+    }
+    const r = calcularIndicesPeriodontales(piezasData)
+    expect(r.sitiosTotales).toBe(15)
+    expect(r.sitiosRegistrados).toBe(12)
+    expect(r.sitiosSinRegistrar).toBe(3)
+    expect(r.diagnosticoConcluyente).toBe(true)
+  })
+
+  it('con cobertura de sondaje por debajo del 80%, el diagnóstico no es concluyente', () => {
+    // 6 sitios totales, 4 registrados (66.6%) → por debajo del umbral de 80%
+    const piezasData = {
+      11: { vestibular: { sondaje: [2, 2, 2] } }, // 3 sitios, todos registrados
+      12: { vestibular: { sondaje: [2, null, null] } }, // 3 sitios, 1 registrado, 2 sin registrar
+    }
+    const r = calcularIndicesPeriodontales(piezasData)
+    expect(r.sitiosTotales).toBe(6)
+    expect(r.sitiosRegistrados).toBe(4)
+    expect(r.sitiosSinRegistrar).toBe(2)
+    expect(r.diagnosticoConcluyente).toBe(false)
+    expect(r.diagnosticoSugerido).toMatch(/Sondaje Incompleto/i)
+  })
+
+  it('con cobertura de sondaje completa, emite un diagnóstico AAP normal basado en los sitios registrados', () => {
     const piezasData = {
       11: {
         vestibular: { sondaje: [6, 6, 6], sangrado: [true, true, true], placa: [true, true, true] },
       },
     }
     const r = calcularIndicesPeriodontales(piezasData)
+    expect(r.sitiosSinRegistrar).toBe(0)
+    expect(r.diagnosticoConcluyente).toBe(true)
     expect(r.diagnosticoSugerido).toBe('Periodontitis Severa / Avanzada (Etapa III / IV)')
+  })
+
+  // ===========================================================================
+  // ✅ COMPORTAMIENTO CORREGIDO (F1-04b) — parámetro factoresRiesgo conectado
+  // Antes de F1-04b, la función solo declaraba `piezasData` como parámetro;
+  // el `factoresRiesgo` que le pasa PeriodontogramaModulo.jsx se descartaba
+  // en silencio y el Grado AAP se calculaba SIEMPRE como si el paciente no
+  // fuera fumador ni diabético, sin importar lo que el profesional marcara
+  // en la UI.
+  // ===========================================================================
+  it('factoresRiesgo (fumador/diabetes) se conecta correctamente al Grado AAP calculado', () => {
+    const piezasData = {
+      11: { vestibular: { sondaje: [2, 2, 2] } },
+    }
+    const sinFactores = calcularIndicesPeriodontales(piezasData, { fumador: false, diabetes: false })
+    const conFumador = calcularIndicesPeriodontales(piezasData, { fumador: true, diabetes: false })
+
+    expect(sinFactores.gradoAAP).not.toBe('Grado C (Riesgo Elevado de Progresión Rápida)')
+    expect(conFumador.gradoAAP).toBe('Grado C (Riesgo Elevado de Progresión Rápida)')
+  })
+
+  it('sin factoresRiesgo explícito, usa el default seguro (no fumador, no diabético)', () => {
+    const piezasData = { 11: { vestibular: { sondaje: [2, 2, 2] } } }
+    const r = calcularIndicesPeriodontales(piezasData)
+    expect(r.gradoAAP).not.toBe('Grado C (Riesgo Elevado de Progresión Rápida)')
   })
 })

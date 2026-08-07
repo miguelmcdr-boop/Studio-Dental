@@ -22,12 +22,16 @@ export const PeriodontogramaModulo = memo(({ pacienteId }) => {
   const [factoresRiesgo, setFactoresRiesgo] = useState({ fumador: false, diabetes: false })
 
   const [indices, setIndices] = useState({
+    sitiosTotales: 0,
+    sitiosRegistrados: 0,
+    sitiosSinRegistrar: 0,
     porcentajeSangrado: 0,
     indiceOLeary: 0,
     maxSondaje: 0,
     diagnosticoSugerido: 'Salud Periodontal',
     gradoAAP: 'Grado A',
-    colorEtapa: 'bg-emerald-100 text-emerald-900 border-emerald-300'
+    colorEtapa: 'bg-emerald-100 text-emerald-900 border-emerald-300',
+    diagnosticoConcluyente: true
   })
 
   useEffect(() => {
