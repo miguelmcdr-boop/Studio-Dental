@@ -1,11 +1,14 @@
 import React, { memo, useState } from 'react'
 import { calcularTubosAnestesia } from '../../../utils/anestesiaCalc'
 
-export const CalculadoraAnestesiaSection = memo(({ pesoInicial = 70 }) => {
-  const [pesoPaciente, setPesoPaciente] = useState(pesoInicial)
+export const CalculadoraAnestesiaSection = memo(({ pesoInicial }) => {
+  // Sin valor por defecto: si la ficha del paciente no tiene peso registrado,
+  // el campo empieza vacío para forzar su ingreso consciente (Fail-Safe Clinical Default).
+  const [pesoPaciente, setPesoPaciente] = useState(pesoInicial ?? '')
   const [tipoAnestesicoCalc, setTipoAnestesicoCalc] = useState('lidocaina')
 
   const resultadoAnestesia = calcularTubosAnestesia(pesoPaciente, tipoAnestesicoCalc)
+  const datosIncompletos = resultadoAnestesia.estado !== 'OK'
 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-6 print:hidden space-y-6">
@@ -22,7 +25,10 @@ export const CalculadoraAnestesiaSection = memo(({ pesoInicial = 70 }) => {
               type="number"
               value={pesoPaciente}
               onChange={(e) => setPesoPaciente(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-gray-300 font-bold text-sm"
+              placeholder="Ingrese el peso del paciente"
+              className={`w-full p-2.5 rounded-xl border font-bold text-sm ${
+                datosIncompletos ? 'border-amber-400 bg-amber-50' : 'border-gray-300'
+              }`}
             />
           </div>
 
@@ -41,13 +47,21 @@ export const CalculadoraAnestesiaSection = memo(({ pesoInicial = 70 }) => {
           </div>
         </div>
 
-        <div className="p-6 bg-blue-50 border border-blue-200 rounded-2xl flex flex-col justify-center text-center">
-          <span className="text-xs uppercase font-bold text-blue-800 block mb-1">Límite de Seguridad Recomendado</span>
-          <span className="text-3xl font-extrabold text-blue-900">{resultadoAnestesia.tubos} Tubos</span>
-          <span className="text-xs font-semibold text-blue-700 mt-1">
-            Dosis máxima absoluta: {resultadoAnestesia.mgMax} mg
-          </span>
-        </div>
+        {datosIncompletos ? (
+          <div className="p-6 bg-amber-50 border-2 border-amber-400 rounded-2xl flex flex-col justify-center text-center gap-1">
+            <span className="text-xs uppercase font-bold text-amber-800 block">⚠ Verificación Manual Requerida</span>
+            <span className="text-sm font-semibold text-amber-700">{resultadoAnestesia.mensaje}</span>
+            <span className="text-[11px] text-amber-600 mt-1">No se muestra ninguna dosis hasta ingresar un peso válido.</span>
+          </div>
+        ) : (
+          <div className="p-6 bg-blue-50 border border-blue-200 rounded-2xl flex flex-col justify-center text-center">
+            <span className="text-xs uppercase font-bold text-blue-800 block mb-1">Límite de Seguridad Recomendado</span>
+            <span className="text-3xl font-extrabold text-blue-900">{resultadoAnestesia.tubos} Tubos</span>
+            <span className="text-xs font-semibold text-blue-700 mt-1">
+              Dosis máxima absoluta: {resultadoAnestesia.mgMax} mg
+            </span>
+          </div>
+        )}
       </div>
     </div>
   )
