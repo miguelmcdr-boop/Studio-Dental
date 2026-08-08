@@ -28,8 +28,13 @@ export const SimuladorCarillas = memo(({ dsdData, ratioAnchoAlto, esProporcionId
           <input
             type="number"
             step="0.1"
-            value={dsdData.anchoCentral || 8.5}
-            onChange={(e) => onActualizar('anchoCentral', parseFloat(e.target.value) || 0)}
+            value={dsdData.anchoCentral ?? ''}
+            onChange={(e) => {
+              const raw = e.target.value
+              const parsed = parseFloat(raw)
+              onActualizar('anchoCentral', raw === '' || Number.isNaN(parsed) ? null : parsed)
+            }}
+            placeholder="Ej: 8.5"
             className="w-full px-3 py-2 border rounded-xl font-bold bg-white"
           />
         </div>
@@ -39,8 +44,13 @@ export const SimuladorCarillas = memo(({ dsdData, ratioAnchoAlto, esProporcionId
           <input
             type="number"
             step="0.1"
-            value={dsdData.altoCentral || 10.5}
-            onChange={(e) => onActualizar('altoCentral', parseFloat(e.target.value) || 0)}
+            value={dsdData.altoCentral ?? ''}
+            onChange={(e) => {
+              const raw = e.target.value
+              const parsed = parseFloat(raw)
+              onActualizar('altoCentral', raw === '' || Number.isNaN(parsed) ? null : parsed)
+            }}
+            placeholder="Ej: 10.5"
             className="w-full px-3 py-2 border rounded-xl font-bold bg-white"
           />
         </div>
@@ -67,17 +77,28 @@ export const SimuladorCarillas = memo(({ dsdData, ratioAnchoAlto, esProporcionId
         <div className="grid grid-cols-3 gap-3 text-center">
           <div className="p-2 bg-white rounded-lg border">
             <span className="text-[10px] text-gray-400 font-bold block">Incisivo Central (1.618)</span>
-            <span className="font-black text-gray-900 text-sm">{visibilidadDorada.centralVisible} mm</span>
+            <span className="font-black text-gray-900 text-sm">
+              {visibilidadDorada?.estado === 'DATOS_INCOMPLETOS' ? 'N/D' : `${visibilidadDorada.centralVisible} mm`}
+            </span>
           </div>
           <div className="p-2 bg-white rounded-lg border">
             <span className="text-[10px] text-gray-400 font-bold block">Lateral Aparente (1.0)</span>
-            <span className="font-black text-gray-900 text-sm">{visibilidadDorada.lateralEstimado} mm</span>
+            <span className="font-black text-gray-900 text-sm">
+              {visibilidadDorada?.estado === 'DATOS_INCOMPLETOS' ? 'N/D' : `${visibilidadDorada.lateralEstimado} mm`}
+            </span>
           </div>
           <div className="p-2 bg-white rounded-lg border">
             <span className="text-[10px] text-gray-400 font-bold block">Canino Aparente (0.618)</span>
-            <span className="font-black text-gray-900 text-sm">{visibilidadDorada.caninoEstimado} mm</span>
+            <span className="font-black text-gray-900 text-sm">
+              {visibilidadDorada?.estado === 'DATOS_INCOMPLETOS' ? 'N/D' : `${visibilidadDorada.caninoEstimado} mm`}
+            </span>
           </div>
         </div>
+        {visibilidadDorada?.estado === 'DATOS_INCOMPLETOS' && (
+          <p className="text-[10px] text-amber-600 font-semibold text-center">
+            Ingrese el ancho del incisivo central para calcular la proporción dorada.
+          </p>
+        )}
       </div>
 
       {/* Selección de Guía de Color Vita & Morfología */}

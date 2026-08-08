@@ -15,19 +15,25 @@ export const ProporcionesCanino = memo(({ visibilidadDorada }) => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl text-center space-y-1">
           <span className="text-[10px] text-gray-500 font-bold uppercase block">Incisivo Central</span>
-          <span className="text-xl font-black text-gray-900">{visibilidadDorada?.centralVisible || 8.5} mm</span>
+          <span className="text-xl font-black text-gray-900">
+            {visibilidadDorada?.estado === 'DATOS_INCOMPLETOS' ? 'N/D' : `${visibilidadDorada?.centralVisible} mm`}
+          </span>
           <span className="text-[10px] text-gray-400 block">Proporción 1.618 (Ancho dominante)</span>
         </div>
 
         <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl text-center space-y-1">
           <span className="text-[10px] text-gray-500 font-bold uppercase block">Incisivo Lateral Aparente</span>
-          <span className="text-xl font-black text-gray-900">{visibilidadDorada?.lateralEstimado || 5.25} mm</span>
+          <span className="text-xl font-black text-gray-900">
+            {visibilidadDorada?.estado === 'DATOS_INCOMPLETOS' ? 'N/D' : `${visibilidadDorada?.lateralEstimado} mm`}
+          </span>
           <span className="text-[10px] text-gray-400 block">Proporción 1.000 (Base de referencia)</span>
         </div>
 
         <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl text-center space-y-1">
           <span className="text-[10px] text-gray-500 font-bold uppercase block">Canino Aparente</span>
-          <span className="text-xl font-black text-gray-900">{visibilidadDorada?.caninoEstimado || 3.25} mm</span>
+          <span className="text-xl font-black text-gray-900">
+            {visibilidadDorada?.estado === 'DATOS_INCOMPLETOS' ? 'N/D' : `${visibilidadDorada?.caninoEstimado} mm`}
+          </span>
           <span className="text-[10px] text-gray-400 block">Proporción 0.618 (Visibilidad frontal)</span>
         </div>
       </div>

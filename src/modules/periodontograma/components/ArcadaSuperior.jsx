@@ -11,8 +11,8 @@ export const ArcadaSuperior = memo(({ periodontoData = {}, setPeriodontoData = (
     setPeriodontoData(prev => {
       const statePrev = prev || {}
       const piezaActual = statePrev[numero] || {
-        vestibular: { sondaje: [0, 0, 0], recesion: [0, 0, 0], sangrado: [false, false, false], placa: [false, false, false], supuracion: [false, false, false] },
-        palatino: { sondaje: [0, 0, 0], recesion: [0, 0, 0], sangrado: [false, false, false], placa: [false, false, false], supuracion: [false, false, false] }
+        vestibular: { sondaje: [null, null, null], recesion: [null, null, null], sangrado: [false, false, false], placa: [false, false, false], supuracion: [false, false, false] },
+        palatino: { sondaje: [null, null, null], recesion: [null, null, null], sangrado: [false, false, false], placa: [false, false, false], supuracion: [false, false, false] }
       }
 
       if (tipoCampo === 'ausente') {

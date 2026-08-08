@@ -159,7 +159,13 @@ export const FichaImplante = ({ implantes = [], onAgregarImplante, onEliminarImp
                   <span className="bg-gray-200 text-gray-800 text-[10px] font-semibold px-2 py-0.5 rounded">{imp.plataforma}</span>
                 </div>
                 <p className="text-gray-600 mt-1">
-                  Diámetro: <strong>{imp.diametro}</strong> | Longitud: <strong>{imp.longitud}</strong> | Torque: <strong className="text-blue-700">{imp.torqueInsercion} Ncm</strong> | ISQ: <strong className="text-emerald-700">{imp.isqInicial}</strong>
+                  Diámetro: <strong>{imp.diametro}</strong> | Longitud: <strong>{imp.longitud}</strong> | Torque:{' '}
+                  <strong className={imp.torqueInsercion === null || imp.torqueInsercion === undefined ? 'text-amber-600' : 'text-blue-700'}>
+                    {imp.torqueInsercion === null || imp.torqueInsercion === undefined ? 'No registrado' : `${imp.torqueInsercion} Ncm`}
+                  </strong> | ISQ:{' '}
+                  <strong className={imp.isqInicial === null || imp.isqInicial === undefined ? 'text-amber-600' : 'text-emerald-700'}>
+                    {imp.isqInicial === null || imp.isqInicial === undefined ? 'No registrado' : imp.isqInicial}
+                  </strong>
                 </p>
                 {imp.lote && <p className="text-[10px] text-gray-400">Lote Seremi: {imp.lote}</p>}
                 <p className="text-gray-700 italic mt-1">{imp.observacion}</p>

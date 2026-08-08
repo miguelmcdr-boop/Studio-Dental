@@ -232,7 +232,7 @@ export const FichaPacienteModulo = memo(({
       )}
 
       {(tabActiva === 'Fotografías Clínicas' || tabActiva === 'Radiografías') && (
-        <AdjuntosSection tabActiva={tabActiva} />
+        <AdjuntosSection tabActiva={tabActiva} pacienteId={paciente.id} />
       )}
 
       {mostrarEditarDatos && (

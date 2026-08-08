@@ -1,4 +1,13 @@
 import React, { useState, useEffect } from 'react'
+import {
+  crearCredencial,
+  verificarPassword,
+  estaBloqueado,
+  registrarIntentoFallido,
+  limpiarIntentosFallidos,
+  MAX_INTENTOS_FALLIDOS,
+} from './services/authService'
+import { eliminarTodosPorPaciente as eliminarAdjuntosDelPaciente } from './services/adjuntosStorageService'
 
 // Importación de Módulos Desacoplados bajo Constitución v3.0.0 (Public API)
 import { Agenda as AgendaModulo } from './modules/agenda'
@@ -25,28 +34,79 @@ const LoginScreen = ({ onLogin }) => {
   const [especialidad, setEspecialidad] = useState('')
   const [isFirstTime, setIsFirstTime] = useState(false)
 
+  const [error, setError] = useState('')
+  const [cargando, setCargando] = useState(false)
+
   const handleEmailChange = (e) => {
     const value = e.target.value
     setEmail(value)
+    setError('')
     const existingProfile = localStorage.getItem(`profile_${value.trim().toLowerCase()}`)
     setIsFirstTime(!existingProfile)
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    if (email.trim() !== '') {
-      const formattedEmail = email.trim().toLowerCase()
-      let userProfile = JSON.parse(localStorage.getItem(`profile_${formattedEmail}`))
+    setError('')
+    if (email.trim() === '' || password === '') return
+
+    const formattedEmail = email.trim().toLowerCase()
+
+    const estadoBloqueo = estaBloqueado(formattedEmail)
+    if (estadoBloqueo.bloqueado) {
+      const minutos = Math.ceil(estadoBloqueo.restanteMs / 60000)
+      setError(`Demasiados intentos fallidos. Intenta nuevamente en ${minutos} minuto(s).`)
+      return
+    }
+
+    setCargando(true)
+    try {
+      let userProfile = JSON.parse(localStorage.getItem(`profile_${formattedEmail}`) || 'null')
+
       if (!userProfile) {
+        // Perfil nuevo: se crea con una credencial real hasheada.
+        const credencial = await crearCredencial(password)
         userProfile = {
           email: formattedEmail,
           nombreCompleto: nombreCompleto || 'Profesional Dental',
           rut: rut || '',
           especialidad: especialidad || 'Cirujano Dentista',
+          credencial,
         }
         localStorage.setItem(`profile_${formattedEmail}`, JSON.stringify(userProfile))
+        limpiarIntentosFallidos(formattedEmail)
+        onLogin(userProfile)
+        return
       }
+
+      if (!userProfile.credencial) {
+        // Perfil creado antes de esta corrección (F1-01): nunca tuvo una
+        // contraseña real verificable. Se establece ahora con la contraseña
+        // ingresada, como migración de una sola vez.
+        const credencial = await crearCredencial(password)
+        userProfile = { ...userProfile, credencial }
+        localStorage.setItem(`profile_${formattedEmail}`, JSON.stringify(userProfile))
+        limpiarIntentosFallidos(formattedEmail)
+        onLogin(userProfile)
+        return
+      }
+
+      const esValida = await verificarPassword(password, userProfile.credencial)
+      if (!esValida) {
+        const estado = registrarIntentoFallido(formattedEmail)
+        const intentosRestantes = MAX_INTENTOS_FALLIDOS - estado.count
+        setError(
+          intentosRestantes > 0
+            ? `Contraseña incorrecta. Te quedan ${intentosRestantes} intento(s) antes del bloqueo temporal.`
+            : 'Demasiados intentos fallidos. Cuenta bloqueada temporalmente.'
+        )
+        return
+      }
+
+      limpiarIntentosFallidos(formattedEmail)
       onLogin(userProfile)
+    } finally {
+      setCargando(false)
     }
   }
 
@@ -131,10 +191,17 @@ const LoginScreen = ({ onLogin }) => {
 
           <button
             type="submit"
-            className="w-full bg-black text-white font-medium py-2.5 rounded-lg text-sm hover:bg-gray-800 transition-colors mt-2"
+            disabled={cargando}
+            className="w-full bg-black text-white font-medium py-2.5 rounded-lg text-sm hover:bg-gray-800 transition-colors mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isFirstTime ? 'Guardar datos e Ingresar' : 'Ingresar al sistema'}
+            {cargando ? 'Verificando...' : isFirstTime ? 'Guardar datos e Ingresar' : 'Ingresar al sistema'}
           </button>
+
+          {error && (
+            <p className="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mt-2">
+              {error}
+            </p>
+          )}
         </form>
       </div>
     </div>
@@ -376,6 +443,12 @@ function App() {
       localStorage.removeItem(`presupuesto_items_${idPaciente}`)
       localStorage.removeItem(`abonos_${idPaciente}`)
       localStorage.removeItem(`recetas_${idPaciente}`)
+      // Los adjuntos clínicos viven en IndexedDB (F1-02), no en localStorage.
+      // La eliminación es asíncrona; se registra el error si falla, pero no
+      // bloquea el resto del flujo de eliminación del paciente.
+      eliminarAdjuntosDelPaciente(idPaciente).catch((e) => {
+        console.error('No se pudieron eliminar los adjuntos IndexedDB del paciente:', e)
+      })
     }
   }
 
