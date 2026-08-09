@@ -1,25 +1,12 @@
 /**
  * Persistencia en LocalStorage para Urgencias y Notificaciones GES
  */
+import { createLocalStorageRepository } from '../../../services/localStorageRepository'
 
 const STORAGE_KEY_GES = 'studio_dental_atenciones_ges_urgencias'
+const gesRepo = createLocalStorageRepository(STORAGE_KEY_GES, [])
 
 export const urgenciasGesStorageService = {
-  obtenerAtenciones: () => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_GES)
-      return saved ? JSON.parse(saved) : []
-    } catch (e) {
-      console.error('Error al leer atenciones GES:', e)
-      return []
-    }
-  },
-
-  guardarAtenciones: (atenciones) => {
-    try {
-      localStorage.setItem(STORAGE_KEY_GES, JSON.stringify(atenciones))
-    } catch (e) {
-      console.error('Error al guardar atenciones GES:', e)
-    }
-  }
+  obtenerAtenciones: () => gesRepo.obtener([]),
+  guardarAtenciones: (atenciones) => gesRepo.guardar(atenciones)
 }

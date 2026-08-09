@@ -2,16 +2,20 @@
  * Servicio de consolidación de datos cruzados
  */
 
+import { pacientesStorageService } from '../../pacientes'
+
 export const reportesStorageService = {
   obtenerDatosConsolidados: () => {
     try {
-      const pacSaved = localStorage.getItem('clinica_lista_pacientes')
+      // Pacientes se lee vía el servicio dueño de esa clave (F1-05: fuente
+      // única de verdad). Pagos/presupuestos/citas quedan pendientes del
+      // mismo tratamiento en F2-07 (fuera del alcance de esta tarea).
       const pagSaved = localStorage.getItem('studio_dental_pagos_historial_v3') || localStorage.getItem('studio_dental_pagos_historial')
       const presSaved = localStorage.getItem('studio_dental_presupuestos_globales')
       const citasSaved = localStorage.getItem('studio_dental_agenda_citas_v3')
 
       return {
-        pacientes: pacSaved ? JSON.parse(pacSaved) : [],
+        pacientes: pacientesStorageService.obtenerPacientes(),
         pagos: pagSaved ? JSON.parse(pagSaved) : [],
         presupuestos: presSaved ? JSON.parse(presSaved) : [],
         citas: citasSaved ? JSON.parse(citasSaved) : []

@@ -1,4 +1,5 @@
 import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
+import { leerJSON, escribirJSON, createLocalStorageRepository } from '../../../services/localStorageRepository'
 
 /**
  * Persistencia en LocalStorage para Presupuestos y Fichas de Pacientes
@@ -6,106 +7,78 @@ import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
  */
 
 const STORAGE_KEY_PRESUPUESTOS = 'studio_dental_presupuestos_globales'
+const presupuestosRepo = createLocalStorageRepository(STORAGE_KEY_PRESUPUESTOS, [], {
+  notify: true,
+  eventos: ['presupuestos_actualizados']
+})
 
 export const presupuestosStorageService = {
-  obtenerPresupuestos: (defaults = []) => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_PRESUPUESTOS)
-      return saved ? JSON.parse(saved) : defaults
-    } catch (e) {
-      console.error('Error al leer presupuestos globales:', e)
-      return defaults
-    }
-  },
+  obtenerPresupuestos: (defaults = []) => presupuestosRepo.obtener(defaults),
 
-  guardarPresupuestos: (presupuestos) => {
-    try {
-      localStorage.setItem(STORAGE_KEY_PRESUPUESTOS, JSON.stringify(presupuestos))
-      window.dispatchEvent(new Event('storage'))
-      window.dispatchEvent(new CustomEvent('presupuestos_actualizados'))
-    } catch (e) {
-      console.error('Error al guardar presupuestos globales:', e)
-    }
-  },
+  guardarPresupuestos: (presupuestos) => presupuestosRepo.guardar(presupuestos),
 
   // Vincula los ítems creados en el presupuesto global hacia la Ficha Médica del paciente
   sincronizarConFichaPaciente: (pacienteId, items, convenio = 'Particular') => {
     if (!pacienteId) return
-    try {
-      const keyItems = `presupuesto_items_${pacienteId}`
-      const existentesRaw = localStorage.getItem(keyItems)
-      const existentes = existentesRaw ? JSON.parse(existentesRaw) : []
+    const keyItems = `presupuesto_items_${pacienteId}`
+    const existentes = leerJSON(keyItems, [])
 
-      const idsExistentes = new Set(existentes.map(i => i.id))
-      const nuevosAjustados = items.map(it => ({
-        ...it,
-        convenio: it.convenio || convenio,
-        estado: it.estado || 'Pendiente'
-      })).filter(it => !idsExistentes.has(it.id))
+    const idsExistentes = new Set(existentes.map(i => i.id))
+    const nuevosAjustados = items.map(it => ({
+      ...it,
+      convenio: it.convenio || convenio,
+      estado: it.estado || 'Pendiente'
+    })).filter(it => !idsExistentes.has(it.id))
 
-      const consolidados = [...existentes, ...nuevosAjustados]
-      localStorage.setItem(keyItems, JSON.stringify(consolidados))
-      window.dispatchEvent(new Event('storage'))
-    } catch (e) {
-      console.error('Error al sincronizar con la Ficha del Paciente:', e)
-    }
+    const consolidados = [...existentes, ...nuevosAjustados]
+    escribirJSON(keyItems, consolidados, { notify: true })
   },
 
   // Eliminación Bidireccional: Borra el presupuesto global y sus ítems en el plan de tratamiento del paciente
   eliminarPresupuestoYFicha: (presupuestoId, pacienteId, itemsABorrar = []) => {
-    try {
-      // 1. Borrar del registro de presupuestos globales
-      const guardados = presupuestosStorageService.obtenerPresupuestos([])
-      const actualizados = guardados.filter(p => p.id !== presupuestoId)
-      presupuestosStorageService.guardarPresupuestos(actualizados)
+    // 1. Borrar del registro de presupuestos globales
+    const guardados = presupuestosRepo.obtener([])
+    const actualizados = guardados.filter(p => p.id !== presupuestoId)
+    presupuestosRepo.guardar(actualizados)
 
-      // 2. Borrar del Plan de Tratamiento del paciente si existe pacienteId
-      if (pacienteId) {
-        const keyItems = `presupuesto_items_${pacienteId}`
-        const existentesRaw = localStorage.getItem(keyItems)
-        if (existentesRaw) {
-          const existentes = JSON.parse(existentesRaw)
-
-          if (itemsABorrar.length > 0) {
-            const idsABorrar = new Set(itemsABorrar.map(i => i.id))
-            const filtrados = existentes.filter(i => !idsABorrar.has(i.id))
-            localStorage.setItem(keyItems, JSON.stringify(filtrados))
-          } else {
-            // Si no se especifican ítems, se vacía la ficha vinculada
+    // 2. Borrar del Plan de Tratamiento del paciente si existe pacienteId
+    if (pacienteId) {
+      const keyItems = `presupuesto_items_${pacienteId}`
+      const existentes = leerJSON(keyItems, null)
+      if (existentes !== null) {
+        if (itemsABorrar.length > 0) {
+          const idsABorrar = new Set(itemsABorrar.map(i => i.id))
+          const filtrados = existentes.filter(i => !idsABorrar.has(i.id))
+          escribirJSON(keyItems, filtrados)
+        } else {
+          // Si no se especifican ítems, se vacía la ficha vinculada
+          try {
             localStorage.removeItem(keyItems)
+          } catch (e) {
+            console.error(`Error al eliminar "${keyItems}" de localStorage:`, e)
           }
         }
       }
-
-      window.dispatchEvent(new Event('storage'))
-      window.dispatchEvent(new CustomEvent('presupuestos_actualizados'))
-    } catch (e) {
-      console.error('Error al eliminar presupuesto bidireccionalmente:', e)
     }
+
+    presupuestosRepo.guardar(presupuestosRepo.obtener([]))
   },
 
   // Actualiza el estado (Emitido, Aprobado, Rechazado, etc.) de un presupuesto creado directamente
   actualizarEstadoPresupuesto: (presupuestoId, nuevoEstado) => {
-    try {
-      const guardados = presupuestosStorageService.obtenerPresupuestos([])
-      const actualizados = guardados.map(p =>
-        p.id === presupuestoId ? { ...p, estado: nuevoEstado } : p
-      )
-      presupuestosStorageService.guardarPresupuestos(actualizados)
-    } catch (e) {
-      console.error('Error al actualizar el estado del presupuesto:', e)
-    }
+    const guardados = presupuestosRepo.obtener([])
+    const actualizados = guardados.map(p =>
+      p.id === presupuestoId ? { ...p, estado: nuevoEstado } : p
+    )
+    presupuestosRepo.guardar(actualizados)
   },
 
   consolidarPresupuestosDesdePacientes: (pacientes = []) => {
     const consolidados = []
 
     pacientes.forEach(p => {
-      const savedItems = localStorage.getItem(`presupuesto_items_${p.id}`)
-      const savedAbonos = localStorage.getItem(`abonos_${p.id}`)
-
-      const items = savedItems ? JSON.parse(savedItems) : []
-      const abonos = savedAbonos ? JSON.parse(savedAbonos) : []
+      const items = leerJSON(`presupuesto_items_${p.id}`, [])
+      const abonos = leerJSON(`abonos_${p.id}`, [])
 
       if (items.length > 0) {
         const total = items.reduce((acc, curr) => acc + (parseFloat(curr.valor) || 0), 0)

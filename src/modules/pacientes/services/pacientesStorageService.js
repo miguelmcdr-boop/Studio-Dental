@@ -1,42 +1,17 @@
+import { leerJSON, escribirJSON, createLocalStorageRepository } from '../../../services/localStorageRepository'
+
+const PACIENTES_KEY = 'clinica_lista_pacientes'
+const pacientesRepo = createLocalStorageRepository(PACIENTES_KEY, [], { notify: true })
+
 export const pacientesStorageService = {
   // Clave única global para pacientes en la aplicación
-  PACIENTES_KEY: 'clinica_lista_pacientes',
+  PACIENTES_KEY,
 
-  obtenerPacientes: () => {
-    try {
-      const saved = localStorage.getItem('clinica_lista_pacientes')
-      return saved ? JSON.parse(saved) : []
-    } catch (e) {
-      console.error('Error al leer pacientes:', e)
-      return []
-    }
-  },
+  obtenerPacientes: () => pacientesRepo.obtener([]),
 
-  guardarPacientes: (pacientes) => {
-    try {
-      localStorage.setItem('clinica_lista_pacientes', JSON.stringify(pacientes))
-      // Notificar a otras pestañas/módulos
-      window.dispatchEvent(new Event('storage'))
-    } catch (e) {
-      console.error('Error al guardar pacientes:', e)
-    }
-  },
+  guardarPacientes: (pacientes) => pacientesRepo.guardar(pacientes),
 
-  obtenerItem: (key, fallback = []) => {
-    try {
-      const saved = localStorage.getItem(key)
-      return saved ? JSON.parse(saved) : fallback
-    } catch (e) {
-      console.error(`Error leyendo ${key} de localStorage:`, e)
-      return fallback
-    }
-  },
+  obtenerItem: (key, fallback = []) => leerJSON(key, fallback),
 
-  guardarItem: (key, data) => {
-    try {
-      localStorage.setItem(key, JSON.stringify(data))
-    } catch (e) {
-      console.error(`Error guardando ${key} en localStorage:`, e)
-    }
-  }
+  guardarItem: (key, data) => escribirJSON(key, data)
 }
