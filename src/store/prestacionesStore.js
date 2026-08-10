@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { prestacionesStorageService } from '../modules/prestaciones'
+import { prestacionesStorageService } from '../modules/prestaciones/services/prestacionesStorageService'
 import { ARANCEL_DEFAULT } from '../modules/prestaciones/constants/prestacionesConstants'
 
 const normalizar = (lista) => lista.map(p => ({

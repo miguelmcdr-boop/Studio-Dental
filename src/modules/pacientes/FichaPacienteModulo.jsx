@@ -17,12 +17,10 @@ import { ModalEditarPaciente } from './components/ModalEditarPaciente'
 
 // Especialidades Externas (Módulos Encapsulados)
 import { OdontogramaModulo } from '../odontograma'
-import { PeriodontogramaModulo } from '../periodontograma/PeriodontogramaModulo'
-import { QuirurgicoModulo } from '../quirurgico/QuirurgicoModulo'
-import { OdontopediatriaModulo } from '../odontopediatria/OdontopediatriaModulo'
-import { SmileDesignModulo } from '../dsd/SmileDesignModulo'
-import { usePrestacionesStore } from '../../store/prestacionesStore'
-import { useSesionStore } from '../../store/sesionStore'
+import { PeriodontogramaModulo } from '../periodontograma'
+import { QuirurgicoModulo } from '../quirurgico'
+import { OdontopediatriaModulo } from '../odontopediatria'
+import { SmileDesignModulo } from '../dsd'
 
 export const FichaPacienteModulo = memo(({
   paciente,

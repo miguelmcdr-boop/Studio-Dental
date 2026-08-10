@@ -1,0 +1,1 @@
+export { QuirurgicoModulo } from './QuirurgicoModulo'

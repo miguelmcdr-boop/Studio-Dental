@@ -1,0 +1,1 @@
+export { OdontopediatriaModulo } from './OdontopediatriaModulo'
