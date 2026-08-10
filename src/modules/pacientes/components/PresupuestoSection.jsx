@@ -4,6 +4,8 @@ import { PERMANENTE_SUPERIOR, PERMANENTE_INFERIOR } from '../constants/pacientes
 import { obtenerDescuentoConvenio } from '../utils/pacientesCalculations'
 import { pacientesStorageService } from '../services/pacientesStorageService'
 import { descontarStockPorTratamiento } from '../../inventario/utils/inventarioCalculations'
+import { prestacionesStorageService } from '../../prestaciones'
+import { inventarioStorageService } from '../../inventario'
 
 export const PresupuestoSection = memo(({
   paciente,
@@ -20,17 +22,10 @@ export const PresupuestoSection = memo(({
   evolucionesNotas = [],
   setEvolucionesNotas = () => {}
 }) => {
-  // Sincronización en tiempo real con el arancel global
+  // Sincronización en tiempo real con el arancel global (vía servicio, F2-07a)
   const [arancelActualizado, setArancelActualizado] = useState(() => {
-    const saved = localStorage.getItem('clinica_arancel_prestaciones')
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved)
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed
-      } catch (e) {
-        console.error(e)
-      }
-    }
+    const actuales = prestacionesStorageService.obtenerPrestaciones()
+    if (Array.isArray(actuales) && actuales.length > 0) return actuales
     return prestacionesProp
   })
 
@@ -47,14 +42,9 @@ export const PresupuestoSection = memo(({
 
   useEffect(() => {
     const handleRefrescarArancel = () => {
-      const saved = localStorage.getItem('clinica_arancel_prestaciones')
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved)
-          if (Array.isArray(parsed)) setArancelActualizado(parsed)
-        } catch (e) {
-          console.error(e)
-        }
+      const actuales = prestacionesStorageService.obtenerPrestaciones()
+      if (Array.isArray(actuales) && actuales.length > 0) {
+        setArancelActualizado(actuales)
       }
     }
 
@@ -155,12 +145,12 @@ export const PresupuestoSection = memo(({
         pacientesStorageService.guardarItem(`evoluciones_notas_${paciente.id}`, notasActualizadas)
       }
 
-      // 2. Cohesión con Inventario (Rebaja Automática de Stock)
+      // 2. Cohesión con Inventario (Rebaja Automática de Stock vía servicio, F2-07a)
       try {
-        const inventarioGuardado = JSON.parse(localStorage.getItem('clinica_inventario_stock') || '[]')
+        const inventarioGuardado = inventarioStorageService.obtenerItems([])
         if (Array.isArray(inventarioGuardado) && inventarioGuardado.length > 0 && typeof descontarStockPorTratamiento === 'function') {
           const inventarioActualizado = descontarStockPorTratamiento(inventarioGuardado, itemRealizado.prestacion)
-          localStorage.setItem('clinica_inventario_stock', JSON.stringify(inventarioActualizado))
+          inventarioStorageService.guardarItems(inventarioActualizado)
           window.dispatchEvent(new CustomEvent('inventario_actualizado'))
         }
       } catch (e) {

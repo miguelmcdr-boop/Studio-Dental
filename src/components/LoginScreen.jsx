@@ -5,6 +5,9 @@ import {
   estaBloqueado,
   registrarIntentoFallido,
   limpiarIntentosFallidos,
+  obtenerPerfil,
+  guardarPerfil,
+  existePerfil,
   MAX_INTENTOS_FALLIDOS,
 } from '../services/authService'
 
@@ -23,8 +26,9 @@ export const LoginScreen = ({ onLogin }) => {
     const value = e.target.value
     setEmail(value)
     setError('')
-    const existingProfile = localStorage.getItem(`profile_${value.trim().toLowerCase()}`)
-    setIsFirstTime(!existingProfile)
+    // F2-07c: vía authService (existePerfil), no acceso directo a localStorage
+    const yaExiste = existePerfil(value.trim())
+    setIsFirstTime(!yaExiste)
   }
 
   const handleSubmit = async (e) => {
@@ -43,7 +47,8 @@ export const LoginScreen = ({ onLogin }) => {
 
     setCargando(true)
     try {
-      let userProfile = JSON.parse(localStorage.getItem(`profile_${formattedEmail}`) || 'null')
+      // F2-07c: vía authService (obtenerPerfil), no acceso directo a localStorage
+      let userProfile = obtenerPerfil(formattedEmail)
 
       if (!userProfile) {
         // Perfil nuevo: se crea con una credencial real hasheada.
@@ -55,7 +60,8 @@ export const LoginScreen = ({ onLogin }) => {
           especialidad: especialidad || 'Cirujano Dentista',
           credencial,
         }
-        localStorage.setItem(`profile_${formattedEmail}`, JSON.stringify(userProfile))
+        // F2-07c: vía authService (guardarPerfil)
+        guardarPerfil(formattedEmail, userProfile)
         limpiarIntentosFallidos(formattedEmail)
         onLogin(userProfile)
         return
@@ -67,7 +73,8 @@ export const LoginScreen = ({ onLogin }) => {
         // ingresada, como migración de una sola vez.
         const credencial = await crearCredencial(password)
         userProfile = { ...userProfile, credencial }
-        localStorage.setItem(`profile_${formattedEmail}`, JSON.stringify(userProfile))
+        // F2-07c: vía authService (guardarPerfil)
+        guardarPerfil(formattedEmail, userProfile)
         limpiarIntentosFallidos(formattedEmail)
         onLogin(userProfile)
         return

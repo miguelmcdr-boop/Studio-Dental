@@ -17,6 +17,12 @@ export const presupuestosStorageService = {
 
   guardarPresupuestos: (presupuestos) => presupuestosRepo.guardar(presupuestos),
 
+  // Lee los ítems de presupuesto de un paciente específico (clave dinámica)
+  obtenerItemsPorPaciente: (pacienteId) => {
+    if (!pacienteId) return []
+    return leerJSON(`presupuesto_items_${pacienteId}`, [])
+  },
+
   // Vincula los ítems creados en el presupuesto global hacia la Ficha Médica del paciente
   sincronizarConFichaPaciente: (pacienteId, items, convenio = 'Particular') => {
     if (!pacienteId) return
@@ -71,6 +77,16 @@ export const presupuestosStorageService = {
       p.id === presupuestoId ? { ...p, estado: nuevoEstado } : p
     )
     presupuestosRepo.guardar(actualizados)
+  },
+
+  // Elimina todos los ítems de presupuesto de un paciente (F2-07d)
+  eliminarItemsDePaciente: (pacienteId) => {
+    if (!pacienteId) return
+    try {
+      localStorage.removeItem(`presupuesto_items_${pacienteId}`)
+    } catch (e) {
+      console.error(`Error al eliminar items de presupuesto del paciente ${pacienteId}:`, e)
+    }
   },
 
   consolidarPresupuestosDesdePacientes: (pacientes = []) => {

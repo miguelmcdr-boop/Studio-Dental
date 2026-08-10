@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react'
 import { finanzasStorageService } from '../services/finanzasStorageService'
 import { calcularBalanceFinanzas } from '../utils/finanzasCalculations'
 import { CONVENIOS_DEFAULT } from '../constants/finanzasConstants'
+import { pagosStorageService } from '../../pagos'
 
 export const useFinanzas = (pacientes = []) => {
   const [movimientosManuales, setMovimientosManuales] = useState(() =>
@@ -17,15 +18,15 @@ export const useFinanzas = (pacientes = []) => {
     new Date().toLocaleDateString('es-CL')
   )
 
-  // Escanear todos los abonos y pagos globales del localStorage
+  // Escanear todos los abonos y pagos globales (vía servicios, F2-07a)
   const [todosLosAbonosYPagos, setTodosLosAbonosYPagos] = useState([])
 
   const recargarTransaccionesConsolidadas = useCallback(() => {
     const listaConsolidada = []
 
-    // 1. Cargar Pagos Globales
+    // 1. Cargar Pagos Globales (vía pagosStorageService, F2-07a)
     try {
-      const pagosGlobales = JSON.parse(localStorage.getItem('studio_dental_pagos_historial_v3') || '[]')
+      const pagosGlobales = pagosStorageService.obtenerPagos([])
       if (Array.isArray(pagosGlobales)) {
         pagosGlobales.forEach(p => {
           listaConsolidada.push({
@@ -44,10 +45,10 @@ export const useFinanzas = (pacientes = []) => {
       console.error(e)
     }
 
-    // 2. Cargar Abonos de cada Paciente
+    // 2. Cargar Abonos de cada Paciente (vía pagosStorageService, F2-07a)
     pacientes.forEach(pac => {
       try {
-        const abonosPac = JSON.parse(localStorage.getItem(`abonos_${pac.id}`) || '[]')
+        const abonosPac = pagosStorageService.obtenerAbonosPorPaciente(pac.id)
         if (Array.isArray(abonosPac)) {
           abonosPac.forEach(a => {
             listaConsolidada.push({

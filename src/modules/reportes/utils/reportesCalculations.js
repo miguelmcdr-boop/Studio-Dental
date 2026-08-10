@@ -2,6 +2,8 @@
  * Cálculos financieros, estadísticas de agenda y agregaciones para BI
  */
 
+import { presupuestosStorageService } from '../../presupuestos'
+
 export const calcularEstadisticasAvanzadas = (pacientes = [], pagos = [], presupuestos = [], citas = []) => {
   let totalRecaudado = 0
   let totalPresupuestado = 0
@@ -31,16 +33,15 @@ export const calcularEstadisticasAvanzadas = (pacientes = [], pagos = [], presup
     ? Math.round((presupuestosAprobadosCount / presupuestos.length) * 100) 
     : 0
 
-  // 3. Desglose de Tratamientos por Paciente
+  // 3. Desglose de Tratamientos por Paciente (vía presupuestosStorageService, F2-07a)
   let totalProcedimientos = 0
   const rankingPrestaciones = {}
   const desgloseEspecialidad = {}
 
   pacientes.forEach(p => {
     try {
-      const itemsSaved = localStorage.getItem(`presupuesto_items_${p.id}`)
-      if (itemsSaved) {
-        const items = JSON.parse(itemsSaved)
+      const items = presupuestosStorageService.obtenerItemsPorPaciente(p.id)
+      if (Array.isArray(items) && items.length > 0) {
         items.forEach(it => {
           totalProcedimientos++
           const nombre = it.prestacion || 'Consulta General'

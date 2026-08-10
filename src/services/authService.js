@@ -108,3 +108,68 @@ export const registrarIntentoFallido = (email) => {
 export const limpiarIntentosFallidos = (email) => {
   localStorage.removeItem(attemptsKey(email))
 }
+
+// ---------------------------------------------------------------------------
+// Gestión de perfiles de usuario (F2-07c)
+// ---------------------------------------------------------------------------
+//
+// Centraliza el acceso a la clave `profile_${email}` en localStorage.
+// Antes, LoginScreen y useConfiguracion accedían directamente a esta clave,
+// violando el criterio de F2-07 de "cero accesos directos fuera de servicios".
+//
+// Nota: estos accesos son al dominio de sesión/perfil, por lo que el
+// authService es el dueño natural de la clave — no se crea un servicio
+// separado, se extiende este.
+
+const profileKey = (email) => `profile_${email.trim().toLowerCase()}`
+
+/**
+ * Lee el perfil de usuario persistido para un email dado.
+ * @param {string} email - Email del profesional (se normaliza a minúsculas).
+ * @returns {object|null} El perfil parseado, o `null` si no existe o el JSON
+ *   está corrupto. Nunca lanza excepción (Cap. VII.4 de la Constitución).
+ */
+export const obtenerPerfil = (email) => {
+  if (!email) return null
+  try {
+    const raw = localStorage.getItem(profileKey(email))
+    return raw ? JSON.parse(raw) : null
+  } catch (e) {
+    console.error(`Error al leer perfil "${email}" desde localStorage:`, e)
+    return null
+  }
+}
+
+/**
+ * Persiste el perfil de usuario para un email dado.
+ * @param {string} email - Email del profesional (se normaliza a minúsculas).
+ * @param {object} perfil - Objeto de perfil completo a persistir.
+ * @returns {boolean} `true` si la escritura fue exitosa, `false` si falló
+ *   (ej. localStorage lleno). Nunca lanza excepción.
+ */
+export const guardarPerfil = (email, perfil) => {
+  if (!email || !perfil) return false
+  try {
+    localStorage.setItem(profileKey(email), JSON.stringify(perfil))
+    return true
+  } catch (e) {
+    console.error(`Error al guardar perfil "${email}" en localStorage:`, e)
+    return false
+  }
+}
+
+/**
+ * Indica si existe un perfil persistido para un email dado.
+ * Útil para la UI de LoginScreen que necesita saber si es primera vez
+ * sin cargar el perfil completo.
+ * @param {string} email
+ * @returns {boolean}
+ */
+export const existePerfil = (email) => {
+  if (!email) return false
+  try {
+    return localStorage.getItem(profileKey(email)) !== null
+  } catch {
+    return false
+  }
+}

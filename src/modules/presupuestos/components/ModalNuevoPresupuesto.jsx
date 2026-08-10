@@ -2,6 +2,7 @@ import React, { memo, useState, useEffect } from 'react'
 import { generarFolioPresupuesto } from '../utils/presupuestosCalculations'
 import { presupuestosStorageService } from '../services/presupuestosStorageService'
 import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
+import { odontogramaStorageService } from '../../odontograma'
 
 export const ModalNuevoPresupuesto = memo(({ pacientes = [], prestaciones = [], alGuardar, alCerrar }) => {
   const [pacienteId, setPacienteId] = useState('')
@@ -23,9 +24,8 @@ export const ModalNuevoPresupuesto = memo(({ pacientes = [], prestaciones = [], 
     }
 
     try {
-      const odontoRaw = localStorage.getItem(`odonto_inicial_${pacienteId}`)
-      if (odontoRaw) {
-        const odonto = JSON.parse(odontoRaw)
+      const odonto = odontogramaStorageService.obtenerOdontograma(`odonto_inicial_${pacienteId}`, {})
+      if (odonto && typeof odonto === 'object') {
         const listaHallazgos = []
 
         Object.keys(odonto).forEach(pieza => {
@@ -40,9 +40,12 @@ export const ModalNuevoPresupuesto = memo(({ pacientes = [], prestaciones = [], 
         })
 
         setHallazgosOdontograma(listaHallazgos)
+      } else {
+        setHallazgosOdontograma([])
       }
     } catch (e) {
       console.error('Error al leer Odontograma del paciente:', e)
+      setHallazgosOdontograma([])
     }
   }, [pacienteId])
 

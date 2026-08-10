@@ -3,6 +3,7 @@ import { CLINICA_DEFAULT, PARAMETROS_AGENDA_DEFAULT } from '../constants/configu
 import { configuracionStorageService } from '../services/configuracionStorageService'
 import { descargarArchivoBackupJSON } from '../utils/configuracionCalculations'
 import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
+import { guardarPerfil } from '../../../services/authService'
 
 export const useConfiguracion = (userProfileProps, setUserProfileProps) => {
   const [datosClinica, setDatosClinica] = useState(() => 
@@ -17,9 +18,14 @@ export const useConfiguracion = (userProfileProps, setUserProfileProps) => {
     if (setUserProfileProps) {
       setUserProfileProps(nuevoPerfil)
     }
+    // F2-07c: vía authService (guardarPerfil), no acceso directo a localStorage
     const email = nuevoPerfil.email || 'active_user'
-    localStorage.setItem(`profile_${email.trim().toLowerCase()}`, JSON.stringify(nuevoPerfil))
-    alert('✅ Perfil profesional guardado exitosamente.')
+    const ok = guardarPerfil(email, nuevoPerfil)
+    if (ok) {
+      alert('✅ Perfil profesional guardado exitosamente.')
+    } else {
+      alert('❌ Error al guardar el perfil. Verifica el almacenamiento del navegador.')
+    }
   }, [setUserProfileProps])
 
   const guardarDatosClinica = useCallback((nuevosDatos) => {

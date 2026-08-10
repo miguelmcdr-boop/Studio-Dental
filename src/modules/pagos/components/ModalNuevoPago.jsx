@@ -1,6 +1,7 @@
 import React, { memo, useState, useEffect } from 'react'
 import { METODOS_PAGO_GOLD, TIPOS_DOCUMENTO_TRIBUTARIO, CONCEPTOS_PAGO } from '../constants/pagosConstants'
 import { generarFolioRecibo } from '../utils/pagosCalculations'
+import { presupuestosStorageService } from '../../presupuestos'
 
 export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, alGuardar, alCerrar }) => {
   const [pacienteId, setPacienteId] = useState('')
@@ -28,7 +29,7 @@ export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, a
     }
   }, [pagoEditar])
 
-  // Carga de prestaciones desde el plan de tratamiento del paciente
+  // Carga de prestaciones desde el plan de tratamiento del paciente (vía servicio, F2-07a)
   useEffect(() => {
     if (!pacienteId) {
       setPrestacionesPaciente([])
@@ -36,15 +37,15 @@ export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, a
     }
 
     try {
-      const savedItems = localStorage.getItem(`presupuesto_items_${pacienteId}`)
-      if (savedItems) {
-        const items = JSON.parse(savedItems)
+      const items = presupuestosStorageService.obtenerItemsPorPaciente(pacienteId)
+      if (Array.isArray(items)) {
         setPrestacionesPaciente(items)
       } else {
         setPrestacionesPaciente([])
       }
     } catch (e) {
       console.error(e)
+      setPrestacionesPaciente([])
     }
   }, [pacienteId])
 

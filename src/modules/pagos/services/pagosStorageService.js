@@ -11,6 +11,12 @@ export const pagosStorageService = {
 
   guardarPagos: (pagos) => pagosRepo.guardar(pagos),
 
+  // Lee los abonos de un paciente específico (clave dinámica)
+  obtenerAbonosPorPaciente: (pacienteId) => {
+    if (!pacienteId) return []
+    return leerJSON(`abonos_${pacienteId}`, [])
+  },
+
   // Sincroniza el abono directamente en la ficha del paciente para actualizar su saldo
   sincronizarAbonoConFichaPaciente: (pacienteId, nuevoPago) => {
     if (!pacienteId) return
@@ -26,5 +32,15 @@ export const pagosStorageService = {
     }
 
     escribirJSON(keyAbonos, [abonoObj, ...abonosActuales], { notify: true })
+  },
+
+  // Elimina todos los abonos de un paciente (F2-07d)
+  eliminarAbonosDePaciente: (pacienteId) => {
+    if (!pacienteId) return
+    try {
+      localStorage.removeItem(`abonos_${pacienteId}`)
+    } catch (e) {
+      console.error(`Error al eliminar abonos del paciente ${pacienteId}:`, e)
+    }
   }
 }

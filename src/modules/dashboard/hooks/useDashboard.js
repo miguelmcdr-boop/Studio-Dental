@@ -1,5 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { calcularResumenJornada } from '../utils/dashboardCalculations'
+import { agendaStorageService } from '../../agenda'
+import { pagosStorageService } from '../../pagos'
+import { presupuestosStorageService } from '../../presupuestos'
 
 export const useDashboard = (pacientes = []) => {
   const [citas, setCitas] = useState([])
@@ -8,15 +11,18 @@ export const useDashboard = (pacientes = []) => {
 
   const cargarDatos = useCallback(() => {
     try {
-      const citasStorage = JSON.parse(localStorage.getItem('studio_dental_agenda_citas_v3') || '[]')
-      const pagosStorage = JSON.parse(localStorage.getItem('studio_dental_pagos_historial_v3') || '[]')
-      const presupuestosStorage = JSON.parse(localStorage.getItem('studio_dental_presupuestos_globales') || '[]')
+      // Cargar datos desde servicios (F2-07a)
+      const citasStorage = agendaStorageService.obtenerCitas([])
+      const pagosStorage = pagosStorageService.obtenerPagos([])
+      const presupuestosStorage = presupuestosStorageService.obtenerPresupuestos([])
 
-      // Recolectar abonos de presupuestos individuales para sumar a pagos
+      // Recolectar abonos de presupuestos individuales para sumar a pagos (vía pagosStorageService, F2-07a)
       const abonosGlobales = []
       pacientes.forEach(p => {
-        const abonosPac = JSON.parse(localStorage.getItem(`abonos_${p.id}`) || '[]')
-        abonosPac.forEach(a => abonosGlobales.push(a))
+        const abonosPac = pagosStorageService.obtenerAbonosPorPaciente(p.id)
+        if (Array.isArray(abonosPac)) {
+          abonosPac.forEach(a => abonosGlobales.push(a))
+        }
       })
 
       setCitas(Array.isArray(citasStorage) ? citasStorage : [])

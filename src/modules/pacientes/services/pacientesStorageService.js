@@ -1,30 +1,52 @@
-import { leerJSON, escribirJSON, createLocalStorageRepository } from '../../../services/localStorageRepository'
+/**
+ * Persistencia de Pacientes
+ */
+import { createLocalStorageRepository, leerJSON, escribirJSON } from '../../../services/localStorageRepository'
 import { validarListaPacientes } from '../schemas/pacienteSchema'
 
-const PACIENTES_KEY = 'clinica_lista_pacientes'
-const pacientesRepo = createLocalStorageRepository(PACIENTES_KEY, [], { notify: true })
+const STORAGE_KEY_PACIENTES = 'studio_dental_pacientes_v3'
+const pacientesRepo = createLocalStorageRepository(STORAGE_KEY_PACIENTES, [])
 
 export const pacientesStorageService = {
-  // Clave única global para pacientes en la aplicación
-  PACIENTES_KEY,
+  obtenerPacientes: (defaults = []) => {
+    const datos = pacientesRepo.obtener(defaults)
+    if (!Array.isArray(datos)) return defaults
+    return datos
+  },
 
-  obtenerPacientes: (defaults = []) => pacientesRepo.obtener(defaults),
-
-  // (F2-04) — valida contra el esquema Zod antes de persistir. Si los datos
-  // no cumplen el esquema (ej. un paciente sin nombre o sin rut), NO se
-  // guarda silenciosamente: se registra el detalle exacto en consola y se
-  // retorna false, igual que el resto de los métodos de este servicio ante
-  // un error de storage.
   guardarPacientes: (pacientes) => {
+    // (F2-04) — valida contra el esquema Zod antes de persistir. Si los datos
+    // no son válidos, no se guardan y se logea el error para trazabilidad.
     const { valido, datos, error } = validarListaPacientes(pacientes)
     if (!valido) {
-      console.error('Validación de esquema falló al guardar pacientes — datos NO persistidos:', error.issues)
+      console.error('Error de validación al guardar pacientes:', error)
       return false
     }
     return pacientesRepo.guardar(datos)
   },
 
+  // Métodos genéricos para datos clínicos por paciente (evoluciones, recetas, etc.)
   obtenerItem: (key, fallback = []) => leerJSON(key, fallback),
 
-  guardarItem: (key, data) => escribirJSON(key, data)
+  guardarItem: (key, data) => escribirJSON(key, data),
+
+  // Elimina las evoluciones/notas de un paciente (F2-07d)
+  eliminarEvolucionesDePaciente: (pacienteId) => {
+    if (!pacienteId) return
+    try {
+      localStorage.removeItem(`evoluciones_notas_${pacienteId}`)
+    } catch (e) {
+      console.error(`Error al eliminar evoluciones del paciente ${pacienteId}:`, e)
+    }
+  },
+
+  // Elimina las recetas de un paciente (F2-07d)
+  eliminarRecetasDePaciente: (pacienteId) => {
+    if (!pacienteId) return
+    try {
+      localStorage.removeItem(`recetas_${pacienteId}`)
+    } catch (e) {
+      console.error(`Error al eliminar recetas del paciente ${pacienteId}:`, e)
+    }
+  }
 }

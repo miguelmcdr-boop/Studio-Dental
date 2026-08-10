@@ -6,6 +6,10 @@ import { CargandoModulo } from './components/CargandoModulo'
 import { usePacientesStore } from './store/pacientesStore'
 import { usePrestacionesStore } from './store/prestacionesStore'
 import { useSesionStore } from './store/sesionStore'
+import { odontogramaStorageService } from './modules/odontograma'
+import { presupuestosStorageService } from './modules/presupuestos'
+import { pagosStorageService } from './modules/pagos'
+import { pacientesStorageService } from './modules/pacientes'
 
 // Módulos de uso diario — carga eager (Public API, Constitución v3.0.0)
 import { Agenda as AgendaModulo } from './modules/agenda'
@@ -73,12 +77,14 @@ function App() {
       const nuevaLista = pacientes.filter(p => p.id !== idPaciente)
       setPacientes(nuevaLista)
       setPacienteSeleccionado(null)
-      localStorage.removeItem(`odonto_inicial_${idPaciente}`)
-      localStorage.removeItem(`odonto_evolucion_${idPaciente}`)
-      localStorage.removeItem(`evoluciones_notas_${idPaciente}`)
-      localStorage.removeItem(`presupuesto_items_${idPaciente}`)
-      localStorage.removeItem(`abonos_${idPaciente}`)
-      localStorage.removeItem(`recetas_${idPaciente}`)
+
+      // F2-07d: eliminación vía servicios, no acceso directo a localStorage
+      odontogramaStorageService.eliminarOdontogramasDePaciente(idPaciente)
+      pacientesStorageService.eliminarEvolucionesDePaciente(idPaciente)
+      presupuestosStorageService.eliminarItemsDePaciente(idPaciente)
+      pagosStorageService.eliminarAbonosDePaciente(idPaciente)
+      pacientesStorageService.eliminarRecetasDePaciente(idPaciente)
+
       // Los adjuntos clínicos viven en IndexedDB (F1-02), no en localStorage.
       // La eliminación es asíncrona; se registra el error si falla, pero no
       // bloquea el resto del flujo de eliminación del paciente.

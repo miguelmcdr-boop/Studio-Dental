@@ -1,10 +1,12 @@
 import { VADEMECUM_ODONTOLOGICO } from '../../../data/vademecum'
+import { finanzasStorageService } from '../../finanzas'
 
 export const obtenerDescuentoConvenio = (nombreConvenio) => {
   try {
-    const saved = localStorage.getItem('studio_dental_finanzas_convenios')
-    if (!saved) return 0
-    const convenios = JSON.parse(saved)
+    // F2-07e: vía finanzasStorageService, no acceso directo a localStorage
+    const convenios = finanzasStorageService.obtenerConvenios([])
+    if (!Array.isArray(convenios) || convenios.length === 0) return 0
+    
     const encontrado = convenios.find(c => 
       c.nombre.toLowerCase().includes(nombreConvenio.toLowerCase()) ||
       c.id.toLowerCase().includes(nombreConvenio.toLowerCase())
