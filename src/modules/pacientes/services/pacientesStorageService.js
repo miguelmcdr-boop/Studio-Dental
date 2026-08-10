@@ -7,7 +7,7 @@ export const pacientesStorageService = {
   // Clave única global para pacientes en la aplicación
   PACIENTES_KEY,
 
-  obtenerPacientes: () => pacientesRepo.obtener([]),
+  obtenerPacientes: (defaults = []) => pacientesRepo.obtener(defaults),
 
   guardarPacientes: (pacientes) => pacientesRepo.guardar(pacientes),
 

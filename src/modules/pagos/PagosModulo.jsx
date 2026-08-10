@@ -5,8 +5,14 @@ import { PagosSummaryCards } from './components/PagosSummaryCards'
 import { TablaHistorialPagos } from './components/TablaHistorialPagos'
 import { ModalNuevoPago } from './components/ModalNuevoPago'
 import { ComprobantePagoImprimible } from './components/ComprobantePagoImprimible'
+import { usePacientesStore } from '../../store/pacientesStore'
+import { useSesionStore } from '../../store/sesionStore'
 
-export const PagosModulo = memo(({ pacientes = [], userProfile }) => {
+export const PagosModulo = memo(() => {
+  // (F2-02) — pacientes y userProfile ya no llegan como prop desde App.jsx: se leen directo de los stores.
+  const pacientes = usePacientesStore((state) => state.pacientes)
+  const userProfile = useSesionStore((state) => state.userProfile)
+
   const [modalAbierto, setModalAbierto] = useState(false)
   const [pagoEditar, setPagoEditar] = useState(null)
   const [comprobanteVer, setComprobanteVer] = useState(null)

@@ -1,66 +1,26 @@
 /**
  * Persistencia aislada en LocalStorage para Finanzas, Convenios y Cierres de Caja
  */
+import { createLocalStorageRepository } from '../../../services/localStorageRepository'
 
 const STORAGE_KEY_MOVIMIENTOS = 'studio_dental_finanzas_movimientos'
 const STORAGE_KEY_CONVENIOS = 'studio_dental_finanzas_convenios'
 const STORAGE_KEY_CIERRES = 'studio_dental_finanzas_cierres_caja'
 
+const movimientosRepo = createLocalStorageRepository(STORAGE_KEY_MOVIMIENTOS, [])
+const conveniosRepo = createLocalStorageRepository(STORAGE_KEY_CONVENIOS, [])
+const cierresRepo = createLocalStorageRepository(STORAGE_KEY_CIERRES, [])
+
 export const finanzasStorageService = {
   // Movimientos (Ingresos / Egresos)
-  obtenerMovimientos: (defaults = []) => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_MOVIMIENTOS)
-      return saved ? JSON.parse(saved) : defaults
-    } catch (e) {
-      console.error('Error al leer movimientos de finanzas:', e)
-      return defaults
-    }
-  },
-
-  guardarMovimientos: (movs) => {
-    try {
-      localStorage.setItem(STORAGE_KEY_MOVIMIENTOS, JSON.stringify(movs))
-    } catch (e) {
-      console.error('Error al guardar movimientos de finanzas:', e)
-    }
-  },
+  obtenerMovimientos: (defaults = []) => movimientosRepo.obtener(defaults),
+  guardarMovimientos: (movs) => movimientosRepo.guardar(movs),
 
   // Convenios e Isapres
-  obtenerConvenios: (defaults = []) => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_CONVENIOS)
-      return saved ? JSON.parse(saved) : defaults
-    } catch (e) {
-      console.error('Error al leer convenios de finanzas:', e)
-      return defaults
-    }
-  },
-
-  guardarConvenios: (convenios) => {
-    try {
-      localStorage.setItem(STORAGE_KEY_CONVENIOS, JSON.stringify(convenios))
-    } catch (e) {
-      console.error('Error al guardar convenios de finanzas:', e)
-    }
-  },
+  obtenerConvenios: (defaults = []) => conveniosRepo.obtener(defaults),
+  guardarConvenios: (convenios) => conveniosRepo.guardar(convenios),
 
   // Cierres y Arqueos de Caja
-  obtenerCierresCaja: () => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_CIERRES)
-      return saved ? JSON.parse(saved) : []
-    } catch (e) {
-      console.error('Error al leer cierres de caja:', e)
-      return []
-    }
-  },
-
-  guardarCierresCaja: (cierres) => {
-    try {
-      localStorage.setItem(STORAGE_KEY_CIERRES, JSON.stringify(cierres))
-    } catch (e) {
-      console.error('Error al guardar cierres de caja:', e)
-    }
-  }
+  obtenerCierresCaja: () => cierresRepo.obtener([]),
+  guardarCierresCaja: (cierres) => cierresRepo.guardar(cierres)
 }

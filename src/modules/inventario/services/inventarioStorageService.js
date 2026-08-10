@@ -1,25 +1,12 @@
 /**
  * Persistencia aislada en LocalStorage para Inventario
  */
+import { createLocalStorageRepository } from '../../../services/localStorageRepository'
 
 const STORAGE_KEY_INVENTARIO = 'studio_dental_inventario_stock'
+const inventarioRepo = createLocalStorageRepository(STORAGE_KEY_INVENTARIO, undefined)
 
 export const inventarioStorageService = {
-  obtenerItems: (defaults) => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_INVENTARIO)
-      return saved ? JSON.parse(saved) : defaults
-    } catch (e) {
-      console.error('Error al leer inventario de localStorage:', e)
-      return defaults
-    }
-  },
-
-  guardarItems: (items) => {
-    try {
-      localStorage.setItem(STORAGE_KEY_INVENTARIO, JSON.stringify(items))
-    } catch (e) {
-      console.error('Error al guardar inventario en localStorage:', e)
-    }
-  }
+  obtenerItems: (defaults) => inventarioRepo.obtener(defaults),
+  guardarItems: (items) => inventarioRepo.guardar(items)
 }

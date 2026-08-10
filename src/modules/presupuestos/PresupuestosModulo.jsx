@@ -5,14 +5,19 @@ import { PresupuestosSummaryCards } from './components/PresupuestosSummaryCards'
 import { TablaPresupuestosGlobales } from './components/TablaPresupuestosGlobales'
 import { ModalNuevoPresupuesto } from './components/ModalNuevoPresupuesto'
 import { DocumentoPresupuestoImprimible } from './components/DocumentoPresupuestoImprimible'
+import { usePacientesStore } from '../../store/pacientesStore'
+import { usePrestacionesStore } from '../../store/prestacionesStore'
+import { useSesionStore } from '../../store/sesionStore'
 
-export const PresupuestosModulo = memo(({
-  pacientes = [],
-  prestaciones = [],
-  setPacienteSeleccionado,
-  setActiveSection,
-  userProfile
-}) => {
+export const PresupuestosModulo = memo(({ setPacienteSeleccionado, setActiveSection }) => {
+  // (F2-02) — pacientes, prestacionesArancel y userProfile ya no llegan como prop
+  // desde App.jsx: se leen directo de los stores. setPacienteSeleccionado y
+  // setActiveSection son navegación local de App.jsx, fuera del alcance de F2-01,
+  // así que se quedan como props.
+  const pacientes = usePacientesStore((state) => state.pacientes)
+  const prestaciones = usePrestacionesStore((state) => state.prestacionesArancel)
+  const userProfile = useSesionStore((state) => state.userProfile)
+
   const [modalAbierto, setModalAbierto] = useState(false)
   const [presupuestoVerDocumento, setPresupuestoVerDocumento] = useState(null)
 

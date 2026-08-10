@@ -7,8 +7,14 @@ import { PlantillasManager } from './components/PlantillasManager'
 import { RecallPacientesSection } from './components/RecallPacientesSection'
 import { ModalEnviarMensaje } from './components/ModalEnviarMensaje'
 import { ModalEditarBitacora } from './components/ModalEditarBitacora'
+import { usePacientesStore } from '../../store/pacientesStore'
+import { useSesionStore } from '../../store/sesionStore'
 
-export const ComunicacionesModulo = memo(({ pacientes = [], userProfile }) => {
+export const ComunicacionesModulo = memo(() => {
+  // (F2-02) — pacientes y userProfile ya no llegan como prop desde App.jsx: se leen directo de los stores.
+  const pacientes = usePacientesStore((state) => state.pacientes)
+  const userProfile = useSesionStore((state) => state.userProfile)
+
   const [tabActual, setTabActual] = useState('historial') // 'historial' | 'plantillas' | 'recall'
   const [modalNuevoAbierto, setModalNuevoAbierto] = useState(false)
   const [registroEditarBitacora, setRegistroEditarBitacora] = useState(null)

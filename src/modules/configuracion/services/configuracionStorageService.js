@@ -1,48 +1,24 @@
 /**
  * Servicio de Persistencia y Copias de Seguridad (Backup / Restore)
  */
+import { createLocalStorageRepository } from '../../../services/localStorageRepository'
 
 const KEY_CLINICA = 'studio_dental_config_clinica'
 const KEY_PARAMETROS_AGENDA = 'studio_dental_config_agenda'
 
+const clinicaRepo = createLocalStorageRepository(KEY_CLINICA, undefined, { notify: true })
+const parametrosAgendaRepo = createLocalStorageRepository(KEY_PARAMETROS_AGENDA, undefined)
+
 export const configuracionStorageService = {
-  obtenerClinica: (defaults) => {
-    try {
-      const saved = localStorage.getItem(KEY_CLINICA)
-      return saved ? JSON.parse(saved) : defaults
-    } catch (e) {
-      console.error('Error al leer datos de la clínica:', e)
-      return defaults
-    }
-  },
+  obtenerClinica: (defaults) => clinicaRepo.obtener(defaults),
+  guardarClinica: (datos) => clinicaRepo.guardar(datos),
 
-  guardarClinica: (datos) => {
-    try {
-      localStorage.setItem(KEY_CLINICA, JSON.stringify(datos))
-      window.dispatchEvent(new Event('storage'))
-    } catch (e) {
-      console.error('Error al guardar datos de la clínica:', e)
-    }
-  },
+  obtenerParametrosAgenda: (defaults) => parametrosAgendaRepo.obtener(defaults),
+  guardarParametrosAgenda: (parametros) => parametrosAgendaRepo.guardar(parametros),
 
-  obtenerParametrosAgenda: (defaults) => {
-    try {
-      const saved = localStorage.getItem(KEY_PARAMETROS_AGENDA)
-      return saved ? JSON.parse(saved) : defaults
-    } catch (e) {
-      console.error(e)
-      return defaults
-    }
-  },
-
-  guardarParametrosAgenda: (parametros) => {
-    try {
-      localStorage.setItem(KEY_PARAMETROS_AGENDA, JSON.stringify(parametros))
-    } catch (e) {
-      console.error(e)
-    }
-  },
-
+  // Backup/restore completo: opera sobre TODA la base de LocalStorage, no
+  // sobre una clave individual — no encaja en el patrón de repositorio de
+  // clave fija y se deja fuera del alcance de F2-03 intencionalmente.
   exportarBaseDeDatosCompleta: () => {
     const backupObj = {
       versionSystem: '3.0.0',

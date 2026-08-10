@@ -8,8 +8,12 @@ import { TestDiariosSection } from './components/TestDiariosSection'
 import { LibroSeremiSection } from './components/LibroSeremiSection'
 import { ModalNuevaCarga } from './components/ModalNuevaCarga'
 import { TicketTrazabilidad } from './components/TicketTrazabilidad'
+import { useSesionStore } from '../../store/sesionStore'
 
-export const EsterilizacionModulo = memo(({ userProfile }) => {
+export const EsterilizacionModulo = memo(() => {
+  // (F2-02) — userProfile ya no llega como prop desde App.jsx: se lee directo del store.
+  const userProfile = useSesionStore((state) => state.userProfile)
+
   const [tabActual, setTabActual] = useState('cargas') // 'cargas' | 'biologico' | 'test' | 'libro'
   const [modalAbierto, setModalAbierto] = useState(false)
   const [cargaImprimir, setCargaImprimir] = useState(null)

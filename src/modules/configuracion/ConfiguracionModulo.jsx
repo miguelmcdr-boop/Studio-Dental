@@ -4,8 +4,13 @@ import { PerfilProfesionalForm } from './components/PerfilProfesionalForm'
 import { DatosClinicaForm } from './components/DatosClinicaForm'
 import { ParametrosAgendaForm } from './components/ParametrosAgendaForm'
 import { RespaldoDatosSection } from './components/RespaldoDatosSection'
+import { useSesionStore } from '../../store/sesionStore'
 
-export const ConfiguracionModulo = memo(({ userProfile, setUserProfile }) => {
+export const ConfiguracionModulo = memo(() => {
+  // (F2-02) — userProfile/setUserProfile ya no llegan como prop desde App.jsx: se leen directo del store.
+  const userProfile = useSesionStore((state) => state.userProfile)
+  const setUserProfile = useSesionStore((state) => state.actualizarPerfil)
+
   const [tabActual, setTabActual] = useState('perfil')
 
   const {

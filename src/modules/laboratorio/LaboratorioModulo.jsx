@@ -6,8 +6,14 @@ import { TablaOrdenesLaboratorio } from './components/TablaOrdenesLaboratorio'
 import { DirectorioLaboratorios } from './components/DirectorioLaboratorios'
 import { ModalNuevaOrden } from './components/ModalNuevaOrden'
 import { OrdenImprimible } from './components/OrdenImprimible'
+import { usePacientesStore } from '../../store/pacientesStore'
+import { useSesionStore } from '../../store/sesionStore'
 
-export const LaboratorioModulo = memo(({ pacientes = [], userProfile }) => {
+export const LaboratorioModulo = memo(() => {
+  // (F2-02) — pacientes y userProfile ya no llegan como prop desde App.jsx: se leen directo de los stores.
+  const pacientes = usePacientesStore((state) => state.pacientes)
+  const userProfile = useSesionStore((state) => state.userProfile)
+
   const [tabActual, setTabActual] = useState('ordenes') // 'ordenes' | 'directorio'
   const [modalAbierto, setModalAbierto] = useState(false)
   const [ordenImprimir, setOrdenImprimir] = useState(null)

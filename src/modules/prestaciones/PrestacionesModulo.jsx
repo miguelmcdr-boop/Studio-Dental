@@ -6,8 +6,13 @@ import { TablaArancelPrestaciones } from './components/TablaArancelPrestaciones'
 import { PaquetesClinicosManager } from './components/PaquetesClinicosManager'
 import { ModalNuevaPrestacion } from './components/ModalNuevaPrestacion'
 import { ReajusteMasivoModal } from './components/ReajusteMasivoModal'
+import { usePrestacionesStore } from '../../store/prestacionesStore'
 
-export const PrestacionesModulo = memo(({ prestaciones: prestacionesProp, setPrestaciones: setPrestacionesProp }) => {
+export const PrestacionesModulo = memo(() => {
+  // (F2-02) — prestacionesArancel/setPrestacionesArancel ya no llegan como prop desde App.jsx: se leen directo del store.
+  const prestacionesProp = usePrestacionesStore((state) => state.prestacionesArancel)
+  const setPrestacionesProp = usePrestacionesStore((state) => state.setPrestacionesArancel)
+
   const [tabActual, setTabActual] = useState('arancel')
   const [modalAbierto, setModalAbierto] = useState(false)
   const [modalReajusteAbierto, setModalReajusteAbierto] = useState(false)

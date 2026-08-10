@@ -7,8 +7,14 @@ import { ModalNuevoMovimiento } from './components/ModalNuevoMovimiento'
 import { CuentasPendientes } from './components/CuentasPendientes'
 import { ConveniosManager } from './components/ConveniosManager'
 import { CalculadoraBoletas } from './components/CalculadoraBoletas'
+import { usePacientesStore } from '../../store/pacientesStore'
+import { useSesionStore } from '../../store/sesionStore'
 
-export const FinanzasModulo = memo(({ pacientes = [], userProfile }) => {
+export const FinanzasModulo = memo(() => {
+  // (F2-02) — pacientes y userProfile ya no llegan como prop desde App.jsx: se leen directo de los stores.
+  const pacientes = usePacientesStore((state) => state.pacientes)
+  const userProfile = useSesionStore((state) => state.userProfile)
+
   const [tabActiva, setTabActiva] = useState('Arqueo de Caja')
   const [modalAbierto, setModalAbierto] = useState(false)
 

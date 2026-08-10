@@ -6,8 +6,14 @@ import { RankingPrestacionesTable } from './components/RankingPrestacionesTable'
 import { GraficoProductividad } from './components/GraficoProductividad'
 import { RendimientoProfesionales } from './components/RendimientoProfesionales'
 import { ReporteImprimibleA4 } from './components/ReporteImprimibleA4'
+import { usePacientesStore } from '../../store/pacientesStore'
+import { useSesionStore } from '../../store/sesionStore'
 
-export const ReportesModulo = memo(({ pacientes = [], userProfile }) => {
+export const ReportesModulo = memo(() => {
+  // (F2-02) — pacientes y userProfile ya no llegan como prop desde App.jsx: se leen directo de los stores.
+  const pacientes = usePacientesStore((state) => state.pacientes)
+  const userProfile = useSesionStore((state) => state.userProfile)
+
   const [verReporteA4, setVerReporteA4] = useState(false)
   const { periodoSeleccionado, setPeriodoSeleccionado, metricas } = useReportes(pacientes)
 

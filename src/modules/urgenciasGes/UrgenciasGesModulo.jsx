@@ -2,8 +2,14 @@ import React, { memo } from 'react'
 import { useUrgenciasGes } from './hooks/useUrgenciasGes'
 import { FormRegistroGes } from './components/FormRegistroUrgencia'
 import { DocumentoImpresoGes } from './components/DocumentoImpresoGes'
+import { usePacientesStore } from '../../store/pacientesStore'
+import { useSesionStore } from '../../store/sesionStore'
 
-export const UrgenciasGesModulo = memo(({ pacientes = [], userProfile }) => {
+export const UrgenciasGesModulo = memo(() => {
+  // (F2-02) — pacientes y userProfile ya no llegan como prop desde App.jsx: se leen directo de los stores.
+  const pacientes = usePacientesStore((state) => state.pacientes)
+  const userProfile = useSesionStore((state) => state.userProfile)
+
   const {
     atenciones,
     atencionSeleccionada,

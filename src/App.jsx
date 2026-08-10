@@ -8,6 +8,9 @@ import {
   MAX_INTENTOS_FALLIDOS,
 } from './services/authService'
 import { eliminarTodosPorPaciente as eliminarAdjuntosDelPaciente } from './services/adjuntosStorageService'
+import { usePacientesStore } from './store/pacientesStore'
+import { usePrestacionesStore } from './store/prestacionesStore'
+import { useSesionStore } from './store/sesionStore'
 
 // Importación de Módulos Desacoplados bajo Constitución v3.0.0 (Public API)
 import { Agenda as AgendaModulo } from './modules/agenda'
@@ -299,69 +302,32 @@ const Sidebar = ({ userProfile, activeSection, setActiveSection, onLogout }) => 
 }
 
 function App() {
-  const [userProfile, setUserProfile] = useState(null)
   const [activeSection, setActiveSection] = useState('Dashboard')
   const [busqueda, setBusqueda] = useState('')
   const [pacienteSeleccionado, setPacienteSeleccionado] = useState(null)
   const [mostrarModalNuevo, setMostrarModalNuevo] = useState(false)
 
-  // 💡 LECTURA NORMALIZADA Y SINCRONIZADA DE ARANCEL Y PACKS
-  const [prestacionesArancel, setPrestacionesArancel] = useState(() => {
-    const saved = localStorage.getItem('clinica_arancel_prestaciones')
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved)
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map(p => ({
-            ...p,
-            precio: parseFloat(p.precio ?? p.precioParticular) || 0,
-            precioParticular: parseFloat(p.precioParticular ?? p.precio) || 0
-          }))
-        }
-      } catch (e) {
-        console.error('Error al leer arancel:', e)
-      }
-    }
-    return [
-      { id: 1, nombre: 'Evaluación Clínica y Diagnóstico Integral', especialidad: 'Diagnóstico y Prevención', precio: 25000, precioParticular: 25000, precioFonasa: 15000, codigoFonasa: '01-01-001' },
-      { id: 2, nombre: 'Limpieza Dental UDA + Destartraje Ultrasonido', especialidad: 'Diagnóstico y Prevención', precio: 35000, precioParticular: 35000, precioFonasa: 22000, codigoFonasa: '01-01-005' },
-      { id: 3, nombre: 'Obturación Resina Simple (1 Cara)', especialidad: 'Operatoria / Estética', precio: 35000, precioParticular: 35000, precioFonasa: 28000, codigoFonasa: '01-02-010' },
-      { id: 4, nombre: 'Obturación Resina Compuesta (2-3 Caras)', especialidad: 'Operatoria / Estética', precio: 45000, precioParticular: 45000, precioFonasa: 36000, codigoFonasa: '01-02-012' },
-      { id: 5, nombre: 'Incrustación Estética Cerámica / Composite', especialidad: 'Operatoria / Estética', precio: 120000, precioParticular: 120000, precioFonasa: 95000, codigoFonasa: '01-02-025' },
-      { id: 6, nombre: 'Tratamiento de Endodoncia Unirradicular', especialidad: 'Endodoncia', precio: 110000, precioParticular: 110000, precioFonasa: 85000, codigoFonasa: '01-03-001' },
-      { id: 7, nombre: 'Tratamiento de Endodoncia Multirradicular', especialidad: 'Endodoncia', precio: 160000, precioParticular: 160000, precioFonasa: 130000, codigoFonasa: '01-03-003' },
-      { id: 8, nombre: 'Exodoncia Pieza Permanente Simple', especialidad: 'Cirugía Bucal y Maxilofacial', precio: 40000, precioParticular: 40000, precioFonasa: 30000, codigoFonasa: '01-04-001' },
-      { id: 9, nombre: 'Corona de Zirconio Monolítico / E-Max', especialidad: 'Rehabilitación y Prótesis', precio: 280000, precioParticular: 280000, precioFonasa: 240000, codigoFonasa: '01-05-015' },
-      { id: 10, nombre: 'Instalación de Implante Óseo-Integrado', especialidad: 'Implantología', precio: 480000, precioParticular: 480000, precioFonasa: 420000, codigoFonasa: '01-06-001' }
-    ]
-  })
+  // (F2-01) — sesión/perfil ya no es un useState local: viene del store global.
+  const userProfile = useSesionStore((state) => state.userProfile)
+  const setUserProfile = useSesionStore((state) => state.actualizarPerfil)
+  const loginStore = useSesionStore((state) => state.login)
+  const logoutStore = useSesionStore((state) => state.logout)
 
-  // 💡 Listener en App.jsx para refrescar las props globales cuando cambie localStorage
+  // (F2-01) — prestacionesArancel ya no es un useState local: viene del store global.
+  const prestacionesArancel = usePrestacionesStore((state) => state.prestacionesArancel)
+  const setPrestacionesArancel = usePrestacionesStore((state) => state.setPrestacionesArancel)
+
+  // 💡 Listener para refrescar el store cuando otro módulo (ej. usePrestaciones.js)
+  // guarda cambios directamente y dispara 'storage' / 'arancel_actualizado'.
   useEffect(() => {
-    const handleArancelGlobalSync = () => {
-      const saved = localStorage.getItem('clinica_arancel_prestaciones')
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved)
-          if (Array.isArray(parsed)) {
-            setPrestacionesArancel(parsed.map(p => ({
-              ...p,
-              precio: parseFloat(p.precio ?? p.precioParticular) || 0,
-              precioParticular: parseFloat(p.precioParticular ?? p.precio) || 0
-            })))
-          }
-        } catch (e) {
-          console.error(e)
-        }
-      }
-    }
+    const refrescarDesdeStorage = usePrestacionesStore.getState().refrescarDesdeStorage
 
-    window.addEventListener('storage', handleArancelGlobalSync)
-    window.addEventListener('arancel_actualizado', handleArancelGlobalSync)
+    window.addEventListener('storage', refrescarDesdeStorage)
+    window.addEventListener('arancel_actualizado', refrescarDesdeStorage)
 
     return () => {
-      window.removeEventListener('storage', handleArancelGlobalSync)
-      window.removeEventListener('arancel_actualizado', handleArancelGlobalSync)
+      window.removeEventListener('storage', refrescarDesdeStorage)
+      window.removeEventListener('arancel_actualizado', refrescarDesdeStorage)
     }
   }, [])
 
@@ -369,30 +335,9 @@ function App() {
     nombre: '', rut: '', telefono: '', edad: '', prevision: 'Fonasa', alergias: '', email: '', direccion: '', ocupacion: '', contactoEmergencia: ''
   })
 
-  const [pacientes, setPacientes] = useState(() => {
-    const saved = localStorage.getItem('clinica_lista_pacientes')
-    if (saved) return JSON.parse(saved)
-    return [
-      { id: 1, nombre: 'Camila Silva Morales', rut: '18.452.123-K', telefono: '+56 9 8765 4321', edad: 28, prevision: 'Isapre', alergias: 'Penicilina', email: 'camila.silva@gmail.com', ocupacion: 'Diseñadora' },
-      { id: 2, nombre: 'Carlos Mendoza Vera', rut: '15.321.987-4', telefono: '+56 9 1234 5678', edad: 42, prevision: 'Fonasa', alergias: 'Ninguna', email: 'carlos.mendoza@gmail.com', ocupacion: 'Ingeniero' }
-    ]
-  })
-
-  useEffect(() => {
-    localStorage.setItem('clinica_arancel_prestaciones', JSON.stringify(prestacionesArancel))
-  }, [prestacionesArancel])
-
-  useEffect(() => {
-    localStorage.setItem('clinica_lista_pacientes', JSON.stringify(pacientes))
-  }, [pacientes])
-
-  useEffect(() => {
-    const activeEmail = localStorage.getItem('clinica_active_user')
-    if (activeEmail) {
-      const savedProfile = localStorage.getItem(`profile_${activeEmail}`)
-      if (savedProfile) setUserProfile(JSON.parse(savedProfile))
-    }
-  }, [])
+  // (F2-01) — pacientes ya no es un useState local: viene del store global.
+  const pacientes = usePacientesStore((state) => state.pacientes)
+  const setPacientes = usePacientesStore((state) => state.setPacientes)
 
   useEffect(() => {
     if (userProfile?.nombreCompleto) document.title = `Consulta — ${userProfile.nombreCompleto}`
@@ -400,13 +345,11 @@ function App() {
   }, [userProfile])
 
   const handleLogin = (profile) => {
-    localStorage.setItem('clinica_active_user', profile.email)
-    setUserProfile(profile)
+    loginStore(profile)
   }
 
   const handleLogout = () => {
-    localStorage.removeItem('clinica_active_user')
-    setUserProfile(null)
+    logoutStore()
   }
 
   const handleCrearPaciente = (e) => {
@@ -466,8 +409,6 @@ function App() {
       <main className="flex-1 p-8 print:p-0 overflow-x-hidden">
         {activeSection === 'Dashboard' && (
           <DashboardModulo 
-            userProfile={userProfile} 
-            pacientes={pacientes} 
             setPacienteSeleccionado={setPacienteSeleccionado}
             setActiveSection={setActiveSection} 
           />
@@ -488,51 +429,48 @@ function App() {
         )}
 
         {activeSection === 'Urgencias y GES' && (
-          <UrgenciasGesModulo pacientes={pacientes} userProfile={userProfile} />
+          <UrgenciasGesModulo />
         )}
 
-        {activeSection === 'Esterilización' && (
-          <EsterilizacionModulo userProfile={userProfile} />
+       {activeSection === 'Esterilización' && (
+          <EsterilizacionModulo />
         )}
 
         {activeSection === 'Laboratorio' && (
-          <LaboratorioModulo pacientes={pacientes} userProfile={userProfile} />
+          <LaboratorioModulo />
         )}
 
         {activeSection === 'Prestaciones' && (
-          <PrestacionesModulo prestaciones={prestacionesArancel} setPrestaciones={setPrestacionesArancel} />
+          <PrestacionesModulo />
         )}
 
         {activeSection === 'Presupuestos' && (
           <PresupuestosModulo 
-            pacientes={pacientes} 
-            prestaciones={prestacionesArancel}
             setPacienteSeleccionado={setPacienteSeleccionado} 
             setActiveSection={setActiveSection} 
-            userProfile={userProfile}
           />
         )}
 
         {activeSection === 'Pagos' && (
-          <PagosModulo pacientes={pacientes} userProfile={userProfile} />
+          <PagosModulo />
         )}
 
         {activeSection === 'Finanzas' && (
-          <FinanzasModulo pacientes={pacientes} userProfile={userProfile} />
+          <FinanzasModulo />
         )}
 
         {activeSection === 'Comunicaciones' && (
-          <ComunicacionesModulo pacientes={pacientes} userProfile={userProfile} />
+          <ComunicacionesModulo />
         )}
 
         {activeSection === 'Inventario' && <InventarioModulo />}
 
         {activeSection === 'Reportes' && (
-          <ReportesModulo pacientes={pacientes} userProfile={userProfile} />
+          <ReportesModulo />
         )}
 
         {activeSection === 'Configuración' && (
-          <ConfiguracionModulo userProfile={userProfile} setUserProfile={setUserProfile} pacientes={pacientes} />
+          <ConfiguracionModulo />
         )}
 
         {activeSection === 'Pacientes' && (
