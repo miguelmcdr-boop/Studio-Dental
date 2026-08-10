@@ -22,18 +22,21 @@ import { QuirurgicoModulo } from '../quirurgico'
 import { OdontopediatriaModulo } from '../odontopediatria'
 import { SmileDesignModulo } from '../dsd'
 
+// --- CORRECCIÓN: Faltaban estas dos importaciones de los Stores de Zustand ---
+import { useSesionStore } from '../../store/sesionStore'
+import { usePrestacionesStore } from '../../store/prestacionesStore'
+// ---------------------------------------------------------------------------
+
 export const FichaPacienteModulo = memo(({
   paciente,
   alActualizarPaciente,
   alEliminarPaciente,
   alVolver
 }) => {
-  // (F2-02) — userProfile y prestacionesArancel ya no llegan como prop desde
-  // App.jsx: se leen directo de los stores. `paciente` y los callbacks son
-  // de instancia/navegación, fuera del alcance de F2-01, se quedan como prop.
+  // (F2-02) — Ahora los stores sí están correctamente importados arriba
   const userProfile = useSesionStore((state) => state.userProfile)
   const prestacionesArancel = usePrestacionesStore((state) => state.prestacionesArancel)
-
+  
   const [mostrarEditarDatos, setMostrarEditarDatos] = useState(false)
 
   const {
