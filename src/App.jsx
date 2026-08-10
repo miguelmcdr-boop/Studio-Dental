@@ -1,20 +1,13 @@
 import React, { useState, useEffect } from 'react'
-import {
-  crearCredencial,
-  verificarPassword,
-  estaBloqueado,
-  registrarIntentoFallido,
-  limpiarIntentosFallidos,
-  MAX_INTENTOS_FALLIDOS,
-} from './services/authService'
 import { eliminarTodosPorPaciente as eliminarAdjuntosDelPaciente } from './services/adjuntosStorageService'
+import { LoginScreen } from './components/LoginScreen'
 import { usePacientesStore } from './store/pacientesStore'
 import { usePrestacionesStore } from './store/prestacionesStore'
 import { useSesionStore } from './store/sesionStore'
 
 // Importación de Módulos Desacoplados bajo Constitución v3.0.0 (Public API)
 import { Agenda as AgendaModulo } from './modules/agenda'
-import { FichaPaciente } from './modules/pacientes'
+import { FichaPaciente, DirectorioPacientes } from './modules/pacientes'
 import { FinanzasModulo } from './modules/finanzas'
 import { InventarioModulo } from './modules/inventario'
 import { UrgenciasGesModulo } from './modules/urgenciasGes'
@@ -27,189 +20,6 @@ import { ComunicacionesModulo } from './modules/comunicaciones'
 import { ReportesModulo } from './modules/reportes'
 import { ConfiguracionModulo } from './modules/configuracion'
 import { DashboardModulo } from './modules/dashboard'
-
-// Pantalla de Login
-const LoginScreen = ({ onLogin }) => {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [nombreCompleto, setNombreCompleto] = useState('')
-  const [rut, setRut] = useState('')
-  const [especialidad, setEspecialidad] = useState('')
-  const [isFirstTime, setIsFirstTime] = useState(false)
-
-  const [error, setError] = useState('')
-  const [cargando, setCargando] = useState(false)
-
-  const handleEmailChange = (e) => {
-    const value = e.target.value
-    setEmail(value)
-    setError('')
-    const existingProfile = localStorage.getItem(`profile_${value.trim().toLowerCase()}`)
-    setIsFirstTime(!existingProfile)
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError('')
-    if (email.trim() === '' || password === '') return
-
-    const formattedEmail = email.trim().toLowerCase()
-
-    const estadoBloqueo = estaBloqueado(formattedEmail)
-    if (estadoBloqueo.bloqueado) {
-      const minutos = Math.ceil(estadoBloqueo.restanteMs / 60000)
-      setError(`Demasiados intentos fallidos. Intenta nuevamente en ${minutos} minuto(s).`)
-      return
-    }
-
-    setCargando(true)
-    try {
-      let userProfile = JSON.parse(localStorage.getItem(`profile_${formattedEmail}`) || 'null')
-
-      if (!userProfile) {
-        // Perfil nuevo: se crea con una credencial real hasheada.
-        const credencial = await crearCredencial(password)
-        userProfile = {
-          email: formattedEmail,
-          nombreCompleto: nombreCompleto || 'Profesional Dental',
-          rut: rut || '',
-          especialidad: especialidad || 'Cirujano Dentista',
-          credencial,
-        }
-        localStorage.setItem(`profile_${formattedEmail}`, JSON.stringify(userProfile))
-        limpiarIntentosFallidos(formattedEmail)
-        onLogin(userProfile)
-        return
-      }
-
-      if (!userProfile.credencial) {
-        // Perfil creado antes de esta corrección (F1-01): nunca tuvo una
-        // contraseña real verificable. Se establece ahora con la contraseña
-        // ingresada, como migración de una sola vez.
-        const credencial = await crearCredencial(password)
-        userProfile = { ...userProfile, credencial }
-        localStorage.setItem(`profile_${formattedEmail}`, JSON.stringify(userProfile))
-        limpiarIntentosFallidos(formattedEmail)
-        onLogin(userProfile)
-        return
-      }
-
-      const esValida = await verificarPassword(password, userProfile.credencial)
-      if (!esValida) {
-        const estado = registrarIntentoFallido(formattedEmail)
-        const intentosRestantes = MAX_INTENTOS_FALLIDOS - estado.count
-        setError(
-          intentosRestantes > 0
-            ? `Contraseña incorrecta. Te quedan ${intentosRestantes} intento(s) antes del bloqueo temporal.`
-            : 'Demasiados intentos fallidos. Cuenta bloqueada temporalmente.'
-        )
-        return
-      }
-
-      limpiarIntentosFallidos(formattedEmail)
-      onLogin(userProfile)
-    } finally {
-      setCargando(false)
-    }
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 print:hidden">
-      <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 w-full max-w-md">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center font-bold text-lg">C</div>
-          <h1 className="text-xl font-bold text-gray-800">Consulta</h1>
-        </div>
-
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">
-          {isFirstTime ? 'Crear perfil profesional' : 'Iniciar sesión'}
-        </h2>
-        <p className="text-sm text-gray-500 mb-6">
-          {isFirstTime ? 'Ingresa tus datos para personalizar tu clínica.' : 'Ingresa tus credenciales para acceder a tu consulta.'}
-        </p>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Correo electrónico</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={handleEmailChange}
-              placeholder="dr.miguel@ejemplo.com"
-              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:border-black text-sm text-gray-800"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Contraseña</label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:border-black text-sm text-gray-800"
-            />
-          </div>
-
-          {isFirstTime && (
-            <div className="space-y-4 pt-2 border-t border-gray-100">
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Nombre Completo</label>
-                <input
-                  type="text"
-                  required
-                  value={nombreCompleto}
-                  onChange={(e) => setNombreCompleto(e.target.value)}
-                  placeholder="Dr. Miguel Díaz Rodríguez"
-                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:border-black text-sm text-gray-800"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">RUT / Licencia</label>
-                  <input
-                    type="text"
-                    value={rut}
-                    onChange={(e) => setRut(e.target.value)}
-                    placeholder="12.345.678-9"
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:border-black text-sm text-gray-800"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Especialidad</label>
-                  <input
-                    type="text"
-                    value={especialidad}
-                    onChange={(e) => setEspecialidad(e.target.value)}
-                    placeholder="Cirujano Dentista"
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:border-black text-sm text-gray-800"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={cargando}
-            className="w-full bg-black text-white font-medium py-2.5 rounded-lg text-sm hover:bg-gray-800 transition-colors mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {cargando ? 'Verificando...' : isFirstTime ? 'Guardar datos e Ingresar' : 'Ingresar al sistema'}
-          </button>
-
-          {error && (
-            <p className="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mt-2">
-              {error}
-            </p>
-          )}
-        </form>
-      </div>
-    </div>
-  )
-}
 
 // Sidebar de Navegación Nivel Superior
 const Sidebar = ({ userProfile, activeSection, setActiveSection, onLogout }) => {
@@ -303,19 +113,15 @@ const Sidebar = ({ userProfile, activeSection, setActiveSection, onLogout }) => 
 
 function App() {
   const [activeSection, setActiveSection] = useState('Dashboard')
-  const [busqueda, setBusqueda] = useState('')
   const [pacienteSeleccionado, setPacienteSeleccionado] = useState(null)
-  const [mostrarModalNuevo, setMostrarModalNuevo] = useState(false)
 
   // (F2-01) — sesión/perfil ya no es un useState local: viene del store global.
   const userProfile = useSesionStore((state) => state.userProfile)
   const loginStore = useSesionStore((state) => state.login)
   const logoutStore = useSesionStore((state) => state.logout)
 
-  // (F2-02) — App.jsx ya no lee prestacionesArancel para pasarla por prop a
-  // ningún módulo (todos la leen directo de usePrestacionesStore). Solo se
-  // mantiene este listener de sincronización cross-módulo, usando el store
-  // directamente sin necesidad de una variable local aquí.
+  // (F2-02) — listener de sincronización cross-módulo del arancel, usando el
+  // store directamente (App.jsx ya no lee ni pasa prestacionesArancel a nadie).
   useEffect(() => {
     const refrescarDesdeStorage = usePrestacionesStore.getState().refrescarDesdeStorage
 
@@ -328,13 +134,9 @@ function App() {
     }
   }, [])
 
-  const [nuevoPaciente, setNuevoPaciente] = useState({
-    nombre: '', rut: '', telefono: '', edad: '', prevision: 'Fonasa', alergias: '', email: '', direccion: '', ocupacion: '', contactoEmergencia: ''
-  })
-
   // (F2-01) — pacientes ya no es un useState local: viene del store global.
-  // Se mantiene acá porque App.jsx todavía renderiza su propio Directorio de
-  // Pacientes inline (no es un módulo separado) y los handlers de crear/editar/eliminar.
+  // Se mantiene acá solo para los handlers de actualizar/eliminar, que se
+  // pasan como callback a FichaPaciente y a DirectorioPacientes.
   const pacientes = usePacientesStore((state) => state.pacientes)
   const setPacientes = usePacientesStore((state) => state.setPacientes)
 
@@ -349,23 +151,6 @@ function App() {
 
   const handleLogout = () => {
     logoutStore()
-  }
-
-  const handleCrearPaciente = (e) => {
-    e.preventDefault()
-    if (!nuevoPaciente.nombre || !nuevoPaciente.rut) return
-
-    const nuevo = {
-      ...nuevoPaciente,
-      id: Date.now(),
-      edad: nuevoPaciente.edad || '30'
-    }
-
-    const listaActualizada = [nuevo, ...pacientes]
-    setPacientes(listaActualizada)
-    setNuevoPaciente({ nombre: '', rut: '', telefono: '', edad: '', prevision: 'Fonasa', alergias: '', email: '', direccion: '', ocupacion: '', contactoEmergencia: '' })
-    setMostrarModalNuevo(false)
-    setPacienteSeleccionado(nuevo)
   }
 
   const handleActualizarPaciente = (pacienteActualizado) => {
@@ -395,11 +180,6 @@ function App() {
   }
 
   if (!userProfile) return <LoginScreen onLogin={handleLogin} />
-
-  const pacientesFiltrados = pacientes.filter(p => 
-    p.nombre.toLowerCase().includes(busqueda.toLowerCase()) || 
-    p.rut.includes(busqueda)
-  )
 
   return (
     <div className="min-h-screen flex bg-white font-sans">
@@ -476,174 +256,12 @@ function App() {
               alVolver={() => setPacienteSeleccionado(null)} 
             />
           ) : (
-            <div>
-              <div className="flex justify-between items-center mb-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Directorio de Pacientes</h2>
-                  <p className="text-xs text-gray-500">Busca, administra, edita o elimina registros de pacientes.</p>
-                </div>
-                <button
-                  onClick={() => setMostrarModalNuevo(true)}
-                  className="bg-black text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm"
-                >
-                  <span>➕</span> Nuevo Paciente
-                </button>
-              </div>
-
-              <div className="mb-6">
-                <input
-                  type="text"
-                  value={busqueda}
-                  onChange={(e) => setBusqueda(e.target.value)}
-                  placeholder="🔍 Buscar por nombre o RUT del paciente..."
-                  className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:border-black text-sm text-gray-800 shadow-sm"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {pacientesFiltrados.map(p => (
-                  <div
-                    key={p.id}
-                    className="p-5 border border-gray-200 rounded-2xl hover:border-black transition-all bg-gray-50 flex justify-between items-center group"
-                  >
-                    <div onClick={() => setPacienteSeleccionado(p)} className="cursor-pointer flex-1">
-                      <h3 className="font-bold text-gray-900 text-sm group-hover:text-blue-600 transition-colors">{p.nombre}</h3>
-                      <p className="text-xs text-gray-500">RUT: {p.rut}</p>
-                      <p className="text-xs text-gray-500">Tel: {p.telefono || 'Sin teléfono'}</p>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setPacienteSeleccionado(p)}
-                        className="text-xs font-semibold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100 hover:bg-blue-100"
-                      >
-                        Ficha →
-                      </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleEliminarPaciente(p.id); }}
-                        className="text-xs text-red-500 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50"
-                        title="Eliminar paciente"
-                      >
-                        🗑️
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <DirectorioPacientes
+              alSeleccionarPaciente={setPacienteSeleccionado}
+              alEliminarPaciente={handleEliminarPaciente}
+              alPacienteCreado={setPacienteSeleccionado}
+            />
           )
-        )}
-
-        {/* Modal Crear Paciente */}
-        {mostrarModalNuevo && (
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 print:hidden">
-            <div className="bg-white rounded-2xl p-6 w-full max-w-lg border border-gray-200 shadow-xl max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-4 border-b pb-3">
-                <h3 className="text-lg font-bold text-gray-900">Registrar Nuevo Paciente</h3>
-                <button onClick={() => setMostrarModalNuevo(false)} className="text-gray-400 hover:text-black font-bold text-lg">✕</button>
-              </div>
-
-              <form onSubmit={handleCrearPaciente} className="space-y-4 text-xs">
-                <div>
-                  <label className="block font-semibold text-gray-600 uppercase mb-1">Nombre Completo *</label>
-                  <input
-                    type="text"
-                    required
-                    value={nuevoPaciente.nombre}
-                    onChange={(e) => setNuevoPaciente({ ...nuevoPaciente, nombre: e.target.value })}
-                    placeholder="Ej: Juan Pérez González"
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-semibold text-gray-600 uppercase mb-1">RUT *</label>
-                    <input
-                      type="text"
-                      required
-                      value={nuevoPaciente.rut}
-                      onChange={(e) => setNuevoPaciente({ ...nuevoPaciente, rut: e.target.value })}
-                      placeholder="12.345.678-9"
-                      className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-semibold text-gray-600 uppercase mb-1">Teléfono</label>
-                    <input
-                      type="text"
-                      value={nuevoPaciente.telefono}
-                      onChange={(e) => setNuevoPaciente({ ...nuevoPaciente, telefono: e.target.value })}
-                      placeholder="+56 9 1234 5678"
-                      className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-3">
-                  <div>
-                    <label className="block font-semibold text-gray-600 uppercase mb-1">Edad</label>
-                    <input
-                      type="number"
-                      value={nuevoPaciente.edad}
-                      onChange={(e) => setNuevoPaciente({ ...nuevoPaciente, edad: e.target.value })}
-                      placeholder="30"
-                      className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-semibold text-gray-600 uppercase mb-1">Correo</label>
-                    <input
-                      type="email"
-                      value={nuevoPaciente.email}
-                      onChange={(e) => setNuevoPaciente({ ...nuevoPaciente, email: e.target.value })}
-                      placeholder="juan@ejemplo.com"
-                      className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-semibold text-gray-600 uppercase mb-1">Previsión</label>
-                    <select
-                      value={nuevoPaciente.prevision}
-                      onChange={(e) => setNuevoPaciente({ ...nuevoPaciente, prevision: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm bg-white"
-                    >
-                      <option value="Fonasa">Fonasa</option>
-                      <option value="Isapre">Isapre</option>
-                      <option value="Particular">Particular</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-red-600 uppercase mb-1">Alergias Conocidas</label>
-                  <input
-                    type="text"
-                    value={nuevoPaciente.alergias}
-                    onChange={(e) => setNuevoPaciente({ ...nuevoPaciente, alergias: e.target.value })}
-                    placeholder="Ej: Penicilina, AINEs, Ninguna"
-                    className="w-full px-3 py-2 rounded-lg border border-red-200 bg-red-50/30 text-sm"
-                  />
-                </div>
-
-                <div className="flex gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setMostrarModalNuevo(false)}
-                    className="w-1/2 py-2.5 rounded-xl border border-gray-300 font-semibold text-gray-700 hover:bg-gray-100"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    className="w-1/2 bg-black text-white py-2.5 rounded-xl font-semibold hover:bg-gray-800"
-                  >
-                    Crear Paciente
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
         )}
       </main>
     </div>
