@@ -21,15 +21,21 @@ import { PeriodontogramaModulo } from '../periodontograma/PeriodontogramaModulo'
 import { QuirurgicoModulo } from '../quirurgico/QuirurgicoModulo'
 import { OdontopediatriaModulo } from '../odontopediatria/OdontopediatriaModulo'
 import { SmileDesignModulo } from '../dsd/SmileDesignModulo'
+import { usePrestacionesStore } from '../../store/prestacionesStore'
+import { useSesionStore } from '../../store/sesionStore'
 
 export const FichaPacienteModulo = memo(({
   paciente,
-  userProfile,
-  prestacionesArancel = [],
   alActualizarPaciente,
   alEliminarPaciente,
   alVolver
 }) => {
+  // (F2-02) — userProfile y prestacionesArancel ya no llegan como prop desde
+  // App.jsx: se leen directo de los stores. `paciente` y los callbacks son
+  // de instancia/navegación, fuera del alcance de F2-01, se quedan como prop.
+  const userProfile = useSesionStore((state) => state.userProfile)
+  const prestacionesArancel = usePrestacionesStore((state) => state.prestacionesArancel)
+
   const [mostrarEditarDatos, setMostrarEditarDatos] = useState(false)
 
   const {

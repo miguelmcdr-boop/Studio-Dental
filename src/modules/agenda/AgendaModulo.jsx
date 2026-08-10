@@ -6,8 +6,12 @@ import { CitaCard } from './components/CitaCard'
 import { ModalNuevaCita } from './components/ModalNuevaCita'
 import { ModalNuevoBloqueo } from './components/ModalNuevoBloqueo'
 import { SILLONES_DENTALES } from './constants/agendaConstants'
+import { usePacientesStore } from '../../store/pacientesStore'
 
-export const AgendaModulo = memo(({ pacientes: pacientesProp = [], alSeleccionarPaciente, alVerFichaPaciente }) => {
+export const AgendaModulo = memo(({ alSeleccionarPaciente, alVerFichaPaciente }) => {
+  // (F2-02) — pacientes ya no llega como prop desde App.jsx: se lee directo del store.
+  const pacientesProp = usePacientesStore((state) => state.pacientes)
+
   const {
     citas,
     pacientes,

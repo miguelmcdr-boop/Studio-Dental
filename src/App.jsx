@@ -309,16 +309,13 @@ function App() {
 
   // (F2-01) — sesión/perfil ya no es un useState local: viene del store global.
   const userProfile = useSesionStore((state) => state.userProfile)
-  const setUserProfile = useSesionStore((state) => state.actualizarPerfil)
   const loginStore = useSesionStore((state) => state.login)
   const logoutStore = useSesionStore((state) => state.logout)
 
-  // (F2-01) — prestacionesArancel ya no es un useState local: viene del store global.
-  const prestacionesArancel = usePrestacionesStore((state) => state.prestacionesArancel)
-  const setPrestacionesArancel = usePrestacionesStore((state) => state.setPrestacionesArancel)
-
-  // 💡 Listener para refrescar el store cuando otro módulo (ej. usePrestaciones.js)
-  // guarda cambios directamente y dispara 'storage' / 'arancel_actualizado'.
+  // (F2-02) — App.jsx ya no lee prestacionesArancel para pasarla por prop a
+  // ningún módulo (todos la leen directo de usePrestacionesStore). Solo se
+  // mantiene este listener de sincronización cross-módulo, usando el store
+  // directamente sin necesidad de una variable local aquí.
   useEffect(() => {
     const refrescarDesdeStorage = usePrestacionesStore.getState().refrescarDesdeStorage
 
@@ -336,6 +333,8 @@ function App() {
   })
 
   // (F2-01) — pacientes ya no es un useState local: viene del store global.
+  // Se mantiene acá porque App.jsx todavía renderiza su propio Directorio de
+  // Pacientes inline (no es un módulo separado) y los handlers de crear/editar/eliminar.
   const pacientes = usePacientesStore((state) => state.pacientes)
   const setPacientes = usePacientesStore((state) => state.setPacientes)
 
@@ -416,14 +415,9 @@ function App() {
 
         {activeSection === 'Agenda' && (
           <AgendaModulo 
-            pacientes={pacientes} 
-            userProfile={userProfile}
             alSeleccionarPaciente={(paciente) => {
               setPacienteSeleccionado(paciente)
               setActiveSection('Pacientes')
-            }}
-            alCrearPacienteRapido={(nuevoPac) => {
-              setPacientes(prev => [nuevoPac, ...prev])
             }}
           />
         )}
@@ -432,7 +426,7 @@ function App() {
           <UrgenciasGesModulo />
         )}
 
-       {activeSection === 'Esterilización' && (
+        {activeSection === 'Esterilización' && (
           <EsterilizacionModulo />
         )}
 
@@ -477,8 +471,6 @@ function App() {
           pacienteSeleccionado ? (
             <FichaPaciente 
               paciente={pacienteSeleccionado} 
-              userProfile={userProfile}
-              prestacionesArancel={prestacionesArancel}
               alActualizarPaciente={handleActualizarPaciente}
               alEliminarPaciente={handleEliminarPaciente}
               alVolver={() => setPacienteSeleccionado(null)} 

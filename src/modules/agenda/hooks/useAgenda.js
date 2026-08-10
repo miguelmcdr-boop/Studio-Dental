@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { agendaStorageService } from '../services/agendaStorageService'
 import { pacientesStorageService } from '../../pacientes/services/pacientesStorageService'
+import { usePacientesStore } from '../../../store/pacientesStore'
 import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
 
 export const useAgenda = (pacientesProp = null) => {
@@ -59,10 +60,15 @@ export const useAgenda = (pacientesProp = null) => {
         fechaIngreso: obtenerFechaLocalISO()
       }
 
-      const pacientesActuales = pacientesStorageService.obtenerPacientes()
-      const pacientesActualizados = [nuevoPacienteObj, ...pacientesActuales]
+      // (F2-02b) — antes escribía directo a pacientesStorageService y a un
+      // estado local aislado de este hook, sin pasar por el store global:
+      // el paciente exprés no aparecía en el resto de la app (Directorio,
+      // Dashboard) hasta refrescar la página. Ahora pasa por el store, que
+      // persiste y notifica a todos los consumidores al instante.
+      const pacientesActualesGlobal = usePacientesStore.getState().pacientes
+      const pacientesActualizados = [nuevoPacienteObj, ...pacientesActualesGlobal]
 
-      pacientesStorageService.guardarPacientes(pacientesActualizados)
+      usePacientesStore.getState().setPacientes(pacientesActualizados)
       setPacientes(pacientesActualizados)
 
       pacienteFinalId = nuevoPacienteObj.id
