@@ -1,1 +1,2 @@
-export { FinanzasModulo as FinanzasModulo } from './FinanzasModulo'
+export { FinanzasModulo } from './FinanzasModulo'
+export { finanzasStorageService } from './services/finanzasStorageService'

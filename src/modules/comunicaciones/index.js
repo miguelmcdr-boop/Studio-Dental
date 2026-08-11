@@ -1,1 +1,1 @@
-export { ComunicacionesModulo as ComunicacionesModulo } from './ComunicacionesModulo'
+export { ComunicacionesModulo } from './ComunicacionesModulo'

@@ -5,7 +5,7 @@ export const TimelineClinicoWidget = memo(({
   itemsPresupuesto = [],
   recetas = [],
   certificados = [],
-  adjuntos = []
+  _adjuntos = []
 }) => {
   const [filtroTipo, setFiltroTipo] = useState('todos')
 

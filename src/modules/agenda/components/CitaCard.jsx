@@ -27,7 +27,7 @@ export const CitaCard = memo(({
           onClick={(e) => {
             e.stopPropagation()
             if (confirm('¿Deseas quitar este bloqueo de la agenda?')) {
-              alEliminar && alEliminar(cita.id)
+              alEliminar?.(cita.id)
             }
           }}
           className="text-red-500 hover:text-red-800 hover:bg-red-100 p-1.5 rounded-lg text-xs font-black transition-all cursor-pointer"
@@ -41,7 +41,7 @@ export const CitaCard = memo(({
 
   return (
     <div
-      onClick={() => alHacerClic && alHacerClic(cita)}
+      onClick={() => alHacerClic?.(cita)}
       className={`p-3.5 rounded-2xl border transition-all cursor-pointer shadow-2xs space-y-2.5 bg-white hover:shadow-md ${
         cita.estado === 'En Sillón'
           ? 'border-purple-500 ring-2 ring-purple-400/30 bg-purple-50/20'
@@ -59,7 +59,7 @@ export const CitaCard = memo(({
           <select
             value={cita.estado || 'Agendado'}
             onClick={(e) => e.stopPropagation()}
-            onChange={(e) => alCambiarEstado && alCambiarEstado(cita.id, e.target.value)}
+            onChange={(e) => alCambiarEstado?.(cita.id, e.target.value)}
             className="text-[10px] font-extrabold rounded-lg px-2 py-0.5 border bg-white focus:outline-none cursor-pointer shadow-2xs"
           >
             <option value="Agendado">🔵 Agendado</option>
@@ -75,7 +75,7 @@ export const CitaCard = memo(({
             onClick={(e) => {
               e.stopPropagation()
               if (confirm(`¿Eliminar la cita de "${cita.pacienteNombre}"?`)) {
-                alEliminar && alEliminar(cita.id)
+                alEliminar?.(cita.id)
               }
             }}
             className="text-gray-400 hover:text-red-600 p-1 rounded transition-colors"

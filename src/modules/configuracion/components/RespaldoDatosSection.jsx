@@ -1,4 +1,5 @@
 import React, { memo } from 'react'
+import { configuracionStorageService } from '../services/configuracionStorageService'
 
 export const RespaldoDatosSection = memo(({ alExportarBackup, alImportarBackup }) => {
   const handleFileChange = (e) => {
@@ -9,7 +10,7 @@ export const RespaldoDatosSection = memo(({ alExportarBackup, alImportarBackup }
         try {
           const parsed = JSON.parse(event.target.result)
           alImportarBackup(parsed)
-        } catch (err) {
+        } catch {
           alert('❌ El archivo seleccionado no es un JSON válido.')
         }
       }
@@ -19,9 +20,14 @@ export const RespaldoDatosSection = memo(({ alExportarBackup, alImportarBackup }
 
   const handleLimpiarSistema = () => {
     if (window.confirm('⚠️ ADVERTENCIA DE SEGURIDAD:\n¿Estás completamente seguro de borrar TODA la información local? Se perderán pacientes, fichas y agenda.')) {
-      localStorage.clear()
-      alert('💥 Sistema reiniciado a estado inicial. Se recargará la aplicación.')
-      window.location.reload()
+      // F2-07: migrado a servicio, no acceso directo a localStorage
+      const ok = configuracionStorageService.limpiarBaseDeDatosCompleta()
+      if (ok) {
+        alert('💥 Sistema reiniciado a estado inicial. Se recargará la aplicación.')
+        window.location.reload()
+      } else {
+        alert('❌ Error al limpiar la base de datos. Verifica el almacenamiento del navegador.')
+      }
     }
   }
 

@@ -4,7 +4,7 @@
 
 import { presupuestosStorageService } from '../../presupuestos'
 
-export const calcularEstadisticasAvanzadas = (pacientes = [], pagos = [], presupuestos = [], citas = []) => {
+export const calcularEstadisticasAvanzadas = (pacientes = [], pagos = [], presupuestos = [], _citas = []) => {
   let totalRecaudado = 0
   let totalPresupuestado = 0
   let presupuestosAprobadosCount = 0

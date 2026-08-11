@@ -4,10 +4,12 @@ import { useInventario } from './hooks/useInventario'
 import { StockSummaryCards } from './components/StockSummaryCards'
 import { TablaInventario } from './components/TablaInventario'
 import { ModalNuevoItemStock } from './components/ModalNuevoItemStock'
+import { AsociacionesInsumos } from './components/AsociacionesInsumos'
 
 export const InventarioModulo = memo(() => {
   const [modalAbierto, setModalAbierto] = useState(false)
   const [itemEditar, setItemEditar] = useState(null)
+  const [mostrarAsociaciones, setMostrarAsociaciones] = useState(false)
 
   const {
     items,
@@ -39,12 +41,25 @@ export const InventarioModulo = memo(() => {
           <p className="text-xs text-gray-500">Monitoreo de existencias, fechas de caducidad y reabastecimiento.</p>
         </div>
 
-        <button
-          onClick={handleAbrirNuevo}
-          className="bg-black text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-gray-800 transition-colors shadow-xs cursor-pointer"
-        >
-          + Agregar Nuevo Insumo
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setMostrarAsociaciones(!mostrarAsociaciones)}
+            className={`text-xs font-bold px-4 py-2.5 rounded-xl transition-colors shadow-xs cursor-pointer ${
+              mostrarAsociaciones
+                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            ⚙️ {mostrarAsociaciones ? 'Ocultar' : 'Configurar'} Asociaciones Tratamiento-Material
+          </button>
+
+          <button
+            onClick={handleAbrirNuevo}
+            className="bg-black text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-gray-800 transition-colors shadow-xs cursor-pointer"
+          >
+            + Agregar Nuevo Insumo
+          </button>
+        </div>
       </div>
 
       <StockSummaryCards resumen={resumen} />
@@ -77,6 +92,11 @@ export const InventarioModulo = memo(() => {
         onEditar={handleAbrirEditar}
         onEliminar={eliminarItem}
       />
+
+      {/* F2-12: Sección de Asociaciones Tratamiento-Material */}
+      {mostrarAsociaciones && (
+        <AsociacionesInsumos items={items} />
+      )}
 
       {modalAbierto && (
         <ModalNuevoItemStock

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { presupuestosStorageService } from '../services/presupuestosStorageService'
 import { calcularResumenPresupuestos } from '../utils/presupuestosCalculations'
 
-export const usePresupuestos = (pacientes = [], prestaciones = []) => {
+export const usePresupuestos = (pacientes = [], _prestaciones = []) => {
   const [presupuestos, setPresupuestos] = useState([])
   const [modalNuevoAbierto, setModalNuevoAbierto] = useState(false)
   const [presupuestoImprimir, setPresupuestoImprimir] = useState(null)

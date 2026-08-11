@@ -3,9 +3,12 @@ import { DienteSVG } from '../../../components/DienteSVG'
 import { PERMANENTE_SUPERIOR, PERMANENTE_INFERIOR } from '../constants/pacientesConstants'
 import { obtenerDescuentoConvenio } from '../utils/pacientesCalculations'
 import { pacientesStorageService } from '../services/pacientesStorageService'
-import { descontarStockPorTratamiento } from '../../inventario/utils/inventarioCalculations'
+import { descontarMaterialesSeleccionados, detectarCategoriaTratamiento, PALABRAS_CLAVE_POR_CATEGORIA_DEFAULT } from '../../inventario/utils/inventarioCalculations'
 import { prestacionesStorageService } from '../../prestaciones'
 import { inventarioStorageService } from '../../inventario'
+import { ModalDescuentoInventario } from './ModalDescuentoInventario'
+
+const STORAGE_KEY_PALABRAS_CLAVE = 'studio_dental_inventario_palabras_clave'
 
 export const PresupuestoSection = memo(({
   paciente,
@@ -39,6 +42,11 @@ export const PresupuestoSection = memo(({
 
   const [montoAbono, setValorAbono] = useState('')
   const [metodoPagoAbono, setMetodoPagoAbono] = useState('Efectivo')
+
+  // F2-12: Estado para el modal de descuento de inventario
+  const [itemPendienteDescuento, setItemPendienteDescuento] = useState(null)
+  const [categoriaDetectada, setCategoriaDetectada] = useState('')
+  const [materialesDisponibles, setMaterialesDisponibles] = useState([])
 
   useEffect(() => {
     const handleRefrescarArancel = () => {
@@ -111,7 +119,7 @@ export const PresupuestoSection = memo(({
     setPorcentajeDescuentoAplicado(0)
   }
 
-  // 💡 COHESIÓN CLÍNICA & REBAJA DE INVENTARIO
+  // 💡 COHESIÓN CLÍNICA & REBAJA DE INVENTARIO (F2-12: con modal de selección)
   const handleCambiarEstadoItem = (id, nuevoEstado) => {
     let itemRealizado = null
 
@@ -145,18 +153,71 @@ export const PresupuestoSection = memo(({
         pacientesStorageService.guardarItem(`evoluciones_notas_${paciente.id}`, notasActualizadas)
       }
 
-      // 2. Cohesión con Inventario (Rebaja Automática de Stock vía servicio, F2-07a)
+      // 2. F2-12: Abrir modal de selección de materiales en vez de descontar directamente
       try {
-        const inventarioGuardado = inventarioStorageService.obtenerItems([])
-        if (Array.isArray(inventarioGuardado) && inventarioGuardado.length > 0 && typeof descontarStockPorTratamiento === 'function') {
-          const inventarioActualizado = descontarStockPorTratamiento(inventarioGuardado, itemRealizado.prestacion)
-          inventarioStorageService.guardarItems(inventarioActualizado)
-          window.dispatchEvent(new CustomEvent('inventario_actualizado'))
+        const asociaciones = inventarioStorageService.obtenerAsociacionesInsumos()
+        
+        // Cargar palabras clave desde localStorage
+        let palabrasClave = PALABRAS_CLAVE_POR_CATEGORIA_DEFAULT
+        try {
+          const palabrasGuardadas = localStorage.getItem(STORAGE_KEY_PALABRAS_CLAVE)
+          if (palabrasGuardadas) {
+            palabrasClave = JSON.parse(palabrasGuardadas)
+          }
+        } catch {
+          // Usar default si hay error
         }
+        
+        const categoria = detectarCategoriaTratamiento(itemRealizado.prestacion, asociaciones, palabrasClave)
+        const materialesCategoria = asociaciones[categoria] || []
+        const inventarioActual = inventarioStorageService.obtenerItems([])
+        
+        // Enriquecer materiales con stock actual del inventario
+        const materialesEnriquecidos = materialesCategoria
+          .filter(m => m.itemId)
+          .map(m => {
+            const itemInventario = inventarioActual.find(i => i.id === m.itemId)
+            return {
+              itemId: m.itemId,
+              nombreInsumo: itemInventario?.nombre || m.nombreInsumo,
+              cantidad: m.cantidad,
+              unidad: itemInventario?.unidad || m.unidad || 'Unidad',
+              stockActual: parseFloat(itemInventario?.cantidad) || 0
+            }
+          })
+        
+        setItemPendienteDescuento(itemRealizado)
+        setCategoriaDetectada(categoria)
+        setMaterialesDisponibles(materialesEnriquecidos)
       } catch (e) {
-        console.error('Error al descontar inventario:', e)
+        console.error('Error al preparar modal de descuento:', e)
       }
     }
+  }
+
+  // F2-12: Confirmar descuento desde el modal
+  const handleConfirmarDescuento = (materialesSeleccionados) => {
+    try {
+      const inventarioGuardado = inventarioStorageService.obtenerItems([])
+      if (Array.isArray(inventarioGuardado) && inventarioGuardado.length > 0 && materialesSeleccionados.length > 0) {
+        const inventarioActualizado = descontarMaterialesSeleccionados(inventarioGuardado, materialesSeleccionados)
+        inventarioStorageService.guardarItems(inventarioActualizado)
+        window.dispatchEvent(new CustomEvent('inventario_actualizado'))
+      }
+    } catch (e) {
+      console.error('Error al descontar inventario:', e)
+    } finally {
+      setItemPendienteDescuento(null)
+      setCategoriaDetectada('')
+      setMaterialesDisponibles([])
+    }
+  }
+
+  // F2-12: Cancelar descuento desde el modal (marca Realizado sin descontar)
+  const handleCancelarDescuento = () => {
+    setItemPendienteDescuento(null)
+    setCategoriaDetectada('')
+    setMaterialesDisponibles([])
   }
 
   const handleEliminarItem = (id) => {
@@ -436,6 +497,17 @@ export const PresupuestoSection = memo(({
           </div>
         )}
       </div>
+
+      {/* F2-12: Modal de selección de materiales para descuento de inventario */}
+      {itemPendienteDescuento && (
+        <ModalDescuentoInventario
+          item={itemPendienteDescuento}
+          categoria={categoriaDetectada}
+          materialesDisponibles={materialesDisponibles}
+          alConfirmar={handleConfirmarDescuento}
+          alCancelar={handleCancelarDescuento}
+        />
+      )}
     </div>
   )
 })

@@ -8,7 +8,7 @@ export const useQuirurgico = (pacienteId) => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_IMPLANTES)
       return saved ? JSON.parse(saved) : []
-    } catch (e) {
+    } catch {
       return []
     }
   })
@@ -17,7 +17,7 @@ export const useQuirurgico = (pacienteId) => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_ENDODONCIA)
       return saved ? JSON.parse(saved) : []
-    } catch (e) {
+    } catch {
       return []
     }
   })

@@ -1,0 +1,88 @@
+# CI/CD Pipeline para Studio Dental
+# Ejecuta lint + test + build en cada PR y push a main
+# F3-01 del MASTER_ROADMAP.md
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+# Cancela ejecuciones previas del mismo PR/branch si llega un nuevo commit
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: 🔍 Lint (oxlint)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Ejecutar oxlint
+        run: npm run lint
+
+  test:
+    name: 🧪 Tests (Vitest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Ejecutar suite de tests
+        run: npm run test
+
+  build:
+    name: 🏗️ Build (Vite production)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Build de producción
+        run: npm run build
+
+      - name: Verificar que se generó el bundle
+        run: |
+          if [ ! -d "dist" ]; then
+            echo "❌ El directorio dist/ no se generó"
+            exit 1
+          fi
+          echo "✅ Bundle generado exitosamente"
+          ls -lh dist/

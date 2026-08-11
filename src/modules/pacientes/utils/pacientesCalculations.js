@@ -1,4 +1,3 @@
-import { VADEMECUM_ODONTOLOGICO } from '../../../data/vademecum'
 import { finanzasStorageService } from '../../finanzas'
 
 export const obtenerDescuentoConvenio = (nombreConvenio) => {
@@ -12,7 +11,7 @@ export const obtenerDescuentoConvenio = (nombreConvenio) => {
       c.id.toLowerCase().includes(nombreConvenio.toLowerCase())
     )
     return encontrado ? encontrado.descuentoDefecto : 0
-  } catch (e) {
+  } catch {
     return 0
   }
 }

@@ -1,5 +1,4 @@
 import React, { memo } from 'react'
-import { formatearCLP } from '../utils/finanzasCalculations'
 
 export const CuentasPendientes = memo(({ pacientes = [] }) => {
   return (

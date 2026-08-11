@@ -16,7 +16,7 @@ export const useSmileDesign = (pacienteId) => {
         lineaSonrisa: 'Media (Muestra 100% de corona clínica)',
         observacionEstetica: ''
       }
-    } catch (e) {
+    } catch {
       return { anchoCentral: 8.5, altoCentral: 10.5, tonoDeseado: 'BL2' }
     }
   })

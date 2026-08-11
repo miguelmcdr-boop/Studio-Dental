@@ -15,11 +15,11 @@ export const ModalNuevoItemStock = memo(({ itemEditar, alGuardar, alCerrar }) =>
     if (itemEditar) {
       setNombre(itemEditar.nombre || '')
       setCategoria(itemEditar.categoria || CATEGORIAS_INSUMOS[0])
-      setCantidad(itemEditar.cantidad || '')
-      setMinimoCritico(itemEditar.minimoCritico || '5')
+      setCantidad(itemEditar.cantidad ?? '')
+      setMinimoCritico(itemEditar.minimoCritico ?? '5')
       setUnidad(itemEditar.unidad || UNIDADES_MEDIDA[0])
       setFechaVencimiento(itemEditar.fechaVencimiento || '')
-      setPrecioUnitario(itemEditar.precioUnitario || '')
+      setPrecioUnitario(itemEditar.precioUnitario ?? '')
       setProveedor(itemEditar.proveedor || '')
     }
   }, [itemEditar])
@@ -32,8 +32,8 @@ export const ModalNuevoItemStock = memo(({ itemEditar, alGuardar, alCerrar }) =>
       id: itemEditar ? itemEditar.id : Date.now(),
       nombre,
       categoria,
-      cantidad: parseInt(cantidad) || 0,
-      minimoCritico: parseInt(minimoCritico) || 0,
+      cantidad: parseFloat(cantidad) || 0,
+      minimoCritico: parseFloat(minimoCritico) || 0,
       unidad,
       fechaVencimiento,
       precioUnitario: parseFloat(precioUnitario) || 0,
@@ -97,7 +97,9 @@ export const ModalNuevoItemStock = memo(({ itemEditar, alGuardar, alCerrar }) =>
               <input
                 type="number"
                 required
-                placeholder="Ej: 10"
+                step="0.01"
+                min="0"
+                placeholder="Ej: 10 o 0.5"
                 value={cantidad}
                 onChange={(e) => setCantidad(e.target.value)}
                 className="w-full p-2.5 rounded-xl border border-gray-300 font-bold text-sm"
@@ -108,7 +110,9 @@ export const ModalNuevoItemStock = memo(({ itemEditar, alGuardar, alCerrar }) =>
               <label className="block font-semibold text-gray-700 mb-1">Stock Mínimo Crítico</label>
               <input
                 type="number"
-                placeholder="Ej: 3"
+                step="0.01"
+                min="0"
+                placeholder="Ej: 3 o 0.1"
                 value={minimoCritico}
                 onChange={(e) => setMinimoCritico(e.target.value)}
                 className="w-full p-2.5 rounded-xl border border-gray-300 font-bold text-sm"
@@ -131,6 +135,7 @@ export const ModalNuevoItemStock = memo(({ itemEditar, alGuardar, alCerrar }) =>
               <label className="block font-semibold text-gray-700 mb-1">Precio Unitario ($ CLP)</label>
               <input
                 type="number"
+                step="0.01"
                 placeholder="Ej: 12500"
                 value={precioUnitario}
                 onChange={(e) => setPrecioUnitario(e.target.value)}

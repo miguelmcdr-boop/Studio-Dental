@@ -2,8 +2,6 @@ import React, { memo } from 'react'
 import { GUIA_TONOS_VITA, FORMAS_DENTARIAS } from '../constants/dsdConstants'
 
 export const SimuladorCarillas = memo(({ dsdData, ratioAnchoAlto, esProporcionIdeal, visibilidadDorada, onActualizar }) => {
-  const tonoObjeto = GUIA_TONOS_VITA.find(t => t.id === dsdData.tonoDeseado) || GUIA_TONOS_VITA[1]
-
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-6 text-xs">
       <div className="border-b pb-2 flex justify-between items-center flex-wrap gap-2">

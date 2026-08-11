@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { TIPO_CONDUCTOS, TECNICAS_OBTURACION, SELLADORES_ENDODONTICOS } from '../constants/quirurgicoConstants'
+import { TECNICAS_OBTURACION, SELLADORES_ENDODONTICOS } from '../constants/quirurgicoConstants'
 
 export const FichaEndodoncia = ({ endodoncias = [], onAgregarEndodoncia, onEliminarEndodoncia }) => {
   const [pieza, setPieza] = useState('1.6')

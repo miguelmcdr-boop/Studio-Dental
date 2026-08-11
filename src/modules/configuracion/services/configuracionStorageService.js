@@ -44,5 +44,20 @@ export const configuracionStorageService = {
       localStorage.setItem(key, val)
     })
     window.dispatchEvent(new Event('storage'))
+  },
+
+  // Limpieza total de la base de datos local (F2-07 — migración desde RespaldoDatosSection.jsx).
+  // Sigue el patrón del factory de F2-03: try/catch, retorna boolean, nunca lanza excepción.
+  // Dispara el evento 'storage' para sincronizar entre pestañas (coherente con F2-01).
+  // El window.confirm() y window.location.reload() quedan en el componente (son UI/navegación, no persistencia).
+  limpiarBaseDeDatosCompleta: () => {
+    try {
+      localStorage.clear()
+      window.dispatchEvent(new Event('storage'))
+      return true
+    } catch (e) {
+      console.error('Error al limpiar base de datos:', e)
+      return false
+    }
   }
 }

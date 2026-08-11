@@ -14,7 +14,7 @@ export const usePeriodontograma = (pacienteId) => {
         return Array.isArray(parsed) ? parsed : [crearControlPeriodontalSchema()]
       }
       return [crearControlPeriodontalSchema()]
-    } catch (e) {
+    } catch {
       return [crearControlPeriodontalSchema()]
     }
   })

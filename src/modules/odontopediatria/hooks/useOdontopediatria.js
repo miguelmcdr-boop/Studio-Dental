@@ -16,7 +16,7 @@ export const useOdontopediatria = (pacienteId) => {
         dentosanaRegistrada: false,
         mapaDentosana: {}
       }
-    } catch (e) {
+    } catch {
       return { gradoFrankl: 3, observacionConducta: '', mapaOleary: {}, piezasPresentesOleary: 20 }
     }
   })

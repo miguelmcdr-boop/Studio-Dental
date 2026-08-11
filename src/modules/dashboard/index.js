@@ -1,1 +1,1 @@
-export { DashboardModulo as DashboardModulo } from './DashboardModulo'
+export { DashboardModulo } from './DashboardModulo'

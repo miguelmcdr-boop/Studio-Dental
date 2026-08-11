@@ -1,1 +1,1 @@
-export { UrgenciasGesModulo as UrgenciasGesModulo } from './UrgenciasGesModulo'
+export { UrgenciasGesModulo } from './UrgenciasGesModulo'

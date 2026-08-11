@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import { ITEMS_INVENTARIO_DEFAULT } from '../constants/inventarioConstants'
 import { inventarioStorageService } from '../services/inventarioStorageService'
 import { calcularResumenInventario } from '../utils/inventarioCalculations'
@@ -7,6 +7,19 @@ export const useInventario = () => {
   const [items, setItems] = useState(() => inventarioStorageService.obtenerItems(ITEMS_INVENTARIO_DEFAULT))
   const [busqueda, setBusqueda] = useState('')
   const [categoriaFiltro, setCategoriaFiltro] = useState('Todas')
+
+  // F2-12b: escuchar evento de descuento desde otros módulos (PresupuestoSection)
+  useEffect(() => {
+    const handleInventarioActualizado = () => {
+      const itemsActualizados = inventarioStorageService.obtenerItems(ITEMS_INVENTARIO_DEFAULT)
+      setItems(itemsActualizados)
+    }
+
+    window.addEventListener('inventario_actualizado', handleInventarioActualizado)
+    return () => {
+      window.removeEventListener('inventario_actualizado', handleInventarioActualizado)
+    }
+  }, [])
 
   const resumen = useMemo(() => calcularResumenInventario(items), [items])
 
@@ -40,7 +53,8 @@ export const useInventario = () => {
     setItems(prev => {
       const actualizados = prev.map(i => {
         if (i.id === idItem) {
-          const nuevaCant = Math.max(0, (parseInt(i.cantidad) || 0) + cambio)
+          // F2-12a: parseFloat para soportar stocks fraccionales
+          const nuevaCant = Math.max(0, (parseFloat(i.cantidad) || 0) + cambio)
           return { ...i, cantidad: nuevaCant }
         }
         return i

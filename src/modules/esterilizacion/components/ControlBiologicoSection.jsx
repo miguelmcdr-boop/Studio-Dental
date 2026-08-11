@@ -4,7 +4,7 @@ import { EQUIPOS_AUTOCLAVE } from '../constants/esterilizacionConstants'
 export const ControlBiologicoSection = memo(({ biologicos, alAgregar, alActualizarResultado }) => {
   const [loteAsociado, setLoteAsociado] = useState('')
   const [equipo, setEquipo] = useState(EQUIPOS_AUTOCLAVE[0])
-  const [marcaAmpolla, setMarcaAmpolla] = useState('3M Attest 1262')
+  const [marcaAmpolla] = useState('3M Attest 1262')
   const [horasRequeridas, setHorasRequeridas] = useState(24)
   const [observacion, setObservacion] = useState('')
 
