@@ -12,12 +12,20 @@ import react from '@vitejs/plugin-react'
  * necesarias para los tests de servicios e integración en F3-04.
  * Para las funciones puras de F1-06 bastaba 'node', pero configurar
  * jsdom ahora evita tener que modificar esta config en fases posteriores.
+ *
+ * setupFiles: './src/test/setup.js' ejecuta el setup global antes de cada
+ * suite de tests (F3-04): importa matchers de jest-dom, limpia localStorage
+ * entre tests, y restaura mocks automáticamente.
+ *
+ * coverage.exclude incluye 'src/test/**' para que los archivos de setup
+ * no aparezcan en el reporte de cobertura (F3-04 fix).
  */
 export default defineConfig({
   plugins: [react()],
   test: {
     environment: 'jsdom',
     globals: true,
+    setupFiles: './src/test/setup.js',
     include: ['src/**/*.test.{js,jsx}'],
     exclude: ['node_modules', 'dist'],
     coverage: {
@@ -29,6 +37,7 @@ export default defineConfig({
         'src/main.jsx',
         'src/**/*.constants.js',
         'src/data/**',
+        'src/test/**',
       ],
     },
   },
