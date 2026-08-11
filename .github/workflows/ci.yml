@@ -1,6 +1,6 @@
 # CI/CD Pipeline para Studio Dental
-# Ejecuta lint + test + build en cada PR y push a main
-# F3-01 del MASTER_ROADMAP.md
+# Ejecuta lint + test + build + architecture en cada PR y push a main
+# F3-01 y F3-02 del MASTER_ROADMAP.md
 name: CI
 
 on:
@@ -86,3 +86,24 @@ jobs:
           fi
           echo "✅ Bundle generado exitosamente"
           ls -lh dist/
+
+  architecture:
+    name: 🏛️ Arquitectura (Constitución)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Validar reglas arquitectónicas
+        run: npm run validate:architecture
