@@ -1,5 +1,6 @@
 import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
 import { leerJSON, escribirJSON, createLocalStorageRepository } from '../../../services/localStorageRepository'
+import { validarListaPresupuestos } from '../schemas/presupuestoSchema'
 
 /**
  * Persistencia en LocalStorage para Presupuestos y Fichas de Pacientes
@@ -15,7 +16,25 @@ const presupuestosRepo = createLocalStorageRepository(STORAGE_KEY_PRESUPUESTOS, 
 export const presupuestosStorageService = {
   obtenerPresupuestos: (defaults = []) => presupuestosRepo.obtener(defaults),
 
-  guardarPresupuestos: (presupuestos) => presupuestosRepo.guardar(presupuestos),
+ /**
+ * Valida la lista de presupuestos con presupuestoSchema antes de persistir.
+ * Si la validación falla, NO escribe en localStorage y retorna false.
+ * Si la validación pasa, persiste los datos validados y retorna true.
+ *
+ * @param {Array} presupuestos - Lista de presupuestos a persistir.
+ * @returns {boolean} true si se guardó exitosamente, false si la validación falló.
+ */
+ guardarPresupuestos: (presupuestos) => {
+  const validacion = validarListaPresupuestos(presupuestos)
+  if (!validacion.valido) {
+    console.error(
+      'Error de validación al guardar presupuestos (F2-04e):',
+      validacion.error
+    )
+    return false
+  }
+  return presupuestosRepo.guardar(validacion.datos)
+},
 
   // Lee los ítems de presupuesto de un paciente específico (clave dinámica)
   obtenerItemsPorPaciente: (pacienteId) => {
