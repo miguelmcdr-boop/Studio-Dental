@@ -9,6 +9,9 @@
  * - agendaStorageService (persistencia de citas en localStorage)
  * - usePacientesStore (store Zustand global de pacientes)
  * - pacientesStorageService (indirectamente, vía el store)
+ *
+ * F2-04b: fixtures actualizados para cumplir con citaSchema (id, fecha,
+ * horaInicio, estado son obligatorios).
  */
 
 import { renderHook, act } from '@testing-library/react'
@@ -50,9 +53,10 @@ describe('useAgenda', () => {
     })
 
     it('carga citas pre-existentes desde agendaStorageService al montar', () => {
+      // F2-04b: fixtures cumplen con citaSchema (horaInicio y estado obligatorios)
       const citasPrevias = [
-        { id: 1, pacienteNombre: 'Paciente A', fecha: '2026-08-12' },
-        { id: 2, pacienteNombre: 'Paciente B', fecha: '2026-08-13' }
+        { id: 1, pacienteNombre: 'Paciente A', fecha: '2026-08-12', horaInicio: '10:00', estado: 'Agendado' },
+        { id: 2, pacienteNombre: 'Paciente B', fecha: '2026-08-13', horaInicio: '11:00', estado: 'Agendado' }
       ]
       agendaStorageService.guardarCitas(citasPrevias)
 
@@ -76,12 +80,14 @@ describe('useAgenda', () => {
     it('guarda una cita nueva y la persiste en agendaStorageService', () => {
       const { result } = renderHook(() => useAgenda())
 
+      // F2-04b: agregado estado obligatorio
       const nuevaCita = {
         id: 100,
         pacienteId: 1,
         pacienteNombre: 'Juan Pérez',
         fecha: '2026-08-12',
-        horaInicio: '10:00'
+        horaInicio: '10:00',
+        estado: 'Agendado'
       }
 
       act(() => {
@@ -109,7 +115,8 @@ describe('useAgenda', () => {
     it('actualiza una cita existente en lugar de duplicarla', () => {
       const { result } = renderHook(() => useAgenda())
 
-      const cita = { id: 100, pacienteNombre: 'Juan', fecha: '2026-08-12' }
+      // F2-04b: agregados horaInicio y estado obligatorios
+      const cita = { id: 100, pacienteNombre: 'Juan', fecha: '2026-08-12', horaInicio: '10:00', estado: 'Agendado' }
       act(() => result.current.guardarCita(cita))
       expect(result.current.citas).toHaveLength(1)
 
@@ -133,7 +140,8 @@ describe('useAgenda', () => {
         pacienteRut: '12.345.678-9',
         trataMiento: 'Control de rutina',
         fecha: '2026-08-12',
-        horaInicio: '11:00'
+        horaInicio: '11:00',
+        estado: 'Agendado'
       }
 
       act(() => {
@@ -169,11 +177,14 @@ describe('useAgenda', () => {
 
       const { result } = renderHook(() => useAgenda())
 
+      // F2-04b: agregados horaInicio y estado obligatorios
       const citaExpress = {
         id: 201,
         pacienteId: 'express_temporal',
         pacienteNombre: 'Nuevo Express',
-        fecha: '2026-08-12'
+        fecha: '2026-08-12',
+        horaInicio: '10:00',
+        estado: 'Agendado'
       }
 
       act(() => result.current.guardarCita(citaExpress, true))
@@ -187,11 +198,14 @@ describe('useAgenda', () => {
     it('NO crea paciente exprés si crearFichaSiExpress es false, aunque el id empiece con express_', () => {
       const { result } = renderHook(() => useAgenda())
 
+      // F2-04b: agregados horaInicio y estado obligatorios
       const cita = {
         id: 300,
         pacienteId: 'express_temporal',
         pacienteNombre: 'No Creado',
-        fecha: '2026-08-12'
+        fecha: '2026-08-12',
+        horaInicio: '10:00',
+        estado: 'Agendado'
       }
 
       act(() => result.current.guardarCita(cita, false))
@@ -209,9 +223,10 @@ describe('useAgenda', () => {
     it('elimina una cita por ID y persiste el cambio', () => {
       const { result } = renderHook(() => useAgenda())
 
+      // F2-04b: agregados fecha, horaInicio y estado obligatorios
       act(() => {
-        result.current.guardarCita({ id: 1, pacienteNombre: 'Cita 1' })
-        result.current.guardarCita({ id: 2, pacienteNombre: 'Cita 2' })
+        result.current.guardarCita({ id: 1, pacienteNombre: 'Cita 1', fecha: '2026-08-12', horaInicio: '10:00', estado: 'Agendado' })
+        result.current.guardarCita({ id: 2, pacienteNombre: 'Cita 2', fecha: '2026-08-12', horaInicio: '11:00', estado: 'Agendado' })
       })
       expect(result.current.citas).toHaveLength(2)
 
@@ -227,8 +242,9 @@ describe('useAgenda', () => {
     it('cambia el estado de una cita existente y lo persiste', () => {
       const { result } = renderHook(() => useAgenda())
 
+      // F2-04b: agregados fecha y horaInicio obligatorios
       act(() => {
-        result.current.guardarCita({ id: 1, pacienteNombre: 'Test', estado: 'Agendada' })
+        result.current.guardarCita({ id: 1, pacienteNombre: 'Test', fecha: '2026-08-12', horaInicio: '10:00', estado: 'Agendada' })
       })
 
       act(() => result.current.cambiarEstadoCita(1, 'Confirmado'))
@@ -240,8 +256,9 @@ describe('useAgenda', () => {
     it('agrega horaInicioAtencion cuando el estado es "En Sillón"', () => {
       const { result } = renderHook(() => useAgenda())
 
+      // F2-04b: agregados fecha y horaInicio obligatorios
       act(() => {
-        result.current.guardarCita({ id: 1, pacienteNombre: 'Test', estado: 'Agendada' })
+        result.current.guardarCita({ id: 1, pacienteNombre: 'Test', fecha: '2026-08-12', horaInicio: '10:00', estado: 'Agendada' })
       })
 
       const antes = Date.now()
@@ -262,10 +279,13 @@ describe('useAgenda', () => {
       const { result } = renderHook(() => useAgenda())
       const horaPrevia = '2026-08-12T10:00:00.000Z'
 
+      // F2-04b: agregados fecha y horaInicio obligatorios
       act(() => {
         result.current.guardarCita({
           id: 1,
           pacienteNombre: 'Test',
+          fecha: '2026-08-12',
+          horaInicio: '10:00',
           estado: 'En Sillón',
           horaInicioAtencion: horaPrevia
         })
@@ -290,7 +310,8 @@ describe('useAgenda', () => {
           pacienteTelefono: '912345678',
           fecha: '2026-08-15',
           horaInicio: '10:00',
-          boxAsignado: 'Box 1'
+          boxAsignado: 'Box 1',
+          estado: 'Agendado'
         })
       })
 
@@ -316,7 +337,8 @@ describe('useAgenda', () => {
           pacienteNombre: 'Test',
           pacienteTelefono: '12345678',
           fecha: '2026-08-15',
-          horaInicio: '10:00'
+          horaInicio: '10:00',
+          estado: 'Agendado'
         })
       })
 
@@ -333,11 +355,14 @@ describe('useAgenda', () => {
       const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
       const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {})
 
+      // F2-04b: agregados horaInicio y estado obligatorios
       act(() => {
         result.current.guardarCita({
           id: 1,
           pacienteNombre: 'Sin Teléfono',
-          fecha: '2026-08-15'
+          fecha: '2026-08-15',
+          horaInicio: '10:00',
+          estado: 'Agendado'
         })
       })
 
@@ -354,13 +379,15 @@ describe('useAgenda', () => {
       const { result } = renderHook(() => useAgenda())
       vi.spyOn(window, 'open').mockImplementation(() => null)
 
+      // F2-04b: agregado horaInicio obligatorio
       act(() => {
         result.current.guardarCita({
           id: 1,
           pacienteNombre: 'Test',
           pacienteTelefono: '912345678',
           estado: 'Agendada',
-          fecha: '2026-08-15'
+          fecha: '2026-08-15',
+          horaInicio: '10:00'
         })
       })
 

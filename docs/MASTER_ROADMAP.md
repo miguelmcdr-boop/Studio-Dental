@@ -62,7 +62,7 @@
 | F2-07h | Corregir clave de `localStorage` desincronizada entre `PresupuestoSection.jsx` e `inventarioStorageService` (bug de cohesión clínica) | 2 | P1 | XS (<1 d) | F2-07 | IN PROGRESS (código resuelto, pendiente QA manual) |
 | F2-08 | Extraer `LoginScreen`, `Sidebar` y Directorio de Pacientes de `App.jsx` (reducción de tamaño de archivo) | 2 | P2 | S (1-2 d) | F2-02 | DONE (2026-08-10) |
 | F2-09 | Limpieza de 35 warnings de oxlint | 2 | P3 | S (1-2 d) | F2-06c | DONE (2026-08-11) |
-| F2-10 | Unificar imports internos a ruta pública en archivos transversales (stores) | 2 | P2 | XS (<1 h) | F2-06 | TODO |
+| F2-10 | Unificar imports internos a ruta pública en archivos transversales (stores) | 2 | P2 | XS (<1 h) | F2-06 | DEFERRED (2026-08-12) |
 | F3-01 | Pipeline CI/CD (lint + test + build como gates de PR) | 3 | P1 | M (2-3 d) | F1-06, F2-09 | DONE (2026-08-11) |
 | F3-02 | Script de validación arquitectónica automatizada | 3 | P1 | M (2-3 d) | F2-06, F2-07 | DONE (2026-08-11) |
 | F3-03 | Adopción de Conventional Commits + flujo de ramas por feature | 3 | P2 | XS (config + hábito) | — | DONE (2026-08-11) |
