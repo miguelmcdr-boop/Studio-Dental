@@ -1,13 +1,12 @@
 import { useState, useEffect, useCallback } from 'react'
+// F2-07b: acceso centralizado vía servicio
+import { quirurgicoStorageService } from '../services/quirurgicoStorageService'
 
 export const useQuirurgico = (pacienteId) => {
-  const STORAGE_KEY_IMPLANTES = `quirurgico_implantes_${pacienteId}`
-  const STORAGE_KEY_ENDODONCIA = `quirurgico_endodoncia_${pacienteId}`
-
   const [implantes, setImplantes] = useState(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY_IMPLANTES)
-      return saved ? JSON.parse(saved) : []
+      // F2-07b: cargar vía servicio (antes localStorage directo)
+      return quirurgicoStorageService.obtenerImplantesDePaciente(pacienteId, [])
     } catch {
       return []
     }
@@ -15,20 +14,21 @@ export const useQuirurgico = (pacienteId) => {
 
   const [endodoncias, setEndodoncias] = useState(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY_ENDODONCIA)
-      return saved ? JSON.parse(saved) : []
+      // F2-07b: cargar vía servicio (antes localStorage directo)
+      return quirurgicoStorageService.obtenerEndodonciasDePaciente(pacienteId, [])
     } catch {
       return []
     }
   })
 
+  // F2-07b: persistir vía servicio (antes localStorage directo)
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY_IMPLANTES, JSON.stringify(implantes))
-  }, [implantes, STORAGE_KEY_IMPLANTES])
+    quirurgicoStorageService.guardarImplantesDePaciente(pacienteId, implantes)
+  }, [implantes, pacienteId])
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY_ENDODONCIA, JSON.stringify(endodoncias))
-  }, [endodoncias, STORAGE_KEY_ENDODONCIA])
+    quirurgicoStorageService.guardarEndodonciasDePaciente(pacienteId, endodoncias)
+  }, [endodoncias, pacienteId])
 
   const agregarImplante = useCallback((nuevoImplante) => {
     setImplantes(prev => [{ id: Date.now(), fecha: new Date().toLocaleDateString('es-CL'), ...nuevoImplante }, ...prev])

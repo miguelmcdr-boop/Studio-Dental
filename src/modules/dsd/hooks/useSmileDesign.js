@@ -1,29 +1,33 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { calcularRatioAnchoAlto, calcularVisibilidadDorada } from '../utils/dsdCalculations'
+// F2-07b: acceso centralizado vía servicio
+import { dsdStorageService } from '../services/dsdStorageService'
+
+// F2-07b: default extraído a constante para claridad
+const DSD_DEFAULT = {
+  anchoCentral: 8.5,
+  altoCentral: 10.5,
+  tonoActual: 'A2',
+  tonoDeseado: 'BL2',
+  formaDeseada: 'ovoidal',
+  lineaSonrisa: 'Media (Muestra 100% de corona clínica)',
+  observacionEstetica: ''
+}
 
 export const useSmileDesign = (pacienteId) => {
-  const STORAGE_KEY = `dsd_config_${pacienteId}`
-
   const [dsdData, setDsdData] = useState(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY)
-      return saved ? JSON.parse(saved) : {
-        anchoCentral: 8.5,
-        altoCentral: 10.5,
-        tonoActual: 'A2',
-        tonoDeseado: 'BL2',
-        formaDeseada: 'ovoidal',
-        lineaSonrisa: 'Media (Muestra 100% de corona clínica)',
-        observacionEstetica: ''
-      }
+      // F2-07b: cargar vía servicio con default estructurado
+      return dsdStorageService.obtenerConfigDePaciente(pacienteId, DSD_DEFAULT)
     } catch {
-      return { anchoCentral: 8.5, altoCentral: 10.5, tonoDeseado: 'BL2' }
+      return DSD_DEFAULT
     }
   })
 
+  // F2-07b: persistir vía servicio (antes localStorage directo)
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(dsdData))
-  }, [dsdData, STORAGE_KEY])
+    dsdStorageService.guardarConfigDePaciente(pacienteId, dsdData)
+  }, [dsdData, pacienteId])
 
   const ratioAnchoAlto = useMemo(() => {
     return calcularRatioAnchoAlto(dsdData.anchoCentral, dsdData.altoCentral)
