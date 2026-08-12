@@ -10,6 +10,8 @@ import {
   existePerfil,
   MAX_INTENTOS_FALLIDOS,
 } from '../services/authService'
+import { ROLES, NOMBRES_ROLES, DESCRIPCIONES_ROLES } from '../constants/rbacConstants'
+import { obtenerRolPorDefecto } from '../services/rbacService'
 
 export const LoginScreen = ({ onLogin }) => {
   const [email, setEmail] = useState('')
@@ -17,6 +19,7 @@ export const LoginScreen = ({ onLogin }) => {
   const [nombreCompleto, setNombreCompleto] = useState('')
   const [rut, setRut] = useState('')
   const [especialidad, setEspecialidad] = useState('')
+  const [rol, setRol] = useState(obtenerRolPorDefecto()) // F3-05: rol por defecto (RECEPCION)
   const [isFirstTime, setIsFirstTime] = useState(false)
 
   const [error, setError] = useState('')
@@ -58,6 +61,7 @@ export const LoginScreen = ({ onLogin }) => {
           nombreCompleto: nombreCompleto || 'Profesional Dental',
           rut: rut || '',
           especialidad: especialidad || 'Cirujano Dentista',
+          rol: rol, // F3-05: incluir el rol seleccionado
           credencial,
         }
         // F2-07c: vía authService (guardarPerfil)
@@ -174,6 +178,25 @@ export const LoginScreen = ({ onLogin }) => {
                     className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:border-black text-sm text-gray-800"
                   />
                 </div>
+              </div>
+
+              {/* F3-05: Selector de rol para nuevos usuarios */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Rol en el sistema</label>
+                <select
+                  value={rol}
+                  onChange={(e) => setRol(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:border-black text-sm text-gray-800 bg-white"
+                >
+                  {Object.entries(NOMBRES_ROLES).map(([rolValue, rolNombre]) => (
+                    <option key={rolValue} value={rolValue}>
+                      {rolNombre}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-gray-400 mt-1">
+                  {DESCRIPCIONES_ROLES[rol] || 'Selecciona tu rol'}
+                </p>
               </div>
             </div>
           )}

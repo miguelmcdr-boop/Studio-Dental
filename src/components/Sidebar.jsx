@@ -1,28 +1,63 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
+import { useRBAC } from '../hooks/useRBAC'
+import { PERMISOS, NOMBRES_ROLES } from '../constants/rbacConstants'
 
+/**
+ * Sidebar con control de acceso por rol (F3-05).
+ *
+ * Cada ítem del menú puede tener un campo opcional `permisoRequerido`.
+ * Si no lo tiene, siempre es visible para todos los roles.
+ * Si lo tiene, solo se renderiza si el usuario actual tiene ese permiso.
+ *
+ * Esto garantiza que un usuario no vea en la UI opciones a las que no
+ * tiene acceso, mejorando UX (menos ruido) y seguridad (defensa en profundidad).
+ */
 export const Sidebar = ({ userProfile, activeSection, setActiveSection, onLogout }) => {
   const [colapsado, setColapsado] = useState(false)
+  const { puede, rol } = useRBAC()
 
-  const menuItems = [
+  // Definición del menú con permisos opcionales (F3-05).
+  // Si `permisoRequerido` no está presente, el ítem es visible para todos.
+  const menuItems = useMemo(() => [
+    // Módulos siempre visibles (trabajo diario clínico)
     { name: 'Agenda', icon: '📅' },
     { name: 'Dashboard', icon: '🎛️' },
     { name: 'Pacientes', icon: '👥' },
     { name: 'Urgencias y GES', icon: '🚨' },
-    { name: 'Esterilización', icon: '🧼' },
-    { name: 'Laboratorio', icon: '🧪' },
-    { name: 'Prestaciones', icon: '🦷' },
     { name: 'Presupuestos', icon: '📋' },
     { name: 'Pagos', icon: '💳' },
-    { name: 'Finanzas', icon: '💰' },
     { name: 'Comunicaciones', icon: '✉️' },
-    { name: 'Reportes', icon: '📊' },
-    { name: 'Inventario', icon: '📦' },
-    { name: 'Configuración', icon: '⚡' },
-  ]
+
+    // Módulos clínicos de soporte (visibles para clínico y admin)
+    { name: 'Esterilización', icon: '🧼', permisoRequerido: PERMISOS.VER_ESTERILIZACION },
+    { name: 'Laboratorio', icon: '🧪', permisoRequerido: PERMISOS.VER_LABORATORIO },
+    { name: 'Inventario', icon: '📦', permisoRequerido: PERMISOS.VER_INVENTARIO },
+
+    // Módulos financieros (visibles para admin y dentista)
+    { name: 'Prestaciones', icon: '🦷', permisoRequerido: PERMISOS.EDITAR_PRECIOS },
+    { name: 'Finanzas', icon: '💰', permisoRequerido: PERMISOS.VER_FINANZAS },
+    { name: 'Reportes', icon: '📊', permisoRequerido: PERMISOS.VER_REPORTES },
+
+    // Módulo administrativo (solo admin)
+    { name: 'Configuración', icon: '⚡', permisoRequerido: PERMISOS.VER_CONFIGURACION }
+  ], [])
+
+  // Filtrar ítems del menú según permisos del usuario actual (F3-05).
+  const menuItemsVisibles = useMemo(() => {
+    return menuItems.filter(item => {
+      // Si no tiene permisoRequerido, siempre visible
+      if (!item.permisoRequerido) return true
+      // Si tiene permisoRequerido, verificar con el hook
+      return puede(item.permisoRequerido)
+    })
+  }, [menuItems, puede])
 
   const inicial = userProfile?.nombreCompleto 
     ? userProfile.nombreCompleto.replace('Dr. ', '').replace('Dra. ', '').charAt(0).toUpperCase() 
     : 'D'
+
+  // Nombre legible del rol para mostrar en la UI (F3-05)
+  const nombreRol = NOMBRES_ROLES[rol] || 'Usuario'
 
   return (
     <aside className={`${colapsado ? 'w-20' : 'w-64'} bg-gray-50 p-4 border-r border-gray-200 min-h-screen flex flex-col justify-between transition-all duration-300 print:hidden relative`}>
@@ -49,7 +84,7 @@ export const Sidebar = ({ userProfile, activeSection, setActiveSection, onLogout
         </div>
 
         <nav className="space-y-1">
-          {menuItems.map((item) => (
+          {menuItemsVisibles.map((item) => (
             <button
               key={item.name}
               onClick={() => setActiveSection(item.name)}
@@ -69,9 +104,11 @@ export const Sidebar = ({ userProfile, activeSection, setActiveSection, onLogout
         <div className={`flex items-center gap-3 mb-2 ${colapsado ? 'justify-center' : ''}`}>
           <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center font-semibold text-gray-700 text-xs">{inicial}</div>
           {!colapsado && (
-            <div className="text-[11px] overflow-hidden">
+            <div className="text-[11px] overflow-hidden flex-1">
               <p className="font-semibold text-gray-800 truncate" title={userProfile?.nombreCompleto}>{userProfile?.nombreCompleto || 'Mi sesión'}</p>
               <p className="text-gray-500 truncate" title={userProfile?.email}>{userProfile?.email}</p>
+              {/* F3-05: mostrar el rol actual del usuario */}
+              <p className="text-gray-400 truncate italic" title={`Rol: ${nombreRol}`}>{nombreRol}</p>
             </div>
           )}
         </div>
