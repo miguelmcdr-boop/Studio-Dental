@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react'
 import { finanzasStorageService } from '../services/finanzasStorageService'
 import { calcularBalanceFinanzas } from '../utils/finanzasCalculations'
 import { CONVENIOS_DEFAULT } from '../constants/finanzasConstants'
-import { pagosStorageService } from '../../pagos'
+import { pagosStorageService } from '../../pagos/services/pagosStorageService'
 
 export const useFinanzas = (pacientes = []) => {
   const [movimientosManuales, setMovimientosManuales] = useState(() =>

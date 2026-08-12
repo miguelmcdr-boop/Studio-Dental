@@ -4,8 +4,8 @@ import { PERMANENTE_SUPERIOR, PERMANENTE_INFERIOR } from '../constants/pacientes
 import { obtenerDescuentoConvenio } from '../utils/pacientesCalculations'
 import { pacientesStorageService } from '../services/pacientesStorageService'
 import { descontarMaterialesSeleccionados, detectarCategoriaTratamiento, PALABRAS_CLAVE_POR_CATEGORIA_DEFAULT } from '../../inventario/utils/inventarioCalculations'
-import { prestacionesStorageService } from '../../prestaciones'
-import { inventarioStorageService } from '../../inventario'
+import { prestacionesStorageService } from '../../prestaciones/services/prestacionesStorageService'
+import { inventarioStorageService } from '../../inventario/services/inventarioStorageService'
 import { ModalDescuentoInventario } from './ModalDescuentoInventario'
 
 const STORAGE_KEY_PALABRAS_CLAVE = 'studio_dental_inventario_palabras_clave'

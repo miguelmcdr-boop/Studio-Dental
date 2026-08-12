@@ -1,4 +1,4 @@
-import { finanzasStorageService } from '../../finanzas'
+import { finanzasStorageService } from '../../finanzas/services/finanzasStorageService'
 
 export const obtenerDescuentoConvenio = (nombreConvenio) => {
   try {
