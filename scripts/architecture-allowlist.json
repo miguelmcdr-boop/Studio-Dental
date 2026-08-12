@@ -16,7 +16,7 @@
     "src/modules/inventario/utils/inventarioCalculations.js": 204,
     "src/modules/agenda/hooks/useAgenda.js": 177,
     "src/modules/prestaciones/hooks/usePrestaciones.js": 176,
-    "src/modules/periodontograma/utils/periodontalCalculations.js": 131,
+    "src/modules/periodontograma/utils/periodontalCalculations.js": 169,
     "src/modules/reportes/utils/reportesCalculations.js": 84,
     "src/modules/pacientes/utils/pacientesCalculations.js": 76,
     "src/modules/finanzas/utils/finanzasCalculations.js": 71,

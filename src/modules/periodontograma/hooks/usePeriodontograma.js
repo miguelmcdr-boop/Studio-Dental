@@ -2,16 +2,16 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { crearPiezaVaciaSchema, crearControlPeriodontalSchema } from '../schemas/periodontalSchema'
 import { sanitizarSondaje, sanitizarRecesion } from '../utils/periodontalValidation'
 import { calcularEstadisticasPeriodontales, generarResumenClinico, estructurarDatosParaGrafico } from '../utils/periodontalCalculations'
+// F2-07b: acceso centralizado vía servicio
+import { periodontogramaStorageService } from '../services/periodontogramaStorageService'
 
 export const usePeriodontograma = (pacienteId) => {
-  const STORAGE_KEY = `periodonto_historial_${pacienteId}`
-
   const [historialControles, setHistorialControles] = useState(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY)
+      // F2-07b: cargar vía servicio (antes localStorage directo)
+      const saved = periodontogramaStorageService.obtenerHistorialControles(pacienteId, null)
       if (saved) {
-        const parsed = JSON.parse(saved)
-        return Array.isArray(parsed) ? parsed : [crearControlPeriodontalSchema()]
+        return Array.isArray(saved) ? saved : [crearControlPeriodontalSchema()]
       }
       return [crearControlPeriodontalSchema()]
     } catch {
@@ -21,13 +21,14 @@ export const usePeriodontograma = (pacienteId) => {
 
   const [controlActivoId, setControlActivoId] = useState(() => historialControles[0]?.id)
 
+  // F2-07b: persistir vía servicio (antes localStorage directo)
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(historialControles))
+      periodontogramaStorageService.guardarHistorialControles(pacienteId, historialControles)
     } catch (e) {
       console.error('Error al guardar historial:', e)
     }
-  }, [historialControles, STORAGE_KEY])
+  }, [historialControles, pacienteId])
 
   const controlActivo = useMemo(() => {
     return historialControles.find(c => c.id === controlActivoId) || historialControles[0]

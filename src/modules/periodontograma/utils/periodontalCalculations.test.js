@@ -187,3 +187,137 @@ describe('calcularIndicesPeriodontales', () => {
     expect(r.gradoAAP).not.toBe('Grado C (Riesgo Elevado de Progresión Rápida)')
   })
 })
+
+
+// ========================================
+// Tests F1-04e: nuevas métricas (sacos, supuración, promedio, ausentes)
+// ========================================
+
+describe('calcularIndicesPeriodontales - F1-04e métricas adicionales', () => {
+  it('cuenta sacos moderados (4-5mm) y severos (≥6mm)', () => {
+    const piezasData = {
+      '1.1': {
+        vestibular: {
+          sondaje: [3, 4, 5], // 0 moderados, 2 moderados
+          sangrado: [false, false, false],
+          placa: [false, false, false],
+          supuracion: [false, false, false]
+        },
+        palatino: {
+          sondaje: [6, 7, 2], // 2 severos
+          sangrado: [false, false, false],
+          placa: [false, false, false],
+          supuracion: [false, false, false]
+        }
+      }
+    }
+    const r = calcularIndicesPeriodontales(piezasData)
+    expect(r.sacosModerados).toBe(2) // 4mm y 5mm
+    expect(r.sacosSeveros).toBe(2) // 6mm y 7mm
+  })
+
+  it('calcula porcentaje de supuración correctamente', () => {
+    const piezasData = {
+      '1.1': {
+        vestibular: {
+          sondaje: [3, 3, 3],
+          sangrado: [false, false, false],
+          placa: [false, false, false],
+          supuracion: [true, false, true] // 2 de 3 con supuración
+        },
+        palatino: {
+          sondaje: [3, 3, 3],
+          sangrado: [false, false, false],
+          placa: [false, false, false],
+          supuracion: [false, false, true] // 1 de 3 con supuración
+        }
+      }
+    }
+    const r = calcularIndicesPeriodontales(piezasData)
+    expect(r.sitiosSupuracion).toBe(3) // 2 + 1
+    expect(r.porcentajeSupuracion).toBe(50) // 3/6 = 50%
+  })
+
+  it('calcula promedio de sondaje con 1 decimal', () => {
+    const piezasData = {
+      '1.1': {
+        vestibular: {
+          sondaje: [2, 3, 4],
+          sangrado: [false, false, false],
+          placa: [false, false, false],
+          supuracion: [false, false, false]
+        },
+        palatino: {
+          sondaje: [5, 3, 1],
+          sangrado: [false, false, false],
+          placa: [false, false, false],
+          supuracion: [false, false, false]
+        }
+      }
+    }
+    const r = calcularIndicesPeriodontales(piezasData)
+    // (2+3+4+5+3+1) / 6 = 18/6 = 3.0
+    expect(r.promedioSondaje).toBe('3.0')
+  })
+
+  it('retorna promedioSondaje como string "0.0" cuando no hay sitios registrados', () => {
+    const piezasData = {
+      '1.1': {
+        vestibular: {
+          sondaje: [null, null, null],
+          sangrado: [false, false, false],
+          placa: [false, false, false],
+          supuracion: [false, false, false]
+        }
+      }
+    }
+    const r = calcularIndicesPeriodontales(piezasData)
+    expect(r.promedioSondaje).toBe('0.0')
+  })
+
+  it('cuenta dientes ausentes correctamente', () => {
+    const piezasData = {
+      '1.1': { ausente: true },
+      '1.2': { ausente: true },
+      '1.3': {
+        vestibular: {
+          sondaje: [3, 3, 3],
+          sangrado: [false, false, false],
+          placa: [false, false, false],
+          supuracion: [false, false, false]
+        },
+        palatino: {
+          sondaje: [3, 3, 3],
+          sangrado: [false, false, false],
+          placa: [false, false, false],
+          supuracion: [false, false, false]
+        }
+      }
+    }
+    const r = calcularIndicesPeriodontales(piezasData)
+    expect(r.dientesAusentes).toBe(2)
+    // Las piezas ausentes no cuentan como sitios
+    expect(r.sitiosTotales).toBe(6) // solo 1.3 tiene vestibular+palatino
+  })
+
+  it('excluye sitios sin registrar del promedio y conteos de sacos', () => {
+    const piezasData = {
+      '1.1': {
+        vestibular: {
+          sondaje: [null, 5, 7], // null no cuenta
+          sangrado: [false, false, false],
+          placa: [false, false, false],
+          supuracion: [false, false, false]
+        }
+      }
+    }
+    const r = calcularIndicesPeriodontales(piezasData)
+    expect(r.sitiosSinRegistrar).toBe(1)
+    expect(r.sitiosRegistrados).toBe(2)
+    expect(r.sacosModerados).toBe(1) // 5mm
+    expect(r.sacosSeveros).toBe(1) // 7mm
+    expect(r.maxSondaje).toBe(7)
+    // (5+7) / 2 = 6.0
+    expect(r.promedioSondaje).toBe('6.0')
+  })
+})

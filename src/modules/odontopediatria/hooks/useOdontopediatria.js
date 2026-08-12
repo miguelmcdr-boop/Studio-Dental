@@ -1,29 +1,36 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { calcularPorcentajeOLeary } from '../utils/pediatriaCalculations'
+// F2-07b: acceso centralizado vía servicio
+import { odontopediatriaStorageService } from '../services/odontopediatriaStorageService'
+
+// F2-07b: default extraído a constante para claridad
+const DATOS_PEDIATRIA_DEFAULT = {
+  gradoFrankl: 3,
+  observacionConducta: '',
+  mapaOleary: {},
+  piezasPresentesOleary: 20,
+  habitosNocivos: { chupete: false, succionDigital: false, deglucionAtipica: false, respiradorBucal: false },
+  dentosanaRegistrada: false,
+  mapaDentosana: {}
+}
 
 export const useOdontopediatria = (pacienteId) => {
-  const STORAGE_KEY = `pediatria_${pacienteId}`
-
   const [datosPediatria, setDatosPediatria] = useState(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY)
-      return saved ? JSON.parse(saved) : {
-        gradoFrankl: 3,
-        observacionConducta: '',
-        mapaOleary: {},
-        piezasPresentesOleary: 20,
-        habitosNocivos: { chupete: false, succionDigital: false, deglucionAtipica: false, respiradorBucal: false },
-        dentosanaRegistrada: false,
-        mapaDentosana: {}
-      }
+      // F2-07b: cargar vía servicio con default estructurado
+      return odontopediatriaStorageService.obtenerDatosDePaciente(
+        pacienteId,
+        DATOS_PEDIATRIA_DEFAULT
+      )
     } catch {
-      return { gradoFrankl: 3, observacionConducta: '', mapaOleary: {}, piezasPresentesOleary: 20 }
+      return DATOS_PEDIATRIA_DEFAULT
     }
   })
 
+  // F2-07b: persistir vía servicio (antes localStorage directo)
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(datosPediatria))
-  }, [datosPediatria, STORAGE_KEY])
+    odontopediatriaStorageService.guardarDatosDePaciente(pacienteId, datosPediatria)
+  }, [datosPediatria, pacienteId])
 
   const porcentajeOLeary = useMemo(() => {
     return calcularPorcentajeOLeary(datosPediatria.mapaOleary, datosPediatria.piezasPresentesOleary)

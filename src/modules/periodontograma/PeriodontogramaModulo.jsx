@@ -6,16 +6,18 @@ import { GraficoPerfilLongitudinal } from './components/GraficoPerfilLongitudina
 import { ClasificacionAAPCard } from './components/ClasificacionAAPCard'
 import { calcularIndicesPeriodontales } from './utils/periodontalCalculations'
 import { pacientesStorageService } from '../pacientes/services/pacientesStorageService'
+// F2-07b: acceso centralizado vía servicio (antes localStorage directo)
+import { periodontogramaStorageService } from './services/periodontogramaStorageService'
 
 export const PeriodontogramaModulo = memo(({ pacienteId }) => {
   const [periodontoData, setPeriodontoData] = useState(() => {
-    const saved = localStorage.getItem(`periodontograma_${pacienteId}`)
-    return saved ? JSON.parse(saved) : {}
+    const saved = periodontogramaStorageService.obtenerPeriodontogramaDePaciente(pacienteId, {})
+    return saved
   })
 
   const [periodontoControl, setPeriodontoControl] = useState(() => {
-    const saved = localStorage.getItem(`periodontograma_control_${pacienteId}`)
-    return saved ? JSON.parse(saved) : {}
+    const saved = periodontogramaStorageService.obtenerControlDePaciente(pacienteId, {})
+    return saved
   })
 
   const [modoComparativoReeval, setModoComparativoReeval] = useState(false)
@@ -41,10 +43,13 @@ export const PeriodontogramaModulo = memo(({ pacienteId }) => {
   }, [periodontoData, periodontoControl, modoComparativoReeval, factoresRiesgo])
 
   const handleGuardarPeriodontograma = () => {
-    const key = modoComparativoReeval ? `periodontograma_control_${pacienteId}` : `periodontograma_${pacienteId}`
     const dataToSave = modoComparativoReeval ? periodontoControl : periodontoData
 
-    localStorage.setItem(key, JSON.stringify(dataToSave))
+    if (modoComparativoReeval) {
+      periodontogramaStorageService.guardarControlDePaciente(pacienteId, dataToSave)
+    } else {
+      periodontogramaStorageService.guardarPeriodontogramaDePaciente(pacienteId, dataToSave)
+    }
 
     // Cohesión Clínica: Auto-escribano en la Bitácora
     const evolucionesPrevias = pacientesStorageService.obtenerItem(`evoluciones_notas_${pacienteId}`, [])

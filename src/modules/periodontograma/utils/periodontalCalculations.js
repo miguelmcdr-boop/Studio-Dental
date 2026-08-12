@@ -1,5 +1,11 @@
 /**
  * Motor de Analítica Periodontal Avanzada & Clasificación AAP/EFP (2017)
+ *
+ * F1-04e: Extendido con 5 métricas adicionales:
+ * - sacosModerados (4-5mm), sacosSeveros (≥6mm)
+ * - porcentajeSupuracion (sitios con supuración)
+ * - promedioSondaje (promedio de sitios registrados)
+ * - dientesAusentes (piezas marcadas como ausentes)
  */
 
 export const calcularCAL = (sondaje, recesion) => {
@@ -41,6 +47,9 @@ export const calcularClasificacionAAP = (maxSondaje = 0, bopPct = 0, factoresRie
  * Calcula los índices periodontales agregados (BOP%, O'Leary, sondaje máximo)
  * y sugiere una clasificación AAP/EFP en base a las piezas evaluadas.
  *
+ * F1-04e: También calcula sacos moderados/severos, porcentaje de supuración,
+ * promedio de sondaje y conteo de dientes ausentes.
+ *
  * REGLA DE SEGURIDAD CLÍNICA (Constitución, Cap. V.2 — "Fail-Safe Clinical
  * Default"): un sitio de sondaje sin registrar NUNCA se cuenta como sitio
  * sano (0mm). Se excluye de los promedios y se contabiliza aparte en
@@ -61,16 +70,26 @@ export const calcularIndicesPeriodontales = (piezasData = {}, factoresRiesgo = {
   let sitiosSinRegistrar = 0
   let sitiosSangrado = 0
   let sitiosPlaca = 0
+  let sitiosSupuracion = 0
+  let sacosModerados = 0
+  let sacosSeveros = 0
+  let sumaSondajes = 0
   let maxSondaje = 0
+  let dientesAusentes = 0
 
   Object.values(piezasData || {}).forEach(pieza => {
-    if (pieza?.ausente) return
+    // F1-04e: Contar piezas ausentes (antes del return)
+    if (pieza?.ausente) {
+      dientesAusentes++
+      return
+    }
 
     ;['vestibular', 'palatino'].forEach(cara => {
       if (pieza?.[cara]) {
         const sondajes = pieza[cara].sondaje || [null, null, null]
         const sangrados = pieza[cara].sangrado || [false, false, false]
         const placas = pieza[cara].placa || [false, false, false]
+        const supuraciones = pieza[cara].supuracion || [false, false, false]
 
         sondajes.forEach((prof, idx) => {
           sitiosTotales++
@@ -84,9 +103,19 @@ export const calcularIndicesPeriodontales = (piezasData = {}, factoresRiesgo = {
           }
 
           sitiosRegistrados++
+          sumaSondajes += pVal
+
           if (pVal > maxSondaje) maxSondaje = pVal
           if (sangrados[idx]) sitiosSangrado++
           if (placas[idx]) sitiosPlaca++
+          if (supuraciones[idx]) sitiosSupuracion++
+
+          // F1-04e: Clasificar sitios por profundidad
+          if (pVal >= 6) {
+            sacosSeveros++
+          } else if (pVal >= 4) {
+            sacosModerados++
+          }
         })
       }
     })
@@ -94,6 +123,11 @@ export const calcularIndicesPeriodontales = (piezasData = {}, factoresRiesgo = {
 
   const porcentajeSangrado = sitiosRegistrados > 0 ? Math.round((sitiosSangrado / sitiosRegistrados) * 100) : 0
   const indiceOLeary = sitiosRegistrados > 0 ? Math.round((sitiosPlaca / sitiosRegistrados) * 100) : 0
+  // F1-04e: Porcentaje de supuración (sitios con supuración / sitios registrados)
+  const porcentajeSupuracion = sitiosRegistrados > 0 ? Math.round((sitiosSupuracion / sitiosRegistrados) * 100) : 0
+  // F1-04e: Promedio de sondaje (con 1 decimal)
+  const promedioSondaje = sitiosRegistrados > 0 ? (sumaSondajes / sitiosRegistrados).toFixed(1) : '0.0'
+
   const cobertura = sitiosTotales > 0 ? sitiosRegistrados / sitiosTotales : 0
   const hayPiezasEvaluables = sitiosTotales > 0
   const diagnosticoConcluyente = !hayPiezasEvaluables || cobertura >= UMBRAL_COBERTURA_MINIMA
@@ -105,9 +139,6 @@ export const calcularIndicesPeriodontales = (piezasData = {}, factoresRiesgo = {
     grado = 'No determinable'
     colorEtapa = 'bg-gray-200 text-gray-800 border-gray-400'
   } else {
-    // factoresRiesgo se pasa explícitamente: antes se descartaba porque la
-    // función no lo declaraba como parámetro, y Grado AAP se calculaba
-    // siempre como si el paciente no fuera fumador ni diabético.
     const clasificacion = calcularClasificacionAAP(maxSondaje, porcentajeSangrado, factoresRiesgo)
     etapa = clasificacion.etapa
     grado = clasificacion.grado
@@ -126,6 +157,13 @@ export const calcularIndicesPeriodontales = (piezasData = {}, factoresRiesgo = {
     diagnosticoSugerido: etapa,
     gradoAAP: grado,
     colorEtapa,
-    diagnosticoConcluyente
+    diagnosticoConcluyente,
+    // F1-04e: Nuevas métricas
+    sacosModerados,
+    sacosSeveros,
+    sitiosSupuracion,
+    porcentajeSupuracion,
+    promedioSondaje,
+    dientesAusentes
   }
 }
