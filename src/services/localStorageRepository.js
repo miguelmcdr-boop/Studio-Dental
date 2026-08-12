@@ -1,6 +1,6 @@
 /**
  * Repositorio genérico de persistencia en LocalStorage.
- * Tarea MASTER_ROADMAP: F2-03
+ * Tarea MASTER_ROADMAP: F2-03 (base), F3-06 (versionado)
  *
  * Extrae el patrón try/catch + JSON.parse/JSON.stringify que estaba
  * duplicado en los 14 `*StorageService.js` de módulo. No reemplaza la
@@ -10,7 +10,14 @@
  *
  * Cumple el Cap. VII.4 de la Constitución de Arquitectura (try/catch
  * obligatorio en toda llamada a LocalStorage/IndexedDB).
+ *
+ * F3-06: Soporte opcional de versionado de esquemas mediante las opciones
+ * `schemaVersion` y `migrations`. Comportamiento backward compatible:
+ * si no se especifican estas opciones, el repositorio funciona exactamente
+ * igual que antes.
  */
+
+import { wrapWithVersion, unwrapAndMigrate } from './schemaMigrationService'
 
 /**
  * Lee y parsea de forma segura una clave de LocalStorage.
@@ -59,17 +66,57 @@ export const escribirJSON = (key, value, opciones = {}) => {
  * cada dato de dominio (citas, pacientes, movimientos, etc.) vive bajo una
  * única clave conocida en tiempo de definición del servicio.
  *
+ * F3-06 — Versionado de esquemas (opcional):
+ * Si se pasan `schemaVersion` y `migrations`, el repositorio automáticamente:
+ * - Al leer: desenvuelve datos versionados y aplica migraciones si están en
+ *   versión antigua. Datos sin versión se tratan como v1 (backward compatible).
+ * - Al escribir: envuelve los datos en `{ schemaVersion, data }` antes de persistir.
+ *
+ * Si NO se pasan estas opciones, el comportamiento es idéntico al original
+ * (100% backward compatible con los 12 servicios existentes).
+ *
  * @param {string} key - Clave de LocalStorage.
  * @param {*} defaultValue - Valor por defecto si la clave no existe o el dato está corrupto.
- * @param {{ notify?: boolean, eventos?: string[] }} [opciones] - Eventos a emitir tras cada `guardar`.
+ * @param {{
+ *   notify?: boolean,
+ *   eventos?: string[],
+ *   schemaVersion?: number,
+ *   migrations?: Object<number, Function>
+ * }} [opciones] - Opciones de eventos y versionado.
  * @returns {{
  *   key: string,
  *   obtener: (fallback?: *) => *,
  *   guardar: (value: *) => boolean
  * }}
  */
-export const createLocalStorageRepository = (key, defaultValue, opciones = {}) => ({
-  key,
-  obtener: (fallback = defaultValue) => leerJSON(key, fallback),
-  guardar: (value) => escribirJSON(key, value, opciones),
-})
+export const createLocalStorageRepository = (key, defaultValue, opciones = {}) => {
+  const { notify, eventos, schemaVersion, migrations } = opciones
+
+  // Solo activar versionado si schemaVersion es un número válido
+  const hasVersioning = typeof schemaVersion === 'number'
+
+  return {
+    key,
+
+    obtener: (fallback = defaultValue) => {
+      const raw = leerJSON(key, fallback)
+
+      // Sin versionado: retornar tal cual (comportamiento original)
+      if (!hasVersioning) return raw
+
+      // Con versionado: unwrap + migrate
+      return unwrapAndMigrate(raw, schemaVersion, migrations || {}, fallback)
+    },
+
+    guardar: (value) => {
+      // Sin versionado: guardar tal cual (comportamiento original)
+      if (!hasVersioning) {
+        return escribirJSON(key, value, { notify, eventos })
+      }
+
+      // Con versionado: wrap antes de persistir
+      const wrapped = wrapWithVersion(value, schemaVersion)
+      return escribirJSON(key, wrapped, { notify, eventos })
+    }
+  }
+}
