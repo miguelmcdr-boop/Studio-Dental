@@ -16,6 +16,8 @@ import { z } from 'zod'
  * catalogados rompería guardados legítimos. El objetivo de este esquema es
  * atrapar corrupción real de datos (campo obligatorio ausente, tipo
  * incorrecto) — no restringir la forma exacta del objeto.
+ *
+ * F3-06: agregado campo `notas` (opcional) como parte de la migración v1 → v2.
  */
 export const pacienteSchema = z.object({
   id: z.union([z.number(), z.string()]),
@@ -46,6 +48,9 @@ export const pacienteSchema = z.object({
 
   // Campo de origen "paciente exprés" desde Agenda (F2-02b)
   fechaIngreso: z.string().optional(),
+
+  // F3-06: campo agregado en migración v1 → v2
+  notas: z.string().optional()
 }).passthrough()
 
 export const listaPacientesSchema = z.array(pacienteSchema)

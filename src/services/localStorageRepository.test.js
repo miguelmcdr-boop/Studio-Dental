@@ -120,3 +120,92 @@ describe('createLocalStorageRepository', () => {
     expect(repo.obtener()).toEqual(['seguro'])
   })
 })
+// ========================================
+// Tests F3-06: versionado de esquemas
+// ========================================
+
+describe('createLocalStorageRepository con versionado (F3-06)', () => {
+  const key = 'test_versioned_repo'
+
+  beforeEach(() => {
+    localStorage.removeItem(key)
+  })
+
+  it('guarda datos envueltos con schemaVersion', () => {
+    const repo = createLocalStorageRepository(key, [], {
+      schemaVersion: 2,
+      migrations: {}
+    })
+
+    repo.guardar([{ id: 1 }])
+
+    const raw = JSON.parse(localStorage.getItem(key))
+    expect(raw).toEqual({ schemaVersion: 2, data: [{ id: 1 }] })
+  })
+
+  it('al leer datos versionados, los desenvuelve', () => {
+    localStorage.setItem(
+      key,
+      JSON.stringify({ schemaVersion: 2, data: [{ id: 1 }] })
+    )
+
+    const repo = createLocalStorageRepository(key, [], {
+      schemaVersion: 2,
+      migrations: {}
+    })
+
+    expect(repo.obtener()).toEqual([{ id: 1 }])
+  })
+
+  it('trata datos sin versión como v1 y aplica migraciones', () => {
+    // Datos antiguos sin versión
+    localStorage.setItem(key, JSON.stringify([{ id: 1, nombre: 'Test' }]))
+
+    const migrations = {
+      2: (data) => data.map((item) => ({ ...item, nuevo: true }))
+    }
+
+    const repo = createLocalStorageRepository(key, [], {
+      schemaVersion: 2,
+      migrations
+    })
+
+    const result = repo.obtener()
+    expect(result).toEqual([{ id: 1, nombre: 'Test', nuevo: true }])
+  })
+
+  it('aplica migraciones secuenciales v1 → v2 → v3', () => {
+    localStorage.setItem(key, JSON.stringify([{ id: 1 }]))
+
+    const migrations = {
+      2: (data) => data.map((d) => ({ ...d, v2: true })),
+      3: (data) => data.map((d) => ({ ...d, v3: true }))
+    }
+
+    const repo = createLocalStorageRepository(key, [], {
+      schemaVersion: 3,
+      migrations
+    })
+
+    const result = repo.obtener()
+    expect(result[0].v2).toBe(true)
+    expect(result[0].v3).toBe(true)
+  })
+
+  it('funciona con notify y eventos junto con versionado', () => {
+    const listener = vi.fn()
+    window.addEventListener('test_evento_custom', listener)
+
+    const repo = createLocalStorageRepository(key, [], {
+      notify: true,
+      eventos: ['test_evento_custom'],
+      schemaVersion: 1,
+      migrations: {}
+    })
+
+    repo.guardar([{ id: 1 }])
+
+    expect(listener).toHaveBeenCalled()
+    window.removeEventListener('test_evento_custom', listener)
+  })
+})
