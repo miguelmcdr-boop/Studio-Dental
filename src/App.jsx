@@ -7,8 +7,8 @@ import { usePacientesStore } from './store/pacientesStore'
 import { usePrestacionesStore } from './store/prestacionesStore'
 import { useSesionStore } from './store/sesionStore'
 import { odontogramaStorageService } from './modules/odontograma'
-import { presupuestosStorageService } from './modules/presupuestos'
-import { pagosStorageService } from './modules/pagos'
+import { presupuestosStorageService } from './modules/presupuestos/services/presupuestosStorageService'
+import { pagosStorageService } from './modules/pagos/services/pagosStorageService'
 import { pacientesStorageService } from './modules/pacientes'
 
 // Módulos de uso diario — carga eager (Public API, Constitución v3.0.0)

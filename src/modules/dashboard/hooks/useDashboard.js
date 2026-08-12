@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { calcularResumenJornada } from '../utils/dashboardCalculations'
 import { agendaStorageService } from '../../agenda'
-import { pagosStorageService } from '../../pagos'
-import { presupuestosStorageService } from '../../presupuestos'
+import { pagosStorageService } from '../../pagos/services/pagosStorageService'
+import { presupuestosStorageService } from '../../presupuestos/services/presupuestosStorageService'
 
 export const useDashboard = (pacientes = []) => {
   const [citas, setCitas] = useState([])

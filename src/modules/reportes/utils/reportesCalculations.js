@@ -2,7 +2,7 @@
  * Cálculos financieros, estadísticas de agenda y agregaciones para BI
  */
 
-import { presupuestosStorageService } from '../../presupuestos'
+import { presupuestosStorageService } from '../../presupuestos/services/presupuestosStorageService'
 
 export const calcularEstadisticasAvanzadas = (pacientes = [], pagos = [], presupuestos = [], _citas = []) => {
   let totalRecaudado = 0

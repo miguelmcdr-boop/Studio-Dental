@@ -1,7 +1,7 @@
 import React, { memo, useState, useEffect } from 'react'
 import { METODOS_PAGO_GOLD, TIPOS_DOCUMENTO_TRIBUTARIO, CONCEPTOS_PAGO } from '../constants/pagosConstants'
 import { generarFolioRecibo } from '../utils/pagosCalculations'
-import { presupuestosStorageService } from '../../presupuestos'
+import { presupuestosStorageService } from '../../presupuestos/services/presupuestosStorageService'
 
 export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, alGuardar, alCerrar }) => {
   const [pacienteId, setPacienteId] = useState('')
