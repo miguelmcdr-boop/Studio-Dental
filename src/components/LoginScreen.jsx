@@ -10,7 +10,7 @@ import {
   existePerfil,
   MAX_INTENTOS_FALLIDOS,
 } from '../services/authService'
-import { ROLES, NOMBRES_ROLES, DESCRIPCIONES_ROLES } from '../constants/rbacConstants'
+import { NOMBRES_ROLES, DESCRIPCIONES_ROLES } from '../constants/rbacConstants'
 import { obtenerRolPorDefecto } from '../services/rbacService'
 
 export const LoginScreen = ({ onLogin }) => {
