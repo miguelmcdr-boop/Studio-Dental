@@ -25,6 +25,8 @@
     "src/utils/anestesiaCalc.js": 57,
     "src/modules/comunicaciones/utils/comunicacionesCalculations.js": 53,
     "src/modules/presupuestos/utils/presupuestosCalculations.js": 53,
-    "src/modules/laboratorio/utils/laboratorioCalculations.js": 51
+    "src/modules/laboratorio/utils/laboratorioCalculations.js": 51,
+    "src/components/LoginScreen.jsx": 312,
+    "src/hooks/useAuth.js": 191
   }
 }
