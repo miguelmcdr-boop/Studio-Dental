@@ -20,9 +20,11 @@ import { useEffect } from 'react'
 import { supabase, USE_SUPABASE } from '../services/supabaseClient'
 import { migratePacientesToSupabase, verificarPacientesPendientes } from '../services/migrations/migratePacientesToSupabase'
 import { migrateCitasToSupabase, verificarCitasPendientes } from '../services/migrations/migrateCitasToSupabase'
+import { migratePresupuestosToSupabase, verificarPresupuestosPendientes } from '../services/migrations/migratePresupuestosToSupabase'
 import { usePacientesStore } from '../store/pacientesStore'
 import { pacientesStorageService } from '../modules/pacientes'
 import { agendaStorageService } from '../modules/agenda'
+import { presupuestosStorageService } from '../modules/presupuestos'
 
 // Lock de módulo: persiste entre re-renders y entre ejecuciones de StrictMode
 let migracionEnProgreso = false
@@ -58,8 +60,9 @@ export const useDataMigration = (userProfile) => {
         // Verificar si hay datos pendientes de migrar
         const pacientesPendientes = verificarPacientesPendientes()
         const citasPendientes = verificarCitasPendientes()
+        const presupuestosPendientes = verificarPresupuestosPendientes()
 
-        const totalPendientes = pacientesPendientes.pendientes + citasPendientes.pendientes
+        const totalPendientes = pacientesPendientes.pendientes + citasPendientes.pendientes + presupuestosPendientes.pendientes
 
         if (totalPendientes === 0) {
           console.log('[useDataMigration] No hay datos pendientes de migrar')
@@ -78,7 +81,8 @@ export const useDataMigration = (userProfile) => {
 
         console.log(`[useDataMigration] Migrando ${totalPendientes} registros a Supabase...`, {
           pacientes: pacientesPendientes.pendientes,
-          citas: citasPendientes.pendientes
+          citas: citasPendientes.pendientes,
+          presupuestos: presupuestosPendientes.pendientes
         })
 
         // Obtener el user_id del usuario autenticado
@@ -134,12 +138,34 @@ export const useDataMigration = (userProfile) => {
         }
 
         // ═══════════════════════════════════════════════════
-        // PASO 3: Sincronizar caché desde Supabase
+        // PASO 3: Migrar presupuestos (F4-02c-4)
         // ═══════════════════════════════════════════════════
-        console.log('[useDataMigration] Paso 3: Sincronizando caché desde Supabase...')
+        if (presupuestosPendientes.pendientes > 0) {
+          console.log(`[useDataMigration] Paso 3: Migrando ${presupuestosPendientes.pendientes} presupuestos...`)
+
+          const resultadoPresupuestos = await migratePresupuestosToSupabase(user.id)
+
+          console.log('[useDataMigration] Resultado migración presupuestos:', {
+            migrados: resultadoPresupuestos.migrados,
+            itemsMigrados: resultadoPresupuestos.itemsMigrados,
+            omitidos: resultadoPresupuestos.omitidos,
+            errores: resultadoPresupuestos.errores.length,
+            success: resultadoPresupuestos.success
+          })
+
+          if (resultadoPresupuestos.errores.length > 0) {
+            console.error('[useDataMigration] Errores en migración de presupuestos:', resultadoPresupuestos.errores)
+          }
+        }
+
+        // ═══════════════════════════════════════════════════
+        // PASO 4: Sincronizar caché desde Supabase
+        // ═══════════════════════════════════════════════════
+        console.log('[useDataMigration] Paso 4: Sincronizando caché desde Supabase...')
 
         await pacientesStorageService.sincronizarDesdeSupabase()
         await agendaStorageService.sincronizarDesdeSupabase()
+        await presupuestosStorageService.sincronizarDesdeSupabase()
 
         // Actualizar stores con datos migrados
         const pacientesActualizados = pacientesStorageService.obtenerPacientes([])

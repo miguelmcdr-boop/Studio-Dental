@@ -30,6 +30,7 @@
     "src/hooks/useAuth.js": 191,
     "src/modules/pacientes/services/pacientesStorageService.js": 375,
     "src/modules/agenda/services/agendaStorageService.js": 375,
-    "src/hooks/useDataMigration.js": 163
+    "src/hooks/useDataMigration.js": 189,
+    "src/modules/presupuestos/services/presupuestosStorageService.js": 458
   }
 }
