@@ -26,7 +26,7 @@
     "src/modules/comunicaciones/utils/comunicacionesCalculations.js": 53,
     "src/modules/presupuestos/utils/presupuestosCalculations.js": 53,
     "src/modules/laboratorio/utils/laboratorioCalculations.js": 51,
-    "src/components/LoginScreen.jsx": 312,
+    "src/components/LoginScreen.jsx": 336,
     "src/hooks/useAuth.js": 191
   }
 }
