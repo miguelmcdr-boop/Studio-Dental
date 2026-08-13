@@ -18,6 +18,7 @@ import { renderHook, act } from '@testing-library/react'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useAgenda } from './useAgenda'
 import { agendaStorageService } from '../services/agendaStorageService'
+import { pacientesStorageService } from '../../pacientes/services/pacientesStorageService'
 import { usePacientesStore } from '../../../store/pacientesStore'
 
 describe('useAgenda', () => {
@@ -26,6 +27,12 @@ describe('useAgenda', () => {
     // Esto previene contaminación entre tests, ya que Zustand stores
     // son singletons compartidos entre todos los tests del proceso.
     usePacientesStore.setState({ pacientes: [] })
+
+    // F4-02c-2: también resetear la caché interna de pacientesStorageService.
+    // La caché de módulo puede quedar contaminada con los SEED_PACIENTES_DEMO
+    // desde el primer test, lo que causaría que tests posteriores reciban
+    // pacientes que no corresponden (contaminación entre tests).
+    pacientesStorageService.resetCache()
 
     // LIMPIEZA EXPLÍCITA de agendaStorageService.
     // Aunque el setup global limpia localStorage en afterEach, necesitamos
