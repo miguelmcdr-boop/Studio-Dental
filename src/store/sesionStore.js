@@ -49,6 +49,15 @@ export const useSesionStore = create((set) => ({
   login: (profile) => {
     try {
       localStorage.setItem(ACTIVE_USER_KEY, profile.email)
+      
+      // F4-02b FIX: En modo Supabase, también guardar el perfil completo
+      // en localStorage para que persista entre recargas.
+      // Sin esto, al recargar en incógnito, cargarPerfilActivo() no encuentra
+      // el perfil y muestra LoginScreen.
+      if (profile.supabaseAuth) {
+        const profileKey = `profile_${profile.email.trim().toLowerCase()}`
+        localStorage.setItem(profileKey, JSON.stringify(profile))
+      }
     } catch (e) {
       console.error('Error al guardar la sesión activa:', e)
     }

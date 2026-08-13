@@ -201,7 +201,38 @@ export const supabaseSignIn = async (email, password) => {
     return { success: false, error: error.message }
   }
 
-  return { success: true }
+  // F4-02b FIX DEFINITIVO: obtener user_metadata con getUser() DESPUÉS
+  // del signIn exitoso. Esto garantiza que la metadata esté disponible
+  // (signInWithPassword a veces no la incluye inmediatamente en la respuesta).
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const metadata = user?.user_metadata || {}
+
+  // F4-02c FIX: Si el usuario existe pero no tiene 'role' en metadata
+  // (caso común cuando se creó manualmente en Supabase Dashboard),
+  // actualizar los metadatos con los valores del formulario.
+  if (user && (!metadata.role || !metadata.full_name)) {
+    console.log('[authService] Usuario sin metadata completa, actualizando...')
+    await supabase.auth.updateUser({
+      data: {
+        full_name: metadata.full_name || email.split('@')[0],
+        role: metadata.role || 'admin', // Asignar admin por defecto al primer usuario
+        especialidad: metadata.especialidad || '',
+        rut: metadata.rut || ''
+      }
+    })
+    // Volver a obtener el usuario con los metadatos actualizados
+    const { data: { user: userUpdated } } = await supabase.auth.getUser()
+    return {
+      success: true,
+      userMetadata: userUpdated?.user_metadata || metadata
+    }
+  }
+
+  return {
+    success: true,
+    userMetadata: metadata
+  }
 }
 
 /**
@@ -231,7 +262,13 @@ export const supabaseSignUp = async (email, password, metadata = {}) => {
     return { success: false, error: error.message }
   }
 
-  return { success: true }
+  // F4-02b FIX DEFINITIVO: obtener user_metadata con getUser() después del signUp
+  const { data: { user } } = await supabase.auth.getUser()
+
+  return {
+    success: true,
+    userMetadata: user?.user_metadata || metadata
+  }
 }
 
 /**

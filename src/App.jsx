@@ -6,6 +6,7 @@ import { CargandoModulo } from './components/CargandoModulo'
 import { usePacientesStore } from './store/pacientesStore'
 import { usePrestacionesStore } from './store/prestacionesStore'
 import { useSesionStore } from './store/sesionStore'
+import { supabase, USE_SUPABASE } from './services/supabaseClient'
 import { odontogramaStorageService } from './modules/odontograma'
 import { presupuestosStorageService } from './modules/presupuestos/services/presupuestosStorageService'
 import { pagosStorageService } from './modules/pagos/services/pagosStorageService'
@@ -49,6 +50,39 @@ function App() {
       window.removeEventListener('arancel_actualizado', refrescarDesdeStorage)
     }
   }, [])
+
+  // F4-02b FIX: Detectar sesión de Supabase al cargar la app.
+  // Si hay una sesión activa pero userProfile está vacío (caso de recarga
+  // en incógnito), restaurar el perfil desde Supabase Auth.
+  useEffect(() => {
+    if (!USE_SUPABASE || !supabase) return
+
+    const restaurarSesionSupabase = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        
+        if (session?.user && !userProfile) {
+          console.log('[App] Sesión de Supabase detectada, restaurando perfil...')
+          
+          const userMetadata = session.user.user_metadata || {}
+          const perfilRestaurado = {
+            email: session.user.email,
+            nombreCompleto: userMetadata.full_name || session.user.email.split('@')[0],
+            rut: userMetadata.rut || '',
+            especialidad: userMetadata.especialidad || '',
+            rol: userMetadata.role || 'recepcion',
+            supabaseAuth: true
+          }
+          
+          loginStore(perfilRestaurado)
+        }
+      } catch (error) {
+        console.error('[App] Error restaurando sesión de Supabase:', error)
+      }
+    }
+
+    restaurarSesionSupabase()
+  }, [userProfile, loginStore])
 
   const pacientes = usePacientesStore((state) => state.pacientes)
   const setPacientes = usePacientesStore((state) => state.setPacientes)

@@ -12,7 +12,6 @@ import {
   supabaseSignIn,
   supabaseSignUp,
 } from '../services/authService'
-import { supabase } from '../services/supabaseClient'
 import { NOMBRES_ROLES, DESCRIPCIONES_ROLES } from '../constants/rbacConstants'
 import { obtenerRolPorDefecto } from '../services/rbacService'
 
@@ -32,9 +31,20 @@ export const LoginScreen = ({ onLogin }) => {
     const value = e.target.value
     setEmail(value)
     setError('')
-    // F2-07c: vía authService (existePerfil), no acceso directo a localStorage
-    const yaExiste = existePerfil(value.trim())
-    setIsFirstTime(!yaExiste)
+    
+    // F4-02b FIX: En modo Supabase, NO verificar localStorage (el usuario
+    // está en Supabase Auth, no en localStorage). Asumimos que el usuario
+    // puede existir y mostramos el formulario de login por defecto.
+    const useSupabase = import.meta.env.VITE_USE_SUPABASE === 'true'
+    
+    if (useSupabase) {
+      // En modo Supabase, mostramos login por defecto
+      setIsFirstTime(false)
+    } else {
+      // F2-07c: vía authService (existePerfil), no acceso directo a localStorage
+      const yaExiste = existePerfil(value.trim())
+      setIsFirstTime(!yaExiste)
+    }
   }
 
   /**
@@ -105,17 +115,14 @@ export const LoginScreen = ({ onLogin }) => {
             setError(mensajeError)
             return
           }
+
+          // F4-02b FIX: guardar userMetadata retornado para usar al construir perfil
+          metadata._supabaseUserMetadata = result.userMetadata || {}
         }
 
-        // F4-02b FIX: Obtener los metadatos reales del usuario desde Supabase.
-        // Esto es crítico porque el rol NO viene del formulario (que tiene
-        // RECEPCION por defecto), sino del user_metadata del usuario en Supabase.
-        const { data: { user: supabaseUser } } = await supabase.auth.getUser()
-
-        // Construir el perfil con los metadatos reales del usuario en Supabase.
-        // Si el usuario no tiene metadata (caso de usuario creado manualmente),
-        // usamos los valores del formulario como fallback.
-        const userMetadata = supabaseUser?.user_metadata || {}
+        // F4-02b FIX: Usar los user_metadata retornados por supabaseSignIn/SignUp
+        // (evita race condition con getUser() después del signIn).
+        const userMetadata = metadata._supabaseUserMetadata || {}
         const userProfile = {
           email: formattedEmail,
           nombreCompleto: userMetadata.full_name || metadata.nombreCompleto,
@@ -292,6 +299,22 @@ export const LoginScreen = ({ onLogin }) => {
           >
             {cargando ? 'Verificando...' : isFirstTime ? 'Guardar datos e Ingresar' : 'Ingresar al sistema'}
           </button>
+
+          {/* F4-02b FIX: En modo Supabase, permitir cambiar entre login y registro */}
+          {import.meta.env.VITE_USE_SUPABASE === 'true' && (
+            <button
+              type="button"
+              onClick={() => {
+                setIsFirstTime(!isFirstTime)
+                setError('')
+              }}
+              className="w-full text-center text-xs text-gray-500 hover:text-gray-700 mt-3 underline"
+            >
+              {isFirstTime 
+                ? '¿Ya tienes cuenta? Iniciar sesión' 
+                : '¿Primera vez? Crear cuenta'}
+            </button>
+          )}
 
           {error && (
             <p className="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mt-2">
