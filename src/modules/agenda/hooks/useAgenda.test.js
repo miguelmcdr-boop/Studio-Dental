@@ -34,6 +34,9 @@ describe('useAgenda', () => {
     // pacientes que no corresponden (contaminación entre tests).
     pacientesStorageService.resetCache()
 
+    // F4-02c-3: también resetear la caché interna de agendaStorageService.
+    agendaStorageService.resetCache()
+
     // LIMPIEZA EXPLÍCITA de agendaStorageService.
     // Aunque el setup global limpia localStorage en afterEach, necesitamos
     // limpiar el servicio ANTES de cada test para evitar timing issues con

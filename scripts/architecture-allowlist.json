@@ -28,6 +28,8 @@
     "src/modules/laboratorio/utils/laboratorioCalculations.js": 51,
     "src/components/LoginScreen.jsx": 336,
     "src/hooks/useAuth.js": 191,
-    "src/modules/pacientes/services/pacientesStorageService.js": 375
+    "src/modules/pacientes/services/pacientesStorageService.js": 375,
+    "src/modules/agenda/services/agendaStorageService.js": 375,
+    "src/hooks/useDataMigration.js": 163
   }
 }
