@@ -58,34 +58,43 @@ function App() {
   // F4-02b FIX: Detectar sesión de Supabase al cargar la app.
   // Si hay una sesión activa pero userProfile está vacío (caso de recarga
   // en incógnito), restaurar el perfil desde Supabase Auth.
+  // IMPORTANTE: solo restaurar si NO hay un logout en progreso.
   useEffect(() => {
     if (!USE_SUPABASE || !supabase) return
 
-    const restaurarSesionSupabase = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession()
-        
-        if (session?.user && !userProfile) {
-          console.log('[App] Sesión de Supabase detectada, restaurando perfil...')
+    // Si userProfile acaba de ser limpiado (logout), no restaurar
+    // Esto previene que el useEffect restaure la sesión inmediatamente
+    // después de un logout intencional.
+    if (userProfile === null) {
+      // Esperar un tick para ver si el logout completó el cierre de Supabase
+      const timer = setTimeout(async () => {
+        try {
+          const { data: { session } } = await supabase.auth.getSession()
           
-          const userMetadata = session.user.user_metadata || {}
-          const perfilRestaurado = {
-            email: session.user.email,
-            nombreCompleto: userMetadata.full_name || session.user.email.split('@')[0],
-            rut: userMetadata.rut || '',
-            especialidad: userMetadata.especialidad || '',
-            rol: userMetadata.role || 'recepcion',
-            supabaseAuth: true
+          // Solo restaurar si Supabase TODAVÍA tiene sesión activa
+          // (si el usuario cerró sesión manualmente, session será null)
+          if (session?.user) {
+            console.log('[App] Sesión de Supabase detectada, restaurando perfil...')
+            
+            const userMetadata = session.user.user_metadata || {}
+            const perfilRestaurado = {
+              email: session.user.email,
+              nombreCompleto: userMetadata.full_name || session.user.email.split('@')[0],
+              rut: userMetadata.rut || '',
+              especialidad: userMetadata.especialidad || '',
+              rol: userMetadata.role || 'recepcion',
+              supabaseAuth: true
+            }
+            
+            loginStore(perfilRestaurado)
           }
-          
-          loginStore(perfilRestaurado)
+        } catch (error) {
+          console.error('[App] Error restaurando sesión de Supabase:', error)
         }
-      } catch (error) {
-        console.error('[App] Error restaurando sesión de Supabase:', error)
-      }
+      }, 100) // 100ms delay para dar tiempo al logout de cerrar Supabase
+      
+      return () => clearTimeout(timer)
     }
-
-    restaurarSesionSupabase()
   }, [userProfile, loginStore])
 
   const pacientes = usePacientesStore((state) => state.pacientes)

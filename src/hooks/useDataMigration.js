@@ -1,5 +1,5 @@
 /**
- * Hook de migración automática de datos localStorage → Supabase (F4-02c-2).
+ * Hook de migración automática de datos localStorage → Supabase (F4-02c-2, F4-02c-3).
  *
  * Se ejecuta automáticamente cuando:
  * 1. El usuario está autenticado con Supabase (VITE_USE_SUPABASE=true)
@@ -10,12 +10,19 @@
  * Esto es necesario porque React.StrictMode ejecuta useEffect dos veces en
  * desarrollo, y useRef se resetea entre las dos ejecuciones. Con variable
  * de módulo, el lock persiste entre ambas ejecuciones.
+ *
+ * Flujo de migración:
+ * 1. Migrar pacientes (F4-02c-2)
+ * 2. Migrar citas (F4-02c-3) — solo citas cuyos pacientes ya fueron migrados
+ * 3. Sincronizar caché de pacientes y citas desde Supabase
  */
 import { useEffect } from 'react'
 import { supabase, USE_SUPABASE } from '../services/supabaseClient'
 import { migratePacientesToSupabase, verificarPacientesPendientes } from '../services/migrations/migratePacientesToSupabase'
+import { migrateCitasToSupabase, verificarCitasPendientes } from '../services/migrations/migrateCitasToSupabase'
 import { usePacientesStore } from '../store/pacientesStore'
 import { pacientesStorageService } from '../modules/pacientes'
+import { agendaStorageService } from '../modules/agenda'
 
 // Lock de módulo: persiste entre re-renders y entre ejecuciones de StrictMode
 let migracionEnProgreso = false
@@ -48,15 +55,19 @@ export const useDataMigration = (userProfile) => {
       migracionEnProgreso = true
 
       try {
-        // Verificar si hay pacientes pendientes de migrar
-        const pendientes = verificarPacientesPendientes()
+        // Verificar si hay datos pendientes de migrar
+        const pacientesPendientes = verificarPacientesPendientes()
+        const citasPendientes = verificarCitasPendientes()
 
-        if (pendientes.pendientes === 0) {
-          console.log('[useDataMigration] No hay pacientes pendientes de migrar')
+        const totalPendientes = pacientesPendientes.pendientes + citasPendientes.pendientes
+
+        if (totalPendientes === 0) {
+          console.log('[useDataMigration] No hay datos pendientes de migrar')
 
           // Aunque no haya migración, sincronizar desde Supabase para asegurar
           // que la caché tenga los datos más recientes (útil en multi-dispositivo)
           await pacientesStorageService.sincronizarDesdeSupabase()
+          await agendaStorageService.sincronizarDesdeSupabase()
 
           const pacientesActualizados = pacientesStorageService.obtenerPacientes([])
           usePacientesStore.setState({ pacientes: pacientesActualizados })
@@ -65,7 +76,10 @@ export const useDataMigration = (userProfile) => {
           return
         }
 
-        console.log(`[useDataMigration] Migrando ${pendientes.pendientes} pacientes a Supabase...`)
+        console.log(`[useDataMigration] Migrando ${totalPendientes} registros a Supabase...`, {
+          pacientes: pacientesPendientes.pendientes,
+          citas: citasPendientes.pendientes
+        })
 
         // Obtener el user_id del usuario autenticado
         const { data: { user } } = await supabase.auth.getUser()
@@ -75,29 +89,63 @@ export const useDataMigration = (userProfile) => {
           return
         }
 
-        // Ejecutar la migración
-        const resultado = await migratePacientesToSupabase(user.id)
+        // ═══════════════════════════════════════════════════
+        // PASO 1: Migrar pacientes (F4-02c-2)
+        // ═══════════════════════════════════════════════════
+        if (pacientesPendientes.pendientes > 0) {
+          console.log(`[useDataMigration] Paso 1: Migrando ${pacientesPendientes.pendientes} pacientes...`)
 
-        console.log('[useDataMigration] Resultado de migración:', {
-          migrados: resultado.migrados,
-          omitidos: resultado.omitidos,
-          errores: resultado.errores.length,
-          success: resultado.success
-        })
+          const resultadoPacientes = await migratePacientesToSupabase(user.id)
 
-        if (resultado.errores.length > 0) {
-          console.error('[useDataMigration] Errores durante la migración:', resultado.errores)
+          console.log('[useDataMigration] Resultado migración pacientes:', {
+            migrados: resultadoPacientes.migrados,
+            omitidos: resultadoPacientes.omitidos,
+            errores: resultadoPacientes.errores.length,
+            success: resultadoPacientes.success
+          })
+
+          if (resultadoPacientes.errores.length > 0) {
+            console.error('[useDataMigration] Errores en migración de pacientes:', resultadoPacientes.errores)
+          }
         }
 
-        // Después de migrar, sincronizar desde Supabase para refrescar la caché
-        // con los UUIDs asignados por Supabase
-        await pacientesStorageService.sincronizarDesdeSupabase()
+        // ═══════════════════════════════════════════════════
+        // PASO 2: Migrar citas (F4-02c-3)
+        // ═══════════════════════════════════════════════════
+        if (citasPendientes.pendientes > 0) {
+          console.log(`[useDataMigration] Paso 2: Migrando ${citasPendientes.pendientes} citas...`)
 
-        // Actualizar el store de pacientes con los datos migrados
+          if (citasPendientes.sinPacienteMigrado > 0) {
+            console.warn(`[useDataMigration] ${citasPendientes.sinPacienteMigrado} citas omitidas: paciente no migrado aún`)
+          }
+
+          const resultadoCitas = await migrateCitasToSupabase(user.id)
+
+          console.log('[useDataMigration] Resultado migración citas:', {
+            migradas: resultadoCitas.migradas,
+            omitidas: resultadoCitas.omitidas,
+            errores: resultadoCitas.errores.length,
+            success: resultadoCitas.success
+          })
+
+          if (resultadoCitas.errores.length > 0) {
+            console.error('[useDataMigration] Errores en migración de citas:', resultadoCitas.errores)
+          }
+        }
+
+        // ═══════════════════════════════════════════════════
+        // PASO 3: Sincronizar caché desde Supabase
+        // ═══════════════════════════════════════════════════
+        console.log('[useDataMigration] Paso 3: Sincronizando caché desde Supabase...')
+
+        await pacientesStorageService.sincronizarDesdeSupabase()
+        await agendaStorageService.sincronizarDesdeSupabase()
+
+        // Actualizar stores con datos migrados
         const pacientesActualizados = pacientesStorageService.obtenerPacientes([])
         usePacientesStore.setState({ pacientes: pacientesActualizados })
 
-        console.log('[useDataMigration] Migración completada y caché sincronizada')
+        console.log('[useDataMigration] ✅ Migración completada y caché sincronizada')
 
         migracionCompletada = true
       } catch (error) {
