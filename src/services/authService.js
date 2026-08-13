@@ -1,3 +1,4 @@
+import { supabase, USE_SUPABASE } from './supabaseClient'
 /**
  * Servicio de Autenticación — Studio Dental
  * Tarea MASTER_ROADMAP: F1-01
@@ -172,4 +173,74 @@ export const existePerfil = (email) => {
   } catch {
     return false
   }
+}
+
+// ---------------------------------------------------------------------------
+// Integración con Supabase Auth (F4-02b)
+// ---------------------------------------------------------------------------
+// Estas funciones delegan a Supabase Auth cuando VITE_USE_SUPABASE=true.
+// El hook useAuth.js y LoginScreen.jsx las usan internamente.
+
+/**
+ * Iniciar sesión con Supabase Auth.
+ * @param {string} email - Email del usuario
+ * @param {string} password - Contraseña en texto plano
+ * @returns {Promise<{success: boolean, error?: string}>}
+ */
+export const supabaseSignIn = async (email, password) => {
+  if (!USE_SUPABASE || !supabase) {
+    return { success: false, error: 'Supabase no configurado' }
+  }
+
+  const { error } = await supabase.auth.signInWithPassword({
+    email: email.trim().toLowerCase(),
+    password,
+  })
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  return { success: true }
+}
+
+/**
+ * Registrar nuevo usuario con Supabase Auth.
+ * @param {string} email - Email del usuario
+ * @param {string} password - Contraseña en texto plano
+ * @param {object} metadata - Datos adicionales (nombreCompleto, rol, etc.)
+ * @returns {Promise<{success: boolean, error?: string}>}
+ */
+export const supabaseSignUp = async (email, password, metadata = {}) => {
+  if (!USE_SUPABASE || !supabase) {
+    return { success: false, error: 'Supabase no configurado' }
+  }
+
+  const { error } = await supabase.auth.signUp({
+    email: email.trim().toLowerCase(),
+    password,
+    options: {
+      data: {
+        full_name: metadata.nombreCompleto || 'Usuario',
+        role: metadata.rol || 'recepcion',
+      },
+    },
+  })
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  return { success: true }
+}
+
+/**
+ * Cerrar sesión con Supabase Auth.
+ * @returns {Promise<void>}
+ */
+export const supabaseSignOut = async () => {
+  if (!USE_SUPABASE || !supabase) {
+    return
+  }
+  await supabase.auth.signOut()
 }

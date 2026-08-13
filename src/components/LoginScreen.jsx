@@ -9,7 +9,10 @@ import {
   guardarPerfil,
   existePerfil,
   MAX_INTENTOS_FALLIDOS,
+  supabaseSignIn,
+  supabaseSignUp,
 } from '../services/authService'
+import { supabase } from '../services/supabaseClient'
 import { NOMBRES_ROLES, DESCRIPCIONES_ROLES } from '../constants/rbacConstants'
 import { obtenerRolPorDefecto } from '../services/rbacService'
 
@@ -34,70 +37,151 @@ export const LoginScreen = ({ onLogin }) => {
     setIsFirstTime(!yaExiste)
   }
 
+  /**
+   * F4-02b: handleSubmit dual. Usa Supabase Auth cuando VITE_USE_SUPABASE=true,
+   * con fallback al sistema local PBKDF2 cuando está desactivado.
+   */
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     if (email.trim() === '' || password === '') return
 
     const formattedEmail = email.trim().toLowerCase()
+    const useSupabase = import.meta.env.VITE_USE_SUPABASE === 'true'
 
-    const estadoBloqueo = estaBloqueado(formattedEmail)
-    if (estadoBloqueo.bloqueado) {
-      const minutos = Math.ceil(estadoBloqueo.restanteMs / 60000)
-      setError(`Demasiados intentos fallidos. Intenta nuevamente en ${minutos} minuto(s).`)
-      return
+    // F4-02b: el bloqueo por intentos fallidos solo aplica al sistema local.
+    // Supabase Auth maneja rate limiting internamente.
+    if (!useSupabase) {
+      const estadoBloqueo = estaBloqueado(formattedEmail)
+      if (estadoBloqueo.bloqueado) {
+        const minutos = Math.ceil(estadoBloqueo.restanteMs / 60000)
+        setError(`Demasiados intentos fallidos. Intenta nuevamente en ${minutos} minuto(s).`)
+        return
+      }
     }
 
     setCargando(true)
     try {
-      // F2-07c: vía authService (obtenerPerfil), no acceso directo a localStorage
-      let userProfile = obtenerPerfil(formattedEmail)
+      // Metadata común para ambos modos (Supabase y Local)
+      const metadata = {
+        nombreCompleto: nombreCompleto || 'Profesional Dental',
+        rut: rut || '',
+        especialidad: especialidad || 'Cirujano Dentista',
+        rol: rol, // F3-05: incluir el rol seleccionado
+      }
 
-      if (!userProfile) {
-        // Perfil nuevo: se crea con una credencial real hasheada.
-        const credencial = await crearCredencial(password)
-        userProfile = {
-          email: formattedEmail,
-          nombreCompleto: nombreCompleto || 'Profesional Dental',
-          rut: rut || '',
-          especialidad: especialidad || 'Cirujano Dentista',
-          rol: rol, // F3-05: incluir el rol seleccionado
-          credencial,
+      if (useSupabase) {
+        // ═══════════════════════════════════════════════════
+        // MODO SUPABASE AUTH
+        // ═══════════════════════════════════════════════════
+        if (isFirstTime) {
+          // Registro de nuevo usuario
+          const result = await supabaseSignUp(formattedEmail, password, metadata)
+
+          if (!result.success) {
+            let mensajeError = result.error || 'Error al registrar usuario'
+            if (mensajeError.includes('already registered') || mensajeError.includes('already')) {
+              mensajeError = 'Este email ya está registrado. Intenta iniciar sesión.'
+              setIsFirstTime(false)
+            } else if (mensajeError.includes('Password') || mensajeError.includes('password')) {
+              mensajeError = 'La contraseña debe tener al menos 6 caracteres.'
+            } else if (mensajeError.includes('Invalid email')) {
+              mensajeError = 'El formato del email no es válido.'
+            }
+            setError(mensajeError)
+            return
+          }
+        } else {
+          // Login de usuario existente
+          const result = await supabaseSignIn(formattedEmail, password)
+
+          if (!result.success) {
+            let mensajeError = result.error || 'Credenciales inválidas'
+            if (mensajeError.includes('Invalid login credentials') || mensajeError.includes('Invalid')) {
+              mensajeError = 'Email o contraseña incorrectos.'
+            } else if (mensajeError.includes('Email not confirmed')) {
+              mensajeError = 'Debes confirmar tu email antes de iniciar sesión.'
+            }
+            setError(mensajeError)
+            return
+          }
         }
-        // F2-07c: vía authService (guardarPerfil)
-        guardarPerfil(formattedEmail, userProfile)
+
+        // F4-02b FIX: Obtener los metadatos reales del usuario desde Supabase.
+        // Esto es crítico porque el rol NO viene del formulario (que tiene
+        // RECEPCION por defecto), sino del user_metadata del usuario en Supabase.
+        const { data: { user: supabaseUser } } = await supabase.auth.getUser()
+
+        // Construir el perfil con los metadatos reales del usuario en Supabase.
+        // Si el usuario no tiene metadata (caso de usuario creado manualmente),
+        // usamos los valores del formulario como fallback.
+        const userMetadata = supabaseUser?.user_metadata || {}
+        const userProfile = {
+          email: formattedEmail,
+          nombreCompleto: userMetadata.full_name || metadata.nombreCompleto,
+          rut: userMetadata.rut || metadata.rut,
+          especialidad: userMetadata.especialidad || metadata.especialidad,
+          // F4-02b FIX: El rol viene de user_metadata.role, NO del formulario
+          rol: userMetadata.role || metadata.rol,
+          supabaseAuth: true, // Marcador para identificar que viene de Supabase
+        }
+        onLogin(userProfile)
+      } else {
+        // ═══════════════════════════════════════════════════
+        // MODO LOCAL (PBKDF2 + localStorage) - Fallback
+        // ═══════════════════════════════════════════════════
+        // F2-07c: vía authService (obtenerPerfil), no acceso directo a localStorage
+        let userProfile = obtenerPerfil(formattedEmail)
+
+        if (!userProfile) {
+          // Perfil nuevo: se crea con una credencial real hasheada.
+          const credencial = await crearCredencial(password)
+          userProfile = {
+            email: formattedEmail,
+            nombreCompleto: metadata.nombreCompleto,
+            rut: metadata.rut,
+            especialidad: metadata.especialidad,
+            rol: metadata.rol,
+            credencial,
+          }
+          // F2-07c: vía authService (guardarPerfil)
+          guardarPerfil(formattedEmail, userProfile)
+          limpiarIntentosFallidos(formattedEmail)
+          onLogin(userProfile)
+          return
+        }
+
+        if (!userProfile.credencial) {
+          // Perfil creado antes de esta corrección (F1-01): nunca tuvo una
+          // contraseña real verificable. Se establece ahora con la contraseña
+          // ingresada, como migración de una sola vez.
+          const credencial = await crearCredencial(password)
+          userProfile = { ...userProfile, credencial }
+          // F2-07c: vía authService (guardarPerfil)
+          guardarPerfil(formattedEmail, userProfile)
+          limpiarIntentosFallidos(formattedEmail)
+          onLogin(userProfile)
+          return
+        }
+
+        const esValida = await verificarPassword(password, userProfile.credencial)
+        if (!esValida) {
+          const estado = registrarIntentoFallido(formattedEmail)
+          const intentosRestantes = MAX_INTENTOS_FALLIDOS - estado.count
+          setError(
+            intentosRestantes > 0
+              ? `Contraseña incorrecta. Te quedan ${intentosRestantes} intento(s) antes del bloqueo temporal.`
+              : 'Demasiados intentos fallidos. Cuenta bloqueada temporalmente.'
+          )
+          return
+        }
+
         limpiarIntentosFallidos(formattedEmail)
         onLogin(userProfile)
-        return
       }
-
-      if (!userProfile.credencial) {
-        // Perfil creado antes de esta corrección (F1-01): nunca tuvo una
-        // contraseña real verificable. Se establece ahora con la contraseña
-        // ingresada, como migración de una sola vez.
-        const credencial = await crearCredencial(password)
-        userProfile = { ...userProfile, credencial }
-        // F2-07c: vía authService (guardarPerfil)
-        guardarPerfil(formattedEmail, userProfile)
-        limpiarIntentosFallidos(formattedEmail)
-        onLogin(userProfile)
-        return
-      }
-
-      const esValida = await verificarPassword(password, userProfile.credencial)
-      if (!esValida) {
-        const estado = registrarIntentoFallido(formattedEmail)
-        const intentosRestantes = MAX_INTENTOS_FALLIDOS - estado.count
-        setError(
-          intentosRestantes > 0
-            ? `Contraseña incorrecta. Te quedan ${intentosRestantes} intento(s) antes del bloqueo temporal.`
-            : 'Demasiados intentos fallidos. Cuenta bloqueada temporalmente.'
-        )
-        return
-      }
-
-      limpiarIntentosFallidos(formattedEmail)
-      onLogin(userProfile)
+    } catch (err) {
+      console.error('Error inesperado en login:', err)
+      setError('Error inesperado. Intenta nuevamente.')
     } finally {
       setCargando(false)
     }
@@ -212,6 +296,13 @@ export const LoginScreen = ({ onLogin }) => {
           {error && (
             <p className="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mt-2">
               {error}
+            </p>
+          )}
+
+          {/* F4-02b: Indicador del modo de autenticación activo */}
+          {import.meta.env.VITE_USE_SUPABASE === 'true' && (
+            <p className="text-[10px] text-gray-400 text-center mt-2">
+              🔒 Autenticación segura con Supabase
             </p>
           )}
         </form>
