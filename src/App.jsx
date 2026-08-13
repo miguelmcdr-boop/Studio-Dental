@@ -6,6 +6,7 @@ import { CargandoModulo } from './components/CargandoModulo'
 import { usePacientesStore } from './store/pacientesStore'
 import { usePrestacionesStore } from './store/prestacionesStore'
 import { useSesionStore } from './store/sesionStore'
+import { useDataMigration } from './hooks/useDataMigration'
 import { supabase, USE_SUPABASE } from './services/supabaseClient'
 import { odontogramaStorageService } from './modules/odontograma'
 import { presupuestosStorageService } from './modules/presupuestos/services/presupuestosStorageService'
@@ -38,6 +39,9 @@ function App() {
   const userProfile = useSesionStore((state) => state.userProfile)
   const loginStore = useSesionStore((state) => state.login)
   const logoutStore = useSesionStore((state) => state.logout)
+
+  // F4-02c-2: ejecutar migración automática de datos al primer login con Supabase
+  useDataMigration(userProfile)
 
   useEffect(() => {
     const refrescarDesdeStorage = usePrestacionesStore.getState().refrescarDesdeStorage
