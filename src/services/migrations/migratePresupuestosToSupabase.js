@@ -20,7 +20,7 @@
  * cuando refactoricemos los componentes que los usan directamente.
  */
 import { supabase } from '../supabaseClient'
-import { presupuestosStorageService } from '../../modules/presupuestos'
+import { presupuestosStorageService } from '../../modules/presupuestos/services/presupuestosStorageService'
 import { migrationStorageService } from '../migrationStorageService'
 import { esUuidValido } from './uuidUtils'
 import { leerJSON } from '../localStorageRepository'

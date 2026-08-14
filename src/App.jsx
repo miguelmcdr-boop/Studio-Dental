@@ -33,14 +33,117 @@ const ReportesModulo = lazy(() => import('./modules/reportes').then(m => ({ defa
 const ConfiguracionModulo = lazy(() => import('./modules/configuracion').then(m => ({ default: m.ConfiguracionModulo })))
 
 function App() {
-  const [activeSection, setActiveSection] = useState('Dashboard')
-  const [pacienteSeleccionado, setPacienteSeleccionado] = useState(null)
+  // F4-02e: Persistir activeSection en localStorage para mantener
+  // la navegación entre recargas. Si no hay valor guardado, usar 'Dashboard'.
+  const [activeSection, setActiveSection] = useState(() => {
+    try {
+      const guardado = localStorage.getItem('clinica_active_section')
+      return guardado || 'Dashboard'
+    } catch {
+      return 'Dashboard'
+    }
+  })
+  // F4-02e: Estado del paciente seleccionado. Inicia en null;
+  // se restaura desde Supabase si hay ID persistido en localStorage.
+  const [pacienteSeleccionado, setPacienteSeleccionadoState] = useState(null)
+
+  // F4-02e: Wrapper que persiste el pacienteId al seleccionar
+  const setPacienteSeleccionado = (paciente) => {
+    setPacienteSeleccionadoState(paciente)
+    try {
+      if (paciente?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(paciente.id)) {
+        localStorage.setItem('clinica_paciente_seleccionado_id', paciente.id)
+      } else {
+        localStorage.removeItem('clinica_paciente_seleccionado_id')
+      }
+    } catch (e) {
+      console.error('[App] Error al persistir pacienteId:', e)
+    }
+  }
+
+  // F4-02e: Persistir activeSection cuando cambia
+  useEffect(() => {
+    try {
+      localStorage.setItem('clinica_active_section', activeSection)
+    } catch (e) {
+      console.error('[App] Error al persistir sección activa:', e)
+    }
+  }, [activeSection])
 
   const userProfile = useSesionStore((state) => state.userProfile)
   const loginStore = useSesionStore((state) => state.login)
   const logoutStore = useSesionStore((state) => state.logout)
 
   // F4-02c-2: ejecutar migración automática de datos al primer login con Supabase
+
+
+  // F4-02e: Restaurar paciente seleccionado desde Supabase al recargar
+  // Esto mantiene la ficha del paciente abierta después de F5.
+  useEffect(() => {
+    // Solo ejecutar si el usuario está autenticado y aún no hay paciente cargado
+    if (!userProfile || !USE_SUPABASE || !supabase || pacienteSeleccionado !== null) {
+      return
+    }
+
+    const restaurarPacienteSeleccionado = async () => {
+      try {
+        const pacienteIdGuardado = localStorage.getItem('clinica_paciente_seleccionado_id')
+        if (!pacienteIdGuardado) return
+
+        // Validar que sea UUID válido
+        if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(pacienteIdGuardado)) {
+          localStorage.removeItem('clinica_paciente_seleccionado_id')
+          return
+        }
+
+        console.log('[App] Restaurando ficha de paciente desde Supabase:', pacienteIdGuardado)
+
+        const { data, error } = await supabase
+          .from('pacientes')
+          .select('*')
+          .eq('id', pacienteIdGuardado)
+          .maybeSingle()
+
+        if (error) {
+          console.error('[App] Error al restaurar paciente:', error.message)
+          return
+        }
+
+        if (!data) {
+          // El paciente fue eliminado en otro dispositivo — limpiar selección
+          console.warn('[App] Paciente no encontrado (pudo ser eliminado), limpiando selección')
+          localStorage.removeItem('clinica_paciente_seleccionado_id')
+          return
+        }
+
+        // Transformar de snake_case a camelCase
+        const pacienteRestaurado = {
+          id: data.id,
+          rut: data.rut,
+          nombre: data.nombre,
+          edad: data.edad,
+          telefono: data.telefono,
+          email: data.email,
+          ocupacion: data.ocupacion,
+          prevision: data.prevision,
+          alergias: data.alergias,
+          fechaNacimiento: data.fecha_nacimiento,
+          direccion: data.direccion,
+          createdAt: data.created_at,
+          updatedAt: data.updated_at
+        }
+
+        // Asegurar que estamos en la sección correcta
+        setPacienteSeleccionadoState(pacienteRestaurado)
+        setActiveSection('Pacientes')
+        console.log('[App] ✅ Ficha de paciente restaurada:', pacienteRestaurado.nombre)
+      } catch (e) {
+        console.error('[App] Error inesperado al restaurar paciente:', e)
+      }
+    }
+
+    restaurarPacienteSeleccionado()
+  }, [userProfile, pacienteSeleccionado])
   useDataMigration(userProfile)
 
   useEffect(() => {

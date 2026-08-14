@@ -28,9 +28,12 @@
     "src/modules/laboratorio/utils/laboratorioCalculations.js": 51,
     "src/components/LoginScreen.jsx": 336,
     "src/hooks/useAuth.js": 191,
-    "src/modules/pacientes/services/pacientesStorageService.js": 375,
+    "src/modules/pacientes/services/pacientesStorageService.js": 463,
     "src/modules/agenda/services/agendaStorageService.js": 375,
-    "src/hooks/useDataMigration.js": 189,
-    "src/modules/presupuestos/services/presupuestosStorageService.js": 458
+    "src/hooks/useDataMigration.js": 266,
+    "src/modules/presupuestos/services/presupuestosStorageService.js": 458,
+    "src/modules/pagos/services/pagosStorageService.js": 315,
+    "src/modules/finanzas/services/finanzasStorageService.js": 291,
+    "src/App.jsx": 337
   }
 }
