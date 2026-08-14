@@ -92,8 +92,19 @@ export const migratePacientesToSupabase = async (userId) => {
     errores: []
   }
 
+  // IDs de pacientes SEED que NO deben migrarse (son solo demo, no datos reales)
+  const IDS_SEED = ['1', '2']
+
   for (const paciente of pacientes) {
     try {
+      // F4-02c-fix: Filtrar pacientes SEED (Camila Silva ID=1, Carlos Mendoza ID=2)
+      // Estos son datos de demostración que no deben estar en Supabase
+      if (IDS_SEED.includes(String(paciente.id))) {
+        console.log(`[migratePacientes] Omitiendo paciente SEED: ${paciente.nombre} (ID=${paciente.id})`)
+        resultado.omitidos++
+        continue
+      }
+
       // Si ya tiene UUID, omitir (ya está en Supabase)
       if (esUuidValido(paciente.id)) {
         resultado.omitidos++

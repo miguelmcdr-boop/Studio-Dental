@@ -21,10 +21,15 @@ import { supabase, USE_SUPABASE } from '../services/supabaseClient'
 import { migratePacientesToSupabase, verificarPacientesPendientes } from '../services/migrations/migratePacientesToSupabase'
 import { migrateCitasToSupabase, verificarCitasPendientes } from '../services/migrations/migrateCitasToSupabase'
 import { migratePresupuestosToSupabase, verificarPresupuestosPendientes } from '../services/migrations/migratePresupuestosToSupabase'
+import { migratePagosToSupabase, verificarPagosPendientes } from '../services/migrations/migratePagosToSupabase'
+import { migrateMovimientosFinancierosToSupabase, verificarMovimientosPendientes } from '../services/migrations/migrateMovimientosFinancierosToSupabase'
+import { migrateDatosClinicosToSupabase, verificarDatosClinicosPendientes } from '../services/migrations/migrateDatosClinicosToSupabase'
 import { usePacientesStore } from '../store/pacientesStore'
 import { pacientesStorageService } from '../modules/pacientes'
 import { agendaStorageService } from '../modules/agenda'
-import { presupuestosStorageService } from '../modules/presupuestos'
+import { presupuestosStorageService } from '../modules/presupuestos/services/presupuestosStorageService'
+import { pagosStorageService } from '../modules/pagos/services/pagosStorageService'
+import { finanzasStorageService } from '../modules/finanzas/services/finanzasStorageService'
 
 // Lock de módulo: persiste entre re-renders y entre ejecuciones de StrictMode
 let migracionEnProgreso = false
@@ -61,8 +66,16 @@ export const useDataMigration = (userProfile) => {
         const pacientesPendientes = verificarPacientesPendientes()
         const citasPendientes = verificarCitasPendientes()
         const presupuestosPendientes = verificarPresupuestosPendientes()
+        const pagosPendientes = verificarPagosPendientes()
+        const movimientosPendientes = verificarMovimientosPendientes()
+        const datosClinicosPendientes = verificarDatosClinicosPendientes()
 
-        const totalPendientes = pacientesPendientes.pendientes + citasPendientes.pendientes + presupuestosPendientes.pendientes
+        const totalPendientes = pacientesPendientes.pendientes + 
+          citasPendientes.pendientes + 
+          presupuestosPendientes.pendientes + 
+          pagosPendientes.globalesPendientes + 
+          movimientosPendientes.pendientes + 
+          datosClinicosPendientes.conDatos
 
         if (totalPendientes === 0) {
           console.log('[useDataMigration] No hay datos pendientes de migrar')
@@ -82,7 +95,10 @@ export const useDataMigration = (userProfile) => {
         console.log(`[useDataMigration] Migrando ${totalPendientes} registros a Supabase...`, {
           pacientes: pacientesPendientes.pendientes,
           citas: citasPendientes.pendientes,
-          presupuestos: presupuestosPendientes.pendientes
+          presupuestos: presupuestosPendientes.pendientes,
+          pagos: pagosPendientes.globalesPendientes,
+          movimientos: movimientosPendientes.pendientes,
+          datosClinicos: datosClinicosPendientes.conDatos
         })
 
         // Obtener el user_id del usuario autenticado
@@ -159,13 +175,74 @@ export const useDataMigration = (userProfile) => {
         }
 
         // ═══════════════════════════════════════════════════
-        // PASO 4: Sincronizar caché desde Supabase
+        // PASO 4: Migrar pagos y movimientos financieros (F4-02c-5)
         // ═══════════════════════════════════════════════════
-        console.log('[useDataMigration] Paso 4: Sincronizando caché desde Supabase...')
+        if (pagosPendientes.globalesPendientes > 0) {
+          console.log(`[useDataMigration] Paso 4a: Migrando ${pagosPendientes.globalesPendientes} pagos globales...`)
+
+          const resultadoPagos = await migratePagosToSupabase(user.id)
+
+          console.log('[useDataMigration] Resultado migración pagos:', {
+            migrados: resultadoPagos.migrados,
+            abonosMigrados: resultadoPagos.abonosMigrados,
+            omitidos: resultadoPagos.omitidos,
+            errores: resultadoPagos.errores.length,
+            success: resultadoPagos.success
+          })
+
+          if (resultadoPagos.errores.length > 0) {
+            console.error('[useDataMigration] Errores en migración de pagos:', resultadoPagos.errores)
+          }
+        }
+
+        if (movimientosPendientes.pendientes > 0) {
+          console.log(`[useDataMigration] Paso 4b: Migrando ${movimientosPendientes.pendientes} movimientos financieros...`)
+
+          const resultadoMovimientos = await migrateMovimientosFinancierosToSupabase(user.id)
+
+          console.log('[useDataMigration] Resultado migración movimientos:', {
+            migrados: resultadoMovimientos.migrados,
+            omitidos: resultadoMovimientos.omitidos,
+            errores: resultadoMovimientos.errores.length,
+            success: resultadoMovimientos.success
+          })
+
+          if (resultadoMovimientos.errores.length > 0) {
+            console.error('[useDataMigration] Errores en migración de movimientos:', resultadoMovimientos.errores)
+          }
+        }
+
+        // ═══════════════════════════════════════════════════
+        // PASO 5: Migrar datos clínicos (F4-02c-6)
+        // ═══════════════════════════════════════════════════
+        if (datosClinicosPendientes.conDatos > 0) {
+          console.log(`[useDataMigration] Paso 5: Migrando datos clínicos de ${datosClinicosPendientes.conDatos} pacientes...`)
+
+          const resultadoDatosClinicos = await migrateDatosClinicosToSupabase(user.id)
+
+          console.log('[useDataMigration] Resultado migración datos clínicos:', {
+            evolucionesMigradas: resultadoDatosClinicos.evolucionesMigradas,
+            recetasMigradas: resultadoDatosClinicos.recetasMigradas,
+            otrosMigrados: resultadoDatosClinicos.otrosMigrados,
+            errores: resultadoDatosClinicos.errores.length,
+            success: resultadoDatosClinicos.success
+          })
+
+          if (resultadoDatosClinicos.errores.length > 0) {
+            console.error('[useDataMigration] Errores en migración de datos clínicos:', resultadoDatosClinicos.errores)
+          }
+        }
+
+        // ═══════════════════════════════════════════════════
+        // PASO 6: Sincronizar caché desde Supabase
+        // ═══════════════════════════════════════════════════
+        console.log('[useDataMigration] Paso 6: Sincronizando caché desde Supabase...')
 
         await pacientesStorageService.sincronizarDesdeSupabase()
         await agendaStorageService.sincronizarDesdeSupabase()
         await presupuestosStorageService.sincronizarDesdeSupabase()
+        await pagosStorageService.sincronizarDesdeSupabase()
+        await finanzasStorageService.sincronizarDesdeSupabase()
 
         // Actualizar stores con datos migrados
         const pacientesActualizados = pacientesStorageService.obtenerPacientes([])
