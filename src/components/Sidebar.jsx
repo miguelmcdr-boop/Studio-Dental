@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react'
 import { useRBAC } from '../hooks/useRBAC'
 import { PERMISOS, NOMBRES_ROLES } from '../constants/rbacConstants'
+import { ConnectionIndicator } from './ConnectionIndicator'
 
 /**
  * Sidebar con control de acceso por rol (F3-05).
@@ -121,6 +122,9 @@ export const Sidebar = ({ userProfile, activeSection, setActiveSection, onLogout
             🚪
           </button>
         )}
+      </div>
+      <div className="px-2 mb-4">
+        <ConnectionIndicator />
       </div>
     </aside>
   )

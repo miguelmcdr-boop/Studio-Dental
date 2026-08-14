@@ -34,6 +34,7 @@
     "src/modules/presupuestos/services/presupuestosStorageService.js": 458,
     "src/modules/pagos/services/pagosStorageService.js": 315,
     "src/modules/finanzas/services/finanzasStorageService.js": 291,
-    "src/App.jsx": 337
+    "src/App.jsx": 351,
+    "src/utils/conflictosAgenda.js": 104
   }
 }
