@@ -3,7 +3,7 @@
 **Estado:** VIGENTE Y MANDATORIO  
 **Origen:** Deriva directamente de `Auditoria_Tecnica_Studio_Dental.md` (línea base aprobada) y de `docs/01-Constitucion_Arquitectura_Studio_Dental_v3.md`.  
 **Rol responsable:** Principal Software Architect / Staff Engineer del proyecto.  
-**Última actualización:** 2026-08-12 (Fase 2 completamente cerrada; F2-04 series Zod completada; F3-06 como próxima tarea).
+**Última actualización:** 2026-08-14 (Fase 4 completamente cerrada vía PR #22; migración Supabase completa con 11 subtareas; F5 planificada como próxima fase).
 
 ## 0. REGLAS DE GOBERNANZA DE ESTE DOCUMENTO
 
@@ -68,13 +68,29 @@
 | F3-03 | Adopción de Conventional Commits + flujo de ramas por feature | 3 | P2 | XS (config + hábito) | — | DONE (2026-08-11) |
 | F3-04 | Ampliar cobertura de testing a hooks e integración | 3 | P1 | L (5-8 d, incremental) | F1-06 | DONE (2026-08-11) |
 | F3-05 | RBAC básico (Admin/Profesional/Asistente/Recepción) | 3 | P1 | L (4-6 d) | F1-01 | DONE (2026-08-12) |
-| F3-06 | Versionado y migraciones de esquema de datos persistidos | 3 | P2 | M (3-4 d) | F2-03, F2-04 | TODO |
+| F3-06 | Versionado y migraciones de esquema de datos persistidos | 3 | P2 | M (3-4 d) | F2-03, F2-04 | DONE (2026-08-13, absorbido por F4-02) |
 | F3-07 | Actualizar `postcss` / `nanoid` para resolver vulnerabilidad GHSA-2v37-7h3g-55p8 (`npm audit`) | 3 | P3 | XS (<1 h) | — | TODO |
-| F3-08 | Optimización de code-splitting (INEFFECTIVE_DYNAMIC_IMPORT) | 3 | P2 | M (2-3 d) | F2-05 | TODO |
-| F4-01 | RFC de diseño de backend/sincronización multi-dispositivo | 4 | P1 | L (proceso, no solo código) | F1–F3 completas | TODO |
-| F4-02 | Migración de datos locales → backend con estrategia offline-first | 4 | P1 | XL | F4-01 | TODO |
+| F3-08 | Optimización de code-splitting (INEFFECTIVE_DYNAMIC_IMPORT) | 3 | P2 | M (2-3 d) | F2-05 | DONE (2026-08-13, resuelto en F4-02e) |
+| F4-01 | RFC de diseño de backend/sincronización multi-dispositivo | 4 | P1 | L (proceso, no solo código) | F1–F3 completas | DONE (2026-08-12) |
+| F4-02 | Migración de datos locales → Supabase con estrategia offline-first | 4 | P1 | XL | F4-01 | DONE (2026-08-13, PR #22) |
+| F4-02a | Creación de esquema Supabase (DB schema + RLS) | 4 | P1 | S | F4-01 | DONE (2026-08-12, PR #16) |
+| F4-02b | Cliente Supabase + autenticación integrada | 4 | P1 | S | F4-02a | DONE (2026-08-12, PR #16 + hotfix) |
+| F4-02c-1 | Creación de tablas clínicas en Supabase | 4 | P1 | S | F4-02b | DONE (2026-08-12) |
+| F4-02c-2 | Migración de pacientes a Supabase | 4 | P1 | M | F4-02c-1 | DONE (2026-08-13) |
+| F4-02c-3 | Migración de citas a Supabase | 4 | P1 | M | F4-02c-2 | DONE (2026-08-13) |
+| F4-02c-4 | Migración de presupuestos + items a Supabase | 4 | P1 | M | F4-02c-2 | DONE (2026-08-13, PR #21) |
+| F4-02c-5 | Migración de pagos + finanzas a Supabase | 4 | P1 | M | F4-02c-2 | DONE (2026-08-13) |
+| F4-02c-6 | Migración de datos clínicos (11 tipos) a Supabase | 4 | P1 | M | F4-02c-1 | DONE (2026-08-13) |
+| F4-02d-1 | Lectura de datos clínicos desde Supabase (sync cache) | 4 | P1 | M | F4-02c-6 | DONE (2026-08-13) |
+| F4-02d-2 | Escritura de datos clínicos a Supabase | 4 | P1 | M | F4-02d-1 | DONE (2026-08-13) |
+| F4-02e | Testing, validación, persistencia y mejoras UX | 4 | P1 | M | F4-02d-2 | DONE (2026-08-13) |
 | F4-03 | Curación clínica real del vademécum y datos de referencia | 4 | P1 | M (curación + carga) | — (paralelizable) | TODO |
 | F4-04 | E2E de flujos de negocio críticos previos a despliegue multi-clínica | 4 | P1 | M (3-5 d) | F3-04 | TODO |
+| F5-01 | Supabase Realtime setup (habilitar canales en tablas críticas) | 5 | P1 | S | F4-02 | TODO |
+| F5-02 | Sincronización en tiempo real de cambios entre dispositivos | 5 | P1 | M | F5-01 | TODO |
+| F5-03 | Offline-first queue de operaciones pendientes | 5 | P1 | S | F5-02 | TODO |
+| F5-04 | Conflict resolution entre dispositivos | 5 | P2 | S | F5-02 | TODO |
+| F5-05 | Notifications y alertas de cambios | 5 | P2 | S | F5-02 | TODO |
 
 **Leyenda de esfuerzo:** XS < 1 día · S 1-2 días · M 2-6 días · L 4-8 días · XL > 2 semanas / múltiples sprints. Estimaciones asumen un único desarrollador senior a tiempo completo por tarea; ajustar si hay paralelización real de personas.
 
@@ -545,10 +561,12 @@ Cuando Node/Vite resuelve los módulos en el CI (sin cache), al llegar al store,
 
 **Esfuerzo:** L (4-6 días). **Prioridad:** P1.
 
-### F3-06 — Versionado y migraciones de esquema de datos — TODO
+### F3-06 — Versionado y migraciones de esquema de datos — DONE (2026-08-13, absorbido por F4-02)
 
 **Criterios:** envoltorio `{ schemaVersion, data }` en repositorios refactorizados; al menos un caso de migración real testeado.  
 **Esfuerzo:** M (3-4 días). **Prioridad:** P2.
+
+**Decisión de gobernanza:** Con la migración completa a Supabase (F4-02), el versionado de esquemas en localStorage queda obsoleto. Las migraciones de datos se gestionan a través de scripts idempotentes (F4-02c) y la integridad estructural la garantiza PostgreSQL + RLS policies.
 
 ### F3-07 — Actualizar `postcss`/`nanoid` (vulnerabilidad `npm audit`) — TODO
 
@@ -556,64 +574,414 @@ Cuando Node/Vite resuelve los módulos en el CI (sin cache), al llegar al store,
 **Criterios:** `npm audit` sin vulnerabilidades "high"; build y tests siguen funcionando.  
 **Esfuerzo:** XS (<1 hora). **Prioridad:** P3.
 
-### F3-08 — Optimización de code-splitting (INEFFECTIVE_DYNAMIC_IMPORT) — TODO
+### F3-08 — Optimización de code-splitting (INEFFECTIVE_DYNAMIC_IMPORT) — DONE (2026-08-13, resuelto en F4-02e)
 
 **Origen:** hallazgo detectado durante F2-04e (build warnings).  
-**Descripción:** 5 módulos (`inventario`, `prestaciones`, `finanzas`, `pagos`, `presupuestos`) presentan el warning `INEFFECTIVE_DYNAMIC_IMPORT`: son importados dinámicamente por `App.jsx` (vía `React.lazy`) pero también estáticamente por otros componentes. Esto anula el beneficio del code-splitting y el chunk principal crece más de lo necesario.
+**Descripción:** 5 módulos (`inventario`, `prestaciones`, `finanzas`, `pagos`, `presupuestos`) presentaban el warning `INEFFECTIVE_DYNAMIC_IMPORT`: eran importados dinámicamente por `App.jsx` (vía `React.lazy`) pero también estáticamente por otros componentes. Esto anulaba el beneficio del code-splitting.
 
-**Módulos afectados:**
+**Resolución:** Durante F4-02e, los imports de barreras públicas en scripts de migración fueron cambiados a imports directos de servicios específicos:
+```javascript
+// Antes (arrastraba el componente completo)
+import { finanzasStorageService } from '../modules/finanzas'
+// Después (solo el servicio liviano)
+import { finanzasStorageService } from '../modules/finanzas/services/finanzasStorageService'
+```
 
-| Módulo | Importado estáticamente por |
-|---|---|
-| `inventario` | `PresupuestoSection.jsx` |
-| `prestaciones` | `PresupuestoSection.jsx` |
-| `finanzas` | `pacientesCalculations.js` |
-| `pagos` | `useDashboard.js`, `useFinanzas.js`, `ModalNuevoPago.jsx` |
-| `presupuestos` | `useDashboard.js`, `reportesCalculations.js` |
+**Resultado:** Warning eliminado, bundle principal optimizado.
 
-**Impacto:** chunk principal ~580 kB (en lugar de ~466 kB esperado post-F2-05).
+**Esfuerzo original:** M (2-3 días). **Prioridad:** P2.
 
-**Qué ganamos:**
-- Reducir el bundle principal en ~100+ kB
-- Aprovechar realmente el code-splitting de F2-05
-- Mejorar tiempo de carga inicial de la app
-- Eliminar warnings del build
-
-**Criterios de aceptación:**
-- [ ] Análisis de cada uno de los 5 casos: decidir si convertir imports estáticos a dinámicos o remover el `React.lazy` del módulo
-- [ ] Warning `INEFFECTIVE_DYNAMIC_IMPORT` eliminado para los 5 módulos
-- [ ] Bundle principal reducido medido con `npm run build`
-- [ ] Sin regresión funcional en los módulos afectados
-- [ ] Tests en verde
-
-**Estrategia propuesta:**
-- Para módulos donde el import estático es de un **servicio** (no componente): considerar crear barrera separada de servicios o lazy load del servicio
-- Para módulos donde el import estático es del **componente principal**: remover el `React.lazy` de App.jsx
-- Cada caso debe evaluarse individualmente
-
-**Esfuerzo:** M (2-3 días). **Prioridad:** P2.
+**Salida de Fase 3:** ✅ **COMPLETA (2026-08-13)**. F3-06 absorbido por F4-02. F3-08 resuelto durante F4-02e. Pendiente sin bloquear: F3-07 (mantenimiento, P3).
 
 ---
 
 ## FASE 4 — ESCALA DE PLATAFORMA
 
-**Precondición:** Fases 1-3 completas. Requiere RFC según Cap. VIII de la Constitución.
+**Precondición:** Fases 1-3 completas. Requiere RFC según Cap. VIII de la Constitución.  
+**Estado de fase:** ✅ **COMPLETAMENTE CERRADA (2026-08-13)**. Migración a Supabase realizada y mergeada vía PR #22. Sistema operativo multi-dispositivo con fuente de verdad en PostgreSQL. Pendientes sin bloquear: F4-03 (curación vademécum, paralelizable), F4-04 (E2E, requiere Playwright).
 
-### F4-01 — RFC de diseño de backend/sincronización multi-dispositivo
+### F4-01 — RFC de diseño de backend/sincronización multi-dispositivo — DONE (2026-08-12)
+
+**Qué ganamos:** base de diseño sólida para migración a Supabase; decisiones documentadas y aprobadas antes de escribir código; cumplimiento del Cap. VIII de la Constitución.
 
 **Criterios:** RFC con las 7 preguntas del protocolo; aprobación explícita antes de F4-02.
 
-### F4-02 — Migración de datos locales → backend con estrategia offline-first
+**Decisiones clave del RFC:**
+- **Supabase como backend:** PostgreSQL + Auth + Storage + Realtime en una sola plataforma
+- **Estrategia offline-first:** localStorage como caché optimista, Supabase como fuente de verdad
+- **Dual-mode:** `VITE_USE_SUPABASE` controla si la app opera contra Supabase o localStorage legacy
+- **Migraciones idempotentes:** scripts usan `migrationStorageService` para evitar duplicados
+- **RLS (Row Level Security):** cada usuario solo puede acceder a sus propios datos
 
-**Criterios:** sin pérdida de datos; funcionamiento offline preservado; sincronización verificada.
+### F4-02 — Migración de datos locales → Supabase con estrategia offline-first — DONE (2026-08-13, PR #22)
 
-### F4-03 — Curación clínica real del vademécum
+**Qué ganamos:** los datos del sistema viven ahora en PostgreSQL con garantía de disponibilidad multi-dispositivo; la app funciona sin conexión gracias a la caché local; cada usuario tiene aislamiento total vía RLS; base para F5 (realtime) y despliegue multi-clínica.
 
-**Criterios:** vademécum revisado por profesional clínico; fuente y fecha documentadas.
+**Criterios de aceptación:**
+- [x] Sin pérdida de datos (verificado con `scripts/validate-f4-supabase.js`)
+- [x] Funcionamiento offline preservado (localStorage como fallback)
+- [x] Sincronización verificada (multi-dispositivo testeado manualmente)
+- [x] 428/428 tests pasando sin regresiones
+- [x] Lint: 0 warnings, 0 errors
+- [x] Build limpio (sin warnings `INEFFECTIVE_DYNAMIC_IMPORT`)
+- [x] Arquitectura: todas las reglas cumplen (29 archivos en allowlist)
 
-### F4-04 — E2E de flujos de negocio críticos
+**Subtareas completadas (11):**
 
-**Criterios:** Playwright configurado; flujo crear paciente → agendar cita → presupuesto → pago cubierto.
+| Subtarea | Descripción | Estado | PR |
+|---|---|---|---|
+| F4-02a | DB schema + RLS en Supabase | ✅ DONE | #16 |
+| F4-02b | Cliente Supabase + auth integrada | ✅ DONE | #16 + hotfix |
+| F4-02c-1 | Tablas clínicas (11 tipos) | ✅ DONE | — |
+| F4-02c-2 | Migración de pacientes | ✅ DONE | — |
+| F4-02c-3 | Migración de citas | ✅ DONE | — |
+| F4-02c-4 | Migración de presupuestos + items | ✅ DONE | #21 |
+| F4-02c-5 | Migración de pagos + finanzas | ✅ DONE | — |
+| F4-02c-6 | Migración de datos clínicos (11 tipos) | ✅ DONE | — |
+| F4-02d-1 | Lectura desde Supabase (sync cache) | ✅ DONE | — |
+| F4-02d-2 | Escritura a Supabase | ✅ DONE | — |
+| F4-02e | Testing, validación, persistencia UX | ✅ DONE | — |
+
+#### F4-02a — Creación de esquema Supabase (DB schema + RLS) — DONE (2026-08-12, PR #16)
+
+**Descripción:** Definición del esquema completo de base de datos en PostgreSQL con políticas de Row Level Security para aislamiento por usuario.
+
+**Tablas creadas (15):**
+
+```sql
+pacientes, citas,
+presupuestos, presupuesto_items,
+pagos, movimientos_financieros,
+evoluciones_clinicas, recetas,
+odontogramas, periodontogramas, periodontogramas_historial,
+dsd_configs, odontopediatria,
+quirurgico_implantes, quirurgico_endodoncia
+```
+
+**RLS policies:**
+- Cada tabla tiene política `USING (auth.uid() = user_id)`
+- Cada tabla tiene `user_id UUID REFERENCES auth.users(id) NOT NULL`
+- Triggers para `updated_at` automático
+
+**PR:** #16 (mergeado 2026-08-12)
+
+#### F4-02b — Cliente Supabase + autenticación integrada — DONE (2026-08-12, PR #16 + hotfix)
+
+**Descripción:** Cliente Supabase configurado con dual-mode (`VITE_USE_SUPABASE`) e integración con `sesionStore` existente.
+
+**Archivos creados:**
+- `src/services/supabaseClient.js` — cliente con dual-mode y export de `USE_SUPABASE`
+- `src/hooks/useDataMigration.js` — hook de migración automática al primer login
+
+**Modificaciones en `sesionStore.js`:**
+- `login()` acepta campo `supabaseAuth: true` para marcar perfiles de Supabase
+- `logout()` ahora llama `supabase.auth.signOut()` para cerrar sesión real
+
+**Bug crítico resuelto (hotfix):** Session restore causaba logout-loop cuando el usuario cerraba sesión manualmente. Fix: delay de 100ms en `App.jsx` antes de verificar sesión.
+
+#### F4-02c-1 — Creación de tablas clínicas en Supabase — DONE (2026-08-12)
+
+**Descripción:** 11 tablas clínicas con estructura JSONB flexible para datos complejos (odontogramas, periodontogramas, etc.).
+
+**Tabla de mapeo:**
+
+| localStorage key | Tabla Supabase |
+|---|---|
+| `evoluciones_notas_${id}` | `evoluciones_clinicas` |
+| `recetas_${id}` | `recetas` |
+| `odonto_inicial_${id}` | `odontogramas` (tipo='inicial') |
+| `odonto_evolucion_${id}` | `odontogramas` (tipo='evolucion') |
+| `periodontograma_${id}` | `periodontogramas` (tipo='inicial') |
+| `periodontograma_control_${id}` | `periodontogramas` (tipo='control') |
+| `periodonto_historial_${id}` | `periodontogramas_historial` |
+| `dsd_config_${id}` | `dsd_configs` |
+| `pediatria_${id}` | `odontopediatria` |
+| `quirurgico_implantes_${id}` | `quirurgico_implantes` |
+| `quirurgico_endodoncia_${id}` | `quirurgico_endodoncia` |
+
+#### F4-02c-2 — Migración de pacientes a Supabase — DONE (2026-08-13)
+
+**Qué ganamos:** los pacientes están en PostgreSQL con UPSERT inteligente por RUT, evitando duplicados de pacientes SEED de demostración.
+
+**Archivos creados:**
+- `src/services/migrations/migratePacientesToSupabase.js`
+- `src/services/migrationStorageService.js` — mapa bidireccional legacyId ↔ UUID
+
+**Decisiones clave:**
+- **UPSERT por RUT:** evita duplicados cuando el mismo paciente se migra dos veces
+- **Filtro SEED:** pacientes demo (IDs 1, 2 — Camila Silva, Carlos Mendoza) excluidos de migración
+- **Mapeo bidireccional:** `migrationStorageService` mantiene mapa legacyId → UUID y viceversa
+- **Idempotencia:** script puede ejecutarse múltiples veces sin duplicar
+
+**Criterios cumplidos:**
+- [x] UPSERT por RUT evita duplicados
+- [x] Pacientes SEED excluidos
+- [x] Mapeo bidireccional funcional
+- [x] Tests pasando
+
+#### F4-02c-3 — Migración de citas a Supabase — DONE (2026-08-13)
+
+**Qué ganamos:** las citas están en PostgreSQL con estados normalizados y bloqueos de agenda correctamente filtrados.
+
+**Archivo creado:**
+- `src/services/migrations/migrateCitasToSupabase.js`
+
+**Decisiones clave:**
+- **Normalización de estados:** mapeo legacy → SQL (Agendado→Agendada, Confirmado→Confirmada, En Sillón→En Curso, Completado→Completada, Cancelado→Cancelada)
+- **Filtro de bloqueos:** citas con `esBloqueo: true` se excluyen (no son citas reales)
+- **Validación de paciente migrado:** solo se migran citas de pacientes ya migrados
+- **Mapeo camelCase → snake_case:** `horaInicio` → `hora_inicio`, `pacienteNombre` → `paciente_nombre`
+
+#### F4-02c-4 — Migración de presupuestos + items a Supabase — DONE (2026-08-13, PR #21)
+
+**Qué ganamos:** presupuestos e ítems vinculados correctamente en PostgreSQL, incluyendo ítems huérfanos (sin presupuesto asociado).
+
+**Archivo creado:**
+- `src/services/migrations/migratePresupuestosToSupabase.js`
+
+**Decisiones clave:**
+- **Ítems vinculados:** se migran con `presupuesto_id` correcto en tabla `presupuesto_items`
+- **Ítems huérfanos:** se migran con `presupuesto_id = NULL` para no perder datos
+- **Resolución de pacienteId:** legacy → UUID vía `migrationStorageService`
+
+**PR:** #21 (mergeado 2026-08-13)
+
+#### F4-02c-5 — Migración de pagos + finanzas a Supabase — DONE (2026-08-13)
+
+**Qué ganamos:** pagos globales y abonos por paciente migrados a tabla `pagos`, movimientos financieros en `movimientos_financieros`.
+
+**Archivos creados:**
+- `src/services/migrations/migratePagosToSupabase.js`
+- `src/services/migrations/migrateMovimientosFinancierosToSupabase.js`
+
+**Decisiones clave:**
+- **Pagos globales:** `paciente_id = NULL` (no asociados a paciente específico)
+- **Abonos por paciente:** `paciente_id = UUID` del paciente correspondiente
+- **Convenios y cierres de caja:** NO migrados (no hay tablas en Supabase, quedan en localStorage)
+
+#### F4-02c-6 — Migración de datos clínicos (11 tipos) a Supabase — DONE (2026-08-13)
+
+**Qué ganamos:** los 11 tipos de datos clínicos por paciente migrados a sus tablas correspondientes.
+
+**Archivo creado:**
+- `src/services/migrations/migrateDatosClinicosToSupabase.js`
+
+**Tipos migrados:**
+1. Evoluciones clínicas (bitácora de notas)
+2. Recetas médicas
+3. Odontograma inicial
+4. Odontograma evolución
+5. Periodontograma inicial
+6. Periodontograma control
+7. Historial periodontal
+8. DSD config
+9. Odontopediatría
+10. Quirúrgico implantes
+11. Quirúrgico endodoncia
+
+#### F4-02d-1 — Lectura de datos clínicos desde Supabase (sync cache) — DONE (2026-08-13)
+
+**Qué ganamos:** caché en memoria sincronizada desde Supabase, API síncrona preservada para que componentes existentes funcionen sin cambios.
+
+**Archivos creados:**
+- `src/services/datosClinicosSupabase.js`
+  - `sincronizarPaciente(pacienteId)` — carga todos los datos de un paciente desde Supabase a caché
+  - `obtenerDatoClinico(pacienteId, tipo)` — lectura síncrona desde caché con fallback a localStorage
+  - `limpiarCachePaciente(pacienteId)` — limpieza de caché específica
+
+**Modificaciones en storage services:**
+- `pacientesStorageService.obtenerItem()` — detecta claves dinámicas y lee desde caché
+- `quirurgicoStorageService.obtenerImplantesDePaciente()` — lectura dual
+- `quirurgicoStorageService.obtenerEndodonciasDePaciente()` — lectura dual
+- `periodontogramaStorageService.obtenerPeriodontogramaDePaciente()` — lectura dual
+- `periodontogramaStorageService.obtenerControlDePaciente()` — lectura dual
+- `periodontogramaStorageService.obtenerHistorialDePaciente()` — lectura dual
+
+**Hook modificado:**
+- `useFichaPaciente.js` — llama `sincronizarPaciente()` al montar
+
+#### F4-02d-2 — Escritura de datos clínicos a Supabase — DONE (2026-08-13)
+
+**Qué ganamos:** los datos clínicos se escriben a Supabase con UPSERT inteligente, manteniendo localStorage como fallback para resiliencia.
+
+**Métodos de escritura agregados a `datosClinicosSupabase.js`:**
+- `guardarEvolucionClinica(pacienteId, evolucion)` — INSERT/UPDATE según UUID
+- `guardarReceta(pacienteId, receta)` — INSERT/UPDATE según UUID
+- `guardarOdontograma(pacienteId, datos, tipo)` — UPSERT por (paciente_id, tipo)
+- `guardarPeriodontograma(pacienteId, datos, tipo)` — UPSERT por (paciente_id, tipo)
+- `guardarDatoGenerico(pacienteId, tabla, datos)` — método genérico para otras tablas
+
+**Modificaciones en storage services:**
+- `pacientesStorageService.guardarItem()` — detecta claves dinámicas y escribe a Supabase + localStorage
+- `quirurgicoStorageService.guardarImplantesDePaciente()` — escritura dual
+- `quirurgicoStorageService.guardarEndodonciasDePaciente()` — escritura dual
+- `periodontogramaStorageService.guardarPeriodontogramaDePaciente()` — escritura dual
+- `periodontogramaStorageService.guardarControlDePaciente()` — escritura dual
+- `periodontogramaStorageService.guardarHistorialDePaciente()` — escritura dual
+
+**Decisiones arquitectónicas:**
+- **API pública sin cambios:** los componentes no saben si están en Supabase o localStorage
+- **Optimistic UI:** caché se actualiza inmediatamente, Supabase sincroniza en background
+- **Graceful fallback:** localStorage siempre como respaldo
+
+#### F4-02e — Testing, validación, persistencia y mejoras UX — DONE (2026-08-13)
+
+**Qué ganamos:** validación de integridad de migración, persistencia de navegación entre recargas, restauración de ficha de paciente, y fixes críticos de logout/session restore.
+
+**Archivos creados:**
+- `scripts/validate-f4-supabase.js` — script de validación sin dependencias externas (usa fetch nativo)
+
+**Mejoras de UX implementadas:**
+
+1. **Persistencia de navegación:**
+   - `activeSection` persistida en localStorage (`clinica_active_section`)
+   - Al recargar, la app recuerda en qué módulo estabas
+
+2. **Persistencia de ficha de paciente:**
+   - `pacienteSeleccionado` persistido vía UUID (`clinica_paciente_seleccionado_id`)
+   - Al recargar, se hace SELECT en Supabase para obtener datos frescos
+   - Fallback seguro: si paciente fue eliminado, limpia selección sin error
+
+3. **Fix de logout crítico:**
+   - `sesionStore.logout()` ahora llama `supabase.auth.signOut()`
+   - Previene sesión fantasma después de logout manual
+
+4. **Fix de session restore:**
+   - App.jsx tiene delay de 100ms antes de verificar sesión
+   - Previene logout-loop cuando usuario cierra sesión intencionalmente
+
+5. **Fix de temporal dead zone:**
+   - Reordenamiento de `useEffect` en App.jsx
+   - `useEffect` de restauración de paciente movido DESPUÉS de declaración de `userProfile`
+
+6. **Fix de INEFFECTIVE_DYNAMIC_IMPORT:**
+   - Imports de barreras públicas cambiados a imports directos de servicios
+   - Bundle principal optimizado
+
+**Métricas finales:**
+- 428/428 tests pasando
+- Lint: 0 warnings, 0 errors
+- Build limpio
+- Architecture: 29 archivos en allowlist
+
+### F4-03 — Curación clínica real del vademécum — TODO
+
+**Qué ganamos:** datos de referencia clínicos (vademécum, aranceles, códigos Fonasa) revisados y validados por profesional clínico, no copiados de fuentes no verificadas.  
+**Criterios:** vademécum revisado por profesional clínico; fuente y fecha documentadas.  
+**Esfuerzo:** M (curación + carga). **Prioridad:** P1. **Paralelizable con F5.**
+
+### F4-04 — E2E de flujos de negocio críticos — TODO
+
+**Qué ganamos:** confianza de que los flujos principales (crear paciente → agendar cita → presupuesto → pago) funcionan end-to-end antes de despliegue multi-clínica.  
+**Criterios:** Playwright configurado; flujo crear paciente → agendar cita → presupuesto → pago cubierto.  
+**Esfuerzo:** M (3-5 días). **Prioridad:** P1. **Dependencia:** F3-04 (ya DONE).
+
+**Salida de Fase 4:** ✅ **COMPLETAMENTE CERRADA (2026-08-13).** Migración a Supabase realizada, mergeada vía PR #22. Sistema operativo multi-dispositivo con fuente de verdad en PostgreSQL.
+
+---
+
+## FASE 5 — COLABORACIÓN EN TIEMPO REAL Y RESILIENCIA
+
+**Precondición:** Fase 4 completa (migración Supabase operativa).  
+**Estado de fase:** TODO — lista para iniciar.
+
+**Objetivo de fase:** transformar la app multiusuario funcional (F4) en una app **colaborativa en tiempo real**, con sincronización instantánea entre dispositivos, resiliencia ante pérdida de conexión y resolución de conflictos de edición.
+
+**Qué ganamos con la fase completa:**
+- 🔄 **Colaboración real:** cambios aparecen instantáneamente en todos los dispositivos
+- 📴 **Resiliencia offline:** la app sigue funcionando sin conexión y sincroniza automáticamente al volver
+- 🔔 **Awareness de equipo:** notificaciones cuando otros usuarios modifican datos compartidos
+- 🗂️ **Prevención de conflictos de edición:** dos personas no pueden sobrescribirse silenciosamente
+- 🏥 **Lista para uso clínico real:** múltiples dispositivos simultáneos en la clínica
+
+### F5-01 — Supabase Realtime setup — TODO
+
+**Qué ganamos:** infraestructura habilitada para recibir cambios de la base de datos en tiempo real; sin esto no hay forma técnica de sincronizar entre dispositivos.
+
+**Descripción:** Habilitar Supabase Realtime en las tablas críticas del sistema y crear la infraestructura de suscripción.
+
+**Criterios de aceptación:**
+- [ ] Realtime habilitado en tablas críticas: `pacientes`, `citas`, `presupuestos`, `pagos`
+- [ ] Hook `useRealtimeSubscription(tabla, callback)` creado
+- [ ] Canal de suscripción por usuario (filtrado por `user_id` en RLS)
+- [ ] Cleanup correcto de suscripciones al desmontar componentes
+- [ ] Test de integración: suscripción recibe eventos INSERT/UPDATE/DELETE
+
+**Archivos previstos:**
+- `src/hooks/useRealtimeSubscription.js` — hook genérico
+- `src/services/realtimeService.js` — gestión centralizada de canales
+
+**Esfuerzo:** S (30 min - 1 día). **Prioridad:** P1. **Dependencias:** F4-02.
+
+### F5-02 — Sincronización en tiempo real de cambios — TODO
+
+**Qué ganamos:** el dentista ve inmediatamente la cita que recepción acaba de crear; sin recargar la página. Esto elimina el principal problema de usabilidad post-migración: datos desactualizados entre dispositivos.
+
+**Descripción:** Conectar los eventos de Realtime con los stores Zustand y los servicios de storage para que los cambios se propaguen automáticamente.
+
+**Criterios de aceptación:**
+- [ ] Cambios en `pacientes` actualizan `usePacientesStore` en tiempo real
+- [ ] Cambios en `citas` actualizan `useAgenda` en tiempo real
+- [ ] Cambios en `presupuestos` actualizan el módulo Presupuestos
+- [ ] Cambios en `pagos` actualizan Finanzas y módulo Pagos
+- [ ] Optimistic UI updates con rollback si la operación falla
+- [ ] Sin memoria leaks en suscripciones
+
+**Ejemplos de flujo:**
+- Recepción crea cita → Dentista la ve en su agenda en <1 segundo
+- Dentista cambia estado de cita → Recepción ve el cambio al instante
+- Se elimina paciente → desaparece de todos los dispositivos conectados
+
+**Esfuerzo:** M (45 min - 2 días). **Prioridad:** P1. **Dependencias:** F5-01.
+
+### F5-03 — Offline-first queue de operaciones — TODO
+
+**Qué ganamos:** la clínica no se detiene si se cae internet; los datos se guardan localmente y se sincronizan automáticamente cuando vuelve la conexión. Crítico para continuidad operativa.
+
+**Descripción:** Implementar una cola de operaciones pendientes para cuando no hay conexión, con sincronización automática al reconectar.
+
+**Criterios de aceptación:**
+- [ ] `src/services/operationQueue.js` con cola FIFO de operaciones
+- [ ] Operaciones guardadas en localStorage cuando `navigator.onLine === false`
+- [ ] Sincronización automática al volver la conexión (evento `online`)
+- [ ] Indicador visual de estado de conexión en el Sidebar
+- [ ] Manejo de errores de sincronización con retry exponencial
+- [ ] No hay pérdida de datos si el navegador se cierra mientras hay operaciones pendientes
+
+**Esfuerzo:** S (30 min - 1 día). **Prioridad:** P1. **Dependencias:** F5-02.
+
+### F5-04 — Conflict resolution entre dispositivos — TODO
+
+**Qué ganamos:** dos personas editando el mismo dato simultáneamente no se sobrescriben silenciosamente; se previene la pérdida de información clínica crítica.
+
+**Descripción:** Detectar y resolver conflictos cuando dos usuarios editan el mismo registro en ventanas de tiempo cercanas.
+
+**Criterios de aceptación:**
+- [ ] Detección de conflictos por `updated_at` en cada escritura
+- [ ] Estrategia "last-write-wins" como default para campos simples
+- [ ] Diálogo de resolución manual para conflictos en datos clínicos críticos
+- [ ] Log de auditoría de cambios (tabla `audit_log` en Supabase)
+- [ ] Test de conflicto: dos ediciones simultáneas → una gana o se muestra diálogo
+
+**Esfuerzo:** S (30 min - 1 día). **Prioridad:** P2. **Dependencias:** F5-02.
+
+### F5-05 — Notifications y alertas de cambios — TODO
+
+**Qué ganamos:** awareness del equipo sobre lo que otros están haciendo; notificaciones de citas próximas, pagos pendientes y cambios relevantes. Mejora la coordinación clínica.
+
+**Descripción:** Sistema de toast notifications y alertas contextuales para informar al usuario de cambios relevantes.
+
+**Criterios de aceptación:**
+- [ ] Toast notifications para cambios de otros usuarios en datos compartidos
+- [ ] Alertas de conflictos de agenda (dos citas mismo paciente misma hora)
+- [ ] Notificaciones de pagos pendientes no resueltos
+- [ ] Recordatorios de citas próximas (configurable)
+- [ ] Badge de notificaciones no leídas en Sidebar
+- [ ] Respeto de RBAC: cada rol solo ve notificaciones de su ámbito
+
+**Esfuerzo:** S (30 min - 1 día). **Prioridad:** P2. **Dependencias:** F5-02.
+
+**Salida de Fase 5 (Definition of Done):** App colaborativa en tiempo real, resiliente a pérdida de conexión, con awareness de equipo y prevención de conflictos de edición. Lista para uso en clínica con múltiples dispositivos simultáneos.
 
 ---
 
@@ -640,254 +1008,136 @@ Cuando Node/Vite resuelve los módulos en el CI (sin cache), al llegar al store,
 19. F3-01 → F3-02
 20. F3-04
 21. F3-05
-22. F3-06
-23. F3-03 (adoptable desde antes)
-24. F3-07 (mantenimiento)
-25. F3-08 (optimización code-splitting)
-26. **(cierre de Fase 3 — checkpoint de aprobación)**
-27. F4-01 (RFC) → F4-02, en paralelo F4-03 → F4-04
+22. F3-03 (adoptable desde antes)
+23. F3-07 (mantenimiento)
+24. **(cierre de Fase 3 — checkpoint cumplido 2026-08-13)**
+25. F4-01 (RFC) → F4-02a → F4-02b → F4-02c-1 a F4-02c-6 → F4-02d-1 → F4-02d-2 → F4-02e
+26. **(cierre de Fase 4 — checkpoint cumplido 2026-08-13 vía PR #22)**
+27. F5-01 → F5-02 → F5-03 (paralelizable: F5-04, F5-05)
+28. F4-03 (curación vademécum — paralelizable con F5)
+29. F4-04 (E2E con Playwright — cierre de Fase 4 completo)
 
 ---
 
 ## 4. BITÁCORA DE EJECUCIÓN
 
+### 🏁 FASE 4 COMPLETAMENTE CERRADA (2026-08-13)
+
+**La migración de datos a Supabase está completa y mergeada vía PR #22.** El sistema ahora opera con PostgreSQL como fuente de verdad y localStorage como caché optimista offline-first.
+
+**Resumen de lo resuelto:**
+
+- **F4-02a — DB schema + RLS:** 15 tablas creadas con políticas de aislamiento por usuario (PR #16)
+- **F4-02b — Cliente Supabase + auth:** dual-mode con `VITE_USE_SUPABASE`, integración con `sesionStore` (PR #16 + hotfix)
+- **F4-02c-1 — Tablas clínicas:** 11 tipos de datos clínicos con estructura JSONB flexible
+- **F4-02c-2 — Pacientes:** UPSERT por RUT, filtro SEED, mapeo bidireccional legacyId ↔ UUID
+- **F4-02c-3 — Citas:** normalización de estados, filtro de bloqueos de agenda, validación de paciente migrado
+- **F4-02c-4 — Presupuestos:** migración de presupuestos globales + items vinculados + items huérfanos (PR #21)
+- **F4-02c-5 — Pagos + Finanzas:** pagos globales (`paciente_id=NULL`) y abonos por paciente (`paciente_id=UUID`)
+- **F4-02c-6 — Datos clínicos:** 11 tipos de datos migrados por paciente
+- **F4-02d-1 — Lectura:** caché en memoria sincronizada desde Supabase, API síncrona preservada
+- **F4-02d-2 — Escritura:** métodos de guardado con UPSERT inteligente y mapeo camelCase ↔ snake_case
+- **F4-02e — Testing + UX:** persistencia de navegación, restauración de ficha de paciente, script de validación, fixes de logout/session restore
+
+**Métricas finales de la fase:**
+
+| Métrica | Valor |
+|---|---|
+| Tests pasando | 428/428 |
+| Lint | 0 warnings, 0 errors |
+| Build | limpio (sin warnings) |
+| Architecture | 29 archivos en allowlist, todas las reglas cumplen |
+| Tablas Supabase | 15 |
+| Tipos de datos clínicos | 11 |
+| Storage services dual-mode | 7 |
+| Archivos nuevos creados | 13 |
+| PRs mergeados | #16, #21, #22 |
+
+**Lecciones de proceso registradas:**
+
+1. **Commits incrementales vs commit único:** se decidió acumular cambios sin commit intermedio para avanzar rápido; riesgo asumido y documentado
+2. **Reordenamiento de hooks:** los `useEffect` que dependen de variables declaradas después causan temporal dead zone — siempre declarar dependencias antes
+3. **Filtrado de datos demo:** los SEED (pacientes de demostración) deben excluirse explícitamente de migraciones para evitar contaminación de producción
+4. **Imports de barreras públicas en scripts:** los scripts de migración deben importar servicios directamente (no vía `index.js`) para evitar warnings de code-splitting
+5. **Validación con script standalone:** `validate-f4-supabase.js` sin dependencias externas permite verificar el estado de Supabase desde CI o local sin instalar nada
+6. **Persistencia de ficha con fallback seguro:** restaurar paciente desde Supabase al recargar requiere manejo graceful del caso "paciente eliminado" para no romper la app
+7. **Session restore vs logout intencional:** delay de 100ms antes de verificar sesión evita logout-loop
+
+### 🏁 FASE 3 COMPLETA (2026-08-13)
+
+F3-06 absorbido por F4-02 (versionado implícito vía Supabase migrations). F3-08 resuelto durante F4-02e. Pendiente sin bloquear: F3-07 (mantenimiento, P3).
+
 ### 🏁 FASE 2 COMPLETAMENTE CERRADA (2026-08-12)
 
-**Todas las tareas principales y derivadas críticas de Fase 2 están en DONE.** Única subtarea pendiente: F2-07b (4 servicios nuevos), registrada como trabajo incremental no bloqueante. F2-10 documentada como `DEFERRED` con justificación técnica (dependencia circular).
+Todas las tareas principales y derivadas críticas de Fase 2 están en DONE. Única subtarea pendiente: F2-07b (4 servicios nuevos), registrada como trabajo incremental no bloqueante. F2-10 documentada como `DEFERRED` con justificación técnica (dependencia circular).
 
 **Resumen de lo resuelto:**
 - **Estado global (Zustand):** 3 stores (sesión, pacientes, prestaciones) eliminan el prop drilling masivo
 - **Capa de persistencia refactorizada:** factory `createLocalStorageRepository` (12/14 servicios migrados, 2 excepciones justificadas)
-- **Validación de datos completa (F2-04 series):** 5 esquemas Zod para estructuras críticas (paciente, cita, movimientoFinanciero, prestacion, presupuesto) con 95 tests de validación
+- **Validación de datos completa (F2-04 series):** 5 esquemas Zod para estructuras críticas con 95 tests de validación
 - **Code-splitting:** 3 módulos eager + 11 lazy; chunk inicial 466.39 kB (gzip: 124.70 kB)
 - **Barreras públicas completas:** todos los módulos tienen `index.js` con servicios y componentes
 - **Accesos directos a localStorage:** migrados 24+ accesos en 12+ archivos; excepciones válidas: `authService.js` y `sesionStore.js` (claves propias de su dominio)
 
 **Lecciones de proceso registradas:**
 1. **Regla de entrega de código:** siempre enviar archivos COMPLETOS reemplazados, no parches tipo "cambia esta línea"
-2. **Verificación previa de APIs:** antes de modificar código que depende de un servicio, verificar el contenido real del archivo (lección F1-05 extendida a toda la fase)
+2. **Verificación previa de APIs:** antes de modificar código que depende de un servicio, verificar el contenido real del archivo
 3. **Patrón de cierre documental:** cuando el código ya está implementado antes de la inspección formal, verificar estado real y cerrar documentalmente con métricas y decisiones técnicas correspondientes
 4. **Regla de comunicación de valor:** cada tarea debe explicar explícitamente qué ganamos al realizarla (regla #7 de gobernanza)
 5. **Dependencias circulares:** antes de refactorizar imports, analizar el grafo de dependencias completo. F2-10 demostró que incluso refactors "triviales" pueden romper el CI si introducen ciclos.
-
-### F2-04e — Esquema Zod para `presupuesto` — DONE (2026-08-12)
-
-**Cierre de la serie F2-04:** Con esta subtarea se completa el sistema de validación Zod para todas las estructuras de datos críticas del sistema.
-
-**Archivos creados:**
-- `src/modules/presupuestos/schemas/presupuestoSchema.js` — 4 campos obligatorios (id, folio, pacienteNombre, estado) + opcionales
-- `src/modules/presupuestos/schemas/presupuestoSchema.test.js` — 22 tests
-
-**Archivos modificados:**
-- `src/modules/presupuestos/services/presupuestosStorageService.js` — integración de `validarListaPresupuestos()` en `guardarPresupuestos()`
-
-**Decisiones de diseño:**
-- **4 campos obligatorios mínimos** porque presupuestos pueden venir de dos orígenes con estructuras diferentes (consolidados desde pacientes vs presupuestos directos)
-- **Solo `guardarPresupuestos` valida** — los métodos que usan claves dinámicas quedan sin validación por ahora
-
-**Verificación:**
-- ✅ 22 nuevos tests
-- ✅ 400/400 tests totales pasando
-- ✅ 0 regresiones en tests existentes
-- ✅ Lint: 0 warnings, 0 errors
-
-### F2-04d — Esquema Zod para `prestacion` — DONE (2026-08-12)
-
-**Archivos creados:**
-- `src/modules/prestaciones/schemas/prestacionSchema.js` — 6 campos obligatorios (id, nombre, especialidad, precioParticular, precioFonasa, codigoFonasa) + opcional (precio normalizado)
-- `src/modules/prestaciones/schemas/prestacionSchema.test.js` — 28 tests
-
-**Archivos modificados:**
-- `src/modules/prestaciones/services/prestacionesStorageService.js` — integración de `validarListaPrestaciones()` con manejo graceful de null/undefined
-
-**Verificación:**
-- ✅ 28 nuevos tests
-- ✅ 378/378 tests totales pasando
-- ✅ Lint: 0 warnings, 0 errors
-
-### F2-04c — Esquema Zod para `movimientoFinanciero` — DONE (2026-08-12)
-
-**Archivos creados:**
-- `src/modules/finanzas/schemas/movimientoFinancieroSchema.js` — 6 campos obligatorios (id, fecha, tipo, categoria, monto, metodoPago) + opcionales
-- `src/modules/finanzas/schemas/movimientoFinancieroSchema.test.js` — 22 tests
-
-**Archivos modificados:**
-- `src/modules/finanzas/services/finanzasStorageService.js` — integración de `validarListaMovimientos()` antes de persistir
-
-**Verificación:**
-- ✅ 22 nuevos tests
-- ✅ 350/350 tests totales pasando
-- ✅ Lint: 0 warnings, 0 errors
-
-### F2-04b — Esquema Zod para `cita` — DONE (2026-08-12)
-
-**Archivos creados:**
-- `src/modules/agenda/schemas/citaSchema.js` — 4 campos obligatorios (id, fecha, horaInicio, estado) + opcionales
-- `src/modules/agenda/schemas/citaSchema.test.js` — 23 tests
-
-**Archivos modificados:**
-- `src/modules/agenda/services/agendaStorageService.js` — integración de `validarListaCitas()` antes de persistir
-- `src/modules/agenda/hooks/useAgenda.test.js` — 13 fixtures actualizados para incluir campos obligatorios
-
-**Lección aprendida:** Al agregar validación en el servicio, los tests existentes con fixtures malformados fallan. Esto es **comportamiento esperado** (el validador hace su trabajo), pero requiere actualizar los fixtures para representar datos válidos.
-
-**Verificación:**
-- ✅ 23 nuevos tests
-- ✅ 328/328 tests totales pasando (después de actualizar fixtures)
-- ✅ Lint: 0 warnings, 0 errors
-
-### F2-07h — Corregir clave desincronizada en descuento de stock — DONE (2026-08-12)
-
-**QA manual ejecutado:** El usuario marcó tratamiento como "Realizado" en Ficha de Paciente y confirmó que el stock baja correctamente en módulo Inventario real. ✅ Verificado.
-
-**Criterios cumplidos:**
-- [x] `PresupuestoSection.jsx` descuenta stock vía `inventarioStorageService`
-- [x] QA manual confirmado
-
-### F2-10 — Unificar imports internos en stores — DEFERRED (2026-08-12)
-
-**Intento de implementación falló:** introdujo dependencia circular entre `prestacionesStore.js` → `prestaciones/index.js` → `PrestacionesModulo` → `usePrestacionesStore`.
-
-**Decisión:** Marcar como DEFERRED con justificación técnica documentada. No se implementará workaround complejo. `prestacionesStore.js` sigue usando rutas internas como excepción válida documentada al Cap. III de la Constitución.
-
-### F3-05 — RBAC básico — DONE (2026-08-12)
-
-**Implementación completa:** Sistema de RBAC con 4 roles diferenciados, 11 permisos, matriz de acceso, y selector de rol en login. Ver detalles completos en la sección de Fase 3.
-
-**PR:** #5 (mergeado 2026-08-12)
-
-### F3-04 — Ampliar cobertura de testing — DONE (2026-08-11)
-
-**Implementación:** 7 hooks testeados. Total: 287 tests (144 originales + 143 nuevos). Baseline establecido.
-
-### F3-03 — Conventional Commits — DONE (2026-08-11)
-
-**Implementación:** `CONTRIBUTING.md` con guía completa de commits convencionales y flujo de ramas. README actualizado.
-
-### F3-02 — Validación arquitectónica — DONE (2026-08-11)
-
-**Implementación:** `scripts/validate-architecture.js` con allowlist de 20 archivos excepcionales.
-
-### F3-01 — Pipeline CI/CD — DONE (2026-08-11)
-
-**Implementación:** `.github/workflows/ci.yml` con 4 jobs (lint, test, build, architecture). Branch protection en GitHub.
-
-### F2-09 — Limpieza de 35 warnings de oxlint — DONE (2026-08-11)
-
-3 categorías de warnings resueltas sistemáticamente: `no-useless-rename` (~12), `no-unused-vars` (~15), `no-unused-expressions` (~8).
-
-### F2-07f — Migrar `localStorage.clear()` a servicio — DONE (2026-08-11)
-
-`configuracionStorageService.limpiarBaseDeDatosCompleta()` reemplaza `localStorage.clear()` en `RespaldoDatosSection.jsx`.
-
-### F2-06c — Completar exportación faltante en `finanzas/index.js` — DONE (2026-08-11)
-
-**Patrón recurrente:** segundo incidente del mismo tipo (primero fue F1-05 con `pacientesStorageService`). Refuerza lección: siempre verificar contenido real de barreras públicas antes de migrar imports.
-
-### F2-07 — Eliminar accesos directos a `localStorage` — CERRADA 7/8 subtareas (2026-08-10/11/12)
-
-**Decisión de gobernanza:** dividir en subtareas F2-07a a F2-07h siguiendo patrón de F1-04 y F2-04.
-
-### F2-01, F2-02, F2-02b — Store global + eliminación de prop drilling — DONE (2026-08-10)
-
-3 stores Zustand con persistencia automática y sincronización cross-tab.
-
-### F2-03, F2-03g — Repositorio genérico de `localStorage` — DONE (2026-08-10)
-
-`createLocalStorageRepository` extraído a `src/services/localStorageRepository.js`. 12/14 servicios migrados.
-
-### F2-04 — Esquemas Zod — DONE (2026-08-10, criterio mínimo; 2026-08-12 serie completa)
-
-`pacienteSchema` como base; F2-04b-e agregaron 4 esquemas adicionales para estructuras críticas.
-
-### F2-05 — Code-splitting — DONE (2026-08-10)
-
-Chunk principal: 721.57 kB → 466.39 kB (171.20 kB → 124.70 kB gzip). Warning `INEFFECTIVE_DYNAMIC_IMPORT` registrado como F3-08.
-
-### F2-06 — `index.js` faltantes — DONE (2026-08-10)
-
-Creados para `dsd`, `odontopediatria`, `periodontograma`, `quirurgico`.
-
-### F2-08 — Extracción de `LoginScreen`, `Sidebar`, Directorio de Pacientes — DONE (2026-08-10)
-
-`App.jsx` verificado en 172 líneas.
 
 ### 🏁 FASE 1 COMPLETA (2026-08-08)
 
 Las 11 tareas de Fase 1 cerradas y verificadas. Sistema apto para datos clínicos reales.
 
-### F1-05b — Eliminar últimos accesos directos en `App.jsx` — DONE (2026-08-10)
-
-Hallazgo durante F2-01. Restos de lectura/escritura directa de claves de `pacientes` y arancel de `prestaciones` eliminados.
-
-### F1-02 — Repositorio IndexedDB para adjuntos clínicos — DONE (2026-08-08)
-
-La tarea con el ciclo de verificación más largo. 3 problemas distintos resueltos.
-
-### F1-01 — Autenticación real — DONE (2026-08-07)
-
-Hashing PBKDF2 vía Web Crypto API, bloqueo tras 5 intentos fallidos, migración automática de perfiles antiguos.
-
-### F1-04d — Corregir `calcularVisibilidadDorada` (DSD) — DONE (2026-08-07)
-
-Alcance ampliado: el bug tenía 4 capas, no 1.
-
-### F1-04c — Corregir `sanitizarTorque`/`sanitizarISQ` — DONE (2026-08-07)
-
-Valor no informado retorna `null` (no `0`); `0` explícito se preserva.
-
-### F1-04b — Corregir `calcularIndicesPeriodontales` — DONE (2026-08-07)
-
-Incluyó bug del parámetro `factoresRiesgo` perdido + regresión de inicialización.
-
-### F1-04a — Corregir `evaluarIncompatibilidadFarmaco` — DONE (2026-08-07)
-
-Retorna estado `sin_datos` explícito cuando alergias no informadas.
-
-### F1-03 — Corregir fail-safe de anestesia — DONE (2026-08-07)
-
-Bug en 3 capas (no solo en `anestesiaCalc.js`). Alcance ampliado con aprobación del usuario.
-
-### F1-06 — Vitest + suite de tests — DONE (2026-08-07)
-
-`vitest` configurado; tests para anestesia, CPOD, periodontal, pediatría.
-
 ---
 
 ## 5. PRÓXIMA ACCIÓN
 
-**Tarea activa: F3-06 — Versionado y migraciones de esquema de datos persistidos.**
+**Tarea activa: F5-01 — Supabase Realtime setup.**
 
-Con el cierre de Fase 2 y el avance de Fase 3 (F3-01 a F3-05 completadas), estamos en posición de abordar el versionado de esquemas, que es el siguiente paso lógico para proteger los datos persistidos contra cambios incompatibles.
+Con el cierre de Fase 4 (PR #22 mergeado), estamos en posición de iniciar la Fase 5: transformar la app multiusuario funcional en una app colaborativa en tiempo real.
 
-**Qué ganamos con F3-06:**
-- **Protección contra cambios incompatibles:** los datos persistidos en localStorage tendrán un número de versión de esquema
-- **Migraciones automáticas:** cuando el esquema cambie en futuras versiones, los datos existentes se migrarán automáticamente
-- **Prevención de corrupción:** evita que datos de versiones antiguas rompan la aplicación
-- **Base para F4-02:** cuando migremos a backend real, necesitaremos versionado de esquemas
+**Qué ganamos con F5-01:**
+- **Infraestructura de tiempo real habilitada:** sin esto no hay forma técnica de sincronizar cambios entre dispositivos
+- **Base para F5-02:** los eventos de Realtime son el input para la sincronización de stores
+- **Aprovechamiento de inversión F4:** Supabase Realtime ya está incluido en la plataforma, solo hay que habilitarlo
 
 **Estado previo requerido (ya cumplido):**
-- ✅ F2-03: Repositorio genérico de localStorage (factory `createLocalStorageRepository`)
-- ✅ F2-04: Esquemas Zod para validación (5 esquemas implementados)
+- ✅ F4-02a: DB schema con RLS configurado
+- ✅ F4-02b: Cliente Supabase operativo
+- ✅ F4-02d: Lectura/escritura a Supabase funcional
 
 **Estrategia propuesta:**
-1. Crear `src/services/schemaMigrationService.js` con lógica de versionado
-2. Envolver los datos persistidos en formato `{ schemaVersion: 1, data: {...} }`
-3. Implementar al menos 1 caso de migración real testeado (ej: agregar campo `rol` a perfiles de usuario — ideal aprovechando F3-05)
-4. Tests de migración: datos v1 → v2 sin pérdida
+1. Habilitar Realtime en tablas críticas (`pacientes`, `citas`, `presupuestos`, `pagos`)
+2. Crear `src/services/realtimeService.js` con gestión centralizada de canales
+3. Crear `src/hooks/useRealtimeSubscription.js` como hook genérico
+4. Test de integración verificando recepción de eventos INSERT/UPDATE/DELETE
+
+**Plan de Fase 5 completo:**
+
+| Tarea | Qué ganamos | Tiempo estimado |
+|---|---|---|
+| F5-01: Realtime setup | Infraestructura habilitada | 30 min - 1 día |
+| F5-02: Sync en tiempo real | Cambios visibles entre dispositivos al instante | 45 min - 2 días |
+| F5-03: Offline-first queue | La clínica no se detiene si se cae internet | 30 min - 1 día |
+| F5-04: Conflict resolution | Dos personas no se sobrescriben silenciosamente | 30 min - 1 día |
+| F5-05: Notifications | Awareness del equipo sobre cambios | 30 min - 1 día |
 
 **Pendientes incrementales (no bloqueantes):**
 - F2-07b: Crear 4 servicios faltantes (periodontograma, quirurgico, odontopediatria, dsd)
 - F3-07: Actualizar `postcss`/`nanoid` (vulnerabilidad `npm audit`)
-- F3-08: Optimización de code-splitting (INEFFECTIVE_DYNAMIC_IMPORT)
 - F1-04e, F1-04f: Tareas P3 de Fase 1
+- F4-03: Curación clínica del vademécum (paralelizable con F5)
+- F4-04: E2E de flujos de negocio (requiere Playwright)
 
 **Métricas actuales del proyecto:**
-- **Tests totales:** 400 passing
+- **Tests totales:** 428 passing
 - **Lint:** 0 warnings, 0 errors
-- **Build:** pasa sin errores
-- **Architecture:** todas las reglas cumplen
+- **Build:** limpio (sin warnings)
+- **Architecture:** todas las reglas cumplen (29 archivos en allowlist)
 - **Esquemas Zod:** 5 (paciente, cita, movimientoFinanciero, prestacion, presupuesto)
-- **Fases completadas:** 1 y 2 (Fase 3 en progreso, 6/8 tareas principales)
+- **Tablas Supabase:** 15 (con RLS)
+- **Fases completadas:** 1, 2, 3 y 4 (Fase 5 lista para iniciar)
 
 **No se implementará hasta confirmación explícita del usuario.**

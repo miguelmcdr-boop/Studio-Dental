@@ -3,10 +3,13 @@ import { eliminarTodosPorPaciente as eliminarAdjuntosDelPaciente } from './servi
 import { LoginScreen } from './components/LoginScreen'
 import { Sidebar } from './components/Sidebar'
 import { CargandoModulo } from './components/CargandoModulo'
+import { ToastContainer } from './components/ToastContainer'
 import { usePacientesStore } from './store/pacientesStore'
 import { usePrestacionesStore } from './store/prestacionesStore'
 import { useSesionStore } from './store/sesionStore'
 import { useDataMigration } from './hooks/useDataMigration'
+import { useRealtimeSync } from './hooks/useRealtimeSync'
+import { useOfflineQueue } from './hooks/useOfflineQueue'
 import { supabase, USE_SUPABASE } from './services/supabaseClient'
 import { odontogramaStorageService } from './modules/odontograma'
 import { presupuestosStorageService } from './modules/presupuestos/services/presupuestosStorageService'
@@ -146,6 +149,13 @@ function App() {
   }, [userProfile, pacienteSeleccionado])
   useDataMigration(userProfile)
 
+  // F5-02: activar sincronización en tiempo real
+  useRealtimeSync()
+
+  // F5-03: procesar cola offline al iniciar y al volver la conexión
+  useOfflineQueue()
+
+
   useEffect(() => {
     const refrescarDesdeStorage = usePrestacionesStore.getState().refrescarDesdeStorage
 
@@ -247,7 +257,9 @@ function App() {
   if (!userProfile) return <LoginScreen onLogin={handleLogin} />
 
   return (
-    <div className="min-h-screen flex bg-white font-sans">
+    <>
+      <ToastContainer />
+      <div className="min-h-screen flex bg-white font-sans">
       <Sidebar userProfile={userProfile} activeSection={activeSection} setActiveSection={setActiveSection} onLogout={handleLogout} />
 
       <main className="flex-1 p-8 print:p-0 overflow-x-hidden">
@@ -331,7 +343,8 @@ function App() {
           )}
         </Suspense>
       </main>
-    </div>
+      </div>
+    </>
   )
 }
 

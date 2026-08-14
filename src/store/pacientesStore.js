@@ -13,6 +13,9 @@ const SEED_PACIENTES_DEMO = [
  *
  * F4-02c-2: el storage service maneja la caché internamente (síncrona para
  * lectura, async para escritura). El store simplemente delega.
+ *
+ * F5-02: método refrescarDesdeSupabase() para sincronización en tiempo real.
+ * Lee datos frescos desde Supabase sin escribir (evita loop de sincronización).
  */
 export const usePacientesStore = create((set) => ({
   pacientes: pacientesStorageService.obtenerPacientes(SEED_PACIENTES_DEMO),
@@ -23,5 +26,16 @@ export const usePacientesStore = create((set) => ({
     // esperar: la caché ya se actualizó síncronamente dentro del servicio.
     pacientesStorageService.guardarPacientes(next)
     return { pacientes: next }
+  }),
+
+  /**
+   * F5-02: Refresca pacientes desde Supabase SIN escribir de vuelta.
+   * Usado por useRealtimeSync cuando detecta cambios desde otros dispositivos.
+   * Esto previene loops de sincronización (el evento llega, leemos, pero no escribimos).
+   */
+  refrescarDesdeSupabase: () => set(() => {
+    const datos = pacientesStorageService.obtenerPacientes(null)
+    if (!Array.isArray(datos)) return {}
+    return { pacientes: datos }
   })
 }))

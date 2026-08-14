@@ -78,3 +78,30 @@ export const verificarConexionSupabase = async () => {
     return false
   }
 }
+
+/**
+ * Verifica si la app está online (F5-03).
+ * Usa navigator.onLine como verificación rápida + ping a Supabase como fallback.
+ *
+ * @returns {Promise<boolean>} true si hay conexión operativa
+ */
+export const estaOnline = async () => {
+  // Verificación rápida
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    return false
+  }
+
+  // Si Supabase no está configurado, asumir online (modo localStorage)
+  if (!USE_SUPABASE || !supabase) {
+    return true
+  }
+
+  // Ping a Supabase como verificación robusta
+  try {
+    const { error } = await supabase.from('pacientes').select('id').limit(1)
+    return !error
+  } catch (e) {
+    console.error('[supabaseClient] Error verificando conexión:', e)
+    return false
+  }
+}
