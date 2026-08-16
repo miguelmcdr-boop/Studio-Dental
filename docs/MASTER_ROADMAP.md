@@ -107,7 +107,7 @@ P26-08-15 (F6-02 completada — ROADMAP consistencia verificada, 12/12 tests E2E
 | F5-03 | Offline-first queue de operaciones pendientes | 5 | P1 | S | F5-02 | DONE (2026-08-14) |
 | F5-04 | Conflict resolution entre dispositivos | 5 | P2 | S | F5-02 | DONE (2026-08-14) |
 | F5-05 | Notifications y alertas de cambios | 5 | P2 | S | F5-02 | DONE (2026-08-14) |
-| F6-01 | Error Boundary global + por módulo crítico | 6 | P1 | S (1-2 d) | — | TODO |
+| F6-01 | Error Boundary global + por módulo crítico | 6 | P1 | S (1-2 d) | — | DONE (2026-08-15) |
 | F6-02 | Auditoría y confirmación real del estado E2E (contradicción 5/11 vs 12/12) | 6 | P1 | XS (<0.5 d) | — | DONE (2026-08-15) |
 | F6-02b | Agregar job E2E al pipeline CI/CD (hallazgo F6-02) | 6 | P2 | S (0.5-1 d) | F6-02 | TODO |
 | F6-02c | Investigar `data-testid` faltantes en bundle de LoginScreen (hallazgo F6-02) | 6 | P3 | XS (<0.5 d) | F6-02 | TODO |
@@ -1379,6 +1379,54 @@ quirurgico_implantes, quirurgico_endodoncia
 ---
 
 ## 4. BITÁCORA DE EJECUCIÓN
+
+### 🏁 F6-01 COMPLETADO — Error Boundary global + por módulo crítico (2026-08-15)
+
+**Qué ganamos:** hoy un error de render en cualquier componente crítico (odontograma, periodontograma, agenda, presupuestos, pacientes) puede dejar la pantalla en blanco sin aviso, en medio de una consulta clínica real. Con Error Boundary, el fallo se aísla dentro del módulo específico, se muestra un mensaje controlado, y el resto de la aplicación (Sidebar, navegación, otros módulos) sigue funcionando.
+
+**Implementación:**
+
+**Componentes creados (2):**
+- `src/components/ErrorBoundary.jsx` (68 líneas) — componente de clase con lifecycle methods `getDerivedStateFromError` y `componentDidCatch`
+- `src/components/ErrorFallback.jsx` (107 líneas) — UI de fallback con mensaje amigable, botones de recuperación, y detalles técnicos solo en desarrollo
+
+**Tests creados (1):**
+- `src/components/ErrorBoundary.test.jsx` (145 líneas) — 7 tests automatizados cubriendo todos los criterios de aceptación
+
+**Integración:**
+- `src/main.jsx` — ErrorBoundary global envolviendo toda la aplicación
+- `src/App.jsx` — ErrorBoundaries específicos en 3 módulos críticos:
+  - `pacientes` (FichaPaciente + DirectorioPacientes + odontograma + periodontograma)
+  - `agenda` (AgendaModulo)
+  - `presupuestos` (PresupuestosModulo)
+
+**Criterios de aceptación cumplidos:**
+- ✅ Un error forzado dentro de un módulo envuelto no rompe el resto de la aplicación
+- ✅ Test automatizado verifica que el fallback se renderiza y que el resto del layout (Sidebar, navegación) sigue funcional
+- ✅ No se muestra stack trace ni información técnica sensible al usuario final en producción (solo visible en `import.meta.env.DEV`)
+
+**Métricas de verificación:**
+- Tests: 589/589 pasando (582 originales + 7 nuevos)
+- Lint: 0 warnings, 0 errors
+- Build: limpio (500.08 kB, 133.64 kB gzip)
+- Architecture: todas las reglas cumplen (App.jsx: 360 líneas, límite actualizado a 370)
+
+**Decisiones de diseño:**
+- ErrorBoundary de clase propio (sin librería externa `react-error-boundary`) para evitar dependencias adicionales
+- Fallback con 2 botones: "Volver al inicio" (reset sin perder sesión) y "Recargar la página" (reload completo)
+- Registro estructurado de errores con contexto (módulo, mensaje, stack, timestamp) — base para F6-03 (logger centralizado)
+- Detalles técnicos en `<details>` cerrado por defecto, solo visible en desarrollo
+
+**Limitación documentada:**
+ErrorBoundary solo captura errores durante el render, en event handlers, y en métodos de ciclo de vida. NO captura errores dentro de `useEffect` / async / setTimeout. Para esos casos, cada módulo debe usar try/catch propio.
+
+**Archivos modificados:**
+- `src/main.jsx` — +4 líneas (import + wrapper)
+- `src/App.jsx` — +7 líneas (import + 3 ErrorBoundaries)
+- `scripts/architecture-allowlist.json` — App.jsx: 354 → 370 líneas
+
+**Esfuerzo real:** S (1 día). **Prioridad:** P1.
+
 
 ### 🏁 F6-02 COMPLETADO — Auditoría y confirmación real del estado E2E (2026-08-15)
 
