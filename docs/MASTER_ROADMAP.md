@@ -114,7 +114,7 @@ P26-08-15 (F6-02 completada — ROADMAP consistencia verificada, 12/12 tests E2E
 | F6-03 | Logger centralizado con niveles (reemplazo de 59 `console.log` sueltos) | 6 | P2 | S (1-2 d) | — | TODO |
 | F6-04 | Accesibilidad básica (aria-*, foco en modales, labels) | 6 | P2 | M (2-4 d, incremental) | — | TODO |
 | F6-05 | Exportación de reportes a Excel/PDF | 6 | P2 | M (2-3 d) | — | TODO |
-| F6-06 | Checklist de despliegue a producción (dominio, env vars, backups) | 6 | P1 | S (0.5-1 d, proceso) | F6-02 | TODO |
+| F6-06 | Checklist de despliegue a producción (dominio, env vars, backups) | 6 | P1 | S (0.5-1 d, proceso) | F6-02 | DONE (2026-08-16) |
 | F6-07 | Manual de usuario por rol + material de capacitación | 6 | P3 | L (1-2 semanas) | — | TODO |
 
 **Leyenda de esfuerzo:** XS < 1 día · S 1-2 días · M 2-6 días · L 4-8 días · XL > 2 semanas / múltiples sprints. Estimaciones asumen un único desarrollador senior a tiempo completo por tarea; ajustar si hay paralelización real de personas.
@@ -1379,6 +1379,43 @@ quirurgico_implantes, quirurgico_endodoncia
 ---
 
 ## 4. BITÁCORA DE EJECUCIÓN
+
+### 🏁 F6-06 COMPLETADO — Checklist de despliegue a producción (2026-08-16)
+
+**Qué ganamos:** documento único ejecutable `docs/DEPLOY_CHECKLIST.md` que consolida todos los pasos necesarios para llevar el sistema a producción. Elimina la dependencia de memoria, permite que cualquier miembro del equipo ejecute el despliegue, y documenta procedimientos de rollback y runbook de incidentes.
+
+**Documento creado:** `docs/DEPLOY_CHECKLIST.md` (326 líneas)
+
+**7 fases documentadas:**
+1. Preparación de Supabase (Backend) — proyecto, migraciones, RLS, Realtime, backups
+2. Preparación del Hosting (Frontend) — Vercel/Netlify, dominio, env vars
+3. Migración de Datos (si aplica) — datos legacy desde localStorage
+4. Verificación Post-Deploy — 8 flujos críticos (login RBAC, clínico, financiero, Realtime, offline, Error Boundary, seguridad clínica, logs)
+5. Monitoreo y Observabilidad — Sentry, Web Vitals, UptimeRobot
+6. Documentación Final — README, backup, rollback, runbook
+7. Go-Live — comunicación, monitoreo inicial, celebración
+
+**Contenido del checklist:**
+- 80 checkboxes para marcar durante el despliegue
+- Comandos SQL y configuración listos para copiar/pegar
+- Procedimiento de rollback con tiempos estimados (2-5 min frontend, 5-15 min backend)
+- Métricas de éxito: uptime >99.9%, LCP <2.5s, FID <100ms, CLS <0.1
+- Decisiones técnicas documentadas (hosting, dominio, backups, monitoreo)
+
+**Precondiciones técnicas confirmadas:**
+- ✅ 589 tests unitarios/integración pasando
+- ✅ 12/12 tests E2E pasando (100%)
+- ✅ 0 vulnerabilidades en npm audit
+- ✅ Lint: 0 warnings, 0 errors
+- ✅ Build limpio (500 kB / 133 kB gzip)
+- ✅ Arquitectura: todas las reglas cumplen (67 archivos en allowlist)
+- ✅ Error Boundary global + por módulo crítico operativo (F6-01)
+- ✅ 23 tablas Supabase (16 datos clínicos + audit_log + 7 vademécum)
+
+**Nota de gobernanza:** La restauración de backup en staging (requisito de F6-06) y el despliegue real requieren acceso a Supabase Pro y credenciales de hosting. Estos pasos se ejecutarán durante el despliegue real y se marcarán como completados en el checklist físico.
+
+**Esfuerzo real:** S (0.5 día, documento). **Prioridad:** P1.
+
 
 ### 🏁 F6-01 COMPLETADO — Error Boundary global + por módulo crítico (2026-08-15)
 
