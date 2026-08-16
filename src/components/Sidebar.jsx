@@ -39,7 +39,8 @@ export const Sidebar = ({ userProfile, activeSection, setActiveSection, onLogout
     { name: 'Finanzas', icon: '💰', permisoRequerido: PERMISOS.VER_FINANZAS },
     { name: 'Reportes', icon: '📊', permisoRequerido: PERMISOS.VER_REPORTES },
 
-    // Módulo administrativo (solo admin)
+    // Módulos administrativos
+    { name: 'Vademécum', icon: '💊', permisoRequerido: PERMISOS.ADMINISTRAR_VADEMECUM },
     { name: 'Configuración', icon: '⚡', permisoRequerido: PERMISOS.VER_CONFIGURACION }
   ], [])
 
@@ -88,6 +89,7 @@ export const Sidebar = ({ userProfile, activeSection, setActiveSection, onLogout
           {menuItemsVisibles.map((item) => (
             <button
               key={item.name}
+              data-testid={`sidebar-menu-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
               onClick={() => setActiveSection(item.name)}
               title={colapsado ? item.name : ''}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${

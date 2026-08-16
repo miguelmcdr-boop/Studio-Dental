@@ -30,6 +30,7 @@ export const ModalNuevoPaciente = memo(({ alGuardar, alCerrar }) => {
           <div>
             <label className="block font-semibold text-gray-600 uppercase mb-1">Nombre Completo *</label>
             <input
+              data-testid="paciente-nombre"
               type="text"
               required
               value={nuevoPaciente.nombre}
@@ -43,6 +44,7 @@ export const ModalNuevoPaciente = memo(({ alGuardar, alCerrar }) => {
             <div>
               <label className="block font-semibold text-gray-600 uppercase mb-1">RUT *</label>
               <input
+                data-testid="paciente-rut"
                 type="text"
                 required
                 value={nuevoPaciente.rut}
@@ -101,6 +103,7 @@ export const ModalNuevoPaciente = memo(({ alGuardar, alCerrar }) => {
           <div>
             <label className="block font-semibold text-red-600 uppercase mb-1">Alergias Conocidas</label>
             <input
+              data-testid="paciente-alergias"
               type="text"
               value={nuevoPaciente.alergias}
               onChange={(e) => setNuevoPaciente({ ...nuevoPaciente, alergias: e.target.value })}
@@ -111,6 +114,7 @@ export const ModalNuevoPaciente = memo(({ alGuardar, alCerrar }) => {
 
           <div className="flex gap-2 pt-2">
             <button
+              data-testid="paciente-cancelar"
               type="button"
               onClick={alCerrar}
               className="w-1/2 py-2.5 rounded-xl border border-gray-300 font-semibold text-gray-700 hover:bg-gray-100"
@@ -118,6 +122,7 @@ export const ModalNuevoPaciente = memo(({ alGuardar, alCerrar }) => {
               Cancelar
             </button>
             <button
+              data-testid="paciente-crear"
               type="submit"
               className="w-1/2 bg-black text-white py-2.5 rounded-xl font-semibold hover:bg-gray-800"
             >
