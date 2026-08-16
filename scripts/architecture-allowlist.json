@@ -34,7 +34,7 @@
     "src/modules/presupuestos/services/presupuestosStorageService.js": 458,
     "src/modules/pagos/services/pagosStorageService.js": 315,
     "src/modules/finanzas/services/finanzasStorageService.js": 291,
-    "src/App.jsx": 354,
+    "src/App.jsx": 370,
     "src/utils/conflictosAgenda.js": 104,
     "src/utils/anestesiaCalculations.js": 542,
     "src/modules/pacientes/utils/pacientesAlergiaCalculations.js": 144,

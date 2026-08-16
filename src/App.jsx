@@ -3,6 +3,7 @@ import { eliminarTodosPorPaciente as eliminarAdjuntosDelPaciente } from './servi
 import { LoginScreen } from './components/LoginScreen'
 import { Sidebar } from './components/Sidebar'
 import { CargandoModulo } from './components/CargandoModulo'
+import { ErrorBoundary } from './components/ErrorBoundary' // F6-01
 import { ToastContainer } from './components/ToastContainer'
 import { usePacientesStore } from './store/pacientesStore'
 import { usePrestacionesStore } from './store/prestacionesStore'
@@ -273,12 +274,14 @@ function App() {
           )}
 
           {activeSection === 'Agenda' && (
-            <AgendaModulo 
-              alSeleccionarPaciente={(paciente) => {
-                setPacienteSeleccionado(paciente)
-                setActiveSection('Pacientes')
-              }}
-            />
+            <ErrorBoundary modulo="agenda" onReset={() => setActiveSection('Dashboard')}>
+              <AgendaModulo 
+                alSeleccionarPaciente={(paciente) => {
+                  setPacienteSeleccionado(paciente)
+                  setActiveSection('Pacientes')
+                }}
+              />
+            </ErrorBoundary>
           )}
 
           {activeSection === 'Urgencias y GES' && (
@@ -298,10 +301,12 @@ function App() {
           )}
 
           {activeSection === 'Presupuestos' && (
-            <PresupuestosModulo 
-              setPacienteSeleccionado={setPacienteSeleccionado} 
-              setActiveSection={setActiveSection} 
-            />
+            <ErrorBoundary modulo="presupuestos" onReset={() => setActiveSection('Dashboard')}>
+              <PresupuestosModulo 
+                setPacienteSeleccionado={setPacienteSeleccionado} 
+                setActiveSection={setActiveSection} 
+              />
+            </ErrorBoundary>
           )}
 
           {activeSection === 'Pagos' && (
@@ -329,20 +334,22 @@ function App() {
           )}
 
           {activeSection === 'Pacientes' && (
-            pacienteSeleccionado ? (
-              <FichaPaciente 
-                paciente={pacienteSeleccionado} 
-                alActualizarPaciente={handleActualizarPaciente}
-                alEliminarPaciente={handleEliminarPaciente}
-                alVolver={() => setPacienteSeleccionado(null)} 
-              />
-            ) : (
-              <DirectorioPacientes
-                alSeleccionarPaciente={setPacienteSeleccionado}
-                alEliminarPaciente={handleEliminarPaciente}
-                alPacienteCreado={setPacienteSeleccionado}
-              />
-            )
+            <ErrorBoundary modulo="pacientes" onReset={() => { setPacienteSeleccionado(null); setActiveSection('Dashboard') }}>
+              {pacienteSeleccionado ? (
+                <FichaPaciente 
+                  paciente={pacienteSeleccionado} 
+                  alActualizarPaciente={handleActualizarPaciente}
+                  alEliminarPaciente={handleEliminarPaciente}
+                  alVolver={() => setPacienteSeleccionado(null)} 
+                />
+              ) : (
+                <DirectorioPacientes
+                  alSeleccionarPaciente={setPacienteSeleccionado}
+                  alEliminarPaciente={handleEliminarPaciente}
+                  alPacienteCreado={setPacienteSeleccionado}
+                />
+              )}
+            </ErrorBoundary>
           )}
         </Suspense>
       </main>
