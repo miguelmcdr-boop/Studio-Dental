@@ -4,3 +4,6 @@ dist/
 .env.local
 .DS_Store
 .vscode/settings.json
+# Artefactos de tests E2E (Playwright)
+test-results/
+playwright-report/
