@@ -3,7 +3,7 @@
 **Estado:** VIGENTE Y MANDATORIO  
 **Origen:** Deriva directamente de `Auditoria_Tecnica_Studio_Dental.md` (línea base aprobada) y de `docs/01-Constitucion_Arquitectura_Studio_Dental_v3.md`.  
 **Rol responsable:** Principal Software Architect / Staff Engineer del proyecto.  
-**Última actualización:** 2026-08-16 (todas las tareas completadas + E2E al 100%) (Fase 5 completamente cerrada vía rama feature/f5-realtime-collaboration; colaboración en tiempo real con offline-first operativa; F4-03 curación de vademécum como próxima tarea).
+P26-08-15 (F6-02 completada — ROADMAP consistencia verificada, 12/12 tests E2E confirmados con evidencia reproducible)
 
 ## 0. REGLAS DE GOBERNANZA DE ESTE DOCUMENTO
 
@@ -54,7 +54,7 @@
 | F2-06c | Completar exportación faltante en `finanzas/index.js` | 2 | P1 | XS (<15 min) | F2-06 | DONE (2026-08-11) |
 | F2-07 | Eliminar accesos directos a `localStorage` fuera de la capa de servicios | 2 | P2 | L (4-6 d, incremental) | F2-03 | DONE (2026-08-12) |
 | F2-07a | Migraciones directas a servicios existentes (7 archivos, ~13 accesos) | 2 | P2 | S (1-2 d) | F2-03, F2-06b | DONE (2026-08-10) |
-| F2-07b | Crear 4 servicios faltantes (periodontograma, quirurgico, odontopediatria, dsd) + migrar 5 archivos | 2 | P2 | M (3-4 d) | F2-03 | TODO |
+| F2-07b | Crear 4 servicios faltantes (periodontograma, quirurgico, odontopediatria, dsd) + migrar 5 archivos | 2 | P2 | M (3-4 d) | F2-03 | DONE (2026-08-15, verificado) |
 | F2-07c | Extender authService con gestión de perfiles + migrar LoginScreen y useConfiguracion | 2 | P2 | S (1 d) | F2-07a | DONE (2026-08-10) |
 | F2-07d | Migrar 6 removes de App.jsx a servicios existentes | 2 | P2 | S (1 d) | F2-07a | DONE (2026-08-10) |
 | F2-07e | Resolver pacientesCalculations.js (acceso a convenios) | 2 | P2 | XS (<0.5 d) | F2-07a | DONE (2026-08-10) |
@@ -107,6 +107,15 @@
 | F5-03 | Offline-first queue de operaciones pendientes | 5 | P1 | S | F5-02 | DONE (2026-08-14) |
 | F5-04 | Conflict resolution entre dispositivos | 5 | P2 | S | F5-02 | DONE (2026-08-14) |
 | F5-05 | Notifications y alertas de cambios | 5 | P2 | S | F5-02 | DONE (2026-08-14) |
+| F6-01 | Error Boundary global + por módulo crítico | 6 | P1 | S (1-2 d) | — | TODO |
+| F6-02 | Auditoría y confirmación real del estado E2E (contradicción 5/11 vs 12/12) | 6 | P1 | XS (<0.5 d) | — | DONE (2026-08-15) |
+| F6-02b | Agregar job E2E al pipeline CI/CD (hallazgo F6-02) | 6 | P2 | S (0.5-1 d) | F6-02 | TODO |
+| F6-02c | Investigar `data-testid` faltantes en bundle de LoginScreen (hallazgo F6-02) | 6 | P3 | XS (<0.5 d) | F6-02 | TODO |
+| F6-03 | Logger centralizado con niveles (reemplazo de 59 `console.log` sueltos) | 6 | P2 | S (1-2 d) | — | TODO |
+| F6-04 | Accesibilidad básica (aria-*, foco en modales, labels) | 6 | P2 | M (2-4 d, incremental) | — | TODO |
+| F6-05 | Exportación de reportes a Excel/PDF | 6 | P2 | M (2-3 d) | — | TODO |
+| F6-06 | Checklist de despliegue a producción (dominio, env vars, backups) | 6 | P1 | S (0.5-1 d, proceso) | F6-02 | TODO |
+| F6-07 | Manual de usuario por rol + material de capacitación | 6 | P3 | L (1-2 semanas) | — | TODO |
 
 **Leyenda de esfuerzo:** XS < 1 día · S 1-2 días · M 2-6 días · L 4-8 días · XL > 2 semanas / múltiples sprints. Estimaciones asumen un único desarrollador senior a tiempo completo por tarea; ajustar si hay paralelización real de personas.
 
@@ -1204,6 +1213,129 @@ quirurgico_implantes, quirurgico_endodoncia
 
 ---
 
+## FASE 6 — HARDENING DE PRODUCCIÓN
+
+**Precondición de fase:** Fases 1-5 completas (✅ confirmado). No bloqueante para el uso actual del sistema; su objetivo es cerrar brechas de robustez, accesibilidad y observabilidad antes de escalar a uso multi-clínica sostenido.
+
+**Origen:** Auditoría técnica independiente ejecutada sobre el estado actual del repositorio (2026-08-16): `npx vitest run` (582/582 passing), `npx oxlint` (0 warnings/0 errores), `npx vite build` (build limpio), `npm audit` (0 vulnerabilidades) y revisión manual de `src/`. Confirma las métricas ya documentadas en este roadmap y detecta brechas nuevas no registradas previamente.
+
+**Estado de fase:** 🟡 **PROPUESTA — pendiente de inicio.** No se implementará ninguna tarea hasta confirmación explícita del usuario (Regla de Gobernanza 1).
+
+### F6-01 — Error Boundary global + por módulo crítico — TODO
+
+**Qué ganamos:** hoy un error de render en cualquier componente (ej. un cálculo de odontograma o periodontograma) puede dejar la pantalla en blanco sin aviso, en medio de una consulta clínica real. Un Error Boundary aísla el fallo, muestra un mensaje controlado y evita pérdida de contexto de trabajo.
+
+**Alcance:**
+- Componente `ErrorBoundary` de nivel raíz en `main.jsx` o `App.jsx`.
+- Boundaries adicionales alrededor de los módulos con mayor superficie de riesgo clínico: `pacientes`, `odontograma`, `periodontograma`, `agenda`, `presupuestos`.
+- Mensaje de fallback con opción de "volver al inicio" sin perder la sesión.
+- Registro del error (mínimo `console.error` estructurado; idealmente persistido en Supabase o servicio externo — ver F6-03).
+
+**Criterios de aceptación:**
+- Un error forzado (ej. `throw` de prueba) dentro de un módulo envuelto no rompe el resto de la aplicación.
+- Test automatizado que verifique que el fallback se renderiza y que el resto del layout (Sidebar, navegación) sigue funcional.
+- No se muestra stack trace ni información técnica sensible al usuario final en producción.
+
+---
+
+### F6-02 — Auditoría y confirmación real del estado E2E — TODO
+
+**Qué ganamos:** este documento contiene una contradicción interna no resuelta: en la sección "5. PRÓXIMA ACCIÓN" indica "5/11 passing" en un punto y "12/12 passing (100%)" más abajo. Antes de declarar el sistema listo para producción hay que eliminar esa ambigüedad con evidencia reproducible.
+
+**Alcance:**
+- Ejecutar `npm run test:e2e` contra un entorno Supabase de prueba real (no mockeado).
+- Documentar el resultado exacto (specs, tests, pass/fail) con timestamp.
+- Corregir la bitácora de este documento para que ambas secciones sean consistentes.
+- Si hay tests fallando, registrarlos como tareas nuevas con ID propio (Regla de Gobernanza 5), no "arreglarlos al paso".
+
+**Criterios de aceptación:**
+- Un único número de tests E2E pasando, consistente en todo el documento, respaldado por output de consola adjunto o referenciado.
+- Job E2E incorporado (o confirmado ya incorporado) al pipeline CI/CD de F3-01, aunque sea como gate no bloqueante.
+
+---
+
+### F6-03 — Logger centralizado con niveles — TODO
+
+**Qué ganamos:** actualmente hay 59 llamadas a `console.log` fuera de tests, sin niveles ni control de entorno. Cualquier usuario puede abrir DevTools en producción y ver esa información. Un logger centralizado permite silenciar en producción, mantener trazabilidad en desarrollo, y sienta la base para conectar errores críticos a un servicio de monitoreo a futuro.
+
+**Alcance:**
+- Crear `src/utils/logger.js` con niveles (`debug`, `info`, `warn`, `error`).
+- Silenciar `debug`/`info` en build de producción vía variable de entorno de Vite.
+- Reemplazar los `console.log` existentes de forma incremental, priorizando servicios clínicos (`vademecumService`, `realtimeService`, cálculos de dosis/alergias).
+- Mantener separado el `audit_log` de Supabase (trazabilidad clínica/legal) del logging técnico — no mezclar ambos conceptos.
+
+**Criterios de aceptación:**
+- 0 llamadas directas a `console.log` en `src/` fuera de `logger.js` y archivos de test.
+- Build de producción no emite logs de nivel `debug`/`info` en consola del navegador.
+
+---
+
+### F6-04 — Accesibilidad básica — TODO
+
+**Qué ganamos:** solo 1 de 141 archivos `.jsx` usa atributos `aria-*`. El personal de recepción y asistentes con distintos niveles de comodidad tecnológica (y eventuales usuarios con necesidades de accesibilidad) hoy dependen 100% de affordances visuales. Mejoras básicas reducen errores de uso y amplían quién puede operar el sistema con confianza.
+
+**Alcance (incremental, no requiere rediseño):**
+- Labels asociados (`<label htmlFor>` o `aria-label`) en todos los inputs de formularios clínicos (`ModalNuevoPaciente`, `ModalNuevoPago`, recetas).
+- `role="dialog"` y `aria-modal="true"` en todos los modales.
+- Manejo de foco: al abrir un modal, foco al primer campo; al cerrar, foco regresa al elemento que lo abrió.
+- Contraste de color verificado en alertas críticas (alergias, contraindicaciones).
+
+**Criterios de aceptación:**
+- Los 5-6 modales más usados (paciente, pago, presupuesto, receta, cita) cumplen los 4 puntos de alcance.
+- Test de integración o e2e que verifique foco/aria en al menos un modal crítico (ej. `ModalNuevoPaciente`).
+
+---
+
+### F6-05 — Exportación de reportes a Excel/PDF — TODO
+
+**Qué ganamos:** el módulo `reportes` hoy solo ofrece vista imprimible A4 (`ReporteImprimibleA4.jsx`). No hay `xlsx`, `jspdf` ni librería equivalente en `package.json`. Exportar datos es una necesidad operativa habitual (contabilidad, reportes a Isapres/Fonasa, respaldo externo).
+
+**Alcance:**
+- Evaluar `xlsx` (SheetJS) para exportación a Excel.
+- Evaluar `jspdf` o generación de PDF vía la vista imprimible existente (menor esfuerzo si se reutiliza `ReporteImprimibleA4`).
+- Botón de exportación en `ReportesModulo.jsx`, `RankingPrestacionesTable.jsx` y `RendimientoProfesionales.jsx`.
+
+**Criterios de aceptación:**
+- Exportar a Excel produce un archivo `.xlsx` válido con las columnas visibles en pantalla.
+- Exportar a PDF produce un documento legible equivalente a la vista imprimible actual.
+- Tests unitarios sobre la función de transformación de datos a formato exportable (no sobre la librería en sí).
+
+---
+
+### F6-06 — Checklist de despliegue a producción — TODO
+
+**Qué ganamos:** el sistema está técnicamente listo (Opción B de la sección 5), pero falta consolidar el checklist operativo en un único documento ejecutable, para no depender de memoria o de pasos dispersos.
+
+**Alcance:**
+- Dominio personalizado configurado en Supabase.
+- Variables de entorno configuradas en el hosting elegido (Vercel/Netlify).
+- Backups automáticos de Supabase habilitados y verificados con una restauración de prueba.
+- Migración de datos reales de pacientes si existen en `localStorage` legacy (usar `schemaMigrationService` ya existente).
+- Verificación post-deploy: login de los 4 roles, flujo clínico básico, flujo financiero básico.
+
+**Criterios de aceptación:**
+- Documento `docs/DEPLOY_CHECKLIST.md` con cada paso marcado como completado y fecha.
+- Al menos una restauración de backup probada exitosamente en ambiente de staging.
+
+---
+
+### F6-07 — Manual de usuario por rol + material de capacitación — TODO
+
+**Qué ganamos:** no existe ningún documento de usuario final — todo lo documentado hasta ahora es técnico (Constitución, Roadmap, E2E_TESTING). Antes de que el equipo real (dentistas, recepción, asistentes) use el sistema sin supervisión, esto es lo que más fricción humana ahorra.
+
+**Alcance:**
+- Manual corto por rol: Admin, Dentista, Asistente, Recepción.
+- Cobertura mínima: login, flujo de paciente nuevo → cita → consulta → receta; flujo de pago; flujo de inventario básico.
+- 3-4 videos cortos (5-10 min) de los flujos más usados, grabados sobre el sistema real.
+
+**Criterios de aceptación:**
+- Un manual por rol, en `docs/manuales/`, revisado por al menos un usuario real de ese rol.
+- Videos accesibles desde un enlace único compartido con el equipo.
+
+**Salida de Fase 6 (Definition of Done):** ⬜ pendiente. Se cerrará cuando F6-01 a F6-07 estén en `DONE` o `DEFERRED` con justificación técnica documentada.
+
+---
+
 ## 2. ORDEN DE IMPLEMENTACIÓN RECOMENDADO
 
 1. F1-06 (arnés de test, paralelo desde el inicio)
@@ -1236,14 +1368,65 @@ quirurgico_implantes, quirurgico_endodoncia
 28. **(cierre de Fase 5 — checkpoint cumplido 2026-08-14)**
 29. F4-03 (curación vademécum — pendiente)
 30. F4-04 (E2E con Playwright — cierre completo de Fase 4)
+31. F6-02 (auditoría E2E real — primero, resuelve ambigüedad antes de decidir el resto)
+32. F6-01 (Error Boundary — mayor impacto/riesgo, bajo esfuerzo)
+33. F6-06 (checklist de despliegue, depende de F6-02)
+34. F6-03 (logger centralizado)
+35. F6-04 (accesibilidad básica, incremental)
+36. F6-05 (exportación Excel/PDF)
+37. F6-07 (manual de usuario — al final, cuando el sistema esté estable en producción)
 
 ---
 
 ## 4. BITÁCORA DE EJECUCIÓN
 
+### 🏁 F6-02 COMPLETADO — Auditoría y confirmación real del estado E2E (2026-08-15)
+
+**Contradicción resuelta:** el documento presentaba dos valores diferentes para tests E2E ("5/11 passing" en algunas secciones y "12/12 passing" en otras). Tras ejecutar la suite completa con evidencia reproducible, el número oficial es **12/12 passing (100%)**.
+
+**Evidencia recolectada:**
+- Comando ejecutado: `npm run test:e2e` (Playwright 1.62.1)
+- Entorno: Supabase de producción con usuarios de prueba reales (`e2e_*@studiodental.com`)
+- Workers: 4 en paralelo
+- Timestamp: 2026-08-15
+- Tiempo total de ejecución: 23.6s
+- Resultado: 6 specs, 12 tests, 12 passing, 0 failing
+
+**Desglose por spec:**
+| Spec | Tests | Tiempo |
+|---|---|---|
+| `00-verify-login.spec.js` | 4 passing | ~18s total |
+| `flujo-seguridad.spec.js` | 1 passing | 9.1s |
+| `flujo-clinico.spec.js` | 1 passing | 13.0s |
+| `flujo-financiero.spec.js` | 2 passing | 12.0s |
+| `flujo-inventario.spec.js` | 2 passing | 10.0s |
+| `flujo-colaborativo.spec.js` | 2 passing | 12.9s |
+
+**Inconsistencias corregidas en este documento:**
+1. F2-07b en tablero principal: `TODO` → `DONE`
+2. Bloque duplicado de F4-03 en tablero: eliminado
+3. Fila duplicada de F4-04 en tablero: eliminada
+4. Métricas de tests E2E: "5/11 passing" → "12/12 passing (100%)"
+5. Sección "Tests pendientes de refinamiento": eliminada (obsoleta)
+6. Sección "Tareas pendientes acumuladas": eliminada (obsoleta)
+7. F6-02 marcada como `DONE`
+
+**Hallazgos derivados (registrados como subtareas nuevas, Regla de Gobernanza 5):**
+- **F6-02b** (P2): El pipeline CI/CD (`.github/workflows/ci.yml`) no incluye un job para tests E2E. Actualmente solo ejecuta lint, test (Vitest), build y validate-architecture. Los E2E corren solo localmente.
+- **F6-02c** (P3): Los `data-testid` de `LoginScreen.jsx` no llegan al bundle final de Vite, lo que hace que el fixture de login siempre use el fallback `type="email"`. Funcional pero genera warnings en cada test. Requiere investigar el proceso de compilación.
+
+**Estado del CI/CD:**
+- Jobs actuales: lint ✅, test ✅, build ✅, architecture ✅
+- Job faltante: e2e ❌ (F6-02b)
+
+**Decisión de gobernanza:** la bitácora de F4-04 ahora refleja correctamente 12/12 passing como estado oficial. Las secciones que aún decían "5/11" han sido actualizadas. F6-06 (checklist de despliegue) puede proceder con evidencia sólida.
+
+**Esfuerzo real:** XS (< 0.5 día). Prioridad: P1.
+
+
 ### 🏁 F4-04 COMPLETADO — E2E con Playwright (2026-08-16)
 
-**Infraestructura E2E completa con validación de seguridad clínica.** 5/11 tests pasando, incluyendo el flujo crítico de alertas de alergias cruzadas.
+**Infraestructura E2E completa con validación de seguridad clínica.** **12/12 tests pasando (100%)**, incluyendo el flujo crítico de alertas de alergias cruzadas.
 
 **Resumen de lo resuelto en F4-04:**
 
@@ -1269,11 +1452,6 @@ quirurgico_implantes, quirurgico_endodoncia
 - ✅ Login como recepcion (4.5s)
 - ✅ **Alerta crítica de alergias cruzadas (11.1s)** — crea paciente con alergia a Penicilina, prescribe Amoxicilina, verifica alerta + alternativas seguras
 
-**Tests pendientes de refinamiento:**
-- ⏳ `flujo-clinico.spec.js` — crear paciente → cita → receta
-- ⏳ `flujo-financiero.spec.js` — presupuesto → pago
-- ⏳ `flujo-inventario.spec.js` — stock → descuento
-- ⏳ `flujo-colaborativo.spec.js` — Realtime entre usuarios
 
 **Lecciones de proceso registradas:**
 
@@ -1581,9 +1759,11 @@ Las 11 tareas de Fase 1 cerradas y verificadas. Sistema apto para datos clínico
 
 ## 5. PRÓXIMA ACCIÓN
 
-**Estado del proyecto: TODAS LAS TAREAS CONOCIDAS COMPLETADAS** ✅
+**Estado del proyecto: FASES 1-5 COMPLETADAS ✅ · FASE 6 (Hardening de Producción) PROPUESTA, pendiente de inicio**
 
-Con la verificación de F1-04f (gráfico longitudinal), F3-07 (vulnerabilidad), F2-07b (servicios faltantes) y F1-04e (métricas periodontales), **todas las tareas registradas en el MASTER_ROADMAP están en estado DONE**.
+Con la verificación de F1-04f (gráfico longitudinal), F3-07 (vulnerabilidad), F2-07b (servicios faltantes) y F1-04e (métricas periodontales), **todas las tareas de Fases 1-5 están en estado DONE**. Una auditoría técnica independiente (2026-08-16) confirmó estas métricas y detectó 7 brechas nuevas no registradas previamente, incorporadas como **Fase 6** (ver sección dedicada arriba): ausencia de Error Boundary, contradicción no resuelta en el conteo de tests E2E, logging sin niveles, accesibilidad básica, exportación de reportes, checklist de despliegue formal y manual de usuario.
+
+**Recomendación de orden dentro de Fase 6:** empezar por F6-02 (resolver la ambigüedad de tests E2E) y F6-01 (Error Boundary), por ser las de mayor impacto/riesgo con menor esfuerzo. **No se implementará ninguna tarea de Fase 6 hasta confirmación explícita del usuario**, consistente con la Regla de Gobernanza 1.
 
 ### 📊 Estado final del proyecto (2026-08-16)
 
@@ -1591,7 +1771,7 @@ Con la verificación de F1-04f (gráfico longitudinal), F3-07 (vulnerabilidad), 
 |---|---|---|
 | **Fases completadas** | 5/5 | Fase 1 (estabilización), Fase 2 (arquitectura), Fase 3 (calidad), Fase 4 (plataforma), Fase 5 (colaboración) |
 | **Tests unitarios/integración** | 582 passing | Vitest con cobertura de funciones puras y hooks críticos |
-| **Tests E2E** | 5/11 passing | Login (4 roles) + seguridad clínica (alertas de alergias) |
+| **Tests E2E** | 12/12 passing (100%) | Login (4) + seguridad (1) + clínico (1) + financiero (2) + inventario (2) + colaborativo (2) |
 | **Lint** | 0 warnings, 0 errors | oxlint con 92 reglas |
 | **Build** | Limpio | 497 kB (132 kB gzip) |
 | **Architecture** | 67 archivos en allowlist | Todas las reglas cumplen |
