@@ -1,19 +1,71 @@
-import React, { memo, useState } from 'react'
+import React, { memo, useState, useEffect } from 'react'
+import { vademecumService } from '../../../services/vademecumService'
 import { VADEMECUM_ODONTOLOGICO } from '../../../data/vademecum'
 import { evaluarIncompatibilidadFarmaco } from '../utils/pacientesCalculations'
+import { AlertaAlergiaMejorada } from './AlertaAlergiaMejorada'
 import { pacientesStorageService } from '../services/pacientesStorageService'
 
 export const RecetasSection = memo(({ paciente, userProfile, alergiasPaciente, recetas, setRecetas }) => {
   const [nuevaReceta, setNuevaReceta] = useState({ medicamento: '', indicacion: '' })
   const [sugerenciasVademecum, setSugerenciasVademecum] = useState([])
   const [alertaFarmaco, setAlertaFarmaco] = useState(null)
+  
+  // F4-03g: Vademécum cargado desde Supabase (94 fármacos) con fallback a datos locales (22 fármacos)
+  const [vademecumCargado, setVademecumCargado] = useState(VADEMECUM_ODONTOLOGICO)
+  
+  useEffect(() => {
+    // F4-03g-fix: Construye posología completa combinando campos existentes
+    const construirPosologiaCompleta = (f) => {
+      let posologia = f.posologia_adulto || f.posologiaAdulto || ''
+      
+      // Si posología está vacía, usar presentación como fallback
+      if (!posologia) return f.presentacion || 'Dosis según indicación médica'
+      
+      // Agregar duración si existe y no está ya en la posología
+      const duracion = f.duracion_dias || f.duracionDias
+      if (duracion && !posologia.toLowerCase().includes('día') && !posologia.toLowerCase().includes('dias')) {
+        posologia += ` por ${duracion}`
+      }
+      
+      // Agregar vía oral si no está especificada
+      if (!posologia.toLowerCase().includes('oral') && 
+          !posologia.toLowerCase().includes('vo') &&
+          !posologia.toLowerCase().includes('sublingual') &&
+          !posologia.toLowerCase().includes('tópico') &&
+          !posologia.toLowerCase().includes('inyec')) {
+        posologia += ' vía oral'
+      }
+      
+      return posologia
+    }
+    
+    const cargarVademecum = () => {
+      try {
+        const desdeService = vademecumService.obtenerVademecum()
+        if (Array.isArray(desdeService) && desdeService.length > 0) {
+          const adaptado = desdeService.map(f => ({
+            medicamento: f.nombre_generico || f.nombreGenerico || '',
+            posologia: construirPosologiaCompleta(f),
+            familia: f.familia || ''
+          }))
+          setVademecumCargado(adaptado)
+        } else {
+          setVademecumCargado(VADEMECUM_ODONTOLOGICO)
+        }
+      } catch (e) {
+        console.warn('[RecetasSection] vademecumService no disponible, usando datos locales:', e?.message)
+        setVademecumCargado(VADEMECUM_ODONTOLOGICO)
+      }
+    }
+    cargarVademecum()
+  }, [])
 
   const handleMedicamentoInputChange = (texto) => {
     setNuevaReceta({ ...nuevaReceta, medicamento: texto })
     setAlertaFarmaco(null)
 
     if (texto.trim().length > 1) {
-      const coincidencias = VADEMECUM_ODONTOLOGICO.filter(v =>
+      const coincidencias = vademecumCargado.filter(v =>
         v.medicamento.toLowerCase().includes(texto.toLowerCase())
       )
       setSugerenciasVademecum(coincidencias)
@@ -59,23 +111,13 @@ export const RecetasSection = memo(({ paciente, userProfile, alergiasPaciente, r
       <div className="bg-gray-50 p-4 border border-gray-200 rounded-2xl mb-6 print:hidden">
         <h4 className="font-bold text-xs text-gray-800 mb-3 uppercase tracking-wider">Emitir Nueva Receta Médica</h4>
         
-        {alertaFarmaco && (
-          <div className={`p-4 rounded-xl border mb-4 text-xs ${
-            alertaFarmaco.tipo === 'critica'
-              ? 'bg-red-100 border-red-300 text-red-900'
-              : alertaFarmaco.tipo === 'sin_datos'
-                ? 'bg-amber-100 border-amber-300 text-amber-900'
-                : 'bg-yellow-100 border-yellow-300 text-yellow-900'
-          }`}>
-            <p className="font-bold text-sm">{alertaFarmaco.mensaje}</p>
-            <p className="mt-1 font-semibold">{alertaFarmaco.sugerencia}</p>
-          </div>
-        )}
+        {alertaFarmaco && <AlertaAlergiaMejorada alerta={alertaFarmaco} />}
 
         <form onSubmit={handleAgregarReceta} className="space-y-3 text-xs relative">
           <div className="relative">
             <label className="block text-gray-600 mb-1 font-semibold">Fármaco / Medicamento</label>
             <input
+              data-testid="receta-farmaco"
               type="text"
               placeholder="Empieza a escribir... Ej: Amoxicilina, Ibuprofeno, Lidocaína..."
               value={nuevaReceta.medicamento}
@@ -102,6 +144,7 @@ export const RecetasSection = memo(({ paciente, userProfile, alergiasPaciente, r
           <div>
             <label className="block text-gray-600 mb-1 font-semibold">Posología e Indicaciones</label>
             <textarea
+              data-testid="receta-indicacion"
               rows="2"
               placeholder="Ej: Tomar 1 comprimido cada 8 horas por 7 días vía oral."
               value={nuevaReceta.indicacion}
@@ -110,14 +153,14 @@ export const RecetasSection = memo(({ paciente, userProfile, alergiasPaciente, r
             />
           </div>
 
-          <button type="submit" className="bg-black text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800">
+          <button data-testid="btn-emitir-receta" type="submit" className="bg-black text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800">
             + Emitir Receta
           </button>
         </form>
 
         <p className="text-[10px] text-gray-400 mt-3">
-          La validación automática de alergias cubre únicamente Penicilinas/Betalactámicos y AINEs.
-          Para cualquier otro fármaco, verifique manualmente los antecedentes alérgicos del paciente.
+          La validación automática evalúa reactividad cruzada entre las 16 familias farmacológicas del vademécum v1.1.
+          Si las alergias del paciente no están registradas, verifique manualmente los antecedentes antes de prescribir.
         </p>
       </div>
 

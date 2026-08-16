@@ -275,6 +275,7 @@ export const LoginScreen = ({ onLogin }) => {
               <div>
                 <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Rol en el sistema</label>
                 <select
+                  data-testid="login-rol"
                   value={rol}
                   onChange={(e) => setRol(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:border-black text-sm text-gray-800 bg-white"
@@ -293,6 +294,7 @@ export const LoginScreen = ({ onLogin }) => {
           )}
 
           <button
+            data-testid="login-submit"
             type="submit"
             disabled={cargando}
             className="w-full bg-black text-white font-medium py-2.5 rounded-lg text-sm hover:bg-gray-800 transition-colors mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -317,7 +319,7 @@ export const LoginScreen = ({ onLogin }) => {
           )}
 
           {error && (
-            <p className="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mt-2">
+            <p data-testid="login-error" className="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mt-2">
               {error}
             </p>
           )}

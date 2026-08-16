@@ -33,7 +33,10 @@ export const REALTIME_EVENTS = {
   PERIODONTOGRAMA_CHANGED: 'realtime:periodontograma_changed',
 
   // Eventos de inventario
-  INVENTARIO_CHANGED: 'realtime:inventario_changed'
+  INVENTARIO_CHANGED: 'realtime:inventario_changed',
+
+  // Eventos de datos de referencia (vademécum, alergias cruzadas, etc.)
+  VADEMECUM_CHANGED: 'realtime:vademecum_changed'
 }
 
 /**
@@ -51,5 +54,12 @@ export const TABLAS_REALTIME = {
   recetas: REALTIME_EVENTS.RECETAS_CHANGED,
   odontogramas: REALTIME_EVENTS.ODONTOGRAMA_CHANGED,
   periodontogramas: REALTIME_EVENTS.PERIODONTOGRAMA_CHANGED,
-  inventario: REALTIME_EVENTS.INVENTARIO_CHANGED
+  inventario: REALTIME_EVENTS.INVENTARIO_CHANGED,
+  vademecum: REALTIME_EVENTS.VADEMECUM_CHANGED,
+  vademecum_urgencia: REALTIME_EVENTS.VADEMECUM_CHANGED,
+  vademecum_antirresortivos: REALTIME_EVENTS.VADEMECUM_CHANGED,
+  alergias_cruzadas: REALTIME_EVENTS.VADEMECUM_CHANGED,
+  interacciones_farmacologicas: REALTIME_EVENTS.VADEMECUM_CHANGED,
+  profilaxis_endocarditis: REALTIME_EVENTS.VADEMECUM_CHANGED,
+  manejo_anticoagulantes: REALTIME_EVENTS.VADEMECUM_CHANGED
 }

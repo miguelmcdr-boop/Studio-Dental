@@ -1,8 +1,14 @@
 import { finanzasStorageService } from '../../finanzas/services/finanzasStorageService'
+import { vademecumService } from '../../../services/vademecumService'
+import {
+  detectarFamiliaFarmaco,
+  detectarFamiliasAlergia,
+  generarMensajeDinamico,
+  evaluarIncompatibilidadLegacy
+} from './pacientesAlergiaCalculations'
 
 export const obtenerDescuentoConvenio = (nombreConvenio) => {
   try {
-    // F2-07e: vía finanzasStorageService, no acceso directo a localStorage
     const convenios = finanzasStorageService.obtenerConvenios([])
     if (!Array.isArray(convenios) || convenios.length === 0) return 0
     
@@ -18,32 +24,67 @@ export const obtenerDescuentoConvenio = (nombreConvenio) => {
 
 /**
  * Evalúa si un medicamento a recetar es potencialmente incompatible con
- * las alergias registradas del paciente, dentro de las categorías cubiertas
- * por esta validación (Penicilinas/Betalactámicos y AINEs).
+ * las alergias registradas del paciente.
  *
- * REGLA DE SEGURIDAD CLÍNICA (Constitución, Cap. V.2 — "Fail-Safe Clinical
- * Default"): si el campo de alergias del paciente no está informado, la
- * función NUNCA debe retornar el mismo valor (`null`) que usa para decir
- * "se verificó y no hay incompatibilidad". Ausencia de dato ≠ ausencia de
- * riesgo. Se retorna un estado explícito `tipo: 'sin_datos'` para que la
- * UI le exija al profesional verificar manualmente antes de prescribir.
+ * ESTRATEGIA DE DOBLE CAPA (F4-03e):
+ * 1. Capa principal: consulta matriz de alergias cruzadas desde vademecumService
+ * 2. Capa de fallback: reglas legacy F1-04a (si vademecumService falla)
  *
- * Nota de alcance: esta validación automática cubre únicamente 2 categorías
- * de fármacos (Penicilinas/Betalactámicos y AINEs), no el vademécum completo.
- * Cuando las alergias SÍ están informadas pero el fármaco buscado cae fuera
- * de esas 2 categorías, la función retorna `null` de forma legítima (fue
- * verificado contra lo que sabe cubrir). El aviso de que la cobertura es
- * limitada se muestra como texto fijo en la UI (RecetasSection.jsx), no
- * como una alerta por cada búsqueda, para evitar fatiga de alertas.
+ * REGLA DE SEGURIDAD CLÍNICA (Constitución, Cap. V.2):
+ * Si alergias no informadas → tipo: 'sin_datos' (nunca null)
  *
  * @param {string} textoMedicamento - Texto del fármaco que se está por recetar.
  * @param {string} alergiasTexto - Texto libre de alergias registradas del paciente.
  * @returns {{tipo: 'critica'|'advertencia'|'sin_datos', mensaje: string, sugerencia: string}|null}
  */
+/**
+ * F4-03h: Obtiene hasta 3 fármacos del vademécum que son seguros para el paciente
+ * (sin reactividad cruzada con sus alergias).
+ */
+const obtenerAlternativasSeguras = (familiasAlergia) => {
+  try {
+    const vademecum = vademecumService.obtenerVademecum() || []
+    const alergiasCruzadas = vademecumService.obtenerAlergiasCruzadas() || []
+    
+    // Construir set de familias incompatibles para todas las alergias del paciente
+    const familiasIncompatibles = new Set()
+    for (const regla of alergiasCruzadas) {
+      if (familiasAlergia.includes(regla.familia_alergia) && 
+          (regla.severidad === 'critica' || regla.severidad === 'advertencia')) {
+        familiasIncompatibles.add(regla.familia_farmaco)
+      }
+    }
+    
+    // Filtrar fármacos seguros (que no están en familias incompatibles)
+    const seguros = vademecum.filter(f => 
+      f.activo !== false && 
+      !familiasIncompatibles.has(f.familia) &&
+      f.familia
+    )
+    
+    // Agrupar por familia para variedad (1 por familia, máx 3)
+    const familiasVistas = new Set()
+    const alternativas = []
+    for (const f of seguros) {
+      if (!familiasVistas.has(f.familia) && alternativas.length < 3) {
+        familiasVistas.add(f.familia)
+        alternativas.push({
+          nombre: f.nombre_generico || f.nombreGenerico || '',
+          familia: f.familia || '',
+          familia_legible: (f.familia || '').replace(/_/g, ' ')
+        })
+      }
+    }
+    return alternativas
+  } catch {
+    return []
+  }
+}
+
 export const evaluarIncompatibilidadFarmaco = (textoMedicamento, alergiasTexto) => {
-  const medLower = String(textoMedicamento || '').toLowerCase()
   const alergiasLimpias = String(alergiasTexto || '').trim()
 
+  // Fail-safe: si alergias no informadas
   if (!alergiasLimpias) {
     return {
       tipo: 'sin_datos',
@@ -52,25 +93,40 @@ export const evaluarIncompatibilidadFarmaco = (textoMedicamento, alergiasTexto) 
     }
   }
 
-  const alergiasLower = alergiasLimpias.toLowerCase()
-
-  if ((alergiasLower.includes('penicilina') || alergiasLower.includes('amoxicilina') || alergiasLower.includes('betalactamico')) &&
-      (medLower.includes('amoxicilina') || medLower.includes('penicilina'))) {
-    return {
-      tipo: 'critica',
-      mensaje: '⚠️ ¡ALERTA GRAVE! Paciente registrado con alergia a Penicilinas / Betalactámicos.',
-      sugerencia: 'Alternativa segura: Clindamicina 300 mg o Azitromicina 500 mg.'
+  // Intentar detección vía vademecumService (matriz de alergias cruzadas)
+  try {
+    const familiaFarmaco = detectarFamiliaFarmaco(textoMedicamento)
+    
+    if (familiaFarmaco) {
+      const familiasAlergia = detectarFamiliasAlergia(alergiasLimpias)
+      
+      // Consultar matriz de alergias cruzadas para cada familia detectada
+      for (const familiaAlergia of familiasAlergia) {
+        const resultado = vademecumService.evaluarAlergiaCruzada(familiaAlergia, familiaFarmaco)
+        
+        if (resultado.hayIncompatibilidad) {
+          const { mensaje, sugerencia } = generarMensajeDinamico(familiaAlergia, familiaFarmaco, resultado)
+          const alternativas = obtenerAlternativasSeguras(familiasAlergia)
+          return {
+            tipo: resultado.severidad === 'critica' ? 'critica' : 'advertencia',
+            mensaje,
+            sugerencia,
+            familiaFarmaco,
+            familiaAlergia,
+            porcentajeCruzado: resultado.porcentajeCruzado || null,
+            notaClinica: resultado.notaClinica || resultado.nota_clinica || null,
+            alternativas
+          }
+        }
+      }
     }
+  } catch (error) {
+    // vademecumService falló, usar fallback legacy
+    console.warn('[pacientesCalculations] vademecumService falló, usando reglas legacy:', error?.message)
   }
 
-  if ((alergiasLower.includes('aine') || alergiasLower.includes('ibuprofeno') || alergiasLower.includes('aspirina')) &&
-      (medLower.includes('ibuprofeno') || medLower.includes('ketoprofeno') || medLower.includes('ketorolaco') || medLower.includes('diclofenaco') || medLower.includes('naproxeno'))) {
-    return {
-      tipo: 'advertencia',
-      mensaje: '⚠️ ¡ALERTA DE ALERGIA! Paciente alérgico a AINEs.',
-      sugerencia: 'Alternativa segura: Paracetamol 500 mg / 1 g o Clonixinato de Lisina.'
-    }
-  }
-
-  return null
+  // Fallback: reglas legacy F1-04a (2 categorías hardcodeadas)
+  return evaluarIncompatibilidadLegacy(textoMedicamento, alergiasLimpias)
 }
+
+export { obtenerAlternativasSeguras }

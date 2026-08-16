@@ -11,7 +11,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "validate:architecture": "node scripts/validate-architecture.js"
+    "validate:architecture": "node scripts/validate-architecture.js",
+    "test:e2e": "playwright test --config=e2e/playwright.config.js",
+    "test:e2e:ui": "playwright test --config=e2e/playwright.config.js --ui",
+    "test:e2e:headed": "playwright test --config=e2e/playwright.config.js --headed"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.3",
@@ -23,6 +26,7 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.3",
