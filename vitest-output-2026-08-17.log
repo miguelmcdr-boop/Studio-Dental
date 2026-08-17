@@ -1,0 +1,280 @@
+
+ RUN  v3.2.7 /Users/miguelito/Desktop/Studio Dental
+
+stdout | src/hooks/useRealtimeSync.test.js > useRealtimeSync > debe suscribirse a todas las tablas críticas al montar
+[useRealtimeSync] Sincronización en tiempo real activada
+
+stdout | src/hooks/useRealtimeSync.test.js > useRealtimeSync > debe llamar refrescarDesdeSupabase al recibir evento en pacientes
+[useRealtimeSync] Sincronización en tiempo real activada
+[useRealtimeSync] Cambio en pacientes: INSERT
+
+stdout | src/hooks/useRealtimeSync.test.js > useRealtimeSync > debe emitir evento custom al recibir evento en otras tablas
+[useRealtimeSync] Sincronización en tiempo real activada
+[useRealtimeSync] Cambio en citas: INSERT
+
+stdout | src/hooks/useRealtimeSync.test.js > useRealtimeSync > debe ignorar eventos locales (dentro de ventana de 2s)
+[useRealtimeSync] Sincronización en tiempo real activada
+[useRealtimeSync] Ignorando evento local en citas
+
+stdout | src/hooks/useRealtimeSync.test.js > useRealtimeSync > debe procesar eventos fuera de ventana de tolerancia
+[useRealtimeSync] Sincronización en tiempo real activada
+
+stdout | src/services/operationQueue.test.js > operationQueue > enqueue > debe agregar operación a la cola
+[operationQueue] Operación encolada: pacientesStorageService.guardarPacientes (ID: 1786925447416-n1e6tczvj)
+
+stdout | src/services/vademecumService.test.js > vademecumService > sincronizarDesdeSupabase (sin Supabase configurado) > no debe fallar si USE_SUPABASE=false
+[vademecumService] Supabase no configurado, usando datos locales
+
+stdout | src/services/vademecumService.test.js > vademecumService > sincronizarDesdeSupabase (sin Supabase configurado) > debe marcar estaSincronizado como false si no hay Supabase
+[vademecumService] Supabase no configurado, usando datos locales
+
+stdout | src/services/operationQueue.test.js > operationQueue > enqueue > debe persistir en localStorage
+[operationQueue] Operación encolada: pacientesStorageService.guardarPacientes (ID: 1786925447464-lykjm8j9s)
+
+stderr | src/modules/finanzas/hooks/useFinanzas.test.js > useFinanzas > Consolidación de transacciones > maneja errores al cargar pagos globales sin romper
+Error: Storage error
+    at Object.<anonymous> [90m(/Users/miguelito/Desktop/Studio Dental/[39msrc/modules/finanzas/hooks/useFinanzas.test.js:146:15[90m)[39m
+    at Object.mockCall [90m(file:///Users/miguelito/Desktop/Studio%20Dental/[39mnode_modules/[4m@vitest/spy[24m/dist/index.js:96:15[90m)[39m
+    at Object.spy [as obtenerPagos] [90m(file:///Users/miguelito/Desktop/Studio%20Dental/[39mnode_modules/[4mtinyspy[24m/dist/index.js:47:80[90m)[39m
+    at [90m/Users/miguelito/Desktop/Studio Dental/[39msrc/modules/finanzas/hooks/useFinanzas.js:29:49
+    at [90m/Users/miguelito/Desktop/Studio Dental/[39msrc/modules/finanzas/hooks/useFinanzas.js:75:5
+    at Object.react_stack_bottom_frame [90m(/Users/miguelito/Desktop/Studio Dental/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:25989:20[90m)[39m
+    at runWithFiberInDEV [90m(/Users/miguelito/Desktop/Studio Dental/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:874:13[90m)[39m
+    at commitHookEffectListMount [90m(/Users/miguelito/Desktop/Studio Dental/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:13249:29[90m)[39m
+    at commitHookPassiveMountEffects [90m(/Users/miguelito/Desktop/Studio Dental/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:13336:11[90m)[39m
+    at commitPassiveMountOnFiber [90m(/Users/miguelito/Desktop/Studio Dental/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:15484:13[90m)[39m
+
+stderr | src/modules/finanzas/hooks/useFinanzas.test.js > useFinanzas > Consolidación de transacciones > maneja errores al cargar abonos de un paciente sin romper
+Error: Storage error
+    at Object.<anonymous> [90m(/Users/miguelito/Desktop/Studio Dental/[39msrc/modules/finanzas/hooks/useFinanzas.test.js:157:37[90m)[39m
+    at Object.mockCall [90m(file:///Users/miguelito/Desktop/Studio%20Dental/[39mnode_modules/[4m@vitest/spy[24m/dist/index.js:96:15[90m)[39m
+    at Object.spy [as obtenerAbonosPorPaciente] [90m(file:///Users/miguelito/Desktop/Studio%20Dental/[39mnode_modules/[4mtinyspy[24m/dist/index.js:47:80[90m)[39m
+    at [90m/Users/miguelito/Desktop/Studio Dental/[39msrc/modules/finanzas/hooks/useFinanzas.js:51:47
+    at Array.forEach (<anonymous>)
+    at [90m/Users/miguelito/Desktop/Studio Dental/[39msrc/modules/finanzas/hooks/useFinanzas.js:49:15
+    at [90m/Users/miguelito/Desktop/Studio Dental/[39msrc/modules/finanzas/hooks/useFinanzas.js:75:5
+    at Object.react_stack_bottom_frame [90m(/Users/miguelito/Desktop/Studio Dental/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:25989:20[90m)[39m
+    at runWithFiberInDEV [90m(/Users/miguelito/Desktop/Studio Dental/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:874:13[90m)[39m
+    at commitHookEffectListMount [90m(/Users/miguelito/Desktop/Studio Dental/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:13249:29[90m)[39m
+
+ ✓ src/modules/inventario/hooks/useInventario.test.js (25 tests) 287ms
+stdout | src/services/operationQueue.test.js > operationQueue > enqueue > debe generar ID único para cada operación
+[operationQueue] Operación encolada: test.test (ID: 1786925447579-sr58zo01p)
+[operationQueue] Operación encolada: test.test (ID: 1786925447580-t2lj6onpr)
+
+stderr | src/services/vademecumService.test.js > vademecumService > Métodos CRUD (F4-03f-1) > guardarFarmaco inserta en Supabase cuando válido
+[vademecumService] Error al notificar: detail is not defined
+
+stdout | src/services/operationQueue.test.js > operationQueue > enqueue > debe incluir timestamp en la operación
+[operationQueue] Operación encolada: test.test (ID: 1786925447602-v9cytx6y8)
+
+stderr | src/services/vademecumService.test.js > vademecumService > Métodos CRUD (F4-03f-1) > desactivarFarmaco ejecuta UPDATE en Supabase
+[vademecumService] Error al notificar: detail is not defined
+
+ ✓ src/modules/finanzas/hooks/useFinanzas.test.js (26 tests) 309ms
+stderr | src/services/vademecumService.test.js > vademecumService > Métodos CRUD (F4-03f-1) > reactivarFarmaco setea activo=true
+[vademecumService] Error al notificar: detail is not defined
+
+stdout | src/services/operationQueue.test.js > operationQueue > enqueue > debe inicializar retries en 0
+[operationQueue] Operación encolada: test.test (ID: 1786925447630-zj4nlbsv1)
+
+stderr | src/services/vademecumService.test.js > vademecumService > Métodos CRUD (F4-03f-1) > guardarAlergiaCruzada inserta en alergias_cruzadas
+[vademecumService] Error al notificar: detail is not defined
+
+stderr | src/services/vademecumService.test.js > vademecumService > Métodos CRUD (F4-03f-1) > guardarInteraccion inserta en interacciones_farmacologicas
+[vademecumService] Error al notificar: detail is not defined
+
+stderr | src/services/vademecumService.test.js > vademecumService > Métodos CRUD (F4-03f-1) > maneja error de Supabase sin romper la app
+[vademecumService] Error al guardar fármaco: { message: [32m'Error de constraint'[39m }
+
+ ✓ src/services/vademecumService.test.js (42 tests) 623ms
+stdout | src/services/operationQueue.test.js > operationQueue > getPendingCount > debe retornar número correcto de operaciones
+[operationQueue] Operación encolada: test.test (ID: 1786925447702-soutasbrf)
+[operationQueue] Operación encolada: test.test (ID: 1786925447702-e2xanm6qm)
+[operationQueue] Operación encolada: test.test (ID: 1786925447702-uwc1tksoj)
+
+stdout | src/services/operationQueue.test.js > operationQueue > clear > debe limpiar la cola completamente
+[operationQueue] Operación encolada: test.test (ID: 1786925447724-krpmdnxtu)
+[operationQueue] Operación encolada: test.test (ID: 1786925447724-stmvisz54)
+[operationQueue] Cola limpiada
+
+ ✓ src/services/authService.test.js (9 tests) 577ms
+ ✓ src/components/ErrorBoundary.test.jsx (7 tests) 605ms
+   ✓ ErrorBoundary > muestra fallback cuando un child lanza error  389ms
+stdout | src/services/operationQueue.test.js > operationQueue > processQueue > no debe procesar si está offline
+[operationQueue] Operación encolada: pacientesStorageService.guardarPacientes (ID: 1786925447859-ybwy3ducy)
+
+stdout | src/services/operationQueue.test.js > operationQueue > processQueue > no debe procesar si está offline
+[operationQueue] Offline, no se procesa la cola
+
+stdout | src/services/operationQueue.test.js > operationQueue > processQueue > debe limpiar la cola después de procesar
+[operationQueue] Operación encolada: pacientesStorageService.guardarPacientes (ID: 1786925447890-ddtafqdg8)
+
+stdout | src/services/operationQueue.test.js > operationQueue > processQueue > debe limpiar la cola después de procesar
+[operationQueue] Procesando 1 operaciones pendientes...
+
+stderr | src/services/operationQueue.test.js > operationQueue > processQueue > debe limpiar la cola después de procesar
+Error de validación al guardar pacientes: ZodError: [
+  {
+    "expected": "string",
+    "code": "invalid_type",
+    "path": [
+      0,
+      "nombre"
+    ],
+    "message": "Invalid input: expected string, received undefined"
+  },
+  {
+    "expected": "string",
+    "code": "invalid_type",
+    "path": [
+      0,
+      "rut"
+    ],
+    "message": "Invalid input: expected string, received undefined"
+  }
+]
+    at new ZodError [90m(file:///Users/miguelito/Desktop/Studio%20Dental/[39mnode_modules/[4mzod[24m/v4/core/core.js:40:39[90m)[39m
+    at Module.<anonymous> [90m(file:///Users/miguelito/Desktop/Studio%20Dental/[39mnode_modules/[4mzod[24m/v4/core/parse.js:40:20[90m)[39m
+    at _.inst.safeParse [90m(file:///Users/miguelito/Desktop/Studio%20Dental/[39mnode_modules/[4mzod[24m/v4/classic/schemas.js:74:46[90m)[39m
+    at validarListaPacientes [90m(/Users/miguelito/Desktop/Studio Dental/[39msrc/modules/pacientes/schemas/pacienteSchema.js:68:42[90m)[39m
+    at Object.guardarPacientes [90m(/Users/miguelito/Desktop/Studio Dental/[39msrc/modules/pacientes/services/pacientesStorageService.js:184:57[90m)[39m
+    at processOperation [90m(/Users/miguelito/Desktop/Studio Dental/[39msrc/services/operationQueue.js:142:13[90m)[39m
+    at Object.processQueue [90m(/Users/miguelito/Desktop/Studio Dental/[39msrc/services/operationQueue.js:213:27[90m)[39m
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at [90m/Users/miguelito/Desktop/Studio Dental/[39msrc/services/operationQueue.test.js:184:7
+    at [90mfile:///Users/miguelito/Desktop/Studio%20Dental/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-hooks.js:752:20
+
+stdout | src/services/operationQueue.test.js > operationQueue > processQueue > debe limpiar la cola después de procesar
+[operationQueue] Cola procesada completamente
+
+stdout | src/services/operationQueue.test.js > operationQueue > processQueue > debe prevenir procesamiento concurrente (lock)
+[operationQueue] Operación encolada: pacientesStorageService.guardarPacientes (ID: 1786925448086-vwevo2fip)
+
+stdout | src/services/operationQueue.test.js > operationQueue > processQueue > debe prevenir procesamiento concurrente (lock)
+[operationQueue] Procesando 1 operaciones pendientes...
+[operationQueue] Procesando 1 operaciones pendientes...
+
+stdout | src/services/operationQueue.test.js > operationQueue > processQueue > debe prevenir procesamiento concurrente (lock)
+[operationQueue] Cola procesada completamente
+[operationQueue] Cola procesada completamente
+
+stdout | src/services/operationQueue.test.js > operationQueue > persistencia > debe persistir operaciones entre "recargas"
+[operationQueue] Operación encolada: pacientesStorageService.guardarPacientes (ID: 1786925448118-ezjrxtjx1)
+
+ ✓ src/services/operationQueue.test.js (13 tests) 1226ms
+   ✓ operationQueue > enqueue > debe agregar operación a la cola  510ms
+stdout | src/hooks/useRealtimeSync.test.js > useRealtimeSync > debe procesar eventos fuera de ventana de tolerancia
+[useRealtimeSync] Cambio en citas: INSERT
+
+ ✓ src/hooks/useRealtimeSync.test.js (8 tests) 2149ms
+   ✓ useRealtimeSync > debe procesar eventos fuera de ventana de tolerancia  2104ms
+stderr | src/utils/anestesiaCalc.test.js > anestesiaCalc > Integración con vademecumService (F4-03d) > Fallback a datos hardcodeados si vademecumService falla
+[anestesiaCalc] vademecumService no disponible, usando respaldo v1.0: Error de red
+
+ ✓ src/utils/anestesiaCalc.test.js (30 tests) 230ms
+ ✓ src/hooks/useRealtimeSubscription.test.js (11 tests) 99ms
+ ✓ src/modules/presupuestos/hooks/usePresupuestos.test.js (22 tests) 264ms
+ ✓ src/modules/pacientes/hooks/useFichaPaciente.test.js (15 tests) 302ms
+ ✓ src/hooks/useRBAC.test.js (18 tests) 178ms
+stderr | src/modules/agenda/hooks/useAgenda.test.js > useAgenda > guardarCita con paciente exprés (regresión F2-02b) > agrega el paciente exprés al inicio del listado (más reciente primero)
+Error de validación al guardar pacientes: ZodError: [
+  {
+    "origin": "string",
+    "code": "too_small",
+    "minimum": 1,
+    "inclusive": true,
+    "path": [
+      0,
+      "rut"
+    ],
+    "message": "El RUT es obligatorio"
+  }
+]
+    at new ZodError [90m(file:///Users/miguelito/Desktop/Studio%20Dental/[39mnode_modules/[4mzod[24m/v4/core/core.js:40:39[90m)[39m
+    at Module.<anonymous> [90m(file:///Users/miguelito/Desktop/Studio%20Dental/[39mnode_modules/[4mzod[24m/v4/core/parse.js:40:20[90m)[39m
+    at _.inst.safeParse [90m(file:///Users/miguelito/Desktop/Studio%20Dental/[39mnode_modules/[4mzod[24m/v4/classic/schemas.js:74:46[90m)[39m
+    at validarListaPacientes [90m(/Users/miguelito/Desktop/Studio Dental/[39msrc/modules/pacientes/schemas/pacienteSchema.js:68:42[90m)[39m
+    at Object.guardarPacientes [90m(/Users/miguelito/Desktop/Studio Dental/[39msrc/modules/pacientes/services/pacientesStorageService.js:184:57[90m)[39m
+    at [90m/Users/miguelito/Desktop/Studio Dental/[39msrc/store/pacientesStore.js:27:29
+    at setState [90m(file:///Users/miguelito/Desktop/Studio%20Dental/[39mnode_modules/[4mzustand[24m/esm/vanilla.mjs:5:55[90m)[39m
+    at Object.setPacientes [90m(/Users/miguelito/Desktop/Studio Dental/[39msrc/store/pacientesStore.js:23:30[90m)[39m
+    at Object.guardarCita [90m(/Users/miguelito/Desktop/Studio Dental/[39msrc/modules/agenda/hooks/useAgenda.js:71:36[90m)[39m
+    at [90m/Users/miguelito/Desktop/Studio Dental/[39msrc/modules/agenda/hooks/useAgenda.test.js:200:32
+
+ ✓ src/modules/agenda/hooks/useAgenda.test.js (18 tests) 273ms
+ ✓ src/modules/periodontograma/hooks/usePeriodontograma.test.js (21 tests) 180ms
+ ✓ src/modules/administracion/hooks/useVademecumAdmin.test.js (6 tests) 186ms
+ ✓ src/modules/presupuestos/schemas/presupuestoSchema.test.js (22 tests) 28ms
+ ✓ src/modules/odontograma/hooks/useOdontograma.test.js (16 tests) 383ms
+stdout | src/services/realtimeService.test.js > realtimeService > suscribirseATabla > debe suscribirse a una tabla válida y retornar objeto con unsubscribe
+[realtimeService] Suscrito a citas (evento: *)
+
+stdout | src/services/realtimeService.test.js > realtimeService > suscribirseATabla > debe pasar el nombre de tabla y evento al canal
+[realtimeService] Suscrito a pacientes (evento: INSERT)
+
+stdout | src/services/realtimeService.test.js > realtimeService > suscribirseATabla > debe usar evento "*" por defecto
+[realtimeService] Suscrito a citas (evento: *)
+
+stdout | src/services/realtimeService.test.js > realtimeService > suscribirseATabla > debe invocar el callback cuando llega un evento
+[realtimeService] Suscrito a citas (evento: *)
+
+stdout | src/services/realtimeService.test.js > realtimeService > suscribirseATabla > debe invocar unsubscribe correctamente
+[realtimeService] Suscrito a citas (evento: *)
+[realtimeService] Desuscrito de citas
+
+stdout | src/services/realtimeService.test.js > realtimeService > suscribirseATabla > debe retornar null si USE_SUPABASE es false
+[realtimeService] Supabase no configurado, omitiendo suscripción a citas
+
+stdout | src/services/realtimeService.test.js > realtimeService > suscribirseATabla > debe retornar null si supabase es null
+[realtimeService] Supabase no configurado, omitiendo suscripción a citas
+
+stderr | src/services/realtimeService.test.js > realtimeService > suscribirseATabla > debe retornar null si tabla es inválida
+[realtimeService] Nombre de tabla inválido: 
+[realtimeService] Nombre de tabla inválido: [1mnull[22m
+[realtimeService] Nombre de tabla inválido: [90mundefined[39m
+[realtimeService] Nombre de tabla inválido: [33m123[39m
+
+stderr | src/services/realtimeService.test.js > realtimeService > suscribirseATabla > debe retornar null si callback no es función
+[realtimeService] Callback debe ser una función
+[realtimeService] Callback debe ser una función
+[realtimeService] Callback debe ser una función
+
+stdout | src/services/realtimeService.test.js > realtimeService > suscribirseATabla > debe agregar filtro cuando se especifica
+[realtimeService] Suscrito a citas (evento: *)
+
+stdout | src/services/realtimeService.test.js > realtimeService > suscribirseATabla > no debe agregar filtro si no se especifica
+[realtimeService] Suscrito a citas (evento: *)
+
+stdout | src/services/realtimeService.test.js > realtimeService > suscribirseATabla > debe manejar errores en callback sin romper la suscripción
+[realtimeService] Suscrito a citas (evento: *)
+
+stdout | src/services/realtimeService.test.js > realtimeService > suscribirseATabla > debe generar nombres de canal únicos para cada suscripción
+[realtimeService] Suscrito a citas (evento: *)
+[realtimeService] Suscrito a citas (evento: *)
+
+ ✓ src/services/realtimeService.test.js (13 tests) 58ms
+ ✓ src/modules/finanzas/schemas/movimientoFinancieroSchema.test.js (22 tests) 30ms
+ ✓ src/services/conflictDetectionService.test.js (13 tests) 47ms
+ ✓ src/modules/prestaciones/schemas/prestacionSchema.test.js (28 tests) 83ms
+ ✓ src/services/notificationService.test.js (17 tests) 106ms
+ ✓ src/modules/dsd/utils/dsdCalculations.test.js (9 tests) 7ms
+stderr | src/modules/pacientes/utils/pacientesCalculations.test.js > evaluarIncompatibilidadFarmaco > F4-03e: integración con vademecumService (nuevas capacidades) > usa fallback legacy si vademecumService falla
+[pacientesCalculations] vademecumService falló, usando reglas legacy: Error de red
+
+ ✓ src/modules/pacientes/utils/pacientesCalculations.test.js (24 tests) 62ms
+ ✓ src/modules/odontograma/utils/odontogramaCalculations.test.js (19 tests) 9ms
+ ✓ src/modules/agenda/schemas/citaSchema.test.js (23 tests) 49ms
+ ✓ src/services/localStorageRepository.test.js (20 tests) 37ms
+ ✓ src/services/adjuntosStorageService.test.js (9 tests) 179ms
+ ✓ src/utils/conflictosAgenda.test.js (14 tests) 16ms
+ ✓ src/modules/periodontograma/utils/periodontalCalculations.test.js (27 tests) 40ms
+ ✓ src/services/schemaMigrationService.test.js (17 tests) 50ms
+ ✓ src/modules/quirurgico/utils/quirurgicoValidation.test.js (18 tests) 13ms
+ ✓ src/modules/odontopediatria/utils/pediatriaCalculations.test.js (7 tests) 9ms
+
+ Test Files  33 passed (33)
+      Tests  589 passed (589)
+   Start at  20:10:44
+   Duration  13.70s (transform 1.62s, setup 7.02s, collect 7.16s, tests 8.69s, environment 41.66s, prepare 8.17s)
+
