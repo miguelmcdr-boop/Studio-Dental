@@ -3,7 +3,7 @@
 **Estado:** VIGENTE Y MANDATORIO  
 **Origen:** Deriva directamente de `Auditoria_Tecnica_Studio_Dental.md` (línea base aprobada) y de `docs/01-Constitucion_Arquitectura_Studio_Dental_v3.md`.  
 **Rol responsable:** Principal Software Architect / Staff Engineer del proyecto.  
-**Última actualización:** 2026-08-16 — reconciliación de estados contra el código (auditoría de repositorio). Se revierten F6-01, F6-02 y F6-06 a `IN PROGRESS` por Regla 3; se incorpora el bloque estructural F6-A a F6-K; se traslada la bitácora a `docs/BITACORA.md`.  
+**Última actualización:** 2026-08-17 — RFC-F6-C aprobado y archivado en `docs/RFC-F6-C-modelo-multiclinica.md`; F6-C pasa a `IN PROGRESS` con subtareas F6-C-a a F6-C-f; métrica oficial de tests reconciliada a 589 (`npx vitest run`, 2026-08-17); registrado hallazgo F4-03i.  
 **Bitácora histórica:** `docs/BITACORA.md`
 
 
@@ -100,6 +100,7 @@
 | F4-03f | Módulo admin "Vademécum" (8 tabs CRUD) | 4 | P1 | L | F4-03c | DONE (2026-08-15) |
 | F4-03g | Autocompletado recetas con vademécum v1.1 | 4 | P1 | S | F4-03f | DONE (2026-08-15) |
 | F4-03h | Mejoras UI de alertas + alternativas seguras | 4 | P2 | S | F4-03e, F4-03g | DONE (2026-08-15) |
+| F4-03i | Corregir `detail is not defined` en notificaciones de escritura de `vademecumService` (hallazgo Vitest 2026-08-17) | 4 | P2 | XS (<0.5 d) | — | TODO |
 | F4-04 | E2E de flujos de negocio críticos previos a despliegue multi-clínica | 4 | P1 | M (3-5 d) | F3-04 | DONE (2026-08-16) |
 | F5-01 | Supabase Realtime setup (habilitar canales en tablas críticas) | 5 | P1 | S | F4-02 | DONE (2026-08-14) |
 | F5-02 | Sincronización en tiempo real de cambios entre dispositivos | 5 | P1 | M | F5-01 | DONE (2026-08-14) |
@@ -109,7 +110,13 @@
 | **— FASE 6: bloque estructural (nuevo, 2026-08-16) —** | | | | | | |
 | F6-A | Versionar esquema SQL + seed del vademécum v1.1 | 6 | **P0** | S (1 d) | — | TODO |
 | F6-B | Rol de usuario a `app_metadata` + RLS por rol server-side | 6 | **P0** | M (2-4 d) | — | TODO |
-| F6-C | Modelo multi-clínica: `clinica_id` + membresía + reescritura de RLS | 6 | **P0** | XL | F6-B | TODO |
+| F6-C | Modelo multi-clínica: `clinica_id` + membresía + reescritura de RLS | 6 | **P0** | XL | F6-B | IN PROGRESS (RFC aprobado 2026-08-17; implementación bloqueada por F6-B) |
+| F6-C-a | Tablas `clinicas` y `miembros_clinica` + función `clinica_actual()` (RFC-F6-C) | 6 | **P0** | S (0.5 d) | F6-B, F6-I | TODO |
+| F6-C-b | Migración de datos existentes a clínica inicial (RFC-F6-C) | 6 | **P0** | S (0.5 d) | F6-C-a | TODO |
+| F6-C-c | `clinica_id` en 18 tablas + reescritura de políticas RLS (RFC-F6-C) | 6 | **P0** | M (2 d) | F6-C-b | TODO |
+| F6-C-d | Verificación de servicios/hooks contra el nuevo RLS (RFC-F6-C) | 6 | **P0** | M (2 d) | F6-C-c | TODO |
+| F6-C-e | Módulo Configuración de clínica: branding + logo en Storage (RFC-F6-C) | 6 | P1 | S (1 d) | F6-C-d | TODO |
+| F6-C-f | Reescritura E2E `flujo-colaborativo.spec.js` con dos cuentas (RFC-F6-C) | 6 | P1 | S (0.5 d) | F6-C-d, F6-I | TODO |
 | F6-D | Cablear la ficha clínica a Supabase (odontograma, perio, evoluciones, recetas, certificados) | 6 | **P0** | L (5-8 d) | F6-C | TODO |
 | F6-E | Adjuntos clínicos a Supabase Storage con URLs firmadas | 6 | **P0** | M (3-5 d) | F6-C | TODO |
 | F6-F | Auditoría append-only por trigger + soft delete de ficha clínica | 6 | P1 | M (3-4 d) | F6-C | TODO |
@@ -1671,7 +1678,7 @@ Toda métrica de esta tabla incluye el comando que la produce (Regla de Gobernan
 
 | Métrica | Valor | Comando | Fecha |
 |---|---|---|---|
-| Bloques de test unitario/integración | 545 | `grep -rho "\bit(\|\btest(" src --include=*.test.js --include=*.test.jsx \| wc -l` | 2026-08-16 |
+| Tests unitarios/integración (Vitest) | 589 pasando (33 archivos) | `npx vitest run` | 2026-08-17 |
 | Tests E2E | 12 en 6 specs | `grep -ho "test(" e2e/specs/*.spec.js \| wc -l` | 2026-08-16 |
 | Componentes `.jsx` | 143 | `find src -name "*.jsx" \| grep -v test \| wc -l` | 2026-08-16 |
 | Componentes con test | 1 | `find src -name "*.test.jsx" \| wc -l` | 2026-08-16 |
@@ -1685,7 +1692,7 @@ Toda métrica de esta tabla incluye el comando que la produce (Regla de Gobernan
 | Archivos `.jsx` con atributos `aria-*` | 2 de 144 | `grep -rl "aria-" src/ --include=*.jsx \| wc -l` | 2026-08-16 |
 | Pasos ejecutados del `DEPLOY_CHECKLIST` | 0 de 80 | `grep -c '^- \[x\]' docs/DEPLOY_CHECKLIST.md` | 2026-08-16 |
 
-*Nota: las cifras de "582 tests" y "589 tests" que circulaban en versiones anteriores de este documento y del checklist provenían del contador de Vitest en ejecuciones distintas y nunca se reconciliaron. El conteo estático de bloques `it/test` es 545; la diferencia se explica por tests generados en bucle o `it.each`. **Al reabrir el CI, registrar el output literal de `npx vitest run` con su fecha y usar ese número, uno solo, en todos los documentos.***
+*Nota (reconciliada 2026-08-17): el número oficial es **589 tests pasando en 33 archivos**, output literal de `npx vitest run` ejecutado el 2026-08-17 (`Test Files 33 passed (33)` / `Tests 589 passed (589)` / `Duration 13.70s`). El conteo estático previo de 545 bloques `it/test` (2026-08-16) difería porque `grep` no cuenta tests generados con `it.each`/bucles que Vitest sí ejecuta. Desde esta fecha, 589 es el único número de referencia en todos los documentos (Regla de Gobernanza 8).*
 
 ### Métricas heredadas pendientes de re-verificación
 
@@ -1709,11 +1716,13 @@ Toda métrica de esta tabla incluye el comando que la produce (Regla de Gobernan
 
 ## 5. PRÓXIMA ACCIÓN
 
-**Una sola:** redactar el RFC de F6-C (modelo multi-clínica), porque F6-D, F6-E, F6-F y F6-G dependen de su resultado y no conviene implementarlas dos veces.
+El RFC de F6-C fue redactado y aprobado (2026-08-17): ver `docs/RFC-F6-C-modelo-multiclinica.md`. Su implementación queda bloqueada hasta que F6-B esté `DONE`.
 
-**En paralelo, sin esperar al RFC:** F6-A (versionar el vademécum). Es la única tarea del documento cuyo retraso puede costar trabajo irrecuperable.
+Próxima acción: **F6-A** (versionar el vademécum). Es la única tarea del documento cuyo retraso puede costar trabajo irrecuperable.
 
-**No se implementará ninguna tarea hasta confirmación explícita del usuario** (Regla de Gobernanza 1).
+Cuando el usuario lo autorice, puede iniciarse en paralelo **F6-B** (prerequisito bloqueante de F6-C) y **F6-G** (independiente, media jornada).
+
+No se implementará ninguna tarea hasta confirmación explícita del usuario (Regla de Gobernanza 1).
 
 ---
 
