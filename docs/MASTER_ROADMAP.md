@@ -3,7 +3,9 @@
 **Estado:** VIGENTE Y MANDATORIO  
 **Origen:** Deriva directamente de `Auditoria_Tecnica_Studio_Dental.md` (línea base aprobada) y de `docs/01-Constitucion_Arquitectura_Studio_Dental_v3.md`.  
 **Rol responsable:** Principal Software Architect / Staff Engineer del proyecto.  
-P26-08-15 (F6-02 completada — ROADMAP consistencia verificada, 12/12 tests E2E confirmados con evidencia reproducible)
+**Última actualización:** 2026-08-16 — reconciliación de estados contra el código (auditoría de repositorio). Se revierten F6-01, F6-02 y F6-06 a `IN PROGRESS` por Regla 3; se incorpora el bloque estructural F6-A a F6-K; se traslada la bitácora a `docs/BITACORA.md`.  
+**Bitácora histórica:** `docs/BITACORA.md`
+
 
 ## 0. REGLAS DE GOBERNANZA DE ESTE DOCUMENTO
 
@@ -20,6 +22,11 @@ P26-08-15 (F6-02 completada — ROADMAP consistencia verificada, 12/12 tests E2E
 
 **Convención de ID**  
 `F<fase>-<número>` — ejemplo: `F1-03` = Fase 1, tarea 3. Sufijos de letra (`F2-03g`, `F2-07h`) identifican hallazgos derivados registrados durante la ejecución de la tarea base, siguiendo la Regla 1 de gobernanza.
+8. **Regla de trazabilidad de métricas:** toda métrica citada en este documento (número de tests, tablas, cobertura, tamaño de bundle) debe ir acompañada del comando que la produce y la fecha de ejecución. Una métrica sin fuente no se copia hacia adelante: se vuelve a medir.
+9. **Regla de verificación contra el código:** antes de marcar `DONE` una tarea cuyo criterio de aceptación sea observable en el repositorio, se deja constancia del comando de verificación y su salida. Marcar `DONE` porque "se implementó" y no porque "se comprobó" es lo que produjo la deriva corregida el 2026-08-16.
+
+
+---
 
 ## 1. TABLERO GLOBAL DE TAREAS
 
@@ -84,14 +91,6 @@ P26-08-15 (F6-02 completada — ROADMAP consistencia verificada, 12/12 tests E2E
 | F4-02d-1 | Lectura de datos clínicos desde Supabase (sync cache) | 4 | P1 | M | F4-02c-6 | DONE (2026-08-13) |
 | F4-02d-2 | Escritura de datos clínicos a Supabase | 4 | P1 | M | F4-02d-1 | DONE (2026-08-13) |
 | F4-02e | Testing, validación, persistencia y mejoras UX | 4 | P1 | M | F4-02d-2 | DONE (2026-08-13) |
-| F4-03a | Esquema SQL del vademécum v1.1 (7 tablas + RLS) | 4 | P1 | S | F4-03 | DONE (2026-08-15) |
-| F4-03b | Carga de datos — 164 registros enriquecidos | 4 | P1 | M | F4-03a | DONE (2026-08-15) |
-| F4-03c | vademecumService.js (33 tests) | 4 | P1 | M | F4-03a | DONE (2026-08-15) |
-| F4-03d | anestesiaCalc integrado con vademécum v1.1 | 4 | P1 | S | F4-03c | DONE (2026-08-15) |
-| F4-03e | evaluarIncompatibilidadFarmaco (matriz completa) | 4 | P1 | S | F4-03c | DONE (2026-08-15) |
-| F4-03f | Módulo admin "Vademécum" (8 tabs CRUD) | 4 | P1 | L | F4-03c | DONE (2026-08-15) |
-| F4-03g | Autocompletado recetas con vademécum v1.1 | 4 | P1 | S | F4-03f | DONE (2026-08-15) |
-| F4-03h | Mejoras UI de alertas + alternativas seguras | 4 | P2 | S | F4-03e, F4-03g | DONE (2026-08-15) |
 | F4-03 | Curación clínica real del vademécum y datos de referencia | 4 | P1 | M (curación + carga) | — (paralelizable) | DONE (2026-08-15) |
 | F4-03a | Esquema SQL del vademécum v1.1 (7 tablas) | 4 | P1 | S | F4-03 | DONE (2026-08-15) |
 | F4-03b | Carga de datos — 164 registros enriquecidos | 4 | P1 | M | F4-03a | DONE (2026-08-15) |
@@ -107,17 +106,32 @@ P26-08-15 (F6-02 completada — ROADMAP consistencia verificada, 12/12 tests E2E
 | F5-03 | Offline-first queue de operaciones pendientes | 5 | P1 | S | F5-02 | DONE (2026-08-14) |
 | F5-04 | Conflict resolution entre dispositivos | 5 | P2 | S | F5-02 | DONE (2026-08-14) |
 | F5-05 | Notifications y alertas de cambios | 5 | P2 | S | F5-02 | DONE (2026-08-14) |
-| F6-01 | Error Boundary global + por módulo crítico | 6 | P1 | S (1-2 d) | — | DONE (2026-08-15) |
-| F6-02 | Auditoría y confirmación real del estado E2E (contradicción 5/11 vs 12/12) | 6 | P1 | XS (<0.5 d) | — | DONE (2026-08-15) |
+| **— FASE 6: bloque estructural (nuevo, 2026-08-16) —** | | | | | | |
+| F6-A | Versionar esquema SQL + seed del vademécum v1.1 | 6 | **P0** | S (1 d) | — | TODO |
+| F6-B | Rol de usuario a `app_metadata` + RLS por rol server-side | 6 | **P0** | M (2-4 d) | — | TODO |
+| F6-C | Modelo multi-clínica: `clinica_id` + membresía + reescritura de RLS | 6 | **P0** | XL | F6-B | TODO |
+| F6-D | Cablear la ficha clínica a Supabase (odontograma, perio, evoluciones, recetas, certificados) | 6 | **P0** | L (5-8 d) | F6-C | TODO |
+| F6-E | Adjuntos clínicos a Supabase Storage con URLs firmadas | 6 | **P0** | M (3-5 d) | F6-C | TODO |
+| F6-F | Auditoría append-only por trigger + soft delete de ficha clínica | 6 | P1 | M (3-4 d) | F6-C | TODO |
+| F6-G | Validación de RUT (módulo 11) + unicidad por clínica | 6 | P1 | XS (<0.5 d) | — | TODO |
+| F6-H | Timeout de sesión por inactividad + política de contraseña | 6 | P1 | S (1-2 d) | F6-B | TODO |
+| F6-I | Entorno de staging separado de producción para E2E | 6 | P1 | S (1 d) | — | TODO |
+| F6-J | PWA real (service worker + manifest) para arranque en frío sin conexión | 6 | P2 | M (2-4 d) | — | TODO |
+| F6-K | Umbrales de cobertura en CI + tests para los 8 módulos sin cobertura | 6 | P2 | L (5-8 d, incremental) | — | TODO |
+| **— FASE 6: hardening (original) —** | | | | | | |
+| F6-01 | Error Boundary global + por módulo crítico | 6 | P1 | S (1-2 d) | — | IN PROGRESS (implementado 2026-08-15; falta test de layout, ver criterios) |
+| F6-02 | Auditoría y confirmación real del estado E2E | 6 | P1 | XS (<0.5 d) | — | IN PROGRESS (evidencia 12/12 obtenida 2026-08-15; criterio de CI incumplido, ver F6-02b) |
 | F6-02b | Agregar job E2E al pipeline CI/CD (hallazgo F6-02) | 6 | P2 | S (0.5-1 d) | F6-02 | TODO |
 | F6-02c | Investigar `data-testid` faltantes en bundle de LoginScreen (hallazgo F6-02) | 6 | P3 | XS (<0.5 d) | F6-02 | TODO |
 | F6-03 | Logger centralizado con niveles (reemplazo de 59 `console.log` sueltos) | 6 | P2 | S (1-2 d) | — | TODO |
 | F6-04 | Accesibilidad básica (aria-*, foco en modales, labels) | 6 | P2 | M (2-4 d, incremental) | — | TODO |
 | F6-05 | Exportación de reportes a Excel/PDF | 6 | P2 | M (2-3 d) | — | TODO |
-| F6-06 | Checklist de despliegue a producción (dominio, env vars, backups) | 6 | P1 | S (0.5-1 d, proceso) | F6-02 | DONE (2026-08-16) |
+| F6-06 | Checklist de despliegue a producción (dominio, env vars, backups) | 6 | P1 | S (0.5-1 d, proceso) | F6-02, F6-A..F6-E | IN PROGRESS (documento redactado 2026-08-16; 0/80 pasos ejecutados) |
 | F6-07 | Manual de usuario por rol + material de capacitación | 6 | P3 | L (1-2 semanas) | — | TODO |
 
-**Leyenda de esfuerzo:** XS < 1 día · S 1-2 días · M 2-6 días · L 4-8 días · XL > 2 semanas / múltiples sprints. Estimaciones asumen un único desarrollador senior a tiempo completo por tarea; ajustar si hay paralelización real de personas.
+---
+
+## 2. FASES DE EJECUCIÓN
 
 ---
 
@@ -823,6 +837,8 @@ quirurgico_implantes, quirurgico_endodoncia
 
 #### F4-02c-6 — Migración de datos clínicos (11 tipos) a Supabase — DONE (2026-08-13)
 
+**⚠️ REAPERTURA (2026-08-16):** la auditoría de código detectó que `datosClinicosSupabase.js` no es invocado por los módulos de odontograma, periodontograma, evoluciones ni recetas — solo por `quirurgico`. La migración existe como capa de servicio pero no está cableada. Estado real: `IN PROGRESS`. Ver **F6-D**.
+
 **Qué ganamos:** los 11 tipos de datos clínicos por paciente migrados a sus tablas correspondientes.
 
 **Archivo creado:**
@@ -863,6 +879,8 @@ quirurgico_implantes, quirurgico_endodoncia
 - `useFichaPaciente.js` — llama `sincronizarPaciente()` al montar
 
 #### F4-02d-2 — Escritura de datos clínicos a Supabase — DONE (2026-08-13)
+
+**⚠️ REAPERTURA (2026-08-16):** `useFichaPaciente.js` sigue escribiendo odontograma, recetas, evoluciones y certificados a localStorage vía `pacientesStorageService.guardarItem()`. La escritura a Supabase no está conectada. Estado real: `IN PROGRESS`. Ver **F6-D**.
 
 **Qué ganamos:** los datos clínicos se escriben a Supabase con UPSERT inteligente, manteniendo localStorage como fallback para resiliencia.
 
@@ -927,6 +945,8 @@ quirurgico_implantes, quirurgico_endodoncia
 - Architecture: 29 archivos en allowlist
 
 ### F4-03 — Curación clínica real del vademécum — DONE (2026-08-15)
+
+**⚠️ HALLAZGO (2026-08-16):** el esquema SQL y los 164 registros producidos por F4-03a y F4-03b no están versionados en `supabase/`. Existen únicamente en el proyecto Supabase de desarrollo. Ver **F6-A**.
 
 **Qué ganamos:** vademécum v1.1 completamente integrado con 164 registros de datos clínicos enriquecidos, alertas de alergias cruzadas funcionales, módulo de administración completo, y autocompletado de recetas con posologías detalladas.
 
@@ -1014,7 +1034,7 @@ quirurgico_implantes, quirurgico_endodoncia
 
 **Esfuerzo:** M (3-5 días). **Prioridad:** P1.
 
-**Salida de Fase 4 (núcleo técnico):** ✅ **COMPLETAMENTE CERRADA (2026-08-13).** Migración a Supabase realizada, mergeada vía PR #22. Sistema operativo multi-dispositivo con fuente de verdad en PostgreSQL.
+**Salida de Fase 4 (núcleo técnico):** ⚠️ **REABIERTA PARCIALMENTE (2026-08-16).** Declarada cerrada el 2026-08-13, Migración a Supabase realizada, mergeada vía PR #22. Sistema operativo multi-dispositivo con fuente de verdad en PostgreSQL.
 
 ---
 
@@ -1213,745 +1233,492 @@ quirurgico_implantes, quirurgico_endodoncia
 
 ---
 
-## FASE 6 — HARDENING DE PRODUCCIÓN
+---
 
-**Precondición de fase:** Fases 1-5 completas (✅ confirmado). No bloqueante para el uso actual del sistema; su objetivo es cerrar brechas de robustez, accesibilidad y observabilidad antes de escalar a uso multi-clínica sostenido.
+## FASE 6 — HARDENING DE PRODUCCIÓN Y CIERRE ESTRUCTURAL
 
-**Origen:** Auditoría técnica independiente ejecutada sobre el estado actual del repositorio (2026-08-16): `npx vitest run` (582/582 passing), `npx oxlint` (0 warnings/0 errores), `npx vite build` (build limpio), `npm audit` (0 vulnerabilidades) y revisión manual de `src/`. Confirma las métricas ya documentadas en este roadmap y detecta brechas nuevas no registradas previamente.
+**Precondición de fase:** Fases 1-5 marcadas completas en el tablero. **Advertencia de gobernanza:** una auditoría de código independiente (2026-08-16) detectó que varias tareas de Fase 4 marcadas `DONE` no están implementadas en el código (ver F6-D y F6-A). Esta fase, por tanto, no es solo hardening: cierra primero la brecha entre lo que este documento declara y lo que el repositorio contiene.
 
-**Estado de fase:** 🟡 **PROPUESTA — pendiente de inicio.** No se implementará ninguna tarea hasta confirmación explícita del usuario (Regla de Gobernanza 1).
+**Origen:** dos auditorías. (a) Auditoría técnica sobre métricas de repositorio (2026-08-16): `npx vitest run`, `npx oxlint`, `npx vite build`, `npm audit` — origen de F6-01 a F6-07. (b) Auditoría de código y esquema SQL (2026-08-16) — origen de F6-A a F6-K.
 
-### F6-01 — Error Boundary global + por módulo crítico — TODO
+**Estado de fase:** 🔴 **EN CURSO, BLOQUEANTE PARA PRODUCCIÓN.** Sustituye la declaración previa de "sistema listo para producción", que se apoyaba en tareas marcadas `DONE` sin cumplir sus criterios de aceptación.
 
-**Qué ganamos:** hoy un error de render en cualquier componente (ej. un cálculo de odontograma o periodontograma) puede dejar la pantalla en blanco sin aviso, en medio de una consulta clínica real. Un Error Boundary aísla el fallo, muestra un mensaje controlado y evita pérdida de contexto de trabajo.
-
-**Alcance:**
-- Componente `ErrorBoundary` de nivel raíz en `main.jsx` o `App.jsx`.
-- Boundaries adicionales alrededor de los módulos con mayor superficie de riesgo clínico: `pacientes`, `odontograma`, `periodontograma`, `agenda`, `presupuestos`.
-- Mensaje de fallback con opción de "volver al inicio" sin perder la sesión.
-- Registro del error (mínimo `console.error` estructurado; idealmente persistido en Supabase o servicio externo — ver F6-03).
-
-**Criterios de aceptación:**
-- Un error forzado (ej. `throw` de prueba) dentro de un módulo envuelto no rompe el resto de la aplicación.
-- Test automatizado que verifique que el fallback se renderiza y que el resto del layout (Sidebar, navegación) sigue funcional.
-- No se muestra stack trace ni información técnica sensible al usuario final en producción.
+**Regla de orden en esta fase:** el bloque estructural (F6-A a F6-E) precede a todo lo demás. F6-06 (despliegue) no puede cerrarse antes que F6-A a F6-E.
 
 ---
 
-### F6-02 — Auditoría y confirmación real del estado E2E — TODO
+### BLOQUE ESTRUCTURAL — brechas entre el roadmap y el código
 
-**Qué ganamos:** este documento contiene una contradicción interna no resuelta: en la sección "5. PRÓXIMA ACCIÓN" indica "5/11 passing" en un punto y "12/12 passing (100%)" más abajo. Antes de declarar el sistema listo para producción hay que eliminar esa ambigüedad con evidencia reproducible.
+---
+
+### F6-A — Versionar esquema SQL + seed del vademécum v1.1 — TODO
+
+**Qué ganamos:** hoy el dataset clínico más crítico del sistema —94 fármacos, 25 reglas de alergias cruzadas, interacciones farmacológicas, profilaxis de endocarditis, manejo de anticoagulantes y antirresortivos— **existe únicamente dentro del proyecto Supabase de desarrollo**. `supabase/` contiene solo `schema.sql`, `schema-clinical-tables.sql` y `schema-audit-log.sql` (19 tablas), mientras `vademecumService.js` consulta ocho tablas que no están definidas en ninguna parte del repositorio: `vademecum`, `vademecum_urgencia`, `vademecum_antirresortivos`, `alergias_cruzadas`, `interacciones_farmacologicas`, `profilaxis_endocarditis`, `manejo_anticoagulantes` y `reference_data_meta`. Si ese proyecto se pausa, se borra o se pierde el acceso, se pierde la curación clínica completa y no hay forma de reconstruirla. `src/data/vademecum.js` (23 fármacos, otra estructura) no sirve de respaldo. Es además la razón por la que el paso 1.2 del `DEPLOY_CHECKLIST` es hoy inejecutable: pide verificar 23 tablas y el repositorio solo puede crear 19.
 
 **Alcance:**
-- Ejecutar `npm run test:e2e` contra un entorno Supabase de prueba real (no mockeado).
-- Documentar el resultado exacto (specs, tests, pass/fail) con timestamp.
-- Corregir la bitácora de este documento para que ambas secciones sean consistentes.
-- Si hay tests fallando, registrarlos como tareas nuevas con ID propio (Regla de Gobernanza 5), no "arreglarlos al paso".
+- Exportar el DDL real de las 8 tablas del vademécum desde Supabase a `supabase/schema-vademecum.sql`, incluyendo RLS e índices.
+- Exportar los 164 registros curados a `supabase/seed-vademecum.sql` (o `.csv` versionado + script de carga).
+- Añadir `supabase/README.md` con el orden de ejecución de todos los scripts.
+- Corregir el conteo de tablas en `DEPLOY_CHECKLIST.md` (hoy dice 23; la suma declarada da 24 y el repositorio define 19 + 8 = 27 una vez cerrada esta tarea — recontar contra la base real, no contra el documento).
 
 **Criterios de aceptación:**
-- Un único número de tests E2E pasando, consistente en todo el documento, respaldado por output de consola adjunto o referenciado.
-- Job E2E incorporado (o confirmado ya incorporado) al pipeline CI/CD de F3-01, aunque sea como gate no bloqueante.
+- Un proyecto Supabase vacío queda funcionalmente equivalente al actual ejecutando únicamente los scripts de `supabase/`, sin intervención manual.
+- Verificado en la práctica: crear proyecto limpio, ejecutar scripts, arrancar la app y comprobar que las alertas de alergias cruzadas siguen disparando.
+- El número de tablas citado en roadmap y checklist coincide con `select count(*) from information_schema.tables where table_schema='public'`.
+
+---
+
+### F6-B — Rol de usuario a `app_metadata` + RLS por rol server-side — TODO
+
+**Qué ganamos:** hoy el rol vive en `user_metadata`, que el propio cliente puede escribir. `authService.js` (líneas 214-219) ejecuta literalmente `supabase.auth.updateUser({ data: { role: 'admin' } })` desde el navegador. Cualquier usuario autenticado puede abrir DevTools y concederse rol admin. La política de `profiles` tampoco protege: `FOR UPDATE USING (auth.uid() = id)` sin `WITH CHECK` ni restricción de columna permite `UPDATE profiles SET role='admin' WHERE id = auth.uid()`. Y `rbacService.js`, pese a estar bien escrito, es 100 % cliente: solo oculta UI; la base de datos no valida nada por rol. El RBAC de F3-05 hoy es una convención de interfaz, no un control de acceso.
+
+**Alcance:**
+- Mover `role` a `app_metadata` (escribible solo con `service_role`) o a la tabla `profiles` con RLS que bloquee la columna `role` para el propio usuario.
+- Trigger `handle_new_user` que cree la fila en `profiles` al registrarse — hoy la tabla existe pero **no se consulta desde ningún punto de `src/`**: es esquema muerto.
+- Eliminar el `updateUser({ role })` del cliente. La asignación de rol pasa a ser operación administrativa.
+- Añadir cláusulas de rol a las políticas RLS de las tablas sensibles (finanzas, pagos, configuración, vademécum admin), de modo que `recepcion` no pueda leer finanzas ni siquiera vía consulta directa.
+- Función `auth.rol_actual()` en Postgres para no repetir el subquery en cada política.
+
+**Criterios de aceptación:**
+- Un usuario con rol `recepcion` que ejecute `supabase.from('movimientos_financieros').select('*')` desde la consola del navegador recibe 0 filas, no un error de UI.
+- Un usuario no-admin no puede modificar su propio rol por ninguna vía (metadata ni tabla). Verificado con intento explícito documentado.
+- Test automatizado de las políticas (pgTAP o suite de integración contra Supabase de staging).
+
+---
+
+### F6-C — Modelo multi-clínica: `clinica_id` + membresía + reescritura de RLS — TODO
+
+**Qué ganamos:** el modelo de datos actual no tiene el concepto de clínica. Todas las políticas RLS son `auth.uid() = user_id`, lo que significa que cada usuario tiene su propio silo aislado de pacientes. Las consecuencias son excluyentes: o todo el equipo comparte un login —y entonces el RBAC de F3-05 es decorativo, el `audit_log` no puede decir quién escribió en la ficha, y las "métricas de rendimiento por profesional" de `reportes` no tienen fuente— o cada persona tiene su cuenta, y entonces el dentista literalmente no ve los pacientes que creó recepción. **Toda la Fase 5 (realtime, resolución de conflictos, presencia) solo funciona en el primer escenario:** lo que hay hoy no es colaboración multiusuario, es la misma cuenta en varios dispositivos. Esta es la brecha que separa "sistema de un profesional" de "sistema de clínica", que es lo que el proyecto declara ser desde F4-01.
+
+**Alcance:**
+- Tablas `clinicas` y `miembros_clinica (clinica_id, user_id, rol, activo)`.
+- Columna `clinica_id NOT NULL` en las 19 tablas de datos + las 8 del vademécum que sean por clínica.
+- Reescritura de las 27+ políticas RLS: de `auth.uid() = user_id` a `clinica_id IN (select clinica_id from miembros_clinica where user_id = auth.uid() and activo)`.
+- Conservar `user_id` como **autoría** del registro (quién lo creó/modificó), que es información clínica valiosa, no como control de acceso.
+- Script de migración de los datos existentes a una clínica inicial.
+- Actualizar `realtimeService` para suscribirse por `clinica_id`, no por usuario.
+
+**Criterios de aceptación:**
+- Cuatro usuarios con roles distintos, en la misma clínica, ven el mismo directorio de pacientes.
+- Un usuario de otra clínica no ve ninguno de esos pacientes (verificado por consulta directa, no por UI).
+- Los tests E2E de `flujo-colaborativo.spec.js` se reescriben para usar **dos cuentas distintas**, no dos sesiones de la misma cuenta.
+
+**Nota de gobernanza:** por su magnitud, esta tarea requiere RFC previo según Cap. VIII de la Constitución, igual que F4-01. No es hardening; es un cambio de modelo de datos.
+
+---
+
+### F6-D — Cablear la ficha clínica a Supabase — TODO
+
+**Qué ganamos:** F4-02c-6 ("migración de datos clínicos, 11 tipos") y F4-02d-2 ("escritura de datos clínicos a Supabase") están marcadas `DONE`, pero el cableado a los módulos nunca ocurrió. `useFichaPaciente.js` guarda odontograma inicial, odontograma de evolución, recetas, evoluciones, certificados, abonos e ítems de presupuesto vía `pacientesStorageService.guardarItem()`, que es localStorage síncrono — el propio archivo lo documenta en su línea 16. Y `datosClinicosSupabase.js`, con sus funciones `guardarOdontograma`, `guardarPeriodontograma`, `guardarEvolucionClinica` y `guardarReceta` ya escritas y probadas, **no lo llama nadie salvo `quirurgico`**. Lo mismo aplica a periodontograma, odontopediatría, DSD, esterilización, inventario, laboratorio, prestaciones, comunicaciones y urgencias GES: todos localStorage puro. Hoy, cambiar de navegador o limpiar caché borra la historia clínica.
+
+**Alcance:**
+- Conectar `useFichaPaciente` a `datosClinicosSupabase` para: odontograma inicial y de evolución, recetas, evoluciones, certificados.
+- Conectar `usePeriodontograma` y `useOdontopediatria` a sus tablas ya existentes.
+- Migrar a Supabase los módulos que hoy no tienen tabla: `esterilizacion` (registro fiscalizable SEREMI), `inventario`, `prestaciones`, `laboratorio`, `comunicaciones`, `urgenciasGes`, `configuracion`.
+- Mantener localStorage como caché de lectura, no como fuente de verdad.
+- Migración de datos existentes en dispositivos ya en uso, antes de cambiar la fuente de verdad.
+
+**Criterios de aceptación:**
+- Crear un odontograma en el dispositivo A y verlo en el dispositivo B tras recargar. Idem receta, evolución, periodontograma y carga de esterilización.
+- `grep -rn "guardarItem\|obtenerItem" src/modules/` no devuelve ninguna escritura de dato clínico.
+- Test de integración por cada tipo de dato migrado.
+- **Reabrir F4-02c-6 y F4-02d-2 como `IN PROGRESS`** en el tablero, conforme a la Regla 3.
+
+---
+
+### F6-E — Adjuntos clínicos a Supabase Storage con URLs firmadas — TODO
+
+**Qué ganamos:** radiografías, fotografías clínicas y **consentimientos informados firmados** viven hoy exclusivamente en IndexedDB del navegador de un equipo. No hay una sola llamada a `supabase.storage` en todo el repositorio. Sin respaldo, sin sincronización entre dispositivos, sin cifrado. Un consentimiento firmado que solo existe en el Chrome de un notebook no es un pendiente técnico: es un pasivo legal, porque la ficha clínica y sus consentimientos deben conservarse y ser recuperables (Ley 20.584 y su reglamento). F1-02 resolvió correctamente el problema de *no perder el binario al refrescar*; no resolvió el de conservarlo.
+
+**Alcance:**
+- Bucket privado en Supabase Storage, con path `clinica_id/paciente_id/...`.
+- Subida al crear el adjunto; IndexedDB pasa a ser caché offline, no almacenamiento primario.
+- Descarga vía URL firmada de vida corta, nunca URL pública.
+- Política de Storage alineada con la RLS de `pacientes` (F6-C).
+- Migración de los adjuntos que hoy estén en IndexedDB en equipos en uso.
+- `FirmaDigitalCanvas` guarda el consentimiento firmado con timestamp y autoría.
+
+**Criterios de aceptación:**
+- Subir una radiografía en el dispositivo A y abrirla desde el dispositivo B.
+- Vaciar IndexedDB del dispositivo A y comprobar que el adjunto sigue disponible.
+- Ninguna URL de adjunto es accesible sin sesión válida.
+
+---
+
+### F6-F — Auditoría append-only por trigger + soft delete de ficha clínica — TODO
+
+**Qué ganamos:** dos problemas de trazabilidad legal. **(1)** La tabla `audit_log` existe y `registrarAuditoria()` está implementada, pero su único llamador está dentro de `conflictDetectionService`, para resolución de conflictos. Las ediciones normales de la ficha clínica no se auditan. Además su RLS es "ver lo propio / insertar lo propio": un admin no puede auditar a nadie, y cualquier usuario puede insertar registros de auditoría fabricados desde el cliente. **(2)** `pacientesStorageService.js` línea 315 ejecuta un `.delete()` real contra Supabase, y las tablas hijas tienen `ON DELETE CASCADE`. No hay `deleted_at` ni papelera. Un clic de un admin destruye la ficha y todo lo colgado de ella, de forma irreversible salvo restauración de backup.
+
+**Alcance:**
+- Triggers `AFTER INSERT/UPDATE/DELETE` en las tablas clínicas y financieras que escriban en `audit_log` desde el servidor.
+- RLS de `audit_log`: `INSERT` solo por el rol de la función (no por el cliente), `SELECT` para admin de la clínica, sin `UPDATE` ni `DELETE` para nadie.
+- Columna `deleted_at` en `pacientes` y tablas clínicas; sustituir el borrado duro por soft delete; filtrar en las consultas.
+- Revisar los `ON DELETE CASCADE` para que no propaguen a registros que deban conservarse.
+- Definir y documentar la política de retención (la ficha clínica no se elimina; se archiva).
+
+**Criterios de aceptación:**
+- Editar una anamnesis genera una fila en `audit_log` con usuario, timestamp, valor anterior y nuevo, sin que el cliente lo pida.
+- Un usuario no puede insertar ni alterar filas de `audit_log` desde la consola del navegador.
+- "Eliminar paciente" oculta el registro pero es reversible por un admin, y queda auditado.
+
+---
+
+### F6-G — Validación de RUT (módulo 11) + unicidad por clínica — TODO
+
+**Qué ganamos:** `pacienteSchema.js` valida el RUT como `z.string().trim().min(1)`. Sin formato, sin dígito verificador, y sin restricción `UNIQUE` en la tabla `pacientes`. En un sistema chileno esto produce, en este orden: pacientes duplicados con el mismo RUT escrito de tres formas, historias clínicas partidas para la misma persona, y facturación cruzada a Fonasa/Isapre. Es la corrección de mejor relación esfuerzo/impacto de toda la fase.
+
+**Alcance:**
+- Utilidad `validarRut` con cálculo de dígito verificador módulo 11 y normalización a formato canónico sin puntos y con guion.
+- Integrar en `pacienteSchema` (Zod) y en el formulario de `ModalNuevoPaciente` con feedback inmediato.
+- Constraint `UNIQUE (clinica_id, rut)` en la tabla `pacientes` (depende de F6-C).
+- Script de detección y fusión de duplicados existentes antes de aplicar el constraint.
+
+**Criterios de aceptación:**
+- Un RUT con dígito verificador incorrecto no se puede guardar.
+- `12.345.678-5`, `12345678-5` y `123456785` se normalizan al mismo valor y el segundo intento de alta es rechazado como duplicado.
+- Tests unitarios de `validarRut` incluyendo casos borde (RUT con K, RUT de menos de 7 dígitos).
+
+---
+
+### F6-H — Timeout de sesión por inactividad + política de contraseña — TODO
+
+**Qué ganamos:** no existe ningún mecanismo de auto-logout en el sistema (`grep` de `inactiv|autoLogout|sessionTimeout` en `src/` no devuelve nada). Un computador de recepción desatendido es acceso completo a las fichas clínicas de todos los pacientes, en un mostrador abierto al público. Tampoco hay política de contraseña más allá del mínimo por defecto de Supabase.
+
+**Alcance:**
+- Hook de inactividad configurable (por defecto 15 min) con aviso previo de 60 s y opción de continuar.
+- Bloqueo de pantalla que exige re-autenticación sin perder el trabajo en curso.
+- Longitud mínima de contraseña elevada y validación en el formulario de alta.
+- Parámetro de timeout expuesto en el módulo `configuracion`.
+
+**Criterios de aceptación:**
+- Tras el tiempo configurado sin interacción, la sesión queda bloqueada y los datos clínicos no son visibles en pantalla.
+- Un borrador de evolución no guardado sobrevive al bloqueo y re-login.
+
+---
+
+### F6-I — Entorno de staging separado de producción para E2E — TODO
+
+**Qué ganamos:** la evidencia registrada en F6-02 indica que los 12 tests E2E se ejecutaron contra **Supabase de producción**, con usuarios `e2e_*@studiodental.com`. Esos tests crean pacientes, presupuestos y pagos: hay datos de prueba en la base real, y `flujo-seguridad.spec.js` ejerce alertas de alergias sobre registros de producción. El propio `DEPLOY_CHECKLIST` lo reconoce cuando advierte "crear usuarios de producción (NO usar `e2e_*@studiodental.com`)", pero no había tarea que lo resolviera. Sin staging tampoco es posible cumplir el criterio de F6-06 de probar una restauración de backup.
+
+**Alcance:**
+- Proyecto Supabase `studio-dental-staging` creado con los scripts de F6-A.
+- `.env.staging` y configuración de Playwright apuntando a staging por defecto.
+- Limpieza de los usuarios y datos `e2e_*` que hoy existan en producción.
+- Documentar en `E2E_TESTING.md` que ejecutar E2E contra producción está prohibido.
+
+**Criterios de aceptación:**
+- `npm run test:e2e` apunta a staging sin configuración adicional.
+- La base de producción no contiene usuarios ni pacientes de prueba.
+
+---
+
+### F6-J — PWA real (service worker + manifest) — TODO
+
+**Qué ganamos:** la Fase 5 declara "offline-first", pero no hay service worker, ni manifest, ni `vite-plugin-pwa` en el proyecto. Lo que existe (`operationQueue`) es tolerancia a caídas de conexión **con la pestaña ya abierta**: si el equipo se reinicia o el usuario recarga sin internet, la aplicación no carga. Es decir, falla exactamente en el escenario para el que se construyó — una clínica con conexión intermitente al inicio de la jornada.
+
+**Alcance:**
+- `vite-plugin-pwa` con precache del shell de la aplicación.
+- `manifest.webmanifest` con nombre, iconos y `display: standalone`.
+- Estrategia de caché por tipo de recurso (shell precache, datos network-first con fallback).
+- Indicador visible de "trabajando sin conexión" reutilizando `ConnectionIndicator`.
+- Corregir de paso `<html lang="en">` → `lang="es"` y el `<title>` (hoy `ebenezer-studio-dental`, el nombre del paquete).
+
+**Criterios de aceptación:**
+- Con el dispositivo en modo avión y la aplicación cerrada, abrirla carga la interfaz y permite consultar los pacientes cacheados.
+- Las operaciones hechas offline se sincronizan al recuperar conexión (vía `operationQueue` existente).
+
+---
+
+### F6-K — Umbrales de cobertura en CI + tests de módulos sin cobertura — TODO
+
+**Qué ganamos:** el número de tests genera confianza que la distribución no respalda. Hay 545 bloques `it/test`, pero **solo 1 de 143 componentes** tiene test, y ocho módulos completos no tienen ninguno: `comunicaciones`, `configuracion`, `dashboard`, `esterilizacion`, `laboratorio`, **`pagos`**, `reportes` y `urgenciasGes`. Que `pagos` (dinero) y `esterilizacion` (registro fiscalizable) estén en esa lista es lo más relevante. Además `vitest.config.js` no define `thresholds`, de modo que la cobertura puede caer indefinidamente sin que CI lo note.
+
+**Alcance:**
+- `coverage.thresholds` en `vitest.config.js`, fijados en el valor actual medido y subidos por escalones.
+- Tests de cálculo para `pagosCalculations`, `esterilizacionCalculations`, `reportesCalculations` y `comunicacionesCalculations`.
+- Test de integración del flujo de arqueo de caja y del libro SEREMI.
+- Job `e2e` en el pipeline (converge con F6-02b).
+
+**Criterios de aceptación:**
+- CI falla si la cobertura baja del umbral fijado.
+- Ningún módulo con lógica de cálculo queda sin al menos un test de su función principal.
+
+---
+
+### BLOQUE DE HARDENING — origen auditoría de métricas
+
+---
+
+### F6-01 — Error Boundary global + por módulo crítico — IN PROGRESS
+
+**Qué ganamos:** un error de render en cualquier componente (por ejemplo un cálculo de odontograma o periodontograma) puede dejar la pantalla en blanco sin aviso, en medio de una consulta clínica real. Un Error Boundary aísla el fallo, muestra un mensaje controlado y evita pérdida de contexto de trabajo.
+
+**Alcance:**
+- Componente `ErrorBoundary` de nivel raíz en `main.jsx`. ✅ implementado 2026-08-15
+- Boundaries alrededor de los módulos de mayor riesgo clínico. ⚠️ implementado en `agenda`, `presupuestos` y `pacientes`; **faltan `odontograma` y `periodontograma`**, que el alcance original incluía explícitamente.
+- Mensaje de fallback con opción de volver al inicio sin perder la sesión. ✅
+- Registro estructurado del error. ✅ (`console.error`; se sustituirá por el logger de F6-03)
+
+**Criterios de aceptación:**
+- ✅ Un error forzado dentro de un módulo envuelto no rompe el resto de la aplicación.
+- ❌ **Test automatizado que verifique que el fallback se renderiza y que el resto del layout (Sidebar, navegación) sigue funcional.** `ErrorBoundary.test.jsx` cubre 7 casos —fallback, reset, `console.error`, stack oculto— pero ninguno monta el layout para comprobar la segunda mitad de este criterio.
+- ✅ No se muestra stack trace al usuario final.
+
+**Por qué no está `DONE`:** dos criterios de alcance y uno de aceptación sin cumplir. Regla de Gobernanza 3.
+
+---
+
+### F6-02 — Auditoría y confirmación real del estado E2E — IN PROGRESS
+
+**Qué ganamos:** eliminar la ambigüedad del conteo de tests E2E antes de declarar el sistema listo para producción.
+
+**Alcance:**
+- Ejecutar `npm run test:e2e` contra un entorno Supabase real. ⚠️ hecho, pero **contra producción**, no contra un entorno de prueba (ver F6-I).
+- Documentar el resultado exacto con timestamp. ✅ 6 specs, 12 tests, 12 passing, 2026-08-15.
+- Corregir la bitácora para que todas las secciones sean consistentes. ⚠️ parcial: la fila duplicada de F4-04 se eliminó, pero el bloque duplicado de F4-03a-h y la tabla "Tareas pendientes acumuladas" seguían presentes hasta esta revisión.
+- Registrar los fallos como tareas nuevas. ✅ F6-02b, F6-02c.
+
+**Criterios de aceptación:**
+- ✅ Un único número de tests E2E, consistente en todo el documento, con evidencia.
+- ❌ **Job E2E incorporado al pipeline CI/CD, aunque sea como gate no bloqueante.** El pipeline sigue con lint, test, build y architecture. Registrado como F6-02b.
+
+**Por qué no está `DONE`:** el segundo criterio de aceptación no se cumplió, y el propio registro de la tarea lo reconoce. Regla de Gobernanza 3: cumplimiento parcial es `IN PROGRESS`.
+
+---
+
+### F6-02b — Agregar job E2E al pipeline CI/CD — TODO
+
+**Qué ganamos:** los E2E hoy corren solo en la máquina del desarrollador, de forma manual. Sin job en CI no protegen contra regresiones de nadie más y su resultado no queda registrado.
+
+**Alcance:**
+- Job `e2e` en `.github/workflows/ci.yml`, apuntando al entorno de staging de F6-I.
+- Secrets de staging en GitHub Actions.
+- Subida del reporte de Playwright como artefacto.
+- Arrancar como gate no bloqueante; promoverlo a bloqueante cuando sea estable.
+
+**Criterios de aceptación:**
+- Un PR muestra el resultado E2E en la lista de checks.
+- El reporte queda descargable desde la ejecución del workflow.
+
+---
+
+### F6-02c — Investigar `data-testid` faltantes en bundle de LoginScreen — TODO
+
+**Qué ganamos:** los `data-testid` de `LoginScreen.jsx` no llegan al bundle final, de modo que el fixture de autenticación usa siempre el fallback `type="email"`. Funciona, pero genera warnings en cada ejecución y hace frágiles los selectores.
+
+**Alcance:** revisar la configuración de build de Vite y el plugin de React por si están eliminando atributos en producción; verificar el bundle generado.
+
+**Criterios de aceptación:** los selectores por `data-testid` funcionan sin fallback y sin warnings.
 
 ---
 
 ### F6-03 — Logger centralizado con niveles — TODO
 
-**Qué ganamos:** actualmente hay 59 llamadas a `console.log` fuera de tests, sin niveles ni control de entorno. Cualquier usuario puede abrir DevTools en producción y ver esa información. Un logger centralizado permite silenciar en producción, mantener trazabilidad en desarrollo, y sienta la base para conectar errores críticos a un servicio de monitoreo a futuro.
+**Qué ganamos:** hay 59 llamadas a `console.log` fuera de tests, sin niveles ni control de entorno. Cualquier usuario puede abrir DevTools en producción y ver esa información —incluida, en algunos casos, información de pacientes. Un logger centralizado permite silenciar en producción, mantener trazabilidad en desarrollo, y sienta la base para conectar errores críticos a un servicio de monitoreo.
 
 **Alcance:**
-- Crear `src/utils/logger.js` con niveles (`debug`, `info`, `warn`, `error`).
+- `src/utils/logger.js` con niveles `debug`, `info`, `warn`, `error`.
 - Silenciar `debug`/`info` en build de producción vía variable de entorno de Vite.
-- Reemplazar los `console.log` existentes de forma incremental, priorizando servicios clínicos (`vademecumService`, `realtimeService`, cálculos de dosis/alergias).
-- Mantener separado el `audit_log` de Supabase (trazabilidad clínica/legal) del logging técnico — no mezclar ambos conceptos.
+- Reemplazo incremental, priorizando `vademecumService`, `realtimeService` y los cálculos de dosis y alergias.
+- Mantener separado el `audit_log` (trazabilidad clínica/legal, F6-F) del logging técnico.
+- Revisar que ningún log emita datos identificables de pacientes.
 
 **Criterios de aceptación:**
-- 0 llamadas directas a `console.log` en `src/` fuera de `logger.js` y archivos de test.
-- Build de producción no emite logs de nivel `debug`/`info` en consola del navegador.
+- 0 llamadas directas a `console.log` en `src/` fuera de `logger.js` y tests.
+- El build de producción no emite logs `debug`/`info` en la consola del navegador.
 
 ---
 
 ### F6-04 — Accesibilidad básica — TODO
 
-**Qué ganamos:** solo 1 de 141 archivos `.jsx` usa atributos `aria-*`. El personal de recepción y asistentes con distintos niveles de comodidad tecnológica (y eventuales usuarios con necesidades de accesibilidad) hoy dependen 100% de affordances visuales. Mejoras básicas reducen errores de uso y amplían quién puede operar el sistema con confianza.
+**Qué ganamos:** solo 2 de 144 archivos `.jsx` usan atributos `aria-*`. El personal de recepción y asistentes con distintos niveles de comodidad tecnológica, y eventuales usuarios con necesidades de accesibilidad, dependen hoy al 100 % de affordances visuales. Las mejoras básicas reducen errores de uso y amplían quién puede operar el sistema con confianza.
 
 **Alcance (incremental, no requiere rediseño):**
-- Labels asociados (`<label htmlFor>` o `aria-label`) en todos los inputs de formularios clínicos (`ModalNuevoPaciente`, `ModalNuevoPago`, recetas).
+- Labels asociados (`<label htmlFor>` o `aria-label`) en todos los inputs de formularios clínicos.
 - `role="dialog"` y `aria-modal="true"` en todos los modales.
-- Manejo de foco: al abrir un modal, foco al primer campo; al cerrar, foco regresa al elemento que lo abrió.
-- Contraste de color verificado en alertas críticas (alergias, contraindicaciones).
+- Manejo de foco: al abrir un modal, foco al primer campo; al cerrar, foco al elemento que lo abrió.
+- Contraste verificado en alertas críticas (alergias, contraindicaciones).
+- `<html lang="es">` (converge con F6-J).
 
 **Criterios de aceptación:**
-- Los 5-6 modales más usados (paciente, pago, presupuesto, receta, cita) cumplen los 4 puntos de alcance.
-- Test de integración o e2e que verifique foco/aria en al menos un modal crítico (ej. `ModalNuevoPaciente`).
+- Los 5-6 modales más usados (paciente, pago, presupuesto, receta, cita) cumplen los cuatro puntos.
+- Test de integración que verifique foco y aria en al menos un modal crítico.
 
 ---
 
 ### F6-05 — Exportación de reportes a Excel/PDF — TODO
 
-**Qué ganamos:** el módulo `reportes` hoy solo ofrece vista imprimible A4 (`ReporteImprimibleA4.jsx`). No hay `xlsx`, `jspdf` ni librería equivalente en `package.json`. Exportar datos es una necesidad operativa habitual (contabilidad, reportes a Isapres/Fonasa, respaldo externo).
+**Qué ganamos:** el módulo `reportes` solo ofrece vista imprimible A4. Exportar datos es una necesidad operativa habitual (contabilidad, reportes a Isapres/Fonasa, respaldo externo).
 
 **Alcance:**
-- Evaluar `xlsx` (SheetJS) para exportación a Excel.
-- Evaluar `jspdf` o generación de PDF vía la vista imprimible existente (menor esfuerzo si se reutiliza `ReporteImprimibleA4`).
-- Botón de exportación en `ReportesModulo.jsx`, `RankingPrestacionesTable.jsx` y `RendimientoProfesionales.jsx`.
+- Evaluar `xlsx` (SheetJS) para Excel.
+- Evaluar `jspdf` o generación de PDF reutilizando `ReporteImprimibleA4` (menor esfuerzo).
+- Botón de exportación en `ReportesModulo`, `RankingPrestacionesTable` y `RendimientoProfesionales`.
+- Registrar la exportación en `audit_log` (F6-F): sacar datos clínicos del sistema es un evento auditable.
 
 **Criterios de aceptación:**
-- Exportar a Excel produce un archivo `.xlsx` válido con las columnas visibles en pantalla.
-- Exportar a PDF produce un documento legible equivalente a la vista imprimible actual.
-- Tests unitarios sobre la función de transformación de datos a formato exportable (no sobre la librería en sí).
+- La exportación a Excel produce un `.xlsx` válido con las columnas visibles en pantalla.
+- La exportación a PDF produce un documento equivalente a la vista imprimible.
+- Tests unitarios sobre la función de transformación a formato exportable, no sobre la librería.
 
 ---
 
-### F6-06 — Checklist de despliegue a producción — TODO
+### F6-06 — Checklist de despliegue a producción — IN PROGRESS
 
-**Qué ganamos:** el sistema está técnicamente listo (Opción B de la sección 5), pero falta consolidar el checklist operativo en un único documento ejecutable, para no depender de memoria o de pasos dispersos.
+**Qué ganamos:** consolidar el checklist operativo en un documento único ejecutable, para no depender de memoria ni de pasos dispersos.
 
-**Alcance:**
-- Dominio personalizado configurado en Supabase.
-- Variables de entorno configuradas en el hosting elegido (Vercel/Netlify).
-- Backups automáticos de Supabase habilitados y verificados con una restauración de prueba.
-- Migración de datos reales de pacientes si existen en `localStorage` legacy (usar `schemaMigrationService` ya existente).
-- Verificación post-deploy: login de los 4 roles, flujo clínico básico, flujo financiero básico.
+**Estado real:** el documento `docs/DEPLOY_CHECKLIST.md` fue redactado el 2026-08-16 (326 líneas, 7 fases). **Ninguno de sus 80 pasos está ejecutado ni marcado.** La restauración de backup no se ha probado. El documento existe; el despliegue no ha ocurrido.
+
+**Alcance restante:**
+- Ejecutar y marcar los 80 pasos con fecha.
+- Probar una restauración de backup en staging (requiere F6-I).
+- Corregir el conteo de tablas del checklist (requiere F6-A).
+- Sustituir la afirmación "sistema listo para producción" hasta que F6-A a F6-E estén cerradas.
 
 **Criterios de aceptación:**
-- Documento `docs/DEPLOY_CHECKLIST.md` con cada paso marcado como completado y fecha.
-- Al menos una restauración de backup probada exitosamente en ambiente de staging.
+- Cada paso del checklist marcado como completado y con fecha.
+- Al menos una restauración de backup probada exitosamente en staging.
+- F6-A, F6-B, F6-C, F6-D y F6-E en estado `DONE`.
+
+**Por qué no está `DONE`:** redactar el checklist no es ejecutarlo. Los dos criterios de aceptación están sin cumplir. Regla de Gobernanza 3.
 
 ---
 
 ### F6-07 — Manual de usuario por rol + material de capacitación — TODO
 
-**Qué ganamos:** no existe ningún documento de usuario final — todo lo documentado hasta ahora es técnico (Constitución, Roadmap, E2E_TESTING). Antes de que el equipo real (dentistas, recepción, asistentes) use el sistema sin supervisión, esto es lo que más fricción humana ahorra.
+**Qué ganamos:** no existe ningún documento de usuario final; todo lo documentado es técnico. Antes de que el equipo real use el sistema sin supervisión, esto es lo que más fricción humana ahorra.
 
 **Alcance:**
 - Manual corto por rol: Admin, Dentista, Asistente, Recepción.
-- Cobertura mínima: login, flujo de paciente nuevo → cita → consulta → receta; flujo de pago; flujo de inventario básico.
-- 3-4 videos cortos (5-10 min) de los flujos más usados, grabados sobre el sistema real.
+- Cobertura mínima: login; paciente nuevo → cita → consulta → receta; flujo de pago; inventario básico.
+- 3-4 videos cortos de los flujos más usados, grabados sobre el sistema real.
 
 **Criterios de aceptación:**
-- Un manual por rol, en `docs/manuales/`, revisado por al menos un usuario real de ese rol.
+- Un manual por rol en `docs/manuales/`, revisado por al menos un usuario real de ese rol.
 - Videos accesibles desde un enlace único compartido con el equipo.
 
-**Salida de Fase 6 (Definition of Done):** ⬜ pendiente. Se cerrará cuando F6-01 a F6-07 estén en `DONE` o `DEFERRED` con justificación técnica documentada.
+**Dependencia implícita:** no tiene sentido grabar videos de flujos que cambiarán con F6-C y F6-D. Ejecutar al final.
 
 ---
 
-## 2. ORDEN DE IMPLEMENTACIÓN RECOMENDADO
+**Salida de Fase 6 (Definition of Done):** ⬜ pendiente. Se cerrará cuando F6-A a F6-K y F6-01 a F6-07 estén en `DONE` o `DEFERRED` con justificación técnica documentada. **Hasta que F6-A a F6-E estén cerradas, este documento no declara el sistema apto para uso con pacientes reales en una clínica con varios profesionales.**
+
+---
+
+## 3. ORDEN DE IMPLEMENTACIÓN
+
+### Histórico (fases 1-5, ejecutado)
 
 1. F1-06 (arnés de test, paralelo desde el inicio)
-2. F1-03 → F1-04
-3. F1-04a → F1-04b (P0, mismo nivel que F1-03)
-4. F1-04c → F1-04d (P1/P2, bajo esfuerzo)
-5. F1-04e, F1-04f (P3, bajo riesgo)
-6. F1-01
-7. F1-02
-8. F1-05 → F1-05b
-9. **(cierre de Fase 1 — checkpoint cumplido 2026-08-08)**
-10. F2-03 → F2-03g
-11. F2-01 → F2-02 → F2-02b
-12. F2-04 (criterio mínimo `paciente`; F2-04b-e incrementales)
-13. F2-05
-14. F2-06 → F2-06b → F2-06c → F2-08
-15. F2-07 → F2-07a, F2-07c, F2-07d, F2-07e, F2-07f, F2-07h
-16. F2-09 (limpieza de warnings)
-17. F2-07b (4 servicios nuevos) — pendiente
-18. **(cierre formal de Fase 2 — checkpoint cumplido 2026-08-12)**
-19. F3-01 → F3-02
-20. F3-04
-21. F3-05
-22. F3-03 (adoptable desde antes)
-23. F3-07 (mantenimiento)
-24. **(cierre de Fase 3 — checkpoint cumplido 2026-08-13)**
-25. F4-01 (RFC) → F4-02a → F4-02b → F4-02c-1 a F4-02c-6 → F4-02d-1 → F4-02d-2 → F4-02e
-26. **(cierre de Fase 4 núcleo técnico — checkpoint cumplido 2026-08-13 vía PR #22)**
-27. F5-01 → F5-02 → F5-03 → F5-04 → F5-05
-28. **(cierre de Fase 5 — checkpoint cumplido 2026-08-14)**
-29. F4-03 (curación vademécum — pendiente)
-30. F4-04 (E2E con Playwright — cierre completo de Fase 4)
-31. F6-02 (auditoría E2E real — primero, resuelve ambigüedad antes de decidir el resto)
-32. F6-01 (Error Boundary — mayor impacto/riesgo, bajo esfuerzo)
-33. F6-06 (checklist de despliegue, depende de F6-02)
-34. F6-03 (logger centralizado)
-35. F6-04 (accesibilidad básica, incremental)
-36. F6-05 (exportación Excel/PDF)
-37. F6-07 (manual de usuario — al final, cuando el sistema esté estable en producción)
+2. F1-03 → F1-04 → F1-04a → F1-04b → F1-04c → F1-04d → F1-04e → F1-04f
+3. F1-01 → F1-02 → F1-05 → F1-05b
+4. **(cierre de Fase 1 — 2026-08-08)**
+5. F2-03 → F2-03g → F2-01 → F2-02 → F2-02b
+6. F2-04 (+ F2-04b-e incrementales) → F2-05
+7. F2-06 → F2-06b → F2-06c → F2-08
+8. F2-07 → F2-07a, F2-07b, F2-07c, F2-07d, F2-07e, F2-07f, F2-07h → F2-09
+9. **(cierre de Fase 2 — 2026-08-12)**
+10. F3-01 → F3-02 → F3-04 → F3-05 → F3-03 → F3-07
+11. **(cierre de Fase 3 — 2026-08-13)**
+12. F4-01 (RFC) → F4-02a → F4-02b → F4-02c-1..6 → F4-02d-1 → F4-02d-2 → F4-02e
+13. **(cierre de Fase 4 núcleo técnico — 2026-08-13, PR #22)** — ⚠️ ver F6-D: F4-02c-6 y F4-02d-2 requieren reapertura
+14. F5-01 → F5-02 → F5-03 → F5-04 → F5-05
+15. **(cierre de Fase 5 — 2026-08-14)**
+16. F4-03 (+ F4-03a-h) → F4-04
+17. F6-02 (parcial) → F6-01 (parcial) → F6-06 (parcial)
+
+### Pendiente (Fase 6)
+
+**Bloque 1 — desbloqueo y respaldo (hacer ya, en paralelo):**
+
+18. **F6-A** — versionar SQL y seed del vademécum. *Primera de todas: hoy existe un único punto de fallo sin respaldo.*
+19. **F6-G** — validación de RUT. *Independiente, media jornada, evita datos que después habrá que limpiar.*
+20. **F6-I** — entorno de staging. *Habilita F6-02b y el criterio de backup de F6-06.*
+
+**Bloque 2 — seguridad y modelo de datos (secuencial, es el núcleo):**
+
+21. **F6-B** — rol a `app_metadata` + RLS por rol.
+22. **F6-C** — modelo multi-clínica. *Requiere RFC previo (Constitución, Cap. VIII).*
+23. **F6-D** — cablear la ficha clínica a Supabase.
+24. **F6-E** — adjuntos a Supabase Storage.
+25. **F6-F** — auditoría por trigger + soft delete.
+26. **F6-H** — timeout de sesión.
+
+27. **(checkpoint: recién aquí el sistema es apto para una clínica con varios profesionales)**
+
+**Bloque 3 — cierre de hardening:**
+
+28. F6-01 (completar boundaries de odontograma/periodontograma + test de layout)
+29. F6-02b → F6-02 (cierre) → F6-02c
+30. F6-03 (logger) → F6-K (cobertura)
+31. F6-04 (accesibilidad) → F6-J (PWA)
+32. F6-05 (exportación Excel/PDF)
+33. **F6-06** — ejecutar el checklist de despliegue. *Última tarea técnica, no la primera.*
+34. F6-07 (manuales y capacitación, una vez el sistema esté estable)
 
 ---
 
-## 4. BITÁCORA DE EJECUCIÓN
+## 4. ESTADO ACTUAL
 
-### 🏁 F6-06 COMPLETADO — Checklist de despliegue a producción (2026-08-16)
+**Fecha de esta evaluación:** 2026-08-16
+**Estado:** 🔴 **NO APTO PARA PRODUCCIÓN CON DATOS DE PACIENTES REALES EN CLÍNICA MULTIUSUARIO.**
 
-**Qué ganamos:** documento único ejecutable `docs/DEPLOY_CHECKLIST.md` que consolida todos los pasos necesarios para llevar el sistema a producción. Elimina la dependencia de memoria, permite que cualquier miembro del equipo ejecute el despliegue, y documenta procedimientos de rollback y runbook de incidentes.
+Corrige la declaración anterior ("listo para producción"), que se sostenía sobre tareas marcadas `DONE` sin cumplir sus criterios de aceptación y sobre métricas no verificadas contra el repositorio.
 
-**Documento creado:** `docs/DEPLOY_CHECKLIST.md` (326 líneas)
+### Métricas verificadas
 
-**7 fases documentadas:**
-1. Preparación de Supabase (Backend) — proyecto, migraciones, RLS, Realtime, backups
-2. Preparación del Hosting (Frontend) — Vercel/Netlify, dominio, env vars
-3. Migración de Datos (si aplica) — datos legacy desde localStorage
-4. Verificación Post-Deploy — 8 flujos críticos (login RBAC, clínico, financiero, Realtime, offline, Error Boundary, seguridad clínica, logs)
-5. Monitoreo y Observabilidad — Sentry, Web Vitals, UptimeRobot
-6. Documentación Final — README, backup, rollback, runbook
-7. Go-Live — comunicación, monitoreo inicial, celebración
+Toda métrica de esta tabla incluye el comando que la produce (Regla de Gobernanza 8).
 
-**Contenido del checklist:**
-- 80 checkboxes para marcar durante el despliegue
-- Comandos SQL y configuración listos para copiar/pegar
-- Procedimiento de rollback con tiempos estimados (2-5 min frontend, 5-15 min backend)
-- Métricas de éxito: uptime >99.9%, LCP <2.5s, FID <100ms, CLS <0.1
-- Decisiones técnicas documentadas (hosting, dominio, backups, monitoreo)
+| Métrica | Valor | Comando | Fecha |
+|---|---|---|---|
+| Bloques de test unitario/integración | 545 | `grep -rho "\bit(\|\btest(" src --include=*.test.js --include=*.test.jsx \| wc -l` | 2026-08-16 |
+| Tests E2E | 12 en 6 specs | `grep -ho "test(" e2e/specs/*.spec.js \| wc -l` | 2026-08-16 |
+| Componentes `.jsx` | 143 | `find src -name "*.jsx" \| grep -v test \| wc -l` | 2026-08-16 |
+| Componentes con test | 1 | `find src -name "*.test.jsx" \| wc -l` | 2026-08-16 |
+| Módulos sin ningún test | 8 | `comunicaciones, configuracion, dashboard, esterilizacion, laboratorio, pagos, reportes, urgenciasGes` | 2026-08-16 |
+| Esquemas Zod | 11 | `find src -name "*Schema.js" -not -name "*test*" \| wc -l` | 2026-08-16 |
+| Tablas SQL versionadas en el repo | 19 | `grep -h "CREATE TABLE" supabase/*.sql \| wc -l` | 2026-08-16 |
+| Tablas consultadas por el código sin SQL versionado | 8 | tablas del vademécum en `vademecumService.js` — ver F6-A | 2026-08-16 |
+| Servicios de módulo que escriben en Supabase | 6 de 18 | `agenda, finanzas, pacientes, pagos, presupuestos, quirurgico` — ver F6-D | 2026-08-16 |
+| Llamadas a Supabase Storage | 0 | `grep -rn "storage.from" src/` — ver F6-E | 2026-08-16 |
+| `console.log` fuera de tests | 59 | `grep -rn "console.log" src/ --include=*.js --include=*.jsx \| grep -v "\.test\." \| wc -l` | 2026-08-16 |
+| Archivos `.jsx` con atributos `aria-*` | 2 de 144 | `grep -rl "aria-" src/ --include=*.jsx \| wc -l` | 2026-08-16 |
+| Pasos ejecutados del `DEPLOY_CHECKLIST` | 0 de 80 | `grep -c '^- \[x\]' docs/DEPLOY_CHECKLIST.md` | 2026-08-16 |
 
-**Precondiciones técnicas confirmadas:**
-- ✅ 589 tests unitarios/integración pasando
-- ✅ 12/12 tests E2E pasando (100%)
-- ✅ 0 vulnerabilidades en npm audit
-- ✅ Lint: 0 warnings, 0 errors
-- ✅ Build limpio (500 kB / 133 kB gzip)
-- ✅ Arquitectura: todas las reglas cumplen (67 archivos en allowlist)
-- ✅ Error Boundary global + por módulo crítico operativo (F6-01)
-- ✅ 23 tablas Supabase (16 datos clínicos + audit_log + 7 vademécum)
+*Nota: las cifras de "582 tests" y "589 tests" que circulaban en versiones anteriores de este documento y del checklist provenían del contador de Vitest en ejecuciones distintas y nunca se reconciliaron. El conteo estático de bloques `it/test` es 545; la diferencia se explica por tests generados en bucle o `it.each`. **Al reabrir el CI, registrar el output literal de `npx vitest run` con su fecha y usar ese número, uno solo, en todos los documentos.***
 
-**Nota de gobernanza:** La restauración de backup en staging (requisito de F6-06) y el despliegue real requieren acceso a Supabase Pro y credenciales de hosting. Estos pasos se ejecutarán durante el despliegue real y se marcarán como completados en el checklist físico.
+### Métricas heredadas pendientes de re-verificación
 
-**Esfuerzo real:** S (0.5 día, documento). **Prioridad:** P1.
-
-
-### 🏁 F6-01 COMPLETADO — Error Boundary global + por módulo crítico (2026-08-15)
-
-**Qué ganamos:** hoy un error de render en cualquier componente crítico (odontograma, periodontograma, agenda, presupuestos, pacientes) puede dejar la pantalla en blanco sin aviso, en medio de una consulta clínica real. Con Error Boundary, el fallo se aísla dentro del módulo específico, se muestra un mensaje controlado, y el resto de la aplicación (Sidebar, navegación, otros módulos) sigue funcionando.
-
-**Implementación:**
-
-**Componentes creados (2):**
-- `src/components/ErrorBoundary.jsx` (68 líneas) — componente de clase con lifecycle methods `getDerivedStateFromError` y `componentDidCatch`
-- `src/components/ErrorFallback.jsx` (107 líneas) — UI de fallback con mensaje amigable, botones de recuperación, y detalles técnicos solo en desarrollo
-
-**Tests creados (1):**
-- `src/components/ErrorBoundary.test.jsx` (145 líneas) — 7 tests automatizados cubriendo todos los criterios de aceptación
-
-**Integración:**
-- `src/main.jsx` — ErrorBoundary global envolviendo toda la aplicación
-- `src/App.jsx` — ErrorBoundaries específicos en 3 módulos críticos:
-  - `pacientes` (FichaPaciente + DirectorioPacientes + odontograma + periodontograma)
-  - `agenda` (AgendaModulo)
-  - `presupuestos` (PresupuestosModulo)
-
-**Criterios de aceptación cumplidos:**
-- ✅ Un error forzado dentro de un módulo envuelto no rompe el resto de la aplicación
-- ✅ Test automatizado verifica que el fallback se renderiza y que el resto del layout (Sidebar, navegación) sigue funcional
-- ✅ No se muestra stack trace ni información técnica sensible al usuario final en producción (solo visible en `import.meta.env.DEV`)
-
-**Métricas de verificación:**
-- Tests: 589/589 pasando (582 originales + 7 nuevos)
-- Lint: 0 warnings, 0 errors
-- Build: limpio (500.08 kB, 133.64 kB gzip)
-- Architecture: todas las reglas cumplen (App.jsx: 360 líneas, límite actualizado a 370)
-
-**Decisiones de diseño:**
-- ErrorBoundary de clase propio (sin librería externa `react-error-boundary`) para evitar dependencias adicionales
-- Fallback con 2 botones: "Volver al inicio" (reset sin perder sesión) y "Recargar la página" (reload completo)
-- Registro estructurado de errores con contexto (módulo, mensaje, stack, timestamp) — base para F6-03 (logger centralizado)
-- Detalles técnicos en `<details>` cerrado por defecto, solo visible en desarrollo
-
-**Limitación documentada:**
-ErrorBoundary solo captura errores durante el render, en event handlers, y en métodos de ciclo de vida. NO captura errores dentro de `useEffect` / async / setTimeout. Para esos casos, cada módulo debe usar try/catch propio.
-
-**Archivos modificados:**
-- `src/main.jsx` — +4 líneas (import + wrapper)
-- `src/App.jsx` — +7 líneas (import + 3 ErrorBoundaries)
-- `scripts/architecture-allowlist.json` — App.jsx: 354 → 370 líneas
-
-**Esfuerzo real:** S (1 día). **Prioridad:** P1.
-
-
-### 🏁 F6-02 COMPLETADO — Auditoría y confirmación real del estado E2E (2026-08-15)
-
-**Contradicción resuelta:** el documento presentaba dos valores diferentes para tests E2E ("5/11 passing" en algunas secciones y "12/12 passing" en otras). Tras ejecutar la suite completa con evidencia reproducible, el número oficial es **12/12 passing (100%)**.
-
-**Evidencia recolectada:**
-- Comando ejecutado: `npm run test:e2e` (Playwright 1.62.1)
-- Entorno: Supabase de producción con usuarios de prueba reales (`e2e_*@studiodental.com`)
-- Workers: 4 en paralelo
-- Timestamp: 2026-08-15
-- Tiempo total de ejecución: 23.6s
-- Resultado: 6 specs, 12 tests, 12 passing, 0 failing
-
-**Desglose por spec:**
-| Spec | Tests | Tiempo |
+| Métrica | Valor citado | Estado |
 |---|---|---|
-| `00-verify-login.spec.js` | 4 passing | ~18s total |
-| `flujo-seguridad.spec.js` | 1 passing | 9.1s |
-| `flujo-clinico.spec.js` | 1 passing | 13.0s |
-| `flujo-financiero.spec.js` | 2 passing | 12.0s |
-| `flujo-inventario.spec.js` | 2 passing | 10.0s |
-| `flujo-colaborativo.spec.js` | 2 passing | 12.9s |
-
-**Inconsistencias corregidas en este documento:**
-1. F2-07b en tablero principal: `TODO` → `DONE`
-2. Bloque duplicado de F4-03 en tablero: eliminado
-3. Fila duplicada de F4-04 en tablero: eliminada
-4. Métricas de tests E2E: "5/11 passing" → "12/12 passing (100%)"
-5. Sección "Tests pendientes de refinamiento": eliminada (obsoleta)
-6. Sección "Tareas pendientes acumuladas": eliminada (obsoleta)
-7. F6-02 marcada como `DONE`
-
-**Hallazgos derivados (registrados como subtareas nuevas, Regla de Gobernanza 5):**
-- **F6-02b** (P2): El pipeline CI/CD (`.github/workflows/ci.yml`) no incluye un job para tests E2E. Actualmente solo ejecuta lint, test (Vitest), build y validate-architecture. Los E2E corren solo localmente.
-- **F6-02c** (P3): Los `data-testid` de `LoginScreen.jsx` no llegan al bundle final de Vite, lo que hace que el fixture de login siempre use el fallback `type="email"`. Funcional pero genera warnings en cada test. Requiere investigar el proceso de compilación.
-
-**Estado del CI/CD:**
-- Jobs actuales: lint ✅, test ✅, build ✅, architecture ✅
-- Job faltante: e2e ❌ (F6-02b)
-
-**Decisión de gobernanza:** la bitácora de F4-04 ahora refleja correctamente 12/12 passing como estado oficial. Las secciones que aún decían "5/11" han sido actualizadas. F6-06 (checklist de despliegue) puede proceder con evidencia sólida.
-
-**Esfuerzo real:** XS (< 0.5 día). Prioridad: P1.
-
-
-### 🏁 F4-04 COMPLETADO — E2E con Playwright (2026-08-16)
-
-**Infraestructura E2E completa con validación de seguridad clínica.** **12/12 tests pasando (100%)**, incluyendo el flujo crítico de alertas de alergias cruzadas.
-
-**Resumen de lo resuelto en F4-04:**
-
-- **Fase 4-04a — Usuarios de prueba:** 4 usuarios creados en Supabase Auth con roles admin, dentista, asistente, recepcion. Email confirmación deshabilitada para desarrollo.
-- **Fase 4-04b — data-testid:** 20 atributos `data-testid` agregados a 6 componentes críticos (LoginScreen, Sidebar, DirectorioPacientes, ModalNuevoPaciente, RecetasSection, AlertaAlergiaMejorada). Selectores robustos y mantenibles.
-- **Fase 4-04c — Refinamiento iterativo:** Tests ajustados con esperas explícitas, timeouts generosos, y estrategias de fallback. Flujo de seguridad clínica validado de punta a punta.
-
-**Métricas finales de F4-04:**
-
-| Métrica | Valor |
-|---|---|
-| Tests E2E creados | 12 (en 6 specs) |
-| Tests E2E pasando | 12/12 (100%) |
-| Usuarios de prueba creados | 4 en Supabase Auth |
-| data-testid agregados | 20 en 6 componentes |
-| Archivos E2E creados | 8 |
-| Documentación | `docs/E2E_TESTING.md` |
-
-**Tests que pasan:**
-- ✅ Login como admin (4.7s)
-- ✅ Login como dentista (4.5s)
-- ✅ Login como asistente (4.5s)
-- ✅ Login como recepcion (4.5s)
-- ✅ **Alerta crítica de alergias cruzadas (11.1s)** — crea paciente con alergia a Penicilina, prescribe Amoxicilina, verifica alerta + alternativas seguras
-
-
-**Lecciones de proceso registradas:**
-
-1. **Estrategia iterativa funciona mejor que "escribir todo de una vez":** los tests E2E requieren refinamiento basado en errores reales. Escribir specs genéricos y ajustar según fallos es más eficiente que intentar predecir todos los selectores.
-2. **data-testid son esenciales para tests robustos:** selectores basados en texto (`text=Nuevo Paciente`) son frágiles. Los `data-testid` hacen los tests mantenibles.
-3. **Esperas explícitas > timeouts implícitos:** `waitForSelector()` con timeout generoso es más confiable que `waitForTimeout()` fijo.
-4. **Fallbacks pragmáticos:** si `data-testid` no está disponible, fallback a `type="email"` permite continuar sin bloquear el test.
-5. **El flujo crítico valida más que 10 flujos secundarios:** validar alertas de alergias (riesgo de muerte) tiene más valor clínico que validar flujos administrativos.
-6. **Usuarios de prueba requieren configuración de Supabase:** deshabilitar "Confirm email" es esencial para que los usuarios puedan hacer login sin verificación por correo.
-7. **Timing de Realtime requiere paciencia:** Supabase Realtime puede tener latencia de 1-3 segundos. Tests deben esperar explícitamente a que los datos aparezcan.
-
-**Valor clínico validado:** El sistema detecta correctamente alergias cruzadas (Penicilina → Amoxicilina) y sugiere alternativas seguras (Clindamicina, Azitromicina, Doxiciclina), previniendo reacciones adversas graves.
-
-### 🏁 F4-03 COMPLETADO — Vademécum v1.1 integrado (2026-08-15)
-
-**El vademécum v1.1 está completamente operativo.** 164 registros de datos clínicos enriquecidos, alertas de alergias cruzadas funcionales, módulo de administración con 8 tabs, y autocompletado de recetas con posologías detalladas.
-
-**Resumen de lo resuelto en F4-03:**
-
-- **F4-03a — Esquema SQL:** 7 tablas creadas en Supabase con RLS configurado para lectura pública
-- **F4-03b — Carga de datos:** 164 registros cargados con posologías enriquecidas (94 fármacos + 11 urgencia + 6 antirresortivos + 25 alergias + 15 interacciones + 7 profilaxis + 5 anticoagulantes)
-- **F4-03c — vademecumService:** servicio central con 33 tests, métodos para todas las tablas
-- **F4-03d — anestesiaCalc:** integrado con dosis máximas reales del vademécum
-- **F4-03e — Alertas de alergias:** `evaluarIncompatibilidadFarmaco` usa matriz completa de 25 reglas
-- **F4-03f — Módulo admin:** contenedor con 8 tabs CRUD (vademécum, urgencia, antirresortivos, alergias, interacciones, profilaxis, anticoagulantes, metadata)
-- **F4-03g — Autocompletado recetas:** RecetasSection usa los 94 fármacos del vademécum con posologías completas
-- **F4-03h — Mejoras UI:** AlertaAlergiaMejorada con iconos, familia farmacológica, alternativas seguras y notas clínicas expandibles
-
-**Métricas finales de F4-03:**
-
-| Métrica | Valor |
-|---|---|
-| Tests pasando | 582/582 |
-| Lint | 0 warnings, 0 errors |
-| Build | limpio |
-| Architecture | 67 archivos en allowlist, todas las reglas cumplen |
-| Tablas Supabase nuevas | 7 (vademécum) |
-| Registros cargados | 164 |
-| Archivos nuevos creados | 19 |
-| Tests de vademecumService | 33 |
-
-**Lecciones de proceso registradas:**
-
-1. **RLS debe configurarse explícitamente:** aunque las tablas existan, sin políticas de lectura pública el frontend con `anon key` no puede leerlas
-2. **Posologías enriquecidas requieren múltiples campos:** combinar `posologia_adulto` + `duracion_dias` + vía produce posologías completas (dosis + frecuencia + duración + vía)
-3. **Matriz de alergias cruzadas es bidireccional:** si penicilina → cefalosporina tiene reactividad, también cefalosporina → penicilina
-4. **Alternativas seguras deben filtrar por familia:** función `obtenerAlternativasSeguras()` construye set de familias incompatibles y filtra fármacos del vademécum
-5. **Componentes grandes requieren extracción:** `AdminVademecumModulo` con 8 tabs excedería 250 líneas → extraído `AdminProtocolosContenido` para los 4 tabs nuevos
-6. **Alertas UI requieren estructura visual clara:** iconos grandes + colores diferenciados + sección expandible mejora usabilidad clínica
-
-**Verificación manual ejecutada:**
-- ✅ Módulo admin "💊 Vademécum" muestra los 94 fármacos en tab principal
-- ✅ Autocompletado de recetas muestra posologías completas (ej: "1 comprimido cada 8 horas por 7 días vía oral")
-- ✅ Alertas de alergias cruzadas funcionan (paciente con alergia a penicilina + Amoxicilina → alerta crítica)
-- ✅ Alternativas seguras se muestran en alertas (3 fármacos de familias sin reactividad cruzada)
-
-### 🏁 FASE 5 COMPLETAMENTE CERRADA (2026-08-14)
-
-**La colaboración en tiempo real está operativa.** La app ahora sincroniza datos instantáneamente entre dispositivos, sobrevive a caídas de internet, detecta conflictos de edición y notifica al usuario de todo lo relevante.
-
-**Resumen de lo resuelto en F5:**
-
-- **F5-01 — Realtime setup:** infraestructura de suscripciones a 17 tablas con WebSockets. Realtime ya habilitado en Supabase, solo se creó la capa de abstracción en la app.
-- **F5-02 — Sync en tiempo real:** 11 tablas monitoreadas con anti-loop (2s tolerancia), refresh de `pacientesStore` y eventos custom para tablas sin store Zustand.
-- **F5-03 — Offline-first queue:** cola FIFO persistente con retry exponencial (0s, 1s, 2s, 4s, 8s), lock anti-concurrente, y 5 storage services soportados.
-- **F5-04 — Conflict resolution:** detección vía `updated_at`, modal de resolución manual con diff visual, tabla `audit_log` en Supabase con RLS, y estrategias de resolución (manual_local, manual_remote, last_write_wins).
-- **F5-05 — Notifications:** sistema de toasts con 4 tipos y auto-dismiss, indicador de conexión en Sidebar (online/offline/conectando), detección de conflictos de agenda, y toasts contextuales al recibir cambios externos o procesar cola offline.
-
-**Métricas finales de Fase 5:**
-
-| Métrica | Valor |
-|---|---|
-| Tests pasando | 517/517 |
-| Lint | 0 warnings, 0 errors |
-| Build | limpio |
-| Architecture | 30 archivos en allowlist, todas las reglas cumplen |
-| Tablas Supabase nuevas | 1 (audit_log) |
-| Archivos nuevos creados | 20 |
-| Hooks nuevos creados | 4 (useRealtimeSubscription, useRealtimeSync, useOfflineQueue, useNotifications) |
-| Servicios nuevos creados | 5 (realtimeService, realtimeEvents, operationQueue, conflictDetectionService, notificationService) |
-| Componentes UI nuevos | 3 (ConflictResolutionModal, ToastContainer, ConnectionIndicator) |
-
-**Lecciones de proceso registradas en F5:**
-
-1. **Crear infraestructura primero, integrar después:** F5 siguió el mismo patrón de F4 — primero infraestructura sólida, luego adopción progresiva por módulos. Evita romper flujos existentes.
-2. **Loop prevention es crítico:** sin timestamps de escritura local, Realtime causaría loops infinitos. La tolerancia de 2s es empírica pero efectiva.
-3. **Conflict resolution requiere UX cuidadosa:** modal de resolución con diff visual lado a lado es más usable que un simple "overwrite or discard".
-4. **Notification system debe ser no-bloqueante:** errores en notificaciones NUNCA deben romper el flujo principal de la app. Fail silently + console.error.
-5. **SQL schema ejecutado manualmente:** tablas de auditoría se crean una vez vía SQL Editor de Supabase, no via código (evita problemas de idempotencia).
-6. **Allowlist debe permitir excepciones justificadas:** `conflictosAgenda.js` tiene 104 líneas pero es lógica de dominio pura con tests exhaustivos. Excepción válida documentada.
-7. **Componentes UI compartidos sin librerías externas:** `ToastContainer` y `ConnectionIndicator` implementados con Tailwind puro, sin añadir dependencias al proyecto (sin react-hot-toast, sin sonner).
-
-### 🏁 FASE 4 COMPLETAMENTE CERRADA (2026-08-13)
-
-**La migración de datos a Supabase está completa y mergeada vía PR #22.** El sistema ahora opera con PostgreSQL como fuente de verdad y localStorage como caché optimista offline-first.
-
-**Resumen de lo resuelto:**
-
-- **F4-02a — DB schema + RLS:** 15 tablas creadas con políticas de aislamiento por usuario (PR #16)
-- **F4-02b — Cliente Supabase + auth:** dual-mode con `VITE_USE_SUPABASE`, integración con `sesionStore` (PR #16 + hotfix)
-- **F4-02c-1 — Tablas clínicas:** 11 tipos de datos clínicos con estructura JSONB flexible
-- **F4-02c-2 — Pacientes:** UPSERT por RUT, filtro SEED, mapeo bidireccional legacyId ↔ UUID
-- **F4-02c-3 — Citas:** normalización de estados, filtro de bloqueos de agenda, validación de paciente migrado
-- **F4-02c-4 — Presupuestos:** migración de presupuestos globales + items vinculados + items huérfanos (PR #21)
-- **F4-02c-5 — Pagos + Finanzas:** pagos globales (`paciente_id=NULL`) y abonos por paciente (`paciente_id=UUID`)
-- **F4-02c-6 — Datos clínicos:** 11 tipos de datos migrados por paciente
-- **F4-02d-1 — Lectura:** caché en memoria sincronizada desde Supabase, API síncrona preservada
-- **F4-02d-2 — Escritura:** métodos de guardado con UPSERT inteligente y mapeo camelCase ↔ snake_case
-- **F4-02e — Testing + UX:** persistencia de navegación, restauración de ficha de paciente, script de validación, fixes de logout/session restore
-
-**Métricas finales de la fase:**
-
-| Métrica | Valor |
-|---|---|
-| Tests pasando | 428/428 |
-| Lint | 0 warnings, 0 errors |
-| Build | limpio (sin warnings) |
-| Architecture | 29 archivos en allowlist, todas las reglas cumplen |
-| Tablas Supabase | 15 |
-| Tipos de datos clínicos | 11 |
-| Storage services dual-mode | 7 |
-| Archivos nuevos creados | 13 |
-| PRs mergeados | #16, #21, #22 |
-
-**Lecciones de proceso registradas:**
-
-1. **Commits incrementales vs commit único:** se decidió acumular cambios sin commit intermedio para avanzar rápido; riesgo asumido y documentado
-2. **Reordenamiento de hooks:** los `useEffect` que dependen de variables declaradas después causan temporal dead zone — siempre declarar dependencias antes
-3. **Filtrado de datos demo:** los SEED (pacientes de demostración) deben excluirse explícitamente de migraciones para evitar contaminación de producción
-4. **Imports de barreras públicas en scripts:** los scripts de migración deben importar servicios directamente (no vía `index.js`) para evitar warnings de code-splitting
-5. **Validación con script standalone:** `validate-f4-supabase.js` sin dependencias externas permite verificar el estado de Supabase desde CI o local sin instalar nada
-6. **Persistencia de ficha con fallback seguro:** restaurar paciente desde Supabase al recargar requiere manejo graceful del caso "paciente eliminado" para no romper la app
-7. **Session restore vs logout intencional:** delay de 100ms antes de verificar sesión evita logout-loop
-
-### 🏁 FASE 3 COMPLETA (2026-08-13)
-
-F3-06 absorbido por F4-02 (versionado implícito vía Supabase migrations). F3-08 resuelto durante F4-02e. Pendiente sin bloquear: F3-07 (mantenimiento, P3).
-
-### F2-04e — Esquema Zod para `presupuesto` — DONE (2026-08-12)
-
-**Cierre de la serie F2-04:** Con esta subtarea se completa el sistema de validación Zod para todas las estructuras de datos críticas del sistema.
-
-**Archivos creados:**
-- `src/modules/presupuestos/schemas/presupuestoSchema.js` — 4 campos obligatorios (id, folio, pacienteNombre, estado) + opcionales
-- `src/modules/presupuestos/schemas/presupuestoSchema.test.js` — 22 tests
-
-**Archivos modificados:**
-- `src/modules/presupuestos/services/presupuestosStorageService.js` — integración de `validarListaPresupuestos()` en `guardarPresupuestos()`
-
-**Decisiones de diseño:**
-- **4 campos obligatorios mínimos** porque presupuestos pueden venir de dos orígenes con estructuras diferentes (consolidados desde pacientes vs presupuestos directos)
-- **Solo `guardarPresupuestos` valida** — los métodos que usan claves dinámicas quedan sin validación por ahora
-
-**Verificación:**
-- ✅ 22 nuevos tests
-- ✅ 400/400 tests totales pasando
-- ✅ 0 regresiones en tests existentes
-- ✅ Lint: 0 warnings, 0 errors
-
-### F2-04d — Esquema Zod para `prestacion` — DONE (2026-08-12)
-
-**Archivos creados:**
-- `src/modules/prestaciones/schemas/prestacionSchema.js` — 6 campos obligatorios (id, nombre, especialidad, precioParticular, precioFonasa, codigoFonasa) + opcional (precio normalizado)
-- `src/modules/prestaciones/schemas/prestacionSchema.test.js` — 28 tests
-
-**Archivos modificados:**
-- `src/modules/prestaciones/services/prestacionesStorageService.js` — integración de `validarListaPrestaciones()` con manejo graceful de null/undefined
-
-**Verificación:**
-- ✅ 28 nuevos tests
-- ✅ 378/378 tests totales pasando
-- ✅ Lint: 0 warnings, 0 errors
-
-### F2-04c — Esquema Zod para `movimientoFinanciero` — DONE (2026-08-12)
-
-**Archivos creados:**
-- `src/modules/finanzas/schemas/movimientoFinancieroSchema.js` — 6 campos obligatorios (id, fecha, tipo, categoria, monto, metodoPago) + opcionales
-- `src/modules/finanzas/schemas/movimientoFinancieroSchema.test.js` — 22 tests
-
-**Archivos modificados:**
-- `src/modules/finanzas/services/finanzasStorageService.js` — integración de `validarListaMovimientos()` antes de persistir
-
-**Verificación:**
-- ✅ 22 nuevos tests
-- ✅ 350/350 tests totales pasando
-- ✅ Lint: 0 warnings, 0 errors
-
-### F2-04b — Esquema Zod para `cita` — DONE (2026-08-12)
-
-**Archivos creados:**
-- `src/modules/agenda/schemas/citaSchema.js` — 4 campos obligatorios (id, fecha, horaInicio, estado) + opcionales
-- `src/modules/agenda/schemas/citaSchema.test.js` — 23 tests
-
-**Archivos modificados:**
-- `src/modules/agenda/services/agendaStorageService.js` — integración de `validarListaCitas()` antes de persistir
-- `src/modules/agenda/hooks/useAgenda.test.js` — 13 fixtures actualizados para incluir campos obligatorios
-
-**Lección aprendida:** Al agregar validación en el servicio, los tests existentes con fixtures malformados fallan. Esto es **comportamiento esperado** (el validador hace su trabajo), pero requiere actualizar los fixtures para representar datos válidos.
-
-**Verificación:**
-- ✅ 23 nuevos tests
-- ✅ 328/328 tests totales pasando (después de actualizar fixtures)
-- ✅ Lint: 0 warnings, 0 errors
-
-### F2-07h — Corregir clave desincronizada en descuento de stock — DONE (2026-08-12)
-
-**QA manual ejecutado:** El usuario marcó tratamiento como "Realizado" en Ficha de Paciente y confirmó que el stock baja correctamente en módulo Inventario real. ✅ Verificado.
-
-**Criterios cumplidos:**
-- [x] `PresupuestoSection.jsx` descuenta stock vía `inventarioStorageService`
-- [x] QA manual confirmado
-
-### F2-10 — Unificar imports internos en stores — DEFERRED (2026-08-12)
-
-**Intento de implementación falló:** introdujo dependencia circular entre `prestacionesStore.js` → `prestaciones/index.js` → `PrestacionesModulo` → `usePrestacionesStore`.
-
-**Decisión:** Marcar como DEFERRED con justificación técnica documentada. No se implementará workaround complejo. `prestacionesStore.js` sigue usando rutas internas como excepción válida documentada al Cap. III de la Constitución.
-
-### F3-05 — RBAC básico — DONE (2026-08-12)
-
-**Implementación completa:** Sistema de RBAC con 4 roles diferenciados, 11 permisos, matriz de acceso, y selector de rol en login. Ver detalles completos en la sección de Fase 3.
-
-**PR:** #5 (mergeado 2026-08-12)
-
-### F3-04 — Ampliar cobertura de testing — DONE (2026-08-11)
-
-**Implementación:** 7 hooks testeados. Total: 287 tests (144 originales + 143 nuevos). Baseline establecido.
-
-### F3-03 — Conventional Commits — DONE (2026-08-11)
-
-**Implementación:** `CONTRIBUTING.md` con guía completa de commits convencionales y flujo de ramas. README actualizado.
-
-### F3-02 — Validación arquitectónica — DONE (2026-08-11)
-
-**Implementación:** `scripts/validate-architecture.js` con allowlist de 20 archivos excepcionales.
-
-### F3-01 — Pipeline CI/CD — DONE (2026-08-11)
-
-**Implementación:** `.github/workflows/ci.yml` con 4 jobs (lint, test, build, architecture). Branch protection en GitHub.
-
-### F2-09 — Limpieza de 35 warnings de oxlint — DONE (2026-08-11)
-
-3 categorías de warnings resueltas sistemáticamente: `no-useless-rename` (~12), `no-unused-vars` (~15), `no-unused-expressions` (~8).
-
-### F2-07f — Migrar `localStorage.clear()` a servicio — DONE (2026-08-11)
-
-`configuracionStorageService.limpiarBaseDeDatosCompleta()` reemplaza `localStorage.clear()` en `RespaldoDatosSection.jsx`.
-
-### F2-06c — Completar exportación faltante en `finanzas/index.js` — DONE (2026-08-11)
-
-**Patrón recurrente:** segundo incidente del mismo tipo (primero fue F1-05 con `pacientesStorageService`). Refuerza lección: siempre verificar contenido real de barreras públicas antes de migrar imports.
-
-### F2-07 — Eliminar accesos directos a `localStorage` — CERRADA 7/8 subtareas (2026-08-10/11/12)
-
-**Decisión de gobernanza:** dividir en subtareas F2-07a a F2-07h siguiendo patrón de F1-04 y F2-04.
-
-### F2-01, F2-02, F2-02b — Store global + eliminación de prop drilling — DONE (2026-08-10)
-
-3 stores Zustand con persistencia automática y sincronización cross-tab.
-
-### F2-03, F2-03g — Repositorio genérico de `localStorage` — DONE (2026-08-10)
-
-`createLocalStorageRepository` extraído a `src/services/localStorageRepository.js`. 12/14 servicios migrados.
-
-### F2-04 — Esquemas Zod — DONE (2026-08-10, criterio mínimo; 2026-08-12 serie completa)
-
-`pacienteSchema` como base; F2-04b-e agregaron 4 esquemas adicionales para estructuras críticas.
-
-### F2-05 — Code-splitting — DONE (2026-08-10)
-
-Chunk principal: 721.57 kB → 466.39 kB (171.20 kB → 124.70 kB gzip). Warning `INEFFECTIVE_DYNAMIC_IMPORT` registrado como F3-08.
-
-### F2-06 — `index.js` faltantes — DONE (2026-08-10)
-
-Creados para `dsd`, `odontopediatria`, `periodontograma`, `quirurgico`.
-
-### F2-08 — Extracción de `LoginScreen`, `Sidebar`, Directorio de Pacientes — DONE (2026-08-10)
-
-`App.jsx` verificado en 172 líneas.
-
-### 🏁 FASE 2 COMPLETAMENTE CERRADA (2026-08-12)
-
-**Todas las tareas principales y derivadas críticas de Fase 2 están en DONE.** Única subtarea pendiente: F2-07b (4 servicios nuevos), registrada como trabajo incremental no bloqueante. F2-10 documentada como `DEFERRED` con justificación técnica (dependencia circular).
-
-**Resumen de lo resuelto:**
-- **Estado global (Zustand):** 3 stores (sesión, pacientes, prestaciones) eliminan el prop drilling masivo
-- **Capa de persistencia refactorizada:** factory `createLocalStorageRepository` (12/14 servicios migrados, 2 excepciones justificadas)
-- **Validación de datos completa (F2-04 series):** 5 esquemas Zod para estructuras críticas con 95 tests de validación
-- **Code-splitting:** 3 módulos eager + 11 lazy; chunk inicial 466.39 kB (gzip: 124.70 kB)
-- **Barreras públicas completas:** todos los módulos tienen `index.js` con servicios y componentes
-- **Accesos directos a localStorage:** migrados 24+ accesos en 12+ archivos; excepciones válidas: `authService.js` y `sesionStore.js` (claves propias de su dominio)
-
-**Lecciones de proceso registradas:**
-1. **Regla de entrega de código:** siempre enviar archivos COMPLETOS reemplazados, no parches tipo "cambia esta línea"
-2. **Verificación previa de APIs:** antes de modificar código que depende de un servicio, verificar el contenido real del archivo
-3. **Patrón de cierre documental:** cuando el código ya está implementado antes de la inspección formal, verificar estado real y cerrar documentalmente con métricas y decisiones técnicas correspondientes
-4. **Regla de comunicación de valor:** cada tarea debe explicar explícitamente qué ganamos al realizarla (regla #7 de gobernanza)
-5. **Dependencias circulares:** antes de refactorizar imports, analizar el grafo de dependencias completo. F2-10 demostró que incluso refactors "triviales" pueden romper el CI si introducen ciclos.
-
-### 🏁 FASE 1 COMPLETA (2026-08-08)
-
-Las 11 tareas de Fase 1 cerradas y verificadas. Sistema apto para datos clínicos reales.
-
----
+| Lint | 0 warnings / 0 errors | plausible, re-verificar con output fechado |
+| Build | 497 kB (132 kB gzip) | plausible, re-verificar |
+| `npm audit` | 0 vulnerabilidades | plausible, re-verificar |
+| Validación arquitectónica | 67 archivos en allowlist | plausible, re-verificar |
+| Vademécum | 164 registros | existe solo en Supabase de desarrollo — F6-A |
+
+### Bloqueantes para producción
+
+| # | Bloqueante | Tarea |
+|---|---|---|
+| 1 | El vademécum clínico no tiene respaldo ni esquema versionado | F6-A |
+| 2 | Cualquier usuario puede concederse rol admin desde el navegador | F6-B |
+| 3 | El modelo de datos aísla a cada usuario: el equipo no comparte pacientes | F6-C |
+| 4 | Odontograma, periodontograma, recetas y evoluciones no llegan a Supabase | F6-D |
+| 5 | Radiografías y consentimientos firmados viven solo en IndexedDB local | F6-E |
 
 ## 5. PRÓXIMA ACCIÓN
 
-**Estado del proyecto: FASES 1-5 COMPLETADAS ✅ · FASE 6 (Hardening de Producción) PROPUESTA, pendiente de inicio**
+**Una sola:** redactar el RFC de F6-C (modelo multi-clínica), porque F6-D, F6-E, F6-F y F6-G dependen de su resultado y no conviene implementarlas dos veces.
 
-Con la verificación de F1-04f (gráfico longitudinal), F3-07 (vulnerabilidad), F2-07b (servicios faltantes) y F1-04e (métricas periodontales), **todas las tareas de Fases 1-5 están en estado DONE**. Una auditoría técnica independiente (2026-08-16) confirmó estas métricas y detectó 7 brechas nuevas no registradas previamente, incorporadas como **Fase 6** (ver sección dedicada arriba): ausencia de Error Boundary, contradicción no resuelta en el conteo de tests E2E, logging sin niveles, accesibilidad básica, exportación de reportes, checklist de despliegue formal y manual de usuario.
+**En paralelo, sin esperar al RFC:** F6-A (versionar el vademécum). Es la única tarea del documento cuyo retraso puede costar trabajo irrecuperable.
 
-**Recomendación de orden dentro de Fase 6:** empezar por F6-02 (resolver la ambigüedad de tests E2E) y F6-01 (Error Boundary), por ser las de mayor impacto/riesgo con menor esfuerzo. **No se implementará ninguna tarea de Fase 6 hasta confirmación explícita del usuario**, consistente con la Regla de Gobernanza 1.
+**No se implementará ninguna tarea hasta confirmación explícita del usuario** (Regla de Gobernanza 1).
 
-### 📊 Estado final del proyecto (2026-08-16)
+---
 
-| Categoría | Estado | Detalle |
-|---|---|---|
-| **Fases completadas** | 5/5 | Fase 1 (estabilización), Fase 2 (arquitectura), Fase 3 (calidad), Fase 4 (plataforma), Fase 5 (colaboración) |
-| **Tests unitarios/integración** | 582 passing | Vitest con cobertura de funciones puras y hooks críticos |
-| **Tests E2E** | 12/12 passing (100%) | Login (4) + seguridad (1) + clínico (1) + financiero (2) + inventario (2) + colaborativo (2) |
-| **Lint** | 0 warnings, 0 errors | oxlint con 92 reglas |
-| **Build** | Limpio | 497 kB (132 kB gzip) |
-| **Architecture** | 67 archivos en allowlist | Todas las reglas cumplen |
-| **Seguridad** | 0 vulnerabilidades | `npm audit` limpio |
-| **Vademécum v1.1** | 164 registros | 94 fármacos + 70 registros de protocolos clínicos |
-| **Supabase** | 23 tablas | 16 datos clínicos + audit_log + 7 vademécum |
-| **Usuarios de prueba E2E** | 4 creados | admin, dentista, asistente, recepcion |
+## 6. BITÁCORA DE EJECUCIÓN
 
-### 🎯 Próximos pasos sugeridos
+El registro histórico de tareas completadas se trasladó a **`docs/BITACORA.md`** para mantener este documento legible de una sentada.
 
-El proyecto está en estado **listo para producción**. Las siguientes acciones son opcionales y dependen de prioridades de negocio:
-
-**Opción A: ✅ COMPLETADA — Tests E2E al 100%**
-- ✅ Todos los 12 tests E2E pasan correctamente
-- ✅ Login validado para 4 roles RBAC
-- ✅ Seguridad clínica validada (alertas de alergias)
-- ✅ Flujo clínico validado (paciente → receta)
-- ✅ Módulos financieros validados (presupuestos y pagos)
-- ✅ Módulo de inventario validado (tabla de items)
-- ✅ Colaboración validada (múltiples usuarios simultáneos)
-- **Estado:** Completado el 2026-08-16
-
-**Opción B: Despliegue a producción**
-- Configurar dominio personalizado en Supabase
-- Configurar variables de entorno en hosting (Vercel, Netlify, etc.)
-- Migrar datos reales de pacientes (si existen en localStorage legacy)
-- Configurar backups automáticos de Supabase
-- **Esfuerzo estimado:** 2-4 horas
-
-**Opción C: Nuevas features (según necesidades de negocio)**
-- Reportes avanzados (exportar a Excel/PDF)
-- Integración con sistemas externos (Fonasa, Isapres)
-- App móvil nativa (React Native)
-- Teleodontología (videoconsultas integradas)
-- **Esfuerzo estimado:** variable según feature
-
-**Opción D: Documentación y capacitación**
-- Manual de usuario para odontólogos
-- Manual de usuario para recepción
-- Videos tutoriales de flujos críticos
-- Capacitación presencial del equipo
-- **Esfuerzo estimado:** 1-2 semanas
-
-**No se implementará ninguna acción hasta confirmación explícita del usuario.**
-
-Con el cierre de Fase 5 (realtime + offline + conflictos + notificaciones) y F4-03 (vademécum v1.1 completo), el sistema está técnicamente listo para despliegue. El siguiente paso es **validar end-to-end los flujos críticos** antes de producción.
-
-**Qué ganamos con F4-04:**
-- **Confianza de despliegue:** flujos principales (crear paciente → agendar cita → presupuesto → pago) verificados automáticamente
-- **Prevención de regresiones:** tests E2E detectan bugs de integración antes de llegar a producción
-- **Documentación ejecutable:** los tests E2E sirven como especificación viva del comportamiento esperado
-- **Base para CI/CD:** integración con pipeline F3-01 para validación automática en cada PR
-
-**Estado previo requerido (ya cumplido):**
-- ✅ F3-04: cobertura de testing unitario/integración establecida (582 tests)
-- ✅ F3-01: pipeline CI/CD operativo
-- ✅ F4-02: Supabase como fuente de verdad
-- ✅ F4-03: vademécum v1.1 completo
-- ✅ F5: colaboración en tiempo real operativa
-
-**Flujos críticos a cubrir:**
-1. **Flujo clínico básico:** crear paciente → agendar cita → completar consulta → generar receta
-2. **Flujo financiero:** crear presupuesto → agregar items → registrar pago → cerrar caja
-3. **Flujo de inventario:** recibir stock → descontar en tratamiento → alerta de stock bajo
-4. **Flujo de seguridad:** paciente con alergias → prescribir fármaco contraindicado → alerta crítica
-5. **Flujo colaborativo:** usuario A crea cita → usuario B la ve en tiempo real → usuario A la cancela → usuario B ve actualización
-
-**Estrategia propuesta:**
-1. Instalar Playwright (`npm install -D @playwright/test`)
-2. Configurar `playwright.config.js` con baseURL y timeouts
-3. Crear 5 specs E2E (uno por flujo crítico)
-4. Integrar como job opcional en CI/CD (no bloqueante inicialmente)
-5. Documentar en `docs/E2E_TESTING.md`
-
-**No se implementará hasta confirmación explícita del usuario.**
-
-**Tareas pendientes acumuladas (no bloqueantes, trabajo incremental):**
-
-| Tarea | Prioridad | Esfuerzo |
-|---|---|---|
-| F1-04e: Métricas `HeaderPeriodontal.jsx` | P3 | S |
-| F1-04f: Default `GraficoPerfilLongitudinal.jsx` | P3 | XS |
-| F2-07b: 4 servicios faltantes (periodontograma, quirurgico, odontopediatria, dsd) | P2 | M |
-| F3-07: Actualizar `postcss`/`nanoid` | P3 | XS |
-| F4-04: E2E con Playwright | P1 | M |
-
-**Métricas actuales del proyecto:**
-- **Tests unitarios/integración:** 582 passing
-- **Tests E2E:** 12/12 passing (100%) — login (4), seguridad (1), clínico (1), financiero (2), inventario (2), colaborativo (2)
-- **Lint:** 0 warnings, 0 errors
-- **Build:** limpio
-- **Architecture:** todas las reglas cumplen (67 archivos en allowlist)
-- **Esquemas Zod:** 8 (paciente, cita, movimientoFinanciero, prestacion, presupuesto, vademecum, alergiaCruzada, interaccion)
-- **Tablas Supabase:** 23 (16 datos clínicos + audit_log + 7 vademécum)
-- **Fases completadas:** 1, 2, 3, 4, 5
-- **Fases pendientes de cierre completo:** ninguna
-
-**No se implementará hasta confirmación explícita del usuario.**
+Este archivo responde a *qué falta y en qué orden*. La bitácora responde a *qué se hizo y cuándo*. Toda tarea que pase a `DONE` se registra allí, con su evidencia y su fecha, y aquí solo cambia la columna Estado del tablero.
