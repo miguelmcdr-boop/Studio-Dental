@@ -1,3 +1,13 @@
+## 2026-08-18 — F6-B1: enum app_role + helpers SQL + trigger de alta de perfil — DONE
+
+**Qué se ganó:** El rol pasó a vivir en `app_metadata` (JWT firmado, no editable por el usuario). Helpers declarativos `current_role()`, `has_role()`, `is_admin()` y trigger `on_auth_user_created` que crea el perfil y propaga el rol atómicamente. Rol ausente o inválido defaultea a `recepcion` (rechazo silencioso): se cierran los caminos de auto-promoción detectados en la auditoría (C1/C2).
+
+**Archivos:** `supabase/schema-rbac.sql` (nuevo), `supabase/README.md` (orden de ejecución), `docs/MASTER_ROADMAP.md` (F6-B granularizada en F6-B1..F6-B6).
+
+**Evidencia:** Supabase local (Docker): 8/8 objetos creados (enum + 6 funciones + trigger); INSERT en auth.users con rol `dentista` → perfil y `app_metadata.role` consistentes; sin rol → `recepcion`; rol inválido `superadmin` → `recepcion` sin error de constraint; `get_role_from_metadata()` correcto; 589/589 tests JS (regresión cero). PR mergeado.
+
+**Siguiente:** F6-B2 (reescritura de RLS de las 9 tablas clínicas alineada con la matriz RBAC).
+
 # BITÁCORA DE EJECUCIÓN — Studio Dental
 
 ## 2026-08-18 — F6-A: Versionar esquema SQL + seed del vademécum v1.1 — DONE
