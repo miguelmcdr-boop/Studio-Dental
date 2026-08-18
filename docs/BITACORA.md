@@ -1,3 +1,22 @@
+## 2026-08-18 — F6-B5: tests SQL de esquema + tests JS de app_metadata + e2e versionados — DONE
+
+**Qué se ganó:** Infraestructura completa de verificación RBAC. Ahora cualquier cambio en las políticas RLS o en `authService.js` tiene cobertura automática de tests (SQL + JS + E2E).
+
+**Archivos:** `supabase/verify-rbac.sql` (nuevo), `src/services/authService.appMetadata.test.js` (nuevo), `tests/e2e/` (nueva carpeta con 3 archivos), `docs/MASTER_ROADMAP.md` (F6-B5 DONE).
+
+**Componentes:**
+1. **verify-rbac.sql**: script de assertions SELECT (12 checks) que verifica enum, helpers, triggers, y que las políticas usan `role_in()`. Detecta si quedaron políticas legacy de solo ownership.
+2. **authService.appMetadata.test.js**: 4 tests que validan el cierre de F6-B4 (lectura de `app_metadata`, default `'recepcion'`, cero `updateUser`).
+3. **tests/e2e/**: carpeta con helpers compartidos + 2 scripts e2e (clínico 17 checks, financiero 31 checks) que validan la matriz RBAC completa contra el proyecto local.
+
+**Verificación:**
+- SQL: 12/12 PASS
+- Tests JS: 4/4 passed
+- E2E clínico: 17/17 PASS
+- E2E financiero: 31/31 PASS
+
+**Siguiente:** F6-B6 (verificación práctica + documentación final de RBAC).
+
 ## 2026-08-18 — F6-B3: RLS por rol en financiero + vademécum + audit_log — DONE
 
 **Qué se ganó:** Las políticas RLS de las 14 tablas restantes ahora aplican la matriz RBAC server-side. Se cierran los caminos de escritura financiera por recepcion/asistente y de escritura de vademécum por cualquier authenticated (hallazgo F6-A). `audit_log` es append-only con lectura global de admin.
