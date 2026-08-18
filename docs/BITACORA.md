@@ -1,5 +1,18 @@
 # BITÁCORA DE EJECUCIÓN — Studio Dental
 
+## 2026-08-18 — F6-A: Versionar esquema SQL + seed del vademécum v1.1 — DONE
+
+**Qué se ganó:** El dataset clínico crítico (164 registros: 94 fármacos, 11 urgencia, 6 antirresortivos, 25 alergias cruzadas, 15 interacciones, 7 profilaxis AHA, 5 anticoagulantes, 1 metadata) quedó versionado en el repo. Un proyecto Supabase limpio ejecutando los scripts de `supabase/` reproduce el vademécum completo y la app dispara las alertas de alergias cruzadas.
+
+**Archivos:** `supabase/schema-vademecum.sql` (nuevo), `supabase/seed-vademecum.sql` (nuevo, 164 INSERT idempotentes), `supabase/README.md` (nuevo), `src/services/vademecumService.js` (fix F4-03i), `docs/DEPLOY_CHECKLIST.md` (conteo de tablas).
+
+**Evidencia:** Proyecto Supabase local (Docker) limpio → 5 scripts en orden → 164 registros verificados → app con `.env.local` → login `test-f6a@studiodental.com` → paciente con alergia a penicilina + receta de Amoxicilina+Clavulánico → ALERTA GRAVE con alternativas seguras (captura).
+
+**Métricas:** Tests 589/589 (`npx vitest run`, 2026-08-17). Tablas vademécum: 8. Registros: 164.
+
+**Hallazgo derivado (no bloqueante):** en el entorno local limpio, `schema-clinical-tables.sql` no creó sus 9 tablas clínicas (18 tablas en vez de 27). Gap preexistente de ese script, no causado por F6-A. Registrado como F6-Aa.
+
+
 **Documento complementario de `MASTER_ROADMAP.md`.**
 El roadmap responde a *qué falta y en qué orden*. Esta bitácora responde a *qué se hizo, cuándo y con qué evidencia*.
 

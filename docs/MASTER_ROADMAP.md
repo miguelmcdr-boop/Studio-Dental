@@ -108,7 +108,8 @@
 | F5-04 | Conflict resolution entre dispositivos | 5 | P2 | S | F5-02 | DONE (2026-08-14) |
 | F5-05 | Notifications y alertas de cambios | 5 | P2 | S | F5-02 | DONE (2026-08-14) |
 | **— FASE 6: bloque estructural (nuevo, 2026-08-16) —** | | | | | | |
-| F6-A | Versionar esquema SQL + seed del vademécum v1.1 | 6 | **P0** | S (1 d) | — | TODO |
+| F6-A | Versionar esquema SQL + seed del vademécum v1.1 | 6 | **P0** | S (1 d) | — | DONE (2026-08-18) |
+| F6-Aa | Investigar por qué schema-clinical-tables.sql no crea sus 9 tablas en entorno limpio (hallazgo de la verificación F6-A) | 6 | P1 | S (0.5-1 d) | — | TODO |
 | F6-B | Rol de usuario a `app_metadata` + RLS por rol server-side | 6 | **P0** | M (2-4 d) | — | TODO |
 | F6-C | Modelo multi-clínica: `clinica_id` + membresía + reescritura de RLS | 6 | **P0** | XL | F6-B | IN PROGRESS (RFC aprobado 2026-08-17; implementación bloqueada por F6-B) |
 | F6-C-a | Tablas `clinicas` y `miembros_clinica` + función `clinica_actual()` (RFC-F6-C) | 6 | **P0** | S (0.5 d) | F6-B, F6-I | TODO |
@@ -1684,7 +1685,7 @@ Toda métrica de esta tabla incluye el comando que la produce (Regla de Gobernan
 | Componentes con test | 1 | `find src -name "*.test.jsx" \| wc -l` | 2026-08-16 |
 | Módulos sin ningún test | 8 | `comunicaciones, configuracion, dashboard, esterilizacion, laboratorio, pagos, reportes, urgenciasGes` | 2026-08-16 |
 | Esquemas Zod | 11 | `find src -name "*Schema.js" -not -name "*test*" \| wc -l` | 2026-08-16 |
-| Tablas SQL versionadas en el repo | 19 | `grep -h "CREATE TABLE" supabase/*.sql \| wc -l` | 2026-08-16 |
+| Tablas SQL versionadas en el repo | 27 | `grep -h "CREATE TABLE" supabase/*.sql \| wc -l` | 2026-08-16 |
 | Tablas consultadas por el código sin SQL versionado | 8 | tablas del vademécum en `vademecumService.js` — ver F6-A | 2026-08-16 |
 | Servicios de módulo que escriben en Supabase | 6 de 18 | `agenda, finanzas, pacientes, pagos, presupuestos, quirurgico` — ver F6-D | 2026-08-16 |
 | Llamadas a Supabase Storage | 0 | `grep -rn "storage.from" src/` — ver F6-E | 2026-08-16 |
