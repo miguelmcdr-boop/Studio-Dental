@@ -109,7 +109,7 @@
 | F5-05 | Notifications y alertas de cambios | 5 | P2 | S | F5-02 | DONE (2026-08-14) |
 | **— FASE 6: bloque estructural (nuevo, 2026-08-16) —** | | | | | | |
 | F6-A | Versionar esquema SQL + seed del vademécum v1.1 | 6 | **P0** | S (1 d) | — | DONE (2026-08-18) |
-| F6-Aa | Investigar por qué schema-clinical-tables.sql no crea sus 9 tablas en entorno limpio (hallazgo de la verificación F6-A) | 6 | P1 | S (0.5-1 d) | — | TODO |
+| F6-Aa | Investigar por qué schema-clinical-tables.sql no crea sus 9 tablas en entorno limpio (hallazgo de la verificación F6-A) | 6 | P1 | S (0.5-1 d) | — | DONE (2026-08-18) — sin bug: el archivo completo ejecutado crea las 9 tablas; el gap inicial fue omisión en la verificación. 27 tablas verificadas en entorno limpio. |
 | F6-B | Rol de usuario a `app_metadata` + RLS por rol server-side | 6 | **P0** | M (2-4 d) | — | TODO |
 | F6-C | Modelo multi-clínica: `clinica_id` + membresía + reescritura de RLS | 6 | **P0** | XL | F6-B | IN PROGRESS (RFC aprobado 2026-08-17; implementación bloqueada por F6-B) |
 | F6-C-a | Tablas `clinicas` y `miembros_clinica` + función `clinica_actual()` (RFC-F6-C) | 6 | **P0** | S (0.5 d) | F6-B, F6-I | TODO |
