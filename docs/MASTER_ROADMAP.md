@@ -113,13 +113,13 @@
 | F6-B1 | Enum app_role + helpers SQL (current_role, has_role, is_admin) + trigger on_auth_user_created | 6 | **P0** | S (0.5 d) | — | DONE (2026-08-18) |
 | F6-B2 | Reescribir RLS de 9 tablas clínicas alineado con matriz RBAC | 6 | **P0** | S (1 d) | F6-B1 | DONE (2026-08-18) |
 | F6-B3 | Reescribir RLS de 5 tablas financieras + 8 vademécum + audit_log + migración de datos existentes | 6 | **P0** | S (1 d) | F6-B2 | DONE (2026-08-18) |
-| F6-B4 | Migrar authService.js a leer rol de app_metadata + eliminar fallback a admin | 6 | **P0** | S (0.5 d) | F6-B3 | TODO |
+| F6-B4 | Migrar authService.js a leer rol de app_metadata + eliminar fallback a admin | 6 | **P0** | S (0.5 d) | F6-B3 | DONE (2026-08-18) |
 | F6-B5 | Tests SQL de helpers + tests JS/E2E por rol | 6 | **P0** | S (1 d) | F6-B4 | TODO |
 | F6-B6 | Verificación práctica + documentación + bitácora | 6 | **P0** | S (0.5 d) | F6-B5 | TODO |
 | F6-C | Modelo multi-clínica: `clinica_id` + membresía + reescritura de RLS | 6 | **P0** | XL | F6-B1 | Enum app_role + helpers SQL (current_role, has_role, is_admin) + trigger on_auth_user_created | 6 | **P0** | S (0.5 d) | — | DONE (2026-08-18) |
 | F6-B2 | Reescribir RLS de 9 tablas clínicas alineado con matriz RBAC | 6 | **P0** | S (1 d) | F6-B1 | DONE (2026-08-18) |
 | F6-B3 | Reescribir RLS de 5 tablas financieras + 8 vademécum + audit_log + migración de datos existentes | 6 | **P0** | S (1 d) | F6-B2 | DONE (2026-08-18) |
-| F6-B4 | Migrar authService.js a leer rol de app_metadata + eliminar fallback a admin | 6 | **P0** | S (0.5 d) | F6-B3 | TODO |
+| F6-B4 | Migrar authService.js a leer rol de app_metadata + eliminar fallback a admin | 6 | **P0** | S (0.5 d) | F6-B3 | DONE (2026-08-18) |
 | F6-B5 | Tests SQL de helpers + tests JS/E2E por rol | 6 | **P0** | S (1 d) | F6-B4 | TODO |
 | F6-B6 | Verificación práctica + documentación + bitácora | 6 | **P0** | S (0.5 d) | F6-B5 | TODO | S (0.5 d) | F6-B, F6-I | TODO |
 | F6-C-b | Migración de datos existentes a clínica inicial (RFC-F6-C) | 6 | **P0** | S (0.5 d) | F6-C-a | TODO |
@@ -134,7 +134,7 @@
 | F6-H | Timeout de sesión por inactividad + política de contraseña | 6 | P1 | S (1-2 d) | F6-B1 | Enum app_role + helpers SQL (current_role, has_role, is_admin) + trigger on_auth_user_created | 6 | **P0** | S (0.5 d) | — | DONE (2026-08-18) |
 | F6-B2 | Reescribir RLS de 9 tablas clínicas alineado con matriz RBAC | 6 | **P0** | S (1 d) | F6-B1 | DONE (2026-08-18) |
 | F6-B3 | Reescribir RLS de 5 tablas financieras + 8 vademécum + audit_log + migración de datos existentes | 6 | **P0** | S (1 d) | F6-B2 | DONE (2026-08-18) |
-| F6-B4 | Migrar authService.js a leer rol de app_metadata + eliminar fallback a admin | 6 | **P0** | S (0.5 d) | F6-B3 | TODO |
+| F6-B4 | Migrar authService.js a leer rol de app_metadata + eliminar fallback a admin | 6 | **P0** | S (0.5 d) | F6-B3 | DONE (2026-08-18) |
 | F6-B5 | Tests SQL de helpers + tests JS/E2E por rol | 6 | **P0** | S (1 d) | F6-B4 | TODO |
 | F6-B6 | Verificación práctica + documentación + bitácora | 6 | **P0** | S (0.5 d) | F6-B5 | TODO | S (1 d) | — | TODO |
 | F6-J | PWA real (service worker + manifest) para arranque en frío sin conexión | 6 | P2 | M (2-4 d) | — | TODO |
@@ -1726,7 +1726,7 @@ Toda métrica de esta tabla incluye el comando que la produce (Regla de Gobernan
 | 2 | Cualquier usuario puede concederse rol admin desde el navegador | F6-B1 | Enum app_role + helpers SQL (current_role, has_role, is_admin) + trigger on_auth_user_created | 6 | **P0** | S (0.5 d) | — | DONE (2026-08-18) |
 | F6-B2 | Reescribir RLS de 9 tablas clínicas alineado con matriz RBAC | 6 | **P0** | S (1 d) | F6-B1 | DONE (2026-08-18) |
 | F6-B3 | Reescribir RLS de 5 tablas financieras + 8 vademécum + audit_log + migración de datos existentes | 6 | **P0** | S (1 d) | F6-B2 | DONE (2026-08-18) |
-| F6-B4 | Migrar authService.js a leer rol de app_metadata + eliminar fallback a admin | 6 | **P0** | S (0.5 d) | F6-B3 | TODO |
+| F6-B4 | Migrar authService.js a leer rol de app_metadata + eliminar fallback a admin | 6 | **P0** | S (0.5 d) | F6-B3 | DONE (2026-08-18) |
 | F6-B5 | Tests SQL de helpers + tests JS/E2E por rol | 6 | **P0** | S (1 d) | F6-B4 | TODO |
 | F6-B6 | Verificación práctica + documentación + bitácora | 6 | **P0** | S (0.5 d) | F6-B5 | TODO | Odontograma, periodontograma, recetas y evoluciones no llegan a Supabase | F6-D |
 | 5 | Radiografías y consentimientos firmados viven solo en IndexedDB local | F6-E |
