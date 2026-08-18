@@ -112,13 +112,13 @@
 | F6-Aa | Investigar por qué schema-clinical-tables.sql no crea sus 9 tablas en entorno limpio (hallazgo de la verificación F6-A) | 6 | P1 | S (0.5-1 d) | — | DONE (2026-08-18) — sin bug: el archivo completo ejecutado crea las 9 tablas; el gap inicial fue omisión en la verificación. 27 tablas verificadas en entorno limpio. |
 | F6-B1 | Enum app_role + helpers SQL (current_role, has_role, is_admin) + trigger on_auth_user_created | 6 | **P0** | S (0.5 d) | — | DONE (2026-08-18) |
 | F6-B2 | Reescribir RLS de 9 tablas clínicas alineado con matriz RBAC | 6 | **P0** | S (1 d) | F6-B1 | DONE (2026-08-18) |
-| F6-B3 | Reescribir RLS de 5 tablas financieras + 8 vademécum + audit_log + migración de datos existentes | 6 | **P0** | S (1 d) | F6-B2 | IN_PROGRESS |
+| F6-B3 | Reescribir RLS de 5 tablas financieras + 8 vademécum + audit_log + migración de datos existentes | 6 | **P0** | S (1 d) | F6-B2 | DONE (2026-08-18) |
 | F6-B4 | Migrar authService.js a leer rol de app_metadata + eliminar fallback a admin | 6 | **P0** | S (0.5 d) | F6-B3 | TODO |
 | F6-B5 | Tests SQL de helpers + tests JS/E2E por rol | 6 | **P0** | S (1 d) | F6-B4 | TODO |
 | F6-B6 | Verificación práctica + documentación + bitácora | 6 | **P0** | S (0.5 d) | F6-B5 | TODO |
 | F6-C | Modelo multi-clínica: `clinica_id` + membresía + reescritura de RLS | 6 | **P0** | XL | F6-B1 | Enum app_role + helpers SQL (current_role, has_role, is_admin) + trigger on_auth_user_created | 6 | **P0** | S (0.5 d) | — | DONE (2026-08-18) |
 | F6-B2 | Reescribir RLS de 9 tablas clínicas alineado con matriz RBAC | 6 | **P0** | S (1 d) | F6-B1 | DONE (2026-08-18) |
-| F6-B3 | Reescribir RLS de 5 tablas financieras + 8 vademécum + audit_log + migración de datos existentes | 6 | **P0** | S (1 d) | F6-B2 | IN_PROGRESS |
+| F6-B3 | Reescribir RLS de 5 tablas financieras + 8 vademécum + audit_log + migración de datos existentes | 6 | **P0** | S (1 d) | F6-B2 | DONE (2026-08-18) |
 | F6-B4 | Migrar authService.js a leer rol de app_metadata + eliminar fallback a admin | 6 | **P0** | S (0.5 d) | F6-B3 | TODO |
 | F6-B5 | Tests SQL de helpers + tests JS/E2E por rol | 6 | **P0** | S (1 d) | F6-B4 | TODO |
 | F6-B6 | Verificación práctica + documentación + bitácora | 6 | **P0** | S (0.5 d) | F6-B5 | TODO | S (0.5 d) | F6-B, F6-I | TODO |
@@ -133,7 +133,7 @@
 | F6-G | Validación de RUT (módulo 11) + unicidad por clínica | 6 | P1 | XS (<0.5 d) | — | TODO |
 | F6-H | Timeout de sesión por inactividad + política de contraseña | 6 | P1 | S (1-2 d) | F6-B1 | Enum app_role + helpers SQL (current_role, has_role, is_admin) + trigger on_auth_user_created | 6 | **P0** | S (0.5 d) | — | DONE (2026-08-18) |
 | F6-B2 | Reescribir RLS de 9 tablas clínicas alineado con matriz RBAC | 6 | **P0** | S (1 d) | F6-B1 | DONE (2026-08-18) |
-| F6-B3 | Reescribir RLS de 5 tablas financieras + 8 vademécum + audit_log + migración de datos existentes | 6 | **P0** | S (1 d) | F6-B2 | IN_PROGRESS |
+| F6-B3 | Reescribir RLS de 5 tablas financieras + 8 vademécum + audit_log + migración de datos existentes | 6 | **P0** | S (1 d) | F6-B2 | DONE (2026-08-18) |
 | F6-B4 | Migrar authService.js a leer rol de app_metadata + eliminar fallback a admin | 6 | **P0** | S (0.5 d) | F6-B3 | TODO |
 | F6-B5 | Tests SQL de helpers + tests JS/E2E por rol | 6 | **P0** | S (1 d) | F6-B4 | TODO |
 | F6-B6 | Verificación práctica + documentación + bitácora | 6 | **P0** | S (0.5 d) | F6-B5 | TODO | S (1 d) | — | TODO |
@@ -1725,7 +1725,7 @@ Toda métrica de esta tabla incluye el comando que la produce (Regla de Gobernan
 | 1 | El vademécum clínico no tiene respaldo ni esquema versionado | F6-A |
 | 2 | Cualquier usuario puede concederse rol admin desde el navegador | F6-B1 | Enum app_role + helpers SQL (current_role, has_role, is_admin) + trigger on_auth_user_created | 6 | **P0** | S (0.5 d) | — | DONE (2026-08-18) |
 | F6-B2 | Reescribir RLS de 9 tablas clínicas alineado con matriz RBAC | 6 | **P0** | S (1 d) | F6-B1 | DONE (2026-08-18) |
-| F6-B3 | Reescribir RLS de 5 tablas financieras + 8 vademécum + audit_log + migración de datos existentes | 6 | **P0** | S (1 d) | F6-B2 | IN_PROGRESS |
+| F6-B3 | Reescribir RLS de 5 tablas financieras + 8 vademécum + audit_log + migración de datos existentes | 6 | **P0** | S (1 d) | F6-B2 | DONE (2026-08-18) |
 | F6-B4 | Migrar authService.js a leer rol de app_metadata + eliminar fallback a admin | 6 | **P0** | S (0.5 d) | F6-B3 | TODO |
 | F6-B5 | Tests SQL de helpers + tests JS/E2E por rol | 6 | **P0** | S (1 d) | F6-B4 | TODO |
 | F6-B6 | Verificación práctica + documentación + bitácora | 6 | **P0** | S (0.5 d) | F6-B5 | TODO | Odontograma, periodontograma, recetas y evoluciones no llegan a Supabase | F6-D |
