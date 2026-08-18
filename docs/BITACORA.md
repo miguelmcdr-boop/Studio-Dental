@@ -1,3 +1,18 @@
+## 2026-08-18 — F6-B3: RLS por rol en financiero + vademécum + audit_log — DONE
+
+**Qué se ganó:** Las políticas RLS de las 14 tablas restantes ahora aplican la matriz RBAC server-side. Se cierran los caminos de escritura financiera por recepcion/asistente y de escritura de vademécum por cualquier authenticated (hallazgo F6-A). `audit_log` es append-only con lectura global de admin.
+
+**Archivos:** `supabase/schema-rbac-policies-fin.sql` (nuevo), `supabase/migrate-roles-to-app-metadata.sql` (migración one-shot para producción), `supabase/README.md` (pasos 8-9), `docs/MASTER_ROADMAP.md` (F6-B3 DONE).
+
+**Hallazgos versionados:**
+1. **WITH CHECK faltante en `presupuesto_items`:** la política original solo tenía USING, permitía INSERT de items a presupuestos ajenos. Corregido con WITH CHECK vía padre.
+2. **Semántica RLS en UPDATE/DELETE:** Postgres filtra filas (0 afectadas) en vez de lanzar 42501. El test e2e verifica denegación por efecto (valor intacto / fila sigue existiendo).
+3. **Migración de roles existentes:** `migrate-roles-to-app-metadata.sql` sincroniza `profiles.role` → `app_metadata` de usuarios existentes para que los JWT lleven el rol.
+
+**Evidencia:** Verificación e2e por HTTP (4 roles × 31 operaciones): 31/31 PASS incluyendo finanzas bloqueadas a recepcion/asistente, vademécum escribible solo por admin/dentista, audit_log append-only.
+
+**Siguiente:** F6-B4 (migrar authService.js a leer rol de app_metadata + eliminar fallback a admin).
+
 ## 2026-08-18 — F6-B1: enum app_role + helpers SQL + trigger de alta de perfil — DONE
 
 **Qué se ganó:** El rol pasó a vivir en `app_metadata` (JWT firmado, no editable por el usuario). Helpers declarativos `current_role()`, `has_role()`, `is_admin()` y trigger `on_auth_user_created` que crea el perfil y propaga el rol atómicamente. Rol ausente o inválido defaultea a `recepcion` (rechazo silencioso): se cierran los caminos de auto-promoción detectados en la auditoría (C1/C2).
