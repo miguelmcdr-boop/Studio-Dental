@@ -20,7 +20,7 @@
   - ✅ Build limpio (500 kB / 133 kB gzip)
   - ✅ Arquitectura: todas las reglas cumplen (67 archivos en allowlist)
   - ✅ Error Boundary global + por módulo crítico operativo
-  - ✅ 23 tablas Supabase (16 datos clínicos + audit_log + 7 vademécum)
+  - ✅ 27 tablas Supabase (19 datos clínicos/operacionales + audit_log + 8 vademécum)
 
 ---
 
@@ -41,7 +41,7 @@
   1. `supabase/schema-base.sql` (15 tablas clínicas)
   2. `supabase/schema-audit-log.sql` (tabla auditoría)
   3. `supabase/schema-vademecum.sql` (7 tablas vademécum)
-- [ ] Verificar 23 tablas:
+- [ ] Verificar 27 tablas:
 
   ```sql
   SELECT table_name FROM information_schema.tables
@@ -307,7 +307,7 @@ Cobertura completa, planes gratuitos suficientes para MVP
 
 ## ✅ Checklist Final (resumen)
 
-- [ ] Fase 1: Supabase configurado (23 tablas, RLS, Realtime, backups)
+- [ ] Fase 1: Supabase configurado (27 tablas, RLS, Realtime, backups)
 - [ ] Fase 2: Hosting configurado (dominio, SSL, variables de entorno)
 - [ ] Fase 3: Datos migrados (si aplica)
 - [ ] Fase 4: Verificación post-deploy (8 flujos críticos)

@@ -539,9 +539,9 @@ export const limpiarCache = () => {
 /**
  * Helper interno: emite evento realtime y notifica al usuario.
  */
-const notificarCambioVademecum = (accion, _detalle) => {
+const notificarCambioVademecum = (accion, detalle) => {
   try {
-    window.dispatchEvent(new CustomEvent(REALTIME_EVENTS.VADEMECUM_CHANGED, { detail }))
+    window.dispatchEvent(new CustomEvent(REALTIME_EVENTS.VADEMECUM_CHANGED, { detail: detalle }))
     notificationService.success(`Vademécum: ${accion}`, { titulo: 'Datos de referencia actualizados' })
   } catch (e) {
     console.warn('[vademecumService] Error al notificar:', e?.message)
