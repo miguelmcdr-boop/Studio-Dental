@@ -13,6 +13,8 @@ El orden es **crítico** porque hay dependencias entre scripts (funciones, tipos
     5. schema-vademecum.sql             ← 8 tablas del vademécum (F6-A)
     6. seed-vademecum.sql               ← 164 registros del vademécum (F6-A)
     7. schema-rbac-policies.sql         ← privilegios + RLS por rol server-side (F6-B2)
+    8. schema-rbac-policies-fin.sql     ← RLS financiero + vademécum + audit (F6-B3)
+    9. migrate-roles-to-app-metadata.sql← SOLO producción, una vez, service_role (F6-B3)
 
 ## Cómo ejecutar
 
