@@ -7,3 +7,9 @@ dist/
 # Artefactos de tests E2E (Playwright)
 test-results/
 playwright-report/
+
+# Supabase CLI local (metadata de supabase start, no commitear)
+supabase/.branches/
+supabase/snippets/
+supabase/.temp/
+.env.local
