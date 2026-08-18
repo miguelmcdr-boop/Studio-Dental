@@ -191,7 +191,8 @@ function App() {
           if (session?.user) {
             console.log('[App] Sesión de Supabase detectada, restaurando perfil...')
             
-            const userMetadata = session.user.user_metadata || {}
+            // F6-B4: leer rol de app_metadata (JWT firmado, no editable por el usuario)
+            const userMetadata = { ...(session.user.user_metadata || {}), role: session.user.app_metadata?.role || 'recepcion' }
             const perfilRestaurado = {
               email: session.user.email,
               nombreCompleto: userMetadata.full_name || session.user.email.split('@')[0],
