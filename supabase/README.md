@@ -12,6 +12,7 @@ El orden es **crítico** porque hay dependencias entre scripts (funciones, tipos
     4. schema-audit-log.sql             ← tabla de auditoría + RLS + índices
     5. schema-vademecum.sql             ← 8 tablas del vademécum (F6-A)
     6. seed-vademecum.sql               ← 164 registros del vademécum (F6-A)
+    7. schema-rbac-policies.sql         ← privilegios + RLS por rol server-side (F6-B2)
 
 ## Cómo ejecutar
 
