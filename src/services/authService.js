@@ -206,32 +206,13 @@ export const supabaseSignIn = async (email, password) => {
   // (signInWithPassword a veces no la incluye inmediatamente en la respuesta).
   const { data: { user } } = await supabase.auth.getUser()
 
-  const metadata = user?.user_metadata || {}
-
-  // F4-02c FIX: Si el usuario existe pero no tiene 'role' en metadata
-  // (caso común cuando se creó manualmente en Supabase Dashboard),
-  // actualizar los metadatos con los valores del formulario.
-  if (user && (!metadata.role || !metadata.full_name)) {
-    console.log('[authService] Usuario sin metadata completa, actualizando...')
-    await supabase.auth.updateUser({
-      data: {
-        full_name: metadata.full_name || email.split('@')[0],
-        role: metadata.role || 'admin', // Asignar admin por defecto al primer usuario
-        especialidad: metadata.especialidad || '',
-        rut: metadata.rut || ''
-      }
-    })
-    // Volver a obtener el usuario con los metadatos actualizados
-    const { data: { user: userUpdated } } = await supabase.auth.getUser()
-    return {
-      success: true,
-      userMetadata: userUpdated?.user_metadata || metadata
-    }
-  }
+  // F6-B4: leer rol de app_metadata (JWT firmado, no editable por el usuario)
+  const appRole = user?.app_metadata?.role || 'recepcion'
+  const userMetadata = { ...(user?.user_metadata || {}), role: appRole }
 
   return {
     success: true,
-    userMetadata: metadata
+    userMetadata
   }
 }
 
@@ -262,12 +243,14 @@ export const supabaseSignUp = async (email, password, metadata = {}) => {
     return { success: false, error: error.message }
   }
 
-  // F4-02b FIX DEFINITIVO: obtener user_metadata con getUser() después del signUp
+  // F6-B4: leer rol de app_metadata (propagado por trigger on_auth_user_created)
   const { data: { user } } = await supabase.auth.getUser()
+  const appRole = user?.app_metadata?.role || 'recepcion'
+  const userMetadata = { ...(user?.user_metadata || {}), role: appRole }
 
   return {
     success: true,
-    userMetadata: user?.user_metadata || metadata
+    userMetadata
   }
 }
 
