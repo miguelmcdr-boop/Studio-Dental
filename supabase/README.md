@@ -7,10 +7,11 @@ Este directorio contiene **todos** los scripts necesarios para levantar desde ce
 El orden es **crítico** porque hay dependencias entre scripts (funciones, tipos, triggers). Ejecutarlos fuera de orden genera errores de sintaxis.
 
     1. schema.sql                       ← función update_updated_at_column() y perfiles
-    2. schema-clinical-tables.sql       ← 15 tablas clínicas + audit_log
-    3. schema-audit-log.sql             ← tabla de auditoría + RLS + índices
-    4. schema-vademecum.sql             ← 8 tablas del vademécum (F6-A)
-    5. seed-vademecum.sql               ← 164 registros del vademécum (F6-A)
+    2. schema-rbac.sql                  ← enum app_role + helpers + trigger de alta (F6-B1)
+    3. schema-clinical-tables.sql       ← 15 tablas clínicas + audit_log
+    4. schema-audit-log.sql             ← tabla de auditoría + RLS + índices
+    5. schema-vademecum.sql             ← 8 tablas del vademécum (F6-A)
+    6. seed-vademecum.sql               ← 164 registros del vademécum (F6-A)
 
 ## Cómo ejecutar
 
