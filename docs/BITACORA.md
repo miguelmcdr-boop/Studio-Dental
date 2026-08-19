@@ -1,3 +1,24 @@
+## 2026-08-19 — Deploy RBAC a producción (cloud Supabase) — EXITOSO
+
+**Qué se hizo:** Despliegue completo del esquema RBAC (F6-B1..B6) al proyecto cloud de Supabase, revirtiendo la decisión D18 de diferir el deploy.
+
+**Orden seguro ejecutado (7 pasos):**
+1. `schema-rbac.sql` aplicado (enum app_role + 4 helpers + 2 triggers)
+2. 5 perfiles creados con roles asignados (miguel.mcdr=admin, 4 e2e_ según su nombre)
+3. `migrate-roles-to-app-metadata.sql` ejecutado (5/5 roles sincronizados en JWT)
+4. Verificación de app_metadata: 5/5 OK
+5. `schema-rbac-policies.sql` aplicado (RLS clínico: 11 tablas × 4 políticas = 44 políticas)
+6. `schema-rbac-policies-fin.sql` aplicado (RLS financiero/vademécum/audit: 14 tablas)
+7. `verify-rbac.sql` ejecutado: **12/12 PASS**
+
+**Verificación en vivo:** login real con los 4 usuarios e2e_* (admin/dentista/asistente/recepcion) confirmando la matriz RBAC en producción.
+
+**Hallazgos documentados:**
+- `profiles.role` en cloud es tipo `text` (no `app_role` como en local). Registrado como F6-B7 (tarea futura P2, XS).
+- Verificaciones intermedias con patrones `LIKE '%_rol'` dieron falsos negativos en audit_log (políticas sin sufijo _rol). El check definitivo `verify-rbac.sql` confirma 12/12 PASS.
+
+**Estado final:** RBAC 100% operativo en producción. 25 tablas con políticas RLS restrictivas. Nadie bloqueado (orden seguro cumplido).
+
 ## 2026-08-18 — F6-B6: documentación RBAC + decisión de diferir cloud — DONE
 
 **Qué se ganó:** Documentación completa de RBAC en docs/RBAC.md. Verificación local 100% completa.
