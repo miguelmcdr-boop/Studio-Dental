@@ -1,3 +1,30 @@
+## 2026-08-18 — F6-J: PWA real con service worker + manifest — DONE
+
+**Qué se ganó:** Studio Dental ahora es una Progressive Web App instalable. Funciona offline con encolado de operaciones y sincronización automática al reconectar. Cold-start offline robusto (shell carga sin crashear).
+
+**Archivos:** `package.json` (agrega vite-plugin-pwa), `vite.config.js` (plugin VitePWA con workbox), `public/` (4 iconos PWA generados con Pillow).
+
+**Implementación:**
+- Plugin `vite-plugin-pwa` v1.3.0 con modo `generateSW` (workbox)
+- Estrategia de caché: cache-first para assets estáticos, network-first para API calls a Supabase (con timeout 5s)
+- Precache de 32 entries (1212 KB)
+- `navigateFallback: '/index.html'` para cold-start offline robusto
+- `navigateFallbackDenylist` para excluir endpoints de Supabase
+- Manifest con nombre, iconos (192, 512, maskable), tema teal
+- Iconos generados con Pillow (placeholders con texto "SD", reemplazables después)
+
+**Verificación:**
+- Build: ✅ genera dist/sw.js + dist/manifest.webmanifest + dist/workbox-*.js
+- DevTools → Manifest: ✅ muestra "Studio Dental" + iconos
+- DevTools → Service Workers: ✅ sw.js activado y corriendo
+- Cold-start offline: ✅ shell carga sin crashear al recargar con "Offline" activado
+- Install button: ✅ disponible en Chrome/Edge (PWA instalable como app nativa)
+- Navegación offline: ✅ operaciones encoladas y sincronizadas al reconectar
+
+**Criterios de aceptación:** 5/5 cumplidos.
+
+**Siguiente:** F6-C (modelo multi-clínica).
+
 ## 2026-08-19 — Deploy RBAC a producción (cloud Supabase) — EXITOSO
 
 **Qué se hizo:** Despliegue completo del esquema RBAC (F6-B1..B6) al proyecto cloud de Supabase, revirtiendo la decisión D18 de diferir el deploy.
