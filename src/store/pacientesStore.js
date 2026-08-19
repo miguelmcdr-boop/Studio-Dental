@@ -29,13 +29,22 @@ export const usePacientesStore = create((set) => ({
   }),
 
   /**
-   * F5-02: Refresca pacientes desde Supabase SIN escribir de vuelta.
-   * Usado por useRealtimeSync cuando detecta cambios desde otros dispositivos.
-   * Esto previene loops de sincronización (el evento llega, leemos, pero no escribimos).
+   * F5-02 / F6-C-d.4: Refresca pacientes desde Supabase SIN escribir de vuelta.
+   * Usado por useRealtimeSync cuando detecta cambios desde otros dispositivos
+   * y al iniciar sesión (criterio #4 del roadmap: miembros de la misma clínica
+   * ven el mismo directorio).
+   *
+   * Pre-F6-C-d.4 este método leía la caché en lugar de Supabase, lo que
+   * impedía que usuarios de la misma clínica vieran los datos del otro.
    */
-  refrescarDesdeSupabase: () => set(() => {
-    const datos = pacientesStorageService.obtenerPacientes(null)
-    if (!Array.isArray(datos)) return {}
-    return { pacientes: datos }
-  })
+  refrescarDesdeSupabase: async () => {
+    try {
+      const datos = await pacientesStorageService.sincronizarDesdeSupabase()
+      if (Array.isArray(datos)) {
+        set({ pacientes: datos })
+      }
+    } catch (e) {
+      console.error('[pacientesStore] Error refrescarDesdeSupabase:', e)
+    }
+  }
 }))

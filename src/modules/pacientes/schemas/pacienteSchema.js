@@ -24,33 +24,33 @@ export const pacienteSchema = z.object({
   nombre: z.string().trim().min(1, 'El nombre es obligatorio'),
   rut: z.string().trim().min(1, 'El RUT es obligatorio'),
 
-  telefono: z.union([z.string(), z.number()]).optional(),
-  edad: z.union([z.string(), z.number()]).optional(),
-  prevision: z.string().optional(),
-  email: z.string().optional(),
-  direccion: z.string().optional(),
-  ocupacion: z.string().optional(),
-  contactoEmergencia: z.string().optional(),
-  peso: z.union([z.string(), z.number()]).optional(),
+  telefono: z.union([z.string(), z.number()]).nullable().optional(),
+  edad: z.union([z.string(), z.number()]).nullable().optional(),
+  prevision: z.string().nullable().optional(),
+  email: z.string().nullable().optional(),
+  direccion: z.string().nullable().optional(),
+  ocupacion: z.string().nullable().optional(),
+  contactoEmergencia: z.string().nullable().optional(),
+  peso: z.union([z.string(), z.number()]).nullable().optional(),
 
   // Campos de anamnesis clínica (se completan progresivamente en la Ficha)
-  alergias: z.string().optional(),
-  enfermedades: z.string().optional(),
-  medicamentos: z.string().optional(),
-  habitos: z.string().optional(),
-  examenExtraoral: z.string().optional(),
-  examenIntraoral: z.string().optional(),
-  presionArterial: z.string().optional(),
-  riesgoCariogenico: z.string().optional(),
-  riesgoPeriodontal: z.string().optional(),
-  motivoConsulta: z.string().optional(),
-  anamnesisProxima: z.string().optional(),
+  alergias: z.string().nullable().optional(),
+  enfermedades: z.string().nullable().optional(),
+  medicamentos: z.string().nullable().optional(),
+  habitos: z.string().nullable().optional(),
+  examenExtraoral: z.string().nullable().optional(),
+  examenIntraoral: z.string().nullable().optional(),
+  presionArterial: z.string().nullable().optional(),
+  riesgoCariogenico: z.string().nullable().optional(),
+  riesgoPeriodontal: z.string().nullable().optional(),
+  motivoConsulta: z.string().nullable().optional(),
+  anamnesisProxima: z.string().nullable().optional(),
 
   // Campo de origen "paciente exprés" desde Agenda (F2-02b)
-  fechaIngreso: z.string().optional(),
+  fechaIngreso: z.string().nullable().optional(),
 
   // F3-06: campo agregado en migración v1 → v2
-  notas: z.string().optional()
+  notas: z.string().nullable().optional()
 }).passthrough()
 
 export const listaPacientesSchema = z.array(pacienteSchema)

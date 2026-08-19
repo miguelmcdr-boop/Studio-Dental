@@ -1,3 +1,36 @@
+## 2026-08-18 — F6-C-d: servicios del frontend con nuevo RLS por clínica — DONE
+
+**Qué se ganó:** El frontend ahora funciona correctamente con el modelo multi-clínica. Los usuarios de la misma clínica ven el mismo directorio de pacientes, los cambios persisten entre recargas y se sincronizan en tiempo real entre distintos usuarios.
+
+**Archivos modificados:**
+- `supabase/schema-multiclinica-trigger-clinica-id.sql` (nuevo): trigger BEFORE INSERT en 18 tablas que setea clinica_id = clinica_actual() si viene NULL.
+- `src/services/authService.js` (D-d.2): consulta miembros_clinica post-login para obtener clinica_id y rol autoritativo. Fail-safe a app_metadata si falla (D37).
+- `src/components/LoginScreen.jsx` (D-d.2): propaga clinicaId al userProfile.
+- `src/modules/pacientes/schemas/pacienteSchema.js` (fix Zod): .optional() → .nullable().optional() en campos opcionales (Zod no aceptaba NULL reales de Supabase).
+- `src/store/pacientesStore.js` (fix refrescarDesdeSupabase): antes leía la caché; ahora llama a pacientesStorageService.sincronizarDesdeSupabase() realmente.
+- `src/hooks/useRealtimeSync.js` (fix sync inicial + sin duplicación): agregado useEffect de sincronización inicial post-login para 4 tablas (citas, presupuestos, pagos, movimientos_financieros). Quitada sincronización duplicada de pacientes (useDataMigration ya lo hace, había race condition por React.StrictMode).
+- `src/modules/pacientes/services/pacientesStorageService.js` (2 fixes críticos):
+  - Logs detallados agregados para diagnóstico.
+  - **Bug crítico corregido**: los UUIDs insertados/actualizados no se agregaban a idsEnMemoria, causando que el bloque DELETE (más abajo en guardarPacientes) los eliminara inmediatamente. El paciente se creaba en Supabase (3 registros) y luego se auto-borraba (volvía a 2).
+
+**Decisiones tomadas (D34-D41):**
+- D34: Trigger en BD (Opción A) en lugar de modificar 18 servicios.
+- D35: authService consulta miembros_clinica post-login.
+- D36: Realtime probado manualmente (funciona con RLS).
+- D37: Fail-safe a app_metadata si query de membresía falla.
+- D38: signUp NO consulta miembros_clinica (usuario nuevo no tiene membresía).
+- D39: Realtime en 5 tablas principales.
+- D40: Hook montado en App.jsx.
+- D41: useDataMigration se mantiene.
+
+**Validación en navegador local (criterio #4 del roadmap):**
+- 4 usuarios e2e_* en la misma clínica ven el mismo directorio ✅
+- Creación de paciente persiste tras recargar ✅
+- Realtime sincroniza cambios entre 2 ventanas de distintos usuarios ✅
+- Sin errores en consola ✅
+
+**Siguiente:** F6-C-e (módulo selector de clínica cuando el usuario pertenece a varias).
+
 ## 2026-08-18 — F6-C-c: clinica_id en 18 tablas + reescritura RLS — DONE
 
 **Qué se ganó:** El modelo de datos pasó de aislamiento por usuario (auth.uid()=user_id) a aislamiento por clínica (clinica_id=clinica_actual()), preservando la granularidad de roles de F6-B pero leyendo el rol de miembros_clinica (autoritativo por clínica, RFC §4.6).

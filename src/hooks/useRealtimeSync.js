@@ -20,6 +20,12 @@ import { useSesionStore } from '../store/sesionStore'
 import { USE_SUPABASE } from '../services/supabaseClient'
 import { notificationService } from '../services/notificationService'
 import { TABLAS_REALTIME } from '../services/realtimeEvents'
+// F6-C-d.4: storage services para sincronización inicial post-login
+import { pacientesStorageService } from '../modules/pacientes'
+import { agendaStorageService } from '../modules/agenda/services/agendaStorageService'
+import { presupuestosStorageService } from '../modules/presupuestos/services/presupuestosStorageService'
+import { pagosStorageService } from '../modules/pagos/services/pagosStorageService'
+import { finanzasStorageService } from '../modules/finanzas/services/finanzasStorageService'
 
 /**
  * Ventana de tiempo (en ms) durante la cual se ignoran eventos
@@ -108,6 +114,40 @@ export const useRealtimeSync = () => {
   useRealtimeSubscription('odontogramas', crearHandler('odontogramas'), { enabled })
   useRealtimeSubscription('periodontogramas', crearHandler('periodontogramas'), { enabled })
   useRealtimeSubscription('inventario', crearHandler('inventario'), { enabled })
+
+  // F6-C-d.4: sincronización inicial post-login (criterio #4 del roadmap:
+  // "cuatro usuarios con roles distintos en la misma clínica ven el mismo directorio")
+  // Al montar, refrescar las 5 tablas principales desde Supabase para que la caché
+  // en localStorage no muestre datos viejos a usuarios de la misma clínica.
+  useEffect(() => {
+    if (!enabled) return
+    
+    const sincronizarInicial = async () => {
+      // F6-C-d.4: sincronización inicial de módulos sin store Zustand.
+      // Pacientes NO se sincroniza aquí porque useDataMigration ya lo hace
+      // (evita race condition donde ambos hooks sobrescriben el store).
+      const servicios = [
+        ['citas', agendaStorageService],
+        ['presupuestos', presupuestosStorageService],
+        ['pagos', pagosStorageService],
+        ['movimientos_financieros', finanzasStorageService],
+      ]
+      
+      for (const [nombre, servicio] of servicios) {
+        try {
+          if (typeof servicio.sincronizarDesdeSupabase === 'function') {
+            await servicio.sincronizarDesdeSupabase()
+            console.log(`[useRealtimeSync] Sincronización inicial de ${nombre}: OK`)
+          }
+        } catch (e) {
+          console.warn(`[useRealtimeSync] Error sincronizando ${nombre}:`, e.message)
+        }
+      }
+    }
+    
+    sincronizarInicial()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled])
 
   // Log de activación (solo en desarrollo)
   useEffect(() => {

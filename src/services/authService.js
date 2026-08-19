@@ -183,9 +183,11 @@ export const existePerfil = (email) => {
 
 /**
  * Iniciar sesión con Supabase Auth.
+ * F6-C-d.2: Consulta miembros_clinica post-login para obtener clinica_id y rol
+ * autoritativo (RFC §4.6). Fail-safe a app_metadata si la query falla.
  * @param {string} email - Email del usuario
  * @param {string} password - Contraseña en texto plano
- * @returns {Promise<{success: boolean, error?: string}>}
+ * @returns {Promise<{success: boolean, error?: string, userMetadata?: object}>}
  */
 export const supabaseSignIn = async (email, password) => {
   if (!USE_SUPABASE || !supabase) {
@@ -208,7 +210,39 @@ export const supabaseSignIn = async (email, password) => {
 
   // F6-B4: leer rol de app_metadata (JWT firmado, no editable por el usuario)
   const appRole = user?.app_metadata?.role || 'recepcion'
-  const userMetadata = { ...(user?.user_metadata || {}), role: appRole }
+  
+  // F6-C-d.2: Consultar miembros_clinica para obtener clinica_id y rol autoritativo
+  let clinicaId = null
+  let rolDesdeMiembros = null
+  
+  if (user?.id) {
+    try {
+      const { data: membresia, error: errorMembresia } = await supabase
+        .from('miembros_clinica')
+        .select('clinica_id, rol')
+        .eq('user_id', user.id)
+        .eq('activo', true)
+        .single()
+      
+      if (!errorMembresia && membresia) {
+        clinicaId = membresia.clinica_id
+        rolDesdeMiembros = membresia.rol
+      } else {
+        console.warn(`[authService] No se encontró membresía activa para user ${user.id}, usando app_metadata como fallback`)
+      }
+    } catch (err) {
+      console.error('[authService] Error consultando miembros_clinica:', err)
+    }
+  }
+  
+  // D37: Fail-safe — si la query falló, usar app_metadata.role
+  const rolFinal = rolDesdeMiembros || appRole
+  
+  const userMetadata = { 
+    ...(user?.user_metadata || {}), 
+    role: rolFinal,
+    clinicaId: clinicaId  // F6-C-d.2: propagar clinicaId al perfil
+  }
 
   return {
     success: true,
@@ -218,10 +252,12 @@ export const supabaseSignIn = async (email, password) => {
 
 /**
  * Registrar nuevo usuario con Supabase Auth.
+ * F6-C-d.2: NO consulta miembros_clinica (D38 — usuario nuevo no tiene membresía).
+ * El admin la asigna después (flujo híbrido RFC Decisión #1).
  * @param {string} email - Email del usuario
  * @param {string} password - Contraseña en texto plano
  * @param {object} metadata - Datos adicionales (nombreCompleto, rol, etc.)
- * @returns {Promise<{success: boolean, error?: string}>}
+ * @returns {Promise<{success: boolean, error?: string, userMetadata?: object}>}
  */
 export const supabaseSignUp = async (email, password, metadata = {}) => {
   if (!USE_SUPABASE || !supabase) {
