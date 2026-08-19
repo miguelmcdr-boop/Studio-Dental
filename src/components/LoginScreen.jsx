@@ -12,6 +12,7 @@ import {
   supabaseSignIn,
   supabaseSignUp,
 } from '../services/authService'
+import { construirUserProfile } from '../services/userProfileBuilder'
 import { NOMBRES_ROLES, DESCRIPCIONES_ROLES } from '../constants/rbacConstants'
 import { obtenerRolPorDefecto } from '../services/rbacService'
 
@@ -123,17 +124,7 @@ export const LoginScreen = ({ onLogin }) => {
         // F4-02b FIX: Usar los user_metadata retornados por supabaseSignIn/SignUp
         // (evita race condition con getUser() después del signIn).
         const userMetadata = metadata._supabaseUserMetadata || {}
-        const userProfile = {
-          email: formattedEmail,
-          nombreCompleto: userMetadata.full_name || metadata.nombreCompleto,
-          rut: userMetadata.rut || metadata.rut,
-          especialidad: userMetadata.especialidad || metadata.especialidad,
-          // F4-02b FIX: El rol viene de user_metadata.role, NO del formulario
-          rol: userMetadata.role || metadata.rol,
-          // F6-C-d.2: Propagar clinicaId desde miembros_clinica
-          clinicaId: userMetadata.clinicaId || null,
-          supabaseAuth: true, // Marcador para identificar que viene de Supabase
-        }
+        const userProfile = construirUserProfile(formattedEmail, userMetadata, metadata)
         onLogin(userProfile)
       } else {
         // ═══════════════════════════════════════════════════
