@@ -1,3 +1,24 @@
+## 2026-08-18 — F6-C-b: migración de datos a clínica inicial — DONE
+
+**Qué se ganó:** Clínica inicial creada y todos los usuarios existentes migrados con membresía activa. Roles asignados correctamente desde profiles.role (validado en F6-B), con fallback a app_metadata y fail-safe 'recepcion'.
+
+**Archivos:** `supabase/migrate-multiclinica-inicial.sql` (nuevo), `supabase/verify-multiclinica-migracion.sql` (nuevo), `docs/MASTER_ROADMAP.md` (F6-C-b DONE).
+
+**Resultado de la migración:**
+- Clínica inicial creada con id fijo `00000000-0000-0000-0000-000000000001` ("Clínica Studio Dental").
+- 5 usuarios migrados con membresía activa (2 admin, 1 dentista, 1 asistente, 1 recepcion).
+- Roles consistentes en las 3 fuentes: profiles.role, app_metadata, membresía.
+- Transacción con validación automática (ROLLBACK si la cantidad de membresías no coincide con la de usuarios).
+- Idempotente: seguro re-ejecutar (ON CONFLICT DO NOTHING).
+
+**Correcciones aplicadas respecto al RFC original (decisiones D28/D29):**
+- D28: el rol se lee de `profiles.role` con fallback a `app_metadata` (no de `user_metadata` como decía el RFC, ya que F6-B migró los roles a app_metadata).
+- D29: el backfill de `clinica_id` en las 18 tablas se difiere a F6-C-c (F6-C-b solo toca clinicas + miembros_clinica, evitando dependencia circular).
+
+**Verificación:** `verify-multiclinica-migracion.sql` → **4/4 PASS** en proyecto local.
+
+**Siguiente:** F6-C-c (clinica_id en las 18 tablas + reescritura de RLS + índices).
+
 ## 2026-08-18 — F6-C-a: tablas multi-clínica base + helpers — DONE
 
 **Qué se ganó:** Esquema base del modelo multi-clínica implementado en local. Tablas `clinicas` y `miembros_clinica` creadas con RLS, funciones `clinica_actual()` y `es_admin_de_clinica_actual()` (ambas SECURITY DEFINER para evitar recursión), políticas de lectura/gestión.
