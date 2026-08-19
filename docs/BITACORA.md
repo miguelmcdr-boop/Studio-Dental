@@ -1,3 +1,12 @@
+## 2026-08-18 — F6-B6: documentación RBAC + decisión de diferir cloud — DONE
+
+**Qué se ganó:** Documentación completa de RBAC en docs/RBAC.md. Verificación local 100% completa.
+
+**Archivos:** docs/RBAC.md (nuevo), docs/MASTER_ROADMAP.md (F6-B6 DONE).
+
+**Decisión D18:** diferir despliegue a cloud por riesgo de bloqueo de usuarios.
+
+**Cierre de F6-B:** fase RBAC 100% cerrada en local con documentación completa.
 ## 2026-08-18 — F6-B5: tests SQL de esquema + tests JS de app_metadata + e2e versionados — DONE
 
 **Qué se ganó:** Infraestructura completa de verificación RBAC. Ahora cualquier cambio en las políticas RLS o en `authService.js` tiene cobertura automática de tests (SQL + JS + E2E).

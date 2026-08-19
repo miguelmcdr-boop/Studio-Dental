@@ -114,14 +114,10 @@
 | F6-B2 | Reescribir RLS de 9 tablas clínicas alineado con matriz RBAC | 6 | **P0** | S (1 d) | F6-B1 | DONE (2026-08-18) |
 | F6-B3 | Reescribir RLS de 5 tablas financieras + 8 vademécum + audit_log + migración de datos existentes | 6 | **P0** | S (1 d) | F6-B2 | DONE (2026-08-18) |
 | F6-B4 | Migrar authService.js a leer rol de app_metadata + eliminar fallback a admin | 6 | **P0** | S (0.5 d) | F6-B3 | DONE (2026-08-18) |
-| F6-B5 | Tests SQL de helpers + tests JS/E2E por rol | 6 | **P0** | S (1 d) | F6-B4 | TODO |
-| F6-B6 | Verificación práctica + documentación + bitácora | 6 | **P0** | S (0.5 d) | F6-B5 | TODO |
-| F6-C | Modelo multi-clínica: `clinica_id` + membresía + reescritura de RLS | 6 | **P0** | XL | F6-B1 | Enum app_role + helpers SQL (current_role, has_role, is_admin) + trigger on_auth_user_created | 6 | **P0** | S (0.5 d) | — | DONE (2026-08-18) |
-| F6-B2 | Reescribir RLS de 9 tablas clínicas alineado con matriz RBAC | 6 | **P0** | S (1 d) | F6-B1 | DONE (2026-08-18) |
-| F6-B3 | Reescribir RLS de 5 tablas financieras + 8 vademécum + audit_log + migración de datos existentes | 6 | **P0** | S (1 d) | F6-B2 | DONE (2026-08-18) |
-| F6-B4 | Migrar authService.js a leer rol de app_metadata + eliminar fallback a admin | 6 | **P0** | S (0.5 d) | F6-B3 | DONE (2026-08-18) |
-| F6-B5 | Tests SQL de helpers + tests JS/E2E por rol | 6 | **P0** | S (1 d) | F6-B4 | TODO |
-| F6-B6 | Verificación práctica + documentación + bitácora | 6 | **P0** | S (0.5 d) | F6-B5 | TODO | S (0.5 d) | F6-B, F6-I | TODO |
+| F6-B5 | Tests SQL de helpers + tests JS/E2E por rol | 6 | **P0** | S (1 d) | F6-B4 | DONE (2026-08-18) |
+| F6-B6 | Verificación práctica + documentación + bitácora | 6 | **P0** | S (0.5 d) | F6-B5 | DONE (2026-08-18) |
+| F6-C | Modelo multi-clínica: `clinica_id` + membresía + reescritura de RLS | 6 | **P0** | XL | F6-B | IN PROGRESS (RFC aprobado 2026-08-17; implementación bloqueada por F6-B) |
+| F6-C-a | Tablas `clinicas` y `miembros_clinica` + función `clinica_actual()` (RFC-F6-C) | 6 | **P0** | S (0.5 d) | F6-B, F6-I | TODO |
 | F6-C-b | Migración de datos existentes a clínica inicial (RFC-F6-C) | 6 | **P0** | S (0.5 d) | F6-C-a | TODO |
 | F6-C-c | `clinica_id` en 18 tablas + reescritura de políticas RLS (RFC-F6-C) | 6 | **P0** | M (2 d) | F6-C-b | TODO |
 | F6-C-d | Verificación de servicios/hooks contra el nuevo RLS (RFC-F6-C) | 6 | **P0** | M (2 d) | F6-C-c | TODO |
@@ -131,12 +127,7 @@
 | F6-E | Adjuntos clínicos a Supabase Storage con URLs firmadas | 6 | **P0** | M (3-5 d) | F6-C | TODO |
 | F6-F | Auditoría append-only por trigger + soft delete de ficha clínica | 6 | P1 | M (3-4 d) | F6-C | TODO |
 | F6-G | Validación de RUT (módulo 11) + unicidad por clínica | 6 | P1 | XS (<0.5 d) | — | TODO |
-| F6-H | Timeout de sesión por inactividad + política de contraseña | 6 | P1 | S (1-2 d) | F6-B1 | Enum app_role + helpers SQL (current_role, has_role, is_admin) + trigger on_auth_user_created | 6 | **P0** | S (0.5 d) | — | DONE (2026-08-18) |
-| F6-B2 | Reescribir RLS de 9 tablas clínicas alineado con matriz RBAC | 6 | **P0** | S (1 d) | F6-B1 | DONE (2026-08-18) |
-| F6-B3 | Reescribir RLS de 5 tablas financieras + 8 vademécum + audit_log + migración de datos existentes | 6 | **P0** | S (1 d) | F6-B2 | DONE (2026-08-18) |
-| F6-B4 | Migrar authService.js a leer rol de app_metadata + eliminar fallback a admin | 6 | **P0** | S (0.5 d) | F6-B3 | DONE (2026-08-18) |
-| F6-B5 | Tests SQL de helpers + tests JS/E2E por rol | 6 | **P0** | S (1 d) | F6-B4 | TODO |
-| F6-B6 | Verificación práctica + documentación + bitácora | 6 | **P0** | S (0.5 d) | F6-B5 | TODO | S (1 d) | — | TODO |
+| F6-H | Timeout de sesión por inactividad + política de contraseña | 6 | P1 | S (1-2 d) | F6-B | TODO |
 | F6-J | PWA real (service worker + manifest) para arranque en frío sin conexión | 6 | P2 | M (2-4 d) | — | TODO |
 | F6-K | Umbrales de cobertura en CI + tests para los 8 módulos sin cobertura | 6 | P2 | L (5-8 d, incremental) | — | TODO |
 | **— FASE 6: hardening (original) —** | | | | | | |
@@ -1723,12 +1714,9 @@ Toda métrica de esta tabla incluye el comando que la produce (Regla de Gobernan
 | # | Bloqueante | Tarea |
 |---|---|---|
 | 1 | El vademécum clínico no tiene respaldo ni esquema versionado | F6-A |
-| 2 | Cualquier usuario puede concederse rol admin desde el navegador | F6-B1 | Enum app_role + helpers SQL (current_role, has_role, is_admin) + trigger on_auth_user_created | 6 | **P0** | S (0.5 d) | — | DONE (2026-08-18) |
-| F6-B2 | Reescribir RLS de 9 tablas clínicas alineado con matriz RBAC | 6 | **P0** | S (1 d) | F6-B1 | DONE (2026-08-18) |
-| F6-B3 | Reescribir RLS de 5 tablas financieras + 8 vademécum + audit_log + migración de datos existentes | 6 | **P0** | S (1 d) | F6-B2 | DONE (2026-08-18) |
-| F6-B4 | Migrar authService.js a leer rol de app_metadata + eliminar fallback a admin | 6 | **P0** | S (0.5 d) | F6-B3 | DONE (2026-08-18) |
-| F6-B5 | Tests SQL de helpers + tests JS/E2E por rol | 6 | **P0** | S (1 d) | F6-B4 | TODO |
-| F6-B6 | Verificación práctica + documentación + bitácora | 6 | **P0** | S (0.5 d) | F6-B5 | TODO | Odontograma, periodontograma, recetas y evoluciones no llegan a Supabase | F6-D |
+| 2 | Cualquier usuario puede concederse rol admin desde el navegador | F6-B |
+| 3 | El modelo de datos aísla a cada usuario: el equipo no comparte pacientes | F6-C |
+| 4 | Odontograma, periodontograma, recetas y evoluciones no llegan a Supabase | F6-D |
 | 5 | Radiografías y consentimientos firmados viven solo en IndexedDB local | F6-E |
 
 ## 5. PRÓXIMA ACCIÓN
