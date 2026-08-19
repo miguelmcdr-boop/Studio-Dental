@@ -1,3 +1,22 @@
+## 2026-08-18 — F6-C-a: tablas multi-clínica base + helpers — DONE
+
+**Qué se ganó:** Esquema base del modelo multi-clínica implementado en local. Tablas `clinicas` y `miembros_clinica` creadas con RLS, funciones `clinica_actual()` y `es_admin_de_clinica_actual()` (ambas SECURITY DEFINER para evitar recursión), políticas de lectura/gestión.
+
+**Archivos:** `supabase/schema-multiclinica-base.sql` (nuevo), `supabase/verify-multiclinica-base.sql` (nuevo), `docs/MASTER_ROADMAP.md` (F6-C-a DONE).
+
+**Componentes:**
+1. Tabla `clinicas`: datos de la clínica (nombre, RUT, dirección, contacto, logo, colores). Índice único en `rut_empresa`.
+2. Tabla `miembros_clinica`: membresías usuario-clínica con rol (admin/dentista/asistente/recepcion). Índices compuestos para queries por usuario y por clínica.
+3. Función `clinica_actual()` (STABLE + SECURITY DEFINER): retorna el `clinica_id` de la membresía activa. NULL si no hay membresía (fail-safe).
+4. Función `es_admin_de_clinica_actual()` (STABLE + SECURITY DEFINER): verifica si el usuario es admin activo. **Agregada para mitigar riesgo de recursión de RLS** detectado en la auditoría (las políticas del RFC original usaban subqueries EXISTS sobre `miembros_clinica` desde dentro de políticas de la misma tabla).
+5. RLS: miembros leen su clínica, solo admin gestiona membresías y datos de clínica.
+
+**Verificación:** `verify-multiclinica-base.sql` → **13/13 PASS** en proyecto local.
+
+**Entorno:** probado en local (Docker Supabase). Deploy a cloud diferido hasta cerrar F6-C completo.
+
+**Siguiente:** F6-C-b (migración de datos existentes a clínica inicial).
+
 ## 2026-08-18 — F6-J: PWA real con service worker + manifest — DONE
 
 **Qué se ganó:** Studio Dental ahora es una Progressive Web App instalable. Funciona offline con encolado de operaciones y sincronización automática al reconectar. Cold-start offline robusto (shell carga sin crashear).
