@@ -1,3 +1,27 @@
+## 2026-08-18 — F6-C-c: clinica_id en 18 tablas + reescritura RLS — DONE
+
+**Qué se ganó:** El modelo de datos pasó de aislamiento por usuario (auth.uid()=user_id) a aislamiento por clínica (clinica_id=clinica_actual()), preservando la granularidad de roles de F6-B pero leyendo el rol de miembros_clinica (autoritativo por clínica, RFC §4.6).
+
+**Archivos:** `supabase/schema-multiclinica-helpers-rol.sql` (C-c.1), `supabase/schema-multiclinica-add-clinica-id.sql` (C-c.2), `supabase/schema-multiclinica-rls.sql` (C-c.3), `supabase/verify-multiclinica-rls.sql` (verificación).
+
+**Implementación en 3 pasos:**
+- C-c.1: Funciones rol_en_clinica_actual() + tiene_rol_en_clinica() (STABLE + SECURITY DEFINER, leen de miembros_clinica).
+- C-c.2: clinica_id NOT NULL + índice en las 18 tablas, backfill con clínica inicial.
+- C-c.3: Reescritura de políticas: auth.uid()=user_id → clinica_id=clinica_actual(); role_in() → tiene_rol_en_clinica(). user_id conservado como autoría en WITH CHECK de INSERT.
+
+**Decisiones aplicadas (D31/D32/D33):**
+- D31 prestaciones: SELECT 4 roles, escritura admin/dentista (catálogo por clínica).
+- D32 presupuesto_items: clinica_id directo + política simplificada (sin EXISTS con el padre).
+- D33 audit_log: insert propia+clínica; select propia; select admin por clínica.
+
+**Tablas NO tocadas:** 8 del vademécum (globales, mantienen role_in de F6-B) + profiles (identidad, sin clinica_id).
+
+**Verificación:**
+- Estructural: verify-multiclinica-rls.sql → 18 tablas con políticas _clinica + audit_log 3 políticas + 0 residuales _rol.
+- Funcional: simulación de sesión authenticated → clinica_actual()=clínica inicial, rol_en_clinica_actual()=admin, clinicas_visibles=1, membresias_visibles=5, pacientes_visibles=2.
+
+**Siguiente:** F6-C-d (verificación de servicios/hooks contra el nuevo RLS + fixes).
+
 ## 2026-08-18 — F6-C-b: migración de datos a clínica inicial — DONE
 
 **Qué se ganó:** Clínica inicial creada y todos los usuarios existentes migrados con membresía activa. Roles asignados correctamente desde profiles.role (validado en F6-B), con fallback a app_metadata y fail-safe 'recepcion'.

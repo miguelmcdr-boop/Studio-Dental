@@ -120,7 +120,7 @@
 | F6-C | Modelo multi-clínica: `clinica_id` + membresía + reescritura de RLS | 6 | **P0** | XL | F6-B | IN PROGRESS (RFC aprobado 2026-08-17; implementación bloqueada por F6-B) |
 | F6-C-a | Tablas `clinicas` y `miembros_clinica` + función `clinica_actual()` (RFC-F6-C) | 6 | **P0** | S (0.5 d) | F6-B, F6-I | DONE (2026-08-18) |
 | F6-C-b | Migración de datos existentes a clínica inicial (RFC-F6-C) | 6 | **P0** | S (0.5 d) | F6-C-a | DONE (2026-08-18) |
-| F6-C-c | `clinica_id` en 18 tablas + reescritura de políticas RLS (RFC-F6-C) | 6 | **P0** | M (2 d) | F6-C-b | TODO |
+| F6-C-c | `clinica_id` en 18 tablas + reescritura de políticas RLS (RFC-F6-C) | 6 | **P0** | M (2 d) | F6-C-b | DONE (2026-08-18) |
 | F6-C-d | Verificación de servicios/hooks contra el nuevo RLS (RFC-F6-C) | 6 | **P0** | M (2 d) | F6-C-c | TODO |
 | F6-C-e | Módulo Configuración de clínica: branding + logo en Storage (RFC-F6-C) | 6 | P1 | S (1 d) | F6-C-d | TODO |
 | F6-C-f | Reescritura E2E `flujo-colaborativo.spec.js` con dos cuentas (RFC-F6-C) | 6 | P1 | S (0.5 d) | F6-C-d, F6-I | TODO |
