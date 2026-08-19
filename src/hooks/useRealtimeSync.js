@@ -20,12 +20,7 @@ import { useSesionStore } from '../store/sesionStore'
 import { USE_SUPABASE } from '../services/supabaseClient'
 import { notificationService } from '../services/notificationService'
 import { TABLAS_REALTIME } from '../services/realtimeEvents'
-// F6-C-d.4: storage services para sincronización inicial post-login
-import { pacientesStorageService } from '../modules/pacientes'
-import { agendaStorageService } from '../modules/agenda/services/agendaStorageService'
-import { presupuestosStorageService } from '../modules/presupuestos/services/presupuestosStorageService'
-import { pagosStorageService } from '../modules/pagos/services/pagosStorageService'
-import { finanzasStorageService } from '../modules/finanzas/services/finanzasStorageService'
+import { useSincronizacionInicial } from './useSincronizacionInicial'
 
 /**
  * Ventana de tiempo (en ms) durante la cual se ignoran eventos
@@ -102,52 +97,18 @@ export const useRealtimeSync = () => {
     }
   }
 
-  // Suscripciones a cada tabla crítica
-  useRealtimeSubscription('pacientes', crearHandler('pacientes'), { enabled })
-  useRealtimeSubscription('citas', crearHandler('citas'), { enabled })
-  useRealtimeSubscription('presupuestos', crearHandler('presupuestos'), { enabled })
-  useRealtimeSubscription('presupuesto_items', crearHandler('presupuesto_items'), { enabled })
-  useRealtimeSubscription('pagos', crearHandler('pagos'), { enabled })
-  useRealtimeSubscription('movimientos_financieros', crearHandler('movimientos_financieros'), { enabled })
-  useRealtimeSubscription('evoluciones_clinicas', crearHandler('evoluciones_clinicas'), { enabled })
-  useRealtimeSubscription('recetas', crearHandler('recetas'), { enabled })
-  useRealtimeSubscription('odontogramas', crearHandler('odontogramas'), { enabled })
-  useRealtimeSubscription('periodontogramas', crearHandler('periodontogramas'), { enabled })
-  useRealtimeSubscription('inventario', crearHandler('inventario'), { enabled })
+  // Suscripciones a cada tabla crítica (loop para mantener el archivo compacto)
+  const TABLAS_SUSCRITAS = [
+    'pacientes', 'citas', 'presupuestos', 'presupuesto_items', 'pagos',
+    'movimientos_financieros', 'evoluciones_clinicas', 'recetas',
+    'odontogramas', 'periodontogramas', 'inventario',
+  ]
+  TABLAS_SUSCRITAS.forEach((tabla) => {
+    useRealtimeSubscription(tabla, crearHandler(tabla), { enabled })
+  })
 
-  // F6-C-d.4: sincronización inicial post-login (criterio #4 del roadmap:
-  // "cuatro usuarios con roles distintos en la misma clínica ven el mismo directorio")
-  // Al montar, refrescar las 5 tablas principales desde Supabase para que la caché
-  // en localStorage no muestre datos viejos a usuarios de la misma clínica.
-  useEffect(() => {
-    if (!enabled) return
-    
-    const sincronizarInicial = async () => {
-      // F6-C-d.4: sincronización inicial de módulos sin store Zustand.
-      // Pacientes NO se sincroniza aquí porque useDataMigration ya lo hace
-      // (evita race condition donde ambos hooks sobrescriben el store).
-      const servicios = [
-        ['citas', agendaStorageService],
-        ['presupuestos', presupuestosStorageService],
-        ['pagos', pagosStorageService],
-        ['movimientos_financieros', finanzasStorageService],
-      ]
-      
-      for (const [nombre, servicio] of servicios) {
-        try {
-          if (typeof servicio.sincronizarDesdeSupabase === 'function') {
-            await servicio.sincronizarDesdeSupabase()
-            console.log(`[useRealtimeSync] Sincronización inicial de ${nombre}: OK`)
-          }
-        } catch (e) {
-          console.warn(`[useRealtimeSync] Error sincronizando ${nombre}:`, e.message)
-        }
-      }
-    }
-    
-    sincronizarInicial()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled])
+  // F6-C-d.4: sincronización inicial post-login (delegada a hook separado)
+  useSincronizacionInicial(enabled)
 
   // Log de activación (solo en desarrollo)
   useEffect(() => {
@@ -156,4 +117,3 @@ export const useRealtimeSync = () => {
     }
   }, [enabled])
 }
-

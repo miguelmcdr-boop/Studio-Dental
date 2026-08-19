@@ -5,6 +5,39 @@
 **Archivos modificados:**
 - `supabase/schema-multiclinica-trigger-clinica-id.sql` (nuevo): trigger BEFORE INSERT en 18 tablas que setea clinica_id = clinica_actual() si viene NULL.
 - `src/services/authService.js` (D-d.2): consulta miembros_clinica post-login para obtener clinica_id y rol autoritativo. Fail-safe a app_metadata si falla (D37).
+- `src/components/LoginScreen.jsx` (D-d.2): propaga clinicaId al userProfile. Refactorizado para extraer constructor de perfil a `userProfileBuilder.js`.
+- `src/services/userProfileBuilder.js` (nuevo): helper para construir perfiles de usuario.
+- `src/modules/pacientes/schemas/pacienteSchema.js` (fix Zod): .optional() → .nullable().optional() en campos opcionales.
+- `src/store/pacientesStore.js` (fix refrescarDesdeSupabase): antes leía la caché; ahora llama a pacientesStorageService.sincronizarDesdeSupabase().
+- `src/hooks/useRealtimeSync.js` (fix sync inicial + sin duplicación): extraída lógica de sincronización inicial a `useSincronizacionInicial.js`. Suscripciones compactadas en loop.
+- `src/hooks/useSincronizacionInicial.js` (nuevo): hook de sincronización post-login para 4 tablas sin store Zustand.
+- `src/modules/pacientes/services/pacientesStorageService.js` (2 fixes críticos): logs detallados + bug de DELETE que eliminaba pacientes recién creados (no agregaba UUIDs a idsEnMemoria).
+
+**Decisiones tomadas (D34-D41):**
+- D34: Trigger en BD (Opción A) en lugar de modificar 18 servicios.
+- D35: authService consulta miembros_clinica post-login.
+- D36: Realtime probado manualmente (funciona con RLS).
+- D37: Fail-safe a app_metadata si query de membresía falla.
+- D38: signUp NO consulta miembros_clinica (usuario nuevo no tiene membresía).
+- D39: Realtime en 5 tablas principales.
+- D40: Hook montado en App.jsx.
+- D41: useDataMigration se mantiene.
+
+**Validación en navegador local (criterio #4 del roadmap):**
+- 4 usuarios e2e_* en la misma clínica ven el mismo directorio ✅
+- Creación de paciente persiste tras recargar ✅
+- Realtime sincroniza cambios entre 2 ventanas de distintos usuarios ✅
+- Sin errores en consola ✅
+
+**Siguiente:** F6-C-e (módulo selector de clínica cuando el usuario pertenece a varias).
+
+## 2026-08-18 — F6-C-d: servicios del frontend con nuevo RLS por clínica — DONE
+
+**Qué se ganó:** El frontend ahora funciona correctamente con el modelo multi-clínica. Los usuarios de la misma clínica ven el mismo directorio de pacientes, los cambios persisten entre recargas y se sincronizan en tiempo real entre distintos usuarios.
+
+**Archivos modificados:**
+- `supabase/schema-multiclinica-trigger-clinica-id.sql` (nuevo): trigger BEFORE INSERT en 18 tablas que setea clinica_id = clinica_actual() si viene NULL.
+- `src/services/authService.js` (D-d.2): consulta miembros_clinica post-login para obtener clinica_id y rol autoritativo. Fail-safe a app_metadata si falla (D37).
 - `src/components/LoginScreen.jsx` (D-d.2): propaga clinicaId al userProfile.
 - `src/modules/pacientes/schemas/pacienteSchema.js` (fix Zod): .optional() → .nullable().optional() en campos opcionales (Zod no aceptaba NULL reales de Supabase).
 - `src/store/pacientesStore.js` (fix refrescarDesdeSupabase): antes leía la caché; ahora llama a pacientesStorageService.sincronizarDesdeSupabase() realmente.
