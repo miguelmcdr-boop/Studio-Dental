@@ -116,6 +116,7 @@
 | F6-B4 | Migrar authService.js a leer rol de app_metadata + eliminar fallback a admin | 6 | **P0** | S (0.5 d) | F6-B3 | DONE (2026-08-18) |
 | F6-B5 | Tests SQL de helpers + tests JS/E2E por rol | 6 | **P0** | S (1 d) | F6-B4 | DONE (2026-08-18) |
 | F6-B6 | Verificación práctica + documentación + bitácora | 6 | **P0** | S (0.5 d) | F6-B5 | DONE (2026-08-18) |
+| F6-B7 | Alinear `profiles.role` a `app_role` en cloud (hallazgo: está como `text`) | 6 | P2 | XS (<0.5 d) | F6-B6 | TODO |
 | F6-C | Modelo multi-clínica: `clinica_id` + membresía + reescritura de RLS | 6 | **P0** | XL | F6-B | IN PROGRESS (RFC aprobado 2026-08-17; implementación bloqueada por F6-B) |
 | F6-C-a | Tablas `clinicas` y `miembros_clinica` + función `clinica_actual()` (RFC-F6-C) | 6 | **P0** | S (0.5 d) | F6-B, F6-I | TODO |
 | F6-C-b | Migración de datos existentes a clínica inicial (RFC-F6-C) | 6 | **P0** | S (0.5 d) | F6-C-a | TODO |
