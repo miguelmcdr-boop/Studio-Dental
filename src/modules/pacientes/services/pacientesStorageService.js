@@ -129,7 +129,10 @@ const obtenerPacientes = (defaults = []) => {
  * @returns {Promise<Array>} Lista actualizada de pacientes
  */
 const sincronizarDesdeSupabase = async () => {
+  console.log('[pacientesStorageService] Iniciando sincronización desde Supabase...')
+  
   if (!USE_SUPABASE || !supabase) {
+    console.log('[pacientesStorageService] Supabase no configurado, retornando caché')
     return pacientesCache
   }
 
@@ -144,6 +147,8 @@ const sincronizarDesdeSupabase = async () => {
       return pacientesCache
     }
 
+    console.log(`[pacientesStorageService] Supabase retornó ${data?.length || 0} pacientes`)
+
     if (!Array.isArray(data)) return pacientesCache
 
     // Si Supabase retorna vacío pero hay caché con datos, puede ser que la
@@ -154,6 +159,7 @@ const sincronizarDesdeSupabase = async () => {
     }
 
     const nuevos = data.map(transformarDesdeSupabase).filter(Boolean)
+    console.log(`[pacientesStorageService] Actualizando caché con ${nuevos.length} pacientes`)
     pacientesCache = nuevos
 
     // Actualizar también localStorage como caché persistente
@@ -265,6 +271,9 @@ const guardarPacientes = async (pacientes) => {
             continue
           }
 
+          // F6-C-d.4 FIX: agregar el UUID existente a idsEnMemoria
+          idsEnMemoria.add(existente.id)
+
           // Actualizar caché con el UUID del paciente existente
           const index = pacientesCache.findIndex(p => p.rut === paciente.rut && !esUuidValido(p.id))
           if (index >= 0) {
@@ -287,6 +296,10 @@ const guardarPacientes = async (pacientes) => {
         console.error(`[pacientesStorageService] Error al insertar ${paciente.nombre}:`, insertError.message)
         continue
       }
+
+      // F6-C-d.4 FIX: agregar el UUID insertado a idsEnMemoria para que
+      // la lógica de DELETE (más abajo) no lo elimine inmediatamente.
+      idsEnMemoria.add(insertado.id)
 
       // Actualizar el paciente en caché con el nuevo UUID
       const index = pacientesCache.findIndex(p =>

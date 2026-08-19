@@ -130,6 +130,8 @@ export const LoginScreen = ({ onLogin }) => {
           especialidad: userMetadata.especialidad || metadata.especialidad,
           // F4-02b FIX: El rol viene de user_metadata.role, NO del formulario
           rol: userMetadata.role || metadata.rol,
+          // F6-C-d.2: Propagar clinicaId desde miembros_clinica
+          clinicaId: userMetadata.clinicaId || null,
           supabaseAuth: true, // Marcador para identificar que viene de Supabase
         }
         onLogin(userProfile)
