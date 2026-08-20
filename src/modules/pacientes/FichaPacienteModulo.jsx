@@ -1,6 +1,7 @@
 import React, { memo, useState } from 'react'
 import { TABS_FICHA_PACIENTE } from './constants/pacientesConstants'
 import { useFichaPaciente } from './hooks/useFichaPaciente'
+import { useFichaClinicaSync } from './hooks/useFichaClinicaSync'
 
 // Subcomponentes Internos
 import { TimelineClinicoWidget } from './components/TimelineClinicoWidget'
@@ -62,6 +63,9 @@ export const FichaPacienteModulo = memo(({
     totalAbonado,
     saldoPendiente
   } = useFichaPaciente(paciente, alActualizarPaciente)
+
+  // F6-D-1: Sincronizar datos clínicos desde Supabase al abrir la ficha
+  const { sincronizando, error: syncError } = useFichaClinicaSync(paciente?.id)
 
   return (
     <div>
