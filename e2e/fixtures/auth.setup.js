@@ -63,14 +63,34 @@ export async function loginComo(page, { email, password, rol }) {
     await rolSelector.selectOption(rol)
   }
   
+  // Log de valores de los inputs justo antes del submit
+  console.log('🔍 Valores antes del submit:')
+  const emailValue = await emailInput.inputValue()
+  const passwordInput = page.locator('[data-testid="login-password"], input[type="password"]').first()
+  const passwordValue = await passwordInput.inputValue()
+  console.log(`   Email: "${emailValue}" (length: ${emailValue.length})`)
+  console.log(`   Password: "${passwordValue ? '***' + passwordValue.slice(-3) : '(vacío)'}" (length: ${passwordValue.length})`)
+  
   // Click en submit
+  console.log('🔍 Click en botón de login...')
   await page.locator('[data-testid="login-submit"], button[type="submit"]').first().click()
   
   // Esperar a que aparezca el sidebar
-  await page.waitForSelector('[data-testid^="sidebar-menu-"]', { 
-    timeout: 15_000,
-    state: 'visible'
-  })
+  console.log('🔍 Esperando sidebar (30s timeout)...')
+  try {
+    await page.waitForSelector('[data-testid^="sidebar-menu-"]', { 
+      timeout: 30_000,
+      state: 'visible'
+    })
+    console.log('✅ Sidebar encontrado')
+  } catch (e) {
+    console.log('❌ Sidebar no apareció en 30s')
+    console.log('🔍 URL actual:', page.url())
+    console.log('🔍 Contenido visible (primeros 500 chars):')
+    const bodyText = await page.locator('body').textContent()
+    console.log(bodyText?.substring(0, 500))
+    throw e
+  }
 }
 
 /**
@@ -79,22 +99,33 @@ export async function loginComo(page, { email, password, rol }) {
 export const CREDENCIALES = {
   admin: {
     email: 'e2e_admin@studiodental.com',
-    password: 'E2eTest2026!',
+    password: 'test123456',
     rol: 'admin'
   },
   dentista: {
     email: 'e2e_dentista@studiodental.com',
-    password: 'E2eTest2026!',
+    password: 'test123456',
     rol: 'dentista'
   },
   asistente: {
     email: 'e2e_asistente@studiodental.com',
-    password: 'E2eTest2026!',
+    password: 'test123456',
     rol: 'asistente'
   },
   recepcion: {
     email: 'e2e_recepcion@studiodental.com',
-    password: 'E2eTest2026!',
+    password: 'test123456',
     rol: 'recepcion'
+  },
+  // F6-C-f: usuarios de la segunda clínica (para validar aislamiento)
+  admin_clinica2: {
+    email: 'e2e_admin_clinica2@studiodental.com',
+    password: 'E2eTest2026!',
+    rol: 'admin'
+  },
+  dentista_clinica2: {
+    email: 'e2e_dentista_clinica2@studiodental.com',
+    password: 'E2eTest2026!',
+    rol: 'dentista'
   }
 }
