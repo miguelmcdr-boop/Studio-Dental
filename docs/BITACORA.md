@@ -1,3 +1,25 @@
+## 2026-08-20 — F6-D-1: Hook useFichaClinicaSync para sincronización de datos clínicos — DONE
+
+**Qué se ganó:** Hook centralizado que sincroniza todos los datos clínicos del paciente desde Supabase al abrir la ficha, y limpia la caché al cerrarla. Este es el primer paso del cableado completo de la ficha clínica a Supabase (F6-D).
+
+**Archivos creados/modificados:**
+- `src/modules/pacientes/hooks/useFichaClinicaSync.js` (NUEVO, ~65 líneas): Hook que gestiona el ciclo de sincronización con manejo de errores y cleanup
+- `src/modules/pacientes/FichaPacienteModulo.jsx` (MODIFICADO, +3 líneas): Import y llamada al hook
+- `src/modules/pacientes/hooks/useFichaClinicaSync.test.js` (NUEVO, ~120 líneas): 7 tests unitarios
+
+**Decisiones técnicas:**
+- Hook separado en lugar de integrarlo en useFichaPaciente (separación de responsabilidades, más fácil de testear)
+- Fallback a localStorage si Supabase falla (coherente con RFC F4-01 offline-first)
+- Cleanup al desmontar (evita leaks de memoria entre pacientes)
+
+**Tests:**
+- ✅ 7/7 tests nuevos pasan
+- ✅ 600/600 tests existentes sin regresión
+
+**Hallazgo adicional:** Durante validación manual se detectó error HTTP 406 en consultas a tablas clínicas vacías. Resuelto en commit separado `fix(supabase): usar maybeSingle en todas las consultas clínicas`.
+
+**Siguiente:** F6-D-2 (cablear odontograma storageService).
+
 ## 2026-08-20 — F6-C-f: Reescritura E2E flujo-colaborativo con aislamiento multi-clínica — DONE
 
 **Qué se ganó:** Test E2E reescrito que valida el criterio #4 del roadmap: usuarios de la misma clínica ven el mismo directorio, y usuarios de clínicas distintas están completamente aislados.

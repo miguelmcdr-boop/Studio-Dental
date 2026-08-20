@@ -124,7 +124,7 @@
 | F6-C-d | Verificación de servicios/hooks contra el nuevo RLS (RFC-F6-C) | 6 | **P0** | M (2 d) | F6-C-c | DONE (2026-08-18) |
 | F6-C-e | Módulo Configuración de clínica: branding + logo en Storage (RFC-F6-C) | 6 | P1 | S (1 d) | F6-C-d | DONE (2026-08-18) |
 | F6-C-f | Reescritura E2E `flujo-colaborativo.spec.js` con dos cuentas (RFC-F6-C) | 6 | P1 | S (0.5 d) | F6-C-d, F6-I | DONE (2026-08-18) |
-| F6-D | Cablear la ficha clínica a Supabase (odontograma, perio, evoluciones, recetas, certificados) | 6 | **P0** | L (5-8 d) | F6-C | TODO |
+| F6-D | Cablear la ficha clínica a Supabase (odontograma, perio, evoluciones, recetas, certificados) | 6 | **P0** | L (5-8 d) | F6-C | IN PROGRESS (F6-D-1 DONE 2026-08-20) |
 | F6-E | Adjuntos clínicos a Supabase Storage con URLs firmadas | 6 | **P0** | M (3-5 d) | F6-C | TODO |
 | F6-F | Auditoría append-only por trigger + soft delete de ficha clínica | 6 | P1 | M (3-4 d) | F6-C | TODO |
 | F6-G | Validación de RUT (módulo 11) + unicidad por clínica | 6 | P1 | XS (<0.5 d) | — | TODO |
