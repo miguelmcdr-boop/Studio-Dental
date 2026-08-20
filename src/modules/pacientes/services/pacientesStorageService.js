@@ -151,11 +151,11 @@ const sincronizarDesdeSupabase = async () => {
 
     if (!Array.isArray(data)) return pacientesCache
 
-    // Si Supabase retorna vacío pero hay caché con datos, puede ser que la
-    // migración aún no haya corrido. No sobrescribimos la caché.
-    if (data.length === 0 && pacientesCache && pacientesCache.length > 0) {
-      console.log('[pacientesStorageService] Supabase vacío, manteniendo caché (pendiente migración)')
-      return pacientesCache
+    // F6-C-f: NO usar caché como fallback si Supabase retorna vacío.
+    // Esto rompería el aislamiento multi-clínica. Si Supabase retorna vacío,
+    // la clínica no tiene pacientes (o el RLS está funcionando correctamente).
+    if (data.length === 0) {
+      console.log('[pacientesStorageService] Supabase retornó vacío, actualizando caché vacía')
     }
 
     const nuevos = data.map(transformarDesdeSupabase).filter(Boolean)

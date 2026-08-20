@@ -1,3 +1,31 @@
+## 2026-08-20 — F6-C-f: Reescritura E2E flujo-colaborativo con aislamiento multi-clínica — DONE
+
+**Qué se ganó:** Test E2E reescrito que valida el criterio #4 del roadmap: usuarios de la misma clínica ven el mismo directorio, y usuarios de clínicas distintas están completamente aislados.
+
+**Archivos modificados:**
+- `supabase/seed-multiclinica-e2e.sql`: Script SQL para crear segunda clínica + 2 usuarios e2e_clinica2 (admin y dentista) + 1 paciente exclusivo de clínica 2
+- `e2e/fixtures/auth.setup.js`: Credenciales actualizadas con contraseñas correctas (clínica 1: `test123456`, clínica 2: `E2eTest2026!`). Logging de debug agregado para diagnóstico
+- `e2e/specs/flujo-colaborativo.spec.js`: Test reescrito con 2 tests de aislamiento multi-clínica (reemplaza el test original de F4-04 que solo validaba login simultáneo)
+- `src/modules/pacientes/services/pacientesStorageService.js`: Eliminado fallback peligroso a caché cuando Supabase retorna vacío (rompía aislamiento multi-clínica)
+
+**Decisiones tomadas (D46-D49):**
+- D46: Crear segunda clínica para validar aislamiento (no solo Realtime dentro de una clínica)
+- D47: Crear usuarios desde Dashboard de Supabase (no manualmente en SQL) para garantizar compatibilidad con auth.users
+- D48: Validar aislamiento de pacientes (dato crítico). Aislamiento de citas/pagos se hereda del mismo RLS
+- D49: Reemplazar contenido del test F4-04 (título dice "reescritura")
+
+**Problemas encontrados y resueltos:**
+1. **Contraseñas incorrectas**: Usuarios de clínica 1 usaban `test123456` (no `E2eTest2026!`). Corregido en fixture
+2. **Código duplicado**: Variable `rolSelector` declarada 2 veces en `auth.setup.js`. Eliminado duplicado
+3. **Fallback peligroso**: `pacientesStorageService.js` usaba caché cuando Supabase retornaba vacío, rompiendo aislamiento. Eliminado fallback
+4. **Paciente faltante**: "Paciente Exclusivo Clínica 2" no existía en BD. Creado con SQL
+
+**Validación en test E2E:**
+- ✅ Test 1: admin y dentista de clínica 1 ven "Carlos Mendoza Vera" (mismo directorio)
+- ✅ Test 2: admin de clínica 1 ve pacientes de clínica 1, admin de clínica 2 ve solo "Paciente Exclusivo Clínica 2" (aislamiento validado)
+
+**Siguiente:** F6-D (cablear ficha clínica a Supabase).
+
 ## 2026-08-18 — F6-C-e: Configuración de clínica con branding/logo en Supabase — DONE
 
 **Qué se ganó:** La configuración de clínica (nombre, logo, colores, datos de membrete) ahora persiste en la tabla `clinicas` de Supabase en lugar de localStorage. Todos los miembros de una clínica ven la misma configuración. Solo el admin puede editar; los demás miembros ven en modo solo-lectura.
