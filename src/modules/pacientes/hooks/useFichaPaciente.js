@@ -1,7 +1,11 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { pacientesStorageService } from '../services/pacientesStorageService'
+import { useFichaClinicaSync } from './useFichaClinicaSync'
 
 export const useFichaPaciente = (paciente, alActualizarPaciente) => {
+  // F6-D-1: Sincronizar datos clínicos desde Supabase al abrir la ficha
+  const { sincronizando, error: syncError } = useFichaClinicaSync(paciente?.id)
+
   const [tabActiva, setTabActiva] = useState('Ficha Clínica')
   const [odontogramaInicial, setOdontogramaInicial] = useState({})
   const [odontogramaEvolucion, setOdontogramaEvolucion] = useState({})
@@ -67,6 +71,9 @@ export const useFichaPaciente = (paciente, alActualizarPaciente) => {
   const saldoPendiente = totalPresupuesto - totalAbonado
 
   return {
+    // F6-D-1: estado de sincronización de datos clínicos
+    sincronizando,
+    syncError,
     tabActiva,
     setTabActiva,
     odontogramaInicial,
