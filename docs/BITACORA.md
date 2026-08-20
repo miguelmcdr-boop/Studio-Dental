@@ -1,3 +1,27 @@
+## 2026-08-18 — F6-C-e: Configuración de clínica con branding/logo en Supabase — DONE
+
+**Qué se ganó:** La configuración de clínica (nombre, logo, colores, datos de membrete) ahora persiste en la tabla `clinicas` de Supabase en lugar de localStorage. Todos los miembros de una clínica ven la misma configuración. Solo el admin puede editar; los demás miembros ven en modo solo-lectura.
+
+**Archivos modificados:**
+- `src/modules/configuracion/services/configuracionStorageService.js`: agregadas funciones Supabase (`guardarClinicaCompleta`, `sincronizarClinicaDesdeSupabase`, `migrarClinicaSiNecesario`). Transformación camelCase ↔ snake_case. Migración automática de localStorage a Supabase al primer load.
+- `src/modules/configuracion/hooks/useConfiguracion.js`: `useEffect` de sincronización inicial desde Supabase. `guardarDatosClinica` ahora persiste en Supabase + localStorage.
+- `src/modules/configuracion/components/DatosClinicaForm.jsx`: modo solo-lectura para no-admins (campos deshabilitados, badge visual, botón deshabilitado).
+- `src/modules/configuracion/ConfiguracionModulo.jsx`: pasa `userProfile` al form para determinar permisos.
+
+**Decisiones tomadas (D42-D45):**
+- D42: Data URL en tabla `clinicas` (no Storage bucket). Cambio mínimo, no requiere crear bucket ni RLS de Storage.
+- D43: Políticas RLS ya existentes (`admin_actualiza_su_clinica`, `miembros_leen_su_clinica`) son correctas.
+- D44: Migración automática al primer load si el usuario es admin y hay datos en localStorage.
+- D45: `clinicaId` desde `userProfile.clinicaId` (ya disponible por F6-C-d.2).
+
+**Validación en navegador local:**
+- Admin puede editar y guardar branding ✅
+- Miembro no-admin ve datos en solo-lectura (no puede editar) ✅
+- Datos compartidos entre usuarios de la misma clínica ✅
+- Migración automática desde localStorage funciona ✅
+
+**Siguiente:** F6-C-f (reescritura E2E flujo-colaborativo con aislamiento multi-clínica).
+
 ## 2026-08-18 — F6-C-d: servicios del frontend con nuevo RLS por clínica — DONE
 
 **Qué se ganó:** El frontend ahora funciona correctamente con el modelo multi-clínica. Los usuarios de la misma clínica ven el mismo directorio de pacientes, los cambios persisten entre recargas y se sincronizan en tiempo real entre distintos usuarios.
