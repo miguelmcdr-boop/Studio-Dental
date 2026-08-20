@@ -78,7 +78,7 @@ export const sincronizarPaciente = async (pacienteId) => {
       .select('*')
       .eq('paciente_id', pacienteId)
       .eq('tipo', 'inicial')
-      .single()
+      .maybeSingle()
 
     if (odontoInicial) {
       datosPaciente.set('odonto_inicial', odontoInicial.datos || {})
@@ -92,7 +92,7 @@ export const sincronizarPaciente = async (pacienteId) => {
       .eq('tipo', 'evolucion')
       .order('created_at', { ascending: false })
       .limit(1)
-      .single()
+      .maybeSingle()
 
     if (odontoEvolucion) {
       datosPaciente.set('odonto_evolucion', odontoEvolucion.datos || {})
@@ -104,7 +104,7 @@ export const sincronizarPaciente = async (pacienteId) => {
       .select('*')
       .eq('paciente_id', pacienteId)
       .eq('tipo', 'inicial')
-      .single()
+      .maybeSingle()
 
     if (periodontoInicial) {
       datosPaciente.set('periodontograma', periodontoInicial.datos || {})
@@ -118,7 +118,7 @@ export const sincronizarPaciente = async (pacienteId) => {
       .eq('tipo', 'control')
       .order('created_at', { ascending: false })
       .limit(1)
-      .single()
+      .maybeSingle()
 
     if (periodontoControl) {
       datosPaciente.set('periodontograma_control', periodontoControl.datos || {})
@@ -129,7 +129,7 @@ export const sincronizarPaciente = async (pacienteId) => {
       .from('periodontogramas_historial')
       .select('*')
       .eq('paciente_id', pacienteId)
-      .single()
+      .maybeSingle()
 
     if (periodontoHistorial) {
       datosPaciente.set('periodonto_historial', periodontoHistorial.datos || {})
@@ -140,7 +140,7 @@ export const sincronizarPaciente = async (pacienteId) => {
       .from('dsd_configs')
       .select('*')
       .eq('paciente_id', pacienteId)
-      .single()
+      .maybeSingle()
 
     if (dsdConfig) {
       datosPaciente.set('dsd_config', dsdConfig.config || {})
@@ -151,7 +151,7 @@ export const sincronizarPaciente = async (pacienteId) => {
       .from('odontopediatria')
       .select('*')
       .eq('paciente_id', pacienteId)
-      .single()
+      .maybeSingle()
 
     if (pediatria) {
       datosPaciente.set('pediatria', pediatria.datos || {})
@@ -162,7 +162,7 @@ export const sincronizarPaciente = async (pacienteId) => {
       .from('quirurgico_implantes')
       .select('*')
       .eq('paciente_id', pacienteId)
-      .single()
+      .maybeSingle()
 
     if (implantes) {
       datosPaciente.set('quirurgico_implantes', implantes.datos || [])
@@ -173,7 +173,7 @@ export const sincronizarPaciente = async (pacienteId) => {
       .from('quirurgico_endodoncia')
       .select('*')
       .eq('paciente_id', pacienteId)
-      .single()
+      .maybeSingle()
 
     if (endodoncia) {
       datosPaciente.set('quirurgico_endodoncia', endodoncia.datos || [])
@@ -262,7 +262,7 @@ export const guardarEvolucionClinica = async (pacienteId, evolucion) => {
         .update(evolucionSupabase)
         .eq('id', evolucion.id)
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) throw error
       return data
@@ -271,7 +271,7 @@ export const guardarEvolucionClinica = async (pacienteId, evolucion) => {
         .from('evoluciones_clinicas')
         .insert(evolucionSupabase)
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) throw error
       return data
@@ -314,7 +314,7 @@ export const guardarReceta = async (pacienteId, receta) => {
         .update(recetaSupabase)
         .eq('id', receta.id)
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) throw error
       return data
@@ -323,7 +323,7 @@ export const guardarReceta = async (pacienteId, receta) => {
         .from('recetas')
         .insert(recetaSupabase)
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) throw error
       return data
@@ -373,7 +373,7 @@ export const guardarOdontograma = async (pacienteId, odontograma, tipo = 'inicia
         .update(odontogramaSupabase)
         .eq('id', existente.id)
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) throw error
       return data
@@ -382,7 +382,7 @@ export const guardarOdontograma = async (pacienteId, odontograma, tipo = 'inicia
         .from('odontogramas')
         .insert(odontogramaSupabase)
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) throw error
       return data
@@ -431,7 +431,7 @@ export const guardarPeriodontograma = async (pacienteId, periodontograma, tipo =
         .update(periodontogramaSupabase)
         .eq('id', existente.id)
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) throw error
       return data
@@ -440,7 +440,7 @@ export const guardarPeriodontograma = async (pacienteId, periodontograma, tipo =
         .from('periodontogramas')
         .insert(periodontogramaSupabase)
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) throw error
       return data
@@ -486,7 +486,7 @@ export const guardarDatoGenerico = async (pacienteId, tabla, datos) => {
         .update(datosSupabase)
         .eq('id', existente.id)
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) throw error
       return data
@@ -495,7 +495,7 @@ export const guardarDatoGenerico = async (pacienteId, tabla, datos) => {
         .from(tabla)
         .insert(datosSupabase)
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) throw error
       return data
