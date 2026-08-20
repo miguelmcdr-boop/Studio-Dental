@@ -75,7 +75,7 @@ export const ConfiguracionModulo = memo(() => {
       )}
 
       {tabActual === 'clinica' && (
-        <DatosClinicaForm datosClinica={datosClinica} alGuardar={guardarDatosClinica} />
+        <DatosClinicaForm datosClinica={datosClinica} alGuardar={guardarDatosClinica} userProfile={userProfile} />
       )}
 
       {tabActual === 'agenda' && (
