@@ -1,3 +1,71 @@
+## 2026-08-20 — F6-D-4: Cableado de recetas a Supabase — DONE
+
+**Qué se ganó:** Módulo recetas completamente cableado a Supabase con patrón offline-first y transformación bidireccional entre formato local (array de recetas simples) y formato Supabase (múltiples filas con estructura específica). Incluye refactor arquitectónico para respetar límite de 217 líneas.
+
+**Archivos creados/modificados:**
+- `src/modules/pacientes/services/recetasStorageService.js` (NUEVO, ~140 líneas): API con transformación bidireccional
+- `src/modules/pacientes/services/recetasStorageService.test.js` (NUEVO, ~280 líneas): 20 tests unitarios
+- `src/modules/pacientes/components/RecetasSection.jsx` (REFACTORIZADO, 223 → 78 líneas): Usa FormularioNuevaReceta
+- `src/modules/pacientes/components/FormularioNuevaReceta.jsx` (NUEVO, ~165 líneas): Componente extraído para cumplir límite arquitectónico
+- `src/modules/pacientes/hooks/useFichaPaciente.js` (MODIFICADO, -2, +2 líneas): Usa recetasStorageService.obtenerRecetas en carga inicial
+
+**Decisiones técnicas:**
+- Transformación bidireccional: array local `[{id, fecha, medicamento, indicacion}]` ↔ múltiples filas Supabase con `medicamentos` (jsonb array)
+- Estrategia "localStorage primero" para evitar pérdida de datos
+- Función `normalizarFecha` convierte formatos chilenos (DD-MM-YYYY, DD/MM/YYYY) a ISO (YYYY-MM-DD) para PostgreSQL
+- Validación de UUID: solo IDs con formato UUID válido se envían a Supabase (los numéricos de Date.now() se omiten)
+- **Refactor arquitectónico**: Extraído FormularioNuevaReceta para respetar límite de 217 líneas en RecetasSection.jsx (F3-02)
+
+**Fix crítico:** Error 400 de PostgreSQL por formato de fecha inválido (`20-08-2026` en lugar de `2026-08-20`). Resuelto con función `normalizarFecha` que maneja múltiples formatos de entrada.
+
+**Tests:**
+- ✅ 20/20 tests nuevos de recetasStorageService pasan (incluye 4 tests de normalización de fechas)
+- ✅ 15/15 tests de useFichaPaciente sin regresión
+- ✅ 628/628 tests de suite completa sin regresión
+- ✅ Validación arquitectónica: 0 violaciones (RecetasSection.jsx: 78 líneas, bajo límite de 217)
+
+**Validación manual:**
+- ✅ Crear receta → request POST a /rest/v1/recetas con status 201
+- ✅ Recargar navegador → recetas persisten (GET con filtro por paciente_id)
+- ✅ Eliminar receta → desaparece correctamente
+- ✅ Aislamiento multi-clínica: clínica 2 no ve recetas de clínica 1 (RLS funciona)
+- ✅ Fechas se normalizan correctamente (DD-MM-YYYY → YYYY-MM-DD)
+- ✅ Vademecum sigue funcionando (Supabase + fallback local)
+
+**Siguiente:** F6-D-5 (cablear evoluciones centralizadas).
+
+## 2026-08-20 — F6-D-4: Cableado de recetas a Supabase — DONE
+
+**Qué se ganó:** Módulo recetas completamente cableado a Supabase con patrón offline-first y transformación bidireccional entre formato local (array de recetas simples) y formato Supabase (múltiples filas con estructura específica).
+
+**Archivos creados/modificados:**
+- `src/modules/pacientes/services/recetasStorageService.js` (NUEVO, ~140 líneas): API con transformación bidireccional
+- `src/modules/pacientes/services/recetasStorageService.test.js` (NUEVO, ~280 líneas): 20 tests unitarios
+- `src/modules/pacientes/components/RecetasSection.jsx` (MODIFICADO, -2, +2 líneas): Usa recetasStorageService en lugar de pacientesStorageService.guardarItem
+- `src/modules/pacientes/hooks/useFichaPaciente.js` (MODIFICADO, -2, +2 líneas): Usa recetasStorageService.obtenerRecetas en carga inicial
+
+**Decisiones técnicas:**
+- Transformación bidireccional: array local `[{id, fecha, medicamento, indicacion}]` ↔ múltiples filas Supabase con `medicamentos` (jsonb array)
+- Estrategia "localStorage primero" para evitar pérdida de datos
+- Función `normalizarFecha` convierte formatos chilenos (DD-MM-YYYY, DD/MM/YYYY) a ISO (YYYY-MM-DD) para PostgreSQL
+- Validación de UUID: solo IDs con formato UUID válido se envían a Supabase (los numéricos de Date.now() se omiten)
+
+**Fix crítico:** Error 400 de PostgreSQL por formato de fecha inválido (`20-08-2026` en lugar de `2026-08-20`). Resuelto con función `normalizarFecha` que maneja múltiples formatos de entrada.
+
+**Tests:**
+- ✅ 20/20 tests nuevos de recetasStorageService pasan (incluye 4 tests de normalización de fechas)
+- ✅ 15/15 tests de useFichaPaciente sin regresión
+- ✅ 79/79 tests de regresión (odontograma + periodontograma + recetas)
+
+**Validación manual:**
+- ✅ Crear receta → request POST a /rest/v1/recetas con status 201
+- ✅ Recargar navegador → recetas persisten (GET con filtro por paciente_id)
+- ✅ Eliminar receta → desaparece correctamente
+- ✅ Aislamiento multi-clínica: clínica 2 no ve recetas de clínica 1 (RLS funciona)
+- ✅ Fechas se normalizan correctamente (DD-MM-YYYY → YYYY-MM-DD)
+
+**Siguiente:** F6-D-5 (cablear evoluciones centralizadas).
+
 ## 2026-08-20 — F6-D-3: Cableado de periodontograma a Supabase — DONE
 
 **Qué se ganó:** Módulo periodontograma completamente cableado a Supabase con patrón offline-first. Incluye dos fixes críticos descubiertos durante la implementación.

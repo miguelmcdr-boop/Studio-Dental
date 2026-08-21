@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { pacientesStorageService } from '../services/pacientesStorageService'
+// F6-D-4: usar recetasStorageService para recetas
+import { recetasStorageService } from '../services/recetasStorageService'
 import { odontogramaStorageService } from '../../odontograma/services/odontogramaStorageService'
 import { useFichaClinicaSync } from './useFichaClinicaSync'
 
@@ -17,8 +19,9 @@ export const useFichaPaciente = (paciente, alActualizarPaciente) => {
   const [abonos, setAbonos] = useState(() => 
     pacientesStorageService.obtenerItem(`abonos_${paciente.id}`, [])
   )
+  // F6-D-4: cargar recetas desde Supabase (vía recetasStorageService)
   const [recetas, setRecetas] = useState(() => 
-    pacientesStorageService.obtenerItem(`recetas_${paciente.id}`, [])
+    recetasStorageService.obtenerRecetas(paciente.id, [])
   )
   const [evolucionesNotas, setEvolucionesNotas] = useState(() => 
     pacientesStorageService.obtenerItem(`evoluciones_notas_${paciente.id}`, [])
