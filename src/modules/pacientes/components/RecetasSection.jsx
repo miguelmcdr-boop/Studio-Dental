@@ -3,7 +3,8 @@ import { vademecumService } from '../../../services/vademecumService'
 import { VADEMECUM_ODONTOLOGICO } from '../../../data/vademecum'
 import { evaluarIncompatibilidadFarmaco } from '../utils/pacientesCalculations'
 import { AlertaAlergiaMejorada } from './AlertaAlergiaMejorada'
-import { pacientesStorageService } from '../services/pacientesStorageService'
+// F6-D-4: usar recetasStorageService en lugar de pacientesStorageService.guardarItem
+import { recetasStorageService } from '../services/recetasStorageService'
 
 export const RecetasSection = memo(({ paciente, userProfile, alergiasPaciente, recetas, setRecetas }) => {
   const [nuevaReceta, setNuevaReceta] = useState({ medicamento: '', indicacion: '' })
@@ -95,7 +96,10 @@ export const RecetasSection = memo(({ paciente, userProfile, alergiasPaciente, r
     }
     const actualizadas = [recetaObj, ...recetas]
     setRecetas(actualizadas)
-    pacientesStorageService.guardarItem(`recetas_${paciente.id}`, actualizadas)
+    // F6-D-4: usar recetasStorageService (Supabase + localStorage)
+    recetasStorageService.guardarRecetas(paciente.id, actualizadas).catch(err => {
+      console.warn('[RecetasSection] Error guardando recetas:', err)
+    })
     setNuevaReceta({ medicamento: '', indicacion: '' })
     setAlertaFarmaco(null)
   }
@@ -103,7 +107,10 @@ export const RecetasSection = memo(({ paciente, userProfile, alergiasPaciente, r
   const handleEliminarReceta = (id) => {
     const actualizadas = recetas.filter(r => r.id !== id)
     setRecetas(actualizadas)
-    pacientesStorageService.guardarItem(`recetas_${paciente.id}`, actualizadas)
+    // F6-D-4: usar recetasStorageService (Supabase + localStorage)
+    recetasStorageService.guardarRecetas(paciente.id, actualizadas).catch(err => {
+      console.warn('[RecetasSection] Error guardando recetas:', err)
+    })
   }
 
   return (
