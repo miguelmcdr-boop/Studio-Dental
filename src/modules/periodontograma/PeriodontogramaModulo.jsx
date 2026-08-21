@@ -42,6 +42,28 @@ export const PeriodontogramaModulo = memo(({ pacienteId }) => {
     setIndices(res)
   }, [periodontoData, periodontoControl, modoComparativoReeval, factoresRiesgo])
 
+  // F6-D-3: Auto-guardado cuando cambian los datos (patrón odontograma)
+  // Esto asegura que los cambios se persistan incluso si el usuario no hace clic en "Guardar"
+  useEffect(() => {
+    if (!pacienteId) return
+
+    // Persistir periodontoData automáticamente
+    if (periodontoData && Object.keys(periodontoData).length > 0) {
+      periodontogramaStorageService.guardarPeriodontogramaDePaciente(pacienteId, periodontoData)
+        .catch(err => console.warn('[PeriodontogramaModulo] Error guardando periodontograma:', err))
+    }
+  }, [periodontoData, pacienteId])
+
+  useEffect(() => {
+    if (!pacienteId) return
+
+    // Persistir periodontoControl automáticamente
+    if (periodontoControl && Object.keys(periodontoControl).length > 0) {
+      periodontogramaStorageService.guardarControlDePaciente(pacienteId, periodontoControl)
+        .catch(err => console.warn('[PeriodontogramaModulo] Error guardando control:', err))
+    }
+  }, [periodontoControl, pacienteId])
+
   const handleGuardarPeriodontograma = () => {
     const dataToSave = modoComparativoReeval ? periodontoControl : periodontoData
 
