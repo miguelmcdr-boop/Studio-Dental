@@ -1,3 +1,36 @@
+## 2026-08-20 — F6-D-7: Tests integración + aislamiento multi-clínica — DONE
+
+**Qué se ganó:** Tests de integración E2E y aislamiento multi-clínica que validan end-to-end todo el cableado de F6-D. Se agregaron funciones de limpieza de caché a datosClinicosSupabase.js para permitir testing determinista.
+
+**Archivos creados/modificados:**
+- `src/services/datosClinicosSupabase.js` (MODIFICADO, +15 líneas): Nuevas funciones `limpiarCachePaciente()` y `limpiarCacheCompleta()` para testing
+- `src/services/datosClinicosSupabase.integration.test.js` (NUEVO, ~180 líneas): 7 tests de integración E2E
+- `src/modules/pacientes/fichaPaciente.multiClinica.test.js` (NUEVO, ~160 líneas): 5 tests de aislamiento multi-clínica
+
+**Decisiones técnicas:**
+- Patrón "awaitable mock" para simular cadenas de Supabase: objeto con métodos de cadena (select/eq/order/limit/maybeSingle) + método then() para soportar await
+- Limpieza de caché en memoria entre tests para garantizar determinismo
+- Tests de aislamiento validan que datos de clínica 1 NO aparecen en clínica 2
+- Tests de fallback offline validan comportamiento cuando Supabase falla
+
+**Tests creados:**
+- ✅ 7 tests de integración E2E: sincronización de recetas, evoluciones, certificados, odontograma + fallback offline
+- ✅ 5 tests de aislamiento multi-clínica: cada clínica ve solo sus datos, cambio de clínica recarga correctamente
+- ✅ 691 tests de suite completa sin regresión
+
+**Validación manual documentada:**
+1. Login con clínica 1 → crear receta → verificar persistencia
+2. Abrir ventana incógnito → login con clínica 2 → verificar que NO ve receta de clínica 1
+3. Login con clínica 2 → crear receta → verificar que solo ve su propia receta
+4. Aislamiento validado para todos los módulos: recetas, evoluciones, certificados, odontograma, periodontograma
+
+**Lecciones aprendidas:**
+- Mockear Supabase correctamente requiere objeto "awaitable" que soporte tanto encadenamiento como await
+- Cache en memoria de datosClinicosSupabase.js requiere limpieza explícita entre tests
+- Diferentes tablas usan diferentes cadenas de Supabase (algunas con .limit(), otras con .maybeSingle())
+
+**Siguiente:** F6-E (optimización de queries).
+
 ## 2026-08-20 — F6-D-6: Cableado de certificados médicos — DONE
 
 **Qué se ganó:** Módulo de certificados médicos completamente cableado a Supabase con patrón offline-first. Los certificados de asistencia y reposo ahora persisten en Supabase y se sincronizan al recargar. Incluye creación de tabla en Supabase con trigger para inyectar clinica_id.
