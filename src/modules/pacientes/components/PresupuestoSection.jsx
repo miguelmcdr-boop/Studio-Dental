@@ -7,7 +7,6 @@ import { descontarMaterialesSeleccionados, detectarCategoriaTratamiento, PALABRA
 import { prestacionesStorageService } from '../../prestaciones/services/prestacionesStorageService'
 import { inventarioStorageService } from '../../inventario/services/inventarioStorageService'
 import { ModalDescuentoInventario } from './ModalDescuentoInventario'
-
 const STORAGE_KEY_PALABRAS_CLAVE = 'studio_dental_inventario_palabras_clave'
 
 export const PresupuestoSection = memo(({
@@ -150,7 +149,8 @@ export const PresupuestoSection = memo(({
 
         const notasActualizadas = [nuevaNotaEvolucion, ...evolucionesNotas]
         setEvolucionesNotas(notasActualizadas)
-        pacientesStorageService.guardarItem(`evoluciones_notas_${paciente.id}`, notasActualizadas)
+        // F6-D-5: usar evolucionesStorageService (Supabase + localStorage)
+        evolucionesStorageService.guardarEvoluciones(paciente.id, notasActualizadas).catch(console.warn)
       }
 
       // 2. F2-12: Abrir modal de selección de materiales en vez de descontar directamente
@@ -249,7 +249,6 @@ export const PresupuestoSection = memo(({
       pacientesStorageService.guardarItem(`abonos_${paciente.id}`, actualizados)
     }
   }
-
   return (
     <div>
       {/* Selector y Formulario de Agregar Prestación */}
