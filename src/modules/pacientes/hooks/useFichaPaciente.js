@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { pacientesStorageService } from '../services/pacientesStorageService'
 import { evolucionesStorageService } from '../services/evolucionesStorageService'
+import { certificadosStorageService } from '../services/certificadosStorageService'
 // F6-D-4: usar recetasStorageService para recetas
 import { recetasStorageService } from '../services/recetasStorageService'
 import { odontogramaStorageService } from '../../odontograma/services/odontogramaStorageService'
@@ -28,8 +29,9 @@ export const useFichaPaciente = (paciente, alActualizarPaciente) => {
   const [evolucionesNotas, setEvolucionesNotas] = useState(() => 
     evolucionesStorageService.obtenerEvoluciones(paciente.id, [])
   )
+  // F6-D-6: cargar certificados desde Supabase (vía certificadosStorageService)
   const [certificados, setCertificados] = useState(() => 
-    pacientesStorageService.obtenerItem(`certificados_${paciente.id}`, [])
+    certificadosStorageService.obtenerCertificados(paciente.id, [])
   )
 
   const [fichaData, setFichaData] = useState({
