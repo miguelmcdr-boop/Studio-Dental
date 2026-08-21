@@ -1,3 +1,45 @@
+## 2026-08-20 — F6-D-6: Cableado de certificados médicos — DONE
+
+**Qué se ganó:** Módulo de certificados médicos completamente cableado a Supabase con patrón offline-first. Los certificados de asistencia y reposo ahora persisten en Supabase y se sincronizan al recargar. Incluye creación de tabla en Supabase con trigger para inyectar clinica_id.
+
+**Archivos creados/modificados:**
+- `src/services/datosClinicosSupabase.js` (MODIFICADO, +60 líneas): Nuevo método `guardarCertificado` con normalización de fechas, actualizado `sincronizarPaciente` para cargar certificados
+- `src/modules/pacientes/services/certificadosStorageService.js` (NUEVO, ~75 líneas): API con transformación bidireccional
+- `src/modules/pacientes/services/certificadosStorageService.test.js` (NUEVO, ~200 líneas): 13 tests unitarios
+- `src/modules/pacientes/components/CertificadosSection.jsx` (MODIFICADO, -2, +4 líneas): Usa certificadosStorageService en lugar de pacientesStorageService.guardarItem (2 lugares)
+- `src/modules/pacientes/hooks/useFichaPaciente.js` (MODIFICADO, -1, +1 líneas): Usa certificadosStorageService.obtenerCertificados en carga inicial
+
+**Infraestructura Supabase creada:**
+- Tabla `certificados` con columnas: `id` (uuid), `user_id`, `paciente_id`, `clinica_id`, `fecha_emision` (date), `tipo`, `datos` (jsonb), `created_at`, `updated_at`
+- Políticas RLS: `certificados_select_clinica`, `certificados_insert_clinica`, `certificados_update_clinica`, `certificados_delete_clinica`
+- Trigger `trg_certificados_set_clinica_id` para inyectar `clinica_id` automáticamente en INSERT
+
+**Decisiones técnicas:**
+- Columna `datos` como JSONB para flexibilidad (certificados tienen campos opcionales según tipo: `horaInicio/horaFin` para asistencia, `diasReposo` para reposo)
+- Estrategia "localStorage primero" para evitar pérdida de datos
+- Función `normalizarFechaCertificado` convierte formato chileno (DD-MM-YYYY, DD/MM/YYYY) a ISO (YYYY-MM-DD) para PostgreSQL
+- Validación de UUID: solo IDs con formato UUID válido se envían a Supabase (los numéricos de Date.now() se omiten)
+
+**Fixes críticos:**
+1. Error 400 PostgreSQL por formato de fecha inválido (`20-08-2026` en lugar de `2026-08-20`). Resuelto con función `normalizarFechaCertificado`.
+2. Error 403 RLS por falta de `clinica_id`. Resuelto creando trigger `trg_certificados_set_clinica_id` que inyecta `clinica_id` automáticamente.
+3. ReferenceError `pacientesStorageService is not defined` por referencia residual en `handleEliminarCertificado`. Resuelto reemplazando todas las llamadas.
+
+**Tests:**
+- ✅ 13/13 tests nuevos de certificadosStorageService pasan
+- ✅ 15/15 tests de useFichaPaciente sin regresión
+- ✅ Tests de regresión completa sin problemas
+
+**Validación manual:**
+- ✅ Crear certificado de asistencia → request POST a /rest/v1/certificados con status 201
+- ✅ Crear certificado de reposo → request POST con status 201
+- ✅ Eliminar certificado → request DELETE con status 200
+- ✅ Recargar navegador → certificados persisten (GET con filtro por paciente_id)
+- ✅ Aislamiento multi-clínica: clínica 2 no ve certificados de clínica 1 (RLS funciona)
+- ✅ Fechas se normalizan correctamente (DD-MM-YYYY → YYYY-MM-DD)
+
+**Siguiente:** F6-D-7 (tests integración + aislamiento multi-clínica).
+
 ## 2026-08-20 — F6-D-5: Cableado de evoluciones centralizadas — DONE
 
 **Qué se ganó:** Módulo de evoluciones clínicas (Bitácora) completamente cableado a Supabase con patrón offline-first. Las evoluciones creadas desde BitácoraSection y desde PresupuestoSection (auto-registro al ejecutar tratamiento) ahora persisten en Supabase y se sincronizan al recargar.

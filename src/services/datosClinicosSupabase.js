@@ -53,6 +53,21 @@ export const sincronizarPaciente = async (pacienteId) => {
       datosPaciente.set('evoluciones_notas', evolucionesTransformadas)
     }
 
+    // Cargar certificados
+    const { data: certificados } = await supabase
+      .from('certificados')
+      .select('*')
+      .eq('paciente_id', pacienteId)
+      .order('fecha_emision', { ascending: false })
+
+    if (certificados) {
+      const certificadosTransformados = certificados.map(c => ({
+        ...c.datos,
+        id: c.id
+      }))
+      datosPaciente.set('certificados', certificadosTransformados)
+    }
+
     // 2. Recetas
     const { data: recetas } = await supabase
       .from('recetas')
@@ -278,6 +293,81 @@ export const guardarEvolucionClinica = async (pacienteId, evolucion) => {
     }
   } catch (error) {
     console.error('[datosClinicosSupabase] Error al guardar evolución:', error)
+    return null
+  }
+}
+
+/**
+ * Guarda un certificado médico en Supabase.
+ *
+ * @param {string} pacienteId - UUID del paciente
+ * @param {Object} certificado - Datos del certificado
+ * @returns {Promise<Object|null>} El certificado guardado con UUID o null si falla
+ */
+// F6-D-6: Normalizar fecha de formato chileno (DD-MM-YYYY) a ISO (YYYY-MM-DD)
+const normalizarFechaCertificado = (fecha) => {
+  if (!fecha) return new Date().toISOString().split('T')[0]
+  
+  // Si ya está en formato ISO (YYYY-MM-DD), retornar tal cual
+  if (/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return fecha
+  
+  // Si está en formato chileno DD-MM-YYYY, convertir
+  const match = fecha.match(/^(\d{2})-(\d{2})-(\d{4})$/)
+  if (match) {
+    const [, dia, mes, anio] = match
+    return `${anio}-${mes}-${dia}`
+  }
+  
+  // Si está en formato DD/MM/YYYY, convertir
+  const matchSlash = fecha.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+  if (matchSlash) {
+    const [, dia, mes, anio] = matchSlash
+    return `${anio}-${mes}-${dia}`
+  }
+  
+  // Fallback: usar fecha actual
+  return new Date().toISOString().split('T')[0]
+}
+
+export const guardarCertificado = async (pacienteId, certificado) => {
+  if (!USE_SUPABASE || !supabase || !pacienteId) {
+    return null
+  }
+
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return null
+
+    const certificadoSupabase = {
+      user_id: user.id,
+      paciente_id: pacienteId,
+      fecha_emision: normalizarFechaCertificado(certificado.fechaEmision),
+      tipo: certificado.tipo || 'asistencia',
+      datos: certificado
+    }
+
+    if (certificado.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(certificado.id)) {
+      const { data, error } = await supabase
+        .from('certificados')
+        .update(certificadoSupabase)
+        .eq('id', certificado.id)
+        .select()
+        .maybeSingle()
+
+      if (error) throw error
+      return data
+    } else {
+      const { data, error } = await supabase
+        .from('certificados')
+        .insert(certificadoSupabase)
+        .select()
+        .maybeSingle()
+
+      if (error) throw error
+      return data
+    }
+  } catch (error) {
+    console.error('[datosClinicosSupabase] Error al guardar certificado:', error)
     return null
   }
 }

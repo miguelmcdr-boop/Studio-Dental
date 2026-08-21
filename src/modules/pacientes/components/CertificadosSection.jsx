@@ -1,5 +1,6 @@
 import React, { memo, useState } from 'react'
-import { pacientesStorageService } from '../services/pacientesStorageService'
+// F6-D-6: usar certificadosStorageService en lugar de pacientesStorageService.guardarItem
+import { certificadosStorageService } from '../services/certificadosStorageService'
 import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
 
 export const CertificadosSection = memo(({
@@ -43,7 +44,8 @@ export const CertificadosSection = memo(({
 
     const actualizados = [nuevoCertificado, ...listaCertificados]
     setCertificados(actualizados)
-    pacientesStorageService.guardarItem(`certificados_${paciente.id}`, actualizados)
+    // F6-D-6: usar certificadosStorageService (Supabase + localStorage)
+    certificadosStorageService.guardarCertificados(paciente.id, actualizados).catch(console.warn)
     setCertSeleccionadoVer(nuevoCertificado)
 
     setDiagnosticoMotivo('')
@@ -54,7 +56,8 @@ export const CertificadosSection = memo(({
     if (window.confirm('¿Deseas eliminar este registro de certificado del historial?')) {
       const actualizados = listaCertificados.filter(c => c.id !== id)
       setCertificados(actualizados)
-      pacientesStorageService.guardarItem(`certificados_${paciente.id}`, actualizados)
+      // F6-D-6: usar certificadosStorageService (Supabase + localStorage)
+      certificadosStorageService.guardarCertificados(paciente.id, actualizados).catch(console.warn)
       if (certSeleccionadoVer?.id === id) setCertSeleccionadoVer(null)
     }
   }
