@@ -1,5 +1,6 @@
 import React, { memo, useState } from 'react'
-import { pacientesStorageService } from '../services/pacientesStorageService'
+// F6-D-5: usar evolucionesStorageService en lugar de pacientesStorageService.guardarItem
+import { evolucionesStorageService } from '../services/evolucionesStorageService'
 import { useDictadoVoz } from '../hooks/useDictadoVoz'
 
 export const BitacoraSection = memo(({ pacienteId, evolucionesNotas = [], setEvolucionesNotas }) => {
@@ -25,7 +26,10 @@ export const BitacoraSection = memo(({ pacienteId, evolucionesNotas = [], setEvo
 
     const actualizadas = [nuevaNota, ...evolucionesNotas]
     setEvolucionesNotas(actualizadas)
-    pacientesStorageService.guardarItem(`evoluciones_notas_${pacienteId}`, actualizadas)
+    // F6-D-5: usar evolucionesStorageService (Supabase + localStorage)
+    evolucionesStorageService.guardarEvoluciones(pacienteId, actualizadas).catch(err => {
+      console.warn('[BitacoraSection] Error guardando evoluciones:', err)
+    })
 
     setTextoNuevaEvolucion('')
     setLoteAutoclave('')
@@ -40,7 +44,10 @@ export const BitacoraSection = memo(({ pacienteId, evolucionesNotas = [], setEvo
     if (window.confirm('¿Deseas eliminar esta nota clínica de la bitácora?')) {
       const actualizadas = evolucionesNotas.filter(n => n.id !== idNota)
       setEvolucionesNotas(actualizadas)
-      pacientesStorageService.guardarItem(`evoluciones_notas_${pacienteId}`, actualizadas)
+      // F6-D-5: usar evolucionesStorageService (Supabase + localStorage)
+      evolucionesStorageService.guardarEvoluciones(pacienteId, actualizadas).catch(err => {
+        console.warn('[BitacoraSection] Error guardando evoluciones:', err)
+      })
     }
   }
 

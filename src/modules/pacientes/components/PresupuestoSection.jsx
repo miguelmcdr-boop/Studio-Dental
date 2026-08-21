@@ -150,7 +150,10 @@ export const PresupuestoSection = memo(({
 
         const notasActualizadas = [nuevaNotaEvolucion, ...evolucionesNotas]
         setEvolucionesNotas(notasActualizadas)
-        pacientesStorageService.guardarItem(`evoluciones_notas_${paciente.id}`, notasActualizadas)
+        // F6-D-5: usar evolucionesStorageService (Supabase + localStorage)
+        evolucionesStorageService.guardarEvoluciones(paciente.id, notasActualizadas).catch(err => {
+          console.warn('[PresupuestoSection] Error guardando evolución:', err)
+        })
       }
 
       // 2. F2-12: Abrir modal de selección de materiales en vez de descontar directamente

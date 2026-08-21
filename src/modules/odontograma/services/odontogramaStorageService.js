@@ -46,22 +46,28 @@ export const odontogramaStorageService = {
 
   guardarOdontogramaInicial: async (pacienteId, data) => {
     if (!pacienteId) return false
+    // F6-D-3 fix: escribir localStorage PRIMERO (síncrono, inmediato)
+    const result = escribirJSON(`odonto_inicial_${pacienteId}`, data)
+    // Luego sincronizar con Supabase (async, puede fallar sin perder datos)
     try {
       await guardarOdontogramaSupabase(pacienteId, data, 'inicial')
     } catch (e) {
-      console.warn('[odontogramaStorageService] Error guardando en Supabase (usando fallback localStorage):', e?.message)
+      console.warn('[odontogramaStorageService] Error guardando en Supabase:', e?.message)
     }
-    return escribirJSON(`odonto_inicial_${pacienteId}`, data)
+    return result
   },
 
   guardarOdontogramaEvolucion: async (pacienteId, data) => {
     if (!pacienteId) return false
+    // F6-D-3 fix: escribir localStorage PRIMERO (síncrono, inmediato)
+    const result = escribirJSON(`odonto_evolucion_${pacienteId}`, data)
+    // Luego sincronizar con Supabase (async, puede fallar sin perder datos)
     try {
       await guardarOdontogramaSupabase(pacienteId, data, 'evolucion')
     } catch (e) {
-      console.warn('[odontogramaStorageService] Error guardando en Supabase (usando fallback localStorage):', e?.message)
+      console.warn('[odontogramaStorageService] Error guardando en Supabase:', e?.message)
     }
-    return escribirJSON(`odonto_evolucion_${pacienteId}`, data)
+    return result
   },
 
   // ─────────────────────────────────────────────────────────────

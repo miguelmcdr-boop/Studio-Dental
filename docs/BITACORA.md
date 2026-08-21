@@ -1,3 +1,34 @@
+## 2026-08-20 — F6-D-5: Cableado de evoluciones centralizadas — DONE
+
+**Qué se ganó:** Módulo de evoluciones clínicas (Bitácora) completamente cableado a Supabase con patrón offline-first. Las evoluciones creadas desde BitácoraSection y desde PresupuestoSection (auto-registro al ejecutar tratamiento) ahora persisten en Supabase y se sincronizan al recargar.
+
+**Archivos creados/modificados:**
+- `src/modules/pacientes/services/evolucionesStorageService.js` (NUEVO, ~125 líneas): API con transformación bidireccional
+- `src/modules/pacientes/services/evolucionesStorageService.test.js` (NUEVO, ~250 líneas): 17 tests unitarios
+- `src/modules/pacientes/components/BitacoraSection.jsx` (MODIFICADO, -2, +6 líneas): Usa evolucionesStorageService en lugar de pacientesStorageService.guardarItem (2 lugares)
+- `src/modules/pacientes/components/PresupuestoSection.jsx` (MODIFICADO, -1, +4 líneas): Usa evolucionesStorageService para auto-registro al ejecutar tratamiento
+- `src/modules/pacientes/hooks/useFichaPaciente.js` (MODIFICADO, -1, +1 líneas): Usa evolucionesStorageService.obtenerEvoluciones en carga inicial
+
+**Decisiones técnicas:**
+- Transformación bidireccional: formato local `{id, fecha: 'DD-MM-YYYY HH:MM', texto}` ↔ formato Supabase `{id, fecha_hora: ISO, texto, tipo}`
+- Estrategia "localStorage primero" para evitar pérdida de datos
+- Función `normalizarFechaHora` convierte múltiples formatos chilenos (DD-MM-YYYY HH:MM, DD/MM/YYYY HH:MM) a ISO string para PostgreSQL
+- Validación de UUID: solo IDs con formato UUID válido se envían a Supabase (los numéricos de Date.now() se omiten)
+- Campo `tipo` asume valor por defecto `'evolucion'` si no existe
+
+**Tests:**
+- ✅ 17/17 tests nuevos de evolucionesStorageService pasan (incluye 4 tests de normalización de fechas)
+- ✅ Tests de regresión completa sin problemas
+
+**Validación manual:**
+- ✅ Crear evolución en Bitácora → request POST a /rest/v1/evoluciones_clinicas con status 201
+- ✅ Recargar navegador → evoluciones persisten (GET con filtro por paciente_id)
+- ✅ Ejecutar tratamiento en Presupuesto → evolución automática se crea y persiste
+- ✅ Aislamiento multi-clínica: clínica 2 no ve evoluciones de clínica 1 (RLS funciona)
+- ✅ Fechas se normalizan correctamente (DD-MM-YYYY HH:MM → ISO string)
+
+**Siguiente:** F6-D-6 (cablear certificados).
+
 ## 2026-08-20 — F6-D-4: Cableado de recetas a Supabase — DONE
 
 **Qué se ganó:** Módulo recetas completamente cableado a Supabase con patrón offline-first y transformación bidireccional entre formato local (array de recetas simples) y formato Supabase (múltiples filas con estructura específica). Incluye refactor arquitectónico para respetar límite de 217 líneas.
