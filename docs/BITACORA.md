@@ -1,3 +1,36 @@
+## 2026-08-20 — F6-D-2: Cableado de odontograma a Supabase — DONE
+
+**Qué se ganó:** Módulo odontograma completamente cableado a Supabase con patrón offline-first (Supabase como fuente de verdad, localStorage como caché). Incluye fix del warning de React sobre actualizaciones durante render.
+
+**Archivos creados/modificados:**
+- `src/modules/odontograma/services/odontogramaStorageService.js` (REESCRITO, 20 → 85 líneas): API con métodos async para Supabase + fallback localStorage
+- `src/modules/pacientes/hooks/useFichaPaciente.js` (MODIFICADO, +3 líneas): Usa odontogramaStorageService en lugar de pacientesStorageService.guardarItem
+- `src/modules/odontograma/hooks/useOdontograma.js` (MODIFICADO): Reestructuración para eliminar warning de React
+- `src/modules/odontograma/services/odontogramaStorageService.test.js` (NUEVO, ~200 líneas): 12 tests unitarios
+- `src/modules/pacientes/hooks/useFichaPaciente.test.js` (MODIFICADO): 3 tests actualizados para verificar nuevo servicio
+
+**Decisiones técnicas:**
+- Patrón quirurgico replicado: Supabase como fuente de verdad, localStorage como caché
+- API síncrona para lectura (obtenerOdontogramaInicial/Evolucion) vía caché en memoria
+- API asíncrona para escritura (guardarOdontogramaInicial/Evolucion) con fallback a localStorage
+- Reestructuración de useOdontograma: persistencia movida a useEffect (elimina warning React de setState en render)
+
+**Fix adicional:** Warning de React "Cannot update a component while rendering a different component" resuelto definitivamente. Causa raíz: el guardarCallback se llamaba DENTRO del callback de setOdontograma. Solución: mover la persistencia a un useEffect que se dispara cuando odontograma cambia.
+
+**Tests:**
+- ✅ 12/12 tests nuevos de odontogramaStorageService pasan
+- ✅ 16/16 tests existentes de useOdontograma siguen pasando
+- ✅ 15/15 tests de useFichaPaciente pasan (3 actualizados)
+- ✅ Total: 43/43 tests sin regresión
+
+**Validación manual:**
+- ✅ Crear odontograma → request POST a /rest/v1/odontogramas aparece en Network
+- ✅ Recargar navegador → odontograma persiste (GET con filtro por paciente_id)
+- ✅ Aislamiento multi-clínica: clínica 2 no ve odontogramas de clínica 1 (RLS funciona)
+- ✅ Sin warnings en consola al interactuar con el odontograma
+
+**Siguiente:** F6-D-3 (cablear periodontograma storageService).
+
 ## 2026-08-20 — F6-D-1: Hook useFichaClinicaSync para sincronización de datos clínicos — DONE
 
 **Qué se ganó:** Hook centralizado que sincroniza todos los datos clínicos del paciente desde Supabase al abrir la ficha, y limpia la caché al cerrarla. Este es el primer paso del cableado completo de la ficha clínica a Supabase (F6-D).

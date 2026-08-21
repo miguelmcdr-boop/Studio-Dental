@@ -2,6 +2,7 @@ import { renderHook, act } from '@testing-library/react'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useFichaPaciente } from './useFichaPaciente'
 import { pacientesStorageService } from '../services/pacientesStorageService'
+import { odontogramaStorageService } from '../../odontograma/services/odontogramaStorageService'
 
 describe('useFichaPaciente', () => {
   const pacienteMock = {
@@ -17,6 +18,11 @@ describe('useFichaPaciente', () => {
     vi.clearAllMocks()
     vi.spyOn(pacientesStorageService, 'obtenerItem').mockImplementation((key, defaultValue) => defaultValue)
     vi.spyOn(pacientesStorageService, 'guardarItem').mockImplementation(() => {})
+    // F6-D-2: mock del nuevo servicio de odontogramas
+    vi.spyOn(odontogramaStorageService, 'obtenerOdontogramaInicial').mockImplementation((id, fallback) => fallback)
+    vi.spyOn(odontogramaStorageService, 'obtenerOdontogramaEvolucion').mockImplementation((id, fallback) => fallback)
+    vi.spyOn(odontogramaStorageService, 'guardarOdontogramaInicial').mockResolvedValue(true)
+    vi.spyOn(odontogramaStorageService, 'guardarOdontogramaEvolucion').mockResolvedValue(true)
   })
 
   describe('Inicialización', () => {
@@ -42,18 +48,16 @@ describe('useFichaPaciente', () => {
       const odontoInicial = { 18: 'obturado' }
       const odontoEvolucion = { 18: 'corona' }
       
-      vi.spyOn(pacientesStorageService, 'obtenerItem').mockImplementation((key) => {
-        if (key === 'odonto_inicial_123') return odontoInicial
-        if (key === 'odonto_evolucion_123') return odontoEvolucion
-        return []
-      })
+      // F6-D-2: ahora usa odontogramaStorageService
+      vi.spyOn(odontogramaStorageService, 'obtenerOdontogramaInicial').mockReturnValue(odontoInicial)
+      vi.spyOn(odontogramaStorageService, 'obtenerOdontogramaEvolucion').mockReturnValue(odontoEvolucion)
 
       const { result } = renderHook(() => 
         useFichaPaciente(pacienteMock, alActualizarPacienteMock)
       )
 
-      expect(pacientesStorageService.obtenerItem).toHaveBeenCalledWith('odonto_inicial_123', {})
-      expect(pacientesStorageService.obtenerItem).toHaveBeenCalledWith('odonto_evolucion_123', {})
+      expect(odontogramaStorageService.obtenerOdontogramaInicial).toHaveBeenCalledWith(123, {})
+      expect(odontogramaStorageService.obtenerOdontogramaEvolucion).toHaveBeenCalledWith(123, {})
       expect(result.current.odontogramaInicial).toEqual(odontoInicial)
       expect(result.current.odontogramaEvolucion).toEqual(odontoEvolucion)
     })
@@ -202,38 +206,40 @@ describe('useFichaPaciente', () => {
   })
 
   describe('guardarInicial y guardarEvolucion', () => {
-    it('guardarInicial actualiza estado y persiste', () => {
+    it('guardarInicial actualiza estado y persiste', async () => {
       const { result } = renderHook(() => 
         useFichaPaciente(pacienteMock, alActualizarPacienteMock)
       )
 
       const nuevoOdonto = { 18: 'obturado', 19: 'sano' }
 
-      act(() => {
-        result.current.guardarInicial(nuevoOdonto)
+      await act(async () => {
+        await result.current.guardarInicial(nuevoOdonto)
       })
 
       expect(result.current.odontogramaInicial).toEqual(nuevoOdonto)
-      expect(pacientesStorageService.guardarItem).toHaveBeenCalledWith(
-        'odonto_inicial_123',
+      // F6-D-2: ahora usa odontogramaStorageService
+      expect(odontogramaStorageService.guardarOdontogramaInicial).toHaveBeenCalledWith(
+        123,
         nuevoOdonto
       )
     })
 
-    it('guardarEvolucion actualiza estado y persiste', () => {
+    it('guardarEvolucion actualiza estado y persiste', async () => {
       const { result } = renderHook(() => 
         useFichaPaciente(pacienteMock, alActualizarPacienteMock)
       )
 
       const nuevoOdonto = { 18: 'corona' }
 
-      act(() => {
-        result.current.guardarEvolucion(nuevoOdonto)
+      await act(async () => {
+        await result.current.guardarEvolucion(nuevoOdonto)
       })
 
       expect(result.current.odontogramaEvolucion).toEqual(nuevoOdonto)
-      expect(pacientesStorageService.guardarItem).toHaveBeenCalledWith(
-        'odonto_evolucion_123',
+      // F6-D-2: ahora usa odontogramaStorageService
+      expect(odontogramaStorageService.guardarOdontogramaEvolucion).toHaveBeenCalledWith(
+        123,
         nuevoOdonto
       )
     })
