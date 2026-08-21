@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { pacientesStorageService } from '../services/pacientesStorageService'
+import { odontogramaStorageService } from '../../odontograma/services/odontogramaStorageService'
 import { useFichaClinicaSync } from './useFichaClinicaSync'
 
 export const useFichaPaciente = (paciente, alActualizarPaciente) => {
@@ -40,11 +41,12 @@ export const useFichaPaciente = (paciente, alActualizarPaciente) => {
     riesgoPeriodontal: paciente.riesgoPeriodontal || 'Gingivitis'
   })
 
+  // F6-D-2: cargar odontogramas desde Supabase (vía odontogramaStorageService)
   useEffect(() => {
-    const dataInicial = pacientesStorageService.obtenerItem(`odonto_inicial_${paciente.id}`, {})
+    const dataInicial = odontogramaStorageService.obtenerOdontogramaInicial(paciente.id, {})
     setOdontogramaInicial(dataInicial)
 
-    const dataEvolucion = pacientesStorageService.obtenerItem(`odonto_evolucion_${paciente.id}`, {})
+    const dataEvolucion = odontogramaStorageService.obtenerOdontogramaEvolucion(paciente.id, {})
     setOdontogramaEvolucion(dataEvolucion)
   }, [paciente.id])
 
@@ -56,14 +58,16 @@ export const useFichaPaciente = (paciente, alActualizarPaciente) => {
     })
   }, [paciente, alActualizarPaciente])
 
-  const guardarInicial = useCallback((nuevoOdonto) => {
+  // F6-D-2: guardar en Supabase + localStorage
+  const guardarInicial = useCallback(async (nuevoOdonto) => {
     setOdontogramaInicial(nuevoOdonto)
-    pacientesStorageService.guardarItem(`odonto_inicial_${paciente.id}`, nuevoOdonto)
+    await odontogramaStorageService.guardarOdontogramaInicial(paciente.id, nuevoOdonto)
   }, [paciente.id])
 
-  const guardarEvolucion = useCallback((nuevoOdonto) => {
+  // F6-D-2: guardar en Supabase + localStorage
+  const guardarEvolucion = useCallback(async (nuevoOdonto) => {
     setOdontogramaEvolucion(nuevoOdonto)
-    pacientesStorageService.guardarItem(`odonto_evolucion_${paciente.id}`, nuevoOdonto)
+    await odontogramaStorageService.guardarOdontogramaEvolucion(paciente.id, nuevoOdonto)
   }, [paciente.id])
 
   const totalPresupuesto = useMemo(() => (itemsPresupuesto || []).reduce((acc, curr) => acc + (curr.valor || 0), 0), [itemsPresupuesto])
