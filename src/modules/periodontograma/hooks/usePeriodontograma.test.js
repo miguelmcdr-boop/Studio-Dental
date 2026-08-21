@@ -305,12 +305,15 @@ describe('usePeriodontograma', () => {
       expect(result.current.controlActivoId).toBe(result.current.historialControles[0].id)
     })
 
-    it('persiste cambios en localStorage con la clave correcta', () => {
+    it('persiste cambios en localStorage con la clave correcta', async () => {
       const { result } = renderHook(() => usePeriodontograma(pacienteId))
 
-      act(() => {
+      await act(async () => {
         result.current.actualizarSondaje('1.1', 'mesial', 3)
       })
+
+      // F6-D-3: guardarHistorialControles ahora es async, esperar a que se resuelva
+      await new Promise(resolve => setTimeout(resolve, 0))
 
       const storedData = window.localStorage.getItem(storageKey)
       expect(storedData).toBeTruthy()

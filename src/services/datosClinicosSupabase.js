@@ -452,6 +452,65 @@ export const guardarPeriodontograma = async (pacienteId, periodontograma, tipo =
 }
 
 /**
+ * Guarda el historial de controles periodontales en Supabase (F6-D-3).
+ *
+ * La tabla periodontogramas_historial tiene estructura diferente a periodontogramas:
+ * - Columna 'controles' (jsonb) en lugar de 'datos'
+ * - Sin columnas 'tipo' ni 'fecha_registro'
+ *
+ * @param {string} pacienteId - UUID del paciente
+ * @param {Array} historial - Historial de controles periodontales
+ * @returns {Promise<Object|null>} El historial guardado o null si falla
+ */
+export const guardarPeriodontogramaHistorial = async (pacienteId, historial) => {
+  if (!USE_SUPABASE || !supabase || !pacienteId) {
+    return null
+  }
+
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return null
+
+    const historialSupabase = {
+      user_id: user.id,
+      paciente_id: pacienteId,
+      controles: historial
+    }
+
+    // Buscar si ya existe un historial para este paciente
+    const { data: existente } = await supabase
+      .from('periodontogramas_historial')
+      .select('id')
+      .eq('paciente_id', pacienteId)
+      .maybeSingle()
+
+    if (existente) {
+      const { data, error } = await supabase
+        .from('periodontogramas_historial')
+        .update(historialSupabase)
+        .eq('id', existente.id)
+        .select()
+        .maybeSingle()
+
+      if (error) throw error
+      return data
+    } else {
+      const { data, error } = await supabase
+        .from('periodontogramas_historial')
+        .insert(historialSupabase)
+        .select()
+        .maybeSingle()
+
+      if (error) throw error
+      return data
+    }
+  } catch (error) {
+    console.error('[datosClinicosSupabase] Error al guardar historial periodontal:', error)
+    return null
+  }
+}
+
+/**
  * Guarda datos genéricos en una tabla específica.
  *
  * @param {string} pacienteId - UUID del paciente

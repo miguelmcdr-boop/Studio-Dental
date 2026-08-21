@@ -1,61 +1,106 @@
 /**
- * Persistencia aislada en LocalStorage para Periodontograma (F2-07b).
+ * Servicio de Persistencia de Periodontogramas (F6-D-3)
+ *
+ * Estrategia: Supabase como fuente de verdad, localStorage como caché offline
+ * (alineado con RFC F4-01 y patrón de odontogramaStorageService / quirurgicoStorageService).
  *
  * Maneja 3 tipos de datos, todos con claves dinámicas por pacienteId:
- * - Periodontograma inicial: `periodontograma_${pacienteId}`
- * - Periodontograma de control (reevaluación): `periodontograma_control_${pacienteId}`
- * - Historial de controles: `periodonto_historial_${pacienteId}`
+ * - Periodontograma inicial: `periodontograma_${pacienteId}` → Supabase tabla periodontogramas (tipo='inicial')
+ * - Periodontograma de control: `periodontograma_control_${pacienteId}` → Supabase tabla periodontogramas (tipo='control')
+ * - Historial de controles: `periodonto_historial_${pacienteId}` → Supabase tabla periodontogramas_historial
  *
- * Cumple Cap. VII.4 de la Constitución (try/catch obligatorio en toda
- * llamada a localStorage, encapsulado en leerJSON/escribirJSON).
+ * API pública:
+ * - obtenerPeriodontogramaDePaciente(pacienteId, fallback)  → SÍNCRONO, Supabase → localStorage
+ * - obtenerControlDePaciente(pacienteId, fallback)          → SÍNCRONO, Supabase → localStorage
+ * - obtenerHistorialControles(pacienteId, fallback)         → SÍNCRONO, Supabase → localStorage
+ * - guardarPeriodontogramaDePaciente(pacienteId, data)      → ASYNC, Supabase + localStorage
+ * - guardarControlDePaciente(pacienteId, data)              → ASYNC, Supabase + localStorage
+ * - guardarHistorialControles(pacienteId, historial)        → ASYNC, Supabase + localStorage
+ * - eliminarDatosDePaciente(pacienteId)                     → SÍNCRONO, limpia localStorage (F2-07d)
  */
 import { leerJSON, escribirJSON } from '../../../services/localStorageRepository'
-
-const construirKeyPeriodontograma = (pacienteId) => `periodontograma_${pacienteId}`
-const construirKeyControl = (pacienteId) => `periodontograma_control_${pacienteId}`
-const construirKeyHistorial = (pacienteId) => `periodonto_historial_${pacienteId}`
+import {
+  guardarPeriodontograma as guardarPeriodontogramaSupabase,
+  guardarPeriodontogramaHistorial as guardarPeriodontogramaHistorialSupabase,
+  obtenerDatoClinico
+} from '../../../services/datosClinicosSupabase'
 
 export const periodontogramaStorageService = {
-  // Periodontograma inicial
+  // ─────────────────────────────────────────────────────────────
+  // F6-D-3: Lectura con prioridad Supabase → fallback localStorage
+  // ─────────────────────────────────────────────────────────────
+
   obtenerPeriodontogramaDePaciente: (pacienteId, fallback = {}) => {
     if (!pacienteId) return fallback
-    return leerJSON(construirKeyPeriodontograma(pacienteId), fallback)
+    const datoSupabase = obtenerDatoClinico(pacienteId, 'periodontograma', null)
+    return datoSupabase !== null ? datoSupabase : leerJSON(`periodontograma_${pacienteId}`, fallback)
   },
 
-  guardarPeriodontogramaDePaciente: (pacienteId, data) => {
-    if (!pacienteId) return false
-    return escribirJSON(construirKeyPeriodontograma(pacienteId), data)
-  },
-
-  // Periodontograma de control (reevaluación)
   obtenerControlDePaciente: (pacienteId, fallback = {}) => {
     if (!pacienteId) return fallback
-    return leerJSON(construirKeyControl(pacienteId), fallback)
+    const datoSupabase = obtenerDatoClinico(pacienteId, 'periodontograma_control', null)
+    return datoSupabase !== null ? datoSupabase : leerJSON(`periodontograma_control_${pacienteId}`, fallback)
   },
 
-  guardarControlDePaciente: (pacienteId, data) => {
-    if (!pacienteId) return false
-    return escribirJSON(construirKeyControl(pacienteId), data)
-  },
-
-  // Historial de controles (usado por usePeriodontograma)
   obtenerHistorialControles: (pacienteId, fallback = []) => {
     if (!pacienteId) return fallback
-    return leerJSON(construirKeyHistorial(pacienteId), fallback)
+    const datoSupabase = obtenerDatoClinico(pacienteId, 'periodonto_historial', null)
+    return datoSupabase !== null ? datoSupabase : leerJSON(`periodonto_historial_${pacienteId}`, fallback)
   },
 
-  guardarHistorialControles: (pacienteId, historial) => {
+  // ─────────────────────────────────────────────────────────────
+  // F6-D-3: Escritura en Supabase + localStorage
+  // ─────────────────────────────────────────────────────────────
+
+  guardarPeriodontogramaDePaciente: async (pacienteId, data) => {
     if (!pacienteId) return false
-    return escribirJSON(construirKeyHistorial(pacienteId), historial)
+    // F6-D-3 fix: escribir localStorage PRIMERO (síncrono, inmediato)
+    const result = escribirJSON(`periodontograma_${pacienteId}`, data)
+    // Luego sincronizar con Supabase (async, puede fallar sin perder datos)
+    try {
+      await guardarPeriodontogramaSupabase(pacienteId, data, 'inicial')
+    } catch (e) {
+      console.warn('[periodontogramaStorageService] Error guardando periodontograma inicial en Supabase:', e?.message)
+    }
+    return result
   },
 
-  // Eliminar todos los datos de un paciente (para F2-07d - limpieza bidireccional)
+  guardarControlDePaciente: async (pacienteId, data) => {
+    if (!pacienteId) return false
+    // F6-D-3 fix: escribir localStorage PRIMERO (síncrono, inmediato)
+    const result = escribirJSON(`periodontograma_control_${pacienteId}`, data)
+    // Luego sincronizar con Supabase (async, puede fallar sin perder datos)
+    try {
+      await guardarPeriodontogramaSupabase(pacienteId, data, 'control')
+    } catch (e) {
+      console.warn('[periodontogramaStorageService] Error guardando control en Supabase:', e?.message)
+    }
+    return result
+  },
+
+  guardarHistorialControles: async (pacienteId, historial) => {
+    if (!pacienteId) return false
+    // F6-D-3 fix: escribir localStorage PRIMERO (síncrono, inmediato)
+    const result = escribirJSON(`periodonto_historial_${pacienteId}`, historial)
+    // Luego sincronizar con Supabase (async, puede fallar sin perder datos)
+    try {
+      await guardarPeriodontogramaHistorialSupabase(pacienteId, historial)
+    } catch (e) {
+      console.warn('[periodontogramaStorageService] Error guardando historial en Supabase:', e?.message)
+    }
+    return result
+  },
+
+  // ─────────────────────────────────────────────────────────────
+  // F2-07d: Eliminación bidireccional
+  // ─────────────────────────────────────────────────────────────
+
   eliminarDatosDePaciente: (pacienteId) => {
     if (!pacienteId) return
     try {
-      localStorage.removeItem(construirKeyPeriodontograma(pacienteId))
-      localStorage.removeItem(construirKeyControl(pacienteId))
-      localStorage.removeItem(construirKeyHistorial(pacienteId))
+      localStorage.removeItem(`periodontograma_${pacienteId}`)
+      localStorage.removeItem(`periodontograma_control_${pacienteId}`)
+      localStorage.removeItem(`periodonto_historial_${pacienteId}`)
     } catch (e) {
       console.error(`Error al eliminar datos periodontales del paciente ${pacienteId}:`, e)
     }

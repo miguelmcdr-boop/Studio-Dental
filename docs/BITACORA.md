@@ -1,3 +1,39 @@
+## 2026-08-20 — F6-D-3: Cableado de periodontograma a Supabase — DONE
+
+**Qué se ganó:** Módulo periodontograma completamente cableado a Supabase con patrón offline-first. Incluye dos fixes críticos descubiertos durante la implementación.
+
+**Archivos creados/modificados:**
+- `src/services/datosClinicosSupabase.js` (MODIFICADO, +56 líneas): Nuevo método `guardarPeriodontogramaHistorial` (usa columna `controles` en lugar de `datos`)
+- `src/modules/periodontograma/services/periodontogramaStorageService.js` (REESCRITO, 62 → 115 líneas): API con métodos async para Supabase + fallback localStorage
+- `src/modules/periodontograma/services/periodontogramaStorageService.test.js` (NUEVO, ~220 líneas): 15 tests unitarios
+- `src/modules/periodontograma/hooks/usePeriodontograma.test.js` (MODIFICADO, 1 test): Test de persistencia actualizado a async
+- `src/modules/periodontograma/PeriodontogramaModulo.jsx` (MODIFICADO, +18 líneas): useEffect de auto-guardado (fix crítico)
+
+**Decisiones técnicas:**
+- Estrategia "localStorage primero": escribir localStorage (síncrono, inmediato) ANTES de Supabase (async)
+- Método específico `guardarPeriodontogramaHistorial` porque la tabla `periodontogramas_historial` tiene estructura diferente (columna `controles` en lugar de `datos`)
+- Auto-guardado vía useEffect en PeriodontogramaModulo.jsx para garantizar persistencia sin requerir clic manual
+
+**Fixes críticos descubiertos durante implementación:**
+
+1. **Bug de timing offline-first (D60):** Los métodos de guardado escribían a localStorage DESPUÉS de `await` a Supabase. Si Supabase tardaba, localStorage nunca se escribía (Promise sin await en useEffect). Solución: invertir orden — localStorage primero (síncrono, inmediato), Supabase después (async).
+
+2. **Falta de auto-guardado (D61):** PeriodontogramaModulo.jsx no usaba el hook usePeriodontograma y solo guardaba con clic manual. Los datos se perdían al recargar si el usuario no hacía clic en "💾 Guardar". Solución: agregar useEffect de auto-guardado (patrón odontograma).
+
+**Tests:**
+- ✅ 15/15 tests nuevos de periodontogramaStorageService pasan
+- ✅ 21/21 tests de usePeriodontograma pasan (1 actualizado a async)
+- ✅ 627/627 tests de suite completa sin regresión
+
+**Validación manual:**
+- ✅ Al editar periodontograma → datos se escriben a localStorage automáticamente (sin clic en "Guardar")
+- ✅ Al recargar navegador → datos persisten correctamente
+- ✅ En Network aparece request POST/PATCH a `/rest/v1/periodontogramas_historial` (o `periodontogramas`)
+- ✅ Aislamiento multi-clínica: clínica 2 no ve datos de clínica 1 (RLS funciona)
+- ✅ Sin warnings de React en consola
+
+**Siguiente:** F6-D-4 (cablear recetas storageService).
+
 ## 2026-08-20 — F6-D-2: Cableado de odontograma a Supabase — DONE
 
 **Qué se ganó:** Módulo odontograma completamente cableado a Supabase con patrón offline-first (Supabase como fuente de verdad, localStorage como caché). Incluye fix del warning de React sobre actualizaciones durante render.
