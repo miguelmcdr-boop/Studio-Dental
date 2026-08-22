@@ -1,3 +1,47 @@
+## 2026-08-22 — F6-F: Auditoría append-only por trigger + soft delete de ficha clínica — DONE
+
+**Qué se ganó:** Trazabilidad legal completa de la ficha clínica. Todos los cambios en tablas clínicas y financieras quedan registrados automáticamente en `audit_log` vía triggers server-side. Los pacientes eliminados usan soft delete (marcan `deleted_at`), quedan ocultos pero son reversibles por admin. La auditoría es append-only: ningún usuario puede insertar/modificar registros de auditoría desde el cliente.
+
+**Infraestructura Supabase creada:**
+- Función `auditar_cambio()` con `SECURITY DEFINER` (bypass de RLS, escribe en audit_log automáticamente)
+- 11 triggers `trg_*_audit` en: pacientes, citas, evoluciones_clinicas, recetas, certificados, odontogramas, periodontogramas, presupuestos, presupuesto_items, pagos, movimientos_financieros
+- Columna `clinica_id` agregada a `audit_log` + índices para consultas eficientes
+- Políticas RLS de `audit_log`: append-only (solo SELECT para admin de clínica, sin INSERT/UPDATE/DELETE para usuarios)
+- Columna `deleted_at` agregada a `pacientes`
+- Políticas RLS de `pacientes` reescritas: `pacientes_select_activos` (filtra deleted_at), `pacientes_select_admin_todos` (admin ve todos), `pacientes_update_activos` (solo activos)
+- Política `pacientes_delete_clinica` eliminada (ya no hay borrado duro)
+
+**Archivos creados/modificados:**
+- `src/modules/pacientes/services/pacientesSoftDeleteService.js` (NUEVO, 120 líneas): API de soft delete (eliminarPaciente, restaurarPaciente, listarPacientesEliminados)
+- `src/modules/pacientes/services/pacientesTransformations.js` (NUEVO, 66 líneas): Funciones de transformación snake_case ↔ camelCase extraídas de pacientesStorageService
+- `src/modules/pacientes/services/pacientesSoftDeleteService.test.js` (NUEVO, ~180 líneas): 13 tests unitarios
+- `src/modules/pacientes/services/pacientesStorageService.js` (MODIFICADO, 387 → 435 líneas): Bloque DELETE convertido a soft delete, sincronizarDesdeSupabase filtra deleted_at, métodos de soft delete re-exportados en API pública
+- `src/modules/pacientes/hooks/usePacientesActions.js` (NUEVO, ~80 líneas): Hook extraído de App.jsx para respetar límite arquitectónico
+- `src/App.jsx` (MODIFICADO, 377 → ~360 líneas): Usa usePacientesActions, imports no usados eliminados
+
+**Decisiones técnicas:**
+- Triggers server-side en lugar de logging desde cliente: garantiza que la auditoría no pueda ser falsificada desde el navegador
+- `SECURITY DEFINER` en función `auditar_cambio()`: bypass de RLS para que los triggers puedan escribir en audit_log
+- Soft delete con `deleted_at` en lugar de borrado duro: preserva integridad referencial, permite reversión por admin, cumple Ley 20.584 (ficha clínica no se elimina, se archiva)
+- Extracción de `usePacientesActions.js` de App.jsx: respeta límite arquitectónico de 370 líneas (App.jsx: 377 → 360)
+- Extracción de transformaciones a archivo separado: respeta límite de 450 líneas en pacientesStorageService (480 → 435)
+
+**Tests:**
+- ✅ 13/13 tests de pacientesSoftDeleteService (eliminar, restaurar, listar, ciclo de vida completo)
+- ✅ 723/723 tests de suite completa sin regresión
+- ✅ Validación arquitectónica: 0 violaciones
+- ✅ Lint: 0 warnings, 0 errors
+
+**Validación manual:**
+- ✅ Eliminar paciente → request UPDATE a /rest/v1/pacientes con `deleted_at` no null
+- ✅ Paciente eliminado desaparece del directorio (RLS filtra `deleted_at IS NULL`)
+- ✅ Trigger `trg_pacientes_audit` registra UPDATE en `audit_log` con `user_email`, `old_data`, `new_data`, `created_at`
+- ✅ Admin puede ver pacientes eliminados vía `listarPacientesEliminados()` (papelera de reciclaje)
+- ✅ Restauración funciona: admin puede quitar marca `deleted_at` y paciente vuelve al directorio
+- ✅ Aislamiento multi-clínica preservado: solo admin de la clínica puede ver audit_log y pacientes eliminados
+
+**Siguiente:** F6-G (validación de RUT módulo 11 + unicidad por clínica).
+
 ## 2026-08-20 — F6-E: Adjuntos clínicos a Supabase Storage con URLs firmadas — DONE
 
 **Qué se ganó:** Radiografías, fotografías clínicas y consentimientos informados ahora se sincronizan con Supabase Storage. IndexedDB pasa a ser caché offline; Supabase Storage es la fuente de verdad. Los adjuntos son accesibles desde cualquier dispositivo vía URL firmada de vida corta (1 hora).

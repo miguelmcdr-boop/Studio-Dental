@@ -1,5 +1,4 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react'
-import { eliminarTodosPorPaciente as eliminarAdjuntosDelPaciente } from './services/adjuntosStorageService'
 import { LoginScreen } from './components/LoginScreen'
 import { Sidebar } from './components/Sidebar'
 import { CargandoModulo } from './components/CargandoModulo'
@@ -12,14 +11,11 @@ import { useDataMigration } from './hooks/useDataMigration'
 import { useRealtimeSync } from './hooks/useRealtimeSync'
 import { useOfflineQueue } from './hooks/useOfflineQueue'
 import { supabase, USE_SUPABASE } from './services/supabaseClient'
-import { odontogramaStorageService } from './modules/odontograma'
-import { presupuestosStorageService } from './modules/presupuestos/services/presupuestosStorageService'
-import { pagosStorageService } from './modules/pagos/services/pagosStorageService'
-import { pacientesStorageService } from './modules/pacientes'
 
 // Módulos de uso diario — carga eager (Public API, Constitución v3.0.0)
 import { Agenda as AgendaModulo } from './modules/agenda'
 import { FichaPaciente, DirectorioPacientes } from './modules/pacientes'
+import { usePacientesActions } from './modules/pacientes/hooks/usePacientesActions'
 import { DashboardModulo } from './modules/dashboard'
 
 // (F2-05) — resto de los módulos vía React.lazy: no se descargan en el
@@ -235,27 +231,12 @@ function App() {
     setPacienteSeleccionado(pacienteActualizado)
   }
 
-  const handleEliminarPaciente = (idPaciente) => {
-    if (window.confirm('¿Estás seguro de eliminar este paciente y todos sus registros clínicos? Esta acción no se puede deshacer.')) {
-      const nuevaLista = pacientes.filter(p => p.id !== idPaciente)
-      setPacientes(nuevaLista)
-      setPacienteSeleccionado(null)
-
-      // F2-07d: eliminación vía servicios, no acceso directo a localStorage
-      odontogramaStorageService.eliminarOdontogramasDePaciente(idPaciente)
-      pacientesStorageService.eliminarEvolucionesDePaciente(idPaciente)
-      presupuestosStorageService.eliminarItemsDePaciente(idPaciente)
-      pagosStorageService.eliminarAbonosDePaciente(idPaciente)
-      pacientesStorageService.eliminarRecetasDePaciente(idPaciente)
-
-      // Los adjuntos clínicos viven en IndexedDB (F1-02), no en localStorage.
-      // La eliminación es asíncrona; se registra el error si falla, pero no
-      // bloquea el resto del flujo de eliminación del paciente.
-      eliminarAdjuntosDelPaciente(idPaciente).catch((e) => {
-        console.error('No se pudieron eliminar los adjuntos IndexedDB del paciente:', e)
-      })
-    }
-  }
+  const { handleEliminarPaciente } = usePacientesActions(
+    pacientes,
+    setPacientes,
+    pacienteSeleccionado,
+    setPacienteSeleccionado
+  )
 
   if (!userProfile) return <LoginScreen onLogin={handleLogin} />
 
