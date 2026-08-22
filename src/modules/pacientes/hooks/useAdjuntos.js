@@ -4,10 +4,11 @@ import {
   obtenerAdjuntosPorPaciente,
   eliminarAdjunto as eliminarAdjuntoDelServicio
 } from '../../../services/adjuntosStorageService'
+import { useSesionStore } from '../../../store/sesionStore'
 
 /**
  * Hook de adjuntos clínicos de un paciente (fotos, radiografías, consentimientos).
- * Tarea MASTER_ROADMAP: F1-02
+ * Tarea MASTER_ROADMAP: F1-02 + F6-E (Supabase Storage)
  *
  * Ningún componente debe llamar a adjuntosStorageService directamente
  * (Cap. III de la Constitución) — este hook es el único punto de entrada.
@@ -15,12 +16,18 @@ import {
  * Las URLs de objeto (para <img src=...>) se generan aquí a partir de los
  * blobs recuperados de IndexedDB, y se revocan al recargar o desmontar
  * para no filtrar memoria.
+ *
+ * F6-E: se agrega indicador de sincronización con Supabase Storage.
  */
 export const useAdjuntos = (pacienteId) => {
   const [adjuntos, setAdjuntos] = useState({ foto: [], rx: [], consentimiento: [] })
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
+  const [sincronizando, setSincronizando] = useState(false)
   const urlsCreadas = useRef([])
+
+  // F6-E: obtener clinicaId de sesionStore para subir a Supabase
+  const clinicaId = useSesionStore((state) => state.userProfile?.clinicaId || null)
 
   const revocarUrlsAnteriores = () => {
     urlsCreadas.current.forEach((url) => URL.revokeObjectURL(url))
@@ -69,26 +76,41 @@ export const useAdjuntos = (pacienteId) => {
   const subirArchivos = useCallback(async (files, tipo) => {
     if (!pacienteId) return
     setError(null)
+    setSincronizando(true)
     try {
       for (const file of Array.from(files)) {
+        // F6-E: pasar clinicaId para subir a Supabase Storage
         // eslint-disable-next-line no-await-in-loop
-        await guardarAdjunto({ pacienteId, tipo, blob: file, nombre: file.name })
+        await guardarAdjunto({ pacienteId, tipo, blob: file, nombre: file.name, clinicaId })
       }
       await cargar()
     } catch (e) {
       setError(e?.message || 'No se pudo guardar el archivo.')
+    } finally {
+      setSincronizando(false)
     }
-  }, [pacienteId, cargar])
+  }, [pacienteId, cargar, clinicaId])
 
   const eliminarArchivo = useCallback(async (id) => {
     setError(null)
+    setSincronizando(true)
     try {
       await eliminarAdjuntoDelServicio(id)
       await cargar()
     } catch (e) {
       setError(e?.message || 'No se pudo eliminar el archivo.')
+    } finally {
+      setSincronizando(false)
     }
   }, [cargar])
 
-  return { adjuntos, cargando, error, subirArchivos, eliminarArchivo }
+  return { 
+    adjuntos, 
+    cargando, 
+    error, 
+    subirArchivos, 
+    eliminarArchivo,
+    sincronizando,
+    clinicaId 
+  }
 }

@@ -1,3 +1,43 @@
+## 2026-08-20 — F6-E: Adjuntos clínicos a Supabase Storage con URLs firmadas — DONE
+
+**Qué se ganó:** Radiografías, fotografías clínicas y consentimientos informados ahora se sincronizan con Supabase Storage. IndexedDB pasa a ser caché offline; Supabase Storage es la fuente de verdad. Los adjuntos son accesibles desde cualquier dispositivo vía URL firmada de vida corta (1 hora).
+
+**Archivos creados/modificados:**
+- `src/services/adjuntosSupabaseService.js` (NUEVO, ~180 líneas): Servicio de Supabase Storage (subir, URL firmada, eliminar, listar)
+- `src/services/adjuntosSupabaseService.test.js` (NUEVO, ~200 líneas): 14 tests unitarios
+- `src/services/adjuntosStorageService.js` (REESCRITO, 130 → 252 líneas): Integración dual IndexedDB + Supabase (offline-first)
+- `src/services/adjuntosStorageService.test.js` (MODIFICADO, +5 tests F6-E): Tests de integración con Supabase
+- `src/modules/pacientes/hooks/useAdjuntos.js` (MODIFICADO, +12 líneas): Obtiene clinicaId de sesionStore, agrega estado `sincronizando`
+- `src/modules/pacientes/components/AdjuntosSection.jsx` (MODIFICADO, +18 líneas): Indicadores de sincronización (✓ Cloud / 📱 Local) + spinner
+
+**Infraestructura Supabase creada:**
+- Bucket `adjuntos-clinicos` (privado, public=false)
+- 4 políticas RLS: select/insert/update/delete alineadas con `clinica_actual()`
+- Path: `{clinicaId}/{pacienteId}/{tipo}/{idArchivo}-{nombre}`
+
+**Decisiones técnicas:**
+- Estrategia offline-first: guardar primero en IndexedDB (inmediato), luego intentar subir a Supabase (background)
+- Si Supabase falla, el adjunto queda disponible localmente con badge "📱 Local"
+- Si Supabase funciona, el registro se actualiza con `storagePath` y `sincronizado=true`, badge "✓ Cloud"
+- URLs firmadas de vida corta (1 hora por defecto) para descargar — nunca URLs públicas
+- Sanitización de nombres de archivo: `/` y `\` se reemplazan por `_`
+
+**Tests:**
+- ✅ 14/14 tests de adjuntosSupabaseService (subir, URL firmada, eliminar, listar)
+- ✅ 14/14 tests de adjuntosStorageService (9 originales + 5 F6-E)
+- ✅ 710/710 tests de suite completa sin regresión
+- ✅ Validación arquitectónica: 0 violaciones
+
+**Validación manual:**
+- ✅ Subir adjunto → request a Supabase Storage con status 200
+- ✅ Adjunto visible en Supabase Dashboard → bucket `adjuntos-clinicos`
+- ✅ Badge "✓ Cloud" aparece cuando el archivo está sincronizado
+- ✅ Badge "📱 Local" aparece cuando solo está en IndexedDB
+- ✅ Eliminar adjunto → se elimina de IndexedDB Y de Supabase Storage
+- ✅ Aislamiento multi-clínica: solo usuarios de la misma clínica pueden acceder
+
+**Siguiente:** F6-F (auditoría append-only + soft delete).
+
 ## 2026-08-20 — F6-D-7: Tests integración + aislamiento multi-clínica — DONE
 
 **Qué se ganó:** Tests de integración E2E y aislamiento multi-clínica que validan end-to-end todo el cableado de F6-D. Se agregaron funciones de limpieza de caché a datosClinicosSupabase.js para permitir testing determinista.

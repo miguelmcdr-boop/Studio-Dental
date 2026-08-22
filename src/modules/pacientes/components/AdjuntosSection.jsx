@@ -1,21 +1,45 @@
 import React, { memo } from 'react'
 import { useAdjuntos } from '../hooks/useAdjuntos'
 
+/**
+ * Sección de adjuntos clínicos (fotos, radiografías, consentimientos).
+ * Tarea MASTER_ROADMAP: F1-02 + F6-E (Supabase Storage)
+ *
+ * F6-E: muestra indicador de sincronización con Supabase:
+ * - 🔄 Sincronizando... (durante subida/eliminación)
+ * - ✓ Sincronizado (adjunto tiene storagePath en Supabase)
+ * - 📱 Local (adjunto solo en IndexedDB, sin storagePath)
+ */
 export const AdjuntosSection = memo(({ tabActiva, pacienteId }) => {
-  const { adjuntos, cargando, error, subirArchivos, eliminarArchivo } = useAdjuntos(pacienteId)
+  const { adjuntos, cargando, error, subirArchivos, eliminarArchivo, sincronizando } = useAdjuntos(pacienteId)
 
   const handleSubirArchivo = (e, tipo) => {
     const files = e.target.files
     if (files && files.length > 0) {
       subirArchivos(files, tipo)
     }
-    e.target.value = '' // permite volver a seleccionar el mismo archivo si se elimina y se vuelve a subir
+    e.target.value = ''
   }
 
   const BannerError = () =>
     error ? (
       <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-300 text-red-800 text-xs font-semibold">
         ⚠ {error}
+      </div>
+    ) : null
+
+  const BadgeSincronizacion = ({ registro }) => {
+    if (registro.storagePath) {
+      return <span className="text-xs font-semibold bg-green-100 text-green-800 px-2 py-1 rounded">✓ Cloud</span>
+    }
+    return <span className="text-xs font-semibold bg-yellow-100 text-yellow-800 px-2 py-1 rounded">📱 Local</span>
+  }
+
+  const SpinnerSincronizacion = () =>
+    sincronizando ? (
+      <div className="flex items-center justify-center gap-2 py-2 text-xs text-gray-500">
+        <span className="animate-spin">🔄</span>
+        <span>Sincronizando con la nube...</span>
       </div>
     ) : null
 
@@ -42,6 +66,7 @@ export const AdjuntosSection = memo(({ tabActiva, pacienteId }) => {
         </div>
 
         <BannerError />
+        <SpinnerSincronizacion />
 
         {cargando && <p className="text-xs text-gray-400 text-center py-8">Cargando adjuntos guardados…</p>}
 
@@ -54,7 +79,7 @@ export const AdjuntosSection = memo(({ tabActiva, pacienteId }) => {
                   <p className="text-[10px] text-gray-400">{new Date(doc.fecha).toLocaleDateString('es-CL')}</p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-xs font-semibold bg-green-100 text-green-800 px-2 py-1 rounded">Adjunto ✓</span>
+                  <BadgeSincronizacion registro={doc} />
                   <button
                     onClick={() => eliminarArchivo(doc.id)}
                     title="Eliminar"
@@ -79,15 +104,24 @@ export const AdjuntosSection = memo(({ tabActiva, pacienteId }) => {
   const tipoSubida = tabActiva === 'Fotografías Clínicas' ? 'foto' : 'rx'
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6 print:hidden">
+    <div className="bg-white border border-gray-200 rounded-2xl p-6 print:hidden">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="font-bold text-sm text-gray-900">{tabActiva}</h3>
+        <div>
+          <h3 className="font-bold text-sm text-gray-900">
+            {tabActiva === 'Fotografías Clínicas' ? 'Fotografías Clínicas' : 'Radiografías'}
+          </h3>
+          <p className="text-xs text-gray-500">
+            {tabActiva === 'Fotografías Clínicas' 
+              ? 'Documenta el progreso del tratamiento con imágenes clínicas.'
+              : 'Gestiona radiografías panorámicas, periapicales y otros estudios.'}
+          </p>
+        </div>
         <label className="bg-black text-white text-xs font-semibold px-4 py-2 rounded-lg cursor-pointer hover:bg-gray-800 transition-colors">
-          📷 Cargar Archivos
+          📸 Subir {tabActiva === 'Fotografías Clínicas' ? 'Fotos' : 'Radiografías'}
           <input
             type="file"
             multiple
-            accept="image/*"
+            accept="image/*,.pdf"
             onChange={(e) => handleSubirArchivo(e, tipoSubida)}
             className="hidden"
           />
@@ -95,30 +129,46 @@ export const AdjuntosSection = memo(({ tabActiva, pacienteId }) => {
       </div>
 
       <BannerError />
+      <SpinnerSincronizacion />
 
       {cargando && <p className="text-xs text-gray-400 text-center py-8">Cargando adjuntos guardados…</p>}
 
       {!cargando && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {lista.map(img => (
-            <div key={img.id} className="border rounded-xl overflow-hidden bg-gray-50 p-2 relative group">
-              <button
-                onClick={() => eliminarArchivo(img.id)}
-                title="Eliminar"
-                className="absolute top-1 right-1 bg-white/90 rounded-full w-5 h-5 text-[10px] font-bold text-gray-500 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                ✕
-              </button>
-              <img src={img.url} alt={img.nombre} className="w-full h-32 object-cover rounded-lg mb-2" />
-              <p className="text-[10px] font-semibold text-gray-700 truncate">{img.nombre}</p>
-              <p className="text-[9px] text-gray-400">{new Date(img.fecha).toLocaleDateString('es-CL')}</p>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {lista.map(doc => (
+            <div key={doc.id} className="border rounded-xl overflow-hidden bg-gray-50 hover:shadow-md transition-shadow">
+              <div className="aspect-video bg-gray-200 relative">
+                <img
+                  src={doc.url}
+                  alt={doc.nombre}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="p-3 flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-gray-800 truncate max-w-[120px]">{doc.nombre}</p>
+                  <p className="text-[10px] text-gray-400">{new Date(doc.fecha).toLocaleDateString('es-CL')}</p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <BadgeSincronizacion registro={doc} />
+                  <button
+                    onClick={() => eliminarArchivo(doc.id)}
+                    title="Eliminar"
+                    className="text-gray-400 hover:text-red-600 text-xs font-bold px-1"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
             </div>
           ))}
         </div>
       )}
 
       {!cargando && lista.length === 0 && (
-        <p className="text-xs text-gray-400 text-center py-8">No hay imágenes cargadas para este paciente.</p>
+        <p className="text-xs text-gray-400 text-center py-8">
+          No hay {tabActiva === 'Fotografías Clínicas' ? 'fotografías clínicas' : 'radiografías'} cargadas todavía.
+        </p>
       )}
     </div>
   )
