@@ -15,6 +15,9 @@
  * - sincronizarDesdeSupabase()      → ASYNC, refresca caché desde Supabase
  * - obtenerItem/guardarItem         → SÍNCRONO, localStorage (F4-02c-5)
  * - eliminarEvoluciones/Recetas     → SÍNCRONO, localStorage (F4-02c-5)
+ * - eliminarPaciente(id)            → ASYNC, soft delete (F6-F)
+ * - restaurarPaciente(id)           → ASYNC, restaurar soft delete (F6-F)
+ * - listarPacientesEliminados()     → ASYNC, papelera admin (F6-F)
  *
  * Modo dual (VITE_USE_SUPABASE):
  * - true: usa Supabase como fuente de verdad, localStorage como caché
@@ -23,6 +26,7 @@
 import { createLocalStorageRepository, leerJSON, escribirJSON } from '../../../services/localStorageRepository'
 import { validarListaPacientes } from '../schemas/pacienteSchema'
 import { supabase, USE_SUPABASE } from '../../../services/supabaseClient'
+import { transformarDesdeSupabase, transformarParaSupabase } from './pacientesTransformations.js'
 import { migrationStorageService } from '../../../services/migrationStorageService'
 import { esUuidValido } from '../../../services/migrations/uuidUtils'
 
@@ -37,52 +41,6 @@ let cacheInicializado = false
 // ═══════════════════════════════════════════════════════════════════
 // HELPERS DE TRANSFORMACIÓN
 // ═══════════════════════════════════════════════════════════════════
-
-const SNAKE_TO_CAMEL_MAP = {
-  contacto_emergencia: 'contactoEmergencia',
-  examen_extraoral: 'examenExtraoral',
-  examen_intraoral: 'examenIntraoral',
-  presion_arterial: 'presionArterial',
-  riesgo_cariogenico: 'riesgoCariogenico',
-  riesgo_periodontal: 'riesgoPeriodontal',
-  motivo_consulta: 'motivoConsulta',
-  anamnesis_proxima: 'anamnesisProxima',
-  fecha_ingreso: 'fechaIngreso',
-  user_id: 'userId',
-  created_at: 'createdAt',
-  updated_at: 'updatedAt'
-}
-
-const CAMEL_TO_SNAKE_MAP = Object.fromEntries(
-  Object.entries(SNAKE_TO_CAMEL_MAP).map(([snake, camel]) => [camel, snake])
-)
-
-const transformarDesdeSupabase = (pacienteDb) => {
-  if (!pacienteDb) return null
-  const resultado = {}
-  for (const [claveDb, valor] of Object.entries(pacienteDb)) {
-    const claveJs = SNAKE_TO_CAMEL_MAP[claveDb] || claveDb
-    resultado[claveJs] = valor
-  }
-  return resultado
-}
-
-const transformarParaSupabase = (pacienteJs) => {
-  if (!pacienteJs) return null
-  const resultado = {}
-  for (const [claveJs, valor] of Object.entries(pacienteJs)) {
-    if (claveJs === 'createdAt' || claveJs === 'updatedAt' || claveJs === 'userId') {
-      continue
-    }
-    const claveDb = CAMEL_TO_SNAKE_MAP[claveJs] || claveJs
-    if (valor === '' && claveJs !== 'notas') {
-      resultado[claveDb] = null
-    } else if (valor !== undefined) {
-      resultado[claveDb] = valor
-    }
-  }
-  return resultado
-}
 
 // ═══════════════════════════════════════════════════════════════════
 // INICIALIZACIÓN DE CACHÉ
@@ -137,9 +95,11 @@ const sincronizarDesdeSupabase = async () => {
   }
 
   try {
+    // F6-F: filtrar pacientes eliminados (soft delete)
     const { data, error } = await supabase
       .from('pacientes')
       .select('*')
+      .is('deleted_at', null)
       .order('created_at', { ascending: false })
 
     if (error) {
@@ -312,24 +272,29 @@ const guardarPacientes = async (pacientes) => {
       }
     }
 
-    // DELETE pacientes eliminados
+    // F6-F: SOFT DELETE pacientes eliminados
+    // El trigger trg_pacientes_audit registra la acción en audit_log.
     const { data: pacientesSupabase } = await supabase
       .from('pacientes')
       .select('id')
+      .is('deleted_at', null)
 
     if (Array.isArray(pacientesSupabase)) {
-      const idsAEliminar = pacientesSupabase
+      const idsASoftDelete = pacientesSupabase
         .map(p => p.id)
         .filter(id => !idsEnMemoria.has(id))
 
-      if (idsAEliminar.length > 0) {
+      if (idsASoftDelete.length > 0) {
         const { error: deleteError } = await supabase
           .from('pacientes')
-          .delete()
-          .in('id', idsAEliminar)
+          .update({ deleted_at: new Date().toISOString() })
+          .in('id', idsASoftDelete)
+          .is('deleted_at', null)
 
         if (deleteError) {
-          console.error('[pacientesStorageService] Error al eliminar en Supabase:', deleteError.message)
+          console.error('[pacientesStorageService] Error al soft delete:', deleteError.message)
+        } else {
+          console.log(`[pacientesStorageService] ${idsASoftDelete.length} pacientes marcados eliminados (soft delete)`)
         }
       }
     }
@@ -366,6 +331,89 @@ export const pacientesStorageService = {
 
   obtenerItem: (key, fallback = []) => leerJSON(key, fallback),
   guardarItem: (key, data) => escribirJSON(key, data),
+
+  /**
+   * F6-F: Soft delete de paciente específico.
+   * Marca deleted_at; paciente oculto pero reversible por admin.
+   */
+  eliminarPaciente: async (pacienteId) => {
+    if (!pacienteId) return false
+
+    if (!USE_SUPABASE || !supabase) {
+      pacientesCache = pacientesCache.filter(p => p.id !== pacienteId)
+      pacientesRepo.guardar(pacientesCache)
+      return true
+    }
+
+    try {
+      const { error } = await supabase
+        .from('pacientes')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', pacienteId)
+        .is('deleted_at', null)
+
+      if (error) {
+        console.error('[pacientesStorageService] Error al eliminar paciente:', error.message)
+        return false
+      }
+
+      pacientesCache = pacientesCache.filter(p => p.id !== pacienteId)
+      pacientesRepo.guardar(pacientesCache)
+      return true
+    } catch (e) {
+      console.error('[pacientesStorageService] Excepción al eliminar:', e)
+      return false
+    }
+  },
+
+  /**
+   * F6-F: Restaurar paciente eliminado (solo admin).
+   */
+  restaurarPaciente: async (pacienteId) => {
+    if (!pacienteId || !USE_SUPABASE || !supabase) return false
+
+    try {
+      const { error } = await supabase
+        .from('pacientes')
+        .update({ deleted_at: null })
+        .eq('id', pacienteId)
+        .not('deleted_at', 'is', null)
+
+      if (error) {
+        console.error('[pacientesStorageService] Error al restaurar:', error.message)
+        return false
+      }
+      return true
+    } catch (e) {
+      console.error('[pacientesStorageService] Excepción al restaurar:', e)
+      return false
+    }
+  },
+
+  /**
+   * F6-F: Listar pacientes eliminados (solo admin, papelera).
+   */
+  listarPacientesEliminados: async () => {
+    if (!USE_SUPABASE || !supabase) return []
+
+    try {
+      const { data, error } = await supabase
+        .from('pacientes')
+        .select('*')
+        .not('deleted_at', 'is', null)
+        .order('deleted_at', { ascending: false })
+
+      if (error) {
+        console.error('[pacientesStorageService] Error al listar eliminados:', error.message)
+        return []
+      }
+
+      return (data || []).map(transformarDesdeSupabase).filter(Boolean)
+    } catch (e) {
+      console.error('[pacientesStorageService] Excepción al listar:', e)
+      return []
+    }
+  },
 
   eliminarEvolucionesDePaciente: (pacienteId) => {
     if (!pacienteId) return
