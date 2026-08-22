@@ -121,4 +121,78 @@ describe('adjuntosStorageService', () => {
       expect(await obtenerAdjuntosPorPaciente(pacienteB)).toHaveLength(1)
     })
   })
+
+  describe('F6-E: integración con Supabase Storage', () => {
+    it('guardarAdjunto registra sincronizado=false cuando no hay clinicaId', async () => {
+      const pacienteId = `paciente-${Date.now()}-f6e1`
+      const registro = await guardarAdjunto({ 
+        pacienteId, 
+        tipo: 'foto', 
+        blob: blobDePrueba(), 
+        nombre: 'test.png' 
+      })
+
+      expect(registro.sincronizado).toBe(false)
+      expect(registro.storagePath).toBeNull()
+    })
+
+    it('guardarAdjunto acepta clinicaId como parámetro explícito', async () => {
+      const pacienteId = `paciente-${Date.now()}-f6e2`
+      const clinicaId = 'clinica-test-123'
+      
+      // Sin Supabase configurado en tests, debe quedar sincronizado=false
+      const registro = await guardarAdjunto({ 
+        pacienteId, 
+        tipo: 'rx', 
+        blob: blobDePrueba(), 
+        nombre: 'rx.dcm',
+        clinicaId 
+      })
+
+      expect(registro.pacienteId).toBe(pacienteId)
+      expect(registro.tipo).toBe('rx')
+      expect(registro.sincronizado).toBe(false) // Supabase no disponible en tests
+    })
+
+    it('eliminarAdjunto no falla si storagePath es null', async () => {
+      const pacienteId = `paciente-${Date.now()}-f6e3`
+      const registro = await guardarAdjunto({ 
+        pacienteId, 
+        tipo: 'foto', 
+        blob: blobDePrueba(), 
+        nombre: 'test.png' 
+      })
+
+      // Debe eliminar sin error aunque no haya storagePath
+      const resultado = await eliminarAdjunto(registro.id)
+      expect(resultado).toBe(true)
+
+      const restantes = await obtenerAdjuntosPorPaciente(pacienteId)
+      expect(restantes).toHaveLength(0)
+    })
+
+    it('eliminarTodosPorPaciente no falla si adjuntos no tienen storagePath', async () => {
+      const pacienteId = `paciente-${Date.now()}-f6e4`
+      await guardarAdjunto({ pacienteId, tipo: 'foto', blob: blobDePrueba(), nombre: 'a.png' })
+      await guardarAdjunto({ pacienteId, tipo: 'rx', blob: blobDePrueba(), nombre: 'b.png' })
+
+      const resultado = await eliminarTodosPorPaciente(pacienteId)
+      expect(resultado).toBe(true)
+
+      const restantes = await obtenerAdjuntosPorPaciente(pacienteId)
+      expect(restantes).toHaveLength(0)
+    })
+
+    it('registros guardados tienen campos F6-E (storagePath, sincronizado)', async () => {
+      const pacienteId = `paciente-${Date.now()}-f6e5`
+      await guardarAdjunto({ pacienteId, tipo: 'consentimiento', blob: blobDePrueba(), nombre: 'doc.pdf' })
+
+      const registros = await obtenerAdjuntosPorPaciente(pacienteId)
+      expect(registros).toHaveLength(1)
+      expect(registros[0]).toHaveProperty('storagePath')
+      expect(registros[0]).toHaveProperty('sincronizado')
+      expect(typeof registros[0].sincronizado).toBe('boolean')
+    })
+  })
+
 })
