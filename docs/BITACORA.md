@@ -1,3 +1,49 @@
+## 2026-08-22 — F6-G: Validación de RUT (módulo 11) + unicidad por clínica — DONE
+
+**Qué se ganó:** Validación completa de RUT chileno con algoritmo de módulo 11 en frontend y backend. Prevención de duplicados por RUT en tres capas: validación Zod en esquema, detección de duplicados en memoria antes de guardar, y constraint UNIQUE parcial en Supabase. Feedback visual en tiempo real en el formulario de creación de pacientes. Normalización automática de RUTs (quitar puntos, guiones, mayúsculas para K).
+
+**Infraestructura Supabase creada:**
+- Columna `rut_normalizado` en tabla `pacientes`
+- Trigger `trg_normalizar_rut` que normaliza RUT automáticamente en INSERT/UPDATE
+- Índice único parcial `idx_pacientes_rut_unique` en `(rut_normalizado, clinica_id) WHERE deleted_at IS NULL`
+- Unicidad por clínica: mismo RUT puede existir en clínicas diferentes
+
+**Archivos creados/modificados:**
+- `src/utils/validarRut.js` (NUEVO, 45 líneas): Funciones `validarRut()` y `obtenerErrorRut()` con algoritmo módulo 11
+- `src/utils/validarRutFormato.js` (NUEVO, 28 líneas): Funciones `normalizarRut()` y `formatearRut()` extraídas para respetar límite arquitectónico
+- `src/utils/validarRut.test.js` (NUEVO, 15 tests): Validación de módulo 11, normalización, formateo, casos borde
+- `src/modules/pacientes/schemas/pacienteSchema.js` (MODIFICADO): Validación de RUT integrada en Zod con `.refine()`, helper `rutDuplicado()`
+- `src/modules/pacientes/schemas/pacienteSchema.test.js` (NUEVO, 15 tests): Validación de schema y detección de duplicados
+- `src/modules/pacientes/components/ModalNuevoPaciente.jsx` (MODIFICADO, 212 líneas): Validación en tiempo real con feedback visual (verde/rojo), normalización automática al perder foco, detección de duplicados
+- `src/modules/pacientes/components/DirectorioPacientes.jsx` (MODIFICADO): Pasa prop `pacientes` al modal para verificación de duplicados
+- `src/modules/pacientes/services/pacientesStorageService.js` (MODIFICADO): Manejo de error de constraint unique (código 23505) con recuperación de UUID existente
+- `src/modules/agenda/hooks/useAgenda.test.js` (MODIFICADO): Actualizado RUT de prueba a valor válido (12.345.678-5)
+
+**Decisiones técnicas:**
+- Algoritmo de módulo 11 chileno implementado desde cero (sin dependencias externas)
+- Validación en tres capas: Zod schema (previene guardado inválido), detección en memoria (UX inmediata), constraint UNIQUE en BD (previene race conditions)
+- Normalización de RUT: quitar puntos/guiones, convertir K a mayúscula, mínimo 8 caracteres (7 dígitos + DV)
+- Constraint UNIQUE parcial: solo pacientes activos (deleted_at IS NULL), permite mismo RUT en clínicas diferentes
+- Trigger de normalización en BD: garantiza consistencia aunque el cliente no normalice correctamente
+- Manejo de error 23505 en clientes: si el constraint unique rechaza un INSERT por race condition, el sistema busca el paciente existente y actualiza la caché con su UUID
+
+**Tests:**
+- ✅ 15/15 tests de validarRut (módulo 11, normalización, formateo)
+- ✅ 15/15 tests de pacienteSchema (validación integrada, duplicados)
+- ✅ 753/753 tests de suite completa sin regresión
+- ✅ Validación arquitectónica: 0 violaciones (validarRut.js y validarRutFormato.js bajo límite de 50 líneas)
+- ✅ Lint: 0 warnings, 0 errors
+
+**Validación manual:**
+- ✅ RUT válido (12.345.678-5) muestra mensaje verde y habilita botón "Crear Paciente"
+- ✅ RUT inválido (12.345.678-0) muestra mensaje rojo "RUT inválido" y deshabilita botón
+- ✅ RUT duplicado muestra mensaje rojo "Este RUT ya está registrado" y deshabilita botón
+- ✅ Crear paciente con RUT válido funciona correctamente
+- ✅ Constraint UNIQUE en Supabase previene duplicados a nivel de base de datos
+- ✅ Trigger de normalización funciona correctamente (RUTs se normalizan automáticamente)
+
+**Siguiente:** F6-H (timeout de sesión JWT de Supabase).
+
 ## 2026-08-22 — F6-F: Auditoría append-only por trigger + soft delete de ficha clínica — DONE
 
 **Qué se ganó:** Trazabilidad legal completa de la ficha clínica. Todos los cambios en tablas clínicas y financieras quedan registrados automáticamente en `audit_log` vía triggers server-side. Los pacientes eliminados usan soft delete (marcan `deleted_at`), quedan ocultos pero son reversibles por admin. La auditoría es append-only: ningún usuario puede insertar/modificar registros de auditoría desde el cliente.

@@ -253,6 +253,33 @@ const guardarPacientes = async (pacientes) => {
         .single()
 
       if (insertError) {
+        // F6-G: detectar error de constraint unique (duplicado por RUT)
+        // Esto puede ocurrir por race condition cuando el check previo no alcanzó a detectar el duplicado
+        if (insertError.code === '23505' || insertError.message.includes('duplicate key') || insertError.message.includes('unique constraint')) {
+          console.warn(`[pacientesStorageService] Duplicado detectado por constraint unique para ${paciente.nombre} (RUT: ${paciente.rut})`)
+          
+          // Buscar el paciente existente y actualizar la caché con su UUID
+          const { data: existentePostError, error: findError } = await supabase
+            .from('pacientes')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('rut_normalizado', paraInsert.rut?.toUpperCase().replace(/\./g, '').replace(/-/g, ''))
+            .maybeSingle()
+          
+          if (!findError && existentePostError) {
+            idsEnMemoria.add(existentePostError.id)
+            const index = pacientesCache.findIndex(p =>
+              !esUuidValido(p.id) && p.rut === paciente.rut
+            )
+            if (index >= 0) {
+              const legacyId = pacientesCache[index].id
+              pacientesCache[index] = { ...pacientesCache[index], id: existentePostError.id }
+              migrationStorageService.registrarMapeo(legacyId, existentePostError.id)
+            }
+          }
+          continue
+        }
+        
         console.error(`[pacientesStorageService] Error al insertar ${paciente.nombre}:`, insertError.message)
         continue
       }

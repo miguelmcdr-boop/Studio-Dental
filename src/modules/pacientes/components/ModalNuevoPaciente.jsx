@@ -1,13 +1,65 @@
 import React, { memo, useState } from 'react'
+import { formatearRut, obtenerErrorRut } from '../../../utils/validarRut'
+import { rutDuplicado } from '../schemas/pacienteSchema'
 
-export const ModalNuevoPaciente = memo(({ alGuardar, alCerrar }) => {
+/**
+ * Modal para crear nuevo paciente (F2-02).
+ * F6-G: agregada validación de RUT en tiempo real con feedback visual.
+ *
+ * @param {Function} alGuardar - Callback al guardar paciente
+ * @param {Function} alCerrar - Callback al cerrar modal
+ * @param {Array} pacientes - Lista de pacientes existentes (para verificar duplicados)
+ */
+export const ModalNuevoPaciente = memo(({ alGuardar, alCerrar, pacientes = [] }) => {
   const [nuevoPaciente, setNuevoPaciente] = useState({
     nombre: '', rut: '', telefono: '', edad: '', prevision: 'Fonasa', alergias: '', email: '', direccion: '', ocupacion: '', contactoEmergencia: ''
   })
+  const [errorRut, setErrorRut] = useState('')
+  const [rutValido, setRutValido] = useState(false)
+
+  // Validación en tiempo real del RUT
+  const handleRutChange = (e) => {
+    const valor = e.target.value
+    setNuevoPaciente({ ...nuevoPaciente, rut: valor })
+    
+    if (!valor.trim()) {
+      setErrorRut('')
+      setRutValido(false)
+      return
+    }
+    
+    const error = obtenerErrorRut(valor)
+    if (error) {
+      setErrorRut(error)
+      setRutValido(false)
+      return
+    }
+    
+    // Verificar duplicados
+    if (rutDuplicado(valor, pacientes)) {
+      setErrorRut('Este RUT ya está registrado')
+      setRutValido(false)
+      return
+    }
+    
+    setErrorRut('')
+    setRutValido(true)
+  }
+
+  // Normalización automática al perder foco
+  const handleRutBlur = () => {
+    if (nuevoPaciente.rut.trim() && !errorRut) {
+      const formateado = formatearRut(nuevoPaciente.rut)
+      setNuevoPaciente({ ...nuevoPaciente, rut: formateado })
+    }
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault()
+    
+    // Validación final antes de guardar
     if (!nuevoPaciente.nombre || !nuevoPaciente.rut) return
+    if (!rutValido || errorRut) return
 
     const nuevo = {
       ...nuevoPaciente,
@@ -17,6 +69,8 @@ export const ModalNuevoPaciente = memo(({ alGuardar, alCerrar }) => {
 
     alGuardar(nuevo)
   }
+
+  const puedeGuardar = nuevoPaciente.nombre && nuevoPaciente.rut && rutValido && !errorRut
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 print:hidden">
@@ -48,10 +102,25 @@ export const ModalNuevoPaciente = memo(({ alGuardar, alCerrar }) => {
                 type="text"
                 required
                 value={nuevoPaciente.rut}
-                onChange={(e) => setNuevoPaciente({ ...nuevoPaciente, rut: e.target.value })}
+                onChange={handleRutChange}
+                onBlur={handleRutBlur}
                 placeholder="12.345.678-9"
-                className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm"
+                className={`w-full px-3 py-2 rounded-lg border text-sm ${
+                  errorRut ? 'border-red-500 bg-red-50' :
+                  rutValido ? 'border-green-500 bg-green-50' :
+                  'border-gray-300'
+                }`}
               />
+              {errorRut && (
+                <p data-testid="paciente-rut-error" className="text-red-600 text-xs mt-1 font-medium">
+                  {errorRut}
+                </p>
+              )}
+              {rutValido && !errorRut && (
+                <p data-testid="paciente-rut-valido" className="text-green-600 text-xs mt-1 font-medium">
+                  ✓ RUT válido
+                </p>
+              )}
             </div>
             <div>
               <label className="block font-semibold text-gray-600 uppercase mb-1">Teléfono</label>
@@ -124,7 +193,12 @@ export const ModalNuevoPaciente = memo(({ alGuardar, alCerrar }) => {
             <button
               data-testid="paciente-crear"
               type="submit"
-              className="w-1/2 bg-black text-white py-2.5 rounded-xl font-semibold hover:bg-gray-800"
+              disabled={!puedeGuardar}
+              className={`w-1/2 py-2.5 rounded-xl font-semibold ${
+                puedeGuardar
+                  ? 'bg-black text-white hover:bg-gray-800'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
             >
               Crear Paciente
             </button>

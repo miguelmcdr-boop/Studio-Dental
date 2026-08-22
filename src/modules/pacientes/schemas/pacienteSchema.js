@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { validarRut, normalizarRut, obtenerErrorRut } from '../../../utils/validarRut'
 
 /**
  * Esquema de validación del paciente (F2-04 — MASTER_ROADMAP).
@@ -22,7 +23,18 @@ import { z } from 'zod'
 export const pacienteSchema = z.object({
   id: z.union([z.number(), z.string()]),
   nombre: z.string().trim().min(1, 'El nombre es obligatorio'),
-  rut: z.string().trim().min(1, 'El RUT es obligatorio'),
+  rut: z.string()
+    .trim()
+    .min(1, 'El RUT es obligatorio')
+    .refine(
+      (val) => {
+        const normalizado = normalizarRut(val)
+        // RUT chileno mínimo: 7 dígitos + DV = 8 caracteres
+        if (normalizado.length < 8) return false
+        return validarRut(val)
+      },
+      { message: 'RUT inválido (verifique el dígito verificador)' }
+    ),
 
   telefono: z.union([z.string(), z.number()]).nullable().optional(),
   edad: z.union([z.string(), z.number()]).nullable().optional(),
@@ -70,4 +82,22 @@ export const validarListaPacientes = (pacientes) => {
     return { valido: true, datos: resultado.data, error: null }
   }
   return { valido: false, datos: null, error: resultado.error }
+}
+
+/**
+ * Valida que un RUT no exista ya en la clínica (unicidad por clínica).
+ * F6-G: verificación de duplicados antes de guardar.
+ *
+ * @param {string} rut - RUT a verificar
+ * @param {Array} pacientes - Lista actual de pacientes
+ * @param {string} [pacienteId] - ID del paciente actual (para excluir de la comparación en edición)
+ * @returns {boolean} true si el RUT está duplicado
+ */
+export const rutDuplicado = (rut, pacientes, pacienteId = null) => {
+  if (!rut || !Array.isArray(pacientes)) return false
+  const normalizado = normalizarRut(rut)
+  return pacientes.some((p) => {
+    if (pacienteId && p.id === pacienteId) return false
+    return p.rut && normalizarRut(p.rut) === normalizado
+  })
 }

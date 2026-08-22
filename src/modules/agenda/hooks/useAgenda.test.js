@@ -147,7 +147,7 @@ describe('useAgenda', () => {
         pacienteId: 'express_temporal',
         pacienteNombre: 'María Express',
         pacienteTelefono: '+56 9 1234 5678',
-        pacienteRut: '12.345.678-9',
+        pacienteRut: '12.345.678-5',
         trataMiento: 'Control de rutina',
         fecha: '2026-08-12',
         horaInicio: '11:00',
@@ -167,7 +167,7 @@ describe('useAgenda', () => {
       const pacientesEnStore = usePacientesStore.getState().pacientes
       expect(pacientesEnStore).toHaveLength(1)
       expect(pacientesEnStore[0].nombre).toBe('María Express')
-      expect(pacientesEnStore[0].rut).toBe('12.345.678-9')
+      expect(pacientesEnStore[0].rut).toBe('12.345.678-5')
       expect(pacientesEnStore[0].telefono).toBe('+56 9 1234 5678')
       expect(pacientesEnStore[0].prevision).toBe('Particular')
       expect(pacientesEnStore[0].motivoConsulta).toBe('Control de rutina')
