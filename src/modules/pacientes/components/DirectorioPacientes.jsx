@@ -86,6 +86,7 @@ export const DirectorioPacientes = memo(({ alSeleccionarPaciente, alEliminarPaci
 
       {mostrarModalNuevo && (
         <ModalNuevoPaciente
+          pacientes={pacientes}
           alGuardar={handleCrearPaciente}
           alCerrar={() => setMostrarModalNuevo(false)}
         />
