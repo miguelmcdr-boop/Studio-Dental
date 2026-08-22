@@ -127,10 +127,12 @@
 | F6-D | Cablear la ficha clínica a Supabase (odontograma, perio, evoluciones, recetas, certificados) | 6 | **P0** | L (5-8 d) | F6-C | DONE (2026-08-20) |
 | F6-E | Adjuntos clínicos a Supabase Storage con URLs firmadas | 6 | **P0** | M (3-5 d) | F6-C | DONE (2026-08-20) |
 | F6-F | Auditoría append-only por trigger + soft delete de ficha clínica | 6 | P1 | M (3-4 d) | F6-C | DONE (2026-08-22) |
-| F6-G | Validación de RUT (módulo 11) + unicidad por clínica | 6 | P1 | XS (<0.5 d) | — | TODO |
-| F6-H | Timeout de sesión por inactividad + política de contraseña | 6 | P1 | S (1-2 d) | F6-B | TODO |
+| F6-G | Validación de RUT (módulo 11) + unicidad por clínica | 6 | P1 | XS (<0.5 d) | F6-F | DONE (2026-08-22) |
+| F6-H | Timeout de sesión por inactividad + política de contraseña | 6 | P1 | S (1-2 d) | F6-B | DONE (2026-08-22) |
 | F6-J | PWA real (service worker + manifest) para arranque en frío sin conexión | 6 | P2 | M (2-4 d) | — | DONE (2026-08-18) |
 | F6-K | Umbrales de cobertura en CI + tests para los 8 módulos sin cobertura | 6 | P2 | L (5-8 d, incremental) | — | TODO |
+| F6-L | Papelera de reciclaje: UI para listar/restaurar pacientes eliminados (soft delete) | 6 | P2 | S (0.5-1 d) | F6-F | TODO |
+
 | **— FASE 6: hardening (original) —** | | | | | | |
 | F6-01 | Error Boundary global + por módulo crítico | 6 | P1 | S (1-2 d) | — | IN PROGRESS (implementado 2026-08-15; falta test de layout, ver criterios) |
 | F6-02 | Auditoría y confirmación real del estado E2E | 6 | P1 | XS (<0.5 d) | — | IN PROGRESS (evidencia 12/12 obtenida 2026-08-15; criterio de CI incumplido, ver F6-02b) |
