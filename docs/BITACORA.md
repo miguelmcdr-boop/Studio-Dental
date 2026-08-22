@@ -1,3 +1,42 @@
+## 2026-08-22 — F6-H: Timeout de sesión JWT de Supabase — DONE
+
+**Qué se ganó:** Protección completa de sesión con tres mecanismos complementarios: (1) timeout por inactividad del usuario (30 min sin actividad), (2) sincronización de sesión entre pestañas del mismo navegador, (3) manejo automático de errores de autenticación (JWT expirado, refresh fallido). El usuario recibe notificaciones antes del logout forzado para evitar pérdida de datos no guardados.
+
+**Arquitectura de hooks creada:**
+- `useSessionTimeout.js` (NUEVO, 60 líneas): Detección de inactividad (mousemove, keydown, scroll, touch) con timer configurable. Dispara advertencia 2 minutos antes del timeout y logout forzado al expirar.
+- `useAuthStateListener.js` (NUEVO, 55 líneas): Listener de eventos de Supabase Auth (`onAuthStateChange`). Detecta SIGNED_OUT desde otra pestaña, USER_DELETED (admin expulsó usuario), TOKEN_REFRESHED fallido. Sincroniza logout en todas las pestañas.
+- `authErrorHandler.js` (NUEVO, 95 líneas): Servicio para detectar errores de autenticación (status 401/403, códigos PGRST301, mensajes "JWT expired", "invalid token", etc.). Ejecuta logout forzado automáticamente. Wrapper `conManejoAuth` para queries críticas.
+- `useSessionGuard.js` (NUEVO, 70 líneas): Hook orquestador que combina los tres mecanismos anteriores. Muestra toasts de advertencia vía `notificationService` antes del logout forzado.
+
+**Archivos creados/modificados:**
+- `src/hooks/useSessionTimeout.js` (NUEVO): Detección de inactividad + timeout
+- `src/hooks/useSessionTimeout.test.js` (NUEVO, 7 tests): Valida timers, reset por actividad, cleanup
+- `src/hooks/useAuthStateListener.js` (NUEVO): Listener de cambios de autenticación
+- `src/hooks/useAuthStateListener.test.js` (NUEVO, 9 tests): Valida eventos SIGNED_OUT, USER_DELETED, TOKEN_REFRESHED
+- `src/services/authErrorHandler.js` (NUEVO): Manejo de errores 401/403
+- `src/services/authErrorHandler.test.js` (NUEVO, 20 tests): Valida detección de errores de auth, manejo de excepciones
+- `src/hooks/useSessionGuard.js` (NUEVO): Hook orquestador
+- `src/App.jsx` (MODIFICADO, 342 → 347 líneas): Integración de useSessionGuard
+
+**Decisiones técnicas:**
+- Timeout de 30 minutos por inactividad (estándar de seguridad para aplicaciones médicas)
+- Advertencia 2 minutos antes del timeout (da tiempo al usuario para guardar cambios)
+- Eventos que cuentan como actividad: mousemove, mousedown, keydown, scroll, touchstart
+- Sincronización entre pestañas vía `onAuthStateChange` de Supabase (nativo, sin polling)
+- Logout forzado si admin expulsa usuario desde Supabase Dashboard (USER_DELETED event)
+- Manejo de errores 401/403 en queries críticas (aunque Supabase ya maneja refresh automático)
+- Uso de `notificationService` existente para toasts (no se crea sistema nuevo)
+
+**Tests:**
+- ✅ 7/7 tests de useSessionTimeout (timers, reset por actividad, cleanup)
+- ✅ 9/9 tests de useAuthStateListener (eventos SIGNED_OUT, USER_DELETED, TOKEN_REFRESHED)
+- ✅ 20/20 tests de authErrorHandler (detección de errores, manejo de excepciones)
+- ✅ 789/789 tests de suite completa sin regresión
+- ✅ Validación arquitectónica: 0 violaciones
+- ✅ Lint: 0 warnings, 0 errors
+
+**Siguiente:** F6-I (staging + deploy a producción).
+
 ## 2026-08-22 — F6-G: Validación de RUT (módulo 11) + unicidad por clínica — DONE
 
 **Qué se ganó:** Validación completa de RUT chileno con algoritmo de módulo 11 en frontend y backend. Prevención de duplicados por RUT en tres capas: validación Zod en esquema, detección de duplicados en memoria antes de guardar, y constraint UNIQUE parcial en Supabase. Feedback visual en tiempo real en el formulario de creación de pacientes. Normalización automática de RUTs (quitar puntos, guiones, mayúsculas para K).

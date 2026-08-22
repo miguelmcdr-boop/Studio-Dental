@@ -16,6 +16,7 @@ import { supabase, USE_SUPABASE } from './services/supabaseClient'
 import { Agenda as AgendaModulo } from './modules/agenda'
 import { FichaPaciente, DirectorioPacientes } from './modules/pacientes'
 import { usePacientesActions } from './modules/pacientes/hooks/usePacientesActions'
+import { useSessionGuard } from './hooks/useSessionGuard'
 import { DashboardModulo } from './modules/dashboard'
 
 // (F2-05) — resto de los módulos vía React.lazy: no se descargan en el
@@ -74,6 +75,9 @@ function App() {
   const userProfile = useSesionStore((state) => state.userProfile)
   const loginStore = useSesionStore((state) => state.login)
   const logoutStore = useSesionStore((state) => state.logout)
+
+  // F6-H: Timeout de sesión + sincronización entre pestañas + manejo de errores 401
+  useSessionGuard({ userProfile, logout: logoutStore })
 
   // F4-02c-2: ejecutar migración automática de datos al primer login con Supabase
 
