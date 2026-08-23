@@ -1,3 +1,44 @@
+## 2026-08-23 — F6-L: Papelera de reciclaje — DONE
+
+**Qué se ganó:** Cierre coherente de F6-F. El soft delete implementado en F6-F ahora tiene UI real: los admin pueden ver la lista de pacientes eliminados, filtrar por nombre/RUT, y restaurarlos con un clic. Cumple la política de retención de la Ley 20.584 (la ficha clínica nunca se destruye, se archiva y es recuperable).
+
+**Arquitectura:**
+- `usePapelera.js` (NUEVO, ~95 líneas): hook que carga lista de eliminados + mergea datos de `audit_log` (autor de eliminación) + restaura + refresca directorio
+- `ModalPapelera.jsx` (NUEVO, ~175 líneas): modal con buscador, lista scrollable, botón restaurar, estado vacío
+- `pacientesSoftDeleteService.js` (MODIFICADO): nueva función `obtenerAutoresDeEliminacion(ids)` con manejo graceful si `audit_log` no existe
+- `dateUtils.js` (MODIFICADO): nueva función `tiempoRelativo(fecha)` para "hace X días"
+- `DirectorioPacientes.jsx` (MODIFICADO, 97 → 117 líneas): botón "🗑️ Papelera (N)" visible solo para admin, integrado con modal
+- `rbacConstantsBase.js` (NUEVO): refactored desde `rbacConstants.js` para evitar dependencia circular
+- `rbacPermisosPorRol.js` (NUEVO): matriz extraída de `rbacConstants.js`
+- `rbacConstants.js` (MODIFICADO): ahora re-exporta desde archivos separados; agrega permiso `VER_PAPELERA` solo para admin
+
+**Decisión de SQL (política RLS):** La política `pacientes_update_activos` original bloqueaba UPDATE de pacientes eliminados (`USING: deleted_at IS NULL`). Se modificó en Supabase para permitir restauración solo por admin: `USING: deleted_at IS NULL OR es_admin_de_clinica_actual()`.
+
+**Hallazgos registrados como tareas nuevas (Regla de Gobernanza 5):**
+- **F6-M**: Tabla `audit_log` retorna 404 desde el cliente — el código maneja esto gracefulmente (fallback a "Usuario desconocido"), pero requiere investigación de RLS
+- **F6-N**: Código duplicado entre `pacientesStorageService.js` y `pacientesSoftDeleteService.js` (`eliminarPaciente`, `restaurarPaciente`, `listarPacientesEliminados`). Deuda técnica de F6-F a limpiar.
+
+**Tests:**
+- ✅ 10/10 tests de `usePapelera.js` (carga, restauración, manejo de errores, merge con audit_log)
+- ✅ 10/10 tests de `ModalPapelera.jsx` (renderizado, búsqueda, restauración, confirmación, estado vacío)
+- ✅ 809/809 tests de suite completa sin regresión (789 base + 20 nuevos)
+- ✅ Lint: 0 warnings, 0 errors
+- ✅ Arquitectura: 0 violaciones
+- ✅ Build: exitoso (507 kB gzip 135 kB)
+
+**Validación manual:**
+- ✅ Botón visible solo para admin (RBAC)
+- ✅ Lista muestra nombre, RUT, fecha relativa, usuario que eliminó
+- ✅ Buscador funcional
+- ✅ Restauración exitosa con toast verde + refresco automático del directorio
+- ✅ Manejo graceful si `audit_log` no existe
+
+**Cierre formal (2026-08-23):** Rama `feature/f6-l-papelera-reciclaje` lista para push + PR.
+
+**Hallazgo adicional durante cierre:** El esquema de soft delete de F6-F (columna `deleted_at` + 3 políticas RLS: `pacientes_select_activos`, `pacientes_select_admin_todos`, `pacientes_update_activos`) existe únicamente dentro del proyecto Supabase de desarrollo — nunca fue versionado en `supabase/`. Las políticas `pacientes_*_clinica` de F6-C-c (`schema-multiclinica-rls.sql` líneas 60-95) fueron sobrescritas manualmente sin respaldo. Registrado como tarea **F6-Fa** en el roadmap (P1, derivada de F6-F) para versionar en próxima sesión. F6-L cierra con alcance original cumplido.
+
+**Siguiente:** F6-I (staging) según el roadmap, o F6-01 (completar Error Boundaries) según preferencia del usuario.
+
 ## 2026-08-22 — F6-H: Timeout de sesión JWT de Supabase — DONE
 
 **Qué se ganó:** Protección completa de sesión con tres mecanismos complementarios: (1) timeout por inactividad del usuario (30 min sin actividad), (2) sincronización de sesión entre pestañas del mismo navegador, (3) manejo automático de errores de autenticación (JWT expirado, refresh fallido). El usuario recibe notificaciones antes del logout forzado para evitar pérdida de datos no guardados.
