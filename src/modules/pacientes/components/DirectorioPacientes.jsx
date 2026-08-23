@@ -1,6 +1,10 @@
 import React, { memo, useState } from 'react'
 import { usePacientesStore } from '../../../store/pacientesStore'
 import { ModalNuevoPaciente } from './ModalNuevoPaciente'
+import { ModalPapelera } from './ModalPapelera'
+import { usePapelera } from '../hooks/usePapelera'
+import { useRBAC } from '../../../hooks/useRBAC'
+import { PERMISOS } from '../../../constants/rbacConstants'
 
 export const DirectorioPacientes = memo(({ alSeleccionarPaciente, alEliminarPaciente, alPacienteCreado }) => {
   // (F2-08) — pacientes ya no llega por prop: se lee directo del store.
@@ -11,6 +15,11 @@ export const DirectorioPacientes = memo(({ alSeleccionarPaciente, alEliminarPaci
 
   const [busqueda, setBusqueda] = useState('')
   const [mostrarModalNuevo, setMostrarModalNuevo] = useState(false)
+  const [mostrarPapelera, setMostrarPapelera] = useState(false)
+
+  // F6-L: Papelera de reciclaje (solo admin)
+  const { puede } = useRBAC()
+  const { pacientesEliminados, cargando, contador, restaurar } = usePapelera()
 
   const pacientesFiltrados = pacientes.filter(p =>
     p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -30,13 +39,24 @@ export const DirectorioPacientes = memo(({ alSeleccionarPaciente, alEliminarPaci
           <h2 className="text-2xl font-bold text-gray-900">Directorio de Pacientes</h2>
           <p className="text-xs text-gray-500">Busca, administra, edita o elimina registros de pacientes.</p>
         </div>
-        <button
-          data-testid="btn-nuevo-paciente"
-          onClick={() => setMostrarModalNuevo(true)}
-          className="bg-black text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm"
-        >
-          <span>➕</span> Nuevo Paciente
-        </button>
+        <div className="flex gap-2">
+          {puede(PERMISOS.VER_PAPELERA) && (
+            <button
+              data-testid="btn-papelera"
+              onClick={() => setMostrarPapelera(true)}
+              className="bg-orange-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-orange-700 transition-colors flex items-center gap-2 shadow-sm"
+            >
+              <span>🗑️</span> Papelera {contador > 0 ? `(${contador})` : ''}
+            </button>
+          )}
+          <button
+            data-testid="btn-nuevo-paciente"
+            onClick={() => setMostrarModalNuevo(true)}
+            className="bg-black text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm"
+          >
+            <span>➕</span> Nuevo Paciente
+          </button>
+        </div>
       </div>
 
       <div className="mb-6">
@@ -89,6 +109,15 @@ export const DirectorioPacientes = memo(({ alSeleccionarPaciente, alEliminarPaci
           pacientes={pacientes}
           alGuardar={handleCrearPaciente}
           alCerrar={() => setMostrarModalNuevo(false)}
+        />
+      )}
+
+      {mostrarPapelera && (
+        <ModalPapelera
+          pacientesEliminados={pacientesEliminados}
+          cargando={cargando}
+          onRestaurar={restaurar}
+          onCerrar={() => setMostrarPapelera(false)}
         />
       )}
     </div>

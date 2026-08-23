@@ -118,3 +118,55 @@ export const listarPacientesEliminados = async () => {
     return []
   }
 }
+
+/**
+ * Obtiene el email del usuario que eliminó cada paciente (batch).
+ * Consulta audit_log por record_id y filtra por action='UPDATE' + cambio en deleted_at.
+ * 
+ * @param {Array<string>} pacienteIds - Lista de UUIDs de pacientes eliminados
+ * @returns {Promise<Map<string, string>>} Mapa pacienteId → emailUsuario
+ */
+export const obtenerAutoresDeEliminacion = async (pacienteIds) => {
+  if (!Array.isArray(pacienteIds) || pacienteIds.length === 0) {
+    return new Map()
+  }
+
+  if (!USE_SUPABASE || !supabase) {
+    console.warn('[pacientesSoftDelete] Supabase no configurado, no se pueden obtener autores')
+    return new Map()
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('audit_log')
+      .select('record_id, user_email, created_at')
+      .eq('table_name', 'pacientes')
+      .eq('action', 'UPDATE')
+      .like('new_data', '%deleted_at%')
+      .in('record_id', pacienteIds)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('[pacientesSoftDelete] Error al obtener autores:', error.message)
+      return new Map()
+    }
+
+    // Crear mapa pacienteId → emailUsuario (tomar el registro más reciente por paciente)
+    const autoresMap = new Map()
+    const registrosPorPaciente = new Map()
+
+    for (const registro of data || []) {
+      const pacienteId = registro.record_id
+      if (!registrosPorPaciente.has(pacienteId)) {
+        registrosPorPaciente.set(pacienteId, registro)
+        autoresMap.set(pacienteId, registro.user_email)
+      }
+    }
+
+    console.log(`[pacientesSoftDelete] Obtenidos ${autoresMap.size} autores de eliminación`)
+    return autoresMap
+  } catch (e) {
+    console.error('[pacientesSoftDelete] Excepción al obtener autores:', e)
+    return new Map()
+  }
+}

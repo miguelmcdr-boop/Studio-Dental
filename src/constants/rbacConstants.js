@@ -42,60 +42,12 @@ export const PERMISOS = {
   
   // Administración de datos de referencia (vademécum)
   VER_VADEMECUM: 'ver_vademecum',
-  ADMINISTRAR_VADEMECUM: 'administrar_vademecum'
+  ADMINISTRAR_VADEMECUM: 'administrar_vademecum',
+  VER_PAPELERA: 'ver_papelera'
 }
 
-/**
- * Matriz de permisos por rol.
- * Define qué permisos tiene cada rol. Si un permiso no está en la lista,
- * el rol NO tiene acceso a esa capacidad.
- */
-export const PERMISOS_POR_ROL = {
-  [ROLES.ADMIN]: [
-    // Acceso total: todos los permisos
-    PERMISOS.VER_FINANZAS,
-    PERMISOS.VER_REPORTES,
-    PERMISOS.VER_CONFIGURACION,
-    PERMISOS.VER_INVENTARIO,
-    PERMISOS.VER_LABORATORIO,
-    PERMISOS.VER_ESTERILIZACION,
-    PERMISOS.EDITAR_PRECIOS,
-    PERMISOS.ELIMINAR_PACIENTES,
-    PERMISOS.VER_HISTORIA_CLINICA_COMPLETA,
-    PERMISOS.GESTIONAR_USUARIOS,
-    PERMISOS.VER_LOGS_SISTEMA,
-    PERMISOS.VER_VADEMECUM,
-    PERMISOS.ADMINISTRAR_VADEMECUM
-  ],
-  
-  [ROLES.DENTISTA]: [
-    // Acceso clínico completo + financiero (sin configuración del sistema)
-    PERMISOS.VER_FINANZAS,
-    PERMISOS.VER_REPORTES,
-    PERMISOS.VER_INVENTARIO,
-    PERMISOS.VER_LABORATORIO,
-    PERMISOS.VER_ESTERILIZACION,
-    PERMISOS.EDITAR_PRECIOS,
-    PERMISOS.ELIMINAR_PACIENTES,
-    PERMISOS.VER_HISTORIA_CLINICA_COMPLETA,
-    PERMISOS.VER_VADEMECUM,
-    PERMISOS.ADMINISTRAR_VADEMECUM
-  ],
-  
-  [ROLES.ASISTENTE]: [
-    // Acceso clínico básico (sin datos financieros ni configuración)
-    PERMISOS.VER_INVENTARIO,
-    PERMISOS.VER_LABORATORIO,
-    PERMISOS.VER_ESTERILIZACION,
-    PERMISOS.VER_HISTORIA_CLINICA_COMPLETA,
-    PERMISOS.VER_VADEMECUM
-  ],
-  
-  [ROLES.RECEPCION]: [
-    // Solo agenda y registro básico (sin historia clínica completa ni finanzas)
-    // No tiene permisos especiales — solo acceso a Agenda y Directorio de Pacientes
-  ]
-}
+// Matriz de permisos por rol (extraída a rbacPermisosPorRol.js)
+export { PERMISOS_POR_ROL } from './rbacPermisosPorRol'
 
 /**
  * Nombres legibles de los roles para mostrar en la UI.
