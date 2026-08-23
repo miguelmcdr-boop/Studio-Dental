@@ -1,3 +1,44 @@
+## 2026-08-23 — F6-Fa: Versionar esquema de soft delete — DONE
+
+**Qué se ganó:** Reproducibilidad del esquema de soft delete de F6-F. Un proyecto Supabase vacío ejecutando los scripts del repo ahora puede usar la papelera (F6-L) sin intervención manual. Cierra el hallazgo de F6-L: las políticas `pacientes_*_clinica` de F6-C-c habían sido sobrescritas manualmente en Supabase por 3 políticas nuevas con soporte de `deleted_at`, sin respaldo en el repo.
+
+**Arquitectura:**
+- `supabase/schema-soft-delete.sql` (NUEVO, 99 líneas): DDL + políticas RLS idempotentes
+- `supabase/README.md` (MODIFICADO): agrega script en posición 9 del orden de ejecución
+
+**Qué contiene el SQL (idempotente):**
+1. `ALTER TABLE pacientes ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ`
+2. Índices: `idx_pacientes_deleted_at` + `idx_pacientes_activos` (parcial, WHERE deleted_at IS NULL)
+3. Reemplazo de políticas obsoletas de F6-C-c:
+   - ❌ `pacientes_select_clinica` (eliminada)
+   - ❌ `pacientes_update_clinica` (eliminada)
+   - ❌ `pacientes_delete_clinica` (eliminada, F6-F usa UPDATE no DELETE)
+4. Creación de 3 políticas nuevas:
+   - ✅ `pacientes_select_activos` — SELECT solo activos para authenticated
+   - ✅ `pacientes_select_admin_todos` — SELECT todos (incluye eliminados) para admin
+   - ✅ `pacientes_update_activos` — UPDATE normal + restauración solo por admin
+5. `pacientes_insert_clinica` se mantiene intacta (ya era idempotente)
+
+**Decisión técnica (Ley 20.584):**
+No se crea política de DELETE físico. Con RLS activo y sin política de DELETE, NADIE puede borrar pacientes permanentemente. Esto cumple el art. 15 de la Ley 20.584 (la ficha clínica nunca se destruye, se archiva).
+
+**Validaciones:**
+- ✅ Sintaxis SQL: primera ejecución `Success`
+- ✅ Idempotencia: segunda ejecución `Success` (sin errores)
+- ✅ Estado post-ejecución: 4 políticas correctas en `pg_policies`
+- ✅ F6-L sin regresión: botón visible para admin, restauración funciona
+- ✅ Tests: 809/809 pasando (sin cambios de código JS)
+- ✅ Arquitectura: 0 violaciones
+- ✅ Build: exitoso
+
+**Archivos modificados:**
+- `supabase/schema-soft-delete.sql` (NUEVO)
+- `supabase/README.md` (+1 línea en orden de ejecución)
+- `docs/BITACORA.md` (esta entrada)
+- `docs/MASTER_ROADMAP.md` (marcar F6-Fa como DONE)
+
+**Siguiente:** F6-I (staging) o F6-M (investigar 404 de audit_log) según preferencia.
+
 ## 2026-08-23 — F6-L: Papelera de reciclaje — DONE
 
 **Qué se ganó:** Cierre coherente de F6-F. El soft delete implementado en F6-F ahora tiene UI real: los admin pueden ver la lista de pacientes eliminados, filtrar por nombre/RUT, y restaurarlos con un clic. Cumple la política de retención de la Ley 20.584 (la ficha clínica nunca se destruye, se archiva y es recuperable).
