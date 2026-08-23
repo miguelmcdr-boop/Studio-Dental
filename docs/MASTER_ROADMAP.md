@@ -132,7 +132,7 @@
 | F6-J | PWA real (service worker + manifest) para arranque en frío sin conexión | 6 | P2 | M (2-4 d) | — | DONE (2026-08-18) |
 | F6-K | Umbrales de cobertura en CI + tests para los 8 módulos sin cobertura | 6 | P2 | L (5-8 d, incremental) | — | TODO |
 | F6-L | Papelera de reciclaje: UI para listar/restaurar pacientes eliminados (soft delete) | 6 | P2 | S (0.5-1 d) | F6-F | DONE (2026-08-23) |
-| F6-Fa | Versionar esquema de soft delete: columna `deleted_at` + 3 políticas RLS sobrescritas por F6-F sin respaldo en repo (hallazgo durante F6-L: política `pacientes_update_activos` de restauración no está en `supabase/`) | 6 | P1 | S (0.5-1 d) | F6-F | TODO |
+| F6-Fa | Versionar esquema de soft delete: columna `deleted_at` + 3 políticas RLS sobrescritas por F6-F sin respaldo en repo (hallazgo durante F6-L: política `pacientes_update_activos` de restauración no está en `supabase/`) | 6 | P1 | S (0.5-1 d) | F6-F | DONE (2026-08-23) |
 | F6-M | Verificar accesibilidad de tabla `audit_log` desde el cliente (hallazgo F6-L: retorna 404) | 6 | P2 | XS (<0.5 d) | F6-L | TODO |
 | F6-N | Eliminar duplicación de `eliminarPaciente`/`restaurarPaciente`/`listarPacientesEliminados` entre `pacientesStorageService.js` y `pacientesSoftDeleteService.js` (hallazgo F6-L: código duplicado inline) | 6 | P2 | XS (<0.5 d) | F6-L | TODO |
 
