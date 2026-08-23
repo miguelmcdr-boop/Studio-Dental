@@ -14,8 +14,13 @@ El orden es **crítico** porque hay dependencias entre scripts (funciones, tipos
     6. seed-vademecum.sql               ← 164 registros del vademécum (F6-A)
     7. schema-rbac-policies.sql         ← privilegios + RLS por rol server-side (F6-B2)
     8. schema-rbac-policies-fin.sql     ← RLS financiero + vademécum + audit (F6-B3)
-    9. schema-soft-delete.sql           ← columna deleted_at + políticas RLS con soft delete (F6-Fa)
-   10. migrate-roles-to-app-metadata.sql← SOLO producción, una vez, service_role (F6-B3)
+    9. schema-multiclinica-base.sql     ← funciones base multi-clínica (F6-C)
+   10. schema-multiclinica-add-clinica-id.sql ← agrega columna clinica_id (F6-C)
+   11. schema-multiclinica-helpers-rol.sql    ← helpers de rol por clínica (F6-C)
+   12. schema-multiclinica-trigger-clinica-id.sql ← trigger clinica_id automático (F6-C)
+   13. schema-multiclinica-rls.sql      ← políticas RLS multi-clínica (F6-C-c)
+   14. schema-soft-delete.sql           ← columna deleted_at + políticas RLS soft delete (F6-Fa)
+   15. migrate-roles-to-app-metadata.sql← SOLO producción, una vez, service_role (F6-B3)
 
 ## Cómo ejecutar
 
