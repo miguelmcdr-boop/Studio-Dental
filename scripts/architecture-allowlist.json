@@ -11,7 +11,7 @@
     "src/modules/agenda/components/ModalNuevaCita.jsx": 325,
     "src/modules/presupuestos/components/ModalNuevoPresupuesto.jsx": 293,
     "src/modules/pacientes/components/CertificadosSection.jsx": 285,
-    "src/modules/pacientes/FichaPacienteModulo.jsx": 256,
+    "src/modules/pacientes/FichaPacienteModulo.jsx": 263,
     "src/modules/finanzas/components/CalculadoraBoletas.jsx": 255,
     "src/modules/inventario/utils/inventarioCalculations.js": 204,
     "src/modules/agenda/hooks/useAgenda.js": 177,

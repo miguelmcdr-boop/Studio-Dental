@@ -21,6 +21,7 @@ import { PeriodontogramaModulo } from '../periodontograma'
 import { QuirurgicoModulo } from '../quirurgico'
 import { OdontopediatriaModulo } from '../odontopediatria'
 import { SmileDesignModulo } from '../dsd'
+import { ErrorBoundary } from '../../components/ErrorBoundary' // F6-01
 
 // --- CORRECCIÓN: Faltaban estas dos importaciones de los Stores de Zustand ---
 import { useSesionStore } from '../../store/sesionStore'
@@ -143,22 +144,26 @@ export const FichaPacienteModulo = memo(({
 
       {tabActiva === 'Odontograma Inicial' && (
         <div className="print:hidden text-base scale-100 transition-all">
-          <OdontogramaModulo
-            odontograma={odontogramaInicial}
-            odontogramaComparar={odontogramaEvolucion}
-            guardarOdontograma={guardarInicial}
-          />
+          <ErrorBoundary modulo="odontograma-inicial" onReset={alVolver}>
+            <OdontogramaModulo
+              odontograma={odontogramaInicial}
+              odontogramaComparar={odontogramaEvolucion}
+              guardarOdontograma={guardarInicial}
+            />
+          </ErrorBoundary>
         </div>
       )}
 
       {tabActiva === 'Odontograma Evolución' && (
         <div className="print:hidden text-base scale-100 transition-all">
-          <OdontogramaModulo
-            odontograma={odontogramaEvolucion}
-            odontogramaComparar={odontogramaInicial}
-            guardarOdontograma={guardarEvolucion}
-            esEvolucion={true}
-          />
+          <ErrorBoundary modulo="odontograma-evolucion" onReset={alVolver}>
+            <OdontogramaModulo
+              odontograma={odontogramaEvolucion}
+              odontogramaComparar={odontogramaInicial}
+              guardarOdontograma={guardarEvolucion}
+              esEvolucion={true}
+            />
+          </ErrorBoundary>
         </div>
       )}
 
@@ -189,7 +194,9 @@ export const FichaPacienteModulo = memo(({
 
       {tabActiva === 'Periodontograma' && (
         <div className="print:hidden">
-          <PeriodontogramaModulo pacienteId={paciente.id} />
+          <ErrorBoundary modulo="periodontograma" onReset={alVolver}>
+            <PeriodontogramaModulo pacienteId={paciente.id} />
+          </ErrorBoundary>
         </div>
       )}
 

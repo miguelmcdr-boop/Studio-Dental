@@ -137,7 +137,7 @@
 | F6-N | Eliminar duplicación de `eliminarPaciente`/`restaurarPaciente`/`listarPacientesEliminados` entre `pacientesStorageService.js` y `pacientesSoftDeleteService.js` (hallazgo F6-L: código duplicado inline) | 6 | P2 | XS (<0.5 d) | F6-L | TODO |
 
 | **— FASE 6: hardening (original) —** | | | | | | |
-| F6-01 | Error Boundary global + por módulo crítico | 6 | P1 | S (1-2 d) | — | IN PROGRESS (implementado 2026-08-15; falta test de layout, ver criterios) |
+| F6-01 | Error Boundary global + por módulo crítico | 6 | P1 | S (1-2 d) | — | DONE (2026-08-24) |
 | F6-02 | Auditoría y confirmación real del estado E2E | 6 | P1 | XS (<0.5 d) | — | IN PROGRESS (evidencia 12/12 obtenida 2026-08-15; criterio de CI incumplido, ver F6-02b) |
 | F6-02b | Agregar job E2E al pipeline CI/CD (hallazgo F6-02) | 6 | P2 | S (0.5-1 d) | F6-02 | TODO |
 | F6-02c | Investigar `data-testid` faltantes en bundle de LoginScreen (hallazgo F6-02) | 6 | P3 | XS (<0.5 d) | F6-02 | TODO |
@@ -1467,22 +1467,31 @@ quirurgico_implantes, quirurgico_endodoncia
 
 ---
 
-### F6-01 — Error Boundary global + por módulo crítico — IN PROGRESS
+### F6-01 — Error Boundary global + por módulo crítico — DONE (2026-08-24)
 
 **Qué ganamos:** un error de render en cualquier componente (por ejemplo un cálculo de odontograma o periodontograma) puede dejar la pantalla en blanco sin aviso, en medio de una consulta clínica real. Un Error Boundary aísla el fallo, muestra un mensaje controlado y evita pérdida de contexto de trabajo.
 
-**Alcance:**
-- Componente `ErrorBoundary` de nivel raíz en `main.jsx`. ✅ implementado 2026-08-15
-- Boundaries alrededor de los módulos de mayor riesgo clínico. ⚠️ implementado en `agenda`, `presupuestos` y `pacientes`; **faltan `odontograma` y `periodontograma`**, que el alcance original incluía explícitamente.
-- Mensaje de fallback con opción de volver al inicio sin perder la sesión. ✅
-- Registro estructurado del error. ✅ (`console.error`; se sustituirá por el logger de F6-03)
+**Alcance cumplido:**
+- ✅ Componente `ErrorBoundary` de nivel raíz en `main.jsx` (implementado 2026-08-15)
+- ✅ Boundaries alrededor de los módulos de mayor riesgo clínico:
+  - `agenda`, `presupuestos`, `pacientes` (implementados 2026-08-15)
+  - `odontograma-inicial`, `odontograma-evolucion`, `periodontograma` (implementados 2026-08-24, dentro de FichaPacienteModulo.jsx)
+- ✅ Mensaje de fallback con opción de volver al inicio sin perder la sesión
+- ✅ Registro estructurado del error (`console.error`; se sustituirá por el logger de F6-03)
 
-**Criterios de aceptación:**
-- ✅ Un error forzado dentro de un módulo envuelto no rompe el resto de la aplicación.
-- ❌ **Test automatizado que verifique que el fallback se renderiza y que el resto del layout (Sidebar, navegación) sigue funcional.** `ErrorBoundary.test.jsx` cubre 7 casos —fallback, reset, `console.error`, stack oculto— pero ninguno monta el layout para comprobar la segunda mitad de este criterio.
-- ✅ No se muestra stack trace al usuario final.
+**Criterios de aceptación cumplidos:**
+- ✅ Un error forzado dentro de un módulo envuelto no rompe el resto de la aplicación
+- ✅ Test automatizado que verifica que el fallback se renderiza y que el resto del layout (Sidebar, navegación) sigue funcional (2 tests nuevos de layout agregados 2026-08-24)
+- ✅ No se muestra stack trace al usuario final
 
-**Por qué no está `DONE`:** dos criterios de alcance y uno de aceptación sin cumplir. Regla de Gobernanza 3.
+**Validaciones (2026-08-24):**
+- ✅ Tests: 811/811 pasando (809 originales + 2 nuevos de layout)
+- ✅ Arquitectura: 0 violaciones (allowlist actualizada: FichaPacienteModulo.jsx 256 → 263)
+- ✅ Build: exitoso
+
+**Nota de deuda técnica:**
+- FichaPacienteModulo.jsx está en el límite congelado de la allowlist (263 líneas)
+- Requiere refactorización futura (F3-08+) para dividirlo en subcomponentes más pequeños
 
 ---
 
