@@ -109,10 +109,10 @@ jobs:
         run: npm run validate:architecture
 
   e2e:
-    name: 🎭 Tests E2E (Playwright + Supabase staging)
+    name: Tests E2E (Playwright + Supabase staging)
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    continue-on-error: true  # F6-02b: gate no bloqueante hasta que los specs sean estables
+    continue-on-error: true
     needs: [build]
 
     steps:
@@ -160,19 +160,17 @@ jobs:
           echo "✅ .env configurado (valores ocultos)"
 
       - name: Ejecutar seed E2E en Supabase staging
-        if: secrets.E2E_DATABASE_URL != ''
         env:
           DATABASE_URL: ${{ secrets.E2E_DATABASE_URL }}
         run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "⚠️  E2E_DATABASE_URL no configurado: saltando seed"
+            echo "    Los tests pueden fallar si los usuarios e2e_* no existen"
+            exit 0
+          fi
           sudo apt-get install -y postgresql-client
           psql "$DATABASE_URL" -f supabase/seed-multiclinica-e2e.sql
           echo "✅ Seed E2E aplicado"
-
-      - name: Advertencia si no hay DATABASE_URL
-        if: secrets.E2E_DATABASE_URL == ''
-        run: |
-          echo "⚠️  E2E_DATABASE_URL no configurado: saltando seed"
-          echo "    Los tests pueden fallar si los usuarios e2e_* no existen"
 
       - name: Ejecutar tests E2E
         env:
