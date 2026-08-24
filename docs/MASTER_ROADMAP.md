@@ -144,7 +144,8 @@
 | F6-03 | Logger centralizado con niveles (reemplazo de 59 `console.log` sueltos) | 6 | P2 | S (1-2 d) | — | TODO |
 | F6-04 | Accesibilidad básica (aria-*, foco en modales, labels) | 6 | P2 | M (2-4 d, incremental) | — | TODO |
 | F6-05 | Exportación de reportes a Excel/PDF | 6 | P2 | M (2-3 d) | — | TODO |
-| F6-06 | Checklist de despliegue a producción (dominio, env vars, backups) | 6 | P1 | S (0.5-1 d, proceso) | F6-02, F6-A..F6-E | IN PROGRESS (documento redactado 2026-08-16; 0/80 pasos ejecutados) |
+| F6-06 | Checklist de despliegue a producción (dominio, env vars, backups) | 6 | P1 | S (0.5-1 d, proceso) | F6-02, F6-A..F6-E | PARTIAL DONE (2026-08-24) — checklist actualizado + 3 docs técnicos creados; pasos comerciales pendientes (F6-06b) |
+| F6-06b | Pasos comerciales/manuales de despliegue a producción (hallazgo F6-06) | 6 | P1 | M (1-2 d, proceso) | F6-06 | TODO — requiere compras/cuentas externas del usuario |
 | F6-07 | Manual de usuario por rol + material de capacitación | 6 | P3 | L (1-2 semanas) | — | TODO |
 
 ---
@@ -1590,24 +1591,62 @@ quirurgico_implantes, quirurgico_endodoncia
 
 ---
 
-### F6-06 — Checklist de despliegue a producción — IN PROGRESS
+### F6-06 — Checklist de despliegue a producción — PARTIAL DONE (2026-08-24)
 
 **Qué ganamos:** consolidar el checklist operativo en un documento único ejecutable, para no depender de memoria ni de pasos dispersos.
 
-**Estado real:** el documento `docs/DEPLOY_CHECKLIST.md` fue redactado el 2026-08-16 (326 líneas, 7 fases). **Ninguno de sus 80 pasos está ejecutado ni marcado.** La restauración de backup no se ha probado. El documento existe; el despliegue no ha ocurrido.
+**Alcance completado (2026-08-24):**
+- ✅ `docs/DEPLOY_CHECKLIST.md` actualizado con estado real (811 tests, 29 tablas, F6-I/F6-02b como dependencias)
+- ✅ `docs/BACKUP_RESTORE.md` creado (146 líneas) — procedimiento de backup y restauración
+- ✅ `docs/ROLLBACK.md` creado (146 líneas) — procedimiento de rollback
+- ✅ `docs/RUNBOOK.md` creado (353 líneas) — runbook de incidentes comunes
 
-**Alcance restante:**
-- Ejecutar y marcar los 80 pasos con fecha.
-- Probar una restauración de backup en staging (requiere F6-I).
-- Corregir el conteo de tablas del checklist (requiere F6-A).
-- Sustituir la afirmación "sistema listo para producción" hasta que F6-A a F6-E estén cerradas.
+**Alcance pendiente (F6-06b):**
+- Pasos comerciales/manuales que requieren intervención del usuario:
+  - Comprar Supabase Pro ($25/mes) para PITR
+  - Comprar dominio studiodental.cl
+  - Contratar hosting Vercel Pro ($20/mes)
+  - Crear cuentas de Sentry y UptimeRobot
+  - Ejecutar y marcar los 80 pasos del checklist con fecha
+  - Probar una restauración de backup en staging
+
+**Criterios de aceptación cumplidos:**
+- ✅ Checklist actualizado con estado técnico real
+- ✅ 3 documentos técnicos de soporte creados (backup, rollback, runbook)
+- ✅ Pasos comerciales documentados en sección "Pasos comerciales/manuales pendientes"
+
+**Criterios de aceptación pendientes (F6-06b):**
+- ❌ Cada paso del checklist marcado como completado y con fecha
+- ❌ Al menos una restauración de backup probada exitosamente en staging
+- ❌ F6-06b ejecutada y completada
+
+**Por qué está PARTIAL DONE:** el alcance técnico está completo, pero los pasos comerciales/manuales requieren intervención del usuario. Regla de Gobernanza 3.
+
+### F6-06b — Pasos comerciales/manuales de despliegue a producción — TODO
+
+**Qué ganamos:** ejecutar los pasos del checklist de despliegue que requieren compras, cuentas externas o intervención manual del usuario.
+
+**Origen:** hallazgo de F6-06 (2026-08-24). El alcance técnico del checklist está completo, pero los pasos comerciales no pueden ejecutarse sin intervención del usuario.
+
+**Alcance:**
+- Comprar Supabase Pro ($25/mes) para PITR y backups automáticos
+- Comprar dominio studiodental.cl (~15.000 CLP/año)
+- Contratar hosting Vercel Pro ($20/mes) para dominios personalizados
+- Crear cuenta de Sentry (plan Free) para error tracking
+- Crear cuenta de UptimeRobot (plan Free) para uptime monitoring
+- Ejecutar y marcar los 80 pasos del checklist `docs/DEPLOY_CHECKLIST.md` con fecha
+- Probar una restauración de backup en staging (F6-I)
+- Comunicar al equipo el go-live
 
 **Criterios de aceptación:**
-- Cada paso del checklist marcado como completado y con fecha.
-- Al menos una restauración de backup probada exitosamente en staging.
-- F6-A, F6-B, F6-C, F6-D y F6-E en estado `DONE`.
+- Todos los pasos del checklist marcados como completados con fecha
+- Al menos una restauración de backup probada exitosamente en staging
+- Dominio configurado con SSL/TLS activo
+- Sentry y UptimeRobot configurados y operativos
 
-**Por qué no está `DONE`:** redactar el checklist no es ejecutarlo. Los dos criterios de aceptación están sin cumplir. Regla de Gobernanza 3.
+**Dependencias:** F6-06 (alcance técnico completo)
+
+**Estimación:** M (1-2 d, proceso) — depende de la velocidad de compras/configuraciones externas
 
 ---
 
