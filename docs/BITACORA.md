@@ -1,3 +1,37 @@
+## 2026-08-24 — F6-M: Verificar accesibilidad de tabla audit_log — DONE
+
+**Qué se ganó:** Se identificó y corrigió el problema de 404 al acceder a la tabla `audit_log` desde el cliente. El problema era que las políticas RLS solo permitían a admins ver logs de la clínica, mientras que usuarios normales solo podían ver sus propios logs.
+
+**Hallazgo:**
+- La tabla `audit_log` existía en staging con RLS habilitado
+- Había 3 políticas: `audit_log_select_admin`, `audit_log_select_own`, `audit_log_insert_clinica`
+- El código en `pacientesSoftDeleteService.js` intentaba leer logs de pacientes eliminados por otros usuarios
+- Para usuarios no-admin, la query fallaba con 403/404 porque solo `audit_log_select_own` se aplicaba
+
+**Solución:**
+- Se agregó la política `audit_log_select_clinica` que permite a usuarios con rol en la clínica ver logs de esa clínica
+- La política usa las funciones `clinica_actual()` y `tiene_rol_en_clinica()` del modelo multi-clínica (F6-C)
+- La política se aplicó en staging y está lista para producción
+
+**Archivos modificados:**
+- `supabase/add-audit-log-clinica-policy.sql`: creado (script para agregar la política)
+- `supabase/verify-audit-log.sql`: creado (script de verificación)
+- `supabase/fix-audit-log-policies.sql`: creado (script de corrección alternativa, no usado)
+- `docs/MASTER_ROADMAP.md`: F6-M marcada DONE
+- `docs/BITACORA.md`: esta entrada
+
+**Estado:**
+- ✅ Política aplicada en staging (bjuqqtkiqnfyejitmowc)
+- ⏳ Política pendiente de aplicar en producción (requiere autorización explícita)
+
+**Criterios cumplidos:**
+- ✅ Tabla audit_log verificada en staging
+- ✅ Políticas RLS analizadas y corregidas
+- ✅ Política adicional creada y aplicada
+- ✅ Documentación actualizada
+
+**Nota:** La política debe aplicarse en producción antes del go-live. Ver `supabase/add-audit-log-clinica-policy.sql`.
+
 ## 2026-08-24 — F6-06: Checklist de despliegue a producción — PARTIAL DONE
 
 **Qué se ganó:** El alcance técnico del checklist de despliegue está completo. Se actualizaron las métricas del documento y se crearon 3 documentos técnicos de soporte para operación y respuesta a incidentes.
