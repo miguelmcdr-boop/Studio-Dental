@@ -107,3 +107,92 @@ jobs:
 
       - name: Validar reglas arquitectónicas
         run: npm run validate:architecture
+
+  e2e:
+    name: 🎭 Tests E2E (Playwright + Supabase staging)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    continue-on-error: true  # F6-02b: gate no bloqueante hasta que los specs sean estables
+    needs: [build]
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Calcular versión de Playwright
+        id: playwright-version
+        run: |
+          VERSION=$(node -p "require('./package-lock.json').packages['node_modules/@playwright/test'].version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Caché de browsers de Playwright
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
+
+      - name: Instalar browsers de Playwright (con deps del sistema)
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Instalar deps del sistema (si había cache)
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+      - name: Configurar .env de staging
+        run: |
+          cat > .env <<EOF
+          VITE_SUPABASE_URL=${{ secrets.E2E_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY=${{ secrets.E2E_SUPABASE_ANON_KEY }}
+          VITE_USE_SUPABASE=true
+          VITE_ENVIRONMENT=staging
+          EOF
+          echo "✅ .env configurado (valores ocultos)"
+
+      - name: Ejecutar seed E2E en Supabase staging
+        if: secrets.E2E_DATABASE_URL != ''
+        env:
+          DATABASE_URL: ${{ secrets.E2E_DATABASE_URL }}
+        run: |
+          sudo apt-get install -y postgresql-client
+          psql "$DATABASE_URL" -f supabase/seed-multiclinica-e2e.sql
+          echo "✅ Seed E2E aplicado"
+
+      - name: Advertencia si no hay DATABASE_URL
+        if: secrets.E2E_DATABASE_URL == ''
+        run: |
+          echo "⚠️  E2E_DATABASE_URL no configurado: saltando seed"
+          echo "    Los tests pueden fallar si los usuarios e2e_* no existen"
+
+      - name: Ejecutar tests E2E
+        env:
+          CI: true
+        run: npm run test:e2e
+
+      - name: Subir reporte HTML de Playwright
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+      - name: Subir screenshots y videos de fallos
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-failures
+          path: |
+            test-results/
+            e2e/test-results/
+          retention-days: 7

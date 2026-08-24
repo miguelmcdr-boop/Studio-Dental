@@ -1,3 +1,40 @@
+## 2026-08-24 — F6-02 + F6-02b: Auditoría E2E + job E2E en CI — DONE
+
+**Qué se ganó:** Los tests E2E ahora se ejecutan automáticamente en cada PR contra Supabase staging. El resultado aparece en la lista de checks de GitHub (como gate no bloqueante, según roadmap F6-02b).
+
+**Archivos modificados:**
+- `.github/workflows/ci.yml` (+90 líneas): nuevo job `e2e` con cache de Playwright, seed SQL, y artefactos
+- `docs/STAGING.md` (+42 líneas): sección 8 con instrucciones de configuración de secrets
+- `docs/BITACORA.md`: esta entrada
+- `docs/MASTER_ROADMAP.md`: F6-02 y F6-02b marcadas como DONE
+
+**Criterios cumplidos:**
+- ✅ Un único número de tests E2E, consistente en todo el documento (ya estaba desde 2026-08-15: 6 specs, 12 tests)
+- ✅ Job E2E incorporado al pipeline CI/CD como gate no bloqueante (NUEVO)
+- ✅ Reporte de Playwright subido como artefacto (retención 7 días)
+- ✅ Screenshots y videos de fallos subidos como artefacto
+
+**Configuración del job E2E:**
+- Apunta a Supabase staging (proyecto bjuqqtkiqnfyejitmowc)
+- Cache de browsers de Playwright (reduce setup de ~3 min a ~30 seg)
+- Seed SQL idempotente ejecutado antes de cada run (si E2E_DATABASE_URL está configurado)
+- `continue-on-error: true` hasta que los specs sean estables (0 flaky en 10 PRs)
+- Artefactos: reporte HTML + screenshots/videos de fallos
+
+**Secrets de GitHub a configurar (manualmente por el usuario):**
+- `E2E_SUPABASE_URL`: URL del proyecto staging
+- `E2E_SUPABASE_ANON_KEY`: anon key del proyecto staging
+- `E2E_DATABASE_URL`: connection string PostgreSQL (para seed SQL)
+
+**Nota de riesgo:**
+- Los specs E2E aún no han sido ejecutados en CI (primer run pendiente)
+- Posibles fallos por timeouts, hidratación de React, o diferencias de red
+- El gate no bloqueante permite mergear PRs aunque el job falle
+- Se promoverá a bloqueante cuando sea estable (0 flaky en 10 PRs consecutivos)
+
+**Relación con otras tareas:**
+- F6-I (staging deploy): pre-requisito cumplido
+- F6-02c (data-testid faltantes): aún TODO, no bloquea F6-02/F6-02b
 ## 2026-08-24 — F6-01: Error Boundary global + por módulo crítico — DONE
 
 **Qué se ganó:** Los 3 módulos clínicos de mayor riesgo (odontograma inicial, odontograma evolución, periodontograma) ahora están envueltos con `<ErrorBoundary>`. Un error de render en cualquiera de ellos ya no deja la pantalla en blanco; muestra un fallback controlado y el resto del layout (Sidebar, navegación) sigue funcional.

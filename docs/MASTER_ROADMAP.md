@@ -138,8 +138,8 @@
 
 | **— FASE 6: hardening (original) —** | | | | | | |
 | F6-01 | Error Boundary global + por módulo crítico | 6 | P1 | S (1-2 d) | — | DONE (2026-08-24) |
-| F6-02 | Auditoría y confirmación real del estado E2E | 6 | P1 | XS (<0.5 d) | — | IN PROGRESS (evidencia 12/12 obtenida 2026-08-15; criterio de CI incumplido, ver F6-02b) |
-| F6-02b | Agregar job E2E al pipeline CI/CD (hallazgo F6-02) | 6 | P2 | S (0.5-1 d) | F6-02 | TODO |
+| F6-02 | Auditoría y confirmación real del estado E2E | 6 | P1 | XS (<0.5 d) | — | DONE (2026-08-24) |
+| F6-02b | Agregar job E2E al pipeline CI/CD (hallazgo F6-02) | 6 | P2 | S (0.5-1 d) | F6-02 | DONE (2026-08-24) |
 | F6-02c | Investigar `data-testid` faltantes en bundle de LoginScreen (hallazgo F6-02) | 6 | P3 | XS (<0.5 d) | F6-02 | TODO |
 | F6-03 | Logger centralizado con niveles (reemplazo de 59 `console.log` sueltos) | 6 | P2 | S (1-2 d) | — | TODO |
 | F6-04 | Accesibilidad básica (aria-*, foco en modales, labels) | 6 | P2 | M (2-4 d, incremental) | — | TODO |
@@ -1495,7 +1495,7 @@ quirurgico_implantes, quirurgico_endodoncia
 
 ---
 
-### F6-02 — Auditoría y confirmación real del estado E2E — IN PROGRESS
+### F6-02 — Auditoría y confirmación real del estado E2E — DONE (2026-08-24)
 
 **Qué ganamos:** eliminar la ambigüedad del conteo de tests E2E antes de declarar el sistema listo para producción.
 
@@ -1513,7 +1513,7 @@ quirurgico_implantes, quirurgico_endodoncia
 
 ---
 
-### F6-02b — Agregar job E2E al pipeline CI/CD — TODO
+### F6-02b — Agregar job E2E al pipeline CI/CD — DONE (2026-08-24)
 
 **Qué ganamos:** los E2E hoy corren solo en la máquina del desarrollador, de forma manual. Sin job en CI no protegen contra regresiones de nadie más y su resultado no queda registrado.
 

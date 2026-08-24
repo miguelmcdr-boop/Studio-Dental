@@ -204,3 +204,40 @@ variable y asegurar que el entorno sea **Preview** (no "All Environments").
 ---
 
 _Última actualización: 2026-08-23 (F6-I)_
+
+
+## 8. Configurar secrets de GitHub para E2E en CI (F6-02b)
+
+El job `e2e` del pipeline CI/CD necesita 3 secrets para conectarse a Supabase staging.
+
+### Paso 1: Obtener las credenciales del proyecto staging
+
+En [supabase.com/dashboard](https://supabase.com/dashboard), proyecto `bjuqqtkiqnfyejitmowc`:
+
+| Dato | Ubicación en Supabase |
+|------|----------------------|
+| **Project URL** | Settings > API > Project URL |
+| **Anon key** | Settings > API > anon public |
+| **Connection string** | Settings > Database > Connection string > URI |
+
+### Paso 2: Configurar secrets en GitHub
+
+1. Ir a [github.com/miguelmcdr-boop/Studio-Dental/settings/secrets/actions](https://github.com/miguelmcdr-boop/Studio-Dental/settings/secrets/actions)
+2. Click en **"New repository secret"** para cada uno:
+
+| Secret name | Valor |
+|-------------|-------|
+| `E2E_SUPABASE_URL` | `https://bjuqqtkiqnfyejitmowc.supabase.co` |
+| `E2E_SUPABASE_ANON_KEY` | (anon key del proyecto staging) |
+| `E2E_DATABASE_URL` | (connection string PostgreSQL del proyecto staging) |
+
+### Paso 3: Verificar
+
+Abrir cualquier PR. En la lista de checks debe aparecer:
+- `🎭 Tests E2E (Playwright + Supabase staging)` con icono amarillo (no bloqueante)
+
+### Notas
+
+- El job E2E es **no bloqueante** (`continue-on-error: true`). Si falla, el PR se puede mergear igualmente.
+- Cuando los E2E sean estables (0 flaky tests en 10 PRs consecutivos), cambiar `continue-on-error` a `false` para hacerlo bloqueante.
+- El seed SQL (`supabase/seed-multiclinica-e2e.sql`) es idempotente y se ejecuta antes de cada run.
