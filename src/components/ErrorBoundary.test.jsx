@@ -148,4 +148,57 @@ describe('ErrorBoundary', () => {
     // El mensaje principal es amigable, no técnico
     expect(screen.getByText(/la aplicación encontró un error/i)).toBeInTheDocument()
   })
+
+  it('mantiene el layout (Sidebar) visible cuando un modulo envuelto falla', () => {
+    function SidebarSimulado() {
+      return <nav data-testid="sidebar">Sidebar con navegacion</nav>
+    }
+
+    function LayoutConModuloFallido() {
+      return (
+        <div>
+          <SidebarSimulado />
+          <main>
+            <ErrorBoundary modulo="odontograma-inicial">
+              <ComponenteConError shouldThrow={true} mensaje="Error en odontograma" />
+            </ErrorBoundary>
+          </main>
+        </div>
+      )
+    }
+
+    render(<LayoutConModuloFallido />)
+
+    expect(screen.getByTestId('sidebar')).toBeInTheDocument()
+    expect(screen.getByText(/Sidebar con navegacion/i)).toBeInTheDocument()
+    expect(screen.getByRole('alert')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Error en el m.dulo/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /volver al inicio/i })).toBeInTheDocument()
+  })
+
+  it('mantiene el layout cuando falla ErrorBoundary de periodontograma', () => {
+    function SidebarSimulado() {
+      return <nav data-testid="sidebar">Sidebar</nav>
+    }
+
+    function LayoutConPeriodontogramaFallido() {
+      return (
+        <div>
+          <SidebarSimulado />
+          <main>
+            <ErrorBoundary modulo="periodontograma">
+              <ComponenteConError shouldThrow={true} />
+            </ErrorBoundary>
+          </main>
+        </div>
+      )
+    }
+
+    render(<LayoutConPeriodontogramaFallido />)
+
+    expect(screen.getByTestId('sidebar')).toBeInTheDocument()
+    expect(screen.getByRole('alert')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Error en el m.dulo/i })).toBeInTheDocument()
+  })
+
 })

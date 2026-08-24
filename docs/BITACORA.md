@@ -1,3 +1,35 @@
+## 2026-08-24 — F6-01: Error Boundary global + por módulo crítico — DONE
+
+**Qué se ganó:** Los 3 módulos clínicos de mayor riesgo (odontograma inicial, odontograma evolución, periodontograma) ahora están envueltos con `<ErrorBoundary>`. Un error de render en cualquiera de ellos ya no deja la pantalla en blanco; muestra un fallback controlado y el resto del layout (Sidebar, navegación) sigue funcional.
+
+**Archivos modificados:**
+- `src/modules/pacientes/FichaPacienteModulo.jsx` (+8/-0): 3 envolturas `<ErrorBoundary>` + import
+- `src/components/ErrorBoundary.test.jsx` (+53/-0): 2 tests de layout (9 tests totales)
+- `scripts/architecture-allowlist.json` (1 valor): FichaPacienteModulo.jsx congelado de 256 → 263
+
+**Criterios cumplidos:**
+- ✅ ErrorBoundary global en `main.jsx` (ya existía, verificado)
+- ✅ Boundaries en módulos de mayor riesgo: agenda, presupuestos, pacientes (ya existían)
+- ✅ Boundaries en odontograma inicial, odontograma evolución, periodontograma (NUEVO)
+- ✅ Mensaje de fallback sin stack trace en producción (ya existía)
+- ✅ Registro estructurado del error vía console.error (ya existía)
+- ✅ Test automatizado que verifica que el fallback se renderiza y el layout persiste (NUEVO, 2 tests)
+
+**Validaciones:**
+- ✅ Tests: 811/811 pasando (809 originales + 2 nuevos de layout)
+- ✅ Arquitectura: 0 violaciones (allowlist actualizada)
+- ✅ Build: exitoso
+- ✅ 7 tests preexistentes + 2 nuevos = 9 tests en ErrorBoundary.test.jsx
+
+**Hallazgo de deuda técnica:**
+- FichaPacienteModulo.jsx está en el límite congelado de la allowlist (263 líneas)
+- Requiere refactorización futura (F3-08+) para dividirlo en subcomponentes más pequeños
+- Mientras tanto, el tamaño congelado permite agregar hardening (ErrorBoundary) pero no nuevas features
+
+**Relación con otras tareas:**
+- Prepara el terreno para F6-03 (logger centralizado): los console.error del ErrorBoundary serán reemplazados por el logger
+- Relacionado con F6-L (papelera): ambos módulos de ficha clínica ahora tienen error isolation
+
 ## 2026-08-23 — F6-I: Staging deploy — DONE
 
 **Qué se ganó:** Entorno de pruebas aislado. Cada PR genera preview en Vercel conectado a Supabase de staging separado (gratis). Resuelve el hallazgo registrado en la bitácora (línea 995): los E2E se ejecutaban contra producción, ahora tienen entorno propio.
