@@ -159,7 +159,7 @@ jobs:
           EOF
           echo "✅ .env configurado (valores ocultos)"
 
-      - name: Ejecutar seed E2E en Supabase staging
+      - name: Ejecutar seed E2E en Supabase staging (no-crítico)
         env:
           DATABASE_URL: ${{ secrets.E2E_DATABASE_URL }}
         run: |
@@ -169,8 +169,15 @@ jobs:
             exit 0
           fi
           sudo apt-get install -y postgresql-client
-          psql "$DATABASE_URL" -f supabase/seed-multiclinica-e2e.sql
-          echo "✅ Seed E2E aplicado"
+          if psql "$DATABASE_URL" -f supabase/seed-multiclinica-e2e.sql; then
+            echo "✅ Seed E2E aplicado exitosamente"
+          else
+            echo "⚠️  Seed E2E falló (posible problema de IPv6/red)"
+            echo "    Continuando con los tests — los usuarios E2E pueden ya existir"
+            echo "    Si los tests fallan por usuarios faltantes, aplicar seed manualmente:"
+            echo "    https://github.com/miguelmcdr-boop/Studio-Dental/blob/main/supabase/seed-multiclinica-e2e.sql"
+            exit 0
+          fi
 
       - name: Ejecutar tests E2E
         env:
