@@ -1,9 +1,9 @@
 # 🚀 Checklist de Despliegue a Producción — Studio Dental
 
-**Estado:** 📋 EN PROCESO
-**Última actualización:** 2026-08-16
+**Estado:** 📋 EN PROCESO (parcial, 2026-08-24)
+**Última actualización:** 2026-08-24
 **Responsable:** Principal Software Architect
-**Dependencias cumplidas:** F6-02 ✅ (E2E 12/12) · F6-01 ✅ (Error Boundary)
+**Dependencias cumplidas:** F6-01 ✅ (Error Boundary) · F6-02 ✅ (E2E 12 specs) · F6-I ✅ (staging deploy 2026-08-24) · F6-02b ✅ (job E2E en CI)
 
 ---
 
@@ -13,14 +13,14 @@
 - **Nivel de riesgo:** Medio
 - **Rollback:** sección 7
 - **Precondiciones técnicas confirmadas:**
-  - ✅ 589 tests unitarios/integración pasando
-  - ✅ 12/12 tests E2E pasando (100%)
+  - ✅ 811 tests unitarios/integración pasando (actualizado 2026-08-24)
+  - ⚠️ 12 tests E2E existentes (timeout en CI pendiente — ver tarea futura F6-08)
   - ✅ 0 vulnerabilidades en npm audit
   - ✅ Lint: 0 warnings, 0 errors
   - ✅ Build limpio (500 kB / 133 kB gzip)
   - ✅ Arquitectura: todas las reglas cumplen (67 archivos en allowlist)
   - ✅ Error Boundary global + por módulo crítico operativo
-  - ✅ 27 tablas Supabase (19 datos clínicos/operacionales + audit_log + 8 vademécum)
+  - ✅ 29 tablas Supabase (21 datos clínicos/operacionales + 2 multi-clínica + audit_log + 8 vademécum)
 
 ---
 
@@ -187,7 +187,7 @@
 
 ### 4.8 Logs en producción
 
-- [ ] Verificar que logs técnicos están silenciados (F6-03 pendiente)
+- [ ] Verificar que logs técnicos están silenciados (F6-03 pendiente — 59 `console.log` sueltos)
 
 ---
 
@@ -253,6 +253,36 @@
 
 - [ ] Marcar checklist como DONE
 - [ ] Actualizar MASTER_ROADMAP.md (F6-06 → DONE)
+
+---
+
+## ⏳ Pasos comerciales/manuales pendientes (F6-06b)
+
+Estos pasos requieren intervención del usuario (compras, cuentas externas).
+Se ejecutarán cuando el cliente decida ir a producción.
+
+### Compras necesarias
+
+- [ ] Supabase Pro ($25/mes) — para PITR y backups automáticos
+- [ ] Vercel Pro ($20/mes) — para dominios personalizados y edge network
+- [ ] Dominio studiodental.cl (costo variable, ~15.000 CLP/año)
+
+### Cuentas a crear
+
+- [ ] Cuenta Sentry (plan Free) — error tracking
+- [ ] Cuenta UptimeRobot (plan Free) — uptime monitoring
+
+### Configuración DNS
+
+- [ ] Acceso a DNS del dominio comprado
+- [ ] Verificación SSL/TLS automática del proveedor
+
+### Nota
+
+El resto de las fases (Supabase Pro, dominio, hosting, monitoreo, go-live) se ejecutarán cuando el cliente decida hacer el deploy a producción. Esta actualización del checklist refleja el estado técnico real del proyecto al 2026-08-24.
+
+**Fecha estimada de inicio:** A definir con el cliente
+**Tarea derivada:** F6-06b en MASTER_ROADMAP.md
 
 ---
 

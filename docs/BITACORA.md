@@ -1,3 +1,33 @@
+## 2026-08-24 — F6-06: Checklist de despliegue a producción — PARTIAL DONE
+
+**Qué se ganó:** El alcance técnico del checklist de despliegue está completo. Se actualizaron las métricas del documento y se crearon 3 documentos técnicos de soporte para operación y respuesta a incidentes.
+
+**Archivos modificados:**
+- `docs/DEPLOY_CHECKLIST.md`: actualizado con estado real (811 tests, 29 tablas, F6-I/F6-02b como dependencias)
+- `docs/BACKUP_RESTORE.md`: creado (146 líneas) — procedimiento de backup y restauración
+- `docs/ROLLBACK.md`: creado (146 líneas) — procedimiento de rollback
+- `docs/RUNBOOK.md`: creado (353 líneas) — runbook de incidentes comunes
+
+**Criterios cumplidos:**
+- ✅ Checklist actualizado con estado técnico real
+- ✅ 3 documentos técnicos de soporte creados
+- ✅ Pasos comerciales documentados en sección "Pasos comerciales/manuales pendientes"
+- ✅ Nueva tarea F6-06b creada en MASTER_ROADMAP.md para pasos pendientes
+
+**Alcance pendiente (F6-06b):**
+- Pasos comerciales/manuales que requieren intervención del usuario:
+  - Comprar Supabase Pro ($25/mes) para PITR
+  - Comprar dominio studiodental.cl
+  - Contratar hosting Vercel Pro ($20/mes)
+  - Crear cuentas de Sentry y UptimeRobot
+  - Ejecutar y marcar los 80 pasos del checklist con fecha
+  - Probar una restauración de backup en staging
+
+**Relación con otras tareas:**
+- F6-I (staging deploy): pre-requisito para probar restauración de backup
+- F6-02/F6-02b (E2E): dependencias cumplidas
+- F6-03 (logger): mencionado como pendiente en Fase 4.8 del checklist
+
 ## 2026-08-24 — F6-02 + F6-02b: Auditoría E2E + job E2E en CI — DONE
 
 **Qué se ganó:** Los tests E2E ahora se ejecutan automáticamente en cada PR contra Supabase staging. El resultado aparece en la lista de checks de GitHub (como gate no bloqueante, según roadmap F6-02b).
