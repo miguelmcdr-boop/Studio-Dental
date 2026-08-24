@@ -1,3 +1,37 @@
+-- F6-02b: Seed completo para E2E (clínica 1 + clínica 2).
+-- Ejecutar UNA SOLA VEZ en el SQL Editor local o automáticamente en CI.
+-- Todas las operaciones son idempotentes (ON CONFLICT DO NOTHING).
+
+-- ============================================================
+-- CLÍNICA 1 (Staging) — usa la clínica existente
+-- ============================================================
+
+-- La clínica 1 ya existe en staging (ID: 5fdbfce3-5a22-4d61-8ffc-a64e7c4f2d3b)
+-- No necesitamos crearla, solo los usuarios y membresías.
+
+-- 1. Crear 4 usuarios en auth.users para clínica 1
+-- Contraseña: test123456
+INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at, raw_user_meta_data, raw_app_meta_data)
+VALUES
+  ('e2e00000-0000-0000-0001-000000000001', 'e2e_admin@studiodental.com', crypt('test123456', gen_salt('bf')), NOW(), '{"full_name": "Admin E2E"}', '{"role": "admin"}'),
+  ('e2e00000-0000-0000-0001-000000000002', 'e2e_dentista@studiodental.com', crypt('test123456', gen_salt('bf')), NOW(), '{"full_name": "Dentista E2E"}', '{"role": "dentista"}'),
+  ('e2e00000-0000-0000-0001-000000000003', 'e2e_asistente@studiodental.com', crypt('test123456', gen_salt('bf')), NOW(), '{"full_name": "Asistente E2E"}', '{"role": "asistente"}'),
+  ('e2e00000-0000-0000-0001-000000000004', 'e2e_recepcion@studiodental.com', crypt('test123456', gen_salt('bf')), NOW(), '{"full_name": "Recepción E2E"}', '{"role": "recepcion"}')
+ON CONFLICT (id) DO NOTHING;
+
+-- 2. Agregar a miembros_clinica en la clínica 1 (ID: 5fdbfce3-5a22-4d61-8ffc-a64e7c4f2d3b)
+INSERT INTO public.miembros_clinica (user_id, clinica_id, rol, activo)
+VALUES
+  ('e2e00000-0000-0000-0001-000000000001', '5fdbfce3-5a22-4d61-8ffc-a64e7c4f2d3b', 'admin', true),
+  ('e2e00000-0000-0000-0001-000000000002', '5fdbfce3-5a22-4d61-8ffc-a64e7c4f2d3b', 'dentista', true),
+  ('e2e00000-0000-0000-0001-000000000003', '5fdbfce3-5a22-4d61-8ffc-a64e7c4f2d3b', 'asistente', true),
+  ('e2e00000-0000-0000-0001-000000000004', '5fdbfce3-5a22-4d61-8ffc-a64e7c4f2d3b', 'recepcion', true)
+ON CONFLICT DO NOTHING;
+
+-- ============================================================
+-- CLÍNICA 2 (E2E Secundaria) — ya existe en el seed original
+-- ============================================================
+
 -- F6-C-f: Segunda clínica + usuarios e2e_* para validar aislamiento multi-clínica.
 -- Ejecutar UNA SOLA VEZ en el SQL Editor local antes de correr los tests E2E.
 -- Todas las operaciones son idempotentes (ON CONFLICT DO NOTHING).
