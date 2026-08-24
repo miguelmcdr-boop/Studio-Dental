@@ -1,3 +1,52 @@
+## 2026-08-23 — F6-I: Staging deploy — DONE
+
+**Qué se ganó:** Entorno de pruebas aislado. Cada PR genera preview en Vercel conectado a Supabase de staging separado (gratis). Resuelve el hallazgo registrado en la bitácora (línea 995): los E2E se ejecutaban contra producción, ahora tienen entorno propio.
+
+**Arquitectura (4 archivos):**
+- `vercel.json` (NUEVO, 65 líneas): headers PWA + SPA routing + seguridad
+- `.env.staging.example` (NUEVO, 29 líneas): plantilla de variables para staging
+- `docs/STAGING.md` (NUEVO, 197 líneas): guía paso a paso completa (7 secciones)
+- `supabase/README.md` (MOD): orden de ejecución actualizado con 5 archivos multiclinica faltantes
+
+**Contenido de vercel.json:**
+- Headers de seguridad: X-Content-Type-Options, X-Frame-Options, Referrer-Policy
+- Headers PWA: Service-Worker-Allowed, Cache-Control para sw.js y manifest
+- Cache de assets: max-age=31536000 immutable
+- Rewrites SPA: todas las rutas sirven index.html (excepto assets)
+
+**Contenido de docs/STAGING.md:**
+1. Prerequisitos
+2. Crear proyecto Supabase de staging (Free plan)
+3. Aplicar 14 scripts SQL en orden (incluye multiclinica + soft-delete)
+4. Obtener variables de entorno
+5. Configurar variables en Vercel Preview
+6. Validar el entorno (checklist + usuario de prueba)
+7. Troubleshooting (4 errores comunes)
+
+**Hallazgo corregido (deuda técnica de F6-C):**
+- `supabase/README.md` NO listaba los 5 archivos de multiclinica (schema-multiclinica-base, add-clinica-id, helpers-rol, trigger-clinica-id, rls)
+- `docs/STAGING.md` tenía el orden invertido: soft-delete ANTES de multiclinica-rls
+- Corrección: multiclinica-rls (13) → soft-delete (14), porque soft-delete reemplaza políticas de pacientes
+
+**Validaciones:**
+- ✅ vercel.json es JSON válido
+- ✅ Arquitectura: 0 violaciones
+- ✅ Tests: 809/809 pasando
+- ✅ Supabase staging: 4 políticas correctas (pacientes_select_activos, select_admin_todos, update_activos, insert_clinica)
+- ✅ Variables en Vercel Preview configuradas
+- ✅ Preview por PR funcional
+- ✅ Login funciona con usuario de prueba
+- ✅ Crear/eliminar/restaurar pacientes funciona en staging
+- ✅ Papelera (F6-L) funciona en staging
+- ✅ Service worker se registra con headers correctos
+
+**Hallazgo adicional (deuda técnica registrada):**
+- El rol del usuario se lee desde `auth.users.raw_app_meta_data` en lugar de `profiles.role`
+- Esto causa inconsistencia: cambiar `profiles.role` no afecta el rol en la app
+- Requiere tarea nueva para sincronizar o migrar la lectura de rol a `profiles`
+
+**Siguiente:** F6-M (investigar 404 de audit_log) o F6-N (eliminar duplicación de código) según preferencia.
+
 ## 2026-08-23 — F6-Fa: Versionar esquema de soft delete — DONE
 
 **Qué se ganó:** Reproducibilidad del esquema de soft delete de F6-F. Un proyecto Supabase vacío ejecutando los scripts del repo ahora puede usar la papelera (F6-L) sin intervención manual. Cierra el hallazgo de F6-L: las políticas `pacientes_*_clinica` de F6-C-c habían sido sobrescritas manualmente en Supabase por 3 políticas nuevas con soporte de `deleted_at`, sin respaldo en el repo.
