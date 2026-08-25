@@ -137,6 +137,8 @@
 | F6-N | Eliminar duplicación de `eliminarPaciente`/`restaurarPaciente`/`listarPacientesEliminados` entre `pacientesStorageService.js` y `pacientesSoftDeleteService.js` (hallazgo F6-L: código duplicado inline) | 6 | P2 | XS (<0.5 d) | F6-L | TODO |
 
 | **— FASE 6: hardening (original) —** | | | | | | |
+| F6-I | Entorno de staging separado de producción para E2E | 6 | P1 | S (0.5-1 d) | F6-C | DONE (2026-08-24) |
+| F6-Ib | Alinear proyecto original de Supabase con schemas versionados + limpiar datos E2E (hallazgo F6-I) | 6 | P1 | S (0.5 d) | F6-I | DONE (2026-08-24) — 4 políticas audit_log aplicadas, 0 usuarios e2e, datos reales preservados |
 | F6-01 | Error Boundary global + por módulo crítico | 6 | P1 | S (1-2 d) | — | DONE (2026-08-24) |
 | F6-02 | Auditoría y confirmación real del estado E2E | 6 | P1 | XS (<0.5 d) | — | DONE (2026-08-24) |
 | F6-02b | Agregar job E2E al pipeline CI/CD (hallazgo F6-02) | 6 | P2 | S (0.5-1 d) | F6-02 | DONE (2026-08-24) |
@@ -1430,6 +1432,42 @@ quirurgico_implantes, quirurgico_endodoncia
 - La base de producción no contiene usuarios ni pacientes de prueba.
 
 ---
+
+
+
+### F6-Ib — Alinear proyecto original de Supabase con schemas versionados — DONE (2026-08-24)
+
+**Qué ganamos:** el proyecto original de Supabase (nagduvivilmzupdpoayo, usado para desarrollo local) queda alineado con los schemas versionados en supabase/ y libre de datos de E2E. Elimina la deuda técnica de desalineación entre entornos.
+
+**Origen:** hallazgo de F6-I (2026-08-24). El proyecto original contiene 6 usuarios e2e_*, 98 odontogramas, 6 membresías, 4 pacientes y datos de prueba creados durante los tests E2E cuando estos apuntaban a "producción".
+
+**Diagnóstico completado (2026-08-24):**
+- ✅ Tablas base, clínicas, multi-clínica, audit_log, soft delete: aplicadas
+- ✅ Tipo app_role + funciones (clinica_actual, tiene_rol_en_clinica, es_admin_de_clinica_actual): aplicadas
+- ✅ Columna clinica_id en tablas principales: aplicada
+- ✅ Migración de roles (7/7 usuarios con rol en app_metadata): aplicada
+- ⚠️ Políticas audit_log: solo 2 de 4 (faltan audit_log_insert_clinica y audit_log_select_clinica)
+- ⚠️ Tablas vademécum: solo 3 de 8
+- ⚠️ Datos de E2E: 6 usuarios, 98 odontogramas, 6 membresías, 4 pacientes
+
+**Alcance restante:**
+- Ejecutar supabase/align-dev-supabase.sql (agregar políticas audit_log + verificar vademécum)
+- Ejecutar supabase/cleanup-e2e-data-from-dev.sql (limpiar datos de E2E)
+- Verificar que las tablas vademécum faltantes se crean (si es necesario)
+- Documentar el proceso manual en docs/DEV_DATABASE.md
+
+**Criterios de aceptación:**
+- Proyecto original alineado con schemas versionados en supabase/
+- 0 usuarios e2e_* en auth.users
+- 0 datos asociados a usuarios e2e (pacientes, odontogramas, membresías, etc.)
+- Datos reales del usuario preservados e intactos
+- Documentación del proceso manual en docs/DEV_DATABASE.md (nuevo)
+
+**Dependencias:** F6-I (staging ya configurado)
+
+**Estimación:** S (0.5 d)
+
+**Nota:** Este script solo se ejecuta manualmente en el proyecto original de desarrollo. NO se aplica automáticamente vía CI/CD.
 
 ### F6-J — PWA real (service worker + manifest) — TODO
 
