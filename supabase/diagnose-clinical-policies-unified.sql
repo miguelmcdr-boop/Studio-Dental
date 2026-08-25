@@ -17,9 +17,9 @@ LEFT JOIN (
   SELECT tablename, COUNT(*) AS num_politicas
   FROM pg_policies
   WHERE schemaname = 'public'
-    AND tablename IN ('pacientes','citas','evoluciones_clinicas','recetas','odontogramas','periodontogramas','certificados','adjuntos_clinicos')
+    AND tablename IN ('pacientes','citas','evoluciones_clinicas','recetas','odontogramas','periodontogramas','certificados')
   GROUP BY tablename
 ) p ON t.table_name = p.tablename
 WHERE t.table_schema = 'public'
-  AND t.table_name IN ('pacientes','citas','evoluciones_clinicas','recetas','odontogramas','periodontogramas','certificados','adjuntos_clinicos')
+  AND t.table_name IN ('pacientes','citas','evoluciones_clinicas','recetas','odontogramas','periodontogramas','certificados')
 ORDER BY t.table_name;

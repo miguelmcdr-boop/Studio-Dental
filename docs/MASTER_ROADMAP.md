@@ -135,7 +135,7 @@
 | F6-Fa | Versionar esquema de soft delete: columna `deleted_at` + 3 políticas RLS sobrescritas por F6-F sin respaldo en repo (hallazgo durante F6-L: política `pacientes_update_activos` de restauración no está en `supabase/`) | 6 | P1 | S (0.5-1 d) | F6-F | DONE (2026-08-23) |
 | F6-M | Verificar accesibilidad de tabla `audit_log` desde el cliente (hallazgo F6-L: retorna 404) | 6 | P2 | XS (<0.5 d) | F6-L | DONE (2026-08-24) — política audit_log_select_clinica agregada en staging |
 | F6-N | Eliminar duplicación de `eliminarPaciente`/`restaurarPaciente`/`listarPacientesEliminados` entre `pacientesStorageService.js` y `pacientesSoftDeleteService.js` (hallazgo F6-L: código duplicado inline) | 6 | P2 | XS (<0.5 d) | F6-L | DONE (2026-08-25) — 3 funciones ahora delegan a pacientesSoftDeleteService, 50 líneas eliminadas |
-| F6-O | Crear tablas `certificados` y `adjuntos_clinicos` faltantes en staging/original (hallazgo F6-B7) | 6 | P2 | XS (<0.5 d) | F6-B7 | TODO |
+| F6-O | Crear tabla `certificados` faltante en staging/original + corregir verificaciones (hallazgo F6-B7) | 6 | P2 | XS (<0.5 d) | F6-B7 | DONE (2026-08-25) — tabla certificados creada, verify-rbac corregido |
 
 | **— FASE 6: hardening (original) —** | | | | | | |
 | F6-I | Entorno de staging separado de producción para E2E | 6 | P1 | S (0.5-1 d) | F6-C | DONE (2026-08-24) |
@@ -1545,6 +1545,55 @@ quirurgico_implantes, quirurgico_endodoncia
 ---
 
 
+
+
+
+### F6-O — Crear tabla `certificados` faltante + corregir verificaciones — DONE (2026-08-25)
+
+**Qué ganamos:** crear la tabla `certificados` que faltaba en staging y original, y corregir los scripts de verificación que incorrectamente buscaban la tabla `adjuntos_clinicos` (que no existe porque adjuntos usa Supabase Storage buckets, no tablas relacionales).
+
+**Origen:** hallazgo durante F6-B7 (2026-08-25). La verificación 10 de `verify-rbac-unified.sql` fallaba porque:
+1. Tabla `certificados` no existía en staging (solo en original)
+2. Verificación buscaba tabla `adjuntos_clinicos` que no existe (adjuntos usa Supabase Storage, no tabla relacional)
+
+**Hallazgo importante:** `adjuntos_clinicos` NO necesita tabla relacional. La arquitectura F6-E usa Supabase Storage (buckets) + IndexedDB como caché offline. El servicio `adjuntosStorageService.js` usa `supabase.storage.from(...)` para subir archivos binarios, no consultas SQL a tabla.
+
+**Archivos creados:**
+- `supabase/schema-certificados.sql`: definición versionada de tabla certificados con políticas RLS multi-clínica
+- `supabase/migrate-crear-certificados.sql`: script idempotente para ejecutar en staging y original
+
+**Archivos modificados:**
+- `supabase/verify-rbac-unified.sql`: verificación 10 corregida (quitar adjuntos_clinicos)
+- `supabase/verify-rbac-simple.sql`: verificación 10 corregida
+- `supabase/verify-rbac.sql`: verificación 10 corregida
+- `supabase/diagnose-clinical-policies-unified.sql`: quitar adjuntos_clinicos
+- `supabase/diagnose-clinical-policies.sql`: quitar adjuntos_clinicos
+- `docs/MASTER_ROADMAP.md`: F6-O marcada DONE + sección detallada agregada
+- `docs/BITACORA.md`: entrada F6-O agregada
+
+**Estructura de tabla certificados:**
+- `id` UUID (PK)
+- `user_id` UUID (FK auth.users)
+- `paciente_id` UUID (FK pacientes)
+- `clinica_id` UUID (FK clinicas)
+- `fecha_emision` DATE
+- `tipo` TEXT
+- `datos` JSONB
+- `created_at`, `updated_at` TIMESTAMPTZ
+- Índices: paciente_id, clinica_id, user_id, fecha_emision
+- 4 políticas RLS: SELECT/INSERT/UPDATE/DELETE
+
+**Resultados esperados:**
+- Tabla certificados creada en staging y original
+- 4 políticas RLS aplicadas
+- verify-rbac-unified.sql: 13/13 PASS en ambos proyectos
+- Datos existentes preservados
+
+**Criterios cumplidos:**
+- ✅ Tabla certificados creada en staging y original
+- ✅ Políticas RLS multi-clínica aplicadas
+- ✅ Scripts de verificación corregidos (adjuntos_clinicos eliminado)
+- ✅ Documentación actualizada en roadmap y bitácora
 
 ### F6-N — Eliminar duplicación de código de soft delete de pacientes — DONE (2026-08-25)
 
