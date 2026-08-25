@@ -1,3 +1,37 @@
+## 2026-08-25 — F4-03i: Verificar corrección de `detail is not defined` — DONE (2026-08-17)
+
+**Qué se ganó:** Confirmación de que el bug `detail is not defined` en `vademecumService.notificarCambioVademecum` fue corregido el 2026-08-17 (commit a8d3f9de).
+
+**Hallazgo original (2026-08-17):**
+- La función `notificarCambioVademecum` tenía parámetro `_detalle` (prefijo `_` = no usado)
+- Intentaba acceder a variable `detail` que no estaba definida en el scope
+- Error: `ReferenceError: detail is not defined` al ejecutar `window.dispatchEvent(new CustomEvent(..., { detail }))`
+
+**Corrección aplicada (commit a8d3f9de, 2026-08-17):**
+- Cambiar parámetro de `_detalle` a `detalle` (quitar prefijo `_`)
+- Usar `{ detail: detalle }` en lugar de `{ detail }`
+- Ahora el parámetro se pasa correctamente al CustomEvent
+
+**Verificación (2026-08-25):**
+- ✅ Git blame confirma que líneas 542 y 544 fueron modificadas en commit a8d3f9de
+- ✅ 811/811 tests pasando sin regresión
+- ✅ Listener `useVademecumAdmin.handleVademecumChanged` no usa `event.detail` (solo recarga datos)
+- ✅ No hay otros listeners que puedan tener el bug
+- ✅ Código actual es correcto: `const notificarCambioVademecum = (accion, detalle) => { window.dispatchEvent(new CustomEvent(..., { detail: detalle })) }`
+
+**Conclusión:**
+La tarea F4-03i ya estaba completada desde el 2026-08-17. Solo se marcó como DONE en el roadmap para reflejar el estado real.
+
+**Archivos:**
+- `src/services/vademecumService.js` (líneas 542-544, ya corregidas)
+- `docs/MASTER_ROADMAP.md` (F4-03i marcada DONE)
+- `docs/BITACORA.md` (esta entrada)
+
+**Criterios cumplidos:**
+- ✅ Bug corregido (variable `detail` ahora se define correctamente)
+- ✅ Tests pasando (811/811)
+- ✅ Documentación actualizada
+
 ## 2026-08-25 — F6-O: Crear tabla certificados + corregir verificaciones — DONE
 
 **Qué se ganó:** Tabla `certificados` creada en staging y original con políticas RLS multi-clínica. Scripts de verificación corregidos (quitar `adjuntos_clinicos` que no existe como tabla).
