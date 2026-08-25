@@ -143,7 +143,7 @@
 | F6-01 | Error Boundary global + por módulo crítico | 6 | P1 | S (1-2 d) | — | DONE (2026-08-24) |
 | F6-02 | Auditoría y confirmación real del estado E2E | 6 | P1 | XS (<0.5 d) | — | DONE (2026-08-24) |
 | F6-02b | Agregar job E2E al pipeline CI/CD (hallazgo F6-02) | 6 | P2 | S (0.5-1 d) | F6-02 | DONE (2026-08-24) |
-| F6-02c | Investigar `data-testid` faltantes en bundle de LoginScreen (hallazgo F6-02) | 6 | P3 | XS (<0.5 d) | F6-02 | TODO |
+| F6-02c | Investigar `data-testid` faltantes en bundle de LoginScreen (hallazgo F6-02) | 6 | P3 | XS (<0.5 d) | F6-02 | DONE (2026-08-25) — agregados login-email y login-password, 5 data-testid totales |
 | F6-03 | Logger centralizado con niveles (reemplazo de 59 `console.log` sueltos) | 6 | P2 | S (1-2 d) | — | TODO |
 | F6-04 | Accesibilidad básica (aria-*, foco en modales, labels) | 6 | P2 | M (2-4 d, incremental) | — | TODO |
 | F6-05 | Exportación de reportes a Excel/PDF | 6 | P2 | M (2-3 d) | — | TODO |

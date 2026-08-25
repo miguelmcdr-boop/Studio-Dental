@@ -1,3 +1,47 @@
+## 2026-08-25 — F6-02c: Agregar data-testid faltantes en LoginScreen — DONE
+
+**Qué se ganó:** LoginScreen ahora tiene 5 `data-testid` (3 originales + 2 nuevos), eliminando los warnings del fallback en el fixture `auth.setup.js` de tests E2E.
+
+**Hallazgo original (F6-02, 2026-08-24):**
+- El fixture `e2e/fixtures/auth.setup.js` esperaba `data-testid="login-email"` y `data-testid="login-password"`
+- LoginScreen.jsx solo tenía 3 data-testid: `login-rol`, `login-submit`, `login-error`
+- Los inputs de email y password existían pero sin `data-testid`
+- El fixture tenía fallback inteligente a `type="email"` y `type="password"`, generando warnings en cada test E2E
+
+**Diagnóstico (2026-08-25):**
+- ✅ Vite NO elimina `data-testid` del bundle (no hay plugins que los remuevan)
+- ✅ Los atributos sí llegan al bundle final de producción
+- ❌ Los 2 `data-testid` simplemente nunca se agregaron en LoginScreen.jsx
+- ✅ Otros componentes (Sidebar, DirectorioPacientes) ya tienen `data-testid` correctamente
+
+**Cambios aplicados:**
+- `src/components/LoginScreen.jsx` (línea 210): agregado `data-testid="login-email"` al input de correo electrónico
+- `src/components/LoginScreen.jsx` (línea 223): agregado `data-testid="login-password"` al input de contraseña
+
+**Resultado:**
+- LoginScreen ahora tiene 5 `data-testid`:
+  1. `login-email` (input de correo)
+  2. `login-password` (input de contraseña)
+  3. `login-rol` (selector de rol)
+  4. `login-submit` (botón de enviar)
+  5. `login-error` (mensaje de error)
+
+**Verificación:**
+- ✅ 811/811 tests unitarios pasando sin regresión
+- ⚠️ Tests E2E no se pueden ejecutar localmente sin servidor de desarrollo y usuarios de prueba en Supabase Auth
+- ✅ El fixture `auth.setup.js` ahora usará los selectores por `data-testid` en lugar del fallback por `type`
+
+**Archivos modificados:**
+- `src/components/LoginScreen.jsx` (+2 líneas: data-testid en inputs de email y password)
+- `docs/MASTER_ROADMAP.md` (F6-02c marcada DONE)
+- `docs/BITACORA.md` (esta entrada)
+
+**Criterios cumplidos:**
+- ✅ LoginScreen.jsx tiene 5 data-testid (los 3 originales + 2 nuevos)
+- ✅ Consistencia con otros componentes que usan data-testid
+- ✅ Tests unitarios pasando (811/811)
+- ✅ Documentación actualizada
+
 ## 2026-08-25 — F4-03i: Verificar corrección de `detail is not defined` — DONE (2026-08-17)
 
 **Qué se ganó:** Confirmación de que el bug `detail is not defined` en `vademecumService.notificarCambioVademecum` fue corregido el 2026-08-17 (commit a8d3f9de).

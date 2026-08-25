@@ -207,6 +207,7 @@ export const LoginScreen = ({ onLogin }) => {
             <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Correo electrónico</label>
             <input
               type="email"
+              data-testid="login-email"
               required
               value={email}
               onChange={handleEmailChange}
@@ -219,6 +220,7 @@ export const LoginScreen = ({ onLogin }) => {
             <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Contraseña</label>
             <input
               type="password"
+              data-testid="login-password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
