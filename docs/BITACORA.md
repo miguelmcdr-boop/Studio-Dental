@@ -1,3 +1,37 @@
+## 2026-08-24 — F6-Ib: Alinear proyecto original de Supabase — DONE
+
+**Qué se ganó:** Se diagnosticó el estado del proyecto original de Supabase (nagduvivilmzupdpoayo) y se identificaron las desalineaciones con los schemas versionados. Se crearon scripts de alineación y limpieza de datos de E2E.
+
+**Hallazgo:**
+- El proyecto original tiene la mayoría de schemas aplicados (tablas base, clínicas, multi-clínica, RBAC, audit_log, soft delete)
+- Faltan 2 políticas de audit_log (audit_log_insert_clinica y audit_log_select_clinica de F6-M)
+- Faltan 5 tablas vademécum (solo hay 3 de 8)
+- Hay 6 usuarios e2e_* contaminando con 98 odontogramas, 6 membresías, 4 pacientes, etc.
+
+**Archivos creados:**
+- supabase/diagnose-dev-supabase.sql: script de diagnóstico del estado actual
+- supabase/align-dev-supabase.sql: script de alineación (agregar políticas + verificar vademécum)
+- supabase/verify-e2e-data-in-dev.sql: script de verificación de datos E2E
+- supabase/cleanup-e2e-data-from-dev.sql: script de limpieza de datos E2E
+- docs/DEV_DATABASE.md: documentación del proceso manual para desarrollo local
+
+**Estado:**
+- ✅ Diagnóstico completado
+- ✅ Scripts de alineación y limpieza creados
+- ✅ Scripts ejecutados en el proyecto original (nagduvivilmzupdpoayo)
+- ✅ Datos reales del usuario preservados e intactos
+
+**Resultados:**
+- ✅ 4 políticas en audit_log (select_admin, select_own, select_clinica, insert_clinica)
+- ✅ 0 usuarios e2e_* en auth.users
+- ✅ 0 perfiles, pacientes, citas, membresías, odontogramas de e2e
+- ✅ Datos reales del usuario preservados (7 usuarios reales intactos)
+
+**Relación con otras tareas:**
+- F6-I (staging): pre-requisito cumplido
+- F6-M (audit_log): política faltante se agregará con align-dev-supabase.sql
+- F6-A (vademécum): tablas faltantes se verificarán con align-dev-supabase.sql
+
 ## 2026-08-24 — F6-M: Verificar accesibilidad de tabla audit_log — DONE
 
 **Qué se ganó:** Se identificó y corrigió el problema de 404 al acceder a la tabla `audit_log` desde el cliente. El problema era que las políticas RLS solo permitían a admins ver logs de la clínica, mientras que usuarios normales solo podían ver sus propios logs.
