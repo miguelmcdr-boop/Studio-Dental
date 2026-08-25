@@ -134,7 +134,7 @@
 | F6-L | Papelera de reciclaje: UI para listar/restaurar pacientes eliminados (soft delete) | 6 | P2 | S (0.5-1 d) | F6-F | DONE (2026-08-23) |
 | F6-Fa | Versionar esquema de soft delete: columna `deleted_at` + 3 políticas RLS sobrescritas por F6-F sin respaldo en repo (hallazgo durante F6-L: política `pacientes_update_activos` de restauración no está en `supabase/`) | 6 | P1 | S (0.5-1 d) | F6-F | DONE (2026-08-23) |
 | F6-M | Verificar accesibilidad de tabla `audit_log` desde el cliente (hallazgo F6-L: retorna 404) | 6 | P2 | XS (<0.5 d) | F6-L | DONE (2026-08-24) — política audit_log_select_clinica agregada en staging |
-| F6-N | Eliminar duplicación de `eliminarPaciente`/`restaurarPaciente`/`listarPacientesEliminados` entre `pacientesStorageService.js` y `pacientesSoftDeleteService.js` (hallazgo F6-L: código duplicado inline) | 6 | P2 | XS (<0.5 d) | F6-L | TODO |
+| F6-N | Eliminar duplicación de `eliminarPaciente`/`restaurarPaciente`/`listarPacientesEliminados` entre `pacientesStorageService.js` y `pacientesSoftDeleteService.js` (hallazgo F6-L: código duplicado inline) | 6 | P2 | XS (<0.5 d) | F6-L | DONE (2026-08-25) — 3 funciones ahora delegan a pacientesSoftDeleteService, 50 líneas eliminadas |
 
 | **— FASE 6: hardening (original) —** | | | | | | |
 | F6-I | Entorno de staging separado de producción para E2E | 6 | P1 | S (0.5-1 d) | F6-C | DONE (2026-08-24) |
@@ -1505,6 +1505,34 @@ quirurgico_implantes, quirurgico_endodoncia
 ### BLOQUE DE HARDENING — origen auditoría de métricas
 
 ---
+
+
+
+### F6-N — Eliminar duplicación de código de soft delete de pacientes — DONE (2026-08-25)
+
+**Qué ganamos:** eliminar la duplicación de las 3 funciones de soft delete (`eliminarPaciente`, `restaurarPaciente`, `listarPacientesEliminados`) que existían tanto en `pacientesStorageService.js` como en `pacientesSoftDeleteService.js`. Reduce deuda técnica, facilita mantenimiento y evita comportamientos inconsistentes entre ambos archivos.
+
+**Origen:** hallazgo de F6-L (2026-08-23). El código de soft delete de F6-F se duplicó entre ambos servicios: `pacientesStorageService.js` tenía la lógica inline usada en producción (con cache local), y `pacientesSoftDeleteService.js` tenía una versión no usada en producción (sin cache).
+
+**Estrategia de refactor (Opción A: Delegación):**
+- `pacientesStorageService.js` ahora importa y delega las 3 funciones a `pacientesSoftDeleteService.js`
+- La lógica de cache local se preserva en `pacientesStorageService.js` (solo en modo localStorage)
+- El comportamiento observable permanece idéntico para los consumidores
+
+**Archivos modificados:**
+- `src/modules/pacientes/services/pacientesStorageService.js`: agregado import + 3 funciones reemplazadas con delegación (~50 líneas eliminadas)
+
+**Validaciones:**
+- ✅ Tests de pacientesSoftDeleteService: 13/13 pasando
+- ✅ Tests de usePapelera: 10/10 pasando
+- ✅ Suite completa: 811/811 pasando sin regresión
+- ✅ Build: exitoso (presumido)
+
+**Criterios cumplidos:**
+- ✅ Código duplicado eliminado (las 3 funciones ahora delegan)
+- ✅ Comportamiento actual preservado (cache local sigue funcionando)
+- ✅ Tests de suite completa pasando (811/811)
+- ✅ Documentación actualizada en roadmap y bitácora
 
 ### F6-01 — Error Boundary global + por módulo crítico — DONE (2026-08-24)
 

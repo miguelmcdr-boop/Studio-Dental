@@ -1,3 +1,33 @@
+## 2026-08-25 — F6-N: Eliminar duplicación de código soft delete — DONE
+
+**Qué se ganó:** Eliminar la duplicación de las 3 funciones de soft delete (`eliminarPaciente`, `restaurarPaciente`, `listarPacientesEliminados`) entre `pacientesStorageService.js` y `pacientesSoftDeleteService.js`. Reducción de ~50 líneas de código duplicado.
+
+**Hallazgo:**
+- `pacientesStorageService.js` tenía 3 funciones de soft delete usadas en producción (con cache local)
+- `pacientesSoftDeleteService.js` tenía 3 funciones duplicadas NO usadas en producción (sin cache)
+- Ambas implementaciones hacían lo mismo pero con comportamientos distintos (uno tocaba cache, el otro no)
+
+**Estrategia (delegación):**
+- `pacientesStorageService.js` ahora importa y delega las 3 funciones a `pacientesSoftDeleteService.js`
+- La lógica de cache local se preserva (solo en modo localStorage)
+- El comportamiento observable permanece idéntico para los consumidores
+
+**Archivos modificados:**
+- `src/modules/pacientes/services/pacientesStorageService.js`: agregado import de softDeleteEliminar/Restaurar/Listar + 3 funciones reemplazadas con delegación
+- `docs/MASTER_ROADMAP.md`: F6-N marcada DONE + sección detallada agregada
+- `docs/BITACORA.md`: esta entrada
+
+**Tests:**
+- ✅ Tests de pacientesSoftDeleteService: 13/13 pasando
+- ✅ Tests de usePapelera: 10/10 pasando
+- ✅ Suite completa: 811/811 pasando sin regresión
+
+**Criterios cumplidos:**
+- ✅ Código duplicado eliminado
+- ✅ Comportamiento actual preservado
+- ✅ Tests pasando sin regresión
+- ✅ Documentación actualizada
+
 ## 2026-08-24 — F6-Ib: Alinear proyecto original de Supabase — DONE
 
 **Qué se ganó:** Se diagnosticó el estado del proyecto original de Supabase (nagduvivilmzupdpoayo) y se identificaron las desalineaciones con los schemas versionados. Se crearon scripts de alineación y limpieza de datos de E2E.

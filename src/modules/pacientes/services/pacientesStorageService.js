@@ -28,6 +28,11 @@ import { validarListaPacientes } from '../schemas/pacienteSchema'
 import { supabase, USE_SUPABASE } from '../../../services/supabaseClient'
 import { transformarDesdeSupabase, transformarParaSupabase } from './pacientesTransformations.js'
 import { migrationStorageService } from '../../../services/migrationStorageService'
+import { 
+  eliminarPaciente as softDeleteEliminar, 
+  restaurarPaciente as softDeleteRestaurar, 
+  listarPacientesEliminados as softDeleteListar 
+} from './pacientesSoftDeleteService'
 import { esUuidValido } from '../../../services/migrations/uuidUtils'
 
 const STORAGE_KEY_PACIENTES = 'studio_dental_pacientes_v3'
@@ -362,84 +367,34 @@ export const pacientesStorageService = {
   /**
    * F6-F: Soft delete de paciente específico.
    * Marca deleted_at; paciente oculto pero reversible por admin.
+   * F6-N: Delega a pacientesSoftDeleteService (elimina duplicación).
    */
   eliminarPaciente: async (pacienteId) => {
-    if (!pacienteId) return false
-
-    if (!USE_SUPABASE || !supabase) {
+    const resultado = await softDeleteEliminar(pacienteId)
+    
+    // Mantener cache local sincronizado (solo en modo localStorage)
+    if (resultado && (!USE_SUPABASE || !supabase)) {
       pacientesCache = pacientesCache.filter(p => p.id !== pacienteId)
       pacientesRepo.guardar(pacientesCache)
-      return true
     }
-
-    try {
-      const { error } = await supabase
-        .from('pacientes')
-        .update({ deleted_at: new Date().toISOString() })
-        .eq('id', pacienteId)
-        .is('deleted_at', null)
-
-      if (error) {
-        console.error('[pacientesStorageService] Error al eliminar paciente:', error.message)
-        return false
-      }
-
-      pacientesCache = pacientesCache.filter(p => p.id !== pacienteId)
-      pacientesRepo.guardar(pacientesCache)
-      return true
-    } catch (e) {
-      console.error('[pacientesStorageService] Excepción al eliminar:', e)
-      return false
-    }
+    
+    return resultado
   },
 
   /**
    * F6-F: Restaurar paciente eliminado (solo admin).
+   * F6-N: Delega a pacientesSoftDeleteService (elimina duplicación).
    */
   restaurarPaciente: async (pacienteId) => {
-    if (!pacienteId || !USE_SUPABASE || !supabase) return false
-
-    try {
-      const { error } = await supabase
-        .from('pacientes')
-        .update({ deleted_at: null })
-        .eq('id', pacienteId)
-        .not('deleted_at', 'is', null)
-
-      if (error) {
-        console.error('[pacientesStorageService] Error al restaurar:', error.message)
-        return false
-      }
-      return true
-    } catch (e) {
-      console.error('[pacientesStorageService] Excepción al restaurar:', e)
-      return false
-    }
+    return await softDeleteRestaurar(pacienteId)
   },
 
   /**
    * F6-F: Listar pacientes eliminados (solo admin, papelera).
+   * F6-N: Delega a pacientesSoftDeleteService (elimina duplicación).
    */
   listarPacientesEliminados: async () => {
-    if (!USE_SUPABASE || !supabase) return []
-
-    try {
-      const { data, error } = await supabase
-        .from('pacientes')
-        .select('*')
-        .not('deleted_at', 'is', null)
-        .order('deleted_at', { ascending: false })
-
-      if (error) {
-        console.error('[pacientesStorageService] Error al listar eliminados:', error.message)
-        return []
-      }
-
-      return (data || []).map(transformarDesdeSupabase).filter(Boolean)
-    } catch (e) {
-      console.error('[pacientesStorageService] Excepción al listar:', e)
-      return []
-    }
+    return await softDeleteListar()
   },
 
   eliminarEvolucionesDePaciente: (pacienteId) => {
