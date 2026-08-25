@@ -100,7 +100,7 @@
 | F4-03f | Módulo admin "Vademécum" (8 tabs CRUD) | 4 | P1 | L | F4-03c | DONE (2026-08-15) |
 | F4-03g | Autocompletado recetas con vademécum v1.1 | 4 | P1 | S | F4-03f | DONE (2026-08-15) |
 | F4-03h | Mejoras UI de alertas + alternativas seguras | 4 | P2 | S | F4-03e, F4-03g | DONE (2026-08-15) |
-| F4-03i | Corregir `detail is not defined` en notificaciones de escritura de `vademecumService` (hallazgo Vitest 2026-08-17) | 4 | P2 | XS (<0.5 d) | — | TODO |
+| F4-03i | Corregir `detail is not defined` en notificaciones de escritura de `vademecumService` (hallazgo Vitest 2026-08-17) | 4 | P2 | XS (<0.5 d) | — | DONE (2026-08-17) — bug corregido en commit a8d3f9de |
 | F4-04 | E2E de flujos de negocio críticos previos a despliegue multi-clínica | 4 | P1 | M (3-5 d) | F3-04 | DONE (2026-08-16) |
 | F5-01 | Supabase Realtime setup (habilitar canales en tablas críticas) | 5 | P1 | S | F4-02 | DONE (2026-08-14) |
 | F5-02 | Sincronización en tiempo real de cambios entre dispositivos | 5 | P1 | M | F5-01 | DONE (2026-08-14) |
