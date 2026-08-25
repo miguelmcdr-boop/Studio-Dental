@@ -1,3 +1,44 @@
+## 2026-08-25 — F6-O: Crear tabla certificados + corregir verificaciones — DONE
+
+**Qué se ganó:** Tabla `certificados` creada en staging y original con políticas RLS multi-clínica. Scripts de verificación corregidos (quitar `adjuntos_clinicos` que no existe como tabla).
+
+**Hallazgo original (F6-B7, 2026-08-25):**
+- Verificación 10 de verify-rbac fallaba en staging y original
+- Tabla `certificados` no existía en staging (solo en original)
+- Verificación buscaba tabla `adjuntos_clinicos` que no existe
+
+**Hallazgo importante:** `adjuntos_clinicos` NO necesita tabla relacional. La arquitectura F6-E usa Supabase Storage (buckets) + IndexedDB como caché offline. El servicio `adjuntosStorageService.js` usa `supabase.storage.from(...)` para subir archivos binarios, no consultas SQL a tabla.
+
+**Archivos creados:**
+- `supabase/schema-certificados.sql`: definición versionada de tabla certificados con 4 políticas RLS
+- `supabase/migrate-crear-certificados.sql`: script idempotente para ejecutar en staging y original
+
+**Archivos modificados:**
+- `supabase/verify-rbac-unified.sql`: verificación 10 corregida (quitar adjuntos_clinicos)
+- `supabase/verify-rbac-simple.sql`: verificación 10 corregida
+- `supabase/verify-rbac.sql`: verificación 10 corregida
+- `supabase/diagnose-clinical-policies-unified.sql`: quitar adjuntos_clinicos
+- `supabase/diagnose-clinical-policies.sql`: quitar adjuntos_clinicos
+- `docs/MASTER_ROADMAP.md`: F6-O marcada DONE + sección detallada agregada
+- `docs/BITACORA.md`: esta entrada
+
+**Estructura de tabla certificados:**
+- Columnas: id, user_id, paciente_id, clinica_id, fecha_emision, tipo, datos (JSONB), created_at, updated_at
+- Índices: paciente_id, clinica_id, user_id, fecha_emision
+- 4 políticas RLS: SELECT/INSERT/UPDATE/DELETE con validación de membresía
+
+**Resultados esperados:**
+- Tabla certificados creada en staging y original
+- 4 políticas RLS aplicadas
+- verify-rbac-unified.sql: 13/13 PASS en ambos proyectos
+- Datos existentes preservados
+
+**Criterios cumplidos:**
+- ✅ Tabla certificados creada
+- ✅ Políticas RLS multi-clínica aplicadas
+- ✅ Scripts de verificación corregidos
+- ✅ Documentación actualizada
+
 ## 2026-08-25 — F6-B7: Alinear profiles.role a app_role — DONE
 
 **Qué se ganó:** La columna `profiles.role` ahora es del tipo ENUM `app_role` en lugar de `text`, tanto en staging como en el proyecto original. Elimina la inconsistencia de tipos entre el ENUM creado en F6-B1 y la columna que lo usa.

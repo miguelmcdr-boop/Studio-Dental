@@ -49,7 +49,7 @@ SELECT '10. Tablas clínicas usan role_in' AS check_name,
        CASE WHEN (
          SELECT count(*) FROM pg_policies 
          WHERE schemaname='public' 
-           AND tablename IN ('pacientes','citas','evoluciones_clinicas','recetas','odontogramas','periodontogramas','certificados','adjuntos_clinicos','audit_log')
+           AND tablename IN ('pacientes','citas','evoluciones_clinicas','recetas','odontogramas','periodontogramas','certificados','audit_log')
        ) > 0 THEN 'PASS' ELSE 'FAIL' END AS result;
 
 SELECT '11. Tablas financieras usan role_in' AS check_name,

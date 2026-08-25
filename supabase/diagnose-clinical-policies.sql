@@ -10,7 +10,7 @@ SELECT
   '✅ Existe' AS status
 FROM information_schema.tables
 WHERE table_schema = 'public'
-  AND table_name IN ('pacientes','citas','evoluciones_clinicas','recetas','odontogramas','periodontogramas','certificados','adjuntos_clinicos')
+  AND table_name IN ('pacientes','citas','evoluciones_clinicas','recetas','odontogramas','periodontogramas','certificados')
 ORDER BY table_name;
 
 -- Verificar qué tablas clínicas tienen políticas RLS
@@ -20,7 +20,7 @@ SELECT
   COUNT(*) AS num_politicas
 FROM pg_policies
 WHERE schemaname = 'public'
-  AND tablename IN ('pacientes','citas','evoluciones_clinicas','recetas','odontogramas','periodontogramas','certificados','adjuntos_clinicos')
+  AND tablename IN ('pacientes','citas','evoluciones_clinicas','recetas','odontogramas','periodontogramas','certificados')
 GROUP BY tablename
 ORDER BY tablename;
 
@@ -32,6 +32,6 @@ SELECT
 FROM information_schema.tables t
 LEFT JOIN pg_policies p ON t.table_name = p.tablename AND p.schemaname = 'public'
 WHERE t.table_schema = 'public'
-  AND t.table_name IN ('pacientes','citas','evoluciones_clinicas','recetas','odontogramas','periodontogramas','certificados','adjuntos_clinicos')
+  AND t.table_name IN ('pacientes','citas','evoluciones_clinicas','recetas','odontogramas','periodontogramas','certificados')
   AND p.tablename IS NULL
 ORDER BY t.table_name;

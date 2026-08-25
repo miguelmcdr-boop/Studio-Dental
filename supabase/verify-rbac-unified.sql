@@ -54,12 +54,12 @@ SELECT '10. Tablas clínicas existentes con políticas RLS' AS check_name,
          FROM pg_policies p
          JOIN information_schema.tables t ON p.tablename = t.table_name AND t.table_schema = 'public'
          WHERE p.schemaname='public' 
-           AND p.tablename IN ('pacientes','citas','evoluciones_clinicas','recetas','odontogramas','periodontogramas','certificados','adjuntos_clinicos')
+           AND p.tablename IN ('pacientes','citas','evoluciones_clinicas','recetas','odontogramas','periodontogramas','certificados')
        ) >= (
          SELECT count(DISTINCT t.table_name)
          FROM information_schema.tables t
          WHERE t.table_schema = 'public'
-           AND t.table_name IN ('pacientes','citas','evoluciones_clinicas','recetas','odontogramas','periodontogramas','certificados','adjuntos_clinicos')
+           AND t.table_name IN ('pacientes','citas','evoluciones_clinicas','recetas','odontogramas','periodontogramas','certificados')
        ) THEN 'PASS' ELSE 'FAIL' END AS result
 UNION ALL
 SELECT '11. Tablas financieras con políticas RLS' AS check_name,
