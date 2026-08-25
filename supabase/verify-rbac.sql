@@ -74,6 +74,26 @@ SELECT '12. Sin políticas *_authenticated de escritura en vademécum',
            AND tablename IN ('vademecum','vademecum_urgencia','vademecum_antirresortivos','alergias_cruzadas','interacciones_farmacologicas','profilaxis_endocarditis','manejo_anticoagulantes','reference_data_meta')
        ) THEN 'PASS' ELSE 'FAIL' END, 'F6-A legacy eliminado';
 
+
+-- ============================================================
+-- F6-B7: Verificar que profiles.role es tipo app_role
+-- ============================================================
+INSERT INTO _rbac_verify (check_name, result, detail)
+SELECT '13. profiles.role es tipo app_role',
+       CASE 
+         WHEN data_type = 'USER-DEFINED' AND udt_name = 'app_role' 
+         THEN 'PASS' 
+         ELSE 'FAIL' 
+       END,
+       CASE 
+         WHEN data_type = 'USER-DEFINED' THEN udt_name
+         ELSE data_type
+       END
+FROM information_schema.columns
+WHERE table_schema = 'public' 
+  AND table_name = 'profiles' 
+  AND column_name = 'role';
+
 SELECT check_name, result, detail FROM _rbac_verify ORDER BY id;
 SELECT count(*) FILTER (WHERE result='PASS') AS pass,
        count(*) FILTER (WHERE result='FAIL') AS fail,

@@ -9,11 +9,20 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 -- ============================================================
 -- TABLA: profiles (extiende auth.users)
 -- ============================================================
+-- ENUM app_role: fuente de verdad server-side del rol
+-- (F6-B7: movido aquí para que profiles pueda usarlo)
+-- Espejo de src/constants/rbacConstants.js ROLES
+DO $$ BEGIN
+  CREATE TYPE app_role AS ENUM ('admin', 'dentista', 'asistente', 'recepcion');
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
 CREATE TABLE IF NOT EXISTS profiles (
   id UUID REFERENCES auth.users(id) PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
   full_name TEXT,
-  role TEXT CHECK (role IN ('admin', 'dentista', 'asistente', 'recepcion')) DEFAULT 'recepcion',
+  role app_role DEFAULT 'recepcion',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );

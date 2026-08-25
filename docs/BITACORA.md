@@ -1,3 +1,48 @@
+## 2026-08-25 — F6-B7: Alinear profiles.role a app_role — DONE
+
+**Qué se ganó:** La columna `profiles.role` ahora es del tipo ENUM `app_role` en lugar de `text`, tanto en staging como en el proyecto original. Elimina la inconsistencia de tipos entre el ENUM creado en F6-B1 y la columna que lo usa.
+
+**Hallazgo original (F6-B6, 2026-08-18):**
+- `profiles.role` en cloud era tipo `text` (no `app_role` como en local)
+- El ENUM `app_role` existía pero la columna no lo usaba
+- Registrado como tarea futura P2, XS
+
+**Estrategia de migración:**
+- Script `migrate-profiles-role-to-app-role.sql` idempotente (seguro re-ejecutar)
+- Elimina CHECK constraint `profiles_role_check` antes del ALTER
+- Elimina DEFAULT actual (tipo text) antes del ALTER para evitar error 42804
+- Altera columna de text a app_role con USING role::app_role
+- Agrega nuevo DEFAULT de tipo app_role ('recepcion'::app_role)
+
+**Archivos creados:**
+- `supabase/diagnose-profiles-role.sql`: diagnóstico del tipo de profiles.role
+- `supabase/migrate-profiles-role-to-app-role.sql`: migración de text a app_role
+- `supabase/diagnose-clinical-policies-unified.sql`: diagnóstico de políticas RLS
+- `supabase/verify-rbac-unified.sql`: verificación unificada de RBAC (13 checks)
+
+**Archivos modificados:**
+- `supabase/schema.sql`: ENUM app_role movido antes de profiles + columna role cambiada a app_role
+- `supabase/schema-rbac.sql`: trigger on_auth_user_created inserta _role directamente
+- `supabase/verify-rbac.sql`: verificación 13 integrada en _rbac_verify
+
+**Resultados:**
+- ✅ Migración ejecutada en staging: profiles.role ahora es app_role
+- ✅ Migración ejecutada en original: profiles.role ahora es app_role
+- ✅ verify-rbac-unified.sql: 13/13 PASS en ambos proyectos
+- ✅ Datos preservados: staging (1 usuario recepcion), original (1 usuario admin)
+
+**Hallazgo adicional (F6-O):**
+- ⚠️ Tabla `certificados` no existe en staging (solo en original)
+- ⚠️ Tabla `adjuntos_clinicos` no existe en ningún proyecto
+- Problema preexistente de despliegue, NO causado por F6-B7
+
+**Criterios cumplidos:**
+- ✅ profiles.role es tipo app_role en staging y original
+- ✅ CHECK constraint eliminado
+- ✅ DEFAULT actualizado a 'recepcion'::app_role
+- ✅ verify-rbac 13/13 PASS
+- ✅ Documentación actualizada
+
 ## 2026-08-25 — F6-N: Eliminar duplicación de código soft delete — DONE
 
 **Qué se ganó:** Eliminar la duplicación de las 3 funciones de soft delete (`eliminarPaciente`, `restaurarPaciente`, `listarPacientesEliminados`) entre `pacientesStorageService.js` y `pacientesSoftDeleteService.js`. Reducción de ~50 líneas de código duplicado.

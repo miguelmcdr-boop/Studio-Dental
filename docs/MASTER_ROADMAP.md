@@ -116,7 +116,7 @@
 | F6-B4 | Migrar authService.js a leer rol de app_metadata + eliminar fallback a admin | 6 | **P0** | S (0.5 d) | F6-B3 | DONE (2026-08-18) |
 | F6-B5 | Tests SQL de helpers + tests JS/E2E por rol | 6 | **P0** | S (1 d) | F6-B4 | DONE (2026-08-18) |
 | F6-B6 | Verificación práctica + documentación + bitácora | 6 | **P0** | S (0.5 d) | F6-B5 | DONE (2026-08-18) |
-| F6-B7 | Alinear `profiles.role` a `app_role` en cloud (hallazgo: está como `text`) | 6 | P2 | XS (<0.5 d) | F6-B6 | TODO |
+| F6-B7 | Alinear `profiles.role` a `app_role` en cloud (hallazgo: está como `text`) | 6 | P2 | XS (<0.5 d) | F6-B6 | DONE (2026-08-25) — migración ejecutada en staging y original, verify-rbac 13/13 PASS |
 | F6-C | Modelo multi-clínica: `clinica_id` + membresía + reescritura de RLS | 6 | **P0** | XL | F6-B | IN PROGRESS (RFC aprobado 2026-08-17; implementación bloqueada por F6-B) |
 | F6-C-a | Tablas `clinicas` y `miembros_clinica` + función `clinica_actual()` (RFC-F6-C) | 6 | **P0** | S (0.5 d) | F6-B, F6-I | DONE (2026-08-18) |
 | F6-C-b | Migración de datos existentes a clínica inicial (RFC-F6-C) | 6 | **P0** | S (0.5 d) | F6-C-a | DONE (2026-08-18) |
@@ -135,6 +135,7 @@
 | F6-Fa | Versionar esquema de soft delete: columna `deleted_at` + 3 políticas RLS sobrescritas por F6-F sin respaldo en repo (hallazgo durante F6-L: política `pacientes_update_activos` de restauración no está en `supabase/`) | 6 | P1 | S (0.5-1 d) | F6-F | DONE (2026-08-23) |
 | F6-M | Verificar accesibilidad de tabla `audit_log` desde el cliente (hallazgo F6-L: retorna 404) | 6 | P2 | XS (<0.5 d) | F6-L | DONE (2026-08-24) — política audit_log_select_clinica agregada en staging |
 | F6-N | Eliminar duplicación de `eliminarPaciente`/`restaurarPaciente`/`listarPacientesEliminados` entre `pacientesStorageService.js` y `pacientesSoftDeleteService.js` (hallazgo F6-L: código duplicado inline) | 6 | P2 | XS (<0.5 d) | F6-L | DONE (2026-08-25) — 3 funciones ahora delegan a pacientesSoftDeleteService, 50 líneas eliminadas |
+| F6-O | Crear tablas `certificados` y `adjuntos_clinicos` faltantes en staging/original (hallazgo F6-B7) | 6 | P2 | XS (<0.5 d) | F6-B7 | TODO |
 
 | **— FASE 6: hardening (original) —** | | | | | | |
 | F6-I | Entorno de staging separado de producción para E2E | 6 | P1 | S (0.5-1 d) | F6-C | DONE (2026-08-24) |
@@ -1306,6 +1307,43 @@ quirurgico_implantes, quirurgico_endodoncia
 - Test automatizado de las políticas (pgTAP o suite de integración contra Supabase de staging).
 
 ---
+
+
+
+### F6-B7 — Alinear `profiles.role` a `app_role` en cloud — DONE (2026-08-25)
+
+**Qué ganamos:** la columna `profiles.role` ahora es del tipo ENUM `app_role` en lugar de `text`, tanto en staging como en el proyecto original. Elimina la inconsistencia de tipos entre el ENUM creado en F6-B1 y la columna que lo usa.
+
+**Origen:** hallazgo durante F6-B6 (2026-08-18). La columna `profiles.role` en cloud era tipo `text` (no `app_role` como en local), registrado como tarea futura P2, XS.
+
+**Archivos creados:**
+- `supabase/diagnose-profiles-role.sql`: script de diagnóstico del tipo de profiles.role
+- `supabase/migrate-profiles-role-to-app-role.sql`: script de migración de text a app_role (maneja DEFAULT correctamente)
+- `supabase/diagnose-clinical-policies-unified.sql`: script de diagnóstico de políticas RLS en tablas clínicas
+- `supabase/verify-rbac-unified.sql`: script de verificación unificada de RBAC (13 checks en una tabla)
+
+**Archivos modificados:**
+- `supabase/schema.sql`: movido ENUM app_role antes de profiles + columna role cambiada a app_role
+- `supabase/schema-rbac.sql`: trigger on_auth_user_created ahora inserta _role directamente (sin ::text)
+- `supabase/verify-rbac.sql`: agregada verificación 13 (profiles.role es tipo app_role) integrada en _rbac_verify
+
+**Resultados:**
+- ✅ Migración ejecutada en staging (bjuqqtkiqnfyejitmowc): profiles.role ahora es app_role
+- ✅ Migración ejecutada en original (nagduvivilmzupdpoayo): profiles.role ahora es app_role
+- ✅ verify-rbac-unified.sql: 13/13 PASS en ambos proyectos
+- ✅ Datos preservados: staging tiene 1 usuario (recepcion), original tiene 1 usuario (admin)
+
+**Hallazgo adicional (documentado como F6-O):**
+- ⚠️ Tabla `certificados` no existe en staging (solo en original)
+- ⚠️ Tabla `adjuntos_clinicos` no existe en ningún proyecto
+- Estas tablas faltantes son un problema preexistente de despliegue, NO causado por F6-B7
+
+**Criterios cumplidos:**
+- ✅ profiles.role es tipo app_role en staging y original
+- ✅ CHECK constraint profiles_role_check eliminado
+- ✅ DEFAULT actualizado a 'recepcion'::app_role
+- ✅ verify-rbac 13/13 PASS en ambos proyectos
+- ✅ Documentación actualizada en roadmap y bitácora
 
 ### F6-C — Modelo multi-clínica: `clinica_id` + membresía + reescritura de RLS — TODO
 
