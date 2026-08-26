@@ -136,6 +136,7 @@
 | F6-M | Verificar accesibilidad de tabla `audit_log` desde el cliente (hallazgo F6-L: retorna 404) | 6 | P2 | XS (<0.5 d) | F6-L | DONE (2026-08-24) — política audit_log_select_clinica agregada en staging |
 | F6-N | Eliminar duplicación de `eliminarPaciente`/`restaurarPaciente`/`listarPacientesEliminados` entre `pacientesStorageService.js` y `pacientesSoftDeleteService.js` (hallazgo F6-L: código duplicado inline) | 6 | P2 | XS (<0.5 d) | F6-L | DONE (2026-08-25) — 3 funciones ahora delegan a pacientesSoftDeleteService, 50 líneas eliminadas |
 | F6-O | Crear tabla `certificados` faltante en staging/original + corregir verificaciones (hallazgo F6-B7) | 6 | P2 | XS (<0.5 d) | F6-B7 | DONE (2026-08-25) — tabla certificados creada, verify-rbac corregido |
+| F6-P | Limpieza de archivos SQL temporales (14 archivos eliminados) | 6 | P2 | XS (<0.5 d) | F6-O | DONE (2026-08-25) — 14 archivos eliminados (13 SQL + 1 log) |
 
 | **— FASE 6: hardening (original) —** | | | | | | |
 | F6-I | Entorno de staging separado de producción para E2E | 6 | P1 | S (0.5-1 d) | F6-C | DONE (2026-08-24) |

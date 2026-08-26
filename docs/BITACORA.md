@@ -1,3 +1,67 @@
+## 2026-08-25 — F6-P: Limpieza de archivos SQL temporales — DONE
+
+**Qué se ganó:** Reducción de complejidad del repositorio eliminando 14 archivos temporales (13 SQL + 1 log) que ya cumplieron su propósito durante las tareas F6-M, F6-Ib, F6-B7 y F6-O.
+
+**Archivos eliminados (13 SQL):**
+
+Diagnóstico completado (4):
+- `supabase/diagnose-profiles-role.sql` — F6-B7 ✅
+- `supabase/diagnose-clinical-policies.sql` — F6-B7 ✅
+- `supabase/diagnose-clinical-policies-unified.sql` — F6-B7 ✅
+- `supabase/diagnose-dev-supabase.sql` — F6-Ib ✅
+
+Migración ejecutada (5):
+- `supabase/migrate-profiles-role-to-app-role.sql` — F6-B7 ✅
+- `supabase/migrate-crear-certificados.sql` — F6-O ✅
+- `supabase/cleanup-e2e-data-from-dev.sql` — F6-Ib ✅
+- `supabase/migrate-multiclinica-inicial.sql` — Ya ejecutado
+- `supabase/migrate-roles-to-app-metadata.sql` — Ya ejecutado
+
+Verificación one-time (2):
+- `supabase/verify-e2e-data-in-dev.sql` — F6-Ib ✅
+- `supabase/verify-audit-log.sql` — F6-M ✅
+
+Fix aplicado (2):
+- `supabase/align-dev-supabase.sql` — F6-Ib ✅
+- `supabase/fix-audit-log-policies.sql` — F6-M ✅
+- `supabase/add-audit-log-clinica-policy.sql` — F6-M ✅
+
+**Archivos eliminados (1 log):**
+- `vitest-output-2026-08-17.log` — Log antiguo de tests
+
+**Archivos SQL restantes (22 archivos):**
+
+Schema versionado (14):
+- `schema.sql`, `schema-rbac.sql`, `schema-certificados.sql`
+- `schema-clinical-tables.sql`, `schema-vademecum.sql`, `schema-audit-log.sql`
+- `schema-soft-delete.sql`, `schema-multiclinica-base.sql`
+- `schema-multiclinica-rls.sql`, `schema-multiclinica-helpers-rol.sql`
+- `schema-multiclinica-add-clinica-id.sql`, `schema-multiclinica-trigger-clinica-id.sql`
+- `schema-rbac-policies.sql`, `schema-rbac-policies-fin.sql`
+
+Verificación reutilizable (6):
+- `verify-rbac.sql`, `verify-rbac-simple.sql`, `verify-rbac-unified.sql`
+- `verify-multiclinica-base.sql`, `verify-multiclinica-migracion.sql`, `verify-multiclinica-rls.sql`
+
+Seed necesario (2):
+- `seed-vademecum.sql` — 164 registros del vademécum
+- `seed-multiclinica-e2e.sql` — Datos para E2E
+
+**Verificación:**
+- ✅ 811/811 tests unitarios pasando sin regresión
+- ✅ 22 archivos SQL restantes (de 35 originales)
+- ✅ 14 archivos temporales eliminados (~35KB reducidos)
+
+**Archivos modificados:**
+- `docs/MASTER_ROADMAP.md` (F6-P agregada a tabla resumen)
+- `docs/BITACORA.md` (esta entrada)
+
+**Criterios cumplidos:**
+- ✅ Archivos temporales eliminados
+- ✅ Tests pasando (811/811)
+- ✅ Documentación actualizada
+- ✅ Sin regresión en funcionalidad
+
 ## 2026-08-25 — F6-02c: Agregar data-testid faltantes en LoginScreen — DONE
 
 **Qué se ganó:** LoginScreen ahora tiene 5 `data-testid` (3 originales + 2 nuevos), eliminando los warnings del fallback en el fixture `auth.setup.js` de tests E2E.
