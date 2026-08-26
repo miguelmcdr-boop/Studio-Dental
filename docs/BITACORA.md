@@ -1,3 +1,107 @@
+## 2026-08-26 — F6-05: Exportación de Reportes a Excel/PDF — DONE
+
+**Que se gano:** Sistema completo de exportación de reportes en 4 fases, con integración a audit_log (F6-F) y cambio de formato de impresión de A4 a Letter (estándar Chile/USA).
+
+**Fases implementadas (4):**
+
+**Fase 1: Servicio de Exportación**
+- src/modules/reportes/services/exportService.js (nuevo):
+  - exportarReportePDF: usa window.print() con formato Letter
+  - exportarReporteCompletoExcel: 3 hojas (Resumen, Ranking, Rendimiento)
+  - exportarRankingExcel: hoja única de ranking
+  - exportarRendimientoExcel: hoja única de rendimiento
+- Integración con xlsx (SheetJS v0.18.5) para generación de Excel
+- 25 tests unitarios en exportService.test.js (todos passing)
+
+**Fase 2: Botones en ReportesModulo**
+- Agregados 2 botones en header: Exportar PDF y Exportar Excel
+- Handlers handleExportarPDF y handleExportarExcel
+- aria-label en ambos botones (herencia de F6-04 accesibilidad)
+
+**Fase 3: Botones Específicos por Tabla**
+- RankingPrestacionesTable.jsx: botón Excel junto al título
+- RendimientoProfesionales.jsx: botón Excel junto al título
+- Cada botón exporta solo su tabla específica
+
+**Fase 4: Integración con Audit Log (F6-F)**
+- Helper registrarExportacion (fire-and-forget)
+- 4 llamadas a registrarAuditoria (1 por método de exportación)
+- Registro de: formato, tipo, período, timestamp
+- Falla silenciosamente si hay error (no bloquea exportación)
+
+**Cambio de Formato: A4 a Letter (solicitud del usuario)**
+- Agregado @page { size: letter; margin: 1in; } en src/index.css
+- Renombrado ReporteImprimibleA4.jsx a ReporteImprimibleLetter.jsx
+- Actualizados 8 archivos con referencias a formato Letter:
+  - ReportesModulo.jsx (ReporteImprimibleLetter + setVerReporteLetter)
+  - PresupuestoSection.jsx (Odontograma Letter)
+  - CertificadosSection.jsx (Certificado Oficial Letter)
+  - ArqueoCajaDiario.jsx (Cierre de Caja Letter)
+  - ComprobantePagoImprimible.jsx (Carta Letter Oficial)
+  - DocumentoPresupuestoImprimible.jsx (Presupuesto Letter)
+  - exportService.js (comentarios)
+  - ReporteImprimibleLetter.jsx (componente)
+- Nota: Las 2 referencias restantes a A4 son CYP3A4 (enzima hepática, término médico correcto)
+
+**Cumplimiento de Requisitos:**
+- F6-05: Exportación de reportes a Excel/PDF ✓
+- F6-F: Trazabilidad de exportaciones en audit_log ✓
+- F6-04 heredada: aria-label en botones de exportación ✓
+- Formato Letter (8.5 x 11) para estándar Chile/USA ✓
+
+**Métricas:**
+- Archivos nuevos: 2 (exportService.js, exportService.test.js)
+- Archivos modificados: 9
+- Archivos renombrados: 1 (A4 a Letter)
+- Tests agregados: 25
+- Total de tests: 852/852 passing
+- Build: exitoso
+- Validación arquitectónica: OK
+
+**Beneficios entregados:**
+- Requisito operacional: clínicas pueden enviar datos a contadores externos
+- Reportes a Isapres/Fonasa: formato Excel requerido para reembolsos
+- Respaldo externo: copias de seguridad fuera del sistema
+- Licitaciones públicas: hospitales exigen exportación en sus bases
+- Auditoría completa: cada exportación queda registrada (compliance)
+- Mejora UX: botón Exportar PDF en vez de Imprimir y Guardar como PDF manual
+- Formato Letter: estándar para Chile/USA (8.5 x 11 pulgadas)
+
+**Archivos afectados:**
+
+Nuevos:
+- src/modules/reportes/services/exportService.js
+- src/modules/reportes/services/exportService.test.js
+
+Modificados:
+- src/modules/reportes/ReportesModulo.jsx
+- src/modules/reportes/components/RankingPrestacionesTable.jsx
+- src/modules/reportes/components/RendimientoProfesionales.jsx
+- src/modules/pacientes/components/PresupuestoSection.jsx
+- src/modules/pacientes/components/CertificadosSection.jsx
+- src/modules/finanzas/components/ArqueoCajaDiario.jsx
+- src/modules/pagos/components/ComprobantePagoImprimible.jsx
+- src/modules/presupuestos/components/DocumentoPresupuestoImprimible.jsx
+- src/index.css
+
+Renombrados:
+- ReporteImprimibleA4.jsx a ReporteImprimibleLetter.jsx
+
+**Criterios cumplidos:**
+- xlsx instalado sin romper build
+- exportService.js creado con 4 funciones de exportación
+- 25 tests del exportService pasando
+- Botón Exportar PDF en ReportesModulo
+- Botón Exportar Excel en ReportesModulo (datos completos)
+- Botón Exportar a Excel en RankingPrestacionesTable (solo ranking)
+- Botón Exportar a Excel en RendimientoProfesionales (solo rendimiento)
+- Cada exportación registrada en audit_log
+- 852/852 tests pasando sin regresión
+- Build OK
+- Validación arquitectónica OK
+- Navegación por teclado funcional en nuevos botones (F6-04 heredada)
+- Formato de impresión Letter configurado globalmente
+
 ## 2026-08-25 — F6-04: Accesibilidad basica — DONE
 
 **Que se gano:** Mejoras de accesibilidad en 8 archivos criticos, pasando de 2 atributos aria-* en toda la app a 25 atributos de accesibilidad (11 htmlFor, 12 aria-label, 1 aria-current, 1 aria-modal, 1 role=dialog).

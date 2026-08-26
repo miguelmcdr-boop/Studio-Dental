@@ -1,4 +1,5 @@
 import React, { memo } from 'react'
+import { exportService } from '../services/exportService'
 
 export const RendimientoProfesionales = memo(({ recaudacionPorMetodo = {} }) => {
   const entradasMetodos = Object.entries(recaudacionPorMetodo)
@@ -7,7 +8,17 @@ export const RendimientoProfesionales = memo(({ recaudacionPorMetodo = {} }) => 
     <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xs text-xs space-y-3">
       <div className="flex justify-between items-center border-b pb-2">
         <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider">💳 Desglose por Medio de Pago & DTE</h3>
-        <span className="text-[10px] text-gray-500 font-semibold">Caja & Canales</span>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-gray-500 font-semibold">Caja & Canales</span>
+          <button
+            onClick={() => exportService.exportarRendimientoExcel(recaudacionPorMetodo)}
+            className="text-[10px] bg-emerald-600 text-white px-2 py-1 rounded font-bold hover:bg-emerald-700 transition-colors"
+            aria-label="Exportar rendimiento por método de pago a Excel"
+            title="Descargar Excel con desglose por método de pago"
+          >
+            📊 Excel
+          </button>
+        </div>
       </div>
 
       {entradasMetodos.length === 0 ? (

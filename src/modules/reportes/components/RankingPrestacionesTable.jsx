@@ -1,4 +1,5 @@
 import React, { memo } from 'react'
+import { exportService } from '../services/exportService'
 
 export const RankingPrestacionesTable = memo(({ topPrestaciones = [] }) => {
   if (topPrestaciones.length === 0) {
@@ -13,7 +14,17 @@ export const RankingPrestacionesTable = memo(({ topPrestaciones = [] }) => {
     <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xs text-xs space-y-3">
       <div className="flex justify-between items-center border-b pb-2">
         <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider">🏆 Top Procedimientos más Rentables</h3>
-        <span className="text-[10px] bg-gray-100 text-gray-700 px-2 py-0.5 rounded font-bold">Por Ingreso Generado</span>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] bg-gray-100 text-gray-700 px-2 py-0.5 rounded font-bold">Por Ingreso Generado</span>
+          <button
+            onClick={() => exportService.exportarRankingExcel(topPrestaciones)}
+            className="text-[10px] bg-emerald-600 text-white px-2 py-1 rounded font-bold hover:bg-emerald-700 transition-colors"
+            aria-label="Exportar ranking de prestaciones a Excel"
+            title="Descargar Excel con ranking de prestaciones"
+          >
+            📊 Excel
+          </button>
+        </div>
       </div>
 
       <table className="w-full text-left border-collapse">
