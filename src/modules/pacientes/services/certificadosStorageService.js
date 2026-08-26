@@ -1,5 +1,8 @@
 import { pacientesStorageService } from './pacientesStorageService'
 import { obtenerDatoClinico, guardarCertificado } from '../../../services/datosClinicosSupabase'
+import { createLogger } from '../../../services/logger.js'
+
+const log = createLogger('certificadosStorageService')
 
 /**
  * Servicio de Persistencia de Certificados Médicos (F6-D-6)
@@ -58,7 +61,7 @@ export const certificadosStorageService = {
       })
       await Promise.all(promesas)
     } catch (e) {
-      console.warn('[certificadosStorageService] Error guardando certificados en Supabase:', e?.message)
+      log.warn('Error guardando certificados en Supabase:', e?.message)
     }
 
     return result

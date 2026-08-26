@@ -9,7 +9,7 @@
  *
  * Uso básico:
  *   useRealtimeSubscription('citas', (payload) => {
- *     console.log('Cambio en citas:', payload)
+ *     log.info('Cambio en citas:', payload)
  *   })
  *
  * Con opciones:
@@ -28,6 +28,9 @@
  */
 import { useEffect, useRef } from 'react'
 import { suscribirseATabla } from '../services/realtimeService'
+import { createLogger } from '../services/logger.js'
+
+const log = createLogger('useRealtimeSubscription')
 
 /**
  * Hook de suscripción a cambios de Realtime.

@@ -57,7 +57,7 @@ const readQueue = () => {
     const data = localStorage.getItem(QUEUE_KEY)
     return data ? JSON.parse(data) : []
   } catch (e) {
-    console.error('[operationQueue] Error leyendo cola:', e)
+    log.error('Error leyendo cola:', e)
     return []
   }
 }
@@ -69,7 +69,7 @@ const writeQueue = (queue) => {
   try {
     localStorage.setItem(QUEUE_KEY, JSON.stringify(queue))
   } catch (e) {
-    console.error('[operationQueue] Error escribiendo cola:', e)
+    log.error('Error escribiendo cola:', e)
   }
 }
 
@@ -85,9 +85,9 @@ const moveToFailed = (operation, error) => {
       error: error?.message || 'Unknown error'
     })
     localStorage.setItem(FAILED_KEY, JSON.stringify(failed))
-    console.error('[operationQueue] Operación fallida después de máximos reintentos:', operation, error)
+    log.error('Operación fallida después de máximos reintentos:', operation, error)
   } catch (e) {
-    console.error('[operationQueue] Error moviendo a failed:', e)
+    log.error('Error moviendo a failed:', e)
   }
 }
 
@@ -101,6 +101,9 @@ import { agendaStorageService } from '../modules/agenda/services/agendaStorageSe
 import { presupuestosStorageService } from '../modules/presupuestos/services/presupuestosStorageService'
 import { pagosStorageService } from '../modules/pagos/services/pagosStorageService'
 import { finanzasStorageService } from '../modules/finanzas/services/finanzasStorageService'
+import { createLogger } from './logger'
+
+const log = createLogger('operationQueue')
 
 const STORAGE_SERVICES = {
   pacientesStorageService,
@@ -113,12 +116,12 @@ const STORAGE_SERVICES = {
 const resolveServiceMethod = (serviceName, methodName) => {
   const service = STORAGE_SERVICES[serviceName]
   if (!service) {
-    console.error('[operationQueue] Service no reconocido:', serviceName)
+    log.error('Service no reconocido:', serviceName)
     return null
   }
 
   if (typeof service[methodName] !== 'function') {
-    console.error('[operationQueue] Método no encontrado:', serviceName, methodName)
+    log.error('Método no encontrado:', serviceName, methodName)
     return null
   }
 
@@ -143,7 +146,7 @@ const processOperation = async (operation) => {
       return true
     } catch (error) {
       operation.retries = (operation.retries || 0) + 1
-      console.warn(`[operationQueue] Intento ${attempt + 1} falló:`, error.message)
+      log.warn(`Intento ${attempt + 1} falló:`, error.message)
 
       if (attempt < maxAttempts - 1) {
         // Esperar antes del próximo intento
@@ -181,7 +184,7 @@ export const enqueue = (operation) => {
   })
 
   writeQueue(queue)
-  console.log(`[operationQueue] Operación encolada: ${operation.service}.${operation.method} (ID: ${id})`)
+  log.info(`Operación encolada: ${operation.service}.${operation.method} (ID: ${id})`)
   return id
 }
 
@@ -191,13 +194,13 @@ export const enqueue = (operation) => {
  */
 export const processQueue = async () => {
   if (processing) {
-    console.log('[operationQueue] Ya hay procesamiento en curso, omitiendo')
+    log.info('Ya hay procesamiento en curso, omitiendo')
     return
   }
 
   const online = await estaOnline()
   if (!online) {
-    console.log('[operationQueue] Offline, no se procesa la cola')
+    log.info('Offline, no se procesa la cola')
     return
   }
 
@@ -207,7 +210,7 @@ export const processQueue = async () => {
   }
 
   processing = true
-  console.log(`[operationQueue] Procesando ${queue.length} operaciones pendientes...`)
+  log.info(`Procesando ${queue.length} operaciones pendientes...`)
 
   for (const operation of queue) {
     const success = await processOperation(operation)
@@ -220,7 +223,7 @@ export const processQueue = async () => {
   // Limpiar cola (todas fueron procesadas o movidas a failed)
   writeQueue([])
   processing = false
-  console.log('[operationQueue] Cola procesada completamente')
+  log.info('Cola procesada completamente')
 }
 
 /**
@@ -235,7 +238,7 @@ export const getPendingCount = () => {
  */
 export const clear = () => {
   writeQueue([])
-  console.log('[operationQueue] Cola limpiada')
+  log.info('Cola limpiada')
 }
 
 /**

@@ -22,6 +22,9 @@ import {
   guardarOdontograma as guardarOdontogramaSupabase,
   obtenerDatoClinico
 } from '../../../services/datosClinicosSupabase'
+import { createLogger } from '../../../services/logger.js'
+
+const log = createLogger('odontogramaStorageService')
 
 export const odontogramaStorageService = {
   // ─────────────────────────────────────────────────────────────
@@ -52,7 +55,7 @@ export const odontogramaStorageService = {
     try {
       await guardarOdontogramaSupabase(pacienteId, data, 'inicial')
     } catch (e) {
-      console.warn('[odontogramaStorageService] Error guardando en Supabase:', e?.message)
+      log.warn('Error guardando en Supabase:', e?.message)
     }
     return result
   },
@@ -65,7 +68,7 @@ export const odontogramaStorageService = {
     try {
       await guardarOdontogramaSupabase(pacienteId, data, 'evolucion')
     } catch (e) {
-      console.warn('[odontogramaStorageService] Error guardando en Supabase:', e?.message)
+      log.warn('Error guardando en Supabase:', e?.message)
     }
     return result
   },
@@ -80,7 +83,7 @@ export const odontogramaStorageService = {
       localStorage.removeItem(`odonto_inicial_${pacienteId}`)
       localStorage.removeItem(`odonto_evolucion_${pacienteId}`)
     } catch (e) {
-      console.error(`Error al eliminar odontogramas del paciente ${pacienteId}:`, e)
+      log.error(`Error al eliminar odontogramas del paciente ${pacienteId}:`, e)
     }
   },
 

@@ -12,6 +12,9 @@ import { TablaAnticoagulantes } from './TablaAnticoagulantes'
 import { ModalEditarAlergiaCruzada } from './ModalEditarAlergiaCruzada'
 import { ModalEditarInteraccion } from './ModalEditarInteraccion'
 import { ModalEditarProtocolo } from './ModalEditarProtocolo'
+import { createLogger } from '../../../services/logger.js'
+
+const log = createLogger('AdminProtocolosContenido')
 
 export const AdminProtocolosContenido = ({ admin, tabActivo, guardando, setGuardando }) => {
   const [modalAlergiaCruzada, setModalAlergiaCruzada] = useState({ abierto: false, celda: null })
@@ -50,7 +53,7 @@ export const AdminProtocolosContenido = ({ admin, tabActivo, guardando, setGuard
   const handleGuardarProfilaxis = async (datos) => {
     setGuardando(true)
     try {
-      console.log('Guardar profilaxis:', datos)
+      log.info('Guardar profilaxis:', datos)
       setModalProfilaxis({ abierto: false, protocolo: null })
     } finally {
       setGuardando(false)
@@ -63,7 +66,7 @@ export const AdminProtocolosContenido = ({ admin, tabActivo, guardando, setGuard
   const handleGuardarAnticoagulante = async (datos) => {
     setGuardando(true)
     try {
-      console.log('Guardar anticoagulante:', datos)
+      log.info('Guardar anticoagulante:', datos)
       setModalAnticoagulante({ abierto: false, protocolo: null })
     } finally {
       setGuardando(false)

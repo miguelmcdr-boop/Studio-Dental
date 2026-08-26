@@ -26,6 +26,9 @@
  * @param {number} version - Número de versión del esquema.
  * @returns {{ schemaVersion: number, data: * }}
  */
+import { createLogger } from './logger.js'
+
+const log = createLogger('schemaMigrationService')
 export const wrapWithVersion = (data, version) => ({
   schemaVersion: version,
   data
@@ -79,7 +82,7 @@ export const unwrapAndMigrate = (raw, currentVersion, migrations = {}, fallback)
 
   // Caso 2: versión futura (downgrade) → warning y retornar tal cual
   if (schemaVersion > currentVersion) {
-    console.warn(
+    log.warn(
       `[schemaMigrationService] Datos con versión futura detectada ` +
       `(v${schemaVersion} > v${currentVersion}). ` +
       `No se puede migrar hacia atrás. Retornando datos tal cual.`
@@ -110,7 +113,7 @@ const applyMigrations = (data, fromVersion, toVersion, migrations) => {
     const migrationFn = migrations[nextVersion]
 
     if (!migrationFn) {
-      console.warn(
+      log.warn(
         `[schemaMigrationService] Migración v${currentVersion} → v${nextVersion} ` +
         `no definida. Deteniendo migración en v${currentVersion}.`
       )
@@ -121,7 +124,7 @@ const applyMigrations = (data, fromVersion, toVersion, migrations) => {
       currentData = migrationFn(currentData)
       currentVersion = nextVersion
     } catch (error) {
-      console.error(
+      log.error(
         `[schemaMigrationService] Error al aplicar migración ` +
         `v${currentVersion} → v${nextVersion}:`,
         error

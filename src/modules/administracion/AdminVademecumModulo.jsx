@@ -26,6 +26,9 @@ import { ModalEditarFarmaco } from './components/ModalEditarFarmaco'
 import { ModalEditarUrgencia } from './components/ModalEditarUrgencia'
 import { ModalEditarAntirresortivo } from './components/ModalEditarAntirresortivo'
 import { AdminProtocolosContenido } from './components/AdminProtocolosContenido'
+import { createLogger } from '../../services/logger.js'
+
+const log = createLogger('AdminVademecumModulo')
 
 const TABS = [
   { id: 'vademecum', nombre: '🏥 Vademécum', descripcion: '94 fármacos regulares' },
@@ -85,7 +88,7 @@ export const AdminVademecumModulo = () => {
   const handleGuardarUrgencia = async (datos) => {
     setGuardando(true)
     try {
-      console.log('Guardar urgencia:', datos)
+      log.info('Guardar urgencia:', datos)
       setModalUrgencia({ abierto: false, farmaco: null })
     } finally {
       setGuardando(false)
@@ -98,7 +101,7 @@ export const AdminVademecumModulo = () => {
   const handleGuardarAntirresortivo = async (datos) => {
     setGuardando(true)
     try {
-      console.log('Guardar antirresortivo:', datos)
+      log.info('Guardar antirresortivo:', datos)
       setModalAntirresortivo({ abierto: false, farmaco: null })
     } finally {
       setGuardando(false)

@@ -14,6 +14,9 @@
  *   (estrategia offline-first: IndexedDB pasa a ser fuente primaria en ese caso).
  */
 import { supabase, USE_SUPABASE } from './supabaseClient'
+import { createLogger } from './logger'
+
+const log = createLogger('adjuntosSupabaseService')
 
 const BUCKET_ID = 'adjuntos-clinicos'
 const DEFAULT_URL_TTL_SEGUNDOS = 3600 // 1 hora
@@ -56,7 +59,7 @@ const construirPath = ({ clinicaId, pacienteId, tipo, idArchivo, nombre }) => {
 export const subirAdjunto = async ({ clinicaId, pacienteId, tipo, blob, nombre }) => {
   if (!USE_SUPABASE || !supabase) return null
   if (!clinicaId || !pacienteId || !tipo || !blob) {
-    console.warn('[adjuntosSupabaseService] subirAdjunto: faltan parámetros obligatorios')
+    log.warn('subirAdjunto: faltan parámetros obligatorios')
     return null
   }
 
@@ -74,13 +77,13 @@ export const subirAdjunto = async ({ clinicaId, pacienteId, tipo, blob, nombre }
       })
 
     if (error) {
-      console.error('[adjuntosSupabaseService] Error subiendo adjunto:', error.message)
+      log.error('Error subiendo adjunto:', error.message)
       return null
     }
 
     return { path, idArchivo }
   } catch (e) {
-    console.error('[adjuntosSupabaseService] Excepción subiendo adjunto:', e)
+    log.error('Excepción subiendo adjunto:', e)
     return null
   }
 }
@@ -101,13 +104,13 @@ export const obtenerUrlFirmada = async (path, ttlSegundos = DEFAULT_URL_TTL_SEGU
       .createSignedUrl(path, ttlSegundos)
 
     if (error || !data?.signedUrl) {
-      console.warn('[adjuntosSupabaseService] No se pudo generar URL firmada:', error?.message)
+      log.warn('No se pudo generar URL firmada:', error?.message)
       return null
     }
 
     return data.signedUrl
   } catch (e) {
-    console.error('[adjuntosSupabaseService] Excepción generando URL firmada:', e)
+    log.error('Excepción generando URL firmada:', e)
     return null
   }
 }
@@ -127,12 +130,12 @@ export const eliminarAdjuntoDeStorage = async (path) => {
       .remove([path])
 
     if (error) {
-      console.warn('[adjuntosSupabaseService] No se pudo eliminar del Storage:', error.message)
+      log.warn('No se pudo eliminar del Storage:', error.message)
       return false
     }
     return true
   } catch (e) {
-    console.error('[adjuntosSupabaseService] Excepción eliminando adjunto:', e)
+    log.error('Excepción eliminando adjunto:', e)
     return false
   }
 }
@@ -162,7 +165,7 @@ export const listarArchivosDePaciente = async (clinicaId, pacienteId) => {
         })
 
       if (error) {
-        console.warn(`[adjuntosSupabaseService] Error listando ${tipo}:`, error.message)
+        log.warn(`Error listando ${tipo}:`, error.message)
         continue
       }
 
@@ -179,7 +182,7 @@ export const listarArchivosDePaciente = async (clinicaId, pacienteId) => {
 
     return resultados
   } catch (e) {
-    console.error('[adjuntosSupabaseService] Excepción listando archivos:', e)
+    log.error('Excepción listando archivos:', e)
     return []
   }
 }

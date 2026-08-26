@@ -145,7 +145,7 @@
 | F6-02 | Auditoría y confirmación real del estado E2E | 6 | P1 | XS (<0.5 d) | — | DONE (2026-08-24) |
 | F6-02b | Agregar job E2E al pipeline CI/CD (hallazgo F6-02) | 6 | P2 | S (0.5-1 d) | F6-02 | DONE (2026-08-24) |
 | F6-02c | Investigar `data-testid` faltantes en bundle de LoginScreen (hallazgo F6-02) | 6 | P3 | XS (<0.5 d) | F6-02 | DONE (2026-08-25) — agregados login-email y login-password, 5 data-testid totales |
-| F6-03 | Logger centralizado con niveles (reemplazo de 59 `console.log` sueltos) | 6 | P2 | S (1-2 d) | — | TODO |
+| F6-03 | Logger centralizado con niveles (reemplazo de 293 console.* sueltos) | 6 | P2 | S (1-2 d) | - | DONE (2026-08-25) - logger creado, 293 logs migrados en 68 archivos, 827/827 tests pasando |
 | F6-04 | Accesibilidad básica (aria-*, foco en modales, labels) | 6 | P2 | M (2-4 d, incremental) | — | TODO |
 | F6-05 | Exportación de reportes a Excel/PDF | 6 | P2 | M (2-3 d) | — | TODO |
 | F6-06 | Checklist de despliegue a producción (dominio, env vars, backups) | 6 | P1 | S (0.5-1 d, proceso) | F6-02, F6-A..F6-E | PARTIAL DONE (2026-08-24) — checklist actualizado + 3 docs técnicos creados; pasos comerciales pendientes (F6-06b) |

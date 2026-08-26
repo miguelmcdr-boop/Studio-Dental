@@ -1,5 +1,8 @@
 import { pacientesStorageService } from './pacientesStorageService'
 import { obtenerDatoClinico, guardarEvolucionClinica } from '../../../services/datosClinicosSupabase'
+import { createLogger } from '../../../services/logger.js'
+
+const log = createLogger('evolucionesStorageService')
 
 /**
  * Servicio de Persistencia de Evoluciones Clínicas (F6-D-5)
@@ -112,7 +115,7 @@ export const evolucionesStorageService = {
       })
       await Promise.all(promesas)
     } catch (e) {
-      console.warn('[evolucionesStorageService] Error guardando evoluciones en Supabase:', e?.message)
+      log.warn('Error guardando evoluciones en Supabase:', e?.message)
     }
 
     return result

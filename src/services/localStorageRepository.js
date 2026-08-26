@@ -18,6 +18,9 @@
  */
 
 import { wrapWithVersion, unwrapAndMigrate } from './schemaMigrationService'
+import { createLogger } from './logger.js'
+
+const log = createLogger('localStorageRepository')
 
 /**
  * Lee y parsea de forma segura una clave de LocalStorage.
@@ -30,7 +33,7 @@ export const leerJSON = (key, fallback) => {
     const saved = localStorage.getItem(key)
     return saved !== null ? JSON.parse(saved) : fallback
   } catch (e) {
-    console.error(`Error al leer "${key}" desde localStorage:`, e)
+    log.error(`Error al leer "${key}" desde localStorage:`, e)
     return fallback
   }
 }
@@ -55,7 +58,7 @@ export const escribirJSON = (key, value, opciones = {}) => {
     })
     return true
   } catch (e) {
-    console.error(`Error al guardar "${key}" en localStorage:`, e)
+    log.error(`Error al guardar "${key}" en localStorage:`, e)
     return false
   }
 }

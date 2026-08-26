@@ -19,6 +19,9 @@ import {
   guardarReceta as guardarRecetaSupabase,
   obtenerDatoClinico
 } from '../../../services/datosClinicosSupabase'
+import { createLogger } from '../../../services/logger.js'
+
+const log = createLogger('recetasStorageService')
 
 /**
  * Transforma receta de formato Supabase a formato RecetasSection
@@ -135,7 +138,7 @@ export const recetasStorageService = {
       })
       await Promise.all(promesas)
     } catch (e) {
-      console.warn('[recetasStorageService] Error guardando recetas en Supabase:', e?.message)
+      log.warn('Error guardando recetas en Supabase:', e?.message)
     }
 
     return result
@@ -150,7 +153,7 @@ export const recetasStorageService = {
     try {
       localStorage.removeItem(`recetas_${pacienteId}`)
     } catch (e) {
-      console.error(`Error al eliminar recetas del paciente ${pacienteId}:`, e)
+      log.error(`Error al eliminar recetas del paciente ${pacienteId}:`, e)
     }
   }
 }

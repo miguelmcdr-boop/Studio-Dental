@@ -16,6 +16,9 @@
  * - manual_remote: usuario elige usar versión remota
  */
 import { supabase, USE_SUPABASE } from './supabaseClient'
+import { createLogger } from './logger'
+
+const log = createLogger('conflictDetectionService')
 
 /**
  * Detecta si hay conflicto entre versión local y remota.
@@ -38,7 +41,7 @@ export const detectarConflicto = async (tabla, recordId, updatedAtLocal) => {
       .maybeSingle()
 
     if (error) {
-      console.error(`[conflictDetection] Error consultando ${tabla}:`, error)
+      log.error(`[conflictDetection] Error consultando ${tabla}:`, error)
       return { hayConflicto: false, versionRemota: null, updatedAtRemoto: null }
     }
 
@@ -68,7 +71,7 @@ export const detectarConflicto = async (tabla, recordId, updatedAtLocal) => {
       updatedAtRemoto
     }
   } catch (e) {
-    console.error(`[conflictDetection] Error inesperado en ${tabla}:`, e)
+    log.error(`[conflictDetection] Error inesperado en ${tabla}:`, e)
     return { hayConflicto: false, versionRemota: null, updatedAtRemoto: null }
   }
 }
@@ -92,7 +95,7 @@ export const registrarAuditoria = async (tabla, recordId, accion, oldData = null
   try {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      console.warn('[conflictDetection] No hay usuario autenticado para auditoría')
+      log.warn('[conflictDetection] No hay usuario autenticado para auditoría')
       return
     }
 
@@ -112,10 +115,10 @@ export const registrarAuditoria = async (tabla, recordId, accion, oldData = null
       .insert(logEntry)
 
     if (error) {
-      console.error('[conflictDetection] Error registrando auditoría:', error)
+      log.error('[conflictDetection] Error registrando auditoría:', error)
     }
   } catch (e) {
-    console.error('[conflictDetection] Error inesperado en auditoría:', e)
+    log.error('[conflictDetection] Error inesperado en auditoría:', e)
   }
 }
 

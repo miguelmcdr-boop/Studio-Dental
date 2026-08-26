@@ -7,6 +7,9 @@
  * Cumple Cap. VII.4 de la Constitución (try/catch obligatorio).
  */
 import { leerJSON, escribirJSON } from '../../../services/localStorageRepository'
+import { createLogger } from '../../../services/logger.js'
+
+const log = createLogger('odontopediatriaStorageService')
 
 const construirKeyPediatria = (pacienteId) => `pediatria_${pacienteId}`
 
@@ -27,7 +30,7 @@ export const odontopediatriaStorageService = {
     try {
       localStorage.removeItem(construirKeyPediatria(pacienteId))
     } catch (e) {
-      console.error(`Error al eliminar datos de odontopediatría del paciente ${pacienteId}:`, e)
+      log.error(`Error al eliminar datos de odontopediatría del paciente ${pacienteId}:`, e)
     }
   }
 }

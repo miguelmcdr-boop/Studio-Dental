@@ -30,6 +30,9 @@ import { validarListaCitas } from '../schemas/citaSchema'
 import { supabase, USE_SUPABASE } from '../../../services/supabaseClient'
 import { migrationStorageService } from '../../../services/migrationStorageService'
 import { esUuidValido } from '../../../services/migrations/uuidUtils'
+import { createLogger } from '../../../services/logger'
+
+const log = createLogger('agendaStorageService')
 
 const STORAGE_KEY_AGENDA = 'studio_dental_agenda_citas_v3'
 const citasRepo = createLocalStorageRepository(STORAGE_KEY_AGENDA, [], { notify: true })
@@ -199,7 +202,7 @@ const sincronizarDesdeSupabase = async () => {
       .order('hora_inicio', { ascending: true })
 
     if (error) {
-      console.warn('[agendaStorageService] Error al sincronizar desde Supabase:', error.message)
+      log.warn('Error al sincronizar desde Supabase:', error.message)
       return citasCache
     }
 
@@ -208,7 +211,7 @@ const sincronizarDesdeSupabase = async () => {
     // Si Supabase retorna vacío pero hay caché con datos, puede ser que la
     // migración aún no haya corrido. No sobrescribimos la caché.
     if (data.length === 0 && citasCache && citasCache.length > 0) {
-      console.log('[agendaStorageService] Supabase vacío, manteniendo caché (pendiente migración)')
+      log.info('Supabase vacío, manteniendo caché (pendiente migración)')
       return citasCache
     }
 
@@ -218,7 +221,7 @@ const sincronizarDesdeSupabase = async () => {
 
     return nuevas
   } catch (error) {
-    console.error('[agendaStorageService] Excepción al sincronizar desde Supabase:', error)
+    log.error('Excepción al sincronizar desde Supabase:', error)
     return citasCache
   }
 }
@@ -238,7 +241,7 @@ const guardarCitas = async (citas) => {
   // (F2-04b) — validación Zod antes de persistir
   const validacion = validarListaCitas(citas)
   if (!validacion.valido) {
-    console.error('Error de validación al guardar citas (F2-04b):', validacion.error)
+    log.error('Error de validación al guardar citas (F2-04b):', validacion.error)
     return false
   }
   const datos = validacion.datos
@@ -286,7 +289,7 @@ const guardarCitas = async (citas) => {
         .upsert(paraUpdate, { onConflict: 'id' })
 
       if (updateError) {
-        console.error('[agendaStorageService] Error al actualizar en Supabase:', updateError.message)
+        log.error('Error al actualizar en Supabase:', updateError.message)
       }
     }
 
@@ -306,7 +309,7 @@ const guardarCitas = async (citas) => {
         .single()
 
       if (insertError) {
-        console.error(`[agendaStorageService] Error al insertar cita:`, insertError.message)
+        log.error(`Error al insertar cita:`, insertError.message)
         continue
       }
 
@@ -338,7 +341,7 @@ const guardarCitas = async (citas) => {
           .in('id', idsAEliminar)
 
         if (deleteError) {
-          console.error('[agendaStorageService] Error al eliminar en Supabase:', deleteError.message)
+          log.error('Error al eliminar en Supabase:', deleteError.message)
         }
       }
     }
@@ -348,7 +351,7 @@ const guardarCitas = async (citas) => {
 
     return true
   } catch (error) {
-    console.error('[agendaStorageService] Excepción al guardar en Supabase:', error)
+    log.error('Excepción al guardar en Supabase:', error)
     return true
   }
 }

@@ -18,6 +18,9 @@
  * el mapa en memoria que se sincroniza con Supabase.
  */
 import { leerJSON, escribirJSON } from './localStorageRepository'
+import { createLogger } from './logger.js'
+
+const log = createLogger('migrationStorageService')
 
 const MIGRATION_MAP_KEY = 'studio_dental_migration_id_map_v1'
 
@@ -90,7 +93,7 @@ export const migrationStorageService = {
     try {
       localStorage.removeItem(MIGRATION_MAP_KEY)
     } catch (e) {
-      console.error('Error al limpiar mapa de migración:', e)
+      log.error('Error al limpiar mapa de migración:', e)
     }
   }
 }

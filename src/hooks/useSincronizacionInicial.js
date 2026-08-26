@@ -3,6 +3,9 @@ import { agendaStorageService } from '../modules/agenda/services/agendaStorageSe
 import { presupuestosStorageService } from '../modules/presupuestos/services/presupuestosStorageService'
 import { pagosStorageService } from '../modules/pagos/services/pagosStorageService'
 import { finanzasStorageService } from '../modules/finanzas/services/finanzasStorageService'
+import { createLogger } from '../services/logger.js'
+
+const log = createLogger('useSincronizacionInicial')
 
 /**
  * Hook de sincronización inicial post-login (F6-C-d.4).
@@ -27,10 +30,10 @@ export const useSincronizacionInicial = (enabled) => {
         try {
           if (typeof servicio.sincronizarDesdeSupabase === 'function') {
             await servicio.sincronizarDesdeSupabase()
-            console.log(`[useRealtimeSync] Sincronización inicial de ${nombre}: OK`)
+            log.info(`[useRealtimeSync] Sincronización inicial de ${nombre}: OK`)
           }
         } catch (e) {
-          console.warn(`[useRealtimeSync] Error sincronizando ${nombre}:`, e.message)
+          log.warn(`[useRealtimeSync] Error sincronizando ${nombre}:`, e.message)
         }
       }
     }

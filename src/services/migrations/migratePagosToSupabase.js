@@ -25,6 +25,9 @@ import { pagosStorageService } from '../../modules/pagos/services/pagosStorageSe
 import { migrationStorageService } from '../migrationStorageService'
 import { esUuidValido } from './uuidUtils'
 import { leerJSON } from '../localStorageRepository'
+import { createLogger } from '../logger'
+
+const log = createLogger('migratePagosToSupabase')
 
 /**
  * Convierte un pago de formato localStorage (camelCase) a formato
@@ -130,7 +133,7 @@ export const migratePagosToSupabase = async (userId) => {
   // ═══════════════════════════════════════════════════
   // PASO 2: Migrar abonos por paciente
   // ═══════════════════════════════════════════════════
-  console.log('[migratePagos] Buscando abonos por paciente...')
+  log.info('[migratePagos] Buscando abonos por paciente...')
   
   // Obtener todos los pacientes migrados para buscar sus abonos
   const { data: pacientes } = await supabase
@@ -148,7 +151,7 @@ export const migratePagosToSupabase = async (userId) => {
         const abonos = leerJSON(`abonos_${legacyId}`, [])
         if (!Array.isArray(abonos) || abonos.length === 0) continue
 
-        console.log(`[migratePagos] Migrando ${abonos.length} abonos del paciente ${legacyId}...`)
+        log.info(`[migratePagos] Migrando ${abonos.length} abonos del paciente ${legacyId}...`)
 
         for (const abono of abonos) {
           try {
@@ -167,7 +170,7 @@ export const migratePagosToSupabase = async (userId) => {
               .single()
 
             if (abonoError) {
-              console.error(`[migratePagos] Error al migrar abono:`, abonoError.message)
+              log.error(`[migratePagos] Error al migrar abono:`, abonoError.message)
               resultado.errores.push({
                 abonoId: abono.id,
                 pacienteId: legacyId,
@@ -180,7 +183,7 @@ export const migratePagosToSupabase = async (userId) => {
             migrationStorageService.registrarMapeo(abono.id, insertado.id)
             resultado.abonosMigrados++
           } catch (abonoException) {
-            console.error(`[migratePagos] Excepción al migrar abono:`, abonoException.message)
+            log.error(`[migratePagos] Excepción al migrar abono:`, abonoException.message)
             resultado.errores.push({
               abonoId: abono.id,
               pacienteId: legacyId,
@@ -189,7 +192,7 @@ export const migratePagosToSupabase = async (userId) => {
           }
         }
       } catch (pacienteException) {
-        console.error(`[migratePagos] Error procesando paciente ${paciente.id}:`, pacienteException.message)
+        log.error(`[migratePagos] Error procesando paciente ${paciente.id}:`, pacienteException.message)
       }
     }
   }

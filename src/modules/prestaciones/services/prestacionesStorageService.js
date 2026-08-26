@@ -12,6 +12,9 @@
  */
 import { createLocalStorageRepository } from '../../../services/localStorageRepository'
 import { validarListaPrestaciones } from '../schemas/prestacionSchema'
+import { createLogger } from '../../../services/logger.js'
+
+const log = createLogger('prestacionesStorageService')
 
 const STORAGE_KEY_ARANCEL = 'clinica_arancel_prestaciones'
 const STORAGE_KEY_PAQUETES = 'clinica_paquetes_clinicos_promos'
@@ -38,7 +41,7 @@ export const prestacionesStorageService = {
     }
     const validacion = validarListaPrestaciones(prestaciones)
     if (!validacion.valido) {
-      console.error(
+      log.error(
         'Error de validación al guardar arancel de prestaciones (F2-04d):',
         validacion.error
       )

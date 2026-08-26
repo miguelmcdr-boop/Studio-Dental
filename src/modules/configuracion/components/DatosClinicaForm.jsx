@@ -1,5 +1,8 @@
 import React, { memo, useState } from 'react'
 import { convertirImagenADataURL } from '../utils/configuracionCalculations'
+import { createLogger } from '../../../services/logger.js'
+
+const log = createLogger('DatosClinicaForm')
 
 export const DatosClinicaForm = memo(({ datosClinica, alGuardar, userProfile }) => {
   const [form, setForm] = useState({ ...datosClinica })
@@ -16,7 +19,7 @@ export const DatosClinicaForm = memo(({ datosClinica, alGuardar, userProfile }) 
         const dataUrl = await convertirImagenADataURL(file)
         setForm({ ...form, logoUrl: dataUrl })
       } catch (err) {
-        console.error('Error al cargar logo:', err)
+        log.error('Error al cargar logo:', err)
       }
     }
   }

@@ -41,6 +41,9 @@
 import { supabase, USE_SUPABASE } from './supabaseClient'
 import { notificationService } from './notificationService'
 import { REALTIME_EVENTS } from './realtimeEvents'
+import { createLogger } from './logger'
+
+const log = createLogger('vademecumService')
 
 // ═══════════════════════════════════════════════════════════════
 // CLAVES DE LOCALSTORAGE (caché de respaldo)
@@ -111,7 +114,7 @@ const leerDesdeLocalStorage = (clave) => {
     if (!datos) return null
     return JSON.parse(datos)
   } catch (e) {
-    console.error(`[vademecumService] Error leyendo ${clave}:`, e)
+    log.error(`Error leyendo ${clave}:`, e)
     return null
   }
 }
@@ -120,7 +123,7 @@ const escribirEnLocalStorage = (clave, datos) => {
   try {
     localStorage.setItem(clave, JSON.stringify(datos))
   } catch (e) {
-    console.error(`[vademecumService] Error escribiendo ${clave}:`, e)
+    log.error(`Error escribiendo ${clave}:`, e)
   }
 }
 
@@ -496,9 +499,9 @@ export const sincronizarDesdeSupabase = async () => {
     cache.sincronizado = true
     escribirEnLocalStorage(CLAVES.SINCRONIZADO, timestamp)
 
-    console.log('[vademecumService] Sincronización completa desde Supabase')
+    log.info('Sincronización completa desde Supabase')
   } catch (e) {
-    console.error('[vademecumService] Error en sincronización desde Supabase:', e)
+    log.error('Error en sincronización desde Supabase:', e)
     // No rompemos la app — los datos de respaldo siguen disponibles
   }
 }
@@ -544,7 +547,7 @@ const notificarCambioVademecum = (accion, detalle) => {
     window.dispatchEvent(new CustomEvent(REALTIME_EVENTS.VADEMECUM_CHANGED, { detail: detalle }))
     notificationService.success(`Vademécum: ${accion}`, { titulo: 'Datos de referencia actualizados' })
   } catch (e) {
-    console.warn('[vademecumService] Error al notificar:', e?.message)
+    log.warn('Error al notificar:', e?.message)
   }
 }
 
@@ -616,7 +619,7 @@ export const guardarFarmaco = async (farmaco) => {
     
     return { exito: true, data }
   } catch (e) {
-    console.error('[vademecumService] Error al guardar fármaco:', e)
+    log.error('Error al guardar fármaco:', e)
     notificationService.error(`Error al guardar fármaco: ${e.message}`, { titulo: 'Error' })
     return { exito: false, error: e.message }
   }
@@ -650,7 +653,7 @@ export const desactivarFarmaco = async (numero) => {
     notificarCambioVademecum(`Fármaco #${numero} desactivado`, { accion: 'delete', numero })
     return { exito: true }
   } catch (e) {
-    console.error('[vademecumService] Error al desactivar fármaco:', e)
+    log.error('Error al desactivar fármaco:', e)
     notificationService.error(`Error al desactivar: ${e.message}`, { titulo: 'Error' })
     return { exito: false, error: e.message }
   }
@@ -683,7 +686,7 @@ export const reactivarFarmaco = async (numero) => {
     notificarCambioVademecum(`Fármaco #${numero} reactivado`, { accion: 'update', numero })
     return { exito: true }
   } catch (e) {
-    console.error('[vademecumService] Error al reactivar:', e)
+    log.error('Error al reactivar:', e)
     return { exito: false, error: e.message }
   }
 }
@@ -728,7 +731,7 @@ export const guardarAlergiaCruzada = async (regla) => {
     notificarCambioVademecum(`Regla de alergia cruzada actualizada`, { accion: 'update', tabla: 'alergias_cruzadas' })
     return { exito: true, data }
   } catch (e) {
-    console.error('[vademecumService] Error al guardar alergia cruzada:', e)
+    log.error('Error al guardar alergia cruzada:', e)
     notificationService.error(`Error: ${e.message}`, { titulo: 'Error' })
     return { exito: false, error: e.message }
   }
@@ -767,7 +770,7 @@ export const guardarInteraccion = async (interaccion) => {
     notificarCambioVademecum(`Interacción agregada`, { accion: 'insert', tabla: 'interacciones' })
     return { exito: true, data }
   } catch (e) {
-    console.error('[vademecumService] Error al guardar interacción:', e)
+    log.error('Error al guardar interacción:', e)
     return { exito: false, error: e.message }
   }
 }
@@ -796,7 +799,7 @@ export const guardarProtocoloEndocarditis = async (protocolo) => {
     notificarCambioVademecum(`Protocolo de endocarditis agregado`, { accion: 'insert', tabla: 'profilaxis_endocarditis' })
     return { exito: true, data }
   } catch (e) {
-    console.error('[vademecumService] Error al guardar protocolo:', e)
+    log.error('Error al guardar protocolo:', e)
     return { exito: false, error: e.message }
   }
 }
@@ -825,7 +828,7 @@ export const guardarManejoAnticoagulante = async (manejo) => {
     notificarCambioVademecum(`Manejo de anticoagulante agregado`, { accion: 'insert', tabla: 'manejo_anticoagulantes' })
     return { exito: true, data }
   } catch (e) {
-    console.error('[vademecumService] Error al guardar manejo:', e)
+    log.error('Error al guardar manejo:', e)
     return { exito: false, error: e.message }
   }
 }

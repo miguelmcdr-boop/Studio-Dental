@@ -3,6 +3,9 @@
  */
 
 import { pacientesStorageService } from '../../pacientes'
+import { createLogger } from '../../../services/logger.js'
+
+const log = createLogger('reportesStorageService')
 
 export const reportesStorageService = {
   obtenerDatosConsolidados: () => {
@@ -21,7 +24,7 @@ export const reportesStorageService = {
         citas: citasSaved ? JSON.parse(citasSaved) : []
       }
     } catch (e) {
-      console.error('Error al obtener datos consolidados para BI:', e)
+      log.error('Error al obtener datos consolidados para BI:', e)
       return { pacientes: [], pagos: [], presupuestos: [], citas: [] }
     }
   }

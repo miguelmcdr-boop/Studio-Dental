@@ -14,6 +14,9 @@
  * NUNCA exponer la service_role key en el frontend.
  */
 import { createClient } from '@supabase/supabase-js'
+import { createLogger } from './logger.js'
+
+const log = createLogger('supabaseClient')
 
 // Cargar variables de entorno de Vite
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
@@ -29,7 +32,7 @@ export const USE_SUPABASE = import.meta.env.VITE_USE_SUPABASE === 'true'
 export const isSupabaseConfigured = () => {
   if (!USE_SUPABASE) return false
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.warn(
+    log.warn(
       '[supabaseClient] Supabase no configurado. ' +
       'Define VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY en .env'
     )
@@ -74,7 +77,7 @@ export const verificarConexionSupabase = async () => {
     const { error } = await supabase.auth.getSession()
     return !error
   } catch (e) {
-    console.error('[supabaseClient] Error verificando conexión:', e)
+    log.error('Error verificando conexión:', e)
     return false
   }
 }
@@ -101,7 +104,7 @@ export const estaOnline = async () => {
     const { error } = await supabase.from('pacientes').select('id').limit(1)
     return !error
   } catch (e) {
-    console.error('[supabaseClient] Error verificando conexión:', e)
+    log.error('Error verificando conexión:', e)
     return false
   }
 }

@@ -25,6 +25,9 @@
 import { supabase } from '../supabaseClient'
 import { migrationStorageService } from '../migrationStorageService'
 import { leerJSON } from '../localStorageRepository'
+import { createLogger } from '../logger'
+
+const log = createLogger('migrateDatosClinicosToSupabase')
 
 /**
  * Migraciones específicas para cada tipo de dato clínico.
@@ -233,7 +236,7 @@ export const migrateDatosClinicosToSupabase = async (userId) => {
     errores: []
   }
 
-  console.log('[migrateDatosClinicos] Iniciando migración de datos clínicos...')
+  log.info('[migrateDatosClinicos] Iniciando migración de datos clínicos...')
 
   // Obtener todos los pacientes migrados
   const { data: pacientes } = await supabase
@@ -241,7 +244,7 @@ export const migrateDatosClinicosToSupabase = async (userId) => {
     .select('id')
 
   if (!Array.isArray(pacientes) || pacientes.length === 0) {
-    console.log('[migrateDatosClinicos] No hay pacientes migrados, omitiendo')
+    log.info('[migrateDatosClinicos] No hay pacientes migrados, omitiendo')
     return resultado
   }
 
@@ -251,7 +254,7 @@ export const migrateDatosClinicosToSupabase = async (userId) => {
       const legacyId = migrationStorageService.obtenerLegacyId(paciente.id)
       if (!legacyId) continue
 
-      console.log(`[migrateDatosClinicos] Migrando datos del paciente ${legacyId}...`)
+      log.info(`[migrateDatosClinicos] Migrando datos del paciente ${legacyId}...`)
 
       // 1. Evoluciones clínicas
       const evoluciones = leerJSON(`evoluciones_notas_${legacyId}`, [])
@@ -320,7 +323,7 @@ export const migrateDatosClinicosToSupabase = async (userId) => {
       if (resultadoEndodoncia.error) resultado.errores.push({ tipo: 'endodoncia', error: resultadoEndodoncia.error })
 
     } catch (error) {
-      console.error(`[migrateDatosClinicos] Error procesando paciente ${paciente.id}:`, error.message)
+      log.error(`[migrateDatosClinicos] Error procesando paciente ${paciente.id}:`, error.message)
       resultado.errores.push({ tipo: 'paciente', pacienteId: paciente.id, error: error.message })
     }
   }

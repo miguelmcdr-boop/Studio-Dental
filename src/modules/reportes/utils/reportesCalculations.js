@@ -3,6 +3,9 @@
  */
 
 import { presupuestosStorageService } from '../../presupuestos/services/presupuestosStorageService'
+import { createLogger } from '../../../services/logger.js'
+
+const log = createLogger('reportesCalculations')
 
 export const calcularEstadisticasAvanzadas = (pacientes = [], pagos = [], presupuestos = [], _citas = []) => {
   let totalRecaudado = 0
@@ -58,7 +61,7 @@ export const calcularEstadisticasAvanzadas = (pacientes = [], pagos = [], presup
         })
       }
     } catch (e) {
-      console.error(e)
+      log.error(e)
     }
   })
 

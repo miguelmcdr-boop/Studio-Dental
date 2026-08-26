@@ -30,6 +30,9 @@ import { validarListaPresupuestos } from '../schemas/presupuestoSchema'
 import { supabase, USE_SUPABASE } from '../../../services/supabaseClient'
 import { migrationStorageService } from '../../../services/migrationStorageService'
 import { esUuidValido } from '../../../services/migrations/uuidUtils'
+import { createLogger } from '../../../services/logger'
+
+const log = createLogger('presupuestosStorageService')
 
 const STORAGE_KEY_PRESUPUESTOS = 'studio_dental_presupuestos_globales'
 const presupuestosRepo = createLocalStorageRepository(STORAGE_KEY_PRESUPUESTOS, [], {
@@ -150,7 +153,7 @@ const sincronizarDesdeSupabase = async () => {
       .order('fecha_emision', { ascending: false })
 
     if (error) {
-      console.warn('[presupuestosStorageService] Error al sincronizar desde Supabase:', error.message)
+      log.warn('Error al sincronizar desde Supabase:', error.message)
       return presupuestosCache
     }
 
@@ -159,7 +162,7 @@ const sincronizarDesdeSupabase = async () => {
     // Si Supabase retorna vacío pero hay caché con datos, puede ser que la
     // migración aún no haya corrido. No sobrescribimos la caché.
     if (data.length === 0 && presupuestosCache && presupuestosCache.length > 0) {
-      console.log('[presupuestosStorageService] Supabase vacío, manteniendo caché (pendiente migración)')
+      log.info('Supabase vacío, manteniendo caché (pendiente migración)')
       return presupuestosCache
     }
 
@@ -169,7 +172,7 @@ const sincronizarDesdeSupabase = async () => {
 
     return nuevos
   } catch (error) {
-    console.error('[presupuestosStorageService] Excepción al sincronizar desde Supabase:', error)
+    log.error('Excepción al sincronizar desde Supabase:', error)
     return presupuestosCache
   }
 }
@@ -189,7 +192,7 @@ const guardarPresupuestos = async (presupuestos) => {
   // Validación Zod antes de persistir
   const validacion = validarListaPresupuestos(presupuestos)
   if (!validacion.valido) {
-    console.error('Error de validación al guardar presupuestos (F2-04e):', validacion.error)
+    log.error('Error de validación al guardar presupuestos (F2-04e):', validacion.error)
     return false
   }
   const datos = validacion.datos
@@ -237,7 +240,7 @@ const guardarPresupuestos = async (presupuestos) => {
         .upsert(paraUpdate, { onConflict: 'id' })
 
       if (updateError) {
-        console.error('[presupuestosStorageService] Error al actualizar en Supabase:', updateError.message)
+        log.error('Error al actualizar en Supabase:', updateError.message)
       }
     }
 
@@ -256,7 +259,7 @@ const guardarPresupuestos = async (presupuestos) => {
         .single()
 
       if (insertError) {
-        console.error(`[presupuestosStorageService] Error al insertar presupuesto:`, insertError.message)
+        log.error(`Error al insertar presupuesto:`, insertError.message)
         continue
       }
 
@@ -287,7 +290,7 @@ const guardarPresupuestos = async (presupuestos) => {
           .in('id', idsAEliminar)
 
         if (deleteError) {
-          console.error('[presupuestosStorageService] Error al eliminar en Supabase:', deleteError.message)
+          log.error('Error al eliminar en Supabase:', deleteError.message)
         }
       }
     }
@@ -297,7 +300,7 @@ const guardarPresupuestos = async (presupuestos) => {
 
     return true
   } catch (error) {
-    console.error('[presupuestosStorageService] Excepción al guardar en Supabase:', error)
+    log.error('Excepción al guardar en Supabase:', error)
     return true
   }
 }
@@ -360,7 +363,7 @@ export const presupuestosStorageService = {
     // Si Supabase está activo, eliminar de Supabase también
     if (USE_SUPABASE && supabase && esUuidValido(presupuestoId)) {
       supabase.from('presupuestos').delete().eq('id', presupuestoId)
-        .catch(err => console.error('[presupuestosStorageService] Error al eliminar de Supabase:', err))
+        .catch(err => log.error('Error al eliminar de Supabase:', err))
     }
 
     // 2. Borrar del Plan de Tratamiento del paciente si existe pacienteId
@@ -377,7 +380,7 @@ export const presupuestosStorageService = {
           try {
             localStorage.removeItem(keyItems)
           } catch (e) {
-            console.error(`Error al eliminar "${keyItems}" de localStorage:`, e)
+            log.error(`Error al eliminar "${keyItems}" de localStorage:`, e)
           }
         }
       }
@@ -397,7 +400,7 @@ export const presupuestosStorageService = {
     // Si Supabase está activo, actualizar en Supabase también
     if (USE_SUPABASE && supabase && esUuidValido(presupuestoId)) {
       supabase.from('presupuestos').update({ estado: nuevoEstado }).eq('id', presupuestoId)
-        .catch(err => console.error('[presupuestosStorageService] Error al actualizar estado en Supabase:', err))
+        .catch(err => log.error('Error al actualizar estado en Supabase:', err))
     }
   },
 
@@ -408,7 +411,7 @@ export const presupuestosStorageService = {
     try {
       localStorage.removeItem(`presupuesto_items_${pacienteId}`)
     } catch (e) {
-      console.error(`Error al eliminar items de presupuesto del paciente ${pacienteId}:`, e)
+      log.error(`Error al eliminar items de presupuesto del paciente ${pacienteId}:`, e)
     }
   },
 

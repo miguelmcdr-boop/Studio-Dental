@@ -6,6 +6,9 @@ import {
   generarMensajeDinamico,
   evaluarIncompatibilidadLegacy
 } from './pacientesAlergiaCalculations'
+import { createLogger } from '../../../services/logger.js'
+
+const log = createLogger('pacientesCalculations')
 
 export const obtenerDescuentoConvenio = (nombreConvenio) => {
   try {
@@ -122,7 +125,7 @@ export const evaluarIncompatibilidadFarmaco = (textoMedicamento, alergiasTexto) 
     }
   } catch (error) {
     // vademecumService falló, usar fallback legacy
-    console.warn('[pacientesCalculations] vademecumService falló, usando reglas legacy:', error?.message)
+    log.warn('vademecumService falló, usando reglas legacy:', error?.message)
   }
 
   // Fallback: reglas legacy F1-04a (2 categorías hardcodeadas)

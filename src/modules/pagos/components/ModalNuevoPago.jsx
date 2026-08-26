@@ -2,6 +2,9 @@ import React, { memo, useState, useEffect } from 'react'
 import { METODOS_PAGO_GOLD, TIPOS_DOCUMENTO_TRIBUTARIO, CONCEPTOS_PAGO } from '../constants/pagosConstants'
 import { generarFolioRecibo } from '../utils/pagosCalculations'
 import { presupuestosStorageService } from '../../presupuestos/services/presupuestosStorageService'
+import { createLogger } from '../../../services/logger.js'
+
+const log = createLogger('ModalNuevoPago')
 
 export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, alGuardar, alCerrar }) => {
   const [pacienteId, setPacienteId] = useState('')
@@ -44,7 +47,7 @@ export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, a
         setPrestacionesPaciente([])
       }
     } catch (e) {
-      console.error(e)
+      log.error(e)
       setPrestacionesPaciente([])
     }
   }, [pacienteId])

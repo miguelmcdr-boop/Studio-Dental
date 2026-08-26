@@ -3,6 +3,9 @@ import { calcularResumenJornada } from '../utils/dashboardCalculations'
 import { agendaStorageService } from '../../agenda'
 import { pagosStorageService } from '../../pagos/services/pagosStorageService'
 import { presupuestosStorageService } from '../../presupuestos/services/presupuestosStorageService'
+import { createLogger } from '../../../services/logger.js'
+
+const log = createLogger('useDashboard')
 
 export const useDashboard = (pacientes = []) => {
   const [citas, setCitas] = useState([])
@@ -29,7 +32,7 @@ export const useDashboard = (pacientes = []) => {
       setPagos([...(Array.isArray(pagosStorage) ? pagosStorage : []), ...abonosGlobales])
       setPresupuestos(Array.isArray(presupuestosStorage) ? presupuestosStorage : [])
     } catch (e) {
-      console.error('Error al cargar datos en Dashboard:', e)
+      log.error('Error al cargar datos en Dashboard:', e)
     }
   }, [pacientes])
 

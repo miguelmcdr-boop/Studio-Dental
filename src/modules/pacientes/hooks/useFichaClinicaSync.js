@@ -16,6 +16,9 @@ import {
   sincronizarPaciente,
   limpiarCachePaciente
 } from '../../../services/datosClinicosSupabase'
+import { createLogger } from '../../../services/logger.js'
+
+const log = createLogger('useFichaClinicaSync')
 
 /**
  * Sincroniza los datos clínicos de un paciente desde Supabase.
@@ -41,7 +44,7 @@ export const useFichaClinicaSync = (pacienteId) => {
       } catch (err) {
         // F6-D-1: si Supabase falla, no romper la ficha — el fallback
         // a localStorage sigue funcionando (RFC F4-01 offline-first)
-        console.error('[useFichaClinicaSync] Error sincronizando paciente:', err)
+        log.error('Error sincronizando paciente:', err)
         if (!cancelled) setError(err.message || 'Error desconocido')
       } finally {
         if (!cancelled) setSincronizando(false)
@@ -56,7 +59,7 @@ export const useFichaClinicaSync = (pacienteId) => {
       try {
         limpiarCachePaciente(pacienteId)
       } catch (err) {
-        console.warn('[useFichaClinicaSync] Error limpiando caché:', err)
+        log.warn('Error limpiando caché:', err)
       }
     }
   }, [pacienteId])

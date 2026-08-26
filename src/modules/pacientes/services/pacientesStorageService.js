@@ -34,6 +34,9 @@ import {
   listarPacientesEliminados as softDeleteListar 
 } from './pacientesSoftDeleteService'
 import { esUuidValido } from '../../../services/migrations/uuidUtils'
+import { createLogger } from '../../../services/logger'
+
+const log = createLogger('pacientesStorageService')
 
 const STORAGE_KEY_PACIENTES = 'studio_dental_pacientes_v3'
 const pacientesRepo = createLocalStorageRepository(STORAGE_KEY_PACIENTES, [])
@@ -92,10 +95,10 @@ const obtenerPacientes = (defaults = []) => {
  * @returns {Promise<Array>} Lista actualizada de pacientes
  */
 const sincronizarDesdeSupabase = async () => {
-  console.log('[pacientesStorageService] Iniciando sincronización desde Supabase...')
+  log.info('Iniciando sincronización desde Supabase...')
   
   if (!USE_SUPABASE || !supabase) {
-    console.log('[pacientesStorageService] Supabase no configurado, retornando caché')
+    log.info('Supabase no configurado, retornando caché')
     return pacientesCache
   }
 
@@ -108,11 +111,11 @@ const sincronizarDesdeSupabase = async () => {
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.warn('[pacientesStorageService] Error al sincronizar desde Supabase:', error.message)
+      log.warn('Error al sincronizar desde Supabase:', error.message)
       return pacientesCache
     }
 
-    console.log(`[pacientesStorageService] Supabase retornó ${data?.length || 0} pacientes`)
+    log.info(`Supabase retornó ${data?.length || 0} pacientes`)
 
     if (!Array.isArray(data)) return pacientesCache
 
@@ -120,11 +123,11 @@ const sincronizarDesdeSupabase = async () => {
     // Esto rompería el aislamiento multi-clínica. Si Supabase retorna vacío,
     // la clínica no tiene pacientes (o el RLS está funcionando correctamente).
     if (data.length === 0) {
-      console.log('[pacientesStorageService] Supabase retornó vacío, actualizando caché vacía')
+      log.info('Supabase retornó vacío, actualizando caché vacía')
     }
 
     const nuevos = data.map(transformarDesdeSupabase).filter(Boolean)
-    console.log(`[pacientesStorageService] Actualizando caché con ${nuevos.length} pacientes`)
+    log.info(`Actualizando caché con ${nuevos.length} pacientes`)
     pacientesCache = nuevos
 
     // Actualizar también localStorage como caché persistente
@@ -132,7 +135,7 @@ const sincronizarDesdeSupabase = async () => {
 
     return nuevos
   } catch (error) {
-    console.error('[pacientesStorageService] Excepción al sincronizar desde Supabase:', error)
+    log.error('Excepción al sincronizar desde Supabase:', error)
     return pacientesCache
   }
 }
@@ -154,7 +157,7 @@ const guardarPacientes = async (pacientes) => {
   // (F2-04) — validación Zod antes de persistir
   const { valido, datos, error } = validarListaPacientes(pacientes)
   if (!valido) {
-    console.error('Error de validación al guardar pacientes:', error)
+    log.error('Error de validación al guardar pacientes:', error)
     return false
   }
 
@@ -201,7 +204,7 @@ const guardarPacientes = async (pacientes) => {
         .upsert(paraUpdate, { onConflict: 'id' })
 
       if (updateError) {
-        console.error('[pacientesStorageService] Error al actualizar en Supabase:', updateError.message)
+        log.error('Error al actualizar en Supabase:', updateError.message)
       }
     }
 
@@ -232,7 +235,7 @@ const guardarPacientes = async (pacientes) => {
             .eq('id', existente.id)
 
           if (updateError) {
-            console.error(`[pacientesStorageService] Error al actualizar duplicado ${paciente.nombre}:`, updateError.message)
+            log.error(`Error al actualizar duplicado ${paciente.nombre}:`, updateError.message)
             continue
           }
 
@@ -261,7 +264,7 @@ const guardarPacientes = async (pacientes) => {
         // F6-G: detectar error de constraint unique (duplicado por RUT)
         // Esto puede ocurrir por race condition cuando el check previo no alcanzó a detectar el duplicado
         if (insertError.code === '23505' || insertError.message.includes('duplicate key') || insertError.message.includes('unique constraint')) {
-          console.warn(`[pacientesStorageService] Duplicado detectado por constraint unique para ${paciente.nombre} (RUT: ${paciente.rut})`)
+          log.warn(`Duplicado detectado por constraint unique para ${paciente.nombre} (RUT: ${paciente.rut})`)
           
           // Buscar el paciente existente y actualizar la caché con su UUID
           const { data: existentePostError, error: findError } = await supabase
@@ -285,7 +288,7 @@ const guardarPacientes = async (pacientes) => {
           continue
         }
         
-        console.error(`[pacientesStorageService] Error al insertar ${paciente.nombre}:`, insertError.message)
+        log.error(`Error al insertar ${paciente.nombre}:`, insertError.message)
         continue
       }
 
@@ -324,9 +327,9 @@ const guardarPacientes = async (pacientes) => {
           .is('deleted_at', null)
 
         if (deleteError) {
-          console.error('[pacientesStorageService] Error al soft delete:', deleteError.message)
+          log.error('Error al soft delete:', deleteError.message)
         } else {
-          console.log(`[pacientesStorageService] ${idsASoftDelete.length} pacientes marcados eliminados (soft delete)`)
+          log.info(`${idsASoftDelete.length} pacientes marcados eliminados (soft delete)`)
         }
       }
     }
@@ -336,7 +339,7 @@ const guardarPacientes = async (pacientes) => {
 
     return true
   } catch (error) {
-    console.error('[pacientesStorageService] Excepción al guardar en Supabase:', error)
+    log.error('Excepción al guardar en Supabase:', error)
     return true
   }
 }
@@ -402,7 +405,7 @@ export const pacientesStorageService = {
     try {
       localStorage.removeItem(`evoluciones_notas_${pacienteId}`)
     } catch (e) {
-      console.error(`Error al eliminar evoluciones del paciente ${pacienteId}:`, e)
+      log.error(`Error al eliminar evoluciones del paciente ${pacienteId}:`, e)
     }
   },
 
@@ -411,7 +414,7 @@ export const pacientesStorageService = {
     try {
       localStorage.removeItem(`recetas_${pacienteId}`)
     } catch (e) {
-      console.error(`Error al eliminar recetas del paciente ${pacienteId}:`, e)
+      log.error(`Error al eliminar recetas del paciente ${pacienteId}:`, e)
     }
   }
 }

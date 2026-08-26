@@ -1,5 +1,8 @@
 import { useEffect, useRef } from 'react'
 import { supabase, USE_SUPABASE } from '../services/supabaseClient'
+import { createLogger } from '../services/logger.js'
+
+const log = createLogger('useAuthStateListener')
 
 /**
  * Hook que escucha cambios de estado de autenticación de Supabase (F6-H).
@@ -25,21 +28,21 @@ export const useAuthStateListener = ({ activo, onLogout }) => {
       async (event, session) => {
         // SIGNED_OUT desde otra pestaña o por expiración
         if (event === 'SIGNED_OUT') {
-          console.log('[useAuthStateListener] SIGNED_OUT detectado, sincronizando logout')
+          log.info('SIGNED_OUT detectado, sincronizando logout')
           if (logoutRef.current) logoutRef.current()
           return
         }
 
         // Admin borró el usuario desde Supabase Dashboard
         if (event === 'USER_DELETED') {
-          console.warn('[useAuthStateListener] USER_DELETED: usuario removido por admin')
+          log.warn('USER_DELETED: usuario removido por admin')
           if (logoutRef.current) logoutRef.current()
           return
         }
 
         // Refresh falló (token no se pudo renovar)
         if (event === 'TOKEN_REFRESHED' && !session) {
-          console.warn('[useAuthStateListener] TOKEN_REFRESHED sin sesión, logout forzado')
+          log.warn('TOKEN_REFRESHED sin sesión, logout forzado')
           if (logoutRef.current) logoutRef.current()
           return
         }

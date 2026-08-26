@@ -15,6 +15,9 @@
  */
 import { supabase, USE_SUPABASE } from '../../../services/supabaseClient'
 import { transformarDesdeSupabase } from './pacientesTransformations'
+import { createLogger } from '../../../services/logger'
+
+const log = createLogger('pacientesSoftDeleteService')
 
 /**
  * Elimina un paciente (soft delete).
@@ -27,7 +30,7 @@ export const eliminarPaciente = async (pacienteId) => {
   if (!pacienteId) return false
 
   if (!USE_SUPABASE || !supabase) {
-    console.warn('[pacientesSoftDelete] Supabase no configurado, no se puede eliminar')
+    log.warn('[pacientesSoftDelete] Supabase no configurado, no se puede eliminar')
     return false
   }
 
@@ -39,14 +42,14 @@ export const eliminarPaciente = async (pacienteId) => {
       .is('deleted_at', null)
 
     if (error) {
-      console.error('[pacientesSoftDelete] Error al eliminar paciente:', error.message)
+      log.error('[pacientesSoftDelete] Error al eliminar paciente:', error.message)
       return false
     }
 
-    console.log(`[pacientesSoftDelete] Paciente ${pacienteId} marcado como eliminado (soft delete)`)
+    log.info(`[pacientesSoftDelete] Paciente ${pacienteId} marcado como eliminado (soft delete)`)
     return true
   } catch (e) {
-    console.error('[pacientesSoftDelete] Excepción al eliminar paciente:', e)
+    log.error('[pacientesSoftDelete] Excepción al eliminar paciente:', e)
     return false
   }
 }
@@ -62,7 +65,7 @@ export const restaurarPaciente = async (pacienteId) => {
   if (!pacienteId) return false
 
   if (!USE_SUPABASE || !supabase) {
-    console.warn('[pacientesSoftDelete] Supabase no configurado, no se puede restaurar')
+    log.warn('[pacientesSoftDelete] Supabase no configurado, no se puede restaurar')
     return false
   }
 
@@ -74,14 +77,14 @@ export const restaurarPaciente = async (pacienteId) => {
       .not('deleted_at', 'is', null)
 
     if (error) {
-      console.error('[pacientesSoftDelete] Error al restaurar paciente:', error.message)
+      log.error('[pacientesSoftDelete] Error al restaurar paciente:', error.message)
       return false
     }
 
-    console.log(`[pacientesSoftDelete] Paciente ${pacienteId} restaurado`)
+    log.info(`[pacientesSoftDelete] Paciente ${pacienteId} restaurado`)
     return true
   } catch (e) {
-    console.error('[pacientesSoftDelete] Excepción al restaurar paciente:', e)
+    log.error('[pacientesSoftDelete] Excepción al restaurar paciente:', e)
     return false
   }
 }
@@ -94,7 +97,7 @@ export const restaurarPaciente = async (pacienteId) => {
  */
 export const listarPacientesEliminados = async () => {
   if (!USE_SUPABASE || !supabase) {
-    console.warn('[pacientesSoftDelete] Supabase no configurado, no se puede listar papelera')
+    log.warn('[pacientesSoftDelete] Supabase no configurado, no se puede listar papelera')
     return []
   }
 
@@ -106,15 +109,15 @@ export const listarPacientesEliminados = async () => {
       .order('deleted_at', { ascending: false })
 
     if (error) {
-      console.error('[pacientesSoftDelete] Error al listar eliminados:', error.message)
+      log.error('[pacientesSoftDelete] Error al listar eliminados:', error.message)
       return []
     }
 
     const eliminados = (data || []).map(transformarDesdeSupabase).filter(Boolean)
-    console.log(`[pacientesSoftDelete] ${eliminados.length} pacientes en papelera`)
+    log.info(`[pacientesSoftDelete] ${eliminados.length} pacientes en papelera`)
     return eliminados
   } catch (e) {
-    console.error('[pacientesSoftDelete] Excepción al listar eliminados:', e)
+    log.error('[pacientesSoftDelete] Excepción al listar eliminados:', e)
     return []
   }
 }
@@ -132,7 +135,7 @@ export const obtenerAutoresDeEliminacion = async (pacienteIds) => {
   }
 
   if (!USE_SUPABASE || !supabase) {
-    console.warn('[pacientesSoftDelete] Supabase no configurado, no se pueden obtener autores')
+    log.warn('[pacientesSoftDelete] Supabase no configurado, no se pueden obtener autores')
     return new Map()
   }
 
@@ -147,7 +150,7 @@ export const obtenerAutoresDeEliminacion = async (pacienteIds) => {
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('[pacientesSoftDelete] Error al obtener autores:', error.message)
+      log.error('[pacientesSoftDelete] Error al obtener autores:', error.message)
       return new Map()
     }
 
@@ -163,10 +166,10 @@ export const obtenerAutoresDeEliminacion = async (pacienteIds) => {
       }
     }
 
-    console.log(`[pacientesSoftDelete] Obtenidos ${autoresMap.size} autores de eliminación`)
+    log.info(`[pacientesSoftDelete] Obtenidos ${autoresMap.size} autores de eliminación`)
     return autoresMap
   } catch (e) {
-    console.error('[pacientesSoftDelete] Excepción al obtener autores:', e)
+    log.error('[pacientesSoftDelete] Excepción al obtener autores:', e)
     return new Map()
   }
 }

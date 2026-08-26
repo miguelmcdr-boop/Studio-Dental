@@ -17,6 +17,9 @@
  */
 import { supabase, USE_SUPABASE } from './supabaseClient'
 import { leerJSON } from './localStorageRepository'
+import { createLogger } from './logger'
+
+const log = createLogger('datosClinicosSupabase')
 
 // Caché en memoria: Map<pacienteId, Map<tipoDato, datos>>
 const cache = new Map()
@@ -196,9 +199,9 @@ export const sincronizarPaciente = async (pacienteId) => {
 
     // Guardar en caché
     cache.set(pacienteId, datosPaciente)
-    console.log(`[datosClinicosSupabase] Paciente ${pacienteId} sincronizado desde Supabase`)
+    log.info(`Paciente ${pacienteId} sincronizado desde Supabase`)
   } catch (error) {
-    console.error(`[datosClinicosSupabase] Error al sincronizar paciente ${pacienteId}:`, error)
+    log.error(`Error al sincronizar paciente ${pacienteId}:`, error)
   }
 }
 
@@ -292,7 +295,7 @@ export const guardarEvolucionClinica = async (pacienteId, evolucion) => {
       return data
     }
   } catch (error) {
-    console.error('[datosClinicosSupabase] Error al guardar evolución:', error)
+    log.error('Error al guardar evolución:', error)
     return null
   }
 }
@@ -367,7 +370,7 @@ export const guardarCertificado = async (pacienteId, certificado) => {
       return data
     }
   } catch (error) {
-    console.error('[datosClinicosSupabase] Error al guardar certificado:', error)
+    log.error('Error al guardar certificado:', error)
     return null
   }
 }
@@ -419,7 +422,7 @@ export const guardarReceta = async (pacienteId, receta) => {
       return data
     }
   } catch (error) {
-    console.error('[datosClinicosSupabase] Error al guardar receta:', error)
+    log.error('Error al guardar receta:', error)
     return null
   }
 }
@@ -478,7 +481,7 @@ export const guardarOdontograma = async (pacienteId, odontograma, tipo = 'inicia
       return data
     }
   } catch (error) {
-    console.error('[datosClinicosSupabase] Error al guardar odontograma:', error)
+    log.error('Error al guardar odontograma:', error)
     return null
   }
 }
@@ -536,7 +539,7 @@ export const guardarPeriodontograma = async (pacienteId, periodontograma, tipo =
       return data
     }
   } catch (error) {
-    console.error('[datosClinicosSupabase] Error al guardar periodontograma:', error)
+    log.error('Error al guardar periodontograma:', error)
     return null
   }
 }
@@ -595,7 +598,7 @@ export const guardarPeriodontogramaHistorial = async (pacienteId, historial) => 
       return data
     }
   } catch (error) {
-    console.error('[datosClinicosSupabase] Error al guardar historial periodontal:', error)
+    log.error('Error al guardar historial periodontal:', error)
     return null
   }
 }
@@ -650,7 +653,7 @@ export const guardarDatoGenerico = async (pacienteId, tabla, datos) => {
       return data
     }
   } catch (error) {
-    console.error(`[datosClinicosSupabase] Error al guardar dato en ${tabla}:`, error)
+    log.error(`Error al guardar dato en ${tabla}:`, error)
     return null
   }
 }

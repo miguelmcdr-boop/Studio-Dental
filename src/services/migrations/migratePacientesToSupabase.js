@@ -25,6 +25,9 @@ import { supabase } from '../supabaseClient'
 import { pacientesStorageService } from '../../modules/pacientes'
 import { migrationStorageService } from '../migrationStorageService'
 import { esUuidValido } from './uuidUtils'
+import { createLogger } from '../logger.js'
+
+const log = createLogger('migratePacientesToSupabase')
 
 /**
  * Convierte un paciente de formato localStorage (camelCase) a formato
@@ -100,7 +103,7 @@ export const migratePacientesToSupabase = async (userId) => {
       // F4-02c-fix: Filtrar pacientes SEED (Camila Silva ID=1, Carlos Mendoza ID=2)
       // Estos son datos de demostración que no deben estar en Supabase
       if (IDS_SEED.includes(String(paciente.id))) {
-        console.log(`[migratePacientes] Omitiendo paciente SEED: ${paciente.nombre} (ID=${paciente.id})`)
+        log.info(`[migratePacientes] Omitiendo paciente SEED: ${paciente.nombre} (ID=${paciente.id})`)
         resultado.omitidos++
         continue
       }

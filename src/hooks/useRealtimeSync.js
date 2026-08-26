@@ -11,6 +11,9 @@ import { USE_SUPABASE } from '../services/supabaseClient'
 import { notificationService } from '../services/notificationService'
 import { TABLAS_REALTIME } from '../services/realtimeEvents'
 import { useSincronizacionInicial } from './useSincronizacionInicial'
+import { createLogger } from '../services/logger.js'
+
+const log = createLogger('useRealtimeSync')
 
 /** Ventana (ms) para ignorar eventos de escritura local reciente (anti-loops). */
 const TOLERANCIA_LOOP_MS = 2000
@@ -39,11 +42,11 @@ export const useRealtimeSync = () => {
 
   const crearHandler = (tabla) => (payload) => {
     if (esEventoLocal(tabla)) {
-      console.log(`[useRealtimeSync] Ignorando evento local en ${tabla}`)
+      log.info(`Ignorando evento local en ${tabla}`)
       return
     }
 
-    console.log(`[useRealtimeSync] Cambio en ${tabla}:`, payload.eventType)
+    log.info(`Cambio en ${tabla}:`, payload.eventType)
 
     if (tabla === 'pacientes') {
       refrescarPacientes()
@@ -77,7 +80,7 @@ export const useRealtimeSync = () => {
 
   useEffect(() => {
     if (enabled) {
-      console.log('[useRealtimeSync] Sincronización en tiempo real activada')
+      log.info('Sincronización en tiempo real activada')
     }
   }, [enabled])
 }
