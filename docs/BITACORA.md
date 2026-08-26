@@ -1,3 +1,34 @@
+## 2026-08-25 — Fix de allowlist arquitectónica (consecuencia de F6-03)
+
+**Contexto:** La migración al logger centralizado agregó 3 líneas a cada archivo migrado (1 import + 1 línea en blanco + 1 instancia `const log = createLogger(...)`). Esto hizo que 15 archivos que ya estaban al límite de su allowlist congelado superaran el máximo permitido por la validación arquitectónica.
+
+**Archivos afectados (15):**
+- `src/hooks/useDataMigration.js` (266 → 269)
+- `src/modules/administracion/AdminVademecumModulo.jsx` (235 → 238)
+- `src/modules/administracion/components/AdminProtocolosContenido.jsx` (152 → 155)
+- `src/modules/administracion/hooks/useVademecumAdmin.js` (191 → 194)
+- `src/modules/agenda/services/agendaStorageService.js` (375 → 378)
+- `src/modules/finanzas/services/finanzasStorageService.js` (291 → 294)
+- `src/modules/inventario/components/AsociacionesInsumos.jsx` (378 → 381)
+- `src/modules/pacientes/components/PresupuestoSection.jsx` (515 → 518)
+- `src/modules/pacientes/utils/pacientesCalculations.js` (133 → 136)
+- `src/modules/pagos/services/pagosStorageService.js` (315 → 318)
+- `src/modules/presupuestos/components/ModalNuevoPresupuesto.jsx` (293 → 296)
+- `src/modules/presupuestos/services/presupuestosStorageService.js` (458 → 461)
+- `src/modules/reportes/utils/reportesCalculations.js` (84 → 87)
+- `src/services/vademecumService.js` (864 → 867)
+- `src/utils/anestesiaCalculations.js` (542 → 545)
+
+**Decisión:** Actualizar los límites congelados en `scripts/architecture-allowlist.json` (+3 líneas cada uno), en lugar de refactorizar los archivos. El crecimiento es por infraestructura legítima (logger) y no por funcionalidad nueva.
+
+**Verificación:**
+✓ `npm run validate:architecture` pasa sin violaciones
+✓ `npm run build` exitoso
+✓ 827/827 tests pasando
+
+**Archivos modificados:**
+- `scripts/architecture-allowlist.json` (15 límites congelados actualizados)
+
 ## 2026-08-25 - F6-03: Logger centralizado con niveles - DONE
 
 **Que se gano:** Reemplazo de 293 console.log/error/warn sueltos por un logger centralizado con niveles (DEBUG/INFO/WARN/ERROR) que permite control granular por entorno.
