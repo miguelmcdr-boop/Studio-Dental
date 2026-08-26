@@ -17,7 +17,7 @@ import { supabase } from '../supabaseClient'
 import { agendaStorageService } from '../../modules/agenda'
 import { migrationStorageService } from '../migrationStorageService'
 import { esUuidValido } from './uuidUtils'
-import { createLogger } from '../../logger'
+import { createLogger } from '../logger'
 
 const log = createLogger('migrateCitasToSupabase')
 

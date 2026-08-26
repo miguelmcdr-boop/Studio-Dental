@@ -25,7 +25,7 @@ import { pagosStorageService } from '../../modules/pagos/services/pagosStorageSe
 import { migrationStorageService } from '../migrationStorageService'
 import { esUuidValido } from './uuidUtils'
 import { leerJSON } from '../localStorageRepository'
-import { createLogger } from '../../logger'
+import { createLogger } from '../logger'
 
 const log = createLogger('migratePagosToSupabase')
 

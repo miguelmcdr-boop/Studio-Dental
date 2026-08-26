@@ -25,7 +25,7 @@
 import { supabase } from '../supabaseClient'
 import { migrationStorageService } from '../migrationStorageService'
 import { leerJSON } from '../localStorageRepository'
-import { createLogger } from '../../logger'
+import { createLogger } from '../logger'
 
 const log = createLogger('migrateDatosClinicosToSupabase')
 
