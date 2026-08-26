@@ -80,18 +80,20 @@ export const Sidebar = ({ userProfile, activeSection, setActiveSection, onLogout
             onClick={() => setColapsado(!colapsado)}
             className="p-1.5 rounded-lg hover:bg-gray-200 text-gray-500 hover:text-black transition-colors"
             title={colapsado ? "Expandir menú" : "Minimizar menú"}
+            aria-label={colapsado ? "Expandir menú" : "Minimizar menú"}
           >
             {colapsado ? '▶' : '◀'}
           </button>
         </div>
 
-        <nav className="space-y-1">
+        <nav aria-label="Navegacion principal" className="space-y-1">
           {menuItemsVisibles.map((item) => (
             <button
               key={item.name}
               data-testid={`sidebar-menu-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
               onClick={() => setActiveSection(item.name)}
               title={colapsado ? item.name : ''}
+              aria-current={activeSection === item.name ? 'page' : undefined}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                 activeSection === item.name ? 'bg-black text-white shadow-xs' : 'text-gray-700 hover:bg-gray-200/60'
               } ${colapsado ? 'justify-center' : ''}`}
@@ -120,7 +122,7 @@ export const Sidebar = ({ userProfile, activeSection, setActiveSection, onLogout
             Cerrar sesión
           </button>
         ) : (
-          <button onClick={onLogout} className="w-full text-center text-xs text-red-600 hover:text-red-800 pt-1" title="Cerrar sesión">
+          <button onClick={onLogout} className="w-full text-center text-xs text-red-600 hover:text-red-800 pt-1" title="Cerrar sesión" aria-label="Cerrar sesión">
             🚪
           </button>
         )}

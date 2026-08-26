@@ -187,8 +187,8 @@ export const DirectorioLaboratorios = memo(({ laboratorios, alGuardarLab, alElim
                 <div className="flex justify-between items-start border-b pb-2">
                   <h4 className="font-black text-sm text-gray-900">{lab.nombre}</h4>
                   <div className="flex gap-1">
-                    <button onClick={() => handleAbrirEditar(lab)} className="p-1 hover:bg-gray-100 rounded" title="Editar">✏️</button>
-                    <button onClick={() => alEliminarLab(lab.id)} className="p-1 text-red-500 hover:bg-red-50 rounded" title="Eliminar">🗑️</button>
+                    <button onClick={() => handleAbrirEditar(lab)} className="p-1 hover:bg-gray-100 rounded" title="Editar" aria-label="Editar laboratorio">✏️</button>
+                    <button onClick={() => alEliminarLab(lab.id)} className="p-1 text-red-500 hover:bg-red-50 rounded" title="Eliminar" aria-label="Eliminar laboratorio">🗑️</button>
                   </div>
                 </div>
 

@@ -146,7 +146,7 @@
 | F6-02b | Agregar job E2E al pipeline CI/CD (hallazgo F6-02) | 6 | P2 | S (0.5-1 d) | F6-02 | DONE (2026-08-24) |
 | F6-02c | Investigar `data-testid` faltantes en bundle de LoginScreen (hallazgo F6-02) | 6 | P3 | XS (<0.5 d) | F6-02 | DONE (2026-08-25) — agregados login-email y login-password, 5 data-testid totales |
 | F6-03 | Logger centralizado con niveles (reemplazo de 293 console.* sueltos) | 6 | P2 | S (1-2 d) | - | DONE (2026-08-25) - logger creado, 293 logs migrados en 68 archivos, 827/827 tests pasando |
-| F6-04 | Accesibilidad básica (aria-*, foco en modales, labels) | 6 | P2 | M (2-4 d, incremental) | — | TODO |
+| F6-04 | Accesibilidad basica (aria-*, foco en modales, labels) | 6 | P2 | M (2-4 d, incremental) | - | DONE (2026-08-25) - 4 fases: LoginScreen, Sidebar, ConflictResolutionModal, botones emoji, PaquetesClinicosManager. 827/827 tests pasando |
 | F6-05 | Exportación de reportes a Excel/PDF | 6 | P2 | M (2-3 d) | — | TODO |
 | F6-06 | Checklist de despliegue a producción (dominio, env vars, backups) | 6 | P1 | S (0.5-1 d, proceso) | F6-02, F6-A..F6-E | PARTIAL DONE (2026-08-24) — checklist actualizado + 3 docs técnicos creados; pasos comerciales pendientes (F6-06b) |
 | F6-06b | Pasos comerciales/manuales de despliegue a producción (hallazgo F6-06) | 6 | P1 | M (1-2 d, proceso) | F6-06 | DEFERRED (2026-08-25) — usar free tier hasta escalar a 10+ clínicas |
