@@ -5,17 +5,27 @@ import { ReportesSummaryCards } from './components/ReportesSummaryCards'
 import { RankingPrestacionesTable } from './components/RankingPrestacionesTable'
 import { GraficoProductividad } from './components/GraficoProductividad'
 import { RendimientoProfesionales } from './components/RendimientoProfesionales'
-import { ReporteImprimibleA4 } from './components/ReporteImprimibleA4'
+import { ReporteImprimibleLetter } from './components/ReporteImprimibleLetter'
 import { usePacientesStore } from '../../store/pacientesStore'
 import { useSesionStore } from '../../store/sesionStore'
+import { exportService } from './services/exportService'
 
 export const ReportesModulo = memo(() => {
   // (F2-02) — pacientes y userProfile ya no llegan como prop desde App.jsx: se leen directo de los stores.
   const pacientes = usePacientesStore((state) => state.pacientes)
   const userProfile = useSesionStore((state) => state.userProfile)
 
-  const [verReporteA4, setVerReporteA4] = useState(false)
+  const [verReporteLetter, setVerReporteLetter] = useState(false)
   const { periodoSeleccionado, setPeriodoSeleccionado, metricas } = useReportes(pacientes)
+
+
+  const handleExportarPDF = () => {
+    exportService.exportarReportePDF(metricas, userProfile)
+  }
+
+  const handleExportarExcel = () => {
+    exportService.exportarReporteCompletoExcel(metricas, periodoSeleccionado)
+  }
 
   return (
     <div className="space-y-6">
@@ -36,10 +46,26 @@ export const ReportesModulo = memo(() => {
           </select>
 
           <button
-            onClick={() => setVerReporteA4(true)}
+            onClick={handleExportarPDF}
+            className="bg-gray-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl hover:bg-gray-800 transition-colors shadow-xs"
+            aria-label="Exportar reporte como PDF"
+            title="Exportar a PDF (abre diálogo de impresión)"
+          >
+            📄 Exportar PDF
+          </button>
+          <button
+            onClick={handleExportarExcel}
+            className="bg-emerald-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl hover:bg-emerald-800 transition-colors shadow-xs"
+            aria-label="Exportar reporte completo como Excel"
+            title="Descargar Excel con resumen, ranking y rendimiento"
+          >
+            📊 Exportar Excel
+          </button>
+          <button
+            onClick={() => setVerReporteLetter(true)}
             className="bg-black text-white text-xs font-bold px-3.5 py-2 rounded-xl hover:bg-gray-800 transition-colors shadow-xs"
           >
-            📄 Informe A4
+            📄 Informe Letter
           </button>
         </div>
       </div>
@@ -48,11 +74,11 @@ export const ReportesModulo = memo(() => {
         <ReportesSummaryCards metricas={metricas} />
       </div>
 
-      {verReporteA4 ? (
-        <ReporteImprimibleA4
+      {verReporteLetter ? (
+        <ReporteImprimibleLetter
           metricas={metricas}
           userProfile={userProfile}
-          alCerrar={() => setVerReporteA4(false)}
+          alCerrar={() => setVerReporteLetter(false)}
         />
       ) : (
         <div className="space-y-6">

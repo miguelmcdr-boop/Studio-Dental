@@ -22,7 +22,7 @@ export const ComprobantePagoImprimible = memo(({ pago, userProfile, alCerrar }) 
             onClick={() => setFormato('carta')}
             className={`px-3 py-1.5 rounded-xl font-bold ${formato === 'carta' ? 'bg-black text-white' : 'bg-gray-200 text-gray-700'}`}
           >
-            📄 Carta A4 Oficial
+            📄 Carta Letter Oficial
           </button>
         </div>
 
@@ -82,7 +82,7 @@ export const ComprobantePagoImprimible = memo(({ pago, userProfile, alCerrar }) 
         </div>
       )}
 
-      {/* FORMATO CARTA A4 MEMBRETADA */}
+      {/* FORMATO CARTA LETTER MEMBRETADA */}
       {formato === 'carta' && (
         <div className="bg-white border border-gray-300 rounded-2xl p-8 max-w-xl mx-auto space-y-6 text-gray-900 print:border-none print:max-w-none print:p-0">
           <div className="border-b-2 border-black pb-4 flex justify-between items-start">

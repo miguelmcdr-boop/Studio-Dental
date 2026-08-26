@@ -86,7 +86,7 @@ export const CertificadosSection = memo(({
         </div>
       )}
 
-      {/* Documento de Certificado Listo para Impresión A4 */}
+      {/* Documento de Certificado Listo para Impresión Letter */}
       {certAMostrar ? (
         <div className="space-y-4">
           <div className="flex justify-end print:hidden">
@@ -94,7 +94,7 @@ export const CertificadosSection = memo(({
               onClick={() => window.print()}
               className="bg-black text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-gray-800 shadow-sm flex items-center gap-2"
             >
-              🖨️ Imprimir Certificado Oficial (A4)
+              🖨️ Imprimir Certificado Oficial (Letter)
             </button>
           </div>
 

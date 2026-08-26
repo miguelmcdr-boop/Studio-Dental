@@ -1,1 +1,13 @@
 @import "tailwindcss";
+/* Configuración global de impresión - Formato Letter (8.5" x 11") */
+@media print {
+  @page {
+    size: letter;
+    margin: 1in;
+  }
+  
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}

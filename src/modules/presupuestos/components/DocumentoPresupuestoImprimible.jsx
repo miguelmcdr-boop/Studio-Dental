@@ -48,11 +48,11 @@ export const DocumentoPresupuestoImprimible = memo(({ presupuesto, userProfile, 
           onClick={() => window.print()}
           className="bg-black text-white text-xs font-bold px-5 py-2.5 rounded-xl hover:bg-gray-800 transition-colors shadow-xs cursor-pointer flex items-center gap-2"
         >
-          🖨️ Imprimir Presupuesto (A4)
+          🖨️ Imprimir Presupuesto (Letter)
         </button>
       </div>
 
-      {/* Hoja de Impresión A4 */}
+      {/* Hoja de Impresión Letter */}
       <div className="bg-white border border-gray-200 rounded-2xl p-8 print:border-none print:p-0 max-w-4xl mx-auto space-y-6">
         {/* Cabecera */}
         <div className="border-b-2 border-black pb-4 flex justify-between items-start">

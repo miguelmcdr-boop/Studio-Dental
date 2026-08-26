@@ -1,6 +1,6 @@
 import React, { memo } from 'react'
 
-export const ReporteImprimibleA4 = memo(({ metricas, userProfile, alCerrar }) => {
+export const ReporteImprimibleLetter = memo(({ metricas, userProfile, alCerrar }) => {
   return (
     <div className="space-y-6 text-xs">
       <div className="flex justify-between items-center print:hidden bg-gray-50 p-4 border rounded-2xl">
@@ -10,7 +10,7 @@ export const ReporteImprimibleA4 = memo(({ metricas, userProfile, alCerrar }) =>
             onClick={() => window.print()}
             className="bg-black text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-800"
           >
-            🖨️ Imprimir Informe A4 (PDF)
+            🖨️ Imprimir Informe Letter (PDF)
           </button>
           <button
             onClick={alCerrar}
@@ -86,4 +86,4 @@ export const ReporteImprimibleA4 = memo(({ metricas, userProfile, alCerrar }) =>
   )
 })
 
-ReporteImprimibleA4.displayName = 'ReporteImprimibleA4'
+ReporteImprimibleLetter.displayName = 'ReporteImprimibleLetter'
