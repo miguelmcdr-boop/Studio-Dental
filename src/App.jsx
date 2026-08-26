@@ -18,6 +18,9 @@ import { FichaPaciente, DirectorioPacientes } from './modules/pacientes'
 import { usePacientesActions } from './modules/pacientes/hooks/usePacientesActions'
 import { useSessionGuard } from './hooks/useSessionGuard'
 import { DashboardModulo } from './modules/dashboard'
+import { createLogger } from './services/logger'
+
+const log = createLogger('App')
 
 // (F2-05) — resto de los módulos vía React.lazy: no se descargan en el
 // bundle inicial, solo cuando el usuario navega a esa sección por primera vez.
@@ -59,7 +62,7 @@ function App() {
         localStorage.removeItem('clinica_paciente_seleccionado_id')
       }
     } catch (e) {
-      console.error('[App] Error al persistir pacienteId:', e)
+      log.error('Error al persistir pacienteId:', e)
     }
   }
 
@@ -68,7 +71,7 @@ function App() {
     try {
       localStorage.setItem('clinica_active_section', activeSection)
     } catch (e) {
-      console.error('[App] Error al persistir sección activa:', e)
+      log.error('Error al persistir sección activa:', e)
     }
   }, [activeSection])
 
@@ -101,7 +104,7 @@ function App() {
           return
         }
 
-        console.log('[App] Restaurando ficha de paciente desde Supabase:', pacienteIdGuardado)
+        log.info('Restaurando ficha de paciente desde Supabase:', pacienteIdGuardado)
 
         const { data, error } = await supabase
           .from('pacientes')
@@ -110,13 +113,13 @@ function App() {
           .maybeSingle()
 
         if (error) {
-          console.error('[App] Error al restaurar paciente:', error.message)
+          log.error('Error al restaurar paciente:', error.message)
           return
         }
 
         if (!data) {
           // El paciente fue eliminado en otro dispositivo — limpiar selección
-          console.warn('[App] Paciente no encontrado (pudo ser eliminado), limpiando selección')
+          log.warn('Paciente no encontrado (pudo ser eliminado), limpiando selección')
           localStorage.removeItem('clinica_paciente_seleccionado_id')
           return
         }
@@ -141,9 +144,9 @@ function App() {
         // Asegurar que estamos en la sección correcta
         setPacienteSeleccionadoState(pacienteRestaurado)
         setActiveSection('Pacientes')
-        console.log('[App] ✅ Ficha de paciente restaurada:', pacienteRestaurado.nombre)
+        log.info('✅ Ficha de paciente restaurada:', pacienteRestaurado.nombre)
       } catch (e) {
-        console.error('[App] Error inesperado al restaurar paciente:', e)
+        log.error('Error inesperado al restaurar paciente:', e)
       }
     }
 
@@ -189,7 +192,7 @@ function App() {
           // Solo restaurar si Supabase TODAVÍA tiene sesión activa
           // (si el usuario cerró sesión manualmente, session será null)
           if (session?.user) {
-            console.log('[App] Sesión de Supabase detectada, restaurando perfil...')
+            log.info('Sesión de Supabase detectada, restaurando perfil...')
             
             // F6-B4: leer rol de app_metadata (JWT firmado, no editable por el usuario)
             const userMetadata = { ...(session.user.user_metadata || {}), role: session.user.app_metadata?.role || 'recepcion' }
@@ -205,7 +208,7 @@ function App() {
             loginStore(perfilRestaurado)
           }
         } catch (error) {
-          console.error('[App] Error restaurando sesión de Supabase:', error)
+          log.error('Error restaurando sesión de Supabase:', error)
         }
       }, 100) // 100ms delay para dar tiempo al logout de cerrar Supabase
       

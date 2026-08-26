@@ -9,6 +9,9 @@
  */
 import { leerJSON, escribirJSON } from '../../../services/localStorageRepository'
 import { obtenerDatoClinico, guardarDatoGenerico } from '../../../services/datosClinicosSupabase'
+import { createLogger } from '../../../services/logger.js'
+
+const log = createLogger('quirurgicoStorageService')
 
 const construirKeyImplantes = (pacienteId) => `quirurgico_implantes_${pacienteId}`
 const construirKeyEndodoncia = (pacienteId) => `quirurgico_endodoncia_${pacienteId}`
@@ -59,7 +62,7 @@ export const quirurgicoStorageService = {
       localStorage.removeItem(construirKeyImplantes(pacienteId))
       localStorage.removeItem(construirKeyEndodoncia(pacienteId))
     } catch (e) {
-      console.error(`Error al eliminar datos quirúrgicos del paciente ${pacienteId}:`, e)
+      log.error(`Error al eliminar datos quirúrgicos del paciente ${pacienteId}:`, e)
     }
   }
 }

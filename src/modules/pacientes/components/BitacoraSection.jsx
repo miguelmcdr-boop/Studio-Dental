@@ -2,6 +2,9 @@ import React, { memo, useState } from 'react'
 // F6-D-5: usar evolucionesStorageService en lugar de pacientesStorageService.guardarItem
 import { evolucionesStorageService } from '../services/evolucionesStorageService'
 import { useDictadoVoz } from '../hooks/useDictadoVoz'
+import { createLogger } from '../../../services/logger.js'
+
+const log = createLogger('BitacoraSection')
 
 export const BitacoraSection = memo(({ pacienteId, evolucionesNotas = [], setEvolucionesNotas }) => {
   const [textoNuevaEvolucion, setTextoNuevaEvolucion] = useState('')
@@ -28,7 +31,7 @@ export const BitacoraSection = memo(({ pacienteId, evolucionesNotas = [], setEvo
     setEvolucionesNotas(actualizadas)
     // F6-D-5: usar evolucionesStorageService (Supabase + localStorage)
     evolucionesStorageService.guardarEvoluciones(pacienteId, actualizadas).catch(err => {
-      console.warn('[BitacoraSection] Error guardando evoluciones:', err)
+      log.warn('Error guardando evoluciones:', err)
     })
 
     setTextoNuevaEvolucion('')
@@ -46,7 +49,7 @@ export const BitacoraSection = memo(({ pacienteId, evolucionesNotas = [], setEvo
       setEvolucionesNotas(actualizadas)
       // F6-D-5: usar evolucionesStorageService (Supabase + localStorage)
       evolucionesStorageService.guardarEvoluciones(pacienteId, actualizadas).catch(err => {
-        console.warn('[BitacoraSection] Error guardando evoluciones:', err)
+        log.warn('Error guardando evoluciones:', err)
       })
     }
   }

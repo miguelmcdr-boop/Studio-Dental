@@ -22,6 +22,9 @@ import {
   storageDisponible
 } from './adjuntosSupabaseService'
 import { useSesionStore } from '../store/sesionStore'
+import { createLogger } from './logger'
+
+const log = createLogger('adjuntosStorageService')
 
 const DB_NAME = 'studio_dental_adjuntos'
 const DB_VERSION = 1
@@ -140,10 +143,10 @@ export const guardarAdjunto = async ({ pacienteId, tipo, blob, nombre, clinicaId
           })
         }
       } catch (e) {
-        console.warn('[adjuntosStorageService] No se pudo subir a Supabase, adjunto queda solo en IndexedDB:', e)
+        log.warn('No se pudo subir a Supabase, adjunto queda solo en IndexedDB:', e)
       }
     } else {
-      console.warn('[adjuntosStorageService] No hay clinicaId disponible, adjunto queda solo en IndexedDB')
+      log.warn('No hay clinicaId disponible, adjunto queda solo en IndexedDB')
     }
   }
 
@@ -199,7 +202,7 @@ export const eliminarAdjunto = async (id) => {
     try {
       await eliminarAdjuntoDeStorage(registro.storagePath)
     } catch (e) {
-      console.warn('[adjuntosStorageService] No se pudo eliminar de Supabase Storage:', e)
+      log.warn('No se pudo eliminar de Supabase Storage:', e)
     }
   }
 
@@ -242,7 +245,7 @@ export const eliminarTodosPorPaciente = async (pacienteId) => {
         try {
           await eliminarAdjuntoDeStorage(registro.storagePath)
         } catch (e) {
-          console.warn('[adjuntosStorageService] No se pudo eliminar de Supabase Storage:', registro.storagePath, e)
+          log.warn('No se pudo eliminar de Supabase Storage:', registro.storagePath, e)
         }
       }
     }

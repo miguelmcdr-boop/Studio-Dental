@@ -3,6 +3,9 @@ import { finanzasStorageService } from '../services/finanzasStorageService'
 import { calcularBalanceFinanzas } from '../utils/finanzasCalculations'
 import { CONVENIOS_DEFAULT } from '../constants/finanzasConstants'
 import { pagosStorageService } from '../../pagos/services/pagosStorageService'
+import { createLogger } from '../../../services/logger.js'
+
+const log = createLogger('useFinanzas')
 
 export const useFinanzas = (pacientes = []) => {
   const [movimientosManuales, setMovimientosManuales] = useState(() =>
@@ -42,7 +45,7 @@ export const useFinanzas = (pacientes = []) => {
         })
       }
     } catch (e) {
-      console.error(e)
+      log.error(e)
     }
 
     // 2. Cargar Abonos de cada Paciente (vía pagosStorageService, F2-07a)
@@ -64,7 +67,7 @@ export const useFinanzas = (pacientes = []) => {
           })
         }
       } catch (e) {
-        console.error(e)
+        log.error(e)
       }
     })
 

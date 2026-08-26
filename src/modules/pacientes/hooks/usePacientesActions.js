@@ -4,6 +4,9 @@ import { odontogramaStorageService } from '../../odontograma/services/odontogram
 import { presupuestosStorageService } from '../../presupuestos/services/presupuestosStorageService'
 import { pagosStorageService } from '../../pagos/services/pagosStorageService'
 import { eliminarTodosPorPaciente as eliminarAdjuntosDelPaciente } from '../../../services/adjuntosStorageService'
+import { createLogger } from '../../../services/logger'
+
+const log = createLogger('usePacientesActions')
 
 /**
  * Hook para acciones sobre pacientes (crear, editar, eliminar).
@@ -59,16 +62,16 @@ export const usePacientesActions = (pacientes, setPacientes, pacienteSeleccionad
         // Los adjuntos clínicos viven en Supabase Storage + IndexedDB (F6-E).
         // La eliminación es asíncrona; se registra el error si falla.
         eliminarAdjuntosDelPaciente(idPaciente).catch((e) => {
-          console.error('[usePacientesActions] No se pudieron eliminar adjuntos IndexedDB:', e)
+          log.error('No se pudieron eliminar adjuntos IndexedDB:', e)
         })
 
-        console.log(`[F6-F] Paciente ${idPaciente} eliminado (soft delete)`)
+        log.info(`[F6-F] Paciente ${idPaciente} eliminado (soft delete)`)
       } else {
-        console.error('[F6-F] Error al eliminar paciente (soft delete falló)')
+        log.error('[F6-F] Error al eliminar paciente (soft delete falló)')
         alert('No se pudo eliminar el paciente. Intenta de nuevo.')
       }
     } catch (e) {
-      console.error('[F6-F] Excepción al eliminar paciente:', e)
+      log.error('[F6-F] Excepción al eliminar paciente:', e)
       alert('Error inesperado al eliminar paciente.')
     } finally {
       setEliminando(false)

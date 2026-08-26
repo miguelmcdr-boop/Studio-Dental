@@ -1,4 +1,7 @@
 import { supabase, USE_SUPABASE } from './supabaseClient'
+import { createLogger } from './logger'
+
+const log = createLogger('authService')
 /**
  * Servicio de Autenticación — Studio Dental
  * Tarea MASTER_ROADMAP: F1-01
@@ -136,7 +139,7 @@ export const obtenerPerfil = (email) => {
     const raw = localStorage.getItem(profileKey(email))
     return raw ? JSON.parse(raw) : null
   } catch (e) {
-    console.error(`Error al leer perfil "${email}" desde localStorage:`, e)
+    log.error(`Error al leer perfil "${email}" desde localStorage:`, e)
     return null
   }
 }
@@ -154,7 +157,7 @@ export const guardarPerfil = (email, perfil) => {
     localStorage.setItem(profileKey(email), JSON.stringify(perfil))
     return true
   } catch (e) {
-    console.error(`Error al guardar perfil "${email}" en localStorage:`, e)
+    log.error(`Error al guardar perfil "${email}" en localStorage:`, e)
     return false
   }
 }
@@ -228,10 +231,10 @@ export const supabaseSignIn = async (email, password) => {
         clinicaId = membresia.clinica_id
         rolDesdeMiembros = membresia.rol
       } else {
-        console.warn(`[authService] No se encontró membresía activa para user ${user.id}, usando app_metadata como fallback`)
+        log.warn(`No se encontró membresía activa para user ${user.id}, usando app_metadata como fallback`)
       }
     } catch (err) {
-      console.error('[authService] Error consultando miembros_clinica:', err)
+      log.error('Error consultando miembros_clinica:', err)
     }
   }
   

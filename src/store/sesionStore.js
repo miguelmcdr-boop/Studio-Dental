@@ -1,6 +1,9 @@
 import { create } from 'zustand'
 import { esRolValido, obtenerRolPorDefecto } from '../services/rbacService'
 import { supabase, USE_SUPABASE } from '../services/supabaseClient'
+import { createLogger } from '../services/logger'
+
+const log = createLogger('sesionStore')
 
 const ACTIVE_USER_KEY = 'clinica_active_user'
 
@@ -29,7 +32,7 @@ const cargarPerfilActivo = () => {
 
     return perfil
   } catch (e) {
-    console.error('Error al leer la sesión activa:', e)
+    log.error('Error al leer la sesión activa:', e)
     return null
   }
 }
@@ -66,7 +69,7 @@ export const useSesionStore = create((set) => ({
         localStorage.setItem(profileKey, JSON.stringify(profile))
       }
     } catch (e) {
-      console.error('Error al guardar la sesión activa:', e)
+      log.error('Error al guardar la sesión activa:', e)
     }
 
     // F3-05: garantizar rol válido en memoria. Si el perfil entrante no
@@ -86,7 +89,7 @@ export const useSesionStore = create((set) => ({
     try {
       localStorage.removeItem(ACTIVE_USER_KEY)
     } catch (e) {
-      console.error('Error al cerrar la sesión local:', e)
+      log.error('Error al cerrar la sesión local:', e)
     }
 
     // 2. Cerrar sesión de Supabase Auth (si está activa)
@@ -95,9 +98,9 @@ export const useSesionStore = create((set) => ({
     if (USE_SUPABASE && supabase) {
       try {
         await supabase.auth.signOut()
-        console.log('[sesionStore] Sesión de Supabase Auth cerrada')
+        log.info('Sesión de Supabase Auth cerrada')
       } catch (e) {
-        console.error('Error al cerrar sesión de Supabase:', e)
+        log.error('Error al cerrar sesión de Supabase:', e)
       }
     }
 

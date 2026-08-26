@@ -21,6 +21,9 @@ import { validarListaMovimientos } from '../schemas/movimientoFinancieroSchema'
 import { supabase, USE_SUPABASE } from '../../../services/supabaseClient'
 import { migrationStorageService } from '../../../services/migrationStorageService'
 import { esUuidValido } from '../../../services/migrations/uuidUtils'
+import { createLogger } from '../../../services/logger'
+
+const log = createLogger('finanzasStorageService')
 
 const STORAGE_KEY_MOVIMIENTOS = 'studio_dental_finanzas_movimientos'
 const STORAGE_KEY_CONVENIOS = 'studio_dental_finanzas_convenios'
@@ -114,14 +117,14 @@ const sincronizarDesdeSupabase = async () => {
       .order('fecha', { ascending: false })
 
     if (error) {
-      console.warn('[finanzasStorageService] Error al sincronizar desde Supabase:', error.message)
+      log.warn('Error al sincronizar desde Supabase:', error.message)
       return movimientosCache
     }
 
     if (!Array.isArray(data)) return movimientosCache
 
     if (data.length === 0 && movimientosCache && movimientosCache.length > 0) {
-      console.log('[finanzasStorageService] Supabase vacío, manteniendo caché (pendiente migración)')
+      log.info('Supabase vacío, manteniendo caché (pendiente migración)')
       return movimientosCache
     }
 
@@ -131,7 +134,7 @@ const sincronizarDesdeSupabase = async () => {
 
     return nuevos
   } catch (error) {
-    console.error('[finanzasStorageService] Excepción al sincronizar desde Supabase:', error)
+    log.error('Excepción al sincronizar desde Supabase:', error)
     return movimientosCache
   }
 }
@@ -144,7 +147,7 @@ const guardarMovimientos = async (movs) => {
   // (F2-04c) — validación Zod antes de persistir
   const validacion = validarListaMovimientos(movs)
   if (!validacion.valido) {
-    console.error(
+    log.error(
       'Error de validación al guardar movimientos financieros (F2-04c):',
       validacion.error
     )
@@ -195,7 +198,7 @@ const guardarMovimientos = async (movs) => {
         .upsert(paraUpdate, { onConflict: 'id' })
 
       if (updateError) {
-        console.error('[finanzasStorageService] Error al actualizar en Supabase:', updateError.message)
+        log.error('Error al actualizar en Supabase:', updateError.message)
       }
     }
 
@@ -214,7 +217,7 @@ const guardarMovimientos = async (movs) => {
         .single()
 
       if (insertError) {
-        console.error(`[finanzasStorageService] Error al insertar movimiento:`, insertError.message)
+        log.error(`Error al insertar movimiento:`, insertError.message)
         continue
       }
 
@@ -245,7 +248,7 @@ const guardarMovimientos = async (movs) => {
           .in('id', idsAEliminar)
 
         if (deleteError) {
-          console.error('[finanzasStorageService] Error al eliminar en Supabase:', deleteError.message)
+          log.error('Error al eliminar en Supabase:', deleteError.message)
         }
       }
     }
@@ -255,7 +258,7 @@ const guardarMovimientos = async (movs) => {
 
     return true
   } catch (error) {
-    console.error('[finanzasStorageService] Excepción al guardar en Supabase:', error)
+    log.error('Excepción al guardar en Supabase:', error)
     return true
   }
 }

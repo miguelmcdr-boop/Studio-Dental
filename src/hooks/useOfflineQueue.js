@@ -10,16 +10,19 @@
 import { useEffect } from 'react'
 import { operationQueue } from '../services/operationQueue'
 import { notificationService } from '../services/notificationService'
+import { createLogger } from '../services/logger.js'
+
+const log = createLogger('useOfflineQueue')
 
 export const useOfflineQueue = () => {
   useEffect(() => {
     const handleOnline = () => {
-      console.log('[App] Conexión restaurada, procesando cola offline...')
+      log.info('[App] Conexión restaurada, procesando cola offline...')
       operationQueue.processQueue()
     }
 
     const handleOffline = () => {
-      console.log('[App] Sin conexión, operaciones se encolarán')
+      log.info('[App] Sin conexión, operaciones se encolarán')
       // F5-05: notificar al usuario
       notificationService.warning(
         'Trabajando sin conexión. Los cambios se sincronizarán automáticamente al volver internet.',

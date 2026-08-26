@@ -4,6 +4,9 @@ import { configuracionStorageService } from '../services/configuracionStorageSer
 import { descargarArchivoBackupJSON } from '../utils/configuracionCalculations'
 import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
 import { guardarPerfil } from '../../../services/authService'
+import { createLogger } from '../../../services/logger.js'
+
+const log = createLogger('useConfiguracion')
 
 export const useConfiguracion = (userProfileProps, setUserProfileProps) => {
   const [datosClinica, setDatosClinica] = useState(() =>
@@ -36,7 +39,7 @@ export const useConfiguracion = (userProfileProps, setUserProfileProps) => {
           setDatosClinica(datosDesdeSupabase)
         }
       } catch (e) {
-        console.error('[useConfiguracion] Error sincronizando clínica:', e)
+        log.error('Error sincronizando clínica:', e)
       }
     }
 

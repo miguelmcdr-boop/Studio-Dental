@@ -3,6 +3,9 @@ import { vademecumService } from '../../../services/vademecumService'
 import { VADEMECUM_ODONTOLOGICO } from '../../../data/vademecum'
 import { evaluarIncompatibilidadFarmaco } from '../utils/pacientesCalculations'
 import { AlertaAlergiaMejorada } from './AlertaAlergiaMejorada'
+import { createLogger } from '../../../services/logger.js'
+
+const log = createLogger('FormularioNuevaReceta')
 
 /**
  * Formulario para emitir nueva receta médica (F6-D-4 refactor)
@@ -59,7 +62,7 @@ export const FormularioNuevaReceta = memo(({ alergiasPaciente, onAgregarReceta }
           setVademecumCargado(VADEMECUM_ODONTOLOGICO)
         }
       } catch (e) {
-        console.warn('[FormularioNuevaReceta] vademecumService no disponible, usando datos locales:', e?.message)
+        log.warn('vademecumService no disponible, usando datos locales:', e?.message)
         setVademecumCargado(VADEMECUM_ODONTOLOGICO)
       }
     }

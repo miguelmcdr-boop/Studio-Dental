@@ -19,6 +19,9 @@ import { leerJSON, escribirJSON, createLocalStorageRepository } from '../../../s
 import { supabase, USE_SUPABASE } from '../../../services/supabaseClient'
 import { migrationStorageService } from '../../../services/migrationStorageService'
 import { esUuidValido } from '../../../services/migrations/uuidUtils'
+import { createLogger } from '../../../services/logger'
+
+const log = createLogger('pagosStorageService')
 
 const STORAGE_KEY_PAGOS = 'studio_dental_pagos_historial_v3'
 const pagosRepo = createLocalStorageRepository(STORAGE_KEY_PAGOS, [])
@@ -117,14 +120,14 @@ const sincronizarDesdeSupabase = async () => {
       .order('fecha', { ascending: false })
 
     if (error) {
-      console.warn('[pagosStorageService] Error al sincronizar desde Supabase:', error.message)
+      log.warn('Error al sincronizar desde Supabase:', error.message)
       return pagosCache
     }
 
     if (!Array.isArray(data)) return pagosCache
 
     if (data.length === 0 && pagosCache && pagosCache.length > 0) {
-      console.log('[pagosStorageService] Supabase vacío, manteniendo caché (pendiente migración)')
+      log.info('Supabase vacío, manteniendo caché (pendiente migración)')
       return pagosCache
     }
 
@@ -134,7 +137,7 @@ const sincronizarDesdeSupabase = async () => {
 
     return nuevos
   } catch (error) {
-    console.error('[pagosStorageService] Excepción al sincronizar desde Supabase:', error)
+    log.error('Excepción al sincronizar desde Supabase:', error)
     return pagosCache
   }
 }
@@ -145,7 +148,7 @@ const sincronizarDesdeSupabase = async () => {
 
 const guardarPagos = async (pagos) => {
   if (!Array.isArray(pagos)) {
-    console.error('[pagosStorageService] guardarPagos: se esperaba un array')
+    log.error('guardarPagos: se esperaba un array')
     return false
   }
 
@@ -192,7 +195,7 @@ const guardarPagos = async (pagos) => {
         .upsert(paraUpdate, { onConflict: 'id' })
 
       if (updateError) {
-        console.error('[pagosStorageService] Error al actualizar en Supabase:', updateError.message)
+        log.error('Error al actualizar en Supabase:', updateError.message)
       }
     }
 
@@ -211,7 +214,7 @@ const guardarPagos = async (pagos) => {
         .single()
 
       if (insertError) {
-        console.error(`[pagosStorageService] Error al insertar pago:`, insertError.message)
+        log.error(`Error al insertar pago:`, insertError.message)
         continue
       }
 
@@ -242,7 +245,7 @@ const guardarPagos = async (pagos) => {
           .in('id', idsAEliminar)
 
         if (deleteError) {
-          console.error('[pagosStorageService] Error al eliminar en Supabase:', deleteError.message)
+          log.error('Error al eliminar en Supabase:', deleteError.message)
         }
       }
     }
@@ -252,7 +255,7 @@ const guardarPagos = async (pagos) => {
 
     return true
   } catch (error) {
-    console.error('[pagosStorageService] Excepción al guardar en Supabase:', error)
+    log.error('Excepción al guardar en Supabase:', error)
     return true
   }
 }
@@ -308,7 +311,7 @@ export const pagosStorageService = {
     try {
       localStorage.removeItem(`abonos_${pacienteId}`)
     } catch (e) {
-      console.error(`Error al eliminar abonos del paciente ${pacienteId}:`, e)
+      log.error(`Error al eliminar abonos del paciente ${pacienteId}:`, e)
     }
   }
 }

@@ -2,6 +2,9 @@ import React, { memo } from 'react'
 // F6-D-4: usar recetasStorageService en lugar de pacientesStorageService.guardarItem
 import { recetasStorageService } from '../services/recetasStorageService'
 import { FormularioNuevaReceta } from './FormularioNuevaReceta'
+import { createLogger } from '../../../services/logger.js'
+
+const log = createLogger('RecetasSection')
 
 /**
  * Sección de Recetas Médicas (F6-D-4 refactor)
@@ -17,7 +20,7 @@ export const RecetasSection = memo(({ paciente, userProfile, alergiasPaciente, r
     setRecetas(actualizadas)
     // F6-D-4: usar recetasStorageService (Supabase + localStorage)
     recetasStorageService.guardarRecetas(paciente.id, actualizadas).catch(err => {
-      console.warn('[RecetasSection] Error guardando recetas:', err)
+      log.warn('Error guardando recetas:', err)
     })
   }
 
@@ -26,7 +29,7 @@ export const RecetasSection = memo(({ paciente, userProfile, alergiasPaciente, r
     setRecetas(actualizadas)
     // F6-D-4: usar recetasStorageService (Supabase + localStorage)
     recetasStorageService.guardarRecetas(paciente.id, actualizadas).catch(err => {
-      console.warn('[RecetasSection] Error guardando recetas:', err)
+      log.warn('Error guardando recetas:', err)
     })
   }
 

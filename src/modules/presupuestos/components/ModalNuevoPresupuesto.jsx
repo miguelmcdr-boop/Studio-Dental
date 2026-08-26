@@ -3,6 +3,9 @@ import { generarFolioPresupuesto } from '../utils/presupuestosCalculations'
 import { presupuestosStorageService } from '../services/presupuestosStorageService'
 import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
 import { odontogramaStorageService } from '../../odontograma'
+import { createLogger } from '../../../services/logger.js'
+
+const log = createLogger('ModalNuevoPresupuesto')
 
 export const ModalNuevoPresupuesto = memo(({ pacientes = [], prestaciones = [], alGuardar, alCerrar }) => {
   const [pacienteId, setPacienteId] = useState('')
@@ -44,7 +47,7 @@ export const ModalNuevoPresupuesto = memo(({ pacientes = [], prestaciones = [], 
         setHallazgosOdontograma([])
       }
     } catch (e) {
-      console.error('Error al leer Odontograma del paciente:', e)
+      log.error('Error al leer Odontograma del paciente:', e)
       setHallazgosOdontograma([])
     }
   }, [pacienteId])

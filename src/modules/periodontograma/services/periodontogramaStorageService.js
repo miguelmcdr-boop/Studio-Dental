@@ -24,6 +24,9 @@ import {
   guardarPeriodontogramaHistorial as guardarPeriodontogramaHistorialSupabase,
   obtenerDatoClinico
 } from '../../../services/datosClinicosSupabase'
+import { createLogger } from '../../../services/logger'
+
+const log = createLogger('periodontogramaStorageService')
 
 export const periodontogramaStorageService = {
   // ─────────────────────────────────────────────────────────────
@@ -60,7 +63,7 @@ export const periodontogramaStorageService = {
     try {
       await guardarPeriodontogramaSupabase(pacienteId, data, 'inicial')
     } catch (e) {
-      console.warn('[periodontogramaStorageService] Error guardando periodontograma inicial en Supabase:', e?.message)
+      log.warn('Error guardando periodontograma inicial en Supabase:', e?.message)
     }
     return result
   },
@@ -73,7 +76,7 @@ export const periodontogramaStorageService = {
     try {
       await guardarPeriodontogramaSupabase(pacienteId, data, 'control')
     } catch (e) {
-      console.warn('[periodontogramaStorageService] Error guardando control en Supabase:', e?.message)
+      log.warn('Error guardando control en Supabase:', e?.message)
     }
     return result
   },
@@ -86,7 +89,7 @@ export const periodontogramaStorageService = {
     try {
       await guardarPeriodontogramaHistorialSupabase(pacienteId, historial)
     } catch (e) {
-      console.warn('[periodontogramaStorageService] Error guardando historial en Supabase:', e?.message)
+      log.warn('Error guardando historial en Supabase:', e?.message)
     }
     return result
   },
@@ -102,7 +105,7 @@ export const periodontogramaStorageService = {
       localStorage.removeItem(`periodontograma_control_${pacienteId}`)
       localStorage.removeItem(`periodonto_historial_${pacienteId}`)
     } catch (e) {
-      console.error(`Error al eliminar datos periodontales del paciente ${pacienteId}:`, e)
+      log.error(`Error al eliminar datos periodontales del paciente ${pacienteId}:`, e)
     }
   }
 }

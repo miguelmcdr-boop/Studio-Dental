@@ -4,6 +4,9 @@ import { sanitizarSondaje, sanitizarRecesion } from '../utils/periodontalValidat
 import { calcularEstadisticasPeriodontales, generarResumenClinico, estructurarDatosParaGrafico } from '../utils/periodontalCalculations'
 // F2-07b: acceso centralizado vía servicio
 import { periodontogramaStorageService } from '../services/periodontogramaStorageService'
+import { createLogger } from '../../../services/logger.js'
+
+const log = createLogger('usePeriodontograma')
 
 export const usePeriodontograma = (pacienteId) => {
   const [historialControles, setHistorialControles] = useState(() => {
@@ -26,7 +29,7 @@ export const usePeriodontograma = (pacienteId) => {
     try {
       periodontogramaStorageService.guardarHistorialControles(pacienteId, historialControles)
     } catch (e) {
-      console.error('Error al guardar historial:', e)
+      log.error('Error al guardar historial:', e)
     }
   }, [historialControles, pacienteId])
 

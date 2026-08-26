@@ -16,6 +16,9 @@
  */
 import React from 'react'
 import { ErrorFallback } from './ErrorFallback'
+import { createLogger } from '../services/logger.js'
+
+const log = createLogger('ErrorBoundary')
 
 export class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -28,9 +31,8 @@ export class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    // Registro estructurado (base para F6-03 — logger centralizado)
-    // eslint-disable-next-line no-console
-    console.error('[ErrorBoundary]', {
+    // Registro estructurado (F6-03 — logger centralizado)
+    log.error({
       modulo: this.props.modulo || 'global',
       mensaje: error?.message,
       stack: error?.stack,

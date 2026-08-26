@@ -8,6 +8,9 @@ import { calcularIndicesPeriodontales } from './utils/periodontalCalculations'
 import { pacientesStorageService } from '../pacientes/services/pacientesStorageService'
 // F2-07b: acceso centralizado vía servicio (antes localStorage directo)
 import { periodontogramaStorageService } from './services/periodontogramaStorageService'
+import { createLogger } from '../../services/logger.js'
+
+const log = createLogger('PeriodontogramaModulo')
 
 export const PeriodontogramaModulo = memo(({ pacienteId }) => {
   const [periodontoData, setPeriodontoData] = useState(() => {
@@ -50,7 +53,7 @@ export const PeriodontogramaModulo = memo(({ pacienteId }) => {
     // Persistir periodontoData automáticamente
     if (periodontoData && Object.keys(periodontoData).length > 0) {
       periodontogramaStorageService.guardarPeriodontogramaDePaciente(pacienteId, periodontoData)
-        .catch(err => console.warn('[PeriodontogramaModulo] Error guardando periodontograma:', err))
+        .catch(err => log.warn('Error guardando periodontograma:', err))
     }
   }, [periodontoData, pacienteId])
 
@@ -60,7 +63,7 @@ export const PeriodontogramaModulo = memo(({ pacienteId }) => {
     // Persistir periodontoControl automáticamente
     if (periodontoControl && Object.keys(periodontoControl).length > 0) {
       periodontogramaStorageService.guardarControlDePaciente(pacienteId, periodontoControl)
-        .catch(err => console.warn('[PeriodontogramaModulo] Error guardando control:', err))
+        .catch(err => log.warn('Error guardando control:', err))
     }
   }, [periodontoControl, pacienteId])
 

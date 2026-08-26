@@ -24,6 +24,9 @@ import { presupuestosStorageService } from '../../modules/presupuestos/services/
 import { migrationStorageService } from '../migrationStorageService'
 import { esUuidValido } from './uuidUtils'
 import { leerJSON } from '../localStorageRepository'
+import { createLogger } from '../../logger'
+
+const log = createLogger('migratePresupuestosToSupabase')
 
 /**
  * Convierte un presupuesto de formato localStorage (camelCase) a formato
@@ -122,7 +125,7 @@ export const migratePresupuestosToSupabase = async (userId) => {
           // Intentar obtener UUID del mapa de migración
           pacienteUuid = migrationStorageService.obtenerSupabaseId(presupuesto.pacienteId)
           if (!pacienteUuid) {
-            console.warn(`[migratePresupuestos] Presupuesto ${presupuesto.id} omitido: paciente ${presupuesto.pacienteId} no migrado aún`)
+            log.warn(`[migratePresupuestos] Presupuesto ${presupuesto.id} omitido: paciente ${presupuesto.pacienteId} no migrado aún`)
             resultado.omitidos++
             continue
           }
@@ -165,13 +168,13 @@ export const migratePresupuestosToSupabase = async (userId) => {
               .insert(itemSupabase)
 
             if (itemError) {
-              console.error(`[migratePresupuestos] Error al migrar item:`, itemError.message)
+              log.error(`[migratePresupuestos] Error al migrar item:`, itemError.message)
               continue
             }
 
             resultado.itemsMigrados++
           } catch (itemException) {
-            console.error(`[migratePresupuestos] Excepción al migrar item:`, itemException.message)
+            log.error(`[migratePresupuestos] Excepción al migrar item:`, itemException.message)
           }
         }
       }
@@ -189,7 +192,7 @@ export const migratePresupuestosToSupabase = async (userId) => {
   // ═══════════════════════════════════════════════════
   // Estos son items que están en presupuesto_items_${pacienteId} pero no
   // tienen un presupuesto global asociado. Se migran sin presupuesto_id.
-  console.log('[migratePresupuestos] Buscando items huérfanos...')
+  log.info('[migratePresupuestos] Buscando items huérfanos...')
   
   // Obtener todos los pacientes migrados para buscar sus items
   const { data: pacientes } = await supabase
@@ -207,7 +210,7 @@ export const migratePresupuestosToSupabase = async (userId) => {
         const items = leerJSON(`presupuesto_items_${legacyId}`, [])
         if (!Array.isArray(items) || items.length === 0) continue
 
-        console.log(`[migratePresupuestos] Migrando ${items.length} items huérfanos del paciente ${legacyId}...`)
+        log.info(`[migratePresupuestos] Migrando ${items.length} items huérfanos del paciente ${legacyId}...`)
 
         for (const item of items) {
           try {
@@ -221,17 +224,17 @@ export const migratePresupuestosToSupabase = async (userId) => {
               .insert(itemSupabase)
 
             if (itemError) {
-              console.error(`[migratePresupuestos] Error al migrar item huérfano:`, itemError.message)
+              log.error(`[migratePresupuestos] Error al migrar item huérfano:`, itemError.message)
               continue
             }
 
             resultado.itemsMigrados++
           } catch (itemException) {
-            console.error(`[migratePresupuestos] Excepción al migrar item huérfano:`, itemException.message)
+            log.error(`[migratePresupuestos] Excepción al migrar item huérfano:`, itemException.message)
           }
         }
       } catch (pacienteException) {
-        console.error(`[migratePresupuestos] Error procesando paciente ${paciente.id}:`, pacienteException.message)
+        log.error(`[migratePresupuestos] Error procesando paciente ${paciente.id}:`, pacienteException.message)
       }
     }
   }

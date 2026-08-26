@@ -2,6 +2,9 @@ import React, { memo, useState } from 'react'
 // F6-D-6: usar certificadosStorageService en lugar de pacientesStorageService.guardarItem
 import { certificadosStorageService } from '../services/certificadosStorageService'
 import { FormularioNuevoCertificado } from './FormularioNuevoCertificado'
+import { createLogger } from '../../../services/logger'
+
+const log = createLogger('CertificadosSection')
 
 /**
  * Sección de Certificados Médicos (F6-D-6 refactor)
@@ -25,7 +28,7 @@ export const CertificadosSection = memo(({
     const actualizados = [nuevoCertificado, ...listaCertificados]
     setCertificados(actualizados)
     // F6-D-6: usar certificadosStorageService (Supabase + localStorage)
-    certificadosStorageService.guardarCertificados(paciente.id, actualizados).catch(console.warn)
+    certificadosStorageService.guardarCertificados(paciente.id, actualizados).catch(err => log.warn("Error al guardar:", err))
     setCertSeleccionadoVer(nuevoCertificado)
   }
 
@@ -34,7 +37,7 @@ export const CertificadosSection = memo(({
       const actualizados = listaCertificados.filter(c => c.id !== id)
       setCertificados(actualizados)
       // F6-D-6: usar certificadosStorageService (Supabase + localStorage)
-      certificadosStorageService.guardarCertificados(paciente.id, actualizados).catch(console.warn)
+      certificadosStorageService.guardarCertificados(paciente.id, actualizados).catch(err => log.warn("Error al guardar:", err))
       if (certSeleccionadoVer?.id === id) setCertSeleccionadoVer(null)
     }
   }

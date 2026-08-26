@@ -17,6 +17,9 @@ import { supabase } from '../supabaseClient'
 import { agendaStorageService } from '../../modules/agenda'
 import { migrationStorageService } from '../migrationStorageService'
 import { esUuidValido } from './uuidUtils'
+import { createLogger } from '../../logger'
+
+const log = createLogger('migrateCitasToSupabase')
 
 /**
  * Normaliza el estado de la cita al formato esperado por Supabase.
@@ -145,7 +148,7 @@ export const migrateCitasToSupabase = async (userId) => {
           // Intentar obtener UUID del mapa de migración
           pacienteUuid = migrationStorageService.obtenerSupabaseId(cita.pacienteId)
           if (!pacienteUuid) {
-            console.warn(`[migrateCitasToSupabase] Cita ${cita.id} omitida: paciente ${cita.pacienteId} no migrado aún`)
+            log.warn(`Cita ${cita.id} omitida: paciente ${cita.pacienteId} no migrado aún`)
             resultado.omitidas++
             continue
           }
@@ -156,9 +159,9 @@ export const migrateCitasToSupabase = async (userId) => {
       const validacion = validarCitaParaMigracion(cita)
       if (!validacion.valido) {
         if (validacion.esBloqueo) {
-          console.log(`[migrateCitasToSupabase] Cita ${cita.id} omitida: ${validacion.razon}`)
+          log.info(`Cita ${cita.id} omitida: ${validacion.razon}`)
         } else {
-          console.warn(`[migrateCitasToSupabase] Cita ${cita.id} omitida: ${validacion.razon}`, {
+          log.warn(`Cita ${cita.id} omitida: ${validacion.razon}`, {
             id: cita.id,
             fecha: cita.fecha,
             fechaIso: cita.fechaIso,
@@ -174,7 +177,7 @@ export const migrateCitasToSupabase = async (userId) => {
       // Transformar a formato Supabase
       const citaSupabase = transformarCitaParaSupabase(cita, userId, pacienteUuid)
 
-      console.log(`[migrateCitasToSupabase] Insertando cita ${cita.id}...`, {
+      log.info(`Insertando cita ${cita.id}...`, {
         fecha: citaSupabase.fecha,
         hora_inicio: citaSupabase.hora_inicio,
         estado: citaSupabase.estado,
@@ -182,7 +185,7 @@ export const migrateCitasToSupabase = async (userId) => {
       })
 
       // Insertar en Supabase
-      console.log(`[migrateCitasToSupabase] Insertando cita ${cita.id}...`, citaSupabase)
+      log.info(`Insertando cita ${cita.id}...`, citaSupabase)
       const { data, error } = await supabase
         .from('citas')
         .insert(citaSupabase)
@@ -190,7 +193,7 @@ export const migrateCitasToSupabase = async (userId) => {
         .single()
 
       if (error) {
-        console.error(`[migrateCitasToSupabase] Error al insertar cita ${cita.id}:`, {
+        log.error(`Error al insertar cita ${cita.id}:`, {
           message: error.message,
           details: error.details,
           hint: error.hint,

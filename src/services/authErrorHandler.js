@@ -16,6 +16,9 @@
  * Palabras clave que identifican errores de autenticación en mensajes de Supabase.
  * Supabase usa mensajes en inglés; se cubren las variantes más comunes.
  */
+import { createLogger } from './logger.js'
+
+const log = createLogger('authErrorHandler')
 const AUTH_ERROR_PATTERNS = [
   'jwt expired',
   'jwt Expired',
@@ -70,7 +73,7 @@ export const esErrorAutenticacion = (error) => {
 export const manejarErrorAuth = async (error, onLogout) => {
   if (!esErrorAutenticacion(error)) return false
 
-  console.warn(
+  log.warn(
     '[authErrorHandler] Error de autenticación detectado, iniciando logout forzado:',
     error.message || error
   )
@@ -79,7 +82,7 @@ export const manejarErrorAuth = async (error, onLogout) => {
     try {
       await onLogout()
     } catch (e) {
-      console.error('[authErrorHandler] Error ejecutando logout forzado:', e)
+      log.error('Error ejecutando logout forzado:', e)
     }
   }
 

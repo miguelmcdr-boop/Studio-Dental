@@ -11,6 +11,9 @@
  */
 import { createLocalStorageRepository } from '../../../services/localStorageRepository'
 import { supabase, USE_SUPABASE } from '../../../services/supabaseClient'
+import { createLogger } from '../../../services/logger'
+
+const log = createLogger('configuracionStorageService')
 
 const KEY_CLINICA = 'studio_dental_config_clinica'
 const KEY_PARAMETROS_AGENDA = 'studio_dental_config_agenda'
@@ -82,13 +85,13 @@ const obtenerClinicaDesdeSupabase = async (clinicaId) => {
       .maybeSingle()
 
     if (error) {
-      console.warn('[configuracionStorageService] Error leyendo clínica desde Supabase:', error.message)
+      log.warn('Error leyendo clínica desde Supabase:', error.message)
       return null
     }
 
     return transformarDesdeSupabase(data)
   } catch (e) {
-    console.error('[configuracionStorageService] Excepción leyendo clínica:', e)
+    log.error('Excepción leyendo clínica:', e)
     return null
   }
 }
@@ -108,13 +111,13 @@ const guardarClinicaEnSupabase = async (clinicaId, datos) => {
       .eq('id', clinicaId)
 
     if (error) {
-      console.error('[configuracionStorageService] Error guardando clínica en Supabase:', error.message)
+      log.error('Error guardando clínica en Supabase:', error.message)
       return false
     }
 
     return true
   } catch (e) {
-    console.error('[configuracionStorageService] Excepción guardando clínica:', e)
+    log.error('Excepción guardando clínica:', e)
     return false
   }
 }
@@ -146,11 +149,11 @@ const migrarClinicaASupabase = async (clinicaId) => {
 
     const ok = await guardarClinicaEnSupabase(clinicaId, datosLocal)
     if (ok) {
-      console.log('[configuracionStorageService] Datos de clínica migrados a Supabase')
+      log.info('Datos de clínica migrados a Supabase')
     }
     return ok
   } catch (e) {
-    console.error('[configuracionStorageService] Error migrando clínica:', e)
+    log.error('Error migrando clínica:', e)
     return false
   }
 }
@@ -230,7 +233,7 @@ export const configuracionStorageService = {
       window.dispatchEvent(new Event('storage'))
       return true
     } catch (e) {
-      console.error('Error al limpiar base de datos:', e)
+      log.error('Error al limpiar base de datos:', e)
       return false
     }
   }

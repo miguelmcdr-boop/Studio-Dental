@@ -20,6 +20,9 @@
  * Límite: máximo 3 toasts visibles simultáneamente.
  */
 
+import { createLogger } from './logger.js'
+
+const log = createLogger('notificationService')
 const MAX_VISIBLES = 3
 
 // Estado interno
@@ -50,7 +53,7 @@ const notificar = () => {
     try {
       cb(copia)
     } catch (e) {
-      console.error('[notificationService] Error en listener:', e)
+      log.error('Error en listener:', e)
     }
   })
 }

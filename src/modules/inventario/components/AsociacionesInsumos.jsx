@@ -1,6 +1,9 @@
 import React, { memo, useState, useEffect } from 'react'
 import { inventarioStorageService } from '../services/inventarioStorageService'
 import { INSUMOS_POR_PRESTACION_DEFAULT, PALABRAS_CLAVE_POR_CATEGORIA_DEFAULT } from '../utils/inventarioCalculations'
+import { createLogger } from '../../../services/logger.js'
+
+const log = createLogger('AsociacionesInsumos')
 
 const STORAGE_KEY_PALABRAS_CLAVE = 'studio_dental_inventario_palabras_clave'
 
@@ -37,7 +40,7 @@ export const AsociacionesInsumos = memo(({ items }) => {
     try {
       localStorage.setItem(STORAGE_KEY_PALABRAS_CLAVE, JSON.stringify(nuevasPalabras))
     } catch (e) {
-      console.error('Error al guardar palabras clave:', e)
+      log.error('Error al guardar palabras clave:', e)
     }
   }
 

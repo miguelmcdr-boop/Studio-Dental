@@ -1,4 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { createLogger } from '../../../services/logger.js'
+
+const log = createLogger('useDictadoVoz')
 
 export const useDictadoVoz = () => {
   const [escuchando, setEscuchando] = useState(false)
@@ -24,7 +27,7 @@ export const useDictadoVoz = () => {
       }
 
       recognition.onerror = (event) => {
-        console.error('Error en reconocimiento de voz:', event.error)
+        log.error('Error en reconocimiento de voz:', event.error)
         setEscuchando(false)
       }
 
@@ -43,7 +46,7 @@ export const useDictadoVoz = () => {
         recognitionRef.current.start()
         setEscuchando(true)
       } catch (e) {
-        console.error(e)
+        log.error(e)
       }
     }
   }, [escuchando])
@@ -54,7 +57,7 @@ export const useDictadoVoz = () => {
         recognitionRef.current.stop()
         setEscuchando(false)
       } catch (e) {
-        console.error(e)
+        log.error(e)
       }
     }
   }, [escuchando])

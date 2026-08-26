@@ -20,6 +20,9 @@
  * 2. DOSIS_RESPALDO_V10 (v1.0 hardcodeada, 4 anestésicos originales)
  */
 import { vademecumService } from '../services/vademecumService'
+import { createLogger } from '../services/logger.js'
+
+const log = createLogger('anestesiaCalculations')
 
 // ═══════════════════════════════════════════════════════════════
 // HELPERS DE NORMALIZACIÓN DE TEXTO
@@ -159,7 +162,7 @@ export const obtenerDatosAnestesia = () => {
       }))
     }
   } catch (e) {
-    console.warn('[anestesiaCalc] vademecumService no disponible, usando respaldo v1.0:', e?.message)
+    log.warn('[anestesiaCalc] vademecumService no disponible, usando respaldo v1.0:', e?.message)
   }
 
   // Fallback: datos hardcodeados v1.0

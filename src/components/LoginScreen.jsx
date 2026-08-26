@@ -15,6 +15,9 @@ import {
 import { construirUserProfile } from '../services/userProfileBuilder'
 import { NOMBRES_ROLES, DESCRIPCIONES_ROLES } from '../constants/rbacConstants'
 import { obtenerRolPorDefecto } from '../services/rbacService'
+import { createLogger } from '../services/logger.js'
+
+const log = createLogger('LoginScreen')
 
 export const LoginScreen = ({ onLogin }) => {
   const [email, setEmail] = useState('')
@@ -180,7 +183,7 @@ export const LoginScreen = ({ onLogin }) => {
         onLogin(userProfile)
       }
     } catch (err) {
-      console.error('Error inesperado en login:', err)
+      log.error('Error inesperado en login:', err)
       setError('Error inesperado. Intenta nuevamente.')
     } finally {
       setCargando(false)

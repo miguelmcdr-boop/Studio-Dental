@@ -14,6 +14,9 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { vademecumService } from '../../../services/vademecumService'
 import { notificationService } from '../../../services/notificationService'
 import { REALTIME_EVENTS } from '../../../services/realtimeEvents'
+import { createLogger } from '../../../services/logger.js'
+
+const log = createLogger('useVademecumAdmin')
 
 export const useVademecumAdmin = () => {
   const [vademecum, setVademecum] = useState([])
@@ -52,7 +55,7 @@ export const useVademecumAdmin = () => {
       setManejoAnticoagulantes(vademecumService.obtenerManejoAnticoagulantes())
       setMetadata(vademecumService.obtenerMetadataCuracion())
     } catch (e) {
-      console.error('[useVademecumAdmin] Error al cargar:', e)
+      log.error('Error al cargar:', e)
       setError(e.message)
       notificationService.error(`Error al cargar vademécum: ${e.message}`, { titulo: 'Error' })
     } finally {
@@ -65,7 +68,7 @@ export const useVademecumAdmin = () => {
     cargarDatos()
     
     const handleVademecumChanged = () => {
-      console.log('[useVademecumAdmin] Vademécum actualizado desde otro dispositivo')
+      log.info('Vademécum actualizado desde otro dispositivo')
       cargarDatos()
     }
     

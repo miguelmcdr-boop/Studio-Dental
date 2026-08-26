@@ -1,5 +1,8 @@
 import { create } from 'zustand'
 import { pacientesStorageService } from '../modules/pacientes'
+import { createLogger } from '../services/logger.js'
+
+const log = createLogger('pacientesStore')
 
 const SEED_PACIENTES_DEMO = [
   { id: 1, nombre: 'Camila Silva Morales', rut: '18.452.123-K', telefono: '+56 9 8765 4321', edad: 28, prevision: 'Isapre', alergias:'Penicilina', email: 'camila.silva@gmail.com', ocupacion: 'Diseñadora' },
@@ -44,7 +47,7 @@ export const usePacientesStore = create((set) => ({
         set({ pacientes: datos })
       }
     } catch (e) {
-      console.error('[pacientesStore] Error refrescarDesdeSupabase:', e)
+      log.error('Error refrescarDesdeSupabase:', e)
     }
   }
 }))

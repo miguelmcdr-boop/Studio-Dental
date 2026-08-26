@@ -3,6 +3,9 @@ import { pacientesStorageService } from '../services/pacientesStorageService'
 import { obtenerAutoresDeEliminacion } from '../services/pacientesSoftDeleteService';
 import { usePacientesStore } from '../../../store/pacientesStore'
 import { notificationService } from '../../../services/notificationService'
+import { createLogger } from '../../../services/logger.js'
+
+const log = createLogger('usePapelera')
 
 /**
  * Hook para gestión de papelera de reciclaje (F6-L).
@@ -45,7 +48,7 @@ export const usePapelera = () => {
       setPacientesEliminados(eliminadosConAutor)
       setContador(eliminadosConAutor.length)
     } catch (error) {
-      console.error('[usePapelera] Error al cargar papelera:', error)
+      log.error('Error al cargar papelera:', error)
       notificationService.error('Error al cargar la papelera', { titulo: 'Error' })
     } finally {
       setCargando(false)
@@ -79,7 +82,7 @@ export const usePapelera = () => {
         return false
       }
     } catch (error) {
-      console.error('[usePapelera] Error al restaurar paciente:', error)
+      log.error('Error al restaurar paciente:', error)
       notificationService.error('Error inesperado al restaurar', { titulo: 'Error' })
       return false
     }

@@ -17,7 +17,7 @@
  *
  * Uso:
  *   const sub = realtimeService.suscribirseATabla('citas', (payload) => {
- *     console.log('Cambio en citas:', payload)
+ *     log.info('Cambio en citas:', payload)
  *   })
  *
  *   // Cuando ya no necesites la suscripción:
@@ -30,6 +30,9 @@
  * - '*': todos los eventos (default)
  */
 import { supabase, USE_SUPABASE } from './supabaseClient'
+import { createLogger } from './logger'
+
+const log = createLogger('realtimeService')
 
 /**
  * Genera un nombre único para el canal de Realtime.
@@ -70,12 +73,12 @@ export const suscribirseATabla = (tabla, callback, opciones = {}) => {
   }
 
   if (!tabla || typeof tabla !== 'string') {
-    console.error('[realtimeService] Nombre de tabla inválido:', tabla)
+    log.error('Nombre de tabla inválido:', tabla)
     return null
   }
 
   if (typeof callback !== 'function') {
-    console.error('[realtimeService] Callback debe ser una función')
+    log.error('Callback debe ser una función')
     return null
   }
 
@@ -103,16 +106,16 @@ export const suscribirseATabla = (tabla, callback, opciones = {}) => {
         try {
           callback(payload)
         } catch (error) {
-          console.error(`[realtimeService] Error en callback de ${tabla}:`, error)
+          log.error(`Error en callback de ${tabla}:`, error)
         }
       })
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          console.log(`[realtimeService] Suscrito a ${tabla} (evento: ${evento})`)
+          log.info(`Suscrito a ${tabla} (evento: ${evento})`)
         } else if (status === 'CHANNEL_ERROR') {
-          console.error(`[realtimeService] Error en canal ${nombreCanal}`)
+          log.error(`Error en canal ${nombreCanal}`)
         } else if (status === 'TIMED_OUT') {
-          console.warn(`[realtimeService] Timeout en suscripción a ${tabla}`)
+          log.warn(`Timeout en suscripción a ${tabla}`)
         }
       })
 
@@ -120,15 +123,15 @@ export const suscribirseATabla = (tabla, callback, opciones = {}) => {
       unsubscribe: () => {
         try {
           supabase.removeChannel(subscription)
-          console.log(`[realtimeService] Desuscrito de ${tabla}`)
+          log.info(`Desuscrito de ${tabla}`)
         } catch (error) {
-          console.error(`[realtimeService] Error al desuscribir de ${tabla}:`, error)
+          log.error(`Error al desuscribir de ${tabla}:`, error)
         }
       },
       channel: subscription
     }
   } catch (error) {
-    console.error(`[realtimeService] Error al suscribirse a ${tabla}:`, error)
+    log.error(`Error al suscribirse a ${tabla}:`, error)
     return null
   }
 }
