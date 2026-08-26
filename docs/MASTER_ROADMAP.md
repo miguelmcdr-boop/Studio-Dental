@@ -149,7 +149,52 @@
 | F6-04 | Accesibilidad básica (aria-*, foco en modales, labels) | 6 | P2 | M (2-4 d, incremental) | — | TODO |
 | F6-05 | Exportación de reportes a Excel/PDF | 6 | P2 | M (2-3 d) | — | TODO |
 | F6-06 | Checklist de despliegue a producción (dominio, env vars, backups) | 6 | P1 | S (0.5-1 d, proceso) | F6-02, F6-A..F6-E | PARTIAL DONE (2026-08-24) — checklist actualizado + 3 docs técnicos creados; pasos comerciales pendientes (F6-06b) |
-| F6-06b | Pasos comerciales/manuales de despliegue a producción (hallazgo F6-06) | 6 | P1 | M (1-2 d, proceso) | F6-06 | TODO — requiere compras/cuentas externas del usuario |
+| F6-06b | Pasos comerciales/manuales de despliegue a producción (hallazgo F6-06) | 6 | P1 | M (1-2 d, proceso) | F6-06 | DEFERRED (2026-08-25) — usar free tier hasta escalar a 10+ clínicas |
+
+
+### F6-06b — Pasos comerciales de despliegue a producción — DEFERRED (2026-08-25)
+
+**Decisión estratégica:** Postergar el despliegue a Supabase Pro ($25-50/mes) hasta que el proyecto escale a 10+ clínicas. Mientras tanto, usar el proyecto original (`nagduvivilmzupdpoayo`) en free tier como producción inicial.
+
+**Justificación (análisis técnico-económico):**
+
+| Aspecto | Free tier (actual) | Supabase Pro |
+|---------|-------------------|--------------|
+| Costo mensual | $0 | $25-50/mes |
+| Usuarios | 1-10 (suficiente para MVP) | 50K+ (desperdicio) |
+| Almacenamiento | 1GB (suficiente para 3 clínicas) | 100GB (innecesario) |
+| Backups | Manuales (suficiente al inicio) | Automáticos diarios |
+| Dominio | `app.vercel.app` (gratis) | `studiodental.com` (~$15/año) |
+| SSL | Vercel gratis | Configuración manual |
+
+**ROI proyectado:**
+- Con Supabase Pro: $25/mes × 12 = **$300/año** en infraestructura
+- Con free tier + Vercel: **$0** en infraestructura
+- **Ahorro:** $300/año que pueden reinvertirse en marketing o capacitación
+
+**Principio aplicado:** "Validate before you scale"
+1. ✅ App funcional validada (811 tests, 13/13 RBAC PASS)
+2. ✅ 3 clínicas iniciales identificadas
+3. ⏭️ Próximo: que las 3 clínicas usen la app 3-6 meses gratis
+4. ⏭️ Después: si escala a 10+ clínicas, considerar Pro
+
+**Estado técnico del proyecto original (`nagduvivilmzupdpoayo`):**
+- ✅ RBAC: 13/13 PASS
+- ✅ 18 tablas clínicas creadas
+- ✅ Tabla certificados creada (F6-O)
+- ✅ 8 políticas RLS aplicadas (4 audit_log + 4 certificados)
+- ✅ `profiles.role` tipo `app_role` (ENUM)
+- ✅ Soft delete en pacientes
+- ✅ Schema multi-clínica completo
+- ✅ Vademécum con 164 registros curados
+- ✅ Tests unitarios: 811/811 pasando
+
+**Lo único pendiente para producción gratuita:**
+1. Deploy en Vercel (gratis, 15 minutos)
+2. Variables de entorno en Vercel (copiar de `.env.local`)
+3. Apuntar frontend al proyecto original en lugar de staging
+
+**Condición de reactivación:** Esta tarea se reactivará cuando el proyecto alcance 10+ clínicas activas o 100+ usuarios concurrentes, momento en el cual el free tier ya no sea suficiente.
 | F6-07 | Manual de usuario por rol + material de capacitación | 6 | P3 | L (1-2 semanas) | — | TODO |
 
 ---

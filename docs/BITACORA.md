@@ -1,3 +1,62 @@
+## 2026-08-25 — Decisión estratégica: F6-06b DEFERRED (usar free tier hasta escalar)
+
+**Qué se ganó:** Decisión estratégica documentada de postergar el despliegue a Supabase Pro ($25-50/mes) hasta que el proyecto escale a 10+ clínicas. Mientras tanto, se usará el proyecto original (`nagduvivilmzupdpoayo`) en free tier como producción inicial.
+
+**Contexto:**
+- La app ya está técnicamente lista para producción (811 tests, 13/13 RBAC PASS, 8 políticas RLS)
+- Inicialmente serán solo 3 clínicas usando la app (no se justifica pagar Pro)
+- El free tier de Supabase soporta perfectamente el volumen esperado (1-10 usuarios, <1GB datos)
+
+**Análisis técnico-económico:**
+
+| Aspecto | Free tier (actual) | Supabase Pro |
+|---------|-------------------|--------------|
+| Costo mensual | $0 | $25-50/mes |
+| Usuarios | 1-10 (suficiente para MVP) | 50K+ (desperdicio) |
+| Almacenamiento | 1GB (suficiente para 3 clínicas) | 100GB (innecesario) |
+| Backups | Manuales (suficiente al inicio) | Automáticos diarios |
+| Dominio | `app.vercel.app` (gratis) | `studiodental.com` (~$15/año) |
+| SSL | Vercel gratis | Configuración manual |
+
+**ROI proyectado:**
+- Con Supabase Pro: $25/mes × 12 = **$300/año** en infraestructura
+- Con free tier + Vercel: **$0** en infraestructura
+- **Ahorro:** $300/año que pueden reinvertirse en marketing o capacitación
+
+**Principio aplicado:** "Validate before you scale"
+1. ✅ App funcional validada (811 tests, 13/13 RBAC PASS)
+2. ✅ 3 clínicas iniciales identificadas
+3. ⏭️ Próximo: que las 3 clínicas usen la app 3-6 meses gratis
+4. ⏭️ Después: si escala a 10+ clínicas, considerar Pro
+
+**Estado técnico del proyecto original (`nagduvivilmzupdpoayo`) - listo para producción gratuita:**
+- ✅ RBAC: 13/13 PASS
+- ✅ 18 tablas clínicas creadas
+- ✅ Tabla certificados creada (F6-O)
+- ✅ 8 políticas RLS aplicadas (4 audit_log + 4 certificados)
+- ✅ `profiles.role` tipo `app_role` (ENUM)
+- ✅ Soft delete en pacientes
+- ✅ Schema multi-clínica completo
+- ✅ Vademécum con 164 registros curados
+- ✅ Tests unitarios: 811/811 pasando
+
+**Lo único pendiente para producción gratuita:**
+1. Deploy en Vercel (gratis, 15 minutos)
+2. Variables de entorno en Vercel (copiar de `.env.local`)
+3. Apuntar frontend al proyecto original en lugar de staging
+
+**Condición de reactivación:** Esta tarea (F6-06b) se reactivará cuando el proyecto alcance 10+ clínicas activas o 100+ usuarios concurrentes, momento en el cual el free tier ya no sea suficiente.
+
+**Archivos modificados:**
+- `docs/MASTER_ROADMAP.md`: F6-06b marcada DEFERRED + sección detallada agregada
+- `docs/BITACORA.md`: esta entrada
+
+**Criterios cumplidos:**
+- ✅ Decisión estratégica documentada
+- ✅ Justificación técnica-económica registrada
+- ✅ Condición de reactivación definida (10+ clínicas)
+- ✅ Estado técnico del proyecto confirmado
+
 ## 2026-08-25 — F6-P: Limpieza de archivos SQL temporales — DONE
 
 **Qué se ganó:** Reducción de complejidad del repositorio eliminando 14 archivos temporales (13 SQL + 1 log) que ya cumplieron su propósito durante las tareas F6-M, F6-Ib, F6-B7 y F6-O.
