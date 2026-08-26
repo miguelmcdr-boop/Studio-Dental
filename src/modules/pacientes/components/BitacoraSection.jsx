@@ -132,7 +132,7 @@ export const BitacoraSection = memo(({ pacienteId, evolucionesNotas = [], setEvo
             <div key={nota.id} className="p-4 bg-gray-50 rounded-xl border border-gray-200 text-xs space-y-1">
               <div className="flex justify-between items-center text-[10px] text-gray-500 font-bold border-b pb-1">
                 <span>🗓️ {nota.fecha}</span>
-                <button onClick={() => handleEliminarNota(nota.id)} className="text-red-500 hover:text-red-700 cursor-pointer">🗑️ Borrar</button>
+                <button onClick={() => handleEliminarNota(nota.id)} className="text-red-500 hover:text-red-700 cursor-pointer" aria-label="Eliminar nota">🗑️ Borrar</button>
               </div>
               <p className="text-gray-800 font-medium pt-1 whitespace-pre-wrap">{nota.texto}</p>
             </div>

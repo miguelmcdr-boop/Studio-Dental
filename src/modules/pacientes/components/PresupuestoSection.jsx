@@ -383,7 +383,7 @@ export const PresupuestoSection = memo(({
               {abonos.map(a => (
                 <div key={a.id} className="flex justify-between items-center bg-gray-50 px-3 py-1.5 rounded-lg border text-xs">
                   <span><strong className="text-gray-800">${a.monto.toLocaleString('es-CL')} CLP</strong> — {a.metodoPago} ({a.fecha})</span>
-                  <button onClick={() => handleEliminarAbono(a.id)} className="text-red-500 hover:text-red-700 font-bold ml-2 cursor-pointer">🗑️ Borrar</button>
+                  <button onClick={() => handleEliminarAbono(a.id)} className="text-red-500 hover:text-red-700 font-bold ml-2 cursor-pointer" aria-label="Eliminar abono">🗑️ Borrar</button>
                 </div>
               ))}
             </div>

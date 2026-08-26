@@ -62,8 +62,9 @@ export const PaquetesClinicosManager = memo(({ paquetes, alGuardarPaquete, alEli
         </div>
 
         <div>
-          <label className="block font-semibold text-gray-700 mb-1">Nombre del Pack *</label>
+          <label htmlFor="pack-nombre" className="block font-semibold text-gray-700 mb-1">Nombre del Pack *</label>
           <input
+            id="pack-nombre"
             type="text"
             required
             placeholder="Ej: Pack Ortodoncia Completa..."
@@ -74,8 +75,9 @@ export const PaquetesClinicosManager = memo(({ paquetes, alGuardarPaquete, alEli
         </div>
 
         <div>
-          <label className="block font-semibold text-gray-700 mb-1">Descripción de lo que Incluye</label>
+          <label htmlFor="pack-descripcion" className="block font-semibold text-gray-700 mb-1">Descripción de lo que Incluye</label>
           <textarea
+            id="pack-descripcion"
             rows="2"
             placeholder="Ej: Incluye instalación de aparatos + primeros 3 controles..."
             value={descripcion}
@@ -86,8 +88,9 @@ export const PaquetesClinicosManager = memo(({ paquetes, alGuardarPaquete, alEli
 
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <label className="block font-semibold text-gray-700 mb-1">Precio Combo ($)</label>
+            <label htmlFor="pack-precio" className="block font-semibold text-gray-700 mb-1">Precio Combo ($)</label>
             <input
+              id="pack-precio"
               type="text"
               required
               placeholder="Ej: 50000"
@@ -97,8 +100,9 @@ export const PaquetesClinicosManager = memo(({ paquetes, alGuardarPaquete, alEli
             />
           </div>
           <div>
-            <label className="block font-semibold text-gray-700 mb-1">% Ahorro</label>
+            <label htmlFor="pack-ahorro" className="block font-semibold text-gray-700 mb-1">% Ahorro</label>
             <input
+              id="pack-ahorro"
               type="text"
               placeholder="Ej: 15%"
               value={ahorroEstimado}

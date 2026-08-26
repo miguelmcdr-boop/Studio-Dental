@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 
 /**
  * Modal de resolución de conflictos de edición (F5-04).
@@ -33,6 +33,50 @@ export const ConflictResolutionModal = ({
   alCerrar
 }) => {
   const [resolviendo, setResolviendo] = useState(false)
+  const modalRef = useRef(null)
+
+  // Accesibilidad (F6-04): trampa de foco y cierre con ESC
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Cerrar con ESC
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        alCerrar()
+        return
+      }
+
+      // Trampa de foco con Tab
+      if (e.key === 'Tab' && modalRef.current) {
+        const focusableElements = modalRef.current.querySelectorAll(
+          'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+        const firstElement = focusableElements[0]
+        const lastElement = focusableElements[focusableElements.length - 1]
+
+        if (e.shiftKey && document.activeElement === firstElement) {
+          // Shift+Tab en primer elemento: ir al ultimo
+          e.preventDefault()
+          lastElement.focus()
+        } else if (!e.shiftKey && document.activeElement === lastElement) {
+          // Tab en ultimo elemento: ir al primero
+          e.preventDefault()
+          firstElement.focus()
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+
+    // Enfocar el primer boton al abrir el modal
+    if (modalRef.current) {
+      const firstButton = modalRef.current.querySelector('button')
+      if (firstButton) firstButton.focus()
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [alCerrar])
 
   const handleResolver = async (decision) => {
     if (resolviendo) return
@@ -57,14 +101,20 @@ export const ConflictResolutionModal = ({
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="conflict-modal-title"
+      ref={modalRef}
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+    >
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="bg-yellow-50 border-b border-yellow-200 px-6 py-4">
           <div className="flex items-center gap-3">
             <div className="text-yellow-600 text-2xl">⚠️</div>
             <div>
-              <h2 className="text-lg font-semibold text-yellow-900">{titulo}</h2>
+              <h2 id="conflict-modal-title" className="text-lg font-semibold text-yellow-900">{titulo}</h2>
               <p className="text-sm text-yellow-700 mt-1">
                 Otro usuario modificó este registro mientras lo editabas. Elige qué versión conservar.
               </p>

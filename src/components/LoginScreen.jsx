@@ -207,9 +207,10 @@ export const LoginScreen = ({ onLogin }) => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Correo electrónico</label>
+            <label htmlFor="login-email" className="block text-xs font-semibold text-gray-600 uppercase mb-1">Correo electrónico</label>
             <input
               type="email"
+              id="login-email"
               data-testid="login-email"
               required
               value={email}
@@ -220,9 +221,10 @@ export const LoginScreen = ({ onLogin }) => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Contraseña</label>
+            <label htmlFor="login-password" className="block text-xs font-semibold text-gray-600 uppercase mb-1">Contraseña</label>
             <input
               type="password"
+              id="login-password"
               data-testid="login-password"
               required
               value={password}
@@ -235,11 +237,12 @@ export const LoginScreen = ({ onLogin }) => {
           {isFirstTime && (
             <div className="space-y-4 pt-2 border-t border-gray-100">
               <div>
-                <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Nombre Completo</label>
+                <label htmlFor="login-nombre" className="block text-xs font-semibold text-gray-600 uppercase mb-1">Nombre Completo</label>
                 <input
                   type="text"
                   required
                   value={nombreCompleto}
+                  id="login-nombre"
                   onChange={(e) => setNombreCompleto(e.target.value)}
                   placeholder="Dr. Miguel Díaz Rodríguez"
                   className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:border-black text-sm text-gray-800"
@@ -248,20 +251,22 @@ export const LoginScreen = ({ onLogin }) => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">RUT / Licencia</label>
+                  <label htmlFor="login-rut" className="block text-xs font-semibold text-gray-600 uppercase mb-1">RUT / Licencia</label>
                   <input
                     type="text"
                     value={rut}
+                    id="login-rut"
                     onChange={(e) => setRut(e.target.value)}
                     placeholder="12.345.678-9"
                     className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:border-black text-sm text-gray-800"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Especialidad</label>
+                  <label htmlFor="login-especialidad" className="block text-xs font-semibold text-gray-600 uppercase mb-1">Especialidad</label>
                   <input
                     type="text"
                     value={especialidad}
+                    id="login-especialidad"
                     onChange={(e) => setEspecialidad(e.target.value)}
                     placeholder="Cirujano Dentista"
                     className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:border-black text-sm text-gray-800"
@@ -271,8 +276,9 @@ export const LoginScreen = ({ onLogin }) => {
 
               {/* F3-05: Selector de rol para nuevos usuarios */}
               <div>
-                <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Rol en el sistema</label>
+                <label htmlFor="login-rol" className="block text-xs font-semibold text-gray-600 uppercase mb-1">Rol en el sistema</label>
                 <select
+                  id="login-rol"
                   data-testid="login-rol"
                   value={rol}
                   onChange={(e) => setRol(e.target.value)}

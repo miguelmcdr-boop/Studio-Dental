@@ -143,8 +143,8 @@ export const PlantillasManager = memo(({ plantillas, alGuardarPlantilla, alElimi
                 <div className="flex justify-between items-start border-b pb-2">
                   <h4 className="font-black text-sm text-gray-900">{pl.nombre}</h4>
                   <div className="flex gap-1">
-                    <button onClick={() => handleAbrirEditar(pl)} className="text-gray-600 hover:text-black font-bold p-1">✏️</button>
-                    <button onClick={() => alEliminarPlantilla(pl.id)} className="text-red-500 hover:text-red-700 font-bold p-1">🗑️</button>
+                    <button onClick={() => handleAbrirEditar(pl)} className="text-gray-600 hover:text-black font-bold p-1" aria-label="Editar plantilla">✏️</button>
+                    <button onClick={() => alEliminarPlantilla(pl.id)} className="text-red-500 hover:text-red-700 font-bold p-1" aria-label="Eliminar plantilla">🗑️</button>
                   </div>
                 </div>
                 <p className="text-gray-600 mt-2 font-mono text-[10px] leading-relaxed">{pl.cuerpo}</p>
