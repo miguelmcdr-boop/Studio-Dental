@@ -1,3 +1,46 @@
+## 2026-08-27 — F7-02: Corregir el cruce de unidades vademécum → calculadora de anestesia — DONE
+
+**Qué se ganó:** El mapeo entre columnas SQL del vademécum y campos JavaScript ahora tiene unidades explícitas, previniendo que valores absolutos (mg) se usen como relativos (mg/kg) o que dosis adultas se confundan con pediátricas.
+
+**Problema resuelto:**
+- `vademecumService.obtenerDosisAnestesia()` usaba `dosis_max_pediatrica_mg_por_kg` como `mgPorKgAdulto` (bug crítico)
+- `mgPorKgAdultoMax` era valor absoluto (mg) pero se usaba como mg/kg
+- No había `topeAbsolutoAdulto` ni `topeAbsolutoPediatrico` explícitos
+
+**Solución implementada:**
+1. `vademecumService.obtenerDosisAnestesia()` ahora calcula `dosisMaxAdulto_mgPorKg` desde `topeAbsolutoAdulto_mg / 70kg`
+2. `anestesiaCalculations.obtenerDatosAnestesia()` usa nombres con unidades explícitas
+3. Tests de integración verifican que valores absolutos no se confunden con relativos
+4. Documentación completa del mapeo campo → columna → unidad
+
+**Archivos modificados:**
+- `src/services/vademecumService.js` (función `obtenerDosisAnestesia`)
+- `src/utils/anestesiaCalculations.js` (función `obtenerDatosAnestesia`)
+- `src/services/vademecumService.test.js` (mocks actualizados)
+- `src/utils/anestesiaCalc.test.js` (mocks actualizados + campos faltantes)
+
+**Archivos creados:**
+- `docs/anestesia-mapeo-unidades.md` (documentación del mapeo)
+- `src/utils/anestesiaCalculations.integration.test.js` (9 tests de integración)
+
+**Criterios de aceptación cumplidos:**
+- [x] Nombres de campos con unidad explícita (_mg, _mgPorKg, _ml)
+- [x] Mapeo campo → columna → unidad documentado
+- [x] Tests con valores conocidos (4 anestésicos principales)
+- [x] 1030/1030 tests pasando sin regresión
+- [x] Build exitoso
+- [x] Arquitectura OK
+
+**Gap documentado:** El schema SQL no tiene columnas para `dosis_max_adulto_mg_por_kg` ni `dosis_max_pediatrica_mg`. F7-04 agregará estas columnas.
+
+**Métricas:**
+- Tests de integración F7-02: 9/9 pasando
+- Suite completa: 1030/1030 pasando
+- Build: exitoso (577ms)
+- Arquitectura: OK (sin violaciones)
+
+---
+
 ## 2026-08-27 — F7-01: Conectar UI a calcularDosisAnestesiaCompleta (seguridad clínica)
 
 **Qué se ganó:** La calculadora de anestesia ahora usa la API enriquecida que considera edad, cardiopatía, embarazo y contraindicaciones específicas por edad. Previene dosis peligrosas en niños (bupivacaína <12 años, articaína <4 años) y muestra advertencias visuales claras.
