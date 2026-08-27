@@ -233,7 +233,7 @@ export const FichaPacienteModulo = memo(({
       )}
 
       {tabActiva === 'Calculadora Anestesia' && (
-        <CalculadoraAnestesiaSection pesoInicial={paciente.peso} />
+        <CalculadoraAnestesiaSection paciente={paciente} />
       )}
 
       {tabActiva === 'Certificados' && (
