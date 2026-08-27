@@ -13,3 +13,6 @@ supabase/.branches/
 supabase/snippets/
 supabase/.temp/
 .env.local
+
+# Reportes de cobertura (se regeneran con npm run test:coverage)
+coverage/
