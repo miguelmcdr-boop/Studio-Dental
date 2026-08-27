@@ -1,3 +1,43 @@
+## 2026-08-27 — F7-03: Eliminar defaults numéricos silenciosos en cálculo de anestesia — DONE
+
+**Qué se ganó:** Ausencia de concentración, volumen o dosis pediátrica ahora **bloquea el cálculo** en lugar de fabricar valores. Previene dosis de epinefrina calculadas con valores inventados y volumen de tubo asumido cuando el dato real falta.
+
+**Problema resuelto:**
+El código tenía 4 defaults numéricos silenciosos que violaban seguridad clínica:
+1. `concentracionMgPorMl || 1` → asumía 1 mg/ml si faltaba concentración
+2. `volumenPorTubo || 1.8` → asumía 1.8ml si faltaba volumen
+3. `volumenPorUnidad_ml || 1.8` → asumía 1.8ml en transformación de datos
+4. Fallback pediátrico → adulto → aplicaba dosis adulta a niños sin advertencia
+
+**Solución implementada:**
+1. Validación explícita de 3 campos obligatorios: `concentracionMgPorMl`, `volumenPorTubo`, `mgPorTubo`
+2. Si falta alguno (null/undefined/0/NaN), retorna `estado: 'DATOS_INCOMPLETOS'` con mensaje específico
+3. Eliminados todos los operadores `||` con valores numéricos en rutas clínicas
+4. Fallback pediátrico → adulto eliminado: si falta dosis pediátrica, retorna DATOS_INCOMPLETOS
+5. 6 nuevos tests verificando casos edge: null, 0, undefined, múltiples campos faltantes
+
+**Archivos modificados (2):**
+- `src/utils/anestesiaCalculations.js` — validación de campos obligatorios + eliminación de defaults
+- `src/utils/anestesiaCalc.test.js` — 6 tests F7-03 + corrección de tests existentes
+- `src/utils/anestesiaCalculations.integration.test.js` — test F7-02 actualizado para reflejar F7-03
+
+**Criterios de aceptación (5/5):**
+- ✅ Cero fallbacks numéricos en rutas clínicas
+- ✅ undefined, null, vacío, cero y no-numérico tratados explícitamente
+- ✅ Ningún dato faltante puede producir `estado: OK`
+- ✅ Tests para casos edge (valores faltantes, cero, strings vacíos)
+- ✅ 1036/1036 tests pasando sin regresión
+
+**Métricas:**
+- Suite completa: 1036/1036 pasando (+6 desde F7-02)
+- Tests F7-03: 6/6 pasando
+- Arquitectura: 68 archivos en allowlist, 0 violaciones
+- Build: exitoso (577ms)
+
+**Valor clínico:** Previene dosis fabricadas con valores inventados. Si falta concentración, volumen o contenido por tubo, el sistema **bloquea el cálculo** en lugar de asumir valores por defecto que podrían causar sobredosis o subdosis peligrosas.
+
+---
+
 ## 2026-08-27 — F7-02: Corregir el cruce de unidades vademécum → calculadora de anestesia — DONE
 
 **Qué se ganó:** El mapeo entre columnas SQL del vademécum y campos JavaScript ahora tiene unidades explícitas, previniendo que valores absolutos (mg) se usen como relativos (mg/kg) o que dosis adultas se confundan con pediátricas.
