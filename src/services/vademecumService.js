@@ -42,6 +42,7 @@ import { supabase, USE_SUPABASE } from './supabaseClient'
 import { notificationService } from './notificationService'
 import { REALTIME_EVENTS } from './realtimeEvents'
 import { createLogger } from './logger'
+import { obtenerDosisAnestesia } from './vademecumAnestesia'
 
 const log = createLogger('vademecumService')
 
@@ -391,30 +392,7 @@ export const obtenerMetadataCuracion = () => {
  * Retorna datos de dosis de anestesia para la CalculadoraAnestesia (F4-03d).
  * Extrae solo los anestésicos del vademécum.
  */
-export const obtenerDosisAnestesia = () => {
-  const vademecum = obtenerVademecum()
 
-  return vademecum
-    .filter(f =>
-      f.familia === 'anestesico_amida' ||
-      f.familia === 'anestesico_ester' ||
-      f.familia === 'anestesico_topico'
-    )
-    .map(f => ({
-      id: f.numero,
-      nombre: f.nombre_generico,
-      familia: f.familia,
-      presentacion: f.presentacion,
-      mgPorKgAdulto: f.dosis_max_pediatrica_mg_por_kg, // Usamos mg/kg pediátrico como base
-      mgPorKgAdultoMax: f.dosis_max_adulto_mg,
-      mgPorTubo: f.contenido_por_unidad_mg,
-      volumenPorTubo: f.volumen_por_unidad_ml,
-      concentracionMgPorMl: f.concentracion_mg_por_ml,
-      posologiaPediatrica: f.posologia_pediatrica,
-      contraindicaciones: f.contraindicaciones,
-      notas: f.notas_especiales
-    }))
-}
 
 // ═══════════════════════════════════════════════════════════════
 // SINCRONIZACIÓN DESDE SUPABASE (F4-02d pattern)

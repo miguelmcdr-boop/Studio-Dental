@@ -1,3 +1,46 @@
+## 2026-08-27 — F7-02: Corregir el cruce de unidades vademécum → calculadora de anestesia — DONE
+
+**Qué se ganó:** El mapeo entre columnas SQL del vademécum y campos JavaScript ahora tiene unidades explícitas, previniendo que valores absolutos (mg) se usen como relativos (mg/kg) o que dosis adultas se confundan con pediátricas.
+
+**Problema resuelto:**
+- `vademecumService.obtenerDosisAnestesia()` usaba `dosis_max_pediatrica_mg_por_kg` como `mgPorKgAdulto` (bug crítico)
+- `mgPorKgAdultoMax` era valor absoluto (mg) pero se usaba como mg/kg
+- No había `topeAbsolutoAdulto` ni `topeAbsolutoPediatrico` explícitos
+
+**Solución implementada:**
+1. `vademecumService.obtenerDosisAnestesia()` ahora calcula `dosisMaxAdulto_mgPorKg` desde `topeAbsolutoAdulto_mg / 70kg`
+2. `anestesiaCalculations.obtenerDatosAnestesia()` usa nombres con unidades explícitas
+3. Tests de integración verifican que valores absolutos no se confunden con relativos
+4. Documentación completa del mapeo campo → columna → unidad
+
+**Archivos modificados:**
+- `src/services/vademecumService.js` (función `obtenerDosisAnestesia`)
+- `src/utils/anestesiaCalculations.js` (función `obtenerDatosAnestesia`)
+- `src/services/vademecumService.test.js` (mocks actualizados)
+- `src/utils/anestesiaCalc.test.js` (mocks actualizados + campos faltantes)
+
+**Archivos creados:**
+- `docs/anestesia-mapeo-unidades.md` (documentación del mapeo)
+- `src/utils/anestesiaCalculations.integration.test.js` (9 tests de integración)
+
+**Criterios de aceptación cumplidos:**
+- [x] Nombres de campos con unidad explícita (_mg, _mgPorKg, _ml)
+- [x] Mapeo campo → columna → unidad documentado
+- [x] Tests con valores conocidos (4 anestésicos principales)
+- [x] 1030/1030 tests pasando sin regresión
+- [x] Build exitoso
+- [x] Arquitectura OK
+
+**Gap documentado:** El schema SQL no tiene columnas para `dosis_max_adulto_mg_por_kg` ni `dosis_max_pediatrica_mg`. F7-04 agregará estas columnas.
+
+**Métricas:**
+- Tests de integración F7-02: 9/9 pasando
+- Suite completa: 1030/1030 pasando
+- Build: exitoso (577ms)
+- Arquitectura: OK (sin violaciones)
+
+---
+
 ## 2026-08-27 — F7-01: Conectar UI a calcularDosisAnestesiaCompleta (seguridad clínica)
 
 **Qué se ganó:** La calculadora de anestesia ahora usa la API enriquecida que considera edad, cardiopatía, embarazo y contraindicaciones específicas por edad. Previene dosis peligrosas en niños (bupivacaína <12 años, articaína <4 años) y muestra advertencias visuales claras.
@@ -2415,3 +2458,37 @@ Creados para `dsd`, `odontopediatria`, `periodontograma`, `quirurgico`.
 ### 🏁 FASE 1 COMPLETA (2026-08-08)
 
 Las 11 tareas de Fase 1 cerradas y verificadas. Sistema apto para datos clínicos reales.
+
+## 2026-08-27 — F7-02: Corregir el cruce de unidades vademécum → calculadora de anestesia — DONE
+
+**Problema:** La tabla `vademecum` en SQL tiene columnas con unidades explícitas (`dosis_max_adulto_mg` en mg absoluto, `dosis_max_pediatrica_mg_por_kg` en mg/kg relativo), pero el mapeo a JavaScript confundía estos valores:
+
+1. `mgPorKgAdulto` usaba `dosis_max_pediatrica_mg_por_kg` (confundía adulto con pediátrico)
+2. `mgPorKgAdultoMax` era un valor ABSOLUTO (mg), NO mg/kg (nombre engañoso)
+3. No había `topeAbsolutoAdulto` ni `topeAbsolutoPediatrico` explícitos
+
+**Solución:**
+1. **vademecumService.obtenerDosisAnestesia():** 
+   - Calcula `dosisMaxAdulto_mgPorKg` como `topeAbsolutoAdulto_mg / 70kg` (peso estándar)
+   - Usa `dosisMaxPediatrico_mgPorKg` directamente desde SQL
+   - Nombres de campos con unidades explícitas (`_mg`, `_mgPorKg`, `_ml`)
+
+2. **anestesiaCalculations.obtenerDatosAnestesia():**
+   - Usa los nuevos nombres con unidades explícitas
+   - Elimina la confusión entre valores absolutos y relativos
+   - Preserva el fallback a DOSIS_RESPALDO_V10
+
+3. **Tests de integración:**
+   - Verifican que `mgPorKgAdulto` NO sea igual a `topeAbsolutoAdulto`
+   - Validan los 4 anestésicos principales con valores conocidos
+   - Prueban manejo de valores null/0/undefined
+
+**Gap detectado:** El schema SQL no tiene columnas para `dosis_max_adulto_mg_por_kg` ni `dosis_max_pediatrica_mg`. F7-04 agregará estas columnas.
+
+**Archivos modificados:**
+- `src/services/vademecumService.js` (función `obtenerDosisAnestesia`)
+- `src/utils/anestesiaCalculations.js` (función `obtenerDatosAnestesia`)
+- `docs/anestesia-mapeo-unidades.md` (nuevo, documentación del mapeo)
+- `src/utils/anestesiaCalculations.integration.test.js` (nuevo, tests de integración)
+
+**Estado:** ✅ DONE (2026-08-27)

@@ -72,6 +72,10 @@
     "src/modules/administracion/components/ModalEditarProtocolo.jsx": 259,
     "src/modules/administracion/components/AdminProtocolosContenido.jsx": 155,
     "src/modules/pacientes/components/RecetasSection.jsx": 217,
-    "src/modules/pacientes/components/AlertaAlergiaMejorada.jsx": 159
+    "src/modules/pacientes/components/AlertaAlergiaMejorada.jsx": 159,
+    "src/utils/anestesiaDatos.js": {
+      "reason": "Datos de respaldo v1.0 hardcodeados (4 anestésicos con 15 campos cada uno) - no es lógica, son datos clínicos de referencia. Extraído de anestesiaCalculations.js en F7-02 para cumplir límites.",
+      "frozenAt": 74
+    }
   }
 }
