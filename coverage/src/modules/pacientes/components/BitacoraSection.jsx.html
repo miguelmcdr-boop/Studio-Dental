@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">4.54% </span>
+                <span class="strong">6.03% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>5/110</span>
+                <span class='fraction'>7/116</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">4.54% </span>
+                <span class="strong">6.03% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>5/110</span>
+                <span class='fraction'>7/116</span>
             </div>
         
             
@@ -198,11 +198,25 @@
 <a name='L133'></a><a href='#L133'>133</a>
 <a name='L134'></a><a href='#L134'>134</a>
 <a name='L135'></a><a href='#L135'>135</a>
-<a name='L136'></a><a href='#L136'>136</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L136'></a><a href='#L136'>136</a>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a>
+<a name='L139'></a><a href='#L139'>139</a>
+<a name='L140'></a><a href='#L140'>140</a>
+<a name='L141'></a><a href='#L141'>141</a>
+<a name='L142'></a><a href='#L142'>142</a>
+<a name='L143'></a><a href='#L143'>143</a>
+<a name='L144'></a><a href='#L144'>144</a>
+<a name='L145'></a><a href='#L145'>145</a>
+<a name='L146'></a><a href='#L146'>146</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -225,7 +239,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -234,10 +247,17 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -334,8 +354,12 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span></td><td class="text"><pre class="prettyprint lang-js">import React, { memo, useState } from 'react'
-import { pacientesStorageService } from '../services/pacientesStorageService'
+// F6-D-5: usar evolucionesStorageService en lugar de pacientesStorageService.guardarItem
+import { evolucionesStorageService } from '../services/evolucionesStorageService'
 import { useDictadoVoz } from '../hooks/useDictadoVoz'
+import { createLogger } from '../../../services/logger.js'
+&nbsp;
+const log = createLogger('BitacoraSection')
 &nbsp;
 export const BitacoraSection = memo(({ pacienteId, evolucionesNotas = [], setEvolucionesNotas }) =&gt; {
 <span class="cstat-no" title="statement not covered" >  const [textoNuevaEvolucion, setTextoNuevaEvolucion] = useState('')</span>
@@ -360,7 +384,10 @@ export const BitacoraSection = memo(({ pacienteId, evolucionesNotas = [], setEvo
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    const actualizadas = [nuevaNota, ...evolucionesNotas]</span>
 <span class="cstat-no" title="statement not covered" >    setEvolucionesNotas(actualizadas)</span>
-<span class="cstat-no" title="statement not covered" >    pacientesStorageService.guardarItem(`evoluciones_notas_${pacienteId}`, actualizadas)</span>
+    // F6-D-5: usar evolucionesStorageService (Supabase + localStorage)
+<span class="cstat-no" title="statement not covered" >    evolucionesStorageService.guardarEvoluciones(pacienteId, actualizadas).catch(err =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >      log.warn('Error guardando evoluciones:', err)</span>
+<span class="cstat-no" title="statement not covered" >    })</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    setTextoNuevaEvolucion('')</span>
 <span class="cstat-no" title="statement not covered" >    setLoteAutoclave('')</span>
@@ -375,7 +402,10 @@ export const BitacoraSection = memo(({ pacienteId, evolucionesNotas = [], setEvo
 <span class="cstat-no" title="statement not covered" >    if (window.confirm('¿Deseas eliminar esta nota clínica de la bitácora?')) {</span>
 <span class="cstat-no" title="statement not covered" >      const actualizadas = evolucionesNotas.filter(n =&gt; n.id !== idNota)</span>
 <span class="cstat-no" title="statement not covered" >      setEvolucionesNotas(actualizadas)</span>
-<span class="cstat-no" title="statement not covered" >      pacientesStorageService.guardarItem(`evoluciones_notas_${pacienteId}`, actualizadas)</span>
+      // F6-D-5: usar evolucionesStorageService (Supabase + localStorage)
+<span class="cstat-no" title="statement not covered" >      evolucionesStorageService.guardarEvoluciones(pacienteId, actualizadas).catch(err =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >        log.warn('Error guardando evoluciones:', err)</span>
+<span class="cstat-no" title="statement not covered" >      })</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 &nbsp;
@@ -457,7 +487,7 @@ export const BitacoraSection = memo(({ pacienteId, evolucionesNotas = [], setEvo
 <span class="cstat-no" title="statement not covered" >            &lt;div key={nota.id} className="p-4 bg-gray-50 rounded-xl border border-gray-200 text-xs space-y-1"&gt;</span>
 <span class="cstat-no" title="statement not covered" >              &lt;div className="flex justify-between items-center text-[10px] text-gray-500 font-bold border-b pb-1"&gt;</span>
 <span class="cstat-no" title="statement not covered" >                &lt;span&gt;🗓️ {nota.fecha}&lt;/span&gt;</span>
-<span class="cstat-no" title="statement not covered" >                &lt;button onClick={() =&gt; handleEliminarNota(nota.id)} className="text-red-500 hover:text-red-700 cursor-pointer"&gt;🗑️ Borrar&lt;/button&gt;</span>
+<span class="cstat-no" title="statement not covered" >                &lt;button onClick={() =&gt; handleEliminarNota(nota.id)} className="text-red-500 hover:text-red-700 cursor-pointer" aria-label="Eliminar nota"&gt;🗑️ Borrar&lt;/button&gt;</span>
 <span class="cstat-no" title="statement not covered" >              &lt;/div&gt;</span>
 <span class="cstat-no" title="statement not covered" >              &lt;p className="text-gray-800 font-medium pt-1 whitespace-pre-wrap"&gt;{nota.texto}&lt;/p&gt;</span>
 <span class="cstat-no" title="statement not covered" >            &lt;/div&gt;</span>
@@ -475,7 +505,7 @@ BitacoraSection.displayName = 'BitacoraSection'</pre></td></tr></table></pre>
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-11T04:36:26.531Z
+                at 2026-08-27T01:48:37.401Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

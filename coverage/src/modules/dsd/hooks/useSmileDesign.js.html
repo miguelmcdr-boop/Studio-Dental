@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">7.31% </span>
+                <span class="strong">33.33% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>3/41</span>
+                <span class='fraction'>15/45</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">7.31% </span>
+                <span class="strong">33.33% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>3/41</span>
+                <span class='fraction'>15/45</span>
             </div>
         
             
@@ -111,21 +111,28 @@
 <a name='L46'></a><a href='#L46'>46</a>
 <a name='L47'></a><a href='#L47'>47</a>
 <a name='L48'></a><a href='#L48'>48</a>
-<a name='L49'></a><a href='#L49'>49</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -134,6 +141,7 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -161,30 +169,34 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { useState, useEffect, useMemo, useCallback } from 'react'
 import { calcularRatioAnchoAlto, calcularVisibilidadDorada } from '../utils/dsdCalculations'
+// F2-07b: acceso centralizado vía servicio
+import { dsdStorageService } from '../services/dsdStorageService'
+&nbsp;
+// F2-07b: default extraído a constante para claridad
+const DSD_DEFAULT = {
+  anchoCentral: 8.5,
+  altoCentral: 10.5,
+  tonoActual: 'A2',
+  tonoDeseado: 'BL2',
+  formaDeseada: 'ovoidal',
+  lineaSonrisa: 'Media (Muestra 100% de corona clínica)',
+  observacionEstetica: ''
+}
 &nbsp;
 export const useSmileDesign = <span class="fstat-no" title="function not covered" >(pacienteId) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >  const STORAGE_KEY = `dsd_config_${pacienteId}`</span>
-&nbsp;
 <span class="cstat-no" title="statement not covered" >  const [dsdData, setDsdData] = useState(() =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    try {</span>
-<span class="cstat-no" title="statement not covered" >      const saved = localStorage.getItem(STORAGE_KEY)</span>
-<span class="cstat-no" title="statement not covered" >      return saved ? JSON.parse(saved) : {</span>
-<span class="cstat-no" title="statement not covered" >        anchoCentral: 8.5,</span>
-<span class="cstat-no" title="statement not covered" >        altoCentral: 10.5,</span>
-<span class="cstat-no" title="statement not covered" >        tonoActual: 'A2',</span>
-<span class="cstat-no" title="statement not covered" >        tonoDeseado: 'BL2',</span>
-<span class="cstat-no" title="statement not covered" >        formaDeseada: 'ovoidal',</span>
-<span class="cstat-no" title="statement not covered" >        lineaSonrisa: 'Media (Muestra 100% de corona clínica)',</span>
-<span class="cstat-no" title="statement not covered" >        observacionEstetica: ''</span>
-<span class="cstat-no" title="statement not covered" >      }</span>
+<span class="cstat-no" title="statement not covered" >      // F2-07b: cargar vía servicio con default estructurado</span>
+<span class="cstat-no" title="statement not covered" >      return dsdStorageService.obtenerConfigDePaciente(pacienteId, DSD_DEFAULT)</span>
 <span class="cstat-no" title="statement not covered" >    } catch {</span>
-<span class="cstat-no" title="statement not covered" >      return { anchoCentral: 8.5, altoCentral: 10.5, tonoDeseado: 'BL2' }</span>
+<span class="cstat-no" title="statement not covered" >      return DSD_DEFAULT</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" >  })</span>
 &nbsp;
+<span class="cstat-no" title="statement not covered" >  // F2-07b: persistir vía servicio (antes localStorage directo)</span>
 <span class="cstat-no" title="statement not covered" >  useEffect(() =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    localStorage.setItem(STORAGE_KEY, JSON.stringify(dsdData))</span>
-<span class="cstat-no" title="statement not covered" >  }, [dsdData, STORAGE_KEY])</span>
+<span class="cstat-no" title="statement not covered" >    dsdStorageService.guardarConfigDePaciente(pacienteId, dsdData)</span>
+<span class="cstat-no" title="statement not covered" >  }, [dsdData, pacienteId])</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  const ratioAnchoAlto = useMemo(() =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    return calcularRatioAnchoAlto(dsdData.anchoCentral, dsdData.altoCentral)</span>
@@ -214,7 +226,7 @@ export const useSmileDesign = <span class="fstat-no" title="function not covered
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-11T04:36:26.531Z
+                at 2026-08-27T01:48:37.401Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

@@ -130,7 +130,7 @@
 | F6-G | Validación de RUT (módulo 11) + unicidad por clínica | 6 | P1 | XS (<0.5 d) | F6-F | DONE (2026-08-22) |
 | F6-H | Timeout de sesión por inactividad + política de contraseña | 6 | P1 | S (1-2 d) | F6-B | DONE (2026-08-22) |
 | F6-J | PWA real (service worker + manifest) para arranque en frío sin conexión | 6 | P2 | M (2-4 d) | — | DONE (2026-08-18) |
-| F6-K | Umbrales de cobertura en CI + tests para los 8 módulos sin cobertura | 6 | P2 | L (5-8 d, incremental) | — | TODO |
+| F6-K | Umbrales de cobertura en CI + tests para los 8 módulos sin cobertura | 6 | P2 | L (5-8 d, incremental) | — | DONE (2026-08-27) — 7 fases: umbrales (20/50/30/20) + job CI, 152 tests nuevos (852→1004), coverage global 25.52%→30.05% |
 | F6-L | Papelera de reciclaje: UI para listar/restaurar pacientes eliminados (soft delete) | 6 | P2 | S (0.5-1 d) | F6-F | DONE (2026-08-23) |
 | F6-Fa | Versionar esquema de soft delete: columna `deleted_at` + 3 políticas RLS sobrescritas por F6-F sin respaldo en repo (hallazgo durante F6-L: política `pacientes_update_activos` de restauración no está en `supabase/`) | 6 | P1 | S (0.5-1 d) | F6-F | DONE (2026-08-23) |
 | F6-M | Verificar accesibilidad de tabla `audit_log` desde el cliente (hallazgo F6-L: retorna 404) | 6 | P2 | XS (<0.5 d) | F6-L | DONE (2026-08-24) — política audit_log_select_clinica agregada en staging |

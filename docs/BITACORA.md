@@ -1,3 +1,103 @@
+## 2026-08-27 — F6-K: Umbrales de Cobertura en CI + Tests para 8 Módulos — DONE
+
+**Qué se ganó:** Red de seguridad contra regresiones mediante umbrales CI bloqueantes + 152 tests nuevos cubriendo los 8 módulos críticos sin cobertura identificados en la auditoría.
+
+**Métricas globales:**
+- Tests totales: 852 → **1004** (+152)
+- Test files: 53 → **59** (+6)
+- Statements: 25.52% → **30.05%** (+4.53)
+- Branches: 73.36% → **73.77%** (+0.41)
+- Functions: 45.83% → **47.98%** (+2.15)
+- Lines: 25.5% → **30.02%** (+4.52)
+- Todos los umbrales superados (20/50/30/20)
+
+**7 fases implementadas:**
+
+**Fase 1: Configuración de umbrales + job CI (0.5 días)**
+- Umbrales mínimos en vitest.config.js: statements=20, branches=50, functions=30, lines=20
+- Job `coverage` en `.github/workflows/ci.yml` (entre architecture y e2e)
+- Artefacto HTML de coverage (30 días de retención)
+- 0 tests nuevos, solo infraestructura
+
+**Fase 2: Tests para src/services/migrations/ (1 día)**
+- Archivo: src/services/migrations/migrations.test.js (15 tests)
+- Cobertura: 0.95% → ~60%
+- Cubre los 6 archivos de migración (Pacientes, Citas, Datos Clínicos, Pagos, Presupuestos, Movimientos Financieros) + uuidUtils
+- Mocks corregidos: obtenerPacientes, obtenerCitas, obtenerPagos, obtenerPresupuestos, obtenerMovimientos
+
+**Fase 3: Tests para src/hooks/ críticos (1 día)**
+- Archivo: src/hooks/hooks-criticos.test.js (17 tests)
+- Cubre: useNotifications, useOfflineQueue, useSessionGuard, useDataMigration
+- Tests de listeners (online/offline), cleanup, authErrorHandler (401/403)
+- Patrón de mocks globales para hooks con dependencias múltiples
+
+**Fase 4: Tests para src/modules/urgenciasGes/ (1 día)**
+- Archivo: src/modules/urgenciasGes/urgenciasGes.test.js (28 tests)
+- Cumplimiento legal GES/AUGE validado
+- Tests de: generarFolioGes (formato GES-YYYY-XXXX), formatearFechaHoraChile
+- Validación de PATOLOGIAS_GES_ODONTO (4), CATEGORIAS_TRIAGE_URGENCIA (4), DIAGNOSTICOS_URGENCIA_COMMON (7)
+
+**Fase 5: Tests para src/modules/administracion/schemas/ (1 día)**
+- Archivo: src/modules/administracion/schemas/schemas.test.js (44 tests)
+- Cubre los 5 schemas Zod: alergiaCruzadaSchema, anticoagulanteSchema, interaccionSchema, profilaxisSchema, vademecumSchema
+- Tests de validación Zod: caso feliz, campos requeridos, strings muy cortos/largos, enums inválidos
+- Corrección de datos de prueba: familia_farmaco (no familia_cruzada), nota_clinica (no nota), numero obligatorio en fármacos
+
+**Fase 6: Tests para src/components/ críticos (1 día)**
+- Archivo: src/components/componentes-criticos.test.jsx (24 tests)
+- Cobertura src/components: 10.18% → **38.89%**
+- Componentes cubiertos: ToastContainer (100%), ConflictResolutionModal (91.55%), ConnectionIndicator (88.4%), CargandoModulo (100%), ErrorBoundary (100%), ErrorFallback (100%)
+- Tests de accesibilidad: role="alert", aria-live, role="dialog", aria-modal, cierre con ESC
+- Corrección: botones reales son "🌐 Usar versión del servidor" y "📝 Mantener mi versión"
+
+**Fase 7: Tests para src/store/ (0.5 días)**
+- Archivo: src/store/stores.test.js (24 tests)
+- Cobertura src/store: 60.73% → **90.05%**
+- sesionStore.js: 48.67% → **98.23%** (+49.56 puntos)
+- Tests de login (normalización de rol, supabaseAuth, errores), logout (dual: local + Supabase), actualizarPerfil
+- Mocks de localStorage, rbacService, supabaseClient
+
+**Criterios de aceptación cumplidos:**
+- [x] Umbrales configurados en vitest.config.js (20/50/30/20)
+- [x] Job de coverage en .github/workflows/ci.yml
+- [x] Artefacto HTML de coverage descargable del CI
+- [x] Tests para src/services/migrations/ (6 archivos)
+- [x] Tests para src/hooks/ (4 archivos críticos)
+- [x] Tests para src/modules/urgenciasGes/
+- [x] Tests para src/modules/administracion/schemas/
+- [x] Tests para src/components/ críticos
+- [x] Mejora de src/store/ (sesionStore 98.23%)
+- [x] **1004/1004 tests pasando** sin regresión
+- [x] Cobertura global statements: 25.52% → 30.05% (+4.53)
+- [x] Build y validación arquitectónica OK
+
+**Archivos creados (6):**
+- src/services/migrations/migrations.test.js
+- src/hooks/hooks-criticos.test.js
+- src/modules/urgenciasGes/urgenciasGes.test.js
+- src/modules/administracion/schemas/schemas.test.js
+- src/components/componentes-criticos.test.jsx
+- src/store/stores.test.js
+
+**Archivos modificados (2):**
+- vitest.config.js (umbrales thresholds)
+- .github/workflows/ci.yml (job coverage)
+
+**Decisiones estratégicas:**
+- **Umbrales incrementales:** se configuraron umbrales realistas (20/50/30/20) basados en el baseline actual, no umbrales ideales (80%) que bloquearían CI inmediatamente
+- **Tests consolidados:** en vez de 20+ archivos .test.js separados, se agruparon tests relacionados (migrations, hooks, schemas, components) para reducir overhead
+- **Mocks compartidos:** patrón de mocks globales al inicio de cada archivo de tests para evitar duplicación
+- **ROI alto:** se priorizaron funciones puras, schemas Zod y stores (fáciles de testear, alto impacto) sobre componentes JSX complejos (LoginScreen, Sidebar requieren E2E)
+- **Accesibilidad heredada:** los tests de componentes validan atributos aria-* agregados en F6-04
+
+**Beneficios entregados:**
+- Red de seguridad contra regresiones (crítico con 1004 tests)
+- Métricas de cobertura visibles en cada PR (artefacto HTML)
+- Umbrales CI bloqueantes previenen merges que degraden cobertura
+- Identificación de los 8 módulos con 0% de cobertura ahora cubiertos
+- Profesionalismo: requisito para licitaciones públicas
+- Onboarding: nuevos devs entienden el código leyendo tests
+
 ## 2026-08-26 — F6-05: Exportación de Reportes a Excel/PDF — DONE
 
 **Que se gano:** Sistema completo de exportación de reportes en 4 fases, con integración a audit_log (F6-F) y cambio de formato de impresión de A4 a Letter (estándar Chile/USA).
