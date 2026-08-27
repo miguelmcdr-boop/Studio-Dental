@@ -1,3 +1,42 @@
+## 2026-08-27 — Cierre de Fase 6 con excepciones documentadas
+
+**Decisión:** Declarar Fase 6 funcionalmente cerrada, con 3 excepciones documentadas que se resuelven en Fase 7.
+
+**Contexto:** Tras completar F6-K (umbrales de cobertura) el 2026-08-27, se realizó una auditoría del estado de Fase 6 contra el código. El tablero del roadmap mostraba estados correctos, pero las secciones detalladas estaban desactualizadas.
+
+**Correcciones aplicadas:**
+1. ✅ 16 secciones detalladas actualizadas (TODO → DONE/DEFERRED/IN PROGRESS)
+2. ✅ Sección "Salida de Fase 6" actualizada con cierre y excepciones
+3. ✅ Documentación de métricas al cierre
+
+**Excepciones documentadas:**
+
+| Tarea | Estado | Resolución | Justificación |
+|-------|--------|------------|---------------|
+| F6-F | IN PROGRESS | F7-08 | Triggers server-side pendientes. Parte implementada (registrarAuditoria client-side + soft delete) es válida pero incompleta |
+| F6-06 | PARTIAL DONE | F6-06b | Alcance técnico completo. Pasos comerciales requieren compras externas (Supabase Pro, dominio, hosting) |
+| F6-06b | DEFERRED | Reactivar cuando 10+ clínicas | Decisión estratégica: usar free tier hasta escalar. Ahorro de $300/año |
+| F6-07 | TODO | F7-29 | Decisión del usuario: manuales de usuario al final, después de estabilizar UX |
+
+**Métricas al cierre (2026-08-27):**
+- Tests: **1004/1004 pasando** (852 → 1004, +152 desde F6-K)
+- Coverage: **30.05% statements** (umbral CI: 20%)
+- Build: exitoso
+- Arquitectura: OK (sin violaciones)
+
+**Declaración formal:**
+El sistema está **funcionalmente operativo** pero **NO apto para producción con datos clínicos reales** hasta completar las tareas P0 de **Fase 7** (seguridad clínica, privacidad, multi-tenant).
+
+**Tareas cerradas en Fase 6:**
+- ✅ F6-A a F6-E (bloque estructural)
+- ✅ F6-G a F6-P (hardening)
+- ✅ F6-01 a F6-05, F6-K (hardening original)
+- ✅ F6-06b (DEFERRED con justificación)
+
+**Próximo paso:** Iniciar Fase 7 con F7-01 (conectar UI a calcularDosisAnestesiaCompleta).
+
+---
+
 ## 2026-08-27 — F6-K: Umbrales de Cobertura en CI + Tests para 8 Módulos — DONE
 
 **Qué se ganó:** Red de seguridad contra regresiones mediante umbrales CI bloqueantes + 152 tests nuevos cubriendo los 8 módulos críticos sin cobertura identificados en la auditoría.
