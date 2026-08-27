@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">4.25% </span>
+                <span class="strong">8.33% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>2/47</span>
+                <span class='fraction'>4/48</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">4.25% </span>
+                <span class="strong">8.33% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>2/47</span>
+                <span class='fraction'>4/48</span>
             </div>
         
             
@@ -120,13 +120,12 @@
 <a name='L55'></a><a href='#L55'>55</a>
 <a name='L56'></a><a href='#L56'>56</a>
 <a name='L57'></a><a href='#L57'>57</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -143,6 +142,7 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -176,15 +176,14 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { useState, useEffect, useCallback } from 'react'
+// F2-07b: acceso centralizado vía servicio
+import { quirurgicoStorageService } from '../services/quirurgicoStorageService'
 &nbsp;
 export const useQuirurgico = <span class="fstat-no" title="function not covered" >(pacienteId) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >  const STORAGE_KEY_IMPLANTES = `quirurgico_implantes_${pacienteId}`</span>
-<span class="cstat-no" title="statement not covered" >  const STORAGE_KEY_ENDODONCIA = `quirurgico_endodoncia_${pacienteId}`</span>
-&nbsp;
 <span class="cstat-no" title="statement not covered" >  const [implantes, setImplantes] = useState(() =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    try {</span>
-<span class="cstat-no" title="statement not covered" >      const saved = localStorage.getItem(STORAGE_KEY_IMPLANTES)</span>
-<span class="cstat-no" title="statement not covered" >      return saved ? JSON.parse(saved) : []</span>
+<span class="cstat-no" title="statement not covered" >      // F2-07b: cargar vía servicio (antes localStorage directo)</span>
+<span class="cstat-no" title="statement not covered" >      return quirurgicoStorageService.obtenerImplantesDePaciente(pacienteId, [])</span>
 <span class="cstat-no" title="statement not covered" >    } catch {</span>
 <span class="cstat-no" title="statement not covered" >      return []</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
@@ -192,20 +191,21 @@ export const useQuirurgico = <span class="fstat-no" title="function not covered"
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  const [endodoncias, setEndodoncias] = useState(() =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    try {</span>
-<span class="cstat-no" title="statement not covered" >      const saved = localStorage.getItem(STORAGE_KEY_ENDODONCIA)</span>
-<span class="cstat-no" title="statement not covered" >      return saved ? JSON.parse(saved) : []</span>
+<span class="cstat-no" title="statement not covered" >      // F2-07b: cargar vía servicio (antes localStorage directo)</span>
+<span class="cstat-no" title="statement not covered" >      return quirurgicoStorageService.obtenerEndodonciasDePaciente(pacienteId, [])</span>
 <span class="cstat-no" title="statement not covered" >    } catch {</span>
 <span class="cstat-no" title="statement not covered" >      return []</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" >  })</span>
 &nbsp;
+<span class="cstat-no" title="statement not covered" >  // F2-07b: persistir vía servicio (antes localStorage directo)</span>
 <span class="cstat-no" title="statement not covered" >  useEffect(() =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    localStorage.setItem(STORAGE_KEY_IMPLANTES, JSON.stringify(implantes))</span>
-<span class="cstat-no" title="statement not covered" >  }, [implantes, STORAGE_KEY_IMPLANTES])</span>
+<span class="cstat-no" title="statement not covered" >    quirurgicoStorageService.guardarImplantesDePaciente(pacienteId, implantes)</span>
+<span class="cstat-no" title="statement not covered" >  }, [implantes, pacienteId])</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  useEffect(() =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    localStorage.setItem(STORAGE_KEY_ENDODONCIA, JSON.stringify(endodoncias))</span>
-<span class="cstat-no" title="statement not covered" >  }, [endodoncias, STORAGE_KEY_ENDODONCIA])</span>
+<span class="cstat-no" title="statement not covered" >    quirurgicoStorageService.guardarEndodonciasDePaciente(pacienteId, endodoncias)</span>
+<span class="cstat-no" title="statement not covered" >  }, [endodoncias, pacienteId])</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  const agregarImplante = useCallback((nuevoImplante) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    setImplantes(prev =&gt; [{ id: Date.now(), fecha: new Date().toLocaleDateString('es-CL'), ...nuevoImplante }, ...prev])</span>
@@ -238,7 +238,7 @@ export const useQuirurgico = <span class="fstat-no" title="function not covered"
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-11T04:36:26.531Z
+                at 2026-08-27T01:48:37.401Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

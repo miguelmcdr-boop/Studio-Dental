@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>44/44</span>
+                <span class='fraction'>0/48</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/0</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/0</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>44/44</span>
+                <span class='fraction'>0/48</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -110,108 +110,108 @@
 <a name='L45'></a><a href='#L45'>45</a>
 <a name='L46'></a><a href='#L46'>46</a>
 <a name='L47'></a><a href='#L47'>47</a>
-<a name='L48'></a><a href='#L48'>48</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span></td><td class="text"><pre class="prettyprint lang-js">/**
- * Constantes Gold Standard para Pagos, DTE SII y Recaudación Clínica
- */
-&nbsp;
-export const TIPOS_DOCUMENTO_TRIBUTARIO = [
-  { id: 'boleta_honorarios', nombre: '🧾 Boleta de Honorarios Electrónica (SII)', retencionPct: 13.75 },
-  { id: 'boleta_exenta', nombre: '📄 Boleta Electrónica Exenta (SII)', retencionPct: 0 },
-  { id: 'bono_imed', nombre: '🏥 Bono I-Med / Fonasa / Isapre', retencionPct: 0 },
-  { id: 'recibo_interno', nombre: '📝 Recibo de Dinero Interno (Sin DTE)', retencionPct: 0 }
-]
-&nbsp;
-export const METODOS_PAGO_GOLD = [
-  { id: 'Efectivo', nombre: '💵 Efectivo', comisionPct: 0 },
-  { id: 'Débito', nombre: '💳 Tarjeta Débito (POS / Transbank)', comisionPct: 1.2 },
-  { id: 'Crédito', nombre: '💳 Tarjeta Crédito (POS / Transbank)', comisionPct: 2.1 },
-  { id: 'Transferencia', nombre: '🏦 Transferencia Bancaria', comisionPct: 0 },
-  { id: 'Cheque', nombre: '📄 Cheque al Día / Fecha', comisionPct: 0 }
-]
-&nbsp;
-export const CONCEPTOS_PAGO = [
-  'Abono Plan de Tratamiento',
-  'Pago Total Tratamiento',
-  'Consulta Clínica / Diagnóstico',
-  'Atención de Urgencia',
-  'Copago Fonasa / Isapre',
-  'Venta Insumo / Kit Higiene'
-]
-&nbsp;
-export const PAGOS_DEFAULT = [
-  {
-    id: 1001,
-    folioComprobante: 'REC-2026-8801',
-    tipoDTE: 'boleta_honorarios',
-    folioDTE: 'BH-452',
-    pacienteId: 1,
-    pacienteNombre: 'Camila Silva Morales',
-    pacienteRut: '18.452.123-K',
-    fecha: new Date().toLocaleDateString('es-CL'),
-    hora: '10:30',
-    monto: 100000,
-    metodoPago: 'Transferencia',
-    concepto: 'Abono Plan de Tratamiento',
-    estado: 'Emitido', // 'Emitido' | 'Anulado'
-    prestacionesImputadas: ['Corona Zirconio (Pieza 1.1)'],
-    emitidoPor: 'Dr. Miguel Díaz',
-    observacion: 'Transferencia verificada en Banco de Chile.'
-  }
-]</pre></td></tr></table></pre>
+<a name='L48'></a><a href='#L48'>48</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >/**</span></span></span>
+<span class="cstat-no" title="statement not covered" > * Constantes Gold Standard para Pagos, DTE SII y Recaudación Clínica</span>
+<span class="cstat-no" title="statement not covered" > */</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >export const TIPOS_DOCUMENTO_TRIBUTARIO = [</span>
+<span class="cstat-no" title="statement not covered" >  { id: 'boleta_honorarios', nombre: '🧾 Boleta de Honorarios Electrónica (SII)', retencionPct: 13.75 },</span>
+<span class="cstat-no" title="statement not covered" >  { id: 'boleta_exenta', nombre: '📄 Boleta Electrónica Exenta (SII)', retencionPct: 0 },</span>
+<span class="cstat-no" title="statement not covered" >  { id: 'bono_imed', nombre: '🏥 Bono I-Med / Fonasa / Isapre', retencionPct: 0 },</span>
+<span class="cstat-no" title="statement not covered" >  { id: 'recibo_interno', nombre: '📝 Recibo de Dinero Interno (Sin DTE)', retencionPct: 0 }</span>
+<span class="cstat-no" title="statement not covered" >]</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >export const METODOS_PAGO_GOLD = [</span>
+<span class="cstat-no" title="statement not covered" >  { id: 'Efectivo', nombre: '💵 Efectivo', comisionPct: 0 },</span>
+<span class="cstat-no" title="statement not covered" >  { id: 'Débito', nombre: '💳 Tarjeta Débito (POS / Transbank)', comisionPct: 1.2 },</span>
+<span class="cstat-no" title="statement not covered" >  { id: 'Crédito', nombre: '💳 Tarjeta Crédito (POS / Transbank)', comisionPct: 2.1 },</span>
+<span class="cstat-no" title="statement not covered" >  { id: 'Transferencia', nombre: '🏦 Transferencia Bancaria', comisionPct: 0 },</span>
+<span class="cstat-no" title="statement not covered" >  { id: 'Cheque', nombre: '📄 Cheque al Día / Fecha', comisionPct: 0 }</span>
+<span class="cstat-no" title="statement not covered" >]</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >export const CONCEPTOS_PAGO = [</span>
+<span class="cstat-no" title="statement not covered" >  'Abono Plan de Tratamiento',</span>
+<span class="cstat-no" title="statement not covered" >  'Pago Total Tratamiento',</span>
+<span class="cstat-no" title="statement not covered" >  'Consulta Clínica / Diagnóstico',</span>
+<span class="cstat-no" title="statement not covered" >  'Atención de Urgencia',</span>
+<span class="cstat-no" title="statement not covered" >  'Copago Fonasa / Isapre',</span>
+<span class="cstat-no" title="statement not covered" >  'Venta Insumo / Kit Higiene'</span>
+<span class="cstat-no" title="statement not covered" >]</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >export const PAGOS_DEFAULT = [</span>
+<span class="cstat-no" title="statement not covered" >  {</span>
+<span class="cstat-no" title="statement not covered" >    id: 1001,</span>
+<span class="cstat-no" title="statement not covered" >    folioComprobante: 'REC-2026-8801',</span>
+<span class="cstat-no" title="statement not covered" >    tipoDTE: 'boleta_honorarios',</span>
+<span class="cstat-no" title="statement not covered" >    folioDTE: 'BH-452',</span>
+<span class="cstat-no" title="statement not covered" >    pacienteId: 1,</span>
+<span class="cstat-no" title="statement not covered" >    pacienteNombre: 'Camila Silva Morales',</span>
+<span class="cstat-no" title="statement not covered" >    pacienteRut: '18.452.123-K',</span>
+<span class="cstat-no" title="statement not covered" >    fecha: new Date().toLocaleDateString('es-CL'),</span>
+<span class="cstat-no" title="statement not covered" >    hora: '10:30',</span>
+<span class="cstat-no" title="statement not covered" >    monto: 100000,</span>
+<span class="cstat-no" title="statement not covered" >    metodoPago: 'Transferencia',</span>
+<span class="cstat-no" title="statement not covered" >    concepto: 'Abono Plan de Tratamiento',</span>
+<span class="cstat-no" title="statement not covered" >    estado: 'Emitido', // 'Emitido' | 'Anulado'</span>
+<span class="cstat-no" title="statement not covered" >    prestacionesImputadas: ['Corona Zirconio (Pieza 1.1)'],</span>
+<span class="cstat-no" title="statement not covered" >    emitidoPor: 'Dr. Miguel Díaz',</span>
+<span class="cstat-no" title="statement not covered" >    observacion: 'Transferencia verificada en Banco de Chile.'</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" >]</span></pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-11T04:36:26.531Z
+                at 2026-08-27T01:48:37.401Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

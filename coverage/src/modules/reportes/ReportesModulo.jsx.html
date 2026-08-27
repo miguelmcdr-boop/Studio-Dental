@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/71</span>
+                <span class='fraction'>0/97</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/71</span>
+                <span class='fraction'>0/97</span>
             </div>
         
             
@@ -133,7 +133,59 @@
 <a name='L68'></a><a href='#L68'>68</a>
 <a name='L69'></a><a href='#L69'>69</a>
 <a name='L70'></a><a href='#L70'>70</a>
-<a name='L71'></a><a href='#L71'>71</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -210,17 +262,27 @@
 <span class="cstat-no" title="statement not covered" >import { RankingPrestacionesTable } from './components/RankingPrestacionesTable'</span>
 <span class="cstat-no" title="statement not covered" >import { GraficoProductividad } from './components/GraficoProductividad'</span>
 <span class="cstat-no" title="statement not covered" >import { RendimientoProfesionales } from './components/RendimientoProfesionales'</span>
-<span class="cstat-no" title="statement not covered" >import { ReporteImprimibleA4 } from './components/ReporteImprimibleA4'</span>
+<span class="cstat-no" title="statement not covered" >import { ReporteImprimibleLetter } from './components/ReporteImprimibleLetter'</span>
 <span class="cstat-no" title="statement not covered" >import { usePacientesStore } from '../../store/pacientesStore'</span>
 <span class="cstat-no" title="statement not covered" >import { useSesionStore } from '../../store/sesionStore'</span>
+<span class="cstat-no" title="statement not covered" >import { exportService } from './services/exportService'</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >export const ReportesModulo = memo(() =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >  // (F2-02) — pacientes y userProfile ya no llegan como prop desde App.jsx: se leen directo de los stores.</span>
 <span class="cstat-no" title="statement not covered" >  const pacientes = usePacientesStore((state) =&gt; state.pacientes)</span>
 <span class="cstat-no" title="statement not covered" >  const userProfile = useSesionStore((state) =&gt; state.userProfile)</span>
 <span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >  const [verReporteA4, setVerReporteA4] = useState(false)</span>
+<span class="cstat-no" title="statement not covered" >  const [verReporteLetter, setVerReporteLetter] = useState(false)</span>
 <span class="cstat-no" title="statement not covered" >  const { periodoSeleccionado, setPeriodoSeleccionado, metricas } = useReportes(pacientes)</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  const handleExportarPDF = () =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    exportService.exportarReportePDF(metricas, userProfile)</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  const handleExportarExcel = () =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    exportService.exportarReporteCompletoExcel(metricas, periodoSeleccionado)</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >  return (</span>
 <span class="cstat-no" title="statement not covered" >    &lt;div className="space-y-6"&gt;</span>
@@ -241,10 +303,26 @@
 <span class="cstat-no" title="statement not covered" >          &lt;/select&gt;</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >          &lt;button</span>
-<span class="cstat-no" title="statement not covered" >            onClick={() =&gt; setVerReporteA4(true)}</span>
+<span class="cstat-no" title="statement not covered" >            onClick={handleExportarPDF}</span>
+<span class="cstat-no" title="statement not covered" >            className="bg-gray-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl hover:bg-gray-800 transition-colors shadow-xs"</span>
+<span class="cstat-no" title="statement not covered" >            aria-label="Exportar reporte como PDF"</span>
+<span class="cstat-no" title="statement not covered" >            title="Exportar a PDF (abre diálogo de impresión)"</span>
+<span class="cstat-no" title="statement not covered" >          &gt;</span>
+<span class="cstat-no" title="statement not covered" >            📄 Exportar PDF</span>
+<span class="cstat-no" title="statement not covered" >          &lt;/button&gt;</span>
+<span class="cstat-no" title="statement not covered" >          &lt;button</span>
+<span class="cstat-no" title="statement not covered" >            onClick={handleExportarExcel}</span>
+<span class="cstat-no" title="statement not covered" >            className="bg-emerald-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl hover:bg-emerald-800 transition-colors shadow-xs"</span>
+<span class="cstat-no" title="statement not covered" >            aria-label="Exportar reporte completo como Excel"</span>
+<span class="cstat-no" title="statement not covered" >            title="Descargar Excel con resumen, ranking y rendimiento"</span>
+<span class="cstat-no" title="statement not covered" >          &gt;</span>
+<span class="cstat-no" title="statement not covered" >            📊 Exportar Excel</span>
+<span class="cstat-no" title="statement not covered" >          &lt;/button&gt;</span>
+<span class="cstat-no" title="statement not covered" >          &lt;button</span>
+<span class="cstat-no" title="statement not covered" >            onClick={() =&gt; setVerReporteLetter(true)}</span>
 <span class="cstat-no" title="statement not covered" >            className="bg-black text-white text-xs font-bold px-3.5 py-2 rounded-xl hover:bg-gray-800 transition-colors shadow-xs"</span>
 <span class="cstat-no" title="statement not covered" >          &gt;</span>
-<span class="cstat-no" title="statement not covered" >            📄 Informe A4</span>
+<span class="cstat-no" title="statement not covered" >            📄 Informe Letter</span>
 <span class="cstat-no" title="statement not covered" >          &lt;/button&gt;</span>
 <span class="cstat-no" title="statement not covered" >        &lt;/div&gt;</span>
 <span class="cstat-no" title="statement not covered" >      &lt;/div&gt;</span>
@@ -253,11 +331,11 @@
 <span class="cstat-no" title="statement not covered" >        &lt;ReportesSummaryCards metricas={metricas} /&gt;</span>
 <span class="cstat-no" title="statement not covered" >      &lt;/div&gt;</span>
 <span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >      {verReporteA4 ? (</span>
-<span class="cstat-no" title="statement not covered" >        &lt;ReporteImprimibleA4</span>
+<span class="cstat-no" title="statement not covered" >      {verReporteLetter ? (</span>
+<span class="cstat-no" title="statement not covered" >        &lt;ReporteImprimibleLetter</span>
 <span class="cstat-no" title="statement not covered" >          metricas={metricas}</span>
 <span class="cstat-no" title="statement not covered" >          userProfile={userProfile}</span>
-<span class="cstat-no" title="statement not covered" >          alCerrar={() =&gt; setVerReporteA4(false)}</span>
+<span class="cstat-no" title="statement not covered" >          alCerrar={() =&gt; setVerReporteLetter(false)}</span>
 <span class="cstat-no" title="statement not covered" >        /&gt;</span>
 <span class="cstat-no" title="statement not covered" >      ) : (</span>
 <span class="cstat-no" title="statement not covered" >        &lt;div className="space-y-6"&gt;</span>
@@ -280,7 +358,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-11T04:36:26.531Z
+                at 2026-08-27T01:48:37.401Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

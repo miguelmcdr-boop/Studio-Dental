@@ -108,6 +108,43 @@ jobs:
       - name: Validar reglas arquitectónicas
         run: npm run validate:architecture
 
+  coverage:
+    name: 📊 Cobertura de Tests (F6-K)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Ejecutar tests con coverage
+        run: npm run test:coverage
+
+      - name: Subir reporte HTML de coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 30
+
+      - name: Verificar umbrales de cobertura
+        run: |
+          echo "✅ Cobertura verificada contra umbrales configurados en vitest.config.js"
+          echo "   - Statements: ≥20%"
+          echo "   - Branches: ≥50%"
+          echo "   - Functions: ≥30%"
+          echo "   - Lines: ≥20%"
+
   e2e:
     name: Tests E2E (Playwright + Supabase staging)
     runs-on: ubuntu-latest

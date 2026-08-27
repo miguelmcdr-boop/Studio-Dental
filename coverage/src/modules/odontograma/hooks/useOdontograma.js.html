@@ -25,14 +25,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>82/82</span>
+                <span class='fraction'>88/88</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>19/19</span>
+                <span class='fraction'>22/22</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>82/82</span>
+                <span class='fraction'>88/88</span>
             </div>
         
             
@@ -153,7 +153,14 @@
 <a name='L88'></a><a href='#L88'>88</a>
 <a name='L89'></a><a href='#L89'>89</a>
 <a name='L90'></a><a href='#L90'>90</a>
-<a name='L91'></a><a href='#L91'>91</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a>
+<a name='L98'></a><a href='#L98'>98</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
@@ -164,9 +171,26 @@
 <span class="cline-any cline-yes">30x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">30x</span>
+<span class="cline-any cline-yes">30x</span>
+<span class="cline-any cline-yes">30x</span>
+<span class="cline-any cline-yes">30x</span>
 <span class="cline-any cline-yes">17x</span>
 <span class="cline-any cline-yes">17x</span>
 <span class="cline-any cline-yes">17x</span>
+<span class="cline-any cline-yes">17x</span>
+<span class="cline-any cline-yes">17x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">17x</span>
+<span class="cline-any cline-yes">30x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">30x</span>
+<span class="cline-any cline-yes">30x</span>
+<span class="cline-any cline-yes">30x</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-yes">14x</span>
 <span class="cline-any cline-yes">30x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">30x</span>
@@ -178,7 +202,6 @@
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
@@ -198,9 +221,6 @@
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">30x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">30x</span>
@@ -210,16 +230,10 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">30x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">30x</span>
 <span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -253,11 +267,28 @@ export const useOdontograma = (odontogramaInicial = {}, guardarCallback = <span 
   const [piezaActiva, setPiezaActiva] = useState('1.8')
   const [modoComparativoSplit, setModoComparativoSplit] = useState(false)
 &nbsp;
+  // F6-D-2: comparar contenido en lugar de referencia para evitar
+  // actualizaciones innecesarias que disparan el warning de React:
+  // "Cannot update a component while rendering a different component"
   useEffect(() =&gt; {
     if (odontogramaInicial) {
-      setOdontograma(odontogramaInicial)
+      // Solo actualizar si el contenido realmente cambió
+      const contenidoActual = JSON.stringify(odontograma)
+      const contenidoNuevo = JSON.stringify(odontogramaInicial)
+      if (contenidoActual !== contenidoNuevo) {
+        setOdontograma(odontogramaInicial)
+      }
     }
   }, [odontogramaInicial])
+&nbsp;
+  // F6-D-2: persistir cambios DESPUÉS del render (evita warning de React)
+  // Este efecto se dispara cuando odontograma cambia por interacción del usuario
+  useEffect(() =&gt; {
+    // Solo persistir si hay cambios reales (no en el render inicial)
+    if (odontograma &amp;&amp; Object.keys(odontograma).length &gt; 0) {
+      guardarCallback(odontograma)
+    }
+  }, [odontograma, guardarCallback])
 &nbsp;
   const cpodStats = useMemo(() =&gt; calcularIndiceCPOD(odontograma), [odontograma])
 &nbsp;
@@ -268,7 +299,7 @@ export const useOdontograma = (odontogramaInicial = {}, guardarCallback = <span 
       const estadoActualCara = piezaPrev.caras?.[cara]
       const nuevoEstadoCara = estadoActualCara === modo ? 'sano' : modo
 &nbsp;
-      const nuevoState = {
+      return {
         ...prev,
         [numeroPieza]: {
           ...piezaPrev,
@@ -276,46 +307,36 @@ export const useOdontograma = (odontogramaInicial = {}, guardarCallback = <span 
           caras: { ...piezaPrev.caras, [cara]: nuevoEstadoCara }
         }
       }
-      guardarCallback(nuevoState)
-      return nuevoState
     })
-  }, [guardarCallback])
+    // F6-D-2: guardarCallback se llama desde useEffect cuando odontograma cambia
+  }, [])
 &nbsp;
   const handleEstadoGeneral = useCallback((modo) =&gt; {
     if (!piezaActiva) return
-    setOdontograma(prev =&gt; {
-      const nuevoState = {
-        ...prev,
-        [piezaActiva]: { ...(prev[piezaActiva] || {}), general: modo, caras: {} }
-      }
-      guardarCallback(nuevoState)
-      return nuevoState
-    })
-  }, [piezaActiva, guardarCallback])
+    setOdontograma(prev =&gt; ({
+      ...prev,
+      [piezaActiva]: { ...(prev[piezaActiva] || {}), general: modo, caras: {} }
+    }))
+    // F6-D-2: guardarCallback se llama desde useEffect cuando odontograma cambia
+  }, [piezaActiva])
 &nbsp;
   const handleLimpiarPieza = useCallback(() =&gt; {
     if (!piezaActiva) return
-    setOdontograma(prev =&gt; {
-      const nuevoState = {
-        ...prev,
-        [piezaActiva]: { general: 'sano', caras: {}, observacion: '' }
-      }
-      guardarCallback(nuevoState)
-      return nuevoState
-    })
-  }, [piezaActiva, guardarCallback])
+    setOdontograma(prev =&gt; ({
+      ...prev,
+      [piezaActiva]: { general: 'sano', caras: {}, observacion: '' }
+    }))
+    // F6-D-2: guardarCallback se llama desde useEffect cuando odontograma cambia
+  }, [piezaActiva])
 &nbsp;
   const handleObservacionChange = useCallback((texto) =&gt; {
     if (!piezaActiva) return
-    setOdontograma(prev =&gt; {
-      const nuevoState = {
-        ...prev,
-        [piezaActiva]: { ...(prev[piezaActiva] || { general: 'sano', caras: {} }), observacion: texto }
-      }
-      guardarCallback(nuevoState)
-      return nuevoState
-    })
-  }, [piezaActiva, guardarCallback])
+    setOdontograma(prev =&gt; ({
+      ...prev,
+      [piezaActiva]: { ...(prev[piezaActiva] || { general: 'sano', caras: {} }), observacion: texto }
+    }))
+    // F6-D-2: guardarCallback se llama desde useEffect cuando odontograma cambia
+  }, [piezaActiva])
 &nbsp;
   return {
     odontograma,
@@ -340,7 +361,7 @@ export const useOdontograma = (odontogramaInicial = {}, guardarCallback = <span 
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-11T04:36:26.531Z
+                at 2026-08-27T01:48:37.401Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

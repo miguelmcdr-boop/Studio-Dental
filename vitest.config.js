@@ -39,6 +39,14 @@ export default defineConfig({
         'src/data/**',
         'src/test/**',
       ],
+      // Umbrales mínimos de cobertura (F6-K)
+      // Bloquea el CI si la cobertura cae por debajo de estos valores
+      thresholds: {
+        statements: 20,  // Baseline: 25.52% (2026-01-26)
+        branches: 50,    // Baseline: 73.36%
+        functions: 30,   // Baseline: 45.83%
+        lines: 20        // Baseline: 25.5%
+      }
     },
   },
 })
