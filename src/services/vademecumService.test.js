@@ -291,9 +291,9 @@ describe('vademecumService', () => {
       const lidocaina = dosis.find(d => d.nombre.includes('Lidocaína') && !d.nombre.includes('Spray'))
 
       expect(lidocaina).toBeDefined()
-      expect(lidocaina.mgPorKgAdulto).toBeDefined()
-      expect(lidocaina.mgPorTubo).toBeDefined()
-      expect(lidocaina.concentracionMgPorMl).toBeDefined()
+      expect(lidocaina.dosisMaxAdulto_mgPorKg).toBeDefined()
+      expect(lidocaina.contenidoPorUnidad_mg).toBeDefined()
+      expect(lidocaina.concentracion_mgPorMl).toBeDefined()
     })
   })
 
