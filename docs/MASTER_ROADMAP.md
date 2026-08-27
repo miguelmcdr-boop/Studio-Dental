@@ -3,7 +3,7 @@
 **Estado:** VIGENTE Y MANDATORIO  
 **Origen:** Deriva directamente de `Auditoria_Tecnica_Studio_Dental.md` (línea base aprobada) y de `docs/01-Constitucion_Arquitectura_Studio_Dental_v3.md`.  
 **Rol responsable:** Principal Software Architect / Staff Engineer del proyecto.  
-**Última actualización:** 2026-08-18 — F6-A y F6-Aa cerradas con evidencia (verificación local: 27 tablas, 164 registros, alertas operativas); F6-B granularizada en F6-B1..F6-B6; F6-B1 DONE (enum app_role + helpers SQL + trigger de alta de perfil).
+**Última actualización:** 2026-08-26 — Fase 6 cerrada funcionalmente salvo F6-F, que se reabre por discrepancia detectada en auditoría de triggers server-side. Fase 7 incorporada como fase obligatoria de seguridad, privacidad, productización y pre-producción.
 **Bitácora histórica:** `docs/BITACORA.md`
 
 
@@ -117,7 +117,7 @@
 | F6-B5 | Tests SQL de helpers + tests JS/E2E por rol | 6 | **P0** | S (1 d) | F6-B4 | DONE (2026-08-18) |
 | F6-B6 | Verificación práctica + documentación + bitácora | 6 | **P0** | S (0.5 d) | F6-B5 | DONE (2026-08-18) |
 | F6-B7 | Alinear `profiles.role` a `app_role` en cloud (hallazgo: está como `text`) | 6 | P2 | XS (<0.5 d) | F6-B6 | DONE (2026-08-25) — migración ejecutada en staging y original, verify-rbac 13/13 PASS |
-| F6-C | Modelo multi-clínica: `clinica_id` + membresía + reescritura de RLS | 6 | **P0** | XL | F6-B | IN PROGRESS (RFC aprobado 2026-08-17; implementación bloqueada por F6-B) |
+| F6-C | Modelo multi-clínica: `clinica_id` + membresía + reescritura de RLS | 6 | **P0** | XL | F6-B | DONE (2026-08-18; revalidación multi-tenant continúa en F7-10/F7-20) |
 | F6-C-a | Tablas `clinicas` y `miembros_clinica` + función `clinica_actual()` (RFC-F6-C) | 6 | **P0** | S (0.5 d) | F6-B, F6-I | DONE (2026-08-18) |
 | F6-C-b | Migración de datos existentes a clínica inicial (RFC-F6-C) | 6 | **P0** | S (0.5 d) | F6-C-a | DONE (2026-08-18) |
 | F6-C-c | `clinica_id` en 18 tablas + reescritura de políticas RLS (RFC-F6-C) | 6 | **P0** | M (2 d) | F6-C-b | DONE (2026-08-18) |
@@ -126,7 +126,7 @@
 | F6-C-f | Reescritura E2E `flujo-colaborativo.spec.js` con dos cuentas (RFC-F6-C) | 6 | P1 | S (0.5 d) | F6-C-d, F6-I | DONE (2026-08-18) |
 | F6-D | Cablear la ficha clínica a Supabase (odontograma, perio, evoluciones, recetas, certificados) | 6 | **P0** | L (5-8 d) | F6-C | DONE (2026-08-20) |
 | F6-E | Adjuntos clínicos a Supabase Storage con URLs firmadas | 6 | **P0** | M (3-5 d) | F6-C | DONE (2026-08-20) |
-| F6-F | Auditoría append-only por trigger + soft delete de ficha clínica | 6 | P1 | M (3-4 d) | F6-C | DONE (2026-08-22) |
+| F6-F | Auditoría append-only por trigger + soft delete de ficha clínica | 6 | P1 | M (3-4 d) | F6-C | IN PROGRESS (reabierta 2026-08-26; cierre real en F7-08) |
 | F6-G | Validación de RUT (módulo 11) + unicidad por clínica | 6 | P1 | XS (<0.5 d) | F6-F | DONE (2026-08-22) |
 | F6-H | Timeout de sesión por inactividad + política de contraseña | 6 | P1 | S (1-2 d) | F6-B | DONE (2026-08-22) |
 | F6-J | PWA real (service worker + manifest) para arranque en frío sin conexión | 6 | P2 | M (2-4 d) | — | DONE (2026-08-18) |
@@ -150,6 +150,37 @@
 | F6-05 | Exportación de reportes a Excel/PDF | 6 | P2 | M (2-3 d) | — | DONE (2026-01-26) — 4 fases: exportService con xlsx, botones en ReportesModulo y 2 tablas, audit_log integrado, formato A4→Letter, 25 tests, 852/852 passing |
 | F6-06 | Checklist de despliegue a producción (dominio, env vars, backups) | 6 | P1 | S (0.5-1 d, proceso) | F6-02, F6-A..F6-E | PARTIAL DONE (2026-08-24) — checklist actualizado + 3 docs técnicos creados; pasos comerciales pendientes (F6-06b) |
 | F6-06b | Pasos comerciales/manuales de despliegue a producción (hallazgo F6-06) | 6 | P1 | M (1-2 d, proceso) | F6-06 | DEFERRED (2026-08-25) — usar free tier hasta escalar a 10+ clínicas |
+| **— FASE 7: seguridad, privacidad, productización y pre-producción (2026-08-26) —** | | | | | | |
+| F7-01 | Cablear `calcularDosisAnestesiaCompleta` a la UI y retirar la API legada de producción | 7 | **P0** | S (1-2 d) | — | TODO |
+| F7-02 | Corregir el cruce de unidades vademécum → calculadora de anestesia | 7 | **P0** | S (1 d) | F7-01 | TODO |
+| F7-03 | Eliminar defaults numéricos silenciosos restantes en cálculo de anestesia | 7 | **P0** | XS (<0.5 d) | F7-02 | TODO |
+| F7-04 | Poblar y validar columnas numéricas de dosis del vademécum + fallback seguro | 7 | **P0** | M (2-3 d) | F7-02 | TODO |
+| F7-05 | Purga de datos locales al logout: localStorage, IndexedDB, Cache Storage y memoria | 7 | **P0** | S (1 d) | — | TODO |
+| F7-06 | Excluir `/rest/v1/`, `/storage/v1/` y `/auth/v1/` del caching de PHI | 7 | **P0** | XS (<0.5 d) | F7-05 | TODO |
+| F7-07 | Aislar caché local por `clinica_id` y evitar fuga en arranque en frío | 7 | P1 | S (1-2 d) | F7-05 | TODO |
+| F7-08 | Cierre real de F6-F: triggers de auditoría server-side + `audit_log` no escribible por cliente | 7 | **P0** | M (2-4 d) | F6-F | TODO |
+| F7-09 | `handle_new_user()` deja de confiar en rol enviado por cliente + auth fail-closed | 7 | P1 | S (0.5-1 d) | — | TODO |
+| F7-10 | `clinica_actual()` determinista + `es_admin_de_clinica_actual()` acotada + selector de clínica | 7 | **P0** | M (2-3 d) | F7-09 | TODO |
+| F7-11 | Onboarding de clínica/miembros sin `service_role` en frontend | 7 | P1 | M (3-5 d) | F7-10 | TODO |
+| F7-12 | Extender validador arquitectónico a `src/services/` + reducción de allowlist | 7 | P2 | S (1-2 d) | — | TODO |
+| F7-13 | Migraciones versionadas en `supabase/migrations/` + reconstrucción desde cero | 7 | **P0** | M (2-4 d) | — | TODO |
+| F7-14 | Security headers: CSP, HSTS y Permissions-Policy | 7 | P2 | S (1 d) | — | TODO |
+| F7-15 | Sustituir `xlsx@0.18.5` por dependencia sin advisories abiertos | 7 | P2 | S (1 d) | — | TODO |
+| F7-16 | Retirar o endurecer autenticación local PBKDF2 + localStorage | 7 | P2 | S (1 d) | F7-05 | TODO |
+| F7-17 | Resolver warnings `exhaustive-deps` en hooks clínicos | 7 | P2 | XS (<0.5 d) | — | TODO |
+| F7-18 | Auditoría XSS / HTML no confiable en datos clínicos | 7 | **P0** | S (1 d) | — | TODO |
+| F7-19 | Auditoría de exportaciones: RBAC, PHI y auditabilidad | 7 | **P0** | S (1-2 d) | F7-08 | TODO |
+| F7-20 | Pen-test lógico multi-tenant contra Supabase sin pasar por la UI | 7 | **P0** | M (1-2 d) | F7-10 | TODO |
+| F7-21 | Prueba de logout y recuperación de sesión en equipo compartido | 7 | **P0** | S (1 d) | F7-05 | TODO |
+| F7-22 | Auditoría de Storage: buckets privados, signed URLs y aislamiento por clínica | 7 | **P0** | S (1-2 d) | F7-07 | TODO |
+| F7-23 | Auditoría de logs para garantizar ausencia de PHI | 7 | P1 | S (0.5-1 d) | — | TODO |
+| F7-24 | Security Regression Suite como gate de CI/staging | 7 | **P0** | M (2-3 d) | F7-08,F7-20,F7-21,F7-22 | TODO |
+| F7-25 | Design System Studio Dental + App Shell profesional | 7 | P1 | L (4-7 d) | — | TODO |
+| F7-26 | Ficha clínica premium y navegación clínica optimizada | 7 | P1 | L (4-7 d) | F7-25 | TODO |
+| F7-27 | Agenda + dashboard operacional de nivel comercial | 7 | P1 | M (3-5 d) | F7-25 | TODO |
+| F7-28 | Responsive + accesibilidad integral de flujos críticos | 7 | P1 | M (2-4 d) | F7-25 | TODO |
+| F7-29 | Manual de usuario por rol + capacitación | 7 | P2 | L (1-2 sem) | F7-25,F7-26,F7-27 | TODO |
+| F7-30 | Release Candidate + checklist GO/NO-GO para piloto | 7 | **P0** | M (2-3 d) | F7-04,F7-06,F7-08,F7-13,F7-20,F7-21,F7-22,F7-24,F7-28,F7-29 | TODO |
 
 
 ### F6-06b — Pasos comerciales de despliegue a producción — DEFERRED (2026-08-25)
@@ -1319,7 +1350,7 @@ quirurgico_implantes, quirurgico_endodoncia
 
 ---
 
-### F6-A — Versionar esquema SQL + seed del vademécum v1.1 — TODO
+### F6-A — Versionar esquema SQL + seed del vademécum v1.1 — DONE (2026-08-18)
 
 **Qué ganamos:** hoy el dataset clínico más crítico del sistema —94 fármacos, 25 reglas de alergias cruzadas, interacciones farmacológicas, profilaxis de endocarditis, manejo de anticoagulantes y antirresortivos— **existe únicamente dentro del proyecto Supabase de desarrollo**. `supabase/` contiene solo `schema.sql`, `schema-clinical-tables.sql` y `schema-audit-log.sql` (19 tablas), mientras `vademecumService.js` consulta ocho tablas que no están definidas en ninguna parte del repositorio: `vademecum`, `vademecum_urgencia`, `vademecum_antirresortivos`, `alergias_cruzadas`, `interacciones_farmacologicas`, `profilaxis_endocarditis`, `manejo_anticoagulantes` y `reference_data_meta`. Si ese proyecto se pausa, se borra o se pierde el acceso, se pierde la curación clínica completa y no hay forma de reconstruirla. `src/data/vademecum.js` (23 fármacos, otra estructura) no sirve de respaldo. Es además la razón por la que el paso 1.2 del `DEPLOY_CHECKLIST` es hoy inejecutable: pide verificar 23 tablas y el repositorio solo puede crear 19.
 
@@ -1336,7 +1367,7 @@ quirurgico_implantes, quirurgico_endodoncia
 
 ---
 
-### F6-B — Rol de usuario a `app_metadata` + RLS por rol server-side — TODO
+### F6-B — Rol de usuario a `app_metadata` + RLS por rol server-side — DONE (2026-08-18)
 
 **Qué ganamos:** hoy el rol vive en `user_metadata`, que el propio cliente puede escribir. `authService.js` (líneas 214-219) ejecuta literalmente `supabase.auth.updateUser({ data: { role: 'admin' } })` desde el navegador. Cualquier usuario autenticado puede abrir DevTools y concederse rol admin. La política de `profiles` tampoco protege: `FOR UPDATE USING (auth.uid() = id)` sin `WITH CHECK` ni restricción de columna permite `UPDATE profiles SET role='admin' WHERE id = auth.uid()`. Y `rbacService.js`, pese a estar bien escrito, es 100 % cliente: solo oculta UI; la base de datos no valida nada por rol. El RBAC de F3-05 hoy es una convención de interfaz, no un control de acceso.
 
@@ -1391,7 +1422,7 @@ quirurgico_implantes, quirurgico_endodoncia
 - ✅ verify-rbac 13/13 PASS en ambos proyectos
 - ✅ Documentación actualizada en roadmap y bitácora
 
-### F6-C — Modelo multi-clínica: `clinica_id` + membresía + reescritura de RLS — TODO
+### F6-C — Modelo multi-clínica: `clinica_id` + membresía + reescritura de RLS — DONE (2026-08-18)
 
 **Qué ganamos:** el modelo de datos actual no tiene el concepto de clínica. Todas las políticas RLS son `auth.uid() = user_id`, lo que significa que cada usuario tiene su propio silo aislado de pacientes. Las consecuencias son excluyentes: o todo el equipo comparte un login —y entonces el RBAC de F3-05 es decorativo, el `audit_log` no puede decir quién escribió en la ficha, y las "métricas de rendimiento por profesional" de `reportes` no tienen fuente— o cada persona tiene su cuenta, y entonces el dentista literalmente no ve los pacientes que creó recepción. **Toda la Fase 5 (realtime, resolución de conflictos, presencia) solo funciona en el primer escenario:** lo que hay hoy no es colaboración multiusuario, es la misma cuenta en varios dispositivos. Esta es la brecha que separa "sistema de un profesional" de "sistema de clínica", que es lo que el proyecto declara ser desde F4-01.
 
@@ -1412,7 +1443,7 @@ quirurgico_implantes, quirurgico_endodoncia
 
 ---
 
-### F6-D — Cablear la ficha clínica a Supabase — TODO
+### F6-D — Cablear la ficha clínica a Supabase — DONE (2026-08-20)
 
 **Qué ganamos:** F4-02c-6 ("migración de datos clínicos, 11 tipos") y F4-02d-2 ("escritura de datos clínicos a Supabase") están marcadas `DONE`, pero el cableado a los módulos nunca ocurrió. `useFichaPaciente.js` guarda odontograma inicial, odontograma de evolución, recetas, evoluciones, certificados, abonos e ítems de presupuesto vía `pacientesStorageService.guardarItem()`, que es localStorage síncrono — el propio archivo lo documenta en su línea 16. Y `datosClinicosSupabase.js`, con sus funciones `guardarOdontograma`, `guardarPeriodontograma`, `guardarEvolucionClinica` y `guardarReceta` ya escritas y probadas, **no lo llama nadie salvo `quirurgico`**. Lo mismo aplica a periodontograma, odontopediatría, DSD, esterilización, inventario, laboratorio, prestaciones, comunicaciones y urgencias GES: todos localStorage puro. Hoy, cambiar de navegador o limpiar caché borra la historia clínica.
 
@@ -1431,7 +1462,7 @@ quirurgico_implantes, quirurgico_endodoncia
 
 ---
 
-### F6-E — Adjuntos clínicos a Supabase Storage con URLs firmadas — TODO
+### F6-E — Adjuntos clínicos a Supabase Storage con URLs firmadas — DONE (2026-08-20)
 
 **Qué ganamos:** radiografías, fotografías clínicas y **consentimientos informados firmados** viven hoy exclusivamente en IndexedDB del navegador de un equipo. No hay una sola llamada a `supabase.storage` en todo el repositorio. Sin respaldo, sin sincronización entre dispositivos, sin cifrado. Un consentimiento firmado que solo existe en el Chrome de un notebook no es un pendiente técnico: es un pasivo legal, porque la ficha clínica y sus consentimientos deben conservarse y ser recuperables (Ley 20.584 y su reglamento). F1-02 resolvió correctamente el problema de *no perder el binario al refrescar*; no resolvió el de conservarlo.
 
@@ -1450,7 +1481,7 @@ quirurgico_implantes, quirurgico_endodoncia
 
 ---
 
-### F6-F — Auditoría append-only por trigger + soft delete de ficha clínica — TODO
+### F6-F — Auditoría append-only por trigger + soft delete de ficha clínica — IN PROGRESS (reabierta 2026-08-26; cierre real en F7-08)
 
 **Qué ganamos:** dos problemas de trazabilidad legal. **(1)** La tabla `audit_log` existe y `registrarAuditoria()` está implementada, pero su único llamador está dentro de `conflictDetectionService`, para resolución de conflictos. Las ediciones normales de la ficha clínica no se auditan. Además su RLS es "ver lo propio / insertar lo propio": un admin no puede auditar a nadie, y cualquier usuario puede insertar registros de auditoría fabricados desde el cliente. **(2)** `pacientesStorageService.js` línea 315 ejecuta un `.delete()` real contra Supabase, y las tablas hijas tienen `ON DELETE CASCADE`. No hay `deleted_at` ni papelera. Un clic de un admin destruye la ficha y todo lo colgado de ella, de forma irreversible salvo restauración de backup.
 
@@ -1468,7 +1499,7 @@ quirurgico_implantes, quirurgico_endodoncia
 
 ---
 
-### F6-G — Validación de RUT (módulo 11) + unicidad por clínica — TODO
+### F6-G — Validación de RUT (módulo 11) + unicidad por clínica — DONE (2026-08-22)
 
 **Qué ganamos:** `pacienteSchema.js` valida el RUT como `z.string().trim().min(1)`. Sin formato, sin dígito verificador, y sin restricción `UNIQUE` en la tabla `pacientes`. En un sistema chileno esto produce, en este orden: pacientes duplicados con el mismo RUT escrito de tres formas, historias clínicas partidas para la misma persona, y facturación cruzada a Fonasa/Isapre. Es la corrección de mejor relación esfuerzo/impacto de toda la fase.
 
@@ -1485,7 +1516,7 @@ quirurgico_implantes, quirurgico_endodoncia
 
 ---
 
-### F6-H — Timeout de sesión por inactividad + política de contraseña — TODO
+### F6-H — Timeout de sesión por inactividad + política de contraseña — DONE (2026-08-22)
 
 **Qué ganamos:** no existe ningún mecanismo de auto-logout en el sistema (`grep` de `inactiv|autoLogout|sessionTimeout` en `src/` no devuelve nada). Un computador de recepción desatendido es acceso completo a las fichas clínicas de todos los pacientes, en un mostrador abierto al público. Tampoco hay política de contraseña más allá del mínimo por defecto de Supabase.
 
@@ -1501,7 +1532,7 @@ quirurgico_implantes, quirurgico_endodoncia
 
 ---
 
-### F6-I — Entorno de staging separado de producción para E2E — TODO
+### F6-I — Entorno de staging separado de producción para E2E — DONE (2026-08-24)
 
 **Qué ganamos:** la evidencia registrada en F6-02 indica que los 12 tests E2E se ejecutaron contra **Supabase de producción**, con usuarios `e2e_*@studiodental.com`. Esos tests crean pacientes, presupuestos y pagos: hay datos de prueba en la base real, y `flujo-seguridad.spec.js` ejerce alertas de alergias sobre registros de producción. El propio `DEPLOY_CHECKLIST` lo reconoce cuando advierte "crear usuarios de producción (NO usar `e2e_*@studiodental.com`)", pero no había tarea que lo resolviera. Sin staging tampoco es posible cumplir el criterio de F6-06 de probar una restauración de backup.
 
@@ -1553,7 +1584,7 @@ quirurgico_implantes, quirurgico_endodoncia
 
 **Nota:** Este script solo se ejecuta manualmente en el proyecto original de desarrollo. NO se aplica automáticamente vía CI/CD.
 
-### F6-J — PWA real (service worker + manifest) — TODO
+### F6-J — PWA real (service worker + manifest) — DONE (2026-08-18)
 
 **Qué ganamos:** la Fase 5 declara "offline-first", pero no hay service worker, ni manifest, ni `vite-plugin-pwa` en el proyecto. Lo que existe (`operationQueue`) es tolerancia a caídas de conexión **con la pestaña ya abierta**: si el equipo se reinicia o el usuario recarga sin internet, la aplicación no carga. Es decir, falla exactamente en el escenario para el que se construyó — una clínica con conexión intermitente al inicio de la jornada.
 
@@ -1570,7 +1601,7 @@ quirurgico_implantes, quirurgico_endodoncia
 
 ---
 
-### F6-K — Umbrales de cobertura en CI + tests de módulos sin cobertura — TODO
+### F6-K — Umbrales de cobertura en CI + tests de módulos sin cobertura — DONE (2026-08-27)
 
 **Qué ganamos:** el número de tests genera confianza que la distribución no respalda. Hay 545 bloques `it/test`, pero **solo 1 de 143 componentes** tiene test, y ocho módulos completos no tienen ninguno: `comunicaciones`, `configuracion`, `dashboard`, `esterilizacion`, `laboratorio`, **`pagos`**, `reportes` y `urgenciasGes`. Que `pagos` (dinero) y `esterilizacion` (registro fiscalizable) estén en esa lista es lo más relevante. Además `vitest.config.js` no define `thresholds`, de modo que la cobertura puede caer indefinidamente sin que CI lo note.
 
@@ -1729,7 +1760,7 @@ quirurgico_implantes, quirurgico_endodoncia
 
 ---
 
-### F6-02c — Investigar `data-testid` faltantes en bundle de LoginScreen — TODO
+### F6-02c — Investigar `data-testid` faltantes en bundle de LoginScreen — DONE (2026-08-25)
 
 **Qué ganamos:** los `data-testid` de `LoginScreen.jsx` no llegan al bundle final, de modo que el fixture de autenticación usa siempre el fallback `type="email"`. Funciona, pero genera warnings en cada ejecución y hace frágiles los selectores.
 
@@ -1739,7 +1770,7 @@ quirurgico_implantes, quirurgico_endodoncia
 
 ---
 
-### F6-03 — Logger centralizado con niveles — TODO
+### F6-03 — Logger centralizado con niveles — DONE (2026-08-25)
 
 **Qué ganamos:** hay 59 llamadas a `console.log` fuera de tests, sin niveles ni control de entorno. Cualquier usuario puede abrir DevTools en producción y ver esa información —incluida, en algunos casos, información de pacientes. Un logger centralizado permite silenciar en producción, mantener trazabilidad en desarrollo, y sienta la base para conectar errores críticos a un servicio de monitoreo.
 
@@ -1756,7 +1787,7 @@ quirurgico_implantes, quirurgico_endodoncia
 
 ---
 
-### F6-04 — Accesibilidad básica — TODO
+### F6-04 — Accesibilidad básica — DONE (2026-08-25)
 
 **Qué ganamos:** solo 2 de 144 archivos `.jsx` usan atributos `aria-*`. El personal de recepción y asistentes con distintos niveles de comodidad tecnológica, y eventuales usuarios con necesidades de accesibilidad, dependen hoy al 100 % de affordances visuales. Las mejoras básicas reducen errores de uso y amplían quién puede operar el sistema con confianza.
 
@@ -1773,7 +1804,7 @@ quirurgico_implantes, quirurgico_endodoncia
 
 ---
 
-### F6-05 — Exportación de reportes a Excel/PDF — TODO
+### F6-05 — Exportación de reportes a Excel/PDF — DONE (2026-01-26)
 
 **Qué ganamos:** el módulo `reportes` solo ofrece vista imprimible A4. Exportar datos es una necesidad operativa habitual (contabilidad, reportes a Isapres/Fonasa, respaldo externo).
 
@@ -1821,7 +1852,7 @@ quirurgico_implantes, quirurgico_endodoncia
 
 **Por qué está PARTIAL DONE:** el alcance técnico está completo, pero los pasos comerciales/manuales requieren intervención del usuario. Regla de Gobernanza 3.
 
-### F6-06b — Pasos comerciales/manuales de despliegue a producción — TODO
+### F6-06b — Pasos comerciales/manuales de despliegue a producción — DEFERRED (2026-08-25)
 
 **Qué ganamos:** ejecutar los pasos del checklist de despliegue que requieren compras, cuentas externas o intervención manual del usuario.
 
@@ -1866,7 +1897,26 @@ quirurgico_implantes, quirurgico_endodoncia
 
 ---
 
-**Salida de Fase 6 (Definition of Done):** ⬜ pendiente. Se cerrará cuando F6-A a F6-K y F6-01 a F6-07 estén en `DONE` o `DEFERRED` con justificación técnica documentada. **Hasta que F6-A a F6-E estén cerradas, este documento no declara el sistema apto para uso con pacientes reales en una clínica con varios profesionales.**
+**Salida de Fase 6 (Definition of Done):** ✅ **FUNCIONALMENTE CERRADA (2026-08-27) CON EXCEPCIONES DOCUMENTADAS.**
+
+**Tareas cerradas:**
+- ✅ F6-A a F6-E (bloque estructural): todas DONE
+- ✅ F6-G a F6-P (hardening): todas DONE
+- ✅ F6-01 a F6-05, F6-K: todas DONE
+- ✅ F6-06b: DEFERRED (usar free tier hasta 10+ clínicas)
+
+**Tareas abiertas (con justificación):**
+- 🟠 **F6-F** (Auditoría + soft delete): IN PROGRESS — cierre real en **F7-08** (triggers server-side). La parte implementada (registrarAuditoria client-side + soft delete) es válida pero incompleta.
+- 🟠 **F6-06** (Checklist despliegue): PARTIAL DONE — alcance técnico completo, pasos comerciales en **F6-06b** (DEFERRED).
+- ⬜ **F6-07** (Manual usuario): TODO — absorbido por **F7-29** (decisión del usuario: manuales al final).
+
+**Métricas al cierre (2026-08-27):**
+- Tests: **1004/1004 pasando** (852 → 1004, +152 desde F6-K)
+- Coverage: **30.05% statements** (umbral CI: 20%)
+- Build: exitoso
+- Arquitectura: OK (sin violaciones)
+
+**Declaración:** El sistema está **funcionalmente operativo** pero **NO apto para producción con datos clínicos reales** hasta completar las tareas P0 de **Fase 7** (seguridad clínica, privacidad, multi-tenant).
 
 ---
 
@@ -1925,8 +1975,10 @@ quirurgico_implantes, quirurgico_endodoncia
 
 ## 4. ESTADO ACTUAL
 
-**Fecha de esta evaluación:** 2026-08-16
-**Estado:** 🔴 **NO APTO PARA PRODUCCIÓN CON DATOS DE PACIENTES REALES EN CLÍNICA MULTIUSUARIO.**
+**Fecha de esta evaluación:** 2026-08-26
+**Estado:** 🟠 **FASE 6 FUNCIONALMENTE CERRADA, PERO NO APTO PARA PRODUCCIÓN HASTA COMPLETAR FASE 7.**
+
+La Fase 7 sustituye la antigua conclusión de "listo para producción": sus pruebas P0 son el gate final. F6-F queda reabierta por la verificación de auditoría server-side y F6-07 (manual/capacitación) permanece pendiente.
 
 Corrige la declaración anterior ("listo para producción"), que se sostenía sobre tareas marcadas `DONE` sin cumplir sus criterios de aceptación y sobre métricas no verificadas contra el repositorio.
 
@@ -1989,3 +2041,194 @@ No se implementará ninguna tarea hasta confirmación explícita del usuario (Re
 El registro histórico de tareas completadas se trasladó a **`docs/BITACORA.md`** para mantener este documento legible de una sentada.
 
 Este archivo responde a *qué falta y en qué orden*. La bitácora responde a *qué se hizo y cuándo*. Toda tarea que pase a `DONE` se registra allí, con su evidencia y su fecha, y aquí solo cambia la columna Estado del tablero.
+
+
+---
+
+## FASE 7 — SEGURIDAD, PRIVACIDAD, PRODUCTIZACIÓN Y PRE-PRODUCCIÓN
+
+**Fecha de incorporación:** 2026-08-26  
+**Estado:** 🔴 **TODO — FASE OBLIGATORIA ANTES DE DECLARAR PRODUCCIÓN CON DATOS CLÍNICOS REALES**
+
+**Origen:** auditoría profunda del repositorio `main` realizada el 2026-08-26, con revisión de seguridad clínica, RLS/RBAC, multi-tenant, almacenamiento local, PWA/Cache Storage, Storage, audit log, supply chain, arquitectura y UX.
+
+**Objetivo:** llevar Studio Dental desde el cierre funcional de la Fase 6 a un **Release Candidate verificable**, sin asumir que una tarea marcada `DONE` implica seguridad de producción. La fase combina corrección clínica, aislamiento de datos, hardening técnico y profesionalización de la interfaz.
+
+### Regla de seguridad de la fase
+
+No se considera resuelto un riesgo porque la interfaz lo oculte. Toda prueba de autorización debe poder ejecutarse directamente contra Supabase y toda tarea de seguridad debe dejar evidencia reproducible. Para métricas, aplicar las Reglas de Gobernanza 8 y 9: comando + fecha + resultado.
+
+### BLOQUE A — SEGURIDAD CLÍNICA
+
+#### F7-01 — Conectar la UI a `calcularDosisAnestesiaCompleta`
+**Qué ganamos:** evitar que la interfaz use la API legada que no contempla correctamente edad, contraindicaciones y límites especiales.
+
+**Criterios de aceptación:**
+- [ ] Ningún componente productivo importa `calcularTubosAnestesia`.
+- [ ] Edad/peso y antecedentes relevantes llegan al cálculo.
+- [ ] Contraindicaciones y advertencias aparecen en UI.
+- [ ] Datos clínicos obligatorios ausentes producen estado restrictivo, nunca una cifra estimada.
+- [ ] Tests para adulto, pediátrico, cardiopatía y datos incompletos.
+
+#### F7-02 — Corregir unidades del vademécum
+**Qué ganamos:** impedir que un valor absoluto en mg se reutilice como mg/kg o que campos pediátricos/adultos se mezclen.
+
+**Criterios:** nombres de campos con unidad explícita, mapeo campo→columna→unidad documentado y tests con valores conocidos.
+
+#### F7-03 — Eliminar defaults numéricos silenciosos
+**Qué ganamos:** ausencia de concentración, volumen o dosis pediátrica debe bloquear el cálculo.
+
+**Criterios:** cero fallbacks numéricos en rutas clínicas; `undefined`, `null`, vacío, cero y no-numérico tratados explícitamente; ningún dato faltante puede producir `estado: OK`.
+
+#### F7-04 — Integridad del vademécum
+**Qué ganamos:** la ruta real contra Supabase debe estar cubierta; no basta con que pasen tests contra una constante hardcodeada.
+
+**Criterios:** cinco campos numéricos de anestesia completos para cada anestésico; fuentes/fecha de revisión documentadas; integración contra seed/Supabase; fallback sólo si la estructura alternativa es semánticamente equivalente.
+
+### BLOQUE B — PRIVACIDAD DEL CLIENTE Y PWA
+
+#### F7-05 — Purga completa al logout
+**Qué ganamos:** evitar que el siguiente usuario de un equipo compartido pueda recuperar PHI desde disco local.
+
+Debe cubrir localStorage, IndexedDB, Cache Storage, Zustand/memoria y selección de paciente. Las operaciones clínicas pendientes no deben perderse silenciosamente: deben conservarse con advertencia y control de reintento.
+
+**Criterio principal:** Usuario A → logout → Usuario B no puede recuperar datos clínicos de A.
+
+#### F7-06 — No cachear PHI de Supabase
+**Qué ganamos:** Cache Storage debe contener el shell/recursos permitidos, no respuestas clínicas.
+
+**Criterios:** `/rest/v1/`, `/storage/v1/` y `/auth/v1/` fuera del runtime cache; verificación manual de Cache Storage sin RUT/nombre/PHI; shell PWA sigue cargando offline.
+
+#### F7-07 — Aislamiento de caché por clínica
+**Qué ganamos:** evitar que un usuario de Clínica B vea datos de Clínica A en el primer render antes de que termine la sincronización.
+
+**Criterios:** claves locales asociadas a `clinica_id`; caché incompatible arranca vacía; E2E con dos clínicas en el mismo navegador.
+
+### BLOQUE C — TRAZABILIDAD
+
+#### F7-08 — Cierre real de F6-F
+**Qué ganamos:** que las modificaciones clínicas sean auditables aunque el frontend sea manipulado.
+
+**Criterios:** triggers `AFTER INSERT/UPDATE/DELETE` server-side en las tablas clínicas/financieras definidas; `SECURITY DEFINER` controlado; cliente sin INSERT/UPDATE/DELETE sobre `audit_log`; modificación de anamnesis genera registro sin petición del cliente; papelera puede identificar autor; pruebas negativas desde navegador.
+
+### BLOQUE D — RBAC Y MULTI-TENANT
+
+#### F7-09 — Roles fail-closed
+El alta no debe confiar en `raw_user_meta_data.role`. El rol inicial debe ser seguro y la elevación debe depender de membresía/autorización server-side. Ante fallo de consulta de membresía, `authService` debe degradar a un rol no privilegiado, nunca a admin.
+
+#### F7-10 — Clínica actual determinista
+`clinica_actual()` debe tener criterio determinista o selector explícito. `es_admin_de_clinica_actual()` debe filtrar por la clínica activa. Un usuario con membresías A+B no puede mezclar permisos ni datos.
+
+#### F7-11 — Onboarding sin secretos privilegiados
+Crear clínica/invitar miembros mediante RPC/operaciones autorizadas. Nunca exponer `service_role` al bundle frontend.
+
+### BLOQUE E — INFRAESTRUCTURA Y SUPPLY CHAIN
+
+#### F7-12 — Validador arquitectónico
+Extender los límites a `src/services/`, mantener allowlist explícita y decreciente y hacer fallar CI ante crecimiento no autorizado.
+
+#### F7-13 — Migraciones reproducibles
+Todos los objetos de base deben poder reconstruirse desde `supabase/migrations/`. Ejecutar reset/push en entorno limpio y comparar tablas, políticas, funciones y triggers con staging.
+
+#### F7-14 — Security headers
+Implementar CSP primero en `report-only`, luego bloqueo; HSTS y Permissions-Policy. Verificar PWA, Auth, Realtime y Storage.
+
+#### F7-15 — Dependencias
+Eliminar `xlsx@0.18.5` si mantiene advisory abierto o documentar una excepción temporal. El release candidate debe pasar el umbral de auditoría acordado.
+
+#### F7-16 — Autenticación local
+Retirar el modo local si ya no es necesario. Si se mantiene, documentar modelo de amenaza, endurecer PBKDF2 y evitar controles de fuerza bruta manipulables desde cliente.
+
+#### F7-17 — Lint
+Resolver warnings `exhaustive-deps` o justificar cada excepción técnicamente. Objetivo: 0 warnings.
+
+### BLOQUE F — SUPERFICIE DE FUGA DE DATOS
+
+#### F7-18 — XSS / contenido no confiable
+Auditar `dangerouslySetInnerHTML`, `innerHTML`, Markdown/HTML y datos clínicos renderizados. Un texto introducido por un usuario no puede ejecutar JavaScript al ser visto por otro.
+
+#### F7-19 — Exportaciones
+CSV/Excel/PDF deben respetar RBAC, ámbito de clínica y minimización de PHI. Las exportaciones sensibles deben quedar auditables según política definida.
+
+#### F7-20 — Pen-test lógico multi-tenant
+Ignorar la UI y probar directamente SELECT/INSERT/UPDATE/DELETE contra registros de otra clínica. Debe existir aislamiento para pacientes, citas, evoluciones, recetas, odontogramas, periodontogramas, finanzas, pagos, inventario, presupuestos, vademécum y audit log.
+
+#### F7-21 — Equipo compartido
+Probar A→logout→B y recarga/reinicio. No debe quedar PHI recuperable ni una cola de A ejecutable por B.
+
+#### F7-22 — Storage
+Verificar buckets privados, signed URLs de duración limitada, aislamiento por clínica y autorización antes de generar URLs. Probar acceso cruzado a archivos.
+
+#### F7-23 — Logs
+Buscar RUT, nombre, dirección, teléfono, anamnesis, diagnósticos, recetas, imágenes y payloads clínicos en logs técnicos. No registrar PHI innecesaria.
+
+### BLOQUE G — REGRESIÓN DE SEGURIDAD
+
+#### F7-24 — Security Regression Suite
+Convertir los escenarios críticos en pruebas automatizadas de staging y gates de CI. Un PR no puede pasar a RC si falla aislamiento multi-tenant, RBAC, logout/PHI, Storage o audit log.
+
+### BLOQUE H — PRODUCTIZACIÓN DE INTERFAZ
+
+#### F7-25 — Design System + App Shell profesional
+Unificar tipografía, jerarquía, espaciado, componentes, estados, iconografía y navegación. Sustituir progresivamente emojis como sistema principal de navegación por iconografía consistente.
+
+#### F7-26 — Ficha clínica premium
+Convertir la ficha clínica en el centro del producto: resumen, anamnesis, odontograma, periodoncia, tratamientos, evoluciones, recetas e imágenes, con navegación de pocos pasos y jerarquía clínica clara.
+
+#### F7-27 — Agenda + dashboard
+Priorizar operación diaria: citas, pendientes, alertas y tareas clínicas. Evitar métricas decorativas sin valor operacional.
+
+#### F7-28 — Responsive + accesibilidad
+Validar 1440/1280/1024/768/430/390/375 px, teclado, foco, labels, contraste y flujos críticos con tecnologías asistivas.
+
+### BLOQUE I — USUARIO Y RELEASE
+
+#### F7-29 — Manual de usuario por rol + capacitación
+Completar el pendiente de F6-07 después de estabilizar UX. Roles mínimos: Administrador, Dentista, Asistente y Recepción. Flujo: Login → Dashboard → Paciente → Cita → Consulta → Receta → Pago → Inventario → Configuración → Logout.
+
+#### F7-30 — Release Candidate + GO/NO-GO
+El RC debe revisar seguridad clínica, RLS/RBAC, aislamiento, privacidad local, Storage, audit log, migraciones, E2E, lint, tests, build, dependencias, responsive/accessibility, manual, backup/restore, rollback y monitoring. El resultado debe ser explícitamente **GO**, **GO CON RIESGO DOCUMENTADO** o **NO-GO**.
+
+### ORDEN DE EJECUCIÓN
+
+**Sprint 1 — P0 clínico + privacidad:** F7-01 → F7-02 → F7-03 → F7-04; en paralelo F7-05 → F7-06 → F7-21.
+
+**Sprint 2 — esquema + trazabilidad:** F7-13 → F7-08 → F7-09.
+
+**Sprint 3 — multi-tenant + Storage:** F7-07 → F7-10 → F7-11 → F7-22 → F7-20.
+
+**Sprint 4 — hardening:** F7-12, F7-14, F7-15, F7-16, F7-17, F7-18, F7-19, F7-23; paralelizables salvo dependencias.
+
+**Sprint 5 — regresión + UX:** F7-24; en paralelo F7-25 → F7-26 → F7-27 → F7-28.
+
+**Sprint 6 — cierre:** F7-29 → F7-30.
+
+### MÉTRICAS BASE DE LA AUDITORÍA 2026-08-26
+
+Estas métricas son línea base y deben volver a medirse antes del cierre de Fase 7; no se deben copiar hacia adelante sin comando y fecha.
+
+```bash
+npx vitest run
+npm run lint
+npm run validate:architecture
+npm audit --omit=dev
+```
+
+La auditoría de 2026-08-26 registró: **852/852 tests**, **7 warnings de lint**, **PASS arquitectónico con 67 archivos en allowlist** y **1 vulnerabilidad high asociada a `xlsx` sin fix disponible**. Cobertura registrada: statements 25.52%, branches 73.36%, functions 45.83%, lines 25.50%. Estos números son una línea base, no una declaración de seguridad.
+
+### DEFINITION OF DONE — FASE 7
+
+- [ ] Todas las tareas P0 están `DONE`.
+- [ ] La ruta productiva de anestesia es la enriquecida y fail-safe.
+- [ ] Ningún usuario puede acceder a datos de otra clínica mediante API directa.
+- [ ] Logout no deja PHI recuperable por otro usuario.
+- [ ] Audit log es server-side y no manipulable por el cliente.
+- [ ] Storage está privado y aislado.
+- [ ] Security Regression Suite pasa en staging.
+- [ ] Migraciones reconstruyen la base de forma reproducible.
+- [ ] CI aplica gates de calidad y seguridad.
+- [ ] Interfaz cumple el Design System y los flujos críticos son responsive/accesibles.
+- [ ] Manuales y capacitación están disponibles.
+- [ ] Existe RC y decisión GO/NO-GO documentada.
+
+**Regla final:** completar las tareas no equivale automáticamente a declarar producción. La decisión final requiere evidencia obtenida en staging y una revisión GO/NO-GO.
