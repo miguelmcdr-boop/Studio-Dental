@@ -145,13 +145,16 @@ export const obtenerDatosAnestesia = () => {
         nombreGenerico: d.nombre,
         familia: d.familia,
         presentacion: d.presentacion,
-        mgPorKgAdulto: d.mgPorKgAdulto || d.mgPorKgAdultoMax || null,
-        topeAbsolutoAdulto: d.mgPorKgAdultoMax,
-        mgPorKgPediatrico: d.mgPorKgAdulto,
-        topeAbsolutoPediatrico: null,
-        mgPorTubo: d.mgPorTubo,
-        volumenPorTubo: d.volumenPorTubo || 1.8,
-        concentracionMgPorMl: d.concentracionMgPorMl,
+        
+        // F7-02: Usar nombres con unidades explícitas del servicio
+        mgPorKgAdulto: d.dosisMaxAdulto_mgPorKg,
+        mgPorKgPediatrico: d.dosisMaxPediatrico_mgPorKg,
+        topeAbsolutoAdulto: d.topeAbsolutoAdulto_mg,
+        topeAbsolutoPediatrico: d.topeAbsolutoPediatrico_mg,
+        
+        mgPorTubo: d.contenidoPorUnidad_mg,
+        volumenPorTubo: d.volumenPorUnidad_ml || 1.8,
+        concentracionMgPorMl: d.concentracion_mgPorMl,
         tieneVasoconstrictor: normalizar(d.nombre || '').includes('epinefrina') || normalizar(d.nombre || '').includes('felipresina'),
         concentracionVasoconstrictor:
           (d.nombre || '').includes('1:100.000') ? 0.01

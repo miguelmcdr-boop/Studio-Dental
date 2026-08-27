@@ -2415,3 +2415,37 @@ Creados para `dsd`, `odontopediatria`, `periodontograma`, `quirurgico`.
 ### 🏁 FASE 1 COMPLETA (2026-08-08)
 
 Las 11 tareas de Fase 1 cerradas y verificadas. Sistema apto para datos clínicos reales.
+
+## 2026-08-27 — F7-02: Corregir el cruce de unidades vademécum → calculadora de anestesia — DONE
+
+**Problema:** La tabla `vademecum` en SQL tiene columnas con unidades explícitas (`dosis_max_adulto_mg` en mg absoluto, `dosis_max_pediatrica_mg_por_kg` en mg/kg relativo), pero el mapeo a JavaScript confundía estos valores:
+
+1. `mgPorKgAdulto` usaba `dosis_max_pediatrica_mg_por_kg` (confundía adulto con pediátrico)
+2. `mgPorKgAdultoMax` era un valor ABSOLUTO (mg), NO mg/kg (nombre engañoso)
+3. No había `topeAbsolutoAdulto` ni `topeAbsolutoPediatrico` explícitos
+
+**Solución:**
+1. **vademecumService.obtenerDosisAnestesia():** 
+   - Calcula `dosisMaxAdulto_mgPorKg` como `topeAbsolutoAdulto_mg / 70kg` (peso estándar)
+   - Usa `dosisMaxPediatrico_mgPorKg` directamente desde SQL
+   - Nombres de campos con unidades explícitas (`_mg`, `_mgPorKg`, `_ml`)
+
+2. **anestesiaCalculations.obtenerDatosAnestesia():**
+   - Usa los nuevos nombres con unidades explícitas
+   - Elimina la confusión entre valores absolutos y relativos
+   - Preserva el fallback a DOSIS_RESPALDO_V10
+
+3. **Tests de integración:**
+   - Verifican que `mgPorKgAdulto` NO sea igual a `topeAbsolutoAdulto`
+   - Validan los 4 anestésicos principales con valores conocidos
+   - Prueban manejo de valores null/0/undefined
+
+**Gap detectado:** El schema SQL no tiene columnas para `dosis_max_adulto_mg_por_kg` ni `dosis_max_pediatrica_mg`. F7-04 agregará estas columnas.
+
+**Archivos modificados:**
+- `src/services/vademecumService.js` (función `obtenerDosisAnestesia`)
+- `src/utils/anestesiaCalculations.js` (función `obtenerDatosAnestesia`)
+- `docs/anestesia-mapeo-unidades.md` (nuevo, documentación del mapeo)
+- `src/utils/anestesiaCalculations.integration.test.js` (nuevo, tests de integración)
+
+**Estado:** ✅ DONE (2026-08-27)
