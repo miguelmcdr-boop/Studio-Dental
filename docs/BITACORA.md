@@ -1,3 +1,49 @@
+## 2026-08-27 — F7-01: Conectar UI a calcularDosisAnestesiaCompleta (seguridad clínica)
+
+**Qué se ganó:** La calculadora de anestesia ahora usa la API enriquecida que considera edad, cardiopatía, embarazo y contraindicaciones específicas por edad. Previene dosis peligrosas en niños (bupivacaína <12 años, articaína <4 años) y muestra advertencias visuales claras.
+
+**Problema resuelto:** La UI usaba `calcularTubosAnestesia(peso, tipoAnestesico)` que solo consideraba 2 parámetros, ignorando edad, cardiopatía y embarazo. Esto podía producir dosis peligrosas en pacientes pediátricos o con contraindicaciones.
+
+**Solución implementada:**
+1. `CalculadoraAnestesiaSection.jsx` reescrito para usar `calcularDosisAnestesiaCompleta` (API enriquecida F4-03d)
+2. Componente ahora recibe `paciente` completo (no solo `pesoInicial`)
+3. Deriva flags clínicos automáticamente:
+   - `esPediatria`: edad < 18 años
+   - `esCardiopata`: regex cardiovascular en campo enfermedades
+   - `esEmbarazo`: checkbox manual (no hay campo en paciente)
+4. UI muestra contraindicaciones específicas por edad (bupivacaína <12, articaína <4)
+5. Badges visuales para cardiopatía/embarazo/dosis pediátrica
+6. Sección de advertencias visible cuando hay contraindicaciones
+7. Información del anestésico seleccionado (nombre, familia, presentación)
+
+**Archivos creados (2):**
+- `src/modules/pacientes/utils/anestesiaHelpers.js` — esCardiopata, esPediatria, parseEdad
+- `src/modules/pacientes/constants/anestesiaConstants.js` — CONFIG_ESTADO
+
+**Archivos modificados (2):**
+- `src/modules/pacientes/components/CalculadoraAnestesiaSection.jsx` — reescrito completo (242 líneas)
+- `src/modules/pacientes/FichaPacienteModulo.jsx` — pasa `paciente` completo en vez de `pesoInicial`
+
+**Tests creados (1):**
+- `src/modules/pacientes/components/CalculadoraAnestesiaSection.test.jsx` — 17 tests
+
+**Criterios de aceptación (5/5):**
+- ✅ Ningún componente productivo importa `calcularTubosAnestesia`
+- ✅ Edad/peso y antecedentes llegan al cálculo
+- ✅ Contraindicaciones aparecen en UI
+- ✅ Estado restrictivo con datos incompletos (nunca cifra estimada)
+- ✅ Tests para adulto, pediátrico, cardiopatía y datos incompletos
+
+**Métricas:**
+- Suite completa: 1021/1021 pasando (1004 + 17 nuevos)
+- Arquitectura: OK (242 líneas, bajo límite de 250)
+- Build: exitoso (577ms)
+- Branch: `feat/f7-01-anestesia-enriquecida`
+
+**Valor clínico:** Previene errores de dosificación en pacientes vulnerables (niños, cardiopatías, embarazadas) mediante detección automática de contraindicaciones y estado restrictivo cuando faltan datos clínicos obligatorios.
+
+---
+
 ## 2026-08-27 — Cierre de Fase 6 con excepciones documentadas
 
 **Decisión:** Declarar Fase 6 funcionalmente cerrada, con 3 excepciones documentadas que se resuelven en Fase 7.
