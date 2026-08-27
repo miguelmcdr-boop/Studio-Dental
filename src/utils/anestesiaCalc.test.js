@@ -391,4 +391,182 @@ describe('anestesiaCalc', () => {
       })
     })
   })
+
+  // ═══════════════════════════════════════════════════════════════
+  // F7-03: Tests de validación de campos obligatorios (cero defaults silenciosos)
+  // ═══════════════════════════════════════════════════════════════
+  describe('F7-03: Cero defaults numéricos silenciosos', () => {
+    it('concentracionMgPorMl = null → DATOS_INCOMPLETOS (no asume 1 mg/ml)', () => {
+      vi.mocked(vademecumService.obtenerDosisAnestesia).mockReturnValue([{
+        id: 1,
+        nombre: 'Lidocaína 2%',
+        familia: 'anestesico_amida',
+        presentacion: 'Tubo 1.8ml',
+        dosisMaxAdulto_mgPorKg: 4.28,
+        dosisMaxPediatrico_mgPorKg: 4.4,
+        topeAbsolutoAdulto_mg: 300,
+        topeAbsolutoPediatrico_mg: null,
+        contenidoPorUnidad_mg: 36,
+        volumenPorUnidad_ml: 1.8,
+        concentracion_mgPorMl: null,  // FALTANTE
+        contraindicaciones: '',
+        notas: ''
+      }])
+
+      const resultado = calcularDosisAnestesiaCompleta({
+        peso: 70,
+        tipoAnestesico: 'lidocaina',
+        esPediatria: false
+      })
+
+      expect(resultado.estado).toBe('DATOS_INCOMPLETOS')
+      expect(resultado.mensaje).toMatch(/concentracionMgPorMl/)
+      expect(resultado.calculos).toBeNull()
+    })
+
+    it('volumenPorTubo = 0 → DATOS_INCOMPLETOS (no asume 1.8ml)', () => {
+      vi.mocked(vademecumService.obtenerDosisAnestesia).mockReturnValue([{
+        id: 1,
+        nombre: 'Lidocaína 2%',
+        familia: 'anestesico_amida',
+        presentacion: 'Tubo 1.8ml',
+        dosisMaxAdulto_mgPorKg: 4.28,
+        dosisMaxPediatrico_mgPorKg: 4.4,
+        topeAbsolutoAdulto_mg: 300,
+        topeAbsolutoPediatrico_mg: null,
+        contenidoPorUnidad_mg: 36,
+        volumenPorUnidad_ml: 0,  // FALTANTE (cero es inválido)
+        concentracion_mgPorMl: 20,
+        contraindicaciones: '',
+        notas: ''
+      }])
+
+      const resultado = calcularDosisAnestesiaCompleta({
+        peso: 70,
+        tipoAnestesico: 'lidocaina',
+        esPediatria: false
+      })
+
+      expect(resultado.estado).toBe('DATOS_INCOMPLETOS')
+      expect(resultado.mensaje).toMatch(/volumenPorTubo/)
+      expect(resultado.calculos).toBeNull()
+    })
+
+    it('mgPorTubo = undefined → DATOS_INCOMPLETOS', () => {
+      vi.mocked(vademecumService.obtenerDosisAnestesia).mockReturnValue([{
+        id: 1,
+        nombre: 'Lidocaína 2%',
+        familia: 'anestesico_amida',
+        presentacion: 'Tubo 1.8ml',
+        dosisMaxAdulto_mgPorKg: 4.28,
+        dosisMaxPediatrico_mgPorKg: 4.4,
+        topeAbsolutoAdulto_mg: 300,
+        topeAbsolutoPediatrico_mg: null,
+        contenidoPorUnidad_mg: undefined,  // FALTANTE
+        volumenPorUnidad_ml: 1.8,
+        concentracion_mgPorMl: 20,
+        contraindicaciones: '',
+        notas: ''
+      }])
+
+      const resultado = calcularDosisAnestesiaCompleta({
+        peso: 70,
+        tipoAnestesico: 'lidocaina',
+        esPediatria: false
+      })
+
+      expect(resultado.estado).toBe('DATOS_INCOMPLETOS')
+      expect(resultado.mensaje).toMatch(/mgPorTubo/)
+      expect(resultado.calculos).toBeNull()
+    })
+
+    it('múltiples campos faltantes → lista todos en el mensaje', () => {
+      vi.mocked(vademecumService.obtenerDosisAnestesia).mockReturnValue([{
+        id: 1,
+        nombre: 'Lidocaína 2%',
+        familia: 'anestesico_amida',
+        presentacion: 'Tubo 1.8ml',
+        dosisMaxAdulto_mgPorKg: 4.28,
+        dosisMaxPediatrico_mgPorKg: 4.4,
+        topeAbsolutoAdulto_mg: 300,
+        topeAbsolutoPediatrico_mg: null,
+        contenidoPorUnidad_mg: null,
+        volumenPorUnidad_ml: null,
+        concentracion_mgPorMl: null,
+        contraindicaciones: '',
+        notas: ''
+      }])
+
+      const resultado = calcularDosisAnestesiaCompleta({
+        peso: 70,
+        tipoAnestesico: 'lidocaina',
+        esPediatria: false
+      })
+
+      expect(resultado.estado).toBe('DATOS_INCOMPLETOS')
+      expect(resultado.mensaje).toMatch(/concentracionMgPorMl/)
+      expect(resultado.mensaje).toMatch(/volumenPorTubo/)
+      expect(resultado.mensaje).toMatch(/mgPorTubo/)
+      expect(resultado.calculos).toBeNull()
+    })
+
+    it('mgPorKgPediatrico = null en paciente pediátrico → DATOS_INCOMPLETOS (no fallback silencioso a adulto)', () => {
+      vi.mocked(vademecumService.obtenerDosisAnestesia).mockReturnValue([{
+        id: 2,
+        nombre: 'Mepivacaína 3%',
+        familia: 'anestesico_amida',
+        presentacion: 'Tubo 1.8ml',
+        dosisMaxAdulto_mgPorKg: 5.71,
+        dosisMaxPediatrico_mgPorKg: null,  // FALTANTE (ejemplo hipotético)
+        topeAbsolutoAdulto_mg: 400,
+        topeAbsolutoPediatrico_mg: null,
+        contenidoPorUnidad_mg: 54,
+        volumenPorUnidad_ml: 1.8,
+        concentracion_mgPorMl: 30,
+        contraindicaciones: '',
+        notas: ''
+      }])
+
+      const resultado = calcularDosisAnestesiaCompleta({
+        peso: 20,
+        tipoAnestesico: 'mepivacaina',
+        esPediatria: true,
+        edad: 10
+      })
+
+      expect(resultado.estado).toBe('DATOS_INCOMPLETOS')
+      expect(resultado.mensaje).toMatch(/Dosis pediátrica no disponible/)
+      expect(resultado.mensaje).toMatch(/No se aplica dosis adulta a pacientes pediátricos/)
+      expect(resultado.calculos).toBeNull()
+    })
+
+    it('campos válidos → OK (todos los campos obligatorios presentes)', () => {
+      vi.mocked(vademecumService.obtenerDosisAnestesia).mockReturnValue([{
+        id: 1,
+        nombre: 'Lidocaína 2%',
+        familia: 'anestesico_amida',
+        presentacion: 'Tubo 1.8ml',
+        dosisMaxAdulto_mgPorKg: 4.28,
+        dosisMaxPediatrico_mgPorKg: 4.4,
+        topeAbsolutoAdulto_mg: 300,
+        topeAbsolutoPediatrico_mg: null,
+        contenidoPorUnidad_mg: 36,
+        volumenPorUnidad_ml: 1.8,
+        concentracion_mgPorMl: 20,
+        contraindicaciones: '',
+        notas: ''
+      }])
+
+      const resultado = calcularDosisAnestesiaCompleta({
+        peso: 70,
+        tipoAnestesico: 'lidocaina',
+        esPediatria: false
+      })
+
+      expect(resultado.estado).toBe('OK')
+      expect(resultado.calculos).not.toBeNull()
+      expect(resultado.calculos.tubosMaximo).toBeGreaterThan(0)
+    })
+  })
+
 })

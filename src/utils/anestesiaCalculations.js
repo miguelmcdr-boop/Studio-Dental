@@ -89,7 +89,7 @@ export const obtenerDatosAnestesia = () => {
         topeAbsolutoPediatrico: d.topeAbsolutoPediatrico_mg,
         
         mgPorTubo: d.contenidoPorUnidad_mg,
-        volumenPorTubo: d.volumenPorUnidad_ml || 1.8,
+        volumenPorTubo: d.volumenPorUnidad_ml,  // F7-03: sin default, null si falta
         concentracionMgPorMl: d.concentracion_mgPorMl,
         tieneVasoconstrictor: normalizar(d.nombre || '').includes('epinefrina') || normalizar(d.nombre || '').includes('felipresina'),
         concentracionVasoconstrictor:
@@ -175,7 +175,7 @@ export const generarAdvertencias = (anestesia, params) => {
 
   // 3. Cardiopata + vasoconstrictor
   if (esCardiopata && anestesia.tieneVasoconstrictor) {
-    const epiPorTubo = (anestesia.concentracionVasoconstrictor || 0) * (anestesia.volumenPorTubo || 1.8)
+    const epiPorTubo = (anestesia.concentracionVasoconstrictor || 0) * anestesia.volumenPorTubo  // F7-03: volumenPorTubo ya validado arriba
     if (epiPorTubo > 0) {
       const tubosMaximoEpi = Math.floor(0.04 / epiPorTubo)
       advertencias.push(`⚠️ Cardiopatía: limitar Epinefrina a 0.04 mg por sesión (≈ ${tubosMaximoEpi} tubos)`)
@@ -379,10 +379,19 @@ export const calcularDosisAnestesiaCompleta = (params = {}) => {
     topeAbsoluto = anestesia.topeAbsolutoPediatrico || anestesia.topeAbsolutoAdulto
     dosisPorKgUsada = 'pediatrica'
 
+    // F7-03: Si falta dosis pediátrica, retornar estado restrictivo (no fallback silencioso a adulta)
     if (!mgPorKg) {
-      mgPorKg = anestesia.mgPorKgAdulto
-      topeAbsoluto = anestesia.topeAbsolutoAdulto
-      dosisPorKgUsada = 'adulta_fallback'
+      return {
+        estado: 'DATOS_INCOMPLETOS',
+        mensaje: `Dosis pediátrica no disponible para "${anestesia.nombreGenerico}" — Verificación manual requerida. No se aplica dosis adulta a pacientes pediátricos.`,
+        anestesiaInfo: {
+          nombreGenerico: anestesia.nombreGenerico,
+          familia: anestesia.familia,
+          presentacion: anestesia.presentacion
+        },
+        calculos: null,
+        advertencias: ['⚠️ Dosis pediátrica faltante, cálculo bloqueado por seguridad']
+      }
     }
   } else {
     mgPorKg = anestesia.mgPorKgAdulto
@@ -404,6 +413,38 @@ export const calcularDosisAnestesiaCompleta = (params = {}) => {
     }
   }
 
+  // ─── F7-03: Validación de campos obligatorios (sin defaults numéricos) ───
+  const camposObligatorios = {
+    concentracionMgPorMl: anestesia.concentracionMgPorMl,
+    volumenPorTubo: anestesia.volumenPorTubo,
+    mgPorTubo: anestesia.mgPorTubo
+  }
+
+  const camposInvalidos = []
+  if (!camposObligatorios.concentracionMgPorMl || camposObligatorios.concentracionMgPorMl <= 0) {
+    camposInvalidos.push('concentracionMgPorMl')
+  }
+  if (!camposObligatorios.volumenPorTubo || camposObligatorios.volumenPorTubo <= 0) {
+    camposInvalidos.push('volumenPorTubo')
+  }
+  if (!camposObligatorios.mgPorTubo || camposObligatorios.mgPorTubo <= 0) {
+    camposInvalidos.push('mgPorTubo')
+  }
+
+  if (camposInvalidos.length > 0) {
+    return {
+      estado: 'DATOS_INCOMPLETOS',
+      mensaje: `Datos incompletos del anestésico: ${camposInvalidos.join(', ')} — Verificación manual requerida.`,
+      anestesiaInfo: {
+        nombreGenerico: anestesia.nombreGenerico,
+        familia: anestesia.familia,
+        presentacion: anestesia.presentacion
+      },
+      calculos: null,
+      advertencias: []
+    }
+  }
+
   // ─── Cálculos (fórmulas Sección 1B) ───
   let mgMaximo = pesoNumerico * mgPorKg
 
@@ -413,10 +454,10 @@ export const calcularDosisAnestesiaCompleta = (params = {}) => {
     topeUsado = topeAbsoluto
   }
 
-  const concentracion = anestesia.concentracionMgPorMl || 1
+  const concentracion = anestesia.concentracionMgPorMl  // F7-03: sin default
   const mlMaximo = mgMaximo / concentracion
 
-  const volumenPorTubo = anestesia.volumenPorTubo || 1.8
+  const volumenPorTubo = anestesia.volumenPorTubo  // F7-03: sin default
   const tubosMaximo = Math.floor(mlMaximo / volumenPorTubo)
 
   let epinefrinaMg = 0

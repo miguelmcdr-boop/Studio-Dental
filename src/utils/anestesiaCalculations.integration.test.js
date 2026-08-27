@@ -248,7 +248,7 @@ describe('F7-02: Integración vademecumService → anestesiaCalculations', () =>
       expect(resultado[0].topeAbsolutoAdulto).toBeNull()
     })
 
-    it('debe manejar volumenPorUnidad_ml = 0 usando fallback 1.8', () => {
+    it('debe preservar volumenPorUnidad_ml = 0 sin fallback (F7-03)', () => {
       const mockData = [{
         id: 6,
         nombre: 'Anestésico con volumen cero',
@@ -259,7 +259,7 @@ describe('F7-02: Integración vademecumService → anestesiaCalculations', () =>
         topeAbsolutoAdulto_mg: 300,
         topeAbsolutoPediatrico_mg: null,
         contenidoPorUnidad_mg: 36,
-        volumenPorUnidad_ml: 0,  // Valor inválido
+        volumenPorUnidad_ml: 0,  // Valor inválido, F7-03: sin fallback
         concentracion_mgPorMl: 20,
         contraindicaciones: '',
         notas: ''
@@ -269,8 +269,10 @@ describe('F7-02: Integración vademecumService → anestesiaCalculations', () =>
 
       const resultado = obtenerDatosAnestesia()
 
-      // Debe usar fallback 1.8 cuando volumenPorUnidad_ml es 0 (falsy)
-      expect(resultado[0].volumenPorTubo).toBe(1.8)
+      // F7-03: Sin fallback numérico, preserva el valor 0
+      // La validación de campos obligatorios en calcularDosisAnestesiaCompleta
+      // rechazará volumen = 0 con estado DATOS_INCOMPLETOS
+      expect(resultado[0].volumenPorTubo).toBe(0)
     })
   })
 })
