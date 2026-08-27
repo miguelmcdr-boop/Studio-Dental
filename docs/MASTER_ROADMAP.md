@@ -152,7 +152,7 @@
 | F6-06b | Pasos comerciales/manuales de despliegue a producción (hallazgo F6-06) | 6 | P1 | M (1-2 d, proceso) | F6-06 | DEFERRED (2026-08-25) — usar free tier hasta escalar a 10+ clínicas |
 | **— FASE 7: seguridad, privacidad, productización y pre-producción (2026-08-26) —** | | | | | | |
 | F7-01 | Cablear `calcularDosisAnestesiaCompleta` a la UI y retirar la API legada de producción | 7 | **P0** | S (1-2 d) | — | TODO |
-| F7-02 | Corregir el cruce de unidades vademécum → calculadora de anestesia | 7 | **P0** | S (1 d) | F7-01 | TODO |
+| F7-02 | Corregir el cruce de unidades vademécum → calculadora de anestesia | 7 | P0 | S (1 d) | F7-01 | DONE (2026-08-27) — 9 tests integración, 1030/1030 suite, mapeo unidades documentado, refactor a 2 archivos auxiliares |
 | F7-03 | Eliminar defaults numéricos silenciosos restantes en cálculo de anestesia | 7 | **P0** | XS (<0.5 d) | F7-02 | TODO |
 | F7-04 | Poblar y validar columnas numéricas de dosis del vademécum + fallback seguro | 7 | **P0** | M (2-3 d) | F7-02 | TODO |
 | F7-05 | Purga de datos locales al logout: localStorage, IndexedDB, Cache Storage y memoria | 7 | **P0** | S (1 d) | — | TODO |
