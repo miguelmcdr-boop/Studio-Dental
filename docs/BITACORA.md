@@ -33,10 +33,15 @@ Integración en `sesionStore.logout()`:
 - ✅ Tests existentes siguen pasando (1046/1046)
 - ✅ Build + arquitectura OK
 
+**Fixes post-verificación en staging (2):**
+1. Recursión de logout: `supabase.auth.signOut()` dispara SIGNED_OUT y los listeners (useAuthStateListener, useSessionGuard) re-invocaban logout() causando stack overflow. Se agregó flag de guardia `estaCerrandoSesion` con try/finally.
+2. Prefijos incompletos: 6 claves clínicas con PHI sobrevivían al logout (certificados_, odontograma_, periodontograma_, pediatria_, quirurgico_, dsd_). PREFIJOS_APP ampliado de 7 a 13 prefijos; test ampliado de 8 a 14 claves.
+
 **Métricas:**
 - Tests: 1046/1046 pasando (10 nuevos)
 - Build: exitoso
 - Arquitectura: OK (68 archivos en allowlist)
+- Verificación funcional en staging: Local Storage vacío tras logout ✅
 
 ---
 
