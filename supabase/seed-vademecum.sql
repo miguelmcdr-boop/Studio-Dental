@@ -214,3 +214,22 @@ INSERT INTO public.reference_data_meta (id, user_id, version, curado_por, fecha_
 -- SELECT 'manejo_anticoagulantes', count(*) FROM public.manejo_anticoagulantes UNION ALL
 -- SELECT 'reference_data_meta', count(*) FROM public.reference_data_meta;
 -- Resultado esperado: 94 + 11 + 6 + 25 + 15 + 7 + 5 + 1 = 164
+
+
+-- ═══════════════════════════════════════════════════════════════
+-- F7-04: Poblar columnas numéricas de anestésicos para instalaciones nuevas
+-- Mantener sincronizado con supabase/migrations/2026_08_28_0001_f7_04_integridad_dosis_anestesia.sql
+-- ═══════════════════════════════════════════════════════════════
+
+ALTER TABLE public.vademecum
+  ADD COLUMN IF NOT EXISTS dosis_max_adulto_mg_por_kg DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS dosis_max_pediatrica_mg INTEGER;
+
+UPDATE public.vademecum SET dosis_max_adulto_mg = 500, dosis_max_adulto_mg_por_kg = 7.0, dosis_max_pediatrica_mg_por_kg = 4.5, dosis_max_pediatrica_mg = 300, contenido_por_unidad_mg = 36, volumen_por_unidad_ml = 1.8, concentracion_mg_por_ml = 20 WHERE numero = 1;
+UPDATE public.vademecum SET dosis_max_adulto_mg = 500, dosis_max_adulto_mg_por_kg = 7.0, dosis_max_pediatrica_mg_por_kg = 4.5, dosis_max_pediatrica_mg = 300, contenido_por_unidad_mg = 36, volumen_por_unidad_ml = 1.8, concentracion_mg_por_ml = 20 WHERE numero = 2;
+UPDATE public.vademecum SET dosis_max_adulto_mg = 300, dosis_max_adulto_mg_por_kg = 4.4, dosis_max_pediatrica_mg_por_kg = 4.0, dosis_max_pediatrica_mg = 200, contenido_por_unidad_mg = 54, volumen_por_unidad_ml = 1.8, concentracion_mg_por_ml = 30 WHERE numero = 3;
+UPDATE public.vademecum SET dosis_max_adulto_mg = 400, dosis_max_adulto_mg_por_kg = 4.4, dosis_max_pediatrica_mg_por_kg = 4.0, dosis_max_pediatrica_mg = 200, contenido_por_unidad_mg = 36, volumen_por_unidad_ml = 1.8, concentracion_mg_por_ml = 20 WHERE numero = 4;
+UPDATE public.vademecum SET dosis_max_adulto_mg = 500, dosis_max_adulto_mg_por_kg = 7.0, dosis_max_pediatrica_mg_por_kg = 5.0, dosis_max_pediatrica_mg = 300, contenido_por_unidad_mg = 72, volumen_por_unidad_ml = 1.8, concentracion_mg_por_ml = 40 WHERE numero = 5;
+UPDATE public.vademecum SET dosis_max_adulto_mg = 500, dosis_max_adulto_mg_por_kg = 7.0, dosis_max_pediatrica_mg_por_kg = 5.0, dosis_max_pediatrica_mg = 300, contenido_por_unidad_mg = 72, volumen_por_unidad_ml = 1.8, concentracion_mg_por_ml = 40 WHERE numero = 6;
+UPDATE public.vademecum SET dosis_max_adulto_mg = 90, dosis_max_adulto_mg_por_kg = 1.3, dosis_max_pediatrica_mg_por_kg = 1.0, dosis_max_pediatrica_mg = 50, contenido_por_unidad_mg = 9, volumen_por_unidad_ml = 1.8, concentracion_mg_por_ml = 5 WHERE numero = 7;
+
