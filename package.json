@@ -14,7 +14,8 @@
     "validate:architecture": "node scripts/validate-architecture.js",
     "test:e2e": "playwright test --config=e2e/playwright.config.js",
     "test:e2e:ui": "playwright test --config=e2e/playwright.config.js --ui",
-    "test:e2e:headed": "playwright test --config=e2e/playwright.config.js --headed"
+    "test:e2e:headed": "playwright test --config=e2e/playwright.config.js --headed",
+    "dev:staging": "vite --mode staging"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.3",

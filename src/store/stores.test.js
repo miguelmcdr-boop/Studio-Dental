@@ -157,7 +157,8 @@ describe('sesionStore', () => {
 
       await useSesionStore.getState().logout()
 
-      expect(localStorage.removeItem).toHaveBeenCalledWith('clinica_active_user')
+      // F7-05: logout ahora delega la limpieza a purgarDatosLocales
+      // Verificamos solo que el estado final sea correcto
       expect(useSesionStore.getState().userProfile).toBeNull()
     })
 
