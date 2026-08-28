@@ -16,3 +16,4 @@ supabase/.temp/
 
 # Reportes de cobertura (se regeneran con npm run test:coverage)
 coverage/
+.env.staging
