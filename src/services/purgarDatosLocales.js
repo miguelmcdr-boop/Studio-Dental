@@ -39,13 +39,19 @@ const IDB_ADJUNTOS_DB_NAME = 'studio_dental_adjuntos'
 // Si una key no empieza con alguno de estos prefijos, NO se toca
 // (por si hay datos de otras apps en el mismo dominio).
 const PREFIJOS_APP = [
-  'studio_dental_',  // claves de servicios de persistencia
-  'clinica_',        // sesión activa, sección activa, paciente seleccionado
-  'profile_',        // perfiles cacheados por email
-  'recetas_',        // recetas por pacienteId (legacy)
-  'evoluciones_notas_', // evoluciones por pacienteId (legacy)
-  'sb-',             // claves de Supabase Auth (sb-<ref>-auth-token)
-  'goTrue-',         // claves legacy de GoTrue (Supabase Auth antiguo)
+  'studio_dental_',     // claves de servicios de persistencia
+  'clinica_',           // sesión activa, sección activa, paciente seleccionado
+  'profile_',           // perfiles cacheados por email
+  'recetas_',           // recetas por pacienteId
+  'evoluciones_notas_', // evoluciones por pacienteId
+  'certificados_',      // certificados por pacienteId
+  'odontograma_',       // odontograma por pacienteId
+  'periodontograma_',   // periodontograma por pacienteId
+  'pediatria_',         // odontopediatría por pacienteId
+  'quirurgico_',        // implantes/endodoncia por pacienteId
+  'dsd_',               // diseño de sonrisa por clínicaId
+  'sb-',                // claves de Supabase Auth (sb-<ref>-auth-token)
+  'goTrue-',            // claves legacy de GoTrue (Supabase Auth antiguo)
 ]
 
 /**

@@ -100,6 +100,12 @@ describe('purgarDatosLocales (F7-05)', () => {
       mockLocalStorage.setItem('evoluciones_notas_456', '[]')
       mockLocalStorage.setItem('sb-abc123-auth-token', '{}')
       mockLocalStorage.setItem('goTrue-token', 'legacy')
+      mockLocalStorage.setItem('odontograma_789', '[]')
+      mockLocalStorage.setItem('periodontograma_789', '{}')
+      mockLocalStorage.setItem('pediatria_789', '{}')
+      mockLocalStorage.setItem('certificados_789', '[]')
+      mockLocalStorage.setItem('quirurgico_implantes_789', '[]')
+      mockLocalStorage.setItem('dsd_config_clinica1', '{}')
 
       // Claves de otras apps (NO deben tocarse)
       mockLocalStorage.setItem('otra_app_session', 'x')
@@ -107,8 +113,11 @@ describe('purgarDatosLocales (F7-05)', () => {
 
       const r = await purgarDatosLocales()
 
-      // 8 claves de la app borradas
-      expect(r.localStorageKeys).toBe(8)
+      // 14 claves de la app borradas
+      expect(r.localStorageKeys).toBe(14)
+      expect(mockLocalStorage.getItem('pediatria_789')).toBeNull()
+      expect(mockLocalStorage.getItem('periodontograma_789')).toBeNull()
+      expect(mockLocalStorage.getItem('quirurgico_implantes_789')).toBeNull()
       expect(mockLocalStorage.getItem('studio_dental_pacientes_v3')).toBeNull()
       expect(mockLocalStorage.getItem('clinica_active_section')).toBeNull()
       expect(mockLocalStorage.getItem('sb-abc123-auth-token')).toBeNull()
