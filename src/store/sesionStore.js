@@ -8,6 +8,13 @@ const log = createLogger('sesionStore')
 
 const ACTIVE_USER_KEY = 'clinica_active_user'
 
+// F7-05 FIX: flag para prevenir recursión de logout.
+// Cuando logout() llama a supabase.auth.signOut(), Supabase dispara el evento
+// SIGNED_OUT que vuelve a invocar logout() desde los listeners de auth
+// (useAuthStateListener, useSessionGuard). Este flag previene que se ejecute
+// logout() recursivamente, evitando stack overflow y operaciones duplicadas.
+let estaCerrandoSesion = false
+
 /**
  * Carga el perfil activo desde localStorage y garantiza que tenga un rol válido.
  * Si el perfil existe pero no tiene rol válido (campo faltante o valor inválido),
@@ -86,29 +93,44 @@ export const useSesionStore = create((set) => ({
   },
 
   logout: async () => {
-    // 1. Cerrar sesión de Supabase Auth (si está activa) PRIMERO
-    // F4-02c-3: esto previene que el useEffect de App.jsx restaure la sesión
-    // inmediatamente después del logout porque detecta session activa.
-    if (USE_SUPABASE && supabase) {
-      try {
-        await supabase.auth.signOut()
-        log.info('Sesión de Supabase Auth cerrada')
-      } catch (e) {
-        log.error('Error al cerrar sesión de Supabase:', e)
-      }
+    // F7-05 FIX: prevenir recursión de logout
+    // Si ya estamos cerrando sesión, no hacer nada (evita stack overflow
+    // cuando los listeners de Supabase vuelven a llamar logout).
+    if (estaCerrandoSesion) {
+      log.warn('Logout ya está en progreso, ignorando llamada recursiva')
+      return
     }
 
-    // 2. F7-05: purgar todas las capas de persistencia local (stores Zustand,
-    // localStorage, IndexedDB de adjuntos, Cache Storage del Service Worker).
-    // Fail-safe: cada paso es independiente y no aborta si uno falla.
+    estaCerrandoSesion = true
+
     try {
-      await purgarDatosLocales({ logger: log })
-    } catch (e) {
-      log.error('Error durante la purga de datos locales (F7-05):', e)
-    }
+      // 1. Cerrar sesión de Supabase Auth (si está activa) PRIMERO
+      // F4-02c-3: esto previene que el useEffect de App.jsx restaure la sesión
+      // inmediatamente después del logout porque detecta session activa.
+      if (USE_SUPABASE && supabase) {
+        try {
+          await supabase.auth.signOut()
+          log.info('Sesión de Supabase Auth cerrada')
+        } catch (e) {
+          log.error('Error al cerrar sesión de Supabase:', e)
+        }
+      }
 
-    // 3. Limpiar estado de sesión en memoria (el resto ya se limpió en paso 2)
-    set({ userProfile: null })
+      // 2. F7-05: purgar todas las capas de persistencia local (stores Zustand,
+      // localStorage, IndexedDB de adjuntos, Cache Storage del Service Worker).
+      // Fail-safe: cada paso es independiente y no aborta si uno falla.
+      try {
+        await purgarDatosLocales({ logger: log })
+      } catch (e) {
+        log.error('Error durante la purga de datos locales (F7-05):', e)
+      }
+
+      // 3. Limpiar estado de sesión en memoria (el resto ya se limpió en paso 2)
+      set({ userProfile: null })
+    } finally {
+      // Siempre liberar el flag, incluso si hay error
+      estaCerrandoSesion = false
+    }
   },
 
   // Actualiza el perfil en memoria sin tocar localStorage — quien llama
