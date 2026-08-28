@@ -3,6 +3,7 @@ import { agendaStorageService } from '../modules/agenda/services/agendaStorageSe
 import { presupuestosStorageService } from '../modules/presupuestos/services/presupuestosStorageService'
 import { pagosStorageService } from '../modules/pagos/services/pagosStorageService'
 import { finanzasStorageService } from '../modules/finanzas/services/finanzasStorageService'
+import { vademecumService } from '../services/vademecumService'
 import { createLogger } from '../services/logger.js'
 
 const log = createLogger('useSincronizacionInicial')
@@ -24,6 +25,7 @@ export const useSincronizacionInicial = (enabled) => {
         ['presupuestos', presupuestosStorageService],
         ['pagos', pagosStorageService],
         ['movimientos_financieros', finanzasStorageService],
+        ['vademecum', vademecumService],
       ]
 
       for (const [nombre, servicio] of servicios) {

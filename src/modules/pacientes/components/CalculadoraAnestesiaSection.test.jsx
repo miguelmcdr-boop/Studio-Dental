@@ -87,7 +87,9 @@ describe('CalculadoraAnestesiaSection (F7-01)', () => {
 
     it('muestra badge de dosis pediátrica cuando edad < 18', () => {
       render(<CalculadoraAnestesiaSection paciente={pacientePediatrico} />)
-      expect(screen.getByText(/Dosis pediátrica/)).toBeInTheDocument()
+      // Puede aparecer en header y/o resultado, verificamos que hay al menos 1
+      const badges = screen.getAllByText(/Dosis pediátrica/)
+      expect(badges.length).toBeGreaterThanOrEqual(1)
     })
 
     it('muestra badge de cardiopatía cuando enfermedades contienen términos cardiovasculares', () => {
@@ -143,9 +145,9 @@ describe('CalculadoraAnestesiaSection (F7-01)', () => {
     it('muestra advertencia para Bupivacaína en niño < 12 años', () => {
       const { container } = render(<CalculadoraAnestesiaSection paciente={pacientePediatrico} />)
       
-      // Seleccionar Bupivacaína
+      // Seleccionar Bupivacaína (número 4 en el respaldo)
       const select = screen.getByTestId('anestesia-tipo')
-      fireEvent.change(select, { target: { value: 'bupivacaina' } })
+      fireEvent.change(select, { target: { value: 4 } })
       
       // Debe mostrar contraindicación
       const advertencias = screen.queryByTestId('anestesia-advertencias')
@@ -158,8 +160,9 @@ describe('CalculadoraAnestesiaSection (F7-01)', () => {
       const bebe = { ...pacientePediatrico, edad: 2, peso: 12 }
       render(<CalculadoraAnestesiaSection paciente={bebe} />)
       
+      // Seleccionar Articaína (número 3 en el respaldo)
       const select = screen.getByTestId('anestesia-tipo')
-      fireEvent.change(select, { target: { value: 'articaina' } })
+      fireEvent.change(select, { target: { value: 3 } })
       
       const advertencias = screen.queryByTestId('anestesia-advertencias')
       expect(advertencias).toBeInTheDocument()
@@ -170,8 +173,9 @@ describe('CalculadoraAnestesiaSection (F7-01)', () => {
     it('muestra indicador visual de población pediátrica en caso OK', () => {
       render(<CalculadoraAnestesiaSection paciente={pacientePediatrico} />)
       
-      // Badge del header debe indicar dosis pediátrica
-      expect(screen.getByText(/Dosis pediátrica/)).toBeInTheDocument()
+      // Badge del header debe indicar dosis pediátrica (puede haber múltiples)
+      const badges = screen.getAllByText(/Dosis pediátrica/)
+      expect(badges.length).toBeGreaterThanOrEqual(1)
       
       // Resultado debe ser OK (cálculo válido)
       const resultado = screen.getByTestId('anestesia-resultado-ok')
