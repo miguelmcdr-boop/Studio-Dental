@@ -1,3 +1,45 @@
+## 2026-08-28 — F7-05: Purga de datos locales al logout — DONE
+
+**Qué se ganó:** Al cerrar sesión, la app ahora limpia TODAS las capas de persistencia local (localStorage, IndexedDB, Cache Storage y stores Zustand), eliminando el riesgo de fuga de PHI entre usuarios del mismo dispositivo.
+
+**Problema resuelto:**
+Antes de F7-05, el logout solo limpiaba la clave `clinica_active_user` de localStorage y el estado Zustand de sesión. Las 17+ claves de localStorage con datos clínicos (pacientes, recetas, evoluciones, certificados, odontogramas, etc.), los blobs de adjuntos en IndexedDB y las caches del Service Worker permanecían intactos. Si otro usuario se logueaba en el mismo dispositivo, podía ver datos clínicos del usuario anterior.
+
+**Solución implementada:**
+
+Nuevo servicio `purgarDatosLocales()` con 4 pasos fail-safe (cada uno independiente):
+
+1. **Stores Zustand en memoria:** reset de pacientesStore y prestacionesStore
+2. **localStorage:** iteración de todas las claves, eliminación selectiva por 7 prefijos conocidos (`studio_dental_`, `clinica_`, `profile_`, `recetas_`, `evoluciones_notas_`, `sb-`, `goTrue-`). No usa `localStorage.clear()` para no borrar datos de otras apps.
+3. **IndexedDB:** `indexedDB.deleteDatabase('studio_dental_adjuntos')` para eliminar blobs clínicos
+4. **Cache Storage:** `caches.keys()` + `caches.delete()` para cada cache del Service Worker
+
+Integración en `sesionStore.logout()`:
+- Paso 1: Cerrar sesión de Supabase Auth
+- Paso 2: `purgarDatosLocales()` (NUEVO)
+- Paso 3: `set({ userProfile: null })`
+
+**Archivos modificados (4):**
+- `src/services/purgarDatosLocales.js` — servicio nuevo (200 líneas)
+- `src/services/purgarDatosLocales.test.js` — 10 tests nuevos
+- `src/store/sesionStore.js` — integrar purga en logout
+- `src/store/stores.test.js` — actualizar test de logout
+
+**Criterios de aceptación (6/6):**
+- ✅ purgarDatosLocales.js implementado y testeado (10 tests)
+- ✅ Integrado en sesionStore.logout()
+- ✅ Cada paso independiente (fail-safe)
+- ✅ No borra datos de otras apps (filtrado por prefijos)
+- ✅ Tests existentes siguen pasando (1046/1046)
+- ✅ Build + arquitectura OK
+
+**Métricas:**
+- Tests: 1046/1046 pasando (10 nuevos)
+- Build: exitoso
+- Arquitectura: OK (68 archivos en allowlist)
+
+---
+
 ## 2026-08-28 — BUGFIX-01: Calculadora de anestesia - alineacion de contratos UI-Backend — DONE
 
 **Qué se ganó:** La calculadora ahora muestra valores reales (tubos y mg), el dropdown se pobla desde Supabase con dosis correctas, y el vademecum se sincroniza al login. Sin esto, la migracion F7-04 no seria visible en la app.
