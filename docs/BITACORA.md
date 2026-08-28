@@ -1,3 +1,37 @@
+## 2026-08-28 — BUGFIX-01: Calculadora de anestesia - alineacion de contratos UI-Backend — DONE
+
+**Qué se ganó:** La calculadora ahora muestra valores reales (tubos y mg), el dropdown se pobla desde Supabase con dosis correctas, y el vademecum se sincroniza al login. Sin esto, la migracion F7-04 no seria visible en la app.
+
+**Problema resuelto (4 bugs):**
+1. El componente leia calculos.tubos / calculos.mgMax / calculos.dosisUsada pero la API retorna tubosMaximo / mgMaximo / dosisPorKgUsada → numeros vacios en UI.
+2. Dropdown hardcodeado con valores incorrectos (Lidocaina Max 4.4 mg/kg cuando Supabase tiene 7.0; Mepivacaina 6.6 cuando es 4.4).
+3. useSincronizacionInicial no incluia vademecumService → la app usaba el respaldo minimo v1.0 en vez de Supabase.
+4. Tests con contratos viejos (strings en el select, getByText con elementos duplicados).
+
+**Solucion:**
+- Fix 1: nombres alineados en CalculadoraAnestesiaSection.jsx.
+- Fix 2: select dinamico con listarAnestesicosDisponibles() y value numerico.
+- Fix 3: vademecumService agregado al array de servicios de useSincronizacionInicial.js.
+- Fix 4: tests con value numerico (3, 4) y getAllByText.
+- Mejora: listarAnestesicosDisponibles() expone contenidoPorUnidad_mg y dosisMaxAdulto_mgPorKg consistentes entre respaldo y Supabase.
+
+**Archivos modificados (4):**
+- src/modules/pacientes/components/CalculadoraAnestesiaSection.jsx
+- src/hooks/useSincronizacionInicial.js
+- src/modules/pacientes/components/CalculadoraAnestesiaSection.test.jsx
+- src/utils/anestesiaCalculations.js
+
+**Criterios (5/5):**
+- ✅ Numeros visibles en UI (tubosMaximo, mgMaximo)
+- ✅ Dropdown con datos reales de Supabase
+- ✅ Vademecum sincroniza al login
+- ✅ 1036/1036 tests sin regresion
+- ✅ Build y arquitectura OK
+
+**Valor clinico:** Elimina riesgo de dosis mostradas con valores hardcodeados desactualizados; la UI refleja el vademecum curado en Supabase.
+
+---
+
 ## 2026-08-27 — F7-04: Poblar y validar columnas numéricas de dosis del vademécum + fallback seguro — DONE
 
 **Qué se ganó:** Elimina cálculos derivados en JavaScript y garantiza que todos los anestésicos inyectables tengan valores numéricos explícitos en la base de datos. Previene errores de dosificación causados por valores calculados (ej: topeAbsolutoAdulto_mg / 70kg).
