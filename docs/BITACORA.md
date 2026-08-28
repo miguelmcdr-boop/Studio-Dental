@@ -1,3 +1,36 @@
+## 2026-08-28 — F7-06: Excluir rutas de Supabase del caching de PHI — DONE
+
+**Qué se ganó:** El Service Worker ya no cachea endpoints de Supabase que sirven información de salud protegida (PHI), cerrando un gap de seguridad detectado tras implementar F7-05.
+
+**Problema resuelto:**
+F7-05 (purga al logout) pierde efectividad si el Service Worker cachea respuestas de PHI entre sesiones. La configuración original de `vite.config.js` cacheaba TODAS las URLs con hostname "supabase" (incluyendo `/rest/v1/`, `/storage/v1/`, `/auth/v1/`, `/realtime/v1/`), lo que permitía a un atacante con acceso a la máquina extraer PHI histórica de la cache del SW.
+
+**Solución implementada:**
+
+Modificación del `urlPattern` del `runtimeCaching` de Supabase en `vite.config.js` para excluir los 4 endpoints sensibles. Solo se cachean assets estáticos del dominio Supabase (favicon, etc.) que no contengan PHI.
+
+La lógica de filtrado se extrae a util testeable `src/utils/supabaseCacheFilter.js` y se replica inline en `vite.config.js` (porque vite.config.js no puede importar módulos ESM de src/ al construir el SW de forma confiable).
+
+**Archivos modificados (4):**
+- `vite.config.js` — filtro inline en urlPattern
+- `vitest.config.js` — aceptar tests en raíz
+- `src/utils/supabaseCacheFilter.js` — util testeable (NUEVO)
+- `vite.config.test.js` — 6 tests nuevos (NUEVO)
+
+**Criterios de aceptación (5/5):**
+- ✅ `/rest/v1/*` no se cachea
+- ✅ `/storage/v1/*` no se cachea
+- ✅ `/auth/v1/*` no se cachea
+- ✅ `/realtime/v1/*` no se cachea
+- ✅ Test unitario cubre los 4 casos de exclusión + 2 inclusiones
+
+**Métricas:**
+- Tests: 1052/1052 pasando (6 nuevos)
+- Build: exitoso
+- Arquitectura: OK (68 archivos en allowlist)
+
+---
+
 ## 2026-08-28 — F7-05: Purga de datos locales al logout — DONE
 
 **Qué se ganó:** Al cerrar sesión, la app ahora limpia TODAS las capas de persistencia local (localStorage, IndexedDB, Cache Storage y stores Zustand), eliminando el riesgo de fuga de PHI entre usuarios del mismo dispositivo.
