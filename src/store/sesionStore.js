@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { esRolValido, obtenerRolPorDefecto } from '../services/rbacService'
 import { supabase, USE_SUPABASE } from '../services/supabaseClient'
 import { createLogger } from '../services/logger'
+import { purgarDatosLocales } from '../services/purgarDatosLocales'
 
 const log = createLogger('sesionStore')
 
@@ -85,14 +86,7 @@ export const useSesionStore = create((set) => ({
   },
 
   logout: async () => {
-    // 1. Cerrar sesión local (localStorage)
-    try {
-      localStorage.removeItem(ACTIVE_USER_KEY)
-    } catch (e) {
-      log.error('Error al cerrar la sesión local:', e)
-    }
-
-    // 2. Cerrar sesión de Supabase Auth (si está activa)
+    // 1. Cerrar sesión de Supabase Auth (si está activa) PRIMERO
     // F4-02c-3: esto previene que el useEffect de App.jsx restaure la sesión
     // inmediatamente después del logout porque detecta session activa.
     if (USE_SUPABASE && supabase) {
@@ -104,7 +98,16 @@ export const useSesionStore = create((set) => ({
       }
     }
 
-    // 3. Limpiar estado en memoria
+    // 2. F7-05: purgar todas las capas de persistencia local (stores Zustand,
+    // localStorage, IndexedDB de adjuntos, Cache Storage del Service Worker).
+    // Fail-safe: cada paso es independiente y no aborta si uno falla.
+    try {
+      await purgarDatosLocales({ logger: log })
+    } catch (e) {
+      log.error('Error durante la purga de datos locales (F7-05):', e)
+    }
+
+    // 3. Limpiar estado de sesión en memoria (el resto ya se limpió en paso 2)
     set({ userProfile: null })
   },
 
