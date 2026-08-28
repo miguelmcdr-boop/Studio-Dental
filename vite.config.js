@@ -36,10 +36,28 @@ export default defineConfig({
           /^\/storage\/v1\//,
           /^\/realtime\/v1\//
         ],
-        // API calls a Supabase: network-first (datos frescos, fallback a cache)
+        // F7-06: API calls a Supabase: network-first, PERO SIN CACHEAR PHI.
+        // Los endpoints /rest/v1/, /storage/v1/, /auth/v1/ y /realtime/v1/
+        // sirven informacion de salud protegida (PHI) y no deben quedar en
+        // la cache del Service Worker (riesgo de fuga si otro usuario usa
+        // el mismo dispositivo). Se cachean solo assets estaticos de Supabase.
+        // La logica de filtrado vive en src/utils/supabaseCacheFilter.js
+        // para ser testeable de forma aislada.
         runtimeCaching: [
           {
-            urlPattern: ({ url }) => url.hostname.includes('supabase'),
+            urlPattern: ({ url }) => {
+              // Replica de src/utils/supabaseCacheFilter.js (inline porque
+              // vite.config.js no puede importar modulos ESM de src/ de forma
+              // confiable al construir el SW). Mantener sincronizado.
+              if (!url.hostname.includes('supabase')) return false
+              const path = url.pathname
+              return !(
+                path.startsWith('/rest/v1/') ||
+                path.startsWith('/storage/v1/') ||
+                path.startsWith('/auth/v1/') ||
+                path.startsWith('/realtime/v1/')
+              )
+            },
             handler: 'NetworkFirst',
             options: {
               cacheName: 'supabase-cache',
