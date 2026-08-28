@@ -1,34 +1,70 @@
-## 2026-08-28 — BUGFIX-01: Calculadora de anestesia - alineacion de contratos UI-Backend — DONE
+## 2026-08-27 — F7-04: Poblar y validar columnas numéricas de dosis del vademécum + fallback seguro — DONE
 
-**Qué se ganó:** La calculadora ahora muestra valores reales (tubos y mg), el dropdown se pobla desde Supabase con dosis correctas, y el vademecum se sincroniza al login. Sin esto, la migracion F7-04 no seria visible en la app.
+**Qué se ganó:** Elimina cálculos derivados en JavaScript y garantiza que todos los anestésicos inyectables tengan valores numéricos explícitos en la base de datos. Previene errores de dosificación causados por valores calculados (ej: topeAbsolutoAdulto_mg / 70kg).
 
-**Problema resuelto (4 bugs):**
-1. El componente leia calculos.tubos / calculos.mgMax / calculos.dosisUsada pero la API retorna tubosMaximo / mgMaximo / dosisPorKgUsada → numeros vacios en UI.
-2. Dropdown hardcodeado con valores incorrectos (Lidocaina Max 4.4 mg/kg cuando Supabase tiene 7.0; Mepivacaina 6.6 cuando es 4.4).
-3. useSincronizacionInicial no incluia vademecumService → la app usaba el respaldo minimo v1.0 en vez de Supabase.
-4. Tests con contratos viejos (strings en el select, getByText con elementos duplicados).
+**Problema resuelto:**
+El código tenía cálculos derivados que violaban integridad de datos clínicos:
+1. `dosisMaxAdulto_mgPorKg` se calculaba como `topeAbsolutoAdulto_mg / 70` (peso estándar)
+2. `topeAbsolutoPediatrico_mg` siempre era `null` (no había columna en SQL)
+3. Los datos de respaldo tampoco tenían estos valores explícitos
+4. El schema SQL no tenía columnas para `dosis_max_adulto_mg_por_kg` ni `dosis_max_pediatrica_mg`
 
-**Solucion:**
-- Fix 1: nombres alineados en CalculadoraAnestesiaSection.jsx.
-- Fix 2: select dinamico con listarAnestesicosDisponibles() y value numerico.
-- Fix 3: vademecumService agregado al array de servicios de useSincronizacionInicial.js.
-- Fix 4: tests con value numerico (3, 4) y getAllByText.
-- Mejora: listarAnestesicosDisponibles() expone contenidoPorUnidad_mg y dosisMaxAdulto_mgPorKg consistentes entre respaldo y Supabase.
+**Solución implementada:**
+1. **Migración SQL** (`supabase/migrations/2026_08_28_0001_f7_04_integridad_dosis_anestesia.sql`):
+   - Agrega 2 columnas: `dosis_max_adulto_mg_por_kg` y `dosis_max_pediatrica_mg`
+   - Población de 7 anestésicos inyectables con valores numéricos correctos
+   - Validación de integridad: verifica que no haya NULL ni valores no positivos
+   - Comentarios en columnas explicando el propósito de F7-04
+
+2. **vademecumAnestesia.js**:
+   - Eliminado cálculo derivado: `topeAbsolutoAdulto_mg / 70`
+   - Ahora lee directamente: `dosisMaxAdulto_mgPorKg: f.dosis_max_adulto_mg_por_kg`
+   - Agregado: `topeAbsolutoPediatrico_mg: f.dosis_max_pediatrica_mg`
+
+3. **Datos de respaldo** (4 anestésicos):
+   - Lidocaína: `dosis_max_adulto_mg_por_kg: 7.0, dosis_max_pediatrica_mg: 300`
+   - Mepivacaína: `dosis_max_adulto_mg_por_kg: 4.4, dosis_max_pediatrica_mg: 200`
+   - Articaína: `dosis_max_adulto_mg_por_kg: 7.0, dosis_max_pediatrica_mg: 300`
+   - Bupivacaína: `dosis_max_adulto_mg_por_kg: 1.3, dosis_max_pediatrica_mg: 50`
+
+4. **seed-vademecum.sql**:
+   - Agregado bloque F7-04 al final con updates de los 7 anestésicos
+   - Mantiene compatibilidad con despliegues nuevos
 
 **Archivos modificados (4):**
-- src/modules/pacientes/components/CalculadoraAnestesiaSection.jsx
-- src/hooks/useSincronizacionInicial.js
-- src/modules/pacientes/components/CalculadoraAnestesiaSection.test.jsx
-- src/utils/anestesiaCalculations.js
+- `supabase/schema-vademecum.sql` — 2 columnas nuevas agregadas
+- `src/services/vademecumAnestesia.js` — cálculo derivado eliminado
+- `src/services/vademecumService.js` — 4 anestésicos con campos F7-04
+- `supabase/seed-vademecum.sql` — bloque F7-04 al final
 
-**Criterios (5/5):**
-- ✅ Numeros visibles en UI (tubosMaximo, mgMaximo)
-- ✅ Dropdown con datos reales de Supabase
-- ✅ Vademecum sincroniza al login
-- ✅ 1036/1036 tests sin regresion
-- ✅ Build y arquitectura OK
+**Archivos creados (1):**
+- `supabase/migrations/2026_08_28_0001_f7_04_integridad_dosis_anestesia.sql`
 
-**Valor clinico:** Elimina riesgo de dosis mostradas con valores hardcodeados desactualizados; la UI refleja el vademecum curado en Supabase.
+**Criterios de aceptación (5/5):**
+- ✅ Columnas faltantes agregadas al schema SQL
+- ✅ Datos poblados con valores clínicos correctos (extraídos de posología textual)
+- ✅ Cálculos derivados eliminados del código
+- ✅ Validación de integridad mínima de datos (no NULL, valores positivos)
+- ✅ 1036/1036 tests pasando sin regresión
+
+**Valores poblados:**
+
+| Anestésico | Adulto mg/kg | Pediátrico mg/kg | Tope adulto mg | Tope pediátrico mg |
+|------------|--------------|------------------|----------------|-------------------|
+| Lidocaína 2% + Epi 1:100.000 | 7.0 | 4.5 | 500 | 300 |
+| Lidocaína 2% + Epi 1:200.000 | 7.0 | 4.5 | 500 | 300 |
+| Mepivacaína 3% sin vaso | 4.4 | 4.0 | 300 | 200 |
+| Mepivacaína 2% + Levonordefrina | 4.4 | 4.0 | 400 | 200 |
+| Articaína 4% + Epi 1:100.000 | 7.0 | 5.0 | 500 | 300 |
+| Articaína 4% + Epi 1:200.000 | 7.0 | 5.0 | 500 | 300 |
+| Bupivacaína 0.5% + Epi 1:200.000 | 1.3 | 1.0 | 90 | 50 |
+
+**Métricas:**
+- Suite completa: 1036/1036 pasando (sin cambios desde F7-03)
+- Build: exitoso (577ms)
+- Arquitectura: 68 archivos en allowlist, 0 violaciones
+
+**Valor clínico:** Garantiza que todos los cálculos de dosis usen valores explícitos y revisables clínicamente, eliminando la posibilidad de errores causados por cálculos derivados incorrectos (ej: asumir peso estándar de 70kg para todos los adultos).
 
 ---
 

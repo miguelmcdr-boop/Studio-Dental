@@ -154,8 +154,7 @@
 | F7-01 | Cablear `calcularDosisAnestesiaCompleta` a la UI y retirar la API legada de producción | 7 | **P0** | S (1-2 d) | — | TODO |
 | F7-02 | Corregir el cruce de unidades vademécum → calculadora de anestesia | 7 | P0 | S (1 d) | F7-01 | DONE (2026-08-27) — 9 tests integración, 1030/1030 suite, mapeo unidades documentado, refactor a 2 archivos auxiliares |
 | F7-03 | Eliminar defaults numéricos silenciosos restantes en cálculo de anestesia | 7 | P0 | XS (<0.5 d) | F7-02 | DONE (2026-08-27) — 6 tests edge cases, 1036/1036 suite, cero fallbacks numéricos |
-| F7-04 | Poblar y validar columnas numéricas de dosis del vademécum + fallback seguro | 7 | **P0** | M (2-3 d) | F7-02 | TODO |
-| BUGFIX-01 | Alinear contratos UI-Backend de calculadora de anestesia y sincronizacion de vademecum | 7 | **P0** | S (1 d) | F7-01 | DONE (2026-08-28) — 4 bugs corregidos, dropdown dinamico, vademecum sincroniza al login, 1036/1036 tests |
+| F7-04 | Poblar y validar columnas numéricas de dosis del vademécum + fallback seguro | 7 | P0 | M (2-3 d) | F7-02 | DONE (2026-08-27) — migración SQL, 7 anestésicos poblados, cálculo derivado eliminado, 1036/1036 tests |
 | F7-05 | Purga de datos locales al logout: localStorage, IndexedDB, Cache Storage y memoria | 7 | **P0** | S (1 d) | — | TODO |
 | F7-06 | Excluir `/rest/v1/`, `/storage/v1/` y `/auth/v1/` del caching de PHI | 7 | **P0** | XS (<0.5 d) | F7-05 | TODO |
 | F7-07 | Aislar caché local por `clinica_id` y evitar fuga en arranque en frío | 7 | P1 | S (1-2 d) | F7-05 | TODO |
