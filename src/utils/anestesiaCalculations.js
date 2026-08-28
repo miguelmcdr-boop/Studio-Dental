@@ -518,6 +518,8 @@ export const listarAnestesicosDisponibles = () => {
     nombreGenerico: d.nombreGenerico,
     familia: d.familia,
     presentacion: d.presentacion,
+    contenidoPorUnidad_mg: d.mgPorTubo,
+    dosisMaxAdulto_mgPorKg: d.mgPorKgAdulto,
     concentracionMgPorMl: d.concentracionMgPorMl,
     tieneVasoconstrictor: d.tieneVasoconstrictor
   }))

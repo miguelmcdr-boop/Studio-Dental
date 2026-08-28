@@ -1,5 +1,5 @@
 import React, { memo, useState, useMemo } from 'react'
-import { calcularDosisAnestesiaCompleta } from '../../../utils/anestesiaCalculations'
+import { calcularDosisAnestesiaCompleta, listarAnestesicosDisponibles } from '../../../utils/anestesiaCalculations'
 import { esCardiopata, esPediatria, parseEdad } from '../utils/anestesiaHelpers'
 import { CONFIG_ESTADO } from '../constants/anestesiaConstants'
 
@@ -30,6 +30,9 @@ export const CalculadoraAnestesiaSection = memo(({ paciente }) => {
   const [pesoPaciente, setPesoPaciente] = useState(paciente?.peso ?? '')
   const [tipoAnestesicoCalc, setTipoAnestesicoCalc] = useState('lidocaina')
   const [esEmbarazo, setEsEmbarazo] = useState(false)
+
+  // Fix #2: Poblar dropdown dinámicamente desde Supabase
+  const anestesicos = useMemo(() => listarAnestesicosDisponibles(), [])
 
   const edadPaciente = paciente?.edad ?? null
   const enfermedadesPaciente = paciente?.enfermedades ?? ''
@@ -127,13 +130,14 @@ export const CalculadoraAnestesiaSection = memo(({ paciente }) => {
               id="anestesia-tipo"
               data-testid="anestesia-tipo"
               value={tipoAnestesicoCalc}
-              onChange={(e) => setTipoAnestesicoCalc(e.target.value)}
+              onChange={(e) => setTipoAnestesicoCalc(Number(e.target.value))}
               className="w-full p-2.5 rounded-xl border border-gray-300 font-semibold bg-white"
             >
-              <option value="lidocaina">Lidocaína 2% con Epinefrina (36 mg/tubo — Máx 4.4 mg/kg)</option>
-              <option value="mepivacaina">Mepivacaína 3% sin vasoconstrictor (54 mg/tubo — Máx 6.6 mg/kg)</option>
-              <option value="articaina">Articaína 4% con Epinefrina (72 mg/tubo — Máx 7.0 mg/kg)</option>
-              <option value="bupivacaina">Bupivacaína 0.5% con Epinefrina (9 mg/tubo — Máx 1.3 mg/kg)</option>
+              {anestesicos.map((a) => (
+                <option key={a.numero} value={a.numero}>
+                  {a.nombreGenerico} ({a.contenidoPorUnidad_mg} mg/tubo — Máx {a.dosisMaxAdulto_mgPorKg} mg/kg)
+                </option>
+              ))}
             </select>
           </div>
 
@@ -162,17 +166,17 @@ export const CalculadoraAnestesiaSection = memo(({ paciente }) => {
               {config.label}
             </span>
             <span className="text-3xl font-extrabold text-blue-900">
-              {resultadoAnestesia.calculos.tubos} Tubos
+              {resultadoAnestesia.calculos.tubosMaximo} Tubos
             </span>
             <span className="text-xs font-semibold text-blue-700 mt-1">
-              Dosis máxima: {resultadoAnestesia.calculos.mgMax} mg
+              Dosis máxima: {resultadoAnestesia.calculos.mgMaximo} mg
             </span>
-            {resultadoAnestesia.calculos.dosisUsada === 'pediatrica' && (
+            {resultadoAnestesia.calculos.dosisPorKgUsada === 'pediatrica' && (
               <span className="text-[11px] text-amber-700 mt-2 font-semibold">
                 ⚠️ Dosis pediátrica aplicada ({resultadoAnestesia.calculos.mgPorKg} mg/kg)
               </span>
             )}
-            {resultadoAnestesia.calculos.dosisUsada === 'adulta_fallback' && (
+            {resultadoAnestesia.calculos.dosisPorKgUsada === 'adulta_fallback' && (
               <span className="text-[11px] text-amber-700 mt-2 font-semibold">
                 ⚠️ Dosis adulta aplicada (pediátrica no disponible)
               </span>
