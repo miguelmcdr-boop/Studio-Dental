@@ -172,7 +172,7 @@
 | F7-18 | Auditoría XSS / HTML no confiable en datos clínicos | 7 | **P0** | S (1 d) | — | TODO |
 | F7-19 | Auditoría de exportaciones: RBAC, PHI y auditabilidad | 7 | **P0** | S (1-2 d) | F7-08 | TODO |
 | F7-20 | Pen-test lógico multi-tenant contra Supabase sin pasar por la UI | 7 | **P0** | M (1-2 d) | F7-10 | TODO |
-| F7-21 | Prueba de logout y recuperación de sesión en equipo compartido | 7 | **P0** | S (1 d) | F7-05 | TODO |
+| F7-21 | Prueba de logout y recuperación de sesión en equipo compartido | 7 | **P0** | S (1 d) | F7-05 | DONE (2026-08-29) — test E2E A→logout→B pasando (2/2), seed de 6 usuarios E2E en Supabase, fix de trigger handle_new_user |
 | F7-22 | Auditoría de Storage: buckets privados, signed URLs y aislamiento por clínica | 7 | **P0** | S (1-2 d) | F7-07 | TODO |
 | F7-23 | Auditoría de logs para garantizar ausencia de PHI | 7 | P1 | S (0.5-1 d) | — | TODO |
 | F7-24 | Security Regression Suite como gate de CI/staging | 7 | **P0** | M (2-3 d) | F7-08,F7-20,F7-21,F7-22 | TODO |
