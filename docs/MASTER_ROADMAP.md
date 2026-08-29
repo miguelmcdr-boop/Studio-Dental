@@ -164,7 +164,7 @@
 | F7-10 | `clinica_actual()` determinista + `es_admin_de_clinica_actual()` acotada + selector de clínica | 7 | **P0** | M (2-3 d) | F7-09 | TODO |
 | F7-11 | Onboarding de clínica/miembros sin `service_role` en frontend | 7 | P1 | M (3-5 d) | F7-10 | TODO |
 | F7-12 | Extender validador arquitectónico a `src/services/` + reducción de allowlist | 7 | P2 | S (1-2 d) | — | TODO |
-| F7-13 | Migraciones versionadas en `supabase/migrations/` + reconstrucción desde cero | 7 | **P0** | M (2-4 d) | — | TODO |
+| F7-13 | Migraciones versionadas en `supabase/migrations/` + reconstrucción desde cero | 7 | **P0** | M (2-4 d) | — | DONE (2026-08-29) — 10 migraciones con timestamps, seeds por entorno, 6 scripts npm, script de verificación, 5 tests |
 | F7-14 | Security headers: CSP, HSTS y Permissions-Policy | 7 | P2 | S (1 d) | — | TODO |
 | F7-15 | Sustituir `xlsx@0.18.5` por dependencia sin advisories abiertos | 7 | P2 | S (1 d) | — | TODO |
 | F7-16 | Retirar o endurecer autenticación local PBKDF2 + localStorage | 7 | P2 | S (1 d) | F7-05 | TODO |
