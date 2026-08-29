@@ -15,7 +15,13 @@
     "test:e2e": "playwright test --config=e2e/playwright.config.js",
     "test:e2e:ui": "playwright test --config=e2e/playwright.config.js --ui",
     "test:e2e:headed": "playwright test --config=e2e/playwright.config.js --headed",
-    "dev:staging": "vite --mode staging"
+    "dev:staging": "vite --mode staging",
+    "db:reset": "supabase db reset",
+    "db:push": "supabase db push",
+    "db:pull": "supabase db pull",
+    "db:diff": "supabase db diff",
+    "db:seed": "supabase db seed",
+    "db:verify": "node scripts/db/verify-migrations.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.3",

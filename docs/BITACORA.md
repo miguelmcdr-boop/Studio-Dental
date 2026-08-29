@@ -1,3 +1,50 @@
+## 2026-08-29 — F7-13: Migraciones versionadas de esquema + seed reproducible — DONE
+
+**Qué se ganó:** Todos los objetos de base de datos ahora pueden reconstruirse desde `supabase/migrations/`, garantizando reproducibilidad, trazabilidad y seguridad en cambios de esquema.
+
+**Problema resuelto:**
+El esquema estaba disperso en 14 archivos `schema-*.sql` sueltos sin orden explícito ni versionado. No había forma de reconstruir un entorno desde cero ni auditar qué cambios se aplicaron y en qué orden. Esto bloqueaba el Release Candidate (F7-30) y las tareas de esquema del Sprint 2 (F7-08, F7-09).
+
+**Solución implementada:**
+
+1. **10 migraciones versionadas** en `supabase/migrations/` con timestamps, consolidando los 14 archivos `schema-*.sql` (base_schema, clinical_tables, multiclinica_base, multiclinica_rls, rbac_base, rbac_policies, soft_delete, audit_log, certificados, vademecum).
+2. **`supabase/config.toml`** con configuración de Supabase CLI.
+3. **Seeds por entorno** en `supabase/seeds/`: dev, staging, e2e (usuarios F7-21), vademecum. Sin PHI real.
+4. **6 scripts npm:** db:reset, db:push, db:pull, db:diff, db:seed, db:verify.
+5. **Script de verificación** `scripts/db/verify-migrations.js` que compara tablas, funciones y triggers de las migraciones con el esquema de producción.
+6. **Tests unitarios** `scripts/db/verify-migrations.test.js` (5 tests).
+7. **Documentación** `supabase/README_MIGRATIONS.md` con flujo de trabajo.
+
+**Archivos modificados:**
+- `supabase/migrations/` (10 migraciones nuevas)
+- `supabase/seeds/` (4 seeds nuevos)
+- `supabase/config.toml` (nuevo)
+- `supabase/README_MIGRATIONS.md` (nuevo)
+- `scripts/db/verify-migrations.js` (nuevo)
+- `scripts/db/verify-migrations.test.js` (nuevo)
+- `package.json` (6 scripts npm)
+- `vitest.config.js` (incluir scripts/**/*.test.js)
+- `docs/BITACORA.md` y `docs/MASTER_ROADMAP.md`
+
+**Criterios de aceptación (7/7):**
+- ✅ 14 archivos SQL consolidados en 10 migraciones con timestamps
+- ✅ `supabase/config.toml` creado
+- ✅ Seeds organizados por entorno en `supabase/seeds/`
+- ✅ Scripts npm: db:reset, db:push, db:pull, db:diff, db:seed, db:verify
+- ✅ Script de verificación creado
+- ✅ Tests unitarios pasando (5/5)
+- ✅ Documentación completa
+
+**Métricas:**
+- Tests unit: 1057/1057 pasando (5 nuevos)
+- Build: exitoso
+- Arquitectura: OK (68 archivos, 0 violaciones)
+
+**Nota sobre orden cronológico:**
+Las 10 migraciones base usan timestamp 20260101000001 a 20260101000010 para aplicarse ANTES de la migración F7-04 existente (2026_08_28_0001), que es una corrección incremental.
+
+---
+
 ## 2026-08-29 — F7-21: Prueba de logout y recuperación de sesión en equipo compartido — DONE
 
 **Qué se ganó:** Test E2E automatizado que valida el escenario A→logout→B, garantizando que el logout no deja PHI recuperable en el dispositivo y que usuario B no puede ver datos de A.
