@@ -29,6 +29,12 @@ La lógica de filtrado se extrae a util testeable `src/utils/supabaseCacheFilter
 - Build: exitoso
 - Arquitectura: OK (68 archivos en allowlist)
 
+**Verificación funcional (preview con build de staging):**
+- Unregister SW + clear site data + recarga para eliminar caches residuales del SW anterior
+- Login + navegación por pacientes y agenda (genera llamadas /rest/v1/)
+- Cache Storage: `supabase-cache` inexistente → PHI ya no se cachea ✅
+- `static-resources` inexistente → assets servidos desde workbox-precache (comportamiento esperado)
+
 ---
 
 ## 2026-08-28 — F7-05: Purga de datos locales al logout — DONE
