@@ -267,13 +267,16 @@ export const supabaseSignUp = async (email, password, metadata = {}) => {
     return { success: false, error: 'Supabase no configurado' }
   }
 
+  // F7-09: NO enviar rol en metadata. handle_new_user() ignora rol del cliente
+  // por seguridad y asigna 'recepcion' por defecto. El rol real se asignará
+  // vía miembros_clinica (F7-11).
   const { error } = await supabase.auth.signUp({
     email: email.trim().toLowerCase(),
     password,
     options: {
       data: {
         full_name: metadata.nombreCompleto || 'Usuario',
-        role: metadata.rol || 'recepcion',
+        // F7-09: role eliminado para prevenir escalamiento de privilegios
       },
     },
   })
@@ -282,7 +285,7 @@ export const supabaseSignUp = async (email, password, metadata = {}) => {
     return { success: false, error: error.message }
   }
 
-  // F6-B4: leer rol de app_metadata (propagado por trigger on_auth_user_created)
+  // F6-B4 + F7-09: leer rol de app_metadata (siempre 'recepcion' por defecto)
   const { data: { user } } = await supabase.auth.getUser()
   const appRole = user?.app_metadata?.role || 'recepcion'
   const userMetadata = { ...(user?.user_metadata || {}), role: appRole }
@@ -290,6 +293,62 @@ export const supabaseSignUp = async (email, password, metadata = {}) => {
   return {
     success: true,
     userMetadata
+  }
+}
+
+/**
+ * F7-09: Obtiene el rol del usuario con lógica fail-closed.
+ * 
+ * Si falla la consulta de membresía o el rol no es válido,
+ * degrada a 'recepcion' (rol no privilegiado), nunca a 'admin'.
+ * 
+ * @param {string} userId - ID del usuario autenticado
+ * @param {object} [supabaseClient] - Cliente Supabase (default: supabase global)
+ * @returns {Promise<string>} Rol del usuario (fallback garantizado a 'recepcion')
+ */
+export const obtenerRolConFailClosed = async (userId, supabaseClient = supabase) => {
+  const ROL_FALLBACK = 'recepcion'
+  const ROLES_VALIDOS = ['admin', 'dentista', 'asistente', 'recepcion']
+
+  if (!userId) {
+    log.warn('F7-09: userId vacío, degradando a recepcion')
+    return ROL_FALLBACK
+  }
+
+  if (!supabaseClient) {
+    log.warn('F7-09: supabaseClient no disponible, degradando a recepcion')
+    return ROL_FALLBACK
+  }
+
+  try {
+    const { data, error } = await supabaseClient
+      .from('miembros_clinica')
+      .select('rol')
+      .eq('user_id', userId)
+      .eq('activo', true)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (error) {
+      log.warn('F7-09: Error consultando membresía, degradando a recepcion:', error.message)
+      return ROL_FALLBACK
+    }
+
+    if (!data) {
+      log.info('F7-09: Usuario sin membresía activa, degradando a recepcion')
+      return ROL_FALLBACK
+    }
+
+    if (!ROLES_VALIDOS.includes(data.rol)) {
+      log.warn('F7-09: Rol inválido detectado:', data.rol, '- degradando a recepcion')
+      return ROL_FALLBACK
+    }
+
+    return data.rol
+  } catch (error) {
+    log.error('F7-09: Excepción en obtenerRolConFailClosed, degradando a recepcion:', error.message)
+    return ROL_FALLBACK
   }
 }
 

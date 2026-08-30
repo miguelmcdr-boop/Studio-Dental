@@ -1,3 +1,62 @@
+## 2026-08-30 — F7-09: handle_new_user() fail-closed + authService degrada ante fallo — DONE
+
+**Qué se ganó:** Se eliminó la vulnerabilidad de escalamiento de privilegios en el signup. El trigger server-side ignora el rol enviado por el cliente, y el authService degrada a `recepcion` ante cualquier fallo en la consulta de membresía.
+
+**Problema resuelto:**
+Vulnerabilidad crítica: `handle_new_user()` leía `raw_user_meta_data.role` y lo aceptaba si era un valor válido del enum. Un atacante podía hacer `signUp({role: 'admin'})` y auto-asignarse privilegios de administrador. Además, en el cliente no había lógica fail-closed si fallaba la consulta de membresía.
+
+**Solución implementada:**
+
+**Parte 1 — Server-side (migración SQL):**
+- `handle_new_user()` ahora **IGNORA** `raw_user_meta_data.role`
+- Asigna SIEMPRE `recepcion` como rol inicial (el menos privilegiado)
+- El rol real se asignará vía `miembros_clinica` (F7-11 implementará onboarding seguro)
+- Migración `2026_08_30_0001_f7_09_handle_new_user_fail_closed.sql`
+
+**Parte 2 — Client-side (authService.js):**
+- `supabaseSignUp()` ya no envía rol en metadata
+- Nueva función `obtenerRolConFailClosed(userId)`:
+  - Consulta membresía en `miembros_clinica`
+  - Degrada a `recepcion` si: userId vacío, cliente no disponible, error DB, sin membresía, rol inválido, excepción
+  - Nunca escala a admin sin autorización server-side
+  - Siempre retorna un rol válido del enum `app_role`
+
+**Parte 3 — Tests (13 tests):**
+- Seguridad server-side: 3 tests (ignora rol del cliente)
+- Fail-closed client-side: 9 tests (degrada ante cualquier fallo)
+- Integridad: 1 test (siempre retorna rol válido)
+
+**Archivos modificados:**
+- `supabase/migrations/2026_08_30_0001_f7_09_handle_new_user_fail_closed.sql` (migración)
+- `src/services/authService.js` (elimina rol en signUp + agrega `obtenerRolConFailClosed`)
+- `src/test/f7-09/handle-new-user-fail-closed.test.js` (13 tests)
+- `docs/BITACORA.md` (entrada de F7-09)
+- `docs/MASTER_ROADMAP.md` (marcar F7-09 DONE y Sprint 2 completo)
+
+**Criterios de aceptación (6/6):**
+- ✅ `handle_new_user()` ignora `raw_user_meta_data.role`
+- ✅ Todos los nuevos usuarios reciben rol `recepcion` por defecto
+- ✅ `obtenerRolConFailClosed()` degrada a `recepcion` si falla consulta
+- ✅ Test: signUp con `role='admin'` resulta en perfil con `role='recepcion'`
+- ✅ Test client-side: fail-closed funciona en 9 escenarios
+- ✅ Migración versionada aplicada
+
+**Métricas:**
+- Tests unit: 1078/1078 pasando (13 nuevos)
+- Build: exitoso
+- Arquitectura: OK (70 archivos, 0 violaciones)
+
+**Vector de ataque eliminado:**
+Antes: atacante hacía `signUp({email: 'x@y.com', password: 'p', options: {data: {role: 'admin'}}})` → obtenía admin
+Después: atacante obtiene `recepcion` siempre, sin importar qué envíe en metadata
+
+**Sprint 2 COMPLETO (3/3):**
+- ✅ F7-13: migraciones versionadas
+- ✅ F7-08: triggers de auditoría server-side
+- ✅ F7-09: roles fail-closed
+
+---
+
 ## 2026-08-29 — F7-08: Triggers de auditoría server-side + audit_log no escribible por cliente — DONE
 
 **Qué se ganó:** Todas las operaciones críticas en tablas clínicas ahora se registran en audit_log mediante triggers server-side, eliminando la dependencia de registrarAuditoria() client-side y garantizando trazabilidad completa.
