@@ -1,3 +1,61 @@
+## 2026-08-29 — F7-08: Triggers de auditoría server-side + audit_log no escribible por cliente — DONE
+
+**Qué se ganó:** Todas las operaciones críticas en tablas clínicas ahora se registran en audit_log mediante triggers server-side, eliminando la dependencia de registrarAuditoria() client-side y garantizando trazabilidad completa.
+
+**Problema resuelto:**
+F6-F estaba "IN PROGRESS" con auditoría client-side incompleta. La política INSERT en audit_log permitía que un cliente malicioso insertara registros falsos. No había garantía server-side de que las operaciones críticas se registraran.
+
+**Solución implementada:**
+
+1. **Función `log_audit_change()`** con `SECURITY DEFINER`:
+   - Captura INSERT/UPDATE/DELETE en cualquier tabla
+   - Registra en audit_log con user_id del contexto de ejecución
+   - Valida table_name y action
+   - Idempotente (no falla si audit_log está inaccesible)
+
+2. **Trigger genérico** aplicado a 11 tablas clínicas:
+   - pacientes (PHI: datos personales)
+   - evoluciones_clinicas (PHI: notas clínicas)
+   - recetas (PHI: prescripciones)
+   - odontogramas (PHI: estado dental)
+   - periodontogramas (PHI: estado periodontal)
+   - odontopediatria (PHI: pacientes pediátricos)
+   - quirurgico_implantes (PHI: procedimientos quirúrgicos)
+   - quirurgico_endodoncia (PHI: procedimientos de endodoncia)
+   - dsd_configs (trazabilidad de configuraciones)
+   - certificados (PHI: documentos oficiales)
+   - miembros_clinica (control de acceso)
+
+3. **Eliminación de política INSERT del cliente** y políticas UPDATE/DELETE restrictivas (append-only)
+
+4. **Tests:** 8 tests de seguridad y funcionalidad
+
+**Archivos modificados:**
+- `supabase/migrations/2026_08_29_0001_f7_08_audit_triggers.sql` (migración)
+- `src/test/f7-08/audit-triggers.test.js` (8 tests)
+- `docs/BITACORA.md` (entrada de F7-08)
+- `docs/MASTER_ROADMAP.md` (marcar F7-08 DONE y F6-F DONE)
+
+**Criterios de aceptación (8/8):**
+- ✅ Función log_audit_change() creada con SECURITY DEFINER
+- ✅ Trigger aplicado a 11 tablas clínicas
+- ✅ Política INSERT del cliente eliminada
+- ✅ Políticas UPDATE/DELETE restrictivas (append-only)
+- ✅ Test: cliente NO puede INSERT en audit_log directamente
+- ✅ Test: INSERT/UPDATE/DELETE generan registros en audit_log
+- ✅ Migración versionada aplicada
+- ✅ F6-F marcado como DONE
+
+**Métricas:**
+- Tests unit: 1065/1065 pasando (8 nuevos)
+- Build: exitoso
+- Arquitectura: OK (69 archivos, 0 violaciones)
+
+**Nota sobre orden cronológico:**
+La migración F7-08 usa timestamp 2026_08_29_0001, posterior a F7-04 (2026_08_28_0001) y a las 10 migraciones base (20260101000001 a 20260101000010).
+
+---
+
 ## 2026-08-29 — F7-13: Migraciones versionadas de esquema + seed reproducible — DONE
 
 **Qué se ganó:** Todos los objetos de base de datos ahora pueden reconstruirse desde `supabase/migrations/`, garantizando reproducibilidad, trazabilidad y seguridad en cambios de esquema.
