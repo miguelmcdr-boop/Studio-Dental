@@ -1,9 +1,10 @@
--- F5-04: Tabla de auditoría de cambios para resolución de conflictos
+-- F5-04 / F6-F / F7-08: Tabla de auditoría de cambios (append-only)
 --
--- Registra todas las operaciones de escritura críticas y las decisiones
--- de resolución de conflictos para trazabilidad.
+-- Registra todas las operaciones de escritura críticas vía trigger
+-- auditar_cambio() (SECURITY DEFINER, owner postgres con BYPASSRLS).
 --
--- Ejecutar manualmente en Supabase SQL Editor una sola vez.
+-- No es escribible por cliente. No permite UPDATE ni DELETE.
+-- ============================================================
 
 CREATE TABLE IF NOT EXISTS public.audit_log (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -15,32 +16,62 @@ CREATE TABLE IF NOT EXISTS public.audit_log (
   new_data jsonb,
   resolution_strategy text CHECK (resolution_strategy IN ('last_write_wins', 'manual_local', 'manual_remote', 'auto')),
   user_email text,
-  created_at timestamp with time zone DEFAULT now() NOT NULL
+  created_at timestamp with time zone DEFAULT now() NOT NULL,
+  clinica_id uuid NOT NULL
 );
 
--- RLS policies
+-- RLS activado
 ALTER TABLE public.audit_log ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS "Users can view own audit logs" ON public.audit_log;
-CREATE POLICY "Users can view own audit logs"
+-- Políticas SELECT (lectura)
+DROP POLICY IF EXISTS "audit_log_select_own" ON public.audit_log;
+CREATE POLICY "audit_log_select_own"
   ON public.audit_log
   FOR SELECT
   USING (auth.uid() = user_id);
 
-DROP POLICY IF EXISTS "Users can insert own audit logs" ON public.audit_log;
-CREATE POLICY "Users can insert own audit logs"
+DROP POLICY IF EXISTS "audit_log_select_clinica" ON public.audit_log;
+CREATE POLICY "audit_log_select_clinica"
   ON public.audit_log
-  FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+  FOR SELECT
+  USING (
+    clinica_id = public.clinica_actual()
+    AND public.tiene_rol_en_clinica(ARRAY['admin', 'dentista', 'asistente', 'recepcion']::app_role[])
+  );
 
--- Índices para performance
-CREATE INDEX IF NOT EXISTS idx_audit_log_table_record 
+DROP POLICY IF EXISTS "audit_log_select_admin" ON public.audit_log;
+CREATE POLICY "audit_log_select_admin"
+  ON public.audit_log
+  FOR SELECT
+  USING (
+    clinica_id = public.clinica_actual()
+    AND public.es_admin_de_clinica_actual()
+  );
+
+-- Políticas UPDATE/DELETE restrictivas (append-only) — F7-08
+DROP POLICY IF EXISTS "audit_log_no_update" ON public.audit_log;
+CREATE POLICY "audit_log_no_update" ON public.audit_log
+  FOR UPDATE USING (false) WITH CHECK (false);
+
+DROP POLICY IF EXISTS "audit_log_no_delete" ON public.audit_log;
+CREATE POLICY "audit_log_no_delete" ON public.audit_log
+  FOR DELETE USING (false);
+
+-- NO hay política INSERT: el trigger auditar_cambio() (SECURITY DEFINER,
+-- owner postgres con BYPASSRLS) puede insertar sin política explícita.
+
+-- Índices
+CREATE INDEX IF NOT EXISTS idx_audit_log_table_record
   ON public.audit_log(table_name, record_id, created_at DESC);
-
-CREATE INDEX IF NOT EXISTS idx_audit_log_created_at 
+CREATE INDEX IF NOT EXISTS idx_audit_log_created_at
   ON public.audit_log(created_at);
+CREATE INDEX IF NOT EXISTS idx_audit_log_clinica
+  ON public.audit_log(clinica_id);
+CREATE INDEX IF NOT EXISTS idx_audit_log_user
+  ON public.audit_log(user_id, created_at DESC);
 
--- Comentario
-COMMENT ON TABLE public.audit_log IS 'Registro de operaciones críticas y resolución de conflictos (F5-04)';
+COMMENT ON TABLE public.audit_log IS
+  'F7-08: Registro append-only de operaciones críticas. '
+  'Escritura solo vía trigger auditar_cambio() (SECURITY DEFINER).';
 COMMENT ON COLUMN public.audit_log.action IS 'INSERT, UPDATE, DELETE, CONFLICT_RESOLVED';
 COMMENT ON COLUMN public.audit_log.resolution_strategy IS 'last_write_wins, manual_local, manual_remote, auto';

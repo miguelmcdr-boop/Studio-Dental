@@ -159,7 +159,7 @@
 | F7-05 | Purga de datos locales al logout: localStorage, IndexedDB, Cache Storage y memoria | 7 | **P0** | S (1 d) | — | DONE (2026-08-28) — 4 capas purgadas, 10 tests nuevos, 1046/1046 total, fail-safe por capa |
 | F7-06 | Excluir `/rest/v1/`, `/storage/v1/` y `/auth/v1/` del caching de PHI | 7 | **P0** | XS (<0.5 d) | F7-05 | DONE (2026-08-28) — 4 endpoints excluidos, 6 tests, util testeable, 1052/1052 total |
 | F7-07 | Aislar caché local por `clinica_id` y evitar fuga en arranque en frío | 7 | P1 | S (1-2 d) | F7-05 | TODO |
-| F7-08 | Cierre real de F6-F: triggers de auditoría server-side + `audit_log` no escribible por cliente | 7 | **P0** | M (2-4 d) | F6-F | DONE (2026-08-29) — función log_audit_change() SECURITY DEFINER, 11 tablas clínicas, políticas restrictivas, 8 tests |
+| F7-08 | Cierre real de F6-F: triggers de auditoría server-side + `audit_log` no escribible por cliente | 7 | **P0** | M (2-4 d) | F6-F | DONE (2026-08-31, corregida) — audit_log NO escribible por cliente vía RLS, append-only, reutiliza auditar_cambio() de F6-F (12 tablas), corrige drift de schema, 10 tests |
 | F7-09 | `handle_new_user()` deja de confiar en rol enviado por cliente + auth fail-closed | 7 | P1 | S (0.5-1 d) | — | DONE (2026-08-30) — handle_new_user ignora rol cliente, obtenerRolConFailClosed en authService, 13 tests |
 | F7-10 | `clinica_actual()` determinista + `es_admin_de_clinica_actual()` acotada + selector de clínica | 7 | **P0** | M (2-3 d) | F7-09 | TODO |
 | F7-11 | Onboarding de clínica/miembros sin `service_role` en frontend | 7 | P1 | M (3-5 d) | F7-10 | TODO |
