@@ -1,3 +1,51 @@
+## 2026-08-31 — F7-08 CORREGIDA: audit_log no escribible por cliente (fix de migración duplicada) — DONE
+
+**Tipo:** Corrección de error de diseño detectado durante validación en producción.
+
+**Qué se corrigió:**
+Durante la validación E2E de F7-08 en producción se detectaron dos problemas:
+
+1. **Error de diseño en la migración original de F7-08:** creó una función `log_audit_change()` duplicada cuando YA existía `auditar_cambio()` (de F6-F), que además es superior porque captura `clinica_id` (crítico multi-tenant) y `user_email`. Esto causó auditoría duplicada en la tabla `pacientes`.
+
+2. **Drift de esquema en F7-13:** la migración base de `audit_log` no incluía las columnas `clinica_id` (NOT NULL) ni `user_email`, que SÍ existen en producción (agregadas por F6-F). Esto rompía la reproducibilidad que F7-13 debía garantizar.
+
+**Solución aplicada:**
+
+**Producción (validada):**
+- Eliminada la función duplicada `log_audit_change()` (DROP CASCADE)
+- Eliminados los registros de prueba
+- Eliminada la política `audit_log_insert_clinica` que permitía INSERT directo del cliente (el gap real de seguridad)
+- Agregadas políticas `audit_log_no_update` y `audit_log_no_delete` (append-only)
+- `auditar_cambio()` (F6-F) permanece intacta como única función de auditoría
+
+**Repo:**
+- Reescrita `supabase/migrations/2026_08_29_0001_f7_08_audit_triggers.sql`: ya NO crea función duplicada; su enfoque correcto es hacer `audit_log` NO escribible por cliente vía RLS
+- Actualizada `supabase/migrations/20260101000008_audit_log.sql` para incluir `clinica_id` y `user_email` (corrige drift)
+- Actualizados los tests F7-08 para reflejar el comportamiento real (10 tests)
+
+**Verificación de seguridad (real, en producción):**
+- Owner de `auditar_cambio()`: `postgres` con `rolbypassrls=true` → el trigger puede insertar sin política INSERT
+- `prosecdef=true` → SECURITY DEFINER confirmado
+- grep frontend: sin código client-side que inserte en `audit_log` → seguro eliminar política INSERT
+
+**Políticas finales de audit_log (5):**
+- `audit_log_select_own` (SELECT)
+- `audit_log_select_clinica` (SELECT)
+- `audit_log_select_admin` (SELECT)
+- `audit_log_no_update` (UPDATE denegado)
+- `audit_log_no_delete` (DELETE denegado)
+- SIN política INSERT para cliente → escritura solo vía trigger SECURITY DEFINER
+
+**Lección aprendida:**
+Antes de crear una función/trigger nuevo, SIEMPRE verificar si ya existe una equivalente en producción (`pg_proc`, `information_schema.triggers`). Las migraciones del repo deben reflejar el esquema real de producción para evitar drift. La validación E2E en producción es indispensable, no solo tests unitarios con mocks.
+
+**Métricas:**
+- Tests unit: 1080/1080 pasando (10 de F7-08 corregidos)
+- Build: exitoso
+- Arquitectura: OK
+
+---
+
 ## 2026-08-30 — F7-09: handle_new_user() fail-closed + authService degrada ante fallo — DONE
 
 **Qué se ganó:** Se eliminó la vulnerabilidad de escalamiento de privilegios en el signup. El trigger server-side ignora el rol enviado por el cliente, y el authService degrada a `recepcion` ante cualquier fallo en la consulta de membresía.
