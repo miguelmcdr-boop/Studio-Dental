@@ -503,3 +503,180 @@ export const obtenerRolEnClinicaActual = async () => {
     return null
   }
 }
+
+// ============================================================
+// F7-11: Gestión de invitaciones de miembros (sin service_role)
+// ============================================================
+
+/**
+ * F7-11: Invita a un nuevo miembro a la clínica activa.
+ * Solo admins de la clínica activa pueden invitar.
+ *
+ * @param {string} email - Email del invitado
+ * @param {string} rol - Rol a asignar: 'admin' | 'dentista' | 'asistente' | 'recepcion'
+ * @returns {Promise<{success: boolean, invitacionId?: string, error?: string}>}
+ */
+export const invitarMiembro = async (email, rol) => {
+  if (!USE_SUPABASE || !supabase) {
+    return { success: false, error: 'Supabase no configurado' }
+  }
+
+  try {
+    // Validaciones de entrada
+    if (!email || typeof email !== 'string' || !email.includes('@')) {
+      return { success: false, error: 'Email inválido' }
+    }
+
+    const rolesValidos = ['admin', 'dentista', 'asistente', 'recepcion']
+    if (!rol || !rolesValidos.includes(rol)) {
+      return { success: false, error: `Rol inválido: ${rol}` }
+    }
+
+    // Llamar RPC (SECURITY DEFINER, valida permisos internamente)
+    const { data, error } = await supabase.rpc('invitar_miembro', {
+      p_email: email.trim().toLowerCase(),
+      p_rol: rol
+    })
+
+    if (error) {
+      log.error('F7-11: Error invitando miembro:', error.message)
+      // Traducir errores conocidos
+      if (error.message.includes('PERMISO_DENEGADO')) {
+        return { success: false, error: 'Solo administradores pueden invitar miembros' }
+      }
+      if (error.message.includes('ya es miembro activo')) {
+        return { success: false, error: 'Este email ya es miembro de la clínica' }
+      }
+      return { success: false, error: error.message }
+    }
+
+    log.info('F7-11: Invitación creada:', { email, rol, id: data })
+    return { success: true, invitacionId: data }
+  } catch (error) {
+    log.error('F7-11: Excepción en invitarMiembro:', error.message)
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * F7-11: Lista invitaciones de la clínica activa (admin) o del propio email (otros roles).
+ *
+ * @returns {Promise<{success: boolean, invitaciones?: Array, error?: string}>}
+ */
+export const listarInvitaciones = async () => {
+  if (!USE_SUPABASE || !supabase) {
+    return { success: false, error: 'Supabase no configurado' }
+  }
+
+  try {
+    const { data, error } = await supabase.rpc('listar_invitaciones_clinica')
+
+    if (error) {
+      log.error('F7-11: Error listando invitaciones:', error.message)
+      return { success: false, error: error.message }
+    }
+
+    return { success: true, invitaciones: data || [] }
+  } catch (error) {
+    log.error('F7-11: Excepción en listarInvitaciones:', error.message)
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * F7-11: Revoca una invitación pendiente.
+ * Solo admins de la clínica de la invitación pueden revocar.
+ *
+ * @param {string} invitacionId - UUID de la invitación
+ * @returns {Promise<{success: boolean, error?: string}>}
+ */
+export const revocarInvitacion = async (invitacionId) => {
+  if (!USE_SUPABASE || !supabase) {
+    return { success: false, error: 'Supabase no configurado' }
+  }
+
+  try {
+    if (!invitacionId) {
+      return { success: false, error: 'ID de invitación requerido' }
+    }
+
+    const { data, error } = await supabase.rpc('revocar_invitacion', {
+      p_invitacion_id: invitacionId
+    })
+
+    if (error) {
+      log.error('F7-11: Error revocando invitación:', error.message)
+      if (error.message.includes('PERMISO_DENEGADO')) {
+        return { success: false, error: 'Solo administradores pueden revocar invitaciones' }
+      }
+      return { success: false, error: error.message }
+    }
+
+    log.info('F7-11: Invitación revocada:', invitacionId)
+    return { success: true }
+  } catch (error) {
+    log.error('F7-11: Excepción en revocarInvitacion:', error.message)
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * F7-11: Acepta una invitación con token.
+ * Valida que el email del usuario autenticado coincida con la invitación.
+ *
+ * @param {string} token - Token único de la invitación
+ * @returns {Promise<{success: boolean, clinicaId?: string, error?: string}>}
+ */
+export const aceptarInvitacion = async (token) => {
+  if (!USE_SUPABASE || !supabase) {
+    return { success: false, error: 'Supabase no configurado' }
+  }
+
+  try {
+    if (!token || typeof token !== 'string') {
+      return { success: false, error: 'Token inválido' }
+    }
+
+    const { data, error } = await supabase.rpc('aceptar_invitacion', {
+      p_token: token
+    })
+
+    if (error) {
+      log.error('F7-11: Error aceptando invitación:', error.message)
+      // Traducir errores conocidos
+      if (error.message.includes('INVITACION_NO_ENCONTRADA')) {
+        return { success: false, error: 'Invitación no encontrada' }
+      }
+      if (error.message.includes('INVITACION_EXPIRADA')) {
+        return { success: false, error: 'Esta invitación ya expiró' }
+      }
+      if (error.message.includes('INVITACION_NO_VALIDA')) {
+        return { success: false, error: 'Esta invitación ya fue procesada' }
+      }
+      if (error.message.includes('EMAIL_NO_COINCIDE')) {
+        return { success: false, error: 'Esta invitación es para otro email. Inicia sesión con el email correcto.' }
+      }
+      if (error.message.includes('YA_ES_MIEMBRO')) {
+        return { success: false, error: 'Ya eres miembro de esta clínica' }
+      }
+      return { success: false, error: error.message }
+    }
+
+    log.info('F7-11: Invitación aceptada. Clinica ID:', data)
+    return { success: true, clinicaId: data }
+  } catch (error) {
+    log.error('F7-11: Excepción en aceptarInvitacion:', error.message)
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * F7-11: Genera URL de invitación para compartir.
+ *
+ * @param {string} token - Token de la invitación
+ * @returns {string} URL completa para aceptar la invitación
+ */
+export const generarUrlInvitacion = (token) => {
+  const baseUrl = window.location.origin
+  return `${baseUrl}/#/aceptar-invita?token=${encodeURIComponent(token)}`
+}
