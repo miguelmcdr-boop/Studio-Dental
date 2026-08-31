@@ -68,7 +68,7 @@ BEGIN
     SELECT 1 FROM public.miembros_clinica mc
     WHERE mc.user_id = auth.uid()
       AND mc.clinica_id = public.clinica_actual()
-      AND mc.rol = 'admin'::public.app_role
+      AND mc.rol::text = 'admin'
       AND mc.activo = true
   );
 END;
@@ -278,7 +278,7 @@ BEGIN
     SELECT 1 FROM public.miembros_clinica mc
     WHERE mc.user_id = auth.uid()
       AND mc.clinica_id = v_invitacion.clinica_id
-      AND mc.rol = 'admin'::public.app_role
+      AND mc.rol::text = 'admin'
       AND mc.activo = true
   ) THEN
     RAISE EXCEPTION 'PERMISO_DENEGADO: solo administradores de la clínica pueden revocar invitaciones';
