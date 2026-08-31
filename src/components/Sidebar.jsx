@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react'
 import { useRBAC } from '../hooks/useRBAC'
 import { PERMISOS, NOMBRES_ROLES } from '../constants/rbacConstants'
 import { ConnectionIndicator } from './ConnectionIndicator'
+import { ClinicaSelector } from './ClinicaSelector'
 
 /**
  * Sidebar con control de acceso por rol (F3-05).
@@ -85,6 +86,9 @@ export const Sidebar = ({ userProfile, activeSection, setActiveSection, onLogout
             {colapsado ? '▶' : '◀'}
           </button>
         </div>
+
+        {/* F7-10: Selector de clínica activa */}
+        {!colapsado && <ClinicaSelector />}
 
         <nav aria-label="Navegacion principal" className="space-y-1">
           {menuItemsVisibles.map((item) => (
