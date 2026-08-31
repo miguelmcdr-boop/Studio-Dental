@@ -584,6 +584,61 @@ export const listarInvitaciones = async () => {
 }
 
 /**
+ * F7-11: Lista miembros actuales de la clínica activa.
+ * Consulta miembros_clinica JOIN auth.users para obtener emails.
+ *
+ * @returns {Promise<{success: boolean, miembros?: Array, error?: string}>}
+ */
+export const listarMiembros = async () => {
+  if (!USE_SUPABASE || !supabase) {
+    return { success: false, error: 'Supabase no configurado' }
+  }
+
+  try {
+    const clinicaId = await getClinicaActiva()
+    
+    if (!clinicaId) {
+      return { success: false, error: 'No hay clínica activa' }
+    }
+
+    const { data, error } = await supabase
+      .from('miembros_clinica')
+      .select(`
+        id,
+        user_id,
+        rol,
+        activo,
+        fecha_invitacion,
+        invitado_por,
+        users:user_id (email)
+      `)
+      .eq('clinica_id', clinicaId)
+      .order('fecha_invitacion', { ascending: false })
+
+    if (error) {
+      log.error('F7-11: Error listando miembros:', error.message)
+      return { success: false, error: error.message }
+    }
+
+    // Transformar para incluir email de auth.users
+    const miembros = (data || []).map(m => ({
+      id: m.id,
+      user_id: m.user_id,
+      email: m.users?.email || 'N/A',
+      rol: m.rol,
+      activo: m.activo,
+      fecha_invitacion: m.fecha_invitacion,
+      invitado_por: m.invitado_por
+    }))
+
+    return { success: true, miembros }
+  } catch (error) {
+    log.error('F7-11: Excepción en listarMiembros:', error.message)
+    return { success: false, error: error.message }
+  }
+}
+
+/**
  * F7-11: Revoca una invitación pendiente.
  * Solo admins de la clínica de la invitación pueden revocar.
  *
