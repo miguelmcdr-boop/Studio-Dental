@@ -11,6 +11,7 @@ import { useDataMigration } from './hooks/useDataMigration'
 import { useRealtimeSync } from './hooks/useRealtimeSync'
 import { useOfflineQueue } from './hooks/useOfflineQueue'
 import { supabase, USE_SUPABASE } from './services/supabaseClient'
+import { construirUserProfile } from './services/userProfileBuilder'
 
 // Módulos de uso diario — carga eager (Public API, Constitución v3.0.0)
 import { Agenda as AgendaModulo } from './modules/agenda'
@@ -194,18 +195,17 @@ function App() {
           if (session?.user) {
             log.info('Sesión de Supabase detectada, restaurando perfil...')
             
-            // F6-B4: leer rol de app_metadata (JWT firmado, no editable por el usuario)
+            // F7-10b: reconstruir perfil con rol contextual vía construirUserProfile
+            // (lee miembros_clinica.rol filtrado por clinica_actual())
             const userMetadata = { ...(session.user.user_metadata || {}), role: session.user.app_metadata?.role || 'recepcion' }
-            const perfilRestaurado = {
-              email: session.user.email,
-              nombreCompleto: userMetadata.full_name || session.user.email.split('@')[0],
-              rut: userMetadata.rut || '',
-              especialidad: userMetadata.especialidad || '',
-              rol: userMetadata.role || 'recepcion',
-              supabaseAuth: true
-            }
+            const perfilRestaurado = await construirUserProfile(
+              session.user.email?.toLowerCase() || '',
+              userMetadata,
+              {}
+            )
             
             loginStore(perfilRestaurado)
+            log.info('F7-10b: Perfil restaurado con rol contextual:', perfilRestaurado.rol)
           }
         } catch (error) {
           log.error('Error restaurando sesión de Supabase:', error)

@@ -461,3 +461,45 @@ export const listarMisClinicas = async () => {
     return []
   }
 }
+
+/**
+ * F7-10b: Obtiene el rol del usuario en la clínica activa actual.
+ *
+ * Consulta miembros_clinica filtrada por clinica_actual() para obtener
+ * el rol contextual (no el rol global de user_metadata).
+ *
+ * @returns {Promise<string|null>} Rol en la clínica activa, o null si no tiene membresía
+ */
+export const obtenerRolEnClinicaActual = async () => {
+  if (!USE_SUPABASE || !supabase) return null
+
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return null
+
+    // Query a miembros_clinica filtrada por la clínica activa
+    const { data, error } = await supabase.rpc('clinica_actual').then(async ({ data: clinicaId }) => {
+      if (!clinicaId) return { data: null, error: null }
+
+      const { data: membresia, error: membresiaError } = await supabase
+        .from('miembros_clinica')
+        .select('rol')
+        .eq('user_id', user.id)
+        .eq('clinica_id', clinicaId)
+        .eq('activo', true)
+        .single()
+
+      return { data: membresia, error: membresiaError }
+    })
+
+    if (error) {
+      log.warn('F7-10b: Error consultando rol contextual:', error.message)
+      return null
+    }
+
+    return data?.rol || null
+  } catch (error) {
+    log.error('F7-10b: Excepción en obtenerRolEnClinicaActual:', error.message)
+    return null
+  }
+}
