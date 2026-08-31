@@ -1,3 +1,71 @@
+## 2026-08-31 — F7-10b: rol contextual en UI vía construirUserProfile() — DONE
+
+**Qué se ganó:** El rol mostrado en el Sidebar ahora refleja el rol del usuario en la clínica activa (no el rol global).
+
+**Problema resuelto:**
+
+Antes de F7-10b, el Sidebar mostraba el rol global (`profiles.role` o `user_metadata.role`) independientemente de la clínica activa. Un usuario admin en clínica A pero recepcionista en clínica B siempre veía "admin" en ambos lados, generando confusión de UX.
+
+**Solución implementada:**
+
+**Parte 1 — authService.js:**
+- `obtenerRolEnClinicaActual()`: consulta `miembros_clinica.rol` filtrada por `clinica_actual()` para obtener el rol contextual
+
+**Parte 2 — userProfileBuilder.js:**
+- `construirUserProfile()` ahora es async
+- Consulta `obtenerRolEnClinicaActual()` para obtener el rol contextual
+- Fallback al rol global si no hay membresía (fail-safe)
+- try-catch alrededor de la query para no romper el login si falla
+
+**Parte 3 — App.jsx:**
+- Importa `construirUserProfile` para la restauración de sesión
+- Reemplaza construcción manual del perfil por llamada al builder
+- El rol restaurado ahora es contextual (no global)
+
+**Parte 4 — ClinicaSelector.jsx:**
+- Al cambiar de clínica, actualiza el rol en localStorage **ANTES** del reload
+- Elimina el flash de pantalla de login que ocurría al limpiar el perfil
+- Si falla la actualización, App.jsx reconstruye el perfil vía builder
+
+**Archivos modificados:**
+- `src/services/authService.js` (+42 líneas: obtenerRolEnClinicaActual)
+- `src/services/userProfileBuilder.js` (+25 líneas: async + query contextual)
+- `src/App.jsx` (+18 líneas: import + uso de builder en restauración)
+- `src/components/ClinicaSelector.jsx` (+23 líneas: actualización de rol en localStorage)
+- `src/components/LoginScreen.jsx` (+1 línea: await en llamada al builder)
+- `src/services/authService.f7-10b.test.js` (113 líneas, 5 tests)
+- `src/services/userProfileBuilder.f7-10b.test.js` (98 líneas, 5 tests)
+- `docs/BITACORA.md` (entrada de F7-10b)
+- `docs/MASTER_ROADMAP.md` (F7-10b DONE)
+
+**Criterios de aceptación (5/5):**
+- ✅ `userProfile.rol` es contextual (lee `miembros_clinica.rol` filtrado por `clinica_actual()`)
+- ✅ Al cambiar clínica y recargar, `useRBAC` refleja el rol correcto
+- ✅ Fallback seguro si no hay membresía (no rompe la app)
+- ✅ Sidebar muestra el rol correcto según la clínica activa
+- ✅ Sin flash de pantalla de login al cambiar clínica
+
+**Validación E2E en producción:**
+- Usuario e2e_admin con admin en Studio Dental + recepcion en Clínica Prueba F7-10b
+- Al login: Sidebar muestra ADMINISTRADOR (rol contextual de clínica activa)
+- Al cambiar a Clínica Prueba: Sidebar muestra RECEPCIÓN sin flash
+- El JWT tiene `clinica_id` correcto después del cambio
+- Datos de prueba limpiados después de validación
+
+**Métricas:**
+- Tests unit: 1104/1104 pasando (10 nuevos)
+- Build: exitoso
+- Arquitectura: OK (70 archivos en allowlist, 0 violaciones)
+- 1 commit en rama: `916503e`
+
+**Hallazgos técnicos:**
+1. `construirUserProfile()` necesita ser async para consultar BD (antes era sincrónico)
+2. Flash de login eliminado actualizando rol en localStorage ANTES del reload (en lugar de limpiar perfil)
+3. Import dinámico vs estático: el estático es más predecible para mocks en tests
+4. try-catch alrededor de query contextual previene que errores de BD rompan el login
+
+---
+
 ## 2026-08-31 — F7-10: clinica_actual() determinista + selector de clínica + fix JWT — DONE
 
 **Qué se ganó:** Se cerró vulnerabilidad de escalación de privilegios cross-tenant y se agregó selector de clínica para usuarios multi-clínica.
