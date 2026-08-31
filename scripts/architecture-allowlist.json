@@ -58,7 +58,7 @@
     "src/modules/administracion/components/CamposFormularioFarmaco.jsx": 242,
     "src/modules/administracion/AdminVademecumModulo.jsx": 238,
     "src/constants/rbacConstants.js": 118,
-    "src/components/Sidebar.jsx": 135,
+    "src/components/Sidebar.jsx": 142,
     "src/modules/administracion/schemas/alergiaCruzadaSchema.js": 78,
     "src/modules/administracion/components/TablaAlergiasCruzadas.jsx": 165,
     "src/modules/administracion/components/ModalEditarAlergiaCruzada.jsx": 244,

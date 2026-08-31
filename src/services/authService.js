@@ -362,3 +362,99 @@ export const supabaseSignOut = async () => {
   }
   await supabase.auth.signOut()
 }
+
+/**
+ * F7-10: Establece la clínica activa del usuario.
+ *
+ * Actualiza user_metadata.clinica_id y recarga la sesión para que el JWT
+ * incluya el nuevo valor. clinica_actual() (server-side) leerá este selector.
+ *
+ * @param {string} clinicaId - UUID de la clínica a activar
+ * @returns {Promise<{success: boolean, error?: string}>}
+ */
+export const setClinicaActiva = async (clinicaId) => {
+  if (!USE_SUPABASE || !supabase) {
+    return { success: false, error: 'Supabase no configurado' }
+  }
+
+  if (!clinicaId) {
+    return { success: false, error: 'clinicaId requerido' }
+  }
+
+  try {
+    const { error } = await supabase.auth.updateUser({
+      data: { clinica_id: clinicaId }
+    })
+
+    if (error) {
+      log.error('F7-10: Error actualizando clinica_id:', error.message)
+      return { success: false, error: error.message }
+    }
+
+    // Recargar sesión para que el JWT incluya el nuevo clinica_id
+    const { data: { session }, error: refreshError } = await supabase.auth.getSession()
+    if (refreshError) {
+      log.warn('F7-10: No se pudo refrescar sesión:', refreshError.message)
+    }
+
+    log.info('F7-10: Clínica activa establecida:', clinicaId)
+    return { success: true }
+  } catch (error) {
+    log.error('F7-10: Excepción en setClinicaActiva:', error.message)
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * F7-10: Obtiene la clínica activa del usuario desde user_metadata.
+ *
+ * @returns {string|null} UUID de la clínica activa, o null si no está seteada
+ */
+export const getClinicaActiva = async () => {
+  if (!USE_SUPABASE || !supabase) return null
+
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser()
+    if (error || !user) return null
+
+    return user.user_metadata?.clinica_id || null
+  } catch (error) {
+    log.error('F7-10: Error en getClinicaActiva:', error.message)
+    return null
+  }
+}
+
+/**
+ * F7-10: Lista las clínicas donde el usuario tiene membresía activa.
+ *
+ * @returns {Promise<Array<{clinica_id: string, nombre: string, rol: string}>>}
+ */
+export const listarMisClinicas = async () => {
+  if (!USE_SUPABASE || !supabase) return []
+
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return []
+
+    const { data, error } = await supabase
+      .from('miembros_clinica')
+      .select('clinica_id, rol, clinicas(nombre)')
+      .eq('user_id', user.id)
+      .eq('activo', true)
+      .order('clinica_id')
+
+    if (error) {
+      log.error('F7-10: Error listando clínicas:', error.message)
+      return []
+    }
+
+    return (data || []).map(m => ({
+      clinica_id: m.clinica_id,
+      nombre: m.clinicas?.nombre || 'Clínica',
+      rol: m.rol
+    }))
+  } catch (error) {
+    log.error('F7-10: Excepción en listarMisClinicas:', error.message)
+    return []
+  }
+}
