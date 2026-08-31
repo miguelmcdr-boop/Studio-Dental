@@ -391,10 +391,13 @@ export const setClinicaActiva = async (clinicaId) => {
       return { success: false, error: error.message }
     }
 
-    // Recargar sesión para que el JWT incluya el nuevo clinica_id
-    const { data: { session }, error: refreshError } = await supabase.auth.getSession()
+    // Forzar refresh del JWT para que incluya el nuevo clinica_id
+    const { data, error: refreshError } = await supabase.auth.refreshSession()
     if (refreshError) {
       log.warn('F7-10: No se pudo refrescar sesión:', refreshError.message)
+    } else if (data.session) {
+      log.info('F7-10: JWT refrescado, clinica_id en user_metadata:', 
+        data.session.user.user_metadata?.clinica_id)
     }
 
     log.info('F7-10: Clínica activa establecida:', clinicaId)

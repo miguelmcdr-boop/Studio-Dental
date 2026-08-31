@@ -11,6 +11,7 @@ vi.mock('./supabaseClient', () => ({
     auth: {
       updateUser: vi.fn(),
       getSession: vi.fn(),
+      refreshSession: vi.fn(),
       getUser: vi.fn()
     },
     from: vi.fn()
@@ -27,13 +28,17 @@ describe('F7-10: setClinicaActiva', () => {
 
   it('debe actualizar user_metadata.clinica_id', async () => {
     supabase.auth.updateUser.mockResolvedValue({ error: null })
-    supabase.auth.getSession.mockResolvedValue({ data: { session: {} }, error: null })
+    supabase.auth.refreshSession.mockResolvedValue({ 
+      data: { session: { user: { user_metadata: { clinica_id: 'clinica-123' } } } }, 
+      error: null 
+    })
 
     const result = await setClinicaActiva('clinica-123')
 
     expect(supabase.auth.updateUser).toHaveBeenCalledWith({
       data: { clinica_id: 'clinica-123' }
     })
+    expect(supabase.auth.refreshSession).toHaveBeenCalled()
     expect(result.success).toBe(true)
   })
 

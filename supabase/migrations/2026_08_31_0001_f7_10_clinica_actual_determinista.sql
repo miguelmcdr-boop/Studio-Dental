@@ -72,3 +72,36 @@ GRANT EXECUTE ON FUNCTION public.clinica_actual() TO authenticated, service_role
 
 REVOKE ALL ON FUNCTION public.es_admin_de_clinica_actual() FROM anon;
 GRANT EXECUTE ON FUNCTION public.es_admin_de_clinica_actual() TO authenticated, service_role;
+
+-- ============================================================
+-- 3. Políticas de bootstrap para ClinicaSelector (F7-10)
+--
+-- PROBLEMA: las políticas existentes requieren clinica_actual() para leer
+-- miembros_clinica, pero para determinar clinica_actual() el usuario
+-- necesita ver todas sus membresías (bootstrap).
+--
+-- SOLUCIÓN: políticas específicas que permiten al usuario listar TODAS sus
+-- membresías activas y las clínicas asociadas, SOLO para el propósito de
+-- seleccionar la clínica activa.
+--
+-- SEGURIDAD: estas políticas son SOLO SELECT. El aislamiento real para
+-- operaciones de lectura/escritura en tablas clínicas se mantiene vía
+-- las políticas existentes que requieren clinica_id = clinica_actual().
+-- ============================================================
+
+DROP POLICY IF EXISTS "miembros_ven_sus_membresias" ON public.miembros_clinica;
+CREATE POLICY "miembros_ven_sus_membresias" ON public.miembros_clinica
+  FOR SELECT
+  USING (user_id = auth.uid());
+
+DROP POLICY IF EXISTS "miembros_ven_sus_clinicas" ON public.clinicas;
+CREATE POLICY "miembros_ven_sus_clinicas" ON public.clinicas
+  FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.miembros_clinica mc
+      WHERE mc.clinica_id = clinicas.id
+        AND mc.user_id = auth.uid()
+        AND mc.activo = true
+    )
+  );
