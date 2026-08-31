@@ -62,6 +62,29 @@ export const ClinicaSelector = ({ onCambioClinica }) => {
           onCambioClinica(nuevaClinicaId)
         }
         // Recargar la página para refrescar el JWT y todos los datos
+        // F7-10b: actualizar el rol en el perfil guardado ANTES del reload
+        // Así el primer render de App.jsx ya tiene el rol correcto (sin flash de login)
+        // App.jsx igualmente validará vía construirUserProfile() como respaldo
+        try {
+          const email = localStorage.getItem('clinica_active_user')
+          if (email) {
+            const perfilKey = `profile_${email}`
+            const perfilGuardado = localStorage.getItem(perfilKey)
+            if (perfilGuardado) {
+              const perfil = JSON.parse(perfilGuardado)
+              // Buscar la clínica recién seleccionada para obtener su rol contextual
+              const clinicaSeleccionada = clinicas.find(c => c.clinica_id === nuevaClinicaId)
+              if (clinicaSeleccionada && clinicaSeleccionada.rol) {
+                perfil.rol = clinicaSeleccionada.rol
+                localStorage.setItem(perfilKey, JSON.stringify(perfil))
+                log.info('F7-10b: Rol actualizado en localStorage a:', clinicaSeleccionada.rol)
+              }
+            }
+          }
+        } catch (e) {
+          // Silencioso: si falla la actualización, App.jsx reconstruirá el perfil vía construirUserProfile()
+          console.warn('[ClinicaSelector] Error actualizando rol en perfil guardado:', e.message)
+        }
         setTimeout(() => window.location.reload(), 300)
       } else {
         setError(result.error || 'Error al cambiar clínica')

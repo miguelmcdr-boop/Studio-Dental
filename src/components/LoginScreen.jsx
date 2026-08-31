@@ -127,7 +127,7 @@ export const LoginScreen = ({ onLogin }) => {
         // F4-02b FIX: Usar los user_metadata retornados por supabaseSignIn/SignUp
         // (evita race condition con getUser() después del signIn).
         const userMetadata = metadata._supabaseUserMetadata || {}
-        const userProfile = construirUserProfile(formattedEmail, userMetadata, metadata)
+        const userProfile = await construirUserProfile(formattedEmail, userMetadata, metadata)
         onLogin(userProfile)
       } else {
         // ═══════════════════════════════════════════════════
