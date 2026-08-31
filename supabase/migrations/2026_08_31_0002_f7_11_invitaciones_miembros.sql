@@ -33,8 +33,7 @@ CREATE TABLE public.invitaciones_clinica (
   creada_en TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   expira_en TIMESTAMPTZ NOT NULL DEFAULT NOW() + INTERVAL '7 days',
   aceptada_en TIMESTAMPTZ,
-  aceptada_por UUID REFERENCES auth.users(id),
-  
+  aceptada_por UUID REFERENCES auth.users(id)
 );
 
 -- Índices
