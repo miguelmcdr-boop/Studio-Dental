@@ -161,7 +161,8 @@
 | F7-07 | Aislar caché local por `clinica_id` y evitar fuga en arranque en frío | 7 | P1 | S (1-2 d) | F7-05 | TODO |
 | F7-08 | Cierre real de F6-F: triggers de auditoría server-side + `audit_log` no escribible por cliente | 7 | **P0** | M (2-4 d) | F6-F | DONE (2026-08-31, corregida) — audit_log NO escribible por cliente vía RLS, append-only, reutiliza auditar_cambio() de F6-F (12 tablas), corrige drift de schema, 10 tests |
 | F7-09 | `handle_new_user()` deja de confiar en rol enviado por cliente + auth fail-closed | 7 | P1 | S (0.5-1 d) | — | DONE (2026-08-30) — handle_new_user ignora rol cliente, obtenerRolConFailClosed en authService, 13 tests |
-| F7-10 | `clinica_actual()` determinista + `es_admin_de_clinica_actual()` acotada + selector de clínica | 7 | **P0** | M (2-3 d) | F7-09 | TODO |
+| F7-10 | `clinica_actual()` determinista + `es_admin_de_clinica_actual()` acotada + selector de clínica | 7 | **P0** | M (2-3 d) | F7-09 | DONE (2026-08-31) — clinica_actual() determinista con selector validado, es_admin() acotada, ClinicaSelector en UI, JWT re-firmado vía refreshSession(), políticas de bootstrap, 14 tests |
+| F7-10b | Rol contextual en UI: `useRBAC` y `userProfile` leen `miembros_clinica.rol` filtrado por `clinica_actual()` | 7 | P1 | S (1-2 d) | F7-10 | TODO |
 | F7-11 | Onboarding de clínica/miembros sin `service_role` en frontend | 7 | P1 | M (3-5 d) | F7-10 | TODO |
 | F7-12 | Extender validador arquitectónico a `src/services/` + reducción de allowlist | 7 | P2 | S (1-2 d) | — | TODO |
 | F7-13 | Migraciones versionadas en `supabase/migrations/` + reconstrucción desde cero | 7 | **P0** | M (2-4 d) | — | DONE (2026-08-29) — 10 migraciones con timestamps, seeds por entorno, 6 scripts npm, script de verificación, 5 tests |

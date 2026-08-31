@@ -1,3 +1,81 @@
+## 2026-08-31 — F7-10: clinica_actual() determinista + selector de clínica + fix JWT — DONE
+
+**Qué se ganó:** Se cerró vulnerabilidad de escalación de privilegios cross-tenant y se agregó selector de clínica para usuarios multi-clínica.
+
+**Vulnerabilidad resuelta:**
+`es_admin_de_clinica_actual()` no filtraba por clínica activa. Un usuario admin en clínica A pero recepcionista en clínica B era tratado como admin en ambas → escalación cross-tenant.
+
+**Solución implementada:**
+
+**Parte 1 — Server-side (migración SQL):**
+- `clinica_actual()` lee selector de `user_metadata.clinica_id` (validado contra membresía activa), con fallback determinista `ORDER BY clinica_id`
+- `es_admin_de_clinica_actual()` ACOTADA a `clinica_actual()`
+- Políticas de bootstrap para ClinicaSelector:
+  - `miembros_ven_sus_membresias`: usuario puede listar TODAS sus membresías
+  - `miembros_ven_sus_clinicas`: usuario puede leer clínicas donde es miembro
+  - Resuelve deadlock: para elegir clínica necesitas listarlas primero
+
+**Parte 2 — Client-side (authService.js):**
+- `setClinicaActiva(clinicaId)`: actualiza `user_metadata` y FUERZA refresh del JWT vía `refreshSession()`
+- `getClinicaActiva()`: lee selector desde `user_metadata`
+- `listarMisClinicas()`: lista clínicas con membresía activa
+
+**Parte 3 — UI (ClinicaSelector.jsx):**
+- Componente independiente integrado en Sidebar
+- Si 1 clínica: muestra nombre sin selector (informativo)
+- Si múltiples: dropdown para cambiar
+- Recarga página al cambiar para refrescar JWT
+
+**Fix crítico durante validación:**
+- `getSession()` NO re-firma el JWT al actualizar `user_metadata`
+- Solución: usar `refreshSession()` que sí fuerza re-firma del JWT
+- Estructura del localStorage es `{user, access_token, ...}` NO `{currentSession: {user}}` (cliente GoTrue v2)
+
+**Archivos modificados:**
+- `supabase/migrations/2026_08_31_0001_f7_10_clinica_actual_determinista.sql` (nueva migración)
+- `src/services/authService.js` (3 funciones nuevas + fix refreshSession)
+- `src/components/ClinicaSelector.jsx` (nuevo componente, 119 líneas)
+- `src/components/Sidebar.jsx` (integración del selector)
+- `scripts/architecture-allowlist.json` (Sidebar 135 → 142, justificado por F7-10 P0)
+- `src/services/authService.f7-10.test.js` (8 tests)
+- `src/components/ClinicaSelector.test.jsx` (6 tests)
+- `docs/BITACORA.md` (entrada de F7-10)
+- `docs/MASTER_ROADMAP.md` (F7-10 DONE + crear F7-10b)
+
+**Criterios de aceptación (6/6):**
+- ✅ `clinica_actual()` determinista (ORDER BY en fallback)
+- ✅ `clinica_actual()` respeta selector de `user_metadata` validado
+- ✅ `es_admin_de_clinica_actual()` acotada a `clinica_actual()`
+- ✅ Selector de clínica funcional en UI
+- ✅ JWT se re-firma correctamente con `refreshSession()`
+- ✅ Migración versionada aplicada
+
+**Validación E2E en producción:**
+- Usuario e2e_admin con 2 clínicas (admin en Studio Dental, recepcion en Clínica Prueba)
+- Al cambiar a Clínica Prueba: `clinica_actual()` = `'99999999-...'`, `es_admin_de_clinica_actual()` = `false`
+- RLS aísla correctamente: no se pueden leer pacientes de otra clínica
+- Datos de prueba limpiados después de validación
+
+**Tarea derivada:**
+- **F7-10b** creada: rol contextual en UI (useRBAC lee miembros_clinica.rol filtrado por clinica_actual()). Queda como P1 separado porque la seguridad de datos ya está completa vía RLS.
+
+**Métricas:**
+- Tests unit: 1094/1094 pasando (14 nuevos)
+- Build: exitoso
+- Arquitectura: OK (69 archivos en allowlist, 0 violaciones)
+- 2 commits en rama: `fa0bd90` (inicial) + `4acb429` (fix JWT + políticas bootstrap)
+
+**Dependencias desbloqueadas:**
+- F7-11 (Onboarding sin service_role)
+- F7-20 (Pen-test multi-tenant)
+
+**Hallazgos técnicos:**
+1. Supabase NO re-firma JWT automáticamente en `updateUser({data})` → requiere `refreshSession()`
+2. Estructura localStorage en GoTrue v2: `{user, access_token, ...}` NO `{currentSession: {user}}`
+3. Políticas RLS pueden crear deadlock de bootstrap → se resuelve con políticas específicas para listar membresías
+
+---
+
 ## 2026-08-31 — F7-08 CORREGIDA: audit_log no escribible por cliente (fix de migración duplicada) — DONE
 
 **Tipo:** Corrección de error de diseño detectado durante validación en producción.
