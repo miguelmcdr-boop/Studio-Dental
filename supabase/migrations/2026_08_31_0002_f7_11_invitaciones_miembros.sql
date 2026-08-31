@@ -35,12 +35,6 @@ CREATE TABLE public.invitaciones_clinica (
   aceptada_en TIMESTAMPTZ,
   aceptada_por UUID REFERENCES auth.users(id),
   
-  -- Prevenir invitaciones duplicadas pendientes para el mismo email en la misma clínica
-  CONSTRAINT unica_invitacion_pendiente 
-    EXCLUDE USING gist (
-      clinica_id WITH =, 
-      lower(email) WITH =
-    ) WHERE (status = 'pending')
 );
 
 -- Índices
@@ -50,6 +44,12 @@ CREATE INDEX idx_invitaciones_token
   ON public.invitaciones_clinica(token);
 CREATE INDEX idx_invitaciones_email 
   ON public.invitaciones_clinica(lower(email), status);
+
+-- Índice UNIQUE parcial: prevenir invitaciones duplicadas pendientes
+-- para el mismo email en la misma clínica (sin necesidad de btree_gist)
+CREATE UNIQUE INDEX idx_invitacion_unica_pendiente
+  ON public.invitaciones_clinica(clinica_id, lower(email))
+  WHERE status = 'pending';
 
 -- RLS habilitado
 ALTER TABLE public.invitaciones_clinica ENABLE ROW LEVEL SECURITY;
