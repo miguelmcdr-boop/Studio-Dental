@@ -41,6 +41,7 @@ export const Sidebar = ({ userProfile, activeSection, setActiveSection, onLogout
     { name: 'Reportes', icon: '📊', permisoRequerido: PERMISOS.VER_REPORTES },
 
     // Módulos administrativos
+    { name: 'Miembros', icon: '👥', permisoRequerido: PERMISOS.GESTIONAR_USUARIOS },
     { name: 'Vademécum', icon: '💊', permisoRequerido: PERMISOS.ADMINISTRAR_VADEMECUM },
     { name: 'Configuración', icon: '⚡', permisoRequerido: PERMISOS.VER_CONFIGURACION }
   ], [])
