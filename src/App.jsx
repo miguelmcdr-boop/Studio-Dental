@@ -12,7 +12,7 @@ import { useRealtimeSync } from './hooks/useRealtimeSync'
 import { useOfflineQueue } from './hooks/useOfflineQueue'
 import { supabase, USE_SUPABASE } from './services/supabaseClient'
 import { construirUserProfile } from './services/userProfileBuilder'
-import { verificarBootstrapNecesario } from './services/authService'
+import { useBootstrapDetection } from './hooks/useBootstrapDetection'
 import { AceptarInvitacion } from './components/AceptarInvitacion'
 import { BootstrapClinica } from './components/BootstrapClinica'
 import { useInvitacionHash } from './hooks/useInvitacionHash'
@@ -81,26 +81,11 @@ function App() {
     }
   }, [activeSection])
 
-  // F7-11b: Verificar si el usuario necesita crear una clínica
-  useEffect(() => {
-    if (!userProfile) {
-      setBootstrapNecesario(null)
-      return
-    }
-
-    const verificarBootstrap = async () => {
-      const result = await verificarBootstrapNecesario()
-      setBootstrapNecesario(result.necesario)
-    }
-
-    verificarBootstrap()
-  }, [userProfile])
 
   const userProfile = useSesionStore((state) => state.userProfile)
   const loginStore = useSesionStore((state) => state.login)
 
-  // F7-11b: Detectar si el usuario necesita crear una clínica
-  const [bootstrapNecesario, setBootstrapNecesario] = useState(null) // null = verificando, true/false = resultado
+  const bootstrapNecesario = useBootstrapDetection(userProfile) // F7-11b
 
   // F7-11: Detectar invitación pendiente en URL hash
   const invitacionPendiente = useInvitacionHash()
@@ -271,19 +256,10 @@ function App() {
     setPacienteSeleccionado
   )
 
-  // F7-11b: Si el usuario necesita crear una clínica, mostrar wizard
-  if (bootstrapNecesario === true) {
-    return (
-      <BootstrapClinica onComplete={() => window.location.reload()} />
-    )
-  }
+  if (bootstrapNecesario) return <BootstrapClinica onComplete={() => window.location.reload()} /> // F7-11b
 
-  // F7-11: Pantalla de invitación pendiente (antes de LoginScreen)
-  if (invitacionPendiente) {
-    return (
-      <AceptarInvitacion onAceptarExitoso={() => window.location.reload()} />
-    )
-  }
+  // F7-11: Invitación pendiente
+  if (invitacionPendiente) return <AceptarInvitacion onAceptarExitoso={() => window.location.reload()} />
 
   if (!userProfile) return <LoginScreen onLogin={handleLogin} />
 
