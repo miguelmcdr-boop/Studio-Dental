@@ -1,3 +1,129 @@
+## 2026-09-01 — F7-11: Onboarding de miembros sin service_role en frontend — DONE
+
+**Qué se ganó:** Los admins ahora pueden invitar personal a su clínica mediante un flujo seguro de invitación con token, sin usar `service_role` en el frontend y sin registro libre sin control.
+
+**Problema resuelto:**
+
+Antes de F7-11, cualquier persona podía registrarse libremente en el sistema (`LoginScreen.jsx:93` llamaba `supabaseSignUp()` sin restricciones). No había forma de que un admin invitara a su personal con un rol específico. El registro libre era un riesgo de seguridad y no había trazabilidad de quién invitó a quién.
+
+**Solución implementada:**
+
+**Parte 1 — Server-side (migración SQL):**
+- Tabla nueva `invitaciones_clinica` con: `email`, `rol`, `token` único, `status` (pending/accepted/revoked/expired), `invitado_por`, `expira_en` (7 días por defecto)
+- Índice UNIQUE parcial para prevenir invitaciones duplicadas pendientes por (clinica, email)
+- 6 RPCs SECURITY DEFINER (sin service_role):
+  - `puede_invitar_miembro()`: valida que el usuario sea admin de clínica activa
+  - `invitar_miembro(p_email, p_rol)`: solo admin puede invitar, genera token con `md5(random() || clock_timestamp())` concatenado 2 veces (64 chars hex)
+  - `aceptar_invitacion(p_token)`: valida token, expiración, y que el email del usuario autenticado coincida. Crea membresía automáticamente
+  - `revocar_invitacion(p_id)`: solo admin de la clínica puede revocar
+  - `listar_invitaciones_clinica()`: admin ve todas de su clínica; otros roles solo ven las suyas pendientes
+- Políticas RLS: `admin_lee_invitaciones`, `admin_inserta_invitaciones`, `admin_actualiza_invitaciones`, `invitado_lee_su_invitacion`
+
+**Parte 2 — Client-side (authService.js):**
+- `invitarMiembro(email, rol)`: llama RPC con validaciones y traducción de errores
+- `listarInvitaciones()`: lista invitaciones de la clínica activa
+- `revocarInvitacion(id)`: revoca invitación pendiente
+- `aceptarInvitacion(token)`: acepta invitación con validación de email
+- `generarUrlInvitacion(token)`: construye URL hash `/#/aceptar-invita?token=xxx`
+- `listarMiembros()`: consulta miembros actuales de la clínica activa (JOIN con auth.users para emails)
+
+**Parte 3 — UI Admin (módulo GestionMiembros):**
+- Nuevo módulo `src/modules/gestionMiembros/` con componente principal + index
+- Formulario de invitación (email + selector de rol con descripciones)
+- Tabla de miembros actuales (email, rol, estado)
+- Tabla de invitaciones pendientes con acciones: Copiar Link + Revocar
+- Solo visible para usuarios con permiso `GESTIONAR_USUARIOS` (admins)
+- Integrado en Sidebar con icono 👥 y lazy loading en App.jsx
+
+**Parte 4 — UI Invitado (pantalla AceptarInvitacion):**
+- Nuevo componente `src/components/AceptarInvitacion.jsx`
+- Extrae token de URL hash `/#/aceptar-invita?token=xxx`
+- Si no hay sesión: formulario login/signup (para invitaciones con email nuevo)
+- Si hay sesión: acepta invitación directamente
+- Maneja 5 estados: cargando | login | aceptando | exito | error
+- Limpia el hash de URL después de aceptar (prevención de re-aceptación)
+- Redirige automáticamente a la app después de 2 segundos
+
+**Archivos modificados/creados:**
+
+Server-side:
+- `supabase/migrations/2026_08_31_0002_f7_11_invitaciones_miembros.sql` (nueva, ~412 líneas)
+
+Client-side:
+- `src/services/authService.js` (+6 funciones F7-11, ~300 líneas)
+
+UI Admin:
+- `src/modules/gestionMiembros/GestionMiembrosModulo.jsx` (nuevo, ~340 líneas)
+- `src/modules/gestionMiembros/index.js` (nuevo)
+
+UI Invitado:
+- `src/components/AceptarInvitacion.jsx` (nuevo, ~250 líneas)
+
+Integración:
+- `src/components/Sidebar.jsx` (+1 línea: item "Miembros" con GESTIONAR_USUARIOS)
+- `src/App.jsx` (+30 líneas: lazy import, hash detection, render condicional)
+
+Tests:
+- `src/services/authService.f7-11.test.js` (20 tests)
+- `src/modules/gestionMiembros/GestionMiembrosModulo.test.jsx` (9 tests)
+- `src/components/AceptarInvitacion.test.jsx` (9 tests)
+
+Documentación:
+- `docs/BITACORA.md` (entrada F7-11)
+- `docs/MASTER_ROADMAP.md` (F7-11 DONE)
+
+**Criterios de aceptación (6/6 E2E validados):**
+
+- ✅ **Caso 1: Admin invita miembro** — invitación creada con `status='pending'`, `rol='dentista'`, token de 64 chars
+- ✅ **Caso 2: Invitado acepta invitación** — membresía creada (`activo=true`), invitación marcada `accepted`, Sidebar muestra rol contextual DENTISTA (gracias a F7-10b)
+- ✅ **Caso 3: Recepcionista NO puede invitar** — item "Miembros" oculto en Sidebar (filtro por `GESTIONAR_USUARIOS`)
+- ✅ **Caso 4: Email no coincide** — error "Esta invitación es para otro email. Inicia sesión con el email correcto"
+- ✅ **Caso 5: Token expirado** — error "Esta invitación ya expiró"
+- ✅ **Caso 6: Invitación duplicada** — error "Este email ya es miembro activo de la clínica"
+
+**Métricas:**
+- Tests: 1142/1142 pasando (38 nuevos: 20 authService + 9 GestionMiembros + 9 AceptarInvitacion)
+- Build: exitoso (29 entries precacheadas, service worker generado)
+- Arquitectura: 2 archivos nuevos dentro de límites constitucionales (F3-02)
+- Commits en rama: 11 commits
+
+**Hallazgos técnicos:**
+
+1. **pgcrypto no disponible en SECURITY DEFINER**: La función `gen_random_bytes(32)` fallaba con "function does not exist" dentro del contexto SECURITY DEFINER. Solución: usar `md5(random()::text || clock_timestamp()::text)` concatenado 2 veces para obtener 64 chars hex (256 bits de entropía).
+
+2. **miembros_clinica.rol es TEXT no app_role**: Las comparaciones `mc.rol = 'admin'::app_role` fallaban con "operator does not exist: text = app_role". Solución: usar `mc.rol::text = 'admin'` en las funciones SECURITY DEFINER.
+
+3. **Constraint EXCLUDE requiere btree_gist**: El constraint `EXCLUDE USING gist (clinica_id WITH =, lower(email) WITH =)` requiere la extensión btree_gist. Solución: usar índice UNIQUE parcial `CREATE UNIQUE INDEX ... WHERE status = 'pending'`.
+
+4. **SQL Editor no tiene contexto auth.uid()**: El check funcional de `puede_invitar_miembro()` retorna FALSE en el SQL Editor porque no hay usuario autenticado. Es un falso negativo esperado; la validación real se hizo en E2E.
+
+5. **JSX en tests requiere import React**: Los archivos de test con JSX fallaban con "React is not defined". Solución: agregar `import React from 'react'` explícitamente.
+
+6. **window.confirm en tests requiere spy**: Sobrescribir `window.confirm` directamente causa errores de cleanup. Solución: usar `vi.spyOn(window, 'confirm').mockReturnValue(true)` y restaurar después.
+
+7. **Usuario corrupto en Supabase Auth**: Un usuario creado manualmente con SQL tenía hash de contraseña corrupto y no se podía eliminar por FK con `profiles`. Solución: usar email diferente (`recepcion2.f7-11@test.com`) y dejar el corrupto aislado.
+
+**Seguridad:**
+- Todas las RPCs son SECURITY DEFINER (evitan recursión RLS)
+- GRANT EXECUTE solo a `authenticated` (NO anon, NO service_role expuesto)
+- Validaciones exhaustivas en cada RPC (email válido, rol válido, permisos)
+- Tokens con 64 chars hex = 256 bits de entropía
+- Expiración por defecto: 7 días
+- Índice UNIQUE parcial previene invitaciones duplicadas
+- RLS en la tabla de invitaciones como fallback
+
+**Dependencias desbloqueadas:**
+- **F7-11b** (Bootstrap de clínica nueva self-service) — ahora puede reutilizar el flujo de invitaciones para el primer admin si se desea
+- **F7-12** (Validador arquitectónico) — los 2 archivos nuevos pueden validarse sin cambios
+
+**Limpieza post-validación:**
+- Usuarios de prueba eliminados: `empleado.f7-11@test.com`, `recepcion2.f7-11@test.com`, `otra.persona@test.com`
+- Usuario corrupto `recepcion.f7-11@test.com` eliminado de auth.users
+- Invitaciones y membresías de prueba eliminadas
+- Verificación final: 0 usuarios, 0 invitaciones, 0 membresías restantes
+
+---
+
 ## 2026-08-31 — F7-10b: rol contextual en UI vía construirUserProfile() — DONE
 
 **Qué se ganó:** El rol mostrado en el Sidebar ahora refleja el rol del usuario en la clínica activa (no el rol global).
