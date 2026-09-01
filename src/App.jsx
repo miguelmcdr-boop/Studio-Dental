@@ -15,6 +15,7 @@ import { construirUserProfile } from './services/userProfileBuilder'
 import { useBootstrapDetection } from './hooks/useBootstrapDetection'
 import { AceptarInvitacion } from './components/AceptarInvitacion'
 import { BootstrapClinica } from './components/BootstrapClinica'
+import { VerificandoCuenta } from './components/VerificandoCuenta'
 import { useInvitacionHash } from './hooks/useInvitacionHash'
 
 // Módulos de uso diario — carga eager (Public API, Constitución v3.0.0)
@@ -253,18 +254,8 @@ function App() {
     setPacienteSeleccionado
   )
 
-  // F7-11b: Wizard de bootstrap si el usuario no tiene clínica
-  if (bootstrapNecesario === null && userProfile) {
-    // Verificando si necesita bootstrap (mostrar loading)
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin text-6xl mb-4">⏳</div>
-          <p className="text-gray-600">Verificando tu cuenta...</p>
-        </div>
-      </div>
-    )
-  }
+  // F7-11b: Pantalla de verificación mientras se determina bootstrapNecesario
+  if (bootstrapNecesario === null && userProfile) return <VerificandoCuenta />
 
   if (bootstrapNecesario) return <BootstrapClinica onComplete={() => window.location.reload()} />
 
