@@ -1,3 +1,4 @@
+import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { GestionMiembrosModulo } from './GestionMiembrosModulo'
@@ -124,9 +125,16 @@ describe('GestionMiembrosModulo', () => {
     const submitButton = screen.getByRole('button', { name: /enviar invitación/i })
     fireEvent.click(submitButton)
     
+    // Esperar a que el error se renderice (puede tomar un tick de React)
     await waitFor(() => {
-      expect(screen.getByText('Email inválido')).toBeInTheDocument()
+      expect(invitarMiembro).toHaveBeenCalledWith('invalid', 'recepcion')
     })
+    
+    // El error debería aparecer en el DOM
+    await waitFor(() => {
+      const errorElement = screen.queryByText('Email inválido')
+      expect(errorElement).toBeInTheDocument()
+    }, { timeout: 3000 })
   })
 
   it('debe listar invitaciones pendientes', async () => {
@@ -144,9 +152,9 @@ describe('GestionMiembrosModulo', () => {
     })
   })
 
-  it('debe revocar invitación con confirmación', async () => {
-    // Mock de confirm
-    window.confirm = vi.fn(() => true)
+  it('debe revocar invitación (flujo básico)', async () => {
+    // Spy de confirm con auto-accept
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
     
     listarInvitaciones.mockResolvedValue({
       success: true,
@@ -163,13 +171,15 @@ describe('GestionMiembrosModulo', () => {
       expect(screen.getByText('pendiente@test.com')).toBeInTheDocument()
     })
     
-    const revocarButton = screen.getByText('Revocar')
-    fireEvent.click(revocarButton)
+    const revocarButtons = screen.getAllByText('Revocar')
+    fireEvent.click(revocarButtons[0])
     
     await waitFor(() => {
-      expect(window.confirm).toHaveBeenCalled()
+      expect(confirmSpy).toHaveBeenCalled()
       expect(revocarInvitacion).toHaveBeenCalledWith('inv1')
     })
+    
+    confirmSpy.mockRestore()
   })
 
   it('debe copiar link de invitación', async () => {

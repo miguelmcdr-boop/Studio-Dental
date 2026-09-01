@@ -335,7 +335,7 @@ export const GestionMiembrosModulo = () => {
                         {urlCopiada === invitacion.token ? '✓ Copiado' : 'Copiar Link'}
                       </button>
                       <button
-                        onClick={() => handleRevocar(initacion.id)}
+                        onClick={() => handleRevocar(invitacion.id)}
                         className="text-red-600 hover:text-red-900"
                         title="Revocar invitación"
                       >
