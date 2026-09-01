@@ -136,8 +136,13 @@ BEGIN
     RAISE EXCEPTION 'Este email ya es miembro activo de la clínica';
   END IF;
   
-  -- Generar token único seguro
-  v_token := encode(gen_random_bytes(32), 'hex');
+  -- Generar token único seguro (sin pgcrypto)
+  -- Usa combinación de random() + clock_timestamp() + md5 para generar 64 chars hex
+  v_token := substr(
+    md5(random()::text || clock_timestamp()::text) ||
+    md5(random()::text || clock_timestamp()::text),
+    1, 64
+  );
   
   -- Insertar invitación
   INSERT INTO public.invitaciones_clinica (
