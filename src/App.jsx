@@ -12,6 +12,8 @@ import { useRealtimeSync } from './hooks/useRealtimeSync'
 import { useOfflineQueue } from './hooks/useOfflineQueue'
 import { supabase, USE_SUPABASE } from './services/supabaseClient'
 import { construirUserProfile } from './services/userProfileBuilder'
+import { AceptarInvitacion } from './components/AceptarInvitacion'
+import { useInvitacionHash } from './hooks/useInvitacionHash'
 
 // Módulos de uso diario — carga eager (Public API, Constitución v3.0.0)
 import { Agenda as AgendaModulo } from './modules/agenda'
@@ -37,6 +39,7 @@ const ComunicacionesModulo = lazy(() => import('./modules/comunicaciones').then(
 const ReportesModulo = lazy(() => import('./modules/reportes').then(m => ({ default: m.ReportesModulo })))
 const ConfiguracionModulo = lazy(() => import('./modules/configuracion').then(m => ({ default: m.ConfiguracionModulo })))
 const AdminVademecumModulo = lazy(() => import('./modules/administracion').then(m => ({ default: m.AdminVademecumModulo })))
+const GestionMiembrosModulo = lazy(() => import('./modules/gestionMiembros').then(m => ({ default: m.GestionMiembrosModulo })))
 
 function App() {
   // F4-02e: Persistir activeSection en localStorage para mantener
@@ -78,6 +81,9 @@ function App() {
 
   const userProfile = useSesionStore((state) => state.userProfile)
   const loginStore = useSesionStore((state) => state.login)
+
+  // F7-11: Detectar invitación pendiente en URL hash
+  const invitacionPendiente = useInvitacionHash()
   const logoutStore = useSesionStore((state) => state.logout)
 
   // F6-H: Timeout de sesión + sincronización entre pestañas + manejo de errores 401
@@ -245,6 +251,13 @@ function App() {
     setPacienteSeleccionado
   )
 
+  // F7-11: Pantalla de invitación pendiente (antes de LoginScreen)
+  if (invitacionPendiente) {
+    return (
+      <AceptarInvitacion onAceptarExitoso={() => window.location.reload()} />
+    )
+  }
+
   if (!userProfile) return <LoginScreen onLogin={handleLogin} />
 
   return (
@@ -314,6 +327,10 @@ function App() {
 
           {activeSection === 'Reportes' && (
             <ReportesModulo />
+          )}
+
+          {activeSection === 'Miembros' && (
+            <GestionMiembrosModulo />
           )}
 
           {activeSection === 'Vademécum' && <AdminVademecumModulo />}
