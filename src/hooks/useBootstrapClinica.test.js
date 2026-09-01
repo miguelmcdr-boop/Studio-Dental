@@ -60,6 +60,9 @@ describe('useBootstrapClinica', () => {
 
     act(() => {
       result.current.actualizarCampo('nombre', 'AB')
+    })
+
+    act(() => {
       result.current.avanzarPaso()
     })
 
@@ -72,6 +75,9 @@ describe('useBootstrapClinica', () => {
 
     act(() => {
       result.current.actualizarCampo('nombre', 'Clínica Test')
+    })
+
+    act(() => {
       result.current.avanzarPaso()
     })
 
@@ -84,8 +90,17 @@ describe('useBootstrapClinica', () => {
 
     act(() => {
       result.current.actualizarCampo('nombre', 'Clínica Test')
-      result.current.avanzarPaso() // Avanza a paso 2
+    })
+
+    act(() => {
+      result.current.avanzarPaso()
+    })
+
+    act(() => {
       result.current.actualizarCampo('rutEmpresa', '12.345.678-9') // RUT inválido
+    })
+
+    act(() => {
       result.current.avanzarPaso()
     })
 
@@ -98,8 +113,17 @@ describe('useBootstrapClinica', () => {
 
     act(() => {
       result.current.actualizarCampo('nombre', 'Clínica Test')
+    })
+
+    act(() => {
       result.current.avanzarPaso()
+    })
+
+    act(() => {
       result.current.actualizarCampo('rutEmpresa', '76.123.456-7') // RUT válido
+    })
+
+    act(() => {
       result.current.avanzarPaso()
     })
 
@@ -111,8 +135,14 @@ describe('useBootstrapClinica', () => {
 
     act(() => {
       result.current.actualizarCampo('nombre', 'Clínica Test')
-      result.current.avanzarPaso() // Paso 2
-      result.current.retrocederPaso() // Vuelve a paso 1
+    })
+
+    act(() => {
+      result.current.avanzarPaso()
+    })
+
+    act(() => {
+      result.current.retrocederPaso()
     })
 
     expect(result.current.paso).toBe(1)
@@ -126,8 +156,14 @@ describe('useBootstrapClinica', () => {
 
     await act(async () => {
       result.current.actualizarCampo('nombre', 'Clínica Test')
+    })
+
+    await act(async () => {
       result.current.avanzarPaso()
-      result.current.avanzarPaso() // Paso 3
+    })
+
+    await act(async () => {
+      result.current.avanzarPaso()
     })
 
     await act(async () => {
@@ -154,8 +190,17 @@ describe('useBootstrapClinica', () => {
 
     await act(async () => {
       result.current.actualizarCampo('nombre', 'Clínica Test')
+    })
+
+    await act(async () => {
       result.current.avanzarPaso()
+    })
+
+    await act(async () => {
       result.current.avanzarPaso()
+    })
+
+    await act(async () => {
       result.current.handleSubmit({ preventDefault: vi.fn() })
     })
 
