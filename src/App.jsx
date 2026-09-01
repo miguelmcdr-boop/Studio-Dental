@@ -84,7 +84,6 @@ function App() {
   const userProfile = useSesionStore((state) => state.userProfile)
   const loginStore = useSesionStore((state) => state.login)
   const bootstrapNecesario = useBootstrapDetection(userProfile) // F7-11b
-
   // F7-11: Detectar invitación pendiente en URL hash
   const invitacionPendiente = useInvitacionHash()
   const logoutStore = useSesionStore((state) => state.logout)
@@ -95,8 +94,7 @@ function App() {
   // F4-02c-2: ejecutar migración automática de datos al primer login con Supabase
 
 
-  // F4-02e: Restaurar paciente seleccionado desde Supabase al recargar
-  // Esto mantiene la ficha del paciente abierta después de F5.
+  // F4-02e: Restaurar paciente seleccionado desde Supabase al recargar.
   useEffect(() => {
     // Solo ejecutar si el usuario está autenticado y aún no hay paciente cargado
     if (!userProfile || !USE_SUPABASE || !supabase || pacienteSeleccionado !== null) {
@@ -183,10 +181,8 @@ function App() {
     }
   }, [])
 
-  // F4-02b FIX: Detectar sesión de Supabase al cargar la app.
-  // Si hay una sesión activa pero userProfile está vacío (caso de recarga
-  // en incógnito), restaurar el perfil desde Supabase Auth.
-  // IMPORTANTE: solo restaurar si NO hay un logout en progreso.
+  // F4-02b FIX: Detectar sesión de Supabase al cargar la app
+  // y restaurar perfil. IMPORTANTE: solo restaurar si NO hay logout en progreso.
   useEffect(() => {
     if (!USE_SUPABASE || !supabase) return
 
