@@ -6,11 +6,19 @@ import { useAceptarInvitacion } from '../hooks/useAceptarInvitacion'
  * Componente puramente presentacional — toda la lógica está en useAceptarInvitacion.
  */
 export const AceptarInvitacion = ({ onAceptarExitoso }) => {
-  // Extraer token de URL hash
+  // Extraer token de URL hash (antes del hook para evitar llamada condicional)
   const hash = typeof window !== 'undefined' ? window.location.hash : ''
   const params = new URLSearchParams(hash.split('?')[1] || '')
   const token = params.get('token')
 
+  // Hook debe llamarse incondicionalmente (React Hooks rules)
+  const {
+    estado, error, exito,
+    email, setEmail, password, setPassword, nombreCompleto, setNombreCompleto,
+    modoRegistro, procesando, handleSubmitAuth, toggleModo
+  } = useAceptarInvitacion(token, onAceptarExitoso)
+
+  // Early return DESPUÉS del hook si no hay token
   if (!token) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -25,12 +33,6 @@ export const AceptarInvitacion = ({ onAceptarExitoso }) => {
       </div>
     )
   }
-
-  const {
-    estado, error, exito,
-    email, setEmail, password, setPassword, nombreCompleto, setNombreCompleto,
-    modoRegistro, procesando, handleSubmitAuth, toggleModo
-  } = useAceptarInvitacion(token, onAceptarExitoso)
 
   if (estado === 'exito') {
     return (
