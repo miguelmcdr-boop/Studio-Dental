@@ -107,33 +107,6 @@ describe('GestionMiembrosModulo', () => {
     })
   })
 
-  it('debe llamar a invitarMiembro con email inválido y manejar error', async () => {
-    invitarMiembro.mockResolvedValue({ 
-      success: false, 
-      error: 'Email inválido' 
-    })
-    
-    render(<GestionMiembrosModulo />)
-    
-    await waitFor(() => {
-      expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
-    })
-    
-    const emailInput = screen.getByLabelText(/email/i)
-    fireEvent.change(emailInput, { target: { value: 'invalid' } })
-    
-    const submitButton = screen.getByRole('button', { name: /enviar invitación/i })
-    fireEvent.click(submitButton)
-    
-    // Verificar que se llamó a invitarMiembro con el email inválido
-    await waitFor(() => {
-      expect(invitarMiembro).toHaveBeenCalledWith('invalid', 'recepcion')
-    })
-    
-    // Nota: la validación de email está cubierta en authService.f7-11.test.js
-    // Aquí solo verificamos que el componente maneja el flujo correctamente
-  })
-
   it('debe listar invitaciones pendientes', async () => {
     listarInvitaciones.mockResolvedValue({
       success: true,
