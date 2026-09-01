@@ -735,3 +735,113 @@ export const generarUrlInvitacion = (token) => {
   const baseUrl = window.location.origin
   return `${baseUrl}/#/aceptar-invita?token=${encodeURIComponent(token)}`
 }
+
+// ============================================================
+// F7-11b: Bootstrap de clínica nueva (self-service)
+// ============================================================
+
+/**
+ * F7-11b: Verifica si el usuario actual necesita crear una clínica.
+ * Retorna true si el usuario no tiene membresía activa en ninguna clínica.
+ *
+ * @returns {Promise<{necesario: boolean, error?: string}>}
+ */
+export const verificarBootstrapNecesario = async () => {
+  if (!USE_SUPABASE || !supabase) {
+    return { necesario: false, error: 'Supabase no configurado' }
+  }
+
+  try {
+    const { data, error } = await supabase.rpc('verificar_bootstrap_necesario')
+
+    if (error) {
+      log.error('F7-11b: Error verificando bootstrap:', error.message)
+      return { necesario: false, error: error.message }
+    }
+
+    return { necesario: data === true }
+  } catch (error) {
+    log.error('F7-11b: Excepción en verificarBootstrapNecesario:', error.message)
+    return { necesario: false, error: error.message }
+  }
+}
+
+/**
+ * F7-11b: Crea una nueva clínica y asigna al usuario como admin.
+ * El usuario no debe tener clínica activa (validado en server).
+ *
+ * @param {Object} datos - Datos de la clínica
+ * @param {string} datos.nombre - Nombre de la clínica (requerido, 3-100 chars)
+ * @param {string} [datos.rutEmpresa] - RUT de la empresa (opcional, único)
+ * @param {string} [datos.direccion] - Dirección (opcional)
+ * @param {string} [datos.telefono] - Teléfono (opcional)
+ * @param {string} [datos.emailContacto] - Email de contacto (opcional)
+ * @returns {Promise<{success: boolean, clinicaId?: string, error?: string}>}
+ */
+export const bootstrapClinica = async (datos) => {
+  if (!USE_SUPABASE || !supabase) {
+    return { success: false, error: 'Supabase no configurado' }
+  }
+
+  try {
+    // Validaciones de entrada
+    if (!datos || typeof datos !== 'object') {
+      return { success: false, error: 'Datos de clínica requeridos' }
+    }
+
+    if (!datos.nombre || typeof datos.nombre !== 'string' || datos.nombre.trim().length < 3) {
+      return { success: false, error: 'Nombre de clínica requerido (mínimo 3 caracteres)' }
+    }
+
+    if (datos.nombre.trim().length > 100) {
+      return { success: false, error: 'Nombre de clínica muy largo (máximo 100 caracteres)' }
+    }
+
+    // Llamar RPC (SECURITY DEFINER, valida permisos internamente)
+    const { data, error } = await supabase.rpc('bootstrap_clinica', {
+      p_nombre: datos.nombre.trim(),
+      p_rut_empresa: datos.rutEmpresa?.trim() || null,
+      p_direccion: datos.direccion?.trim() || null,
+      p_telefono: datos.telefono?.trim() || null,
+      p_email_contacto: datos.emailContacto?.trim() || null
+    })
+
+    if (error) {
+      log.error('F7-11b: Error creando clínica:', error.message)
+      // Traducir errores conocidos
+      if (error.message.includes('YA_TIENE_CLINICA')) {
+        return { success: false, error: 'Ya tienes una clínica activa. No puedes crear otra.' }
+      }
+      if (error.message.includes('RATE_LIMIT')) {
+        return { success: false, error: 'Ya creaste una clínica recientemente. Espera 24 horas.' }
+      }
+      if (error.message.includes('RUT_DUPLICADO')) {
+        return { success: false, error: 'Ya existe una clínica con este RUT' }
+      }
+      if (error.message.includes('NOMBRE_REQUERIDO')) {
+        return { success: false, error: 'El nombre de la clínica es obligatorio' }
+      }
+      if (error.message.includes('NOMBRE_MUY_CORTO')) {
+        return { success: false, error: 'El nombre debe tener al menos 3 caracteres' }
+      }
+      if (error.message.includes('NOMBRE_MUY_LARGO')) {
+        return { success: false, error: 'El nombre no puede exceder 100 caracteres' }
+      }
+      return { success: false, error: error.message }
+    }
+
+    log.info('F7-11b: Clínica creada:', { clinicaId: data, nombre: datos.nombre })
+
+    // Después de crear la clínica, establecerla como activa
+    const setResult = await setClinicaActiva(data)
+    if (!setResult.success) {
+      log.warn('F7-11b: Clínica creada pero no se pudo activar:', setResult.error)
+      // No fallar el bootstrap, solo advertir
+    }
+
+    return { success: true, clinicaId: data }
+  } catch (error) {
+    log.error('F7-11b: Excepción en bootstrapClinica:', error.message)
+    return { success: false, error: error.message }
+  }
+}

@@ -12,7 +12,10 @@ import { useRealtimeSync } from './hooks/useRealtimeSync'
 import { useOfflineQueue } from './hooks/useOfflineQueue'
 import { supabase, USE_SUPABASE } from './services/supabaseClient'
 import { construirUserProfile } from './services/userProfileBuilder'
+import { useBootstrapDetection } from './hooks/useBootstrapDetection'
 import { AceptarInvitacion } from './components/AceptarInvitacion'
+import { BootstrapClinica } from './components/BootstrapClinica'
+import { VerificandoCuenta } from './components/VerificandoCuenta'
 import { useInvitacionHash } from './hooks/useInvitacionHash'
 
 // Módulos de uso diario — carga eager (Public API, Constitución v3.0.0)
@@ -42,8 +45,7 @@ const AdminVademecumModulo = lazy(() => import('./modules/administracion').then(
 const GestionMiembrosModulo = lazy(() => import('./modules/gestionMiembros').then(m => ({ default: m.GestionMiembrosModulo })))
 
 function App() {
-  // F4-02e: Persistir activeSection en localStorage para mantener
-  // la navegación entre recargas. Si no hay valor guardado, usar 'Dashboard'.
+  // F4-02e: Persistir activeSection (localStorage). Si no hay, usar 'Dashboard'.
   const [activeSection, setActiveSection] = useState(() => {
     try {
       const guardado = localStorage.getItem('clinica_active_section')
@@ -52,8 +54,7 @@ function App() {
       return 'Dashboard'
     }
   })
-  // F4-02e: Estado del paciente seleccionado. Inicia en null;
-  // se restaura desde Supabase si hay ID persistido en localStorage.
+  // F4-02e: Paciente seleccionado (null inicialmente, restaurado desde Supabase).
   const [pacienteSeleccionado, setPacienteSeleccionadoState] = useState(null)
 
   // F4-02e: Wrapper que persiste el pacienteId al seleccionar
@@ -79,9 +80,10 @@ function App() {
     }
   }, [activeSection])
 
+
   const userProfile = useSesionStore((state) => state.userProfile)
   const loginStore = useSesionStore((state) => state.login)
-
+  const bootstrapNecesario = useBootstrapDetection(userProfile) // F7-11b
   // F7-11: Detectar invitación pendiente en URL hash
   const invitacionPendiente = useInvitacionHash()
   const logoutStore = useSesionStore((state) => state.logout)
@@ -92,8 +94,7 @@ function App() {
   // F4-02c-2: ejecutar migración automática de datos al primer login con Supabase
 
 
-  // F4-02e: Restaurar paciente seleccionado desde Supabase al recargar
-  // Esto mantiene la ficha del paciente abierta después de F5.
+  // F4-02e: Restaurar paciente seleccionado desde Supabase al recargar.
   useEffect(() => {
     // Solo ejecutar si el usuario está autenticado y aún no hay paciente cargado
     if (!userProfile || !USE_SUPABASE || !supabase || pacienteSeleccionado !== null) {
@@ -180,10 +181,8 @@ function App() {
     }
   }, [])
 
-  // F4-02b FIX: Detectar sesión de Supabase al cargar la app.
-  // Si hay una sesión activa pero userProfile está vacío (caso de recarga
-  // en incógnito), restaurar el perfil desde Supabase Auth.
-  // IMPORTANTE: solo restaurar si NO hay un logout en progreso.
+  // F4-02b FIX: Detectar sesión de Supabase al cargar la app
+  // y restaurar perfil. IMPORTANTE: solo restaurar si NO hay logout en progreso.
   useEffect(() => {
     if (!USE_SUPABASE || !supabase) return
 
@@ -251,12 +250,13 @@ function App() {
     setPacienteSeleccionado
   )
 
-  // F7-11: Pantalla de invitación pendiente (antes de LoginScreen)
-  if (invitacionPendiente) {
-    return (
-      <AceptarInvitacion onAceptarExitoso={() => window.location.reload()} />
-    )
-  }
+  // F7-11b: Pantalla de verificación mientras se determina bootstrapNecesario
+  if (bootstrapNecesario === null && userProfile) return <VerificandoCuenta />
+
+  if (bootstrapNecesario) return <BootstrapClinica onComplete={() => window.location.reload()} />
+
+  // F7-11: Invitación pendiente
+  if (invitacionPendiente) return <AceptarInvitacion onAceptarExitoso={() => window.location.reload()} />
 
   if (!userProfile) return <LoginScreen onLogin={handleLogin} />
 
