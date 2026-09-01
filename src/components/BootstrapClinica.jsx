@@ -66,6 +66,21 @@ export const BootstrapClinica = ({ onComplete }) => {
           </div>
         )}
 
+        {/* Botón de cancelar/logout */}
+        <div className="mb-6 text-center">
+          <button
+            type="button"
+            onClick={() => {
+              if (confirm('¿Seguro que quieres salir? Puedes iniciar sesión más tarde.')) {
+                window.location.href = '/'
+              }
+            }}
+            className="text-sm text-gray-600 hover:text-gray-900 underline"
+          >
+            ← No quiero crear una clínica ahora
+          </button>
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Paso 1: Nombre */}
           {paso === 1 && (

@@ -253,7 +253,20 @@ function App() {
     setPacienteSeleccionado
   )
 
-  if (bootstrapNecesario) return <BootstrapClinica onComplete={() => window.location.reload()} /> // F7-11b
+  // F7-11b: Wizard de bootstrap si el usuario no tiene clínica
+  if (bootstrapNecesario === null && userProfile) {
+    // Verificando si necesita bootstrap (mostrar loading)
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin text-6xl mb-4">⏳</div>
+          <p className="text-gray-600">Verificando tu cuenta...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (bootstrapNecesario) return <BootstrapClinica onComplete={() => window.location.reload()} />
 
   // F7-11: Invitación pendiente
   if (invitacionPendiente) return <AceptarInvitacion onAceptarExitoso={() => window.location.reload()} />
