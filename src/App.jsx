@@ -13,6 +13,7 @@ import { useOfflineQueue } from './hooks/useOfflineQueue'
 import { supabase, USE_SUPABASE } from './services/supabaseClient'
 import { construirUserProfile } from './services/userProfileBuilder'
 import { AceptarInvitacion } from './components/AceptarInvitacion'
+import { useInvitacionHash } from './hooks/useInvitacionHash'
 
 // Módulos de uso diario — carga eager (Public API, Constitución v3.0.0)
 import { Agenda as AgendaModulo } from './modules/agenda'
@@ -81,15 +82,8 @@ function App() {
   const userProfile = useSesionStore((state) => state.userProfile)
   const loginStore = useSesionStore((state) => state.login)
 
-  // F7-11: Detectar si la URL contiene invitación pendiente
-  const [invitacionPendiente, setInvitacionPendiente] = useState(() => {
-    try {
-      const hash = window.location.hash
-      return hash.includes('aceptar-invita') && hash.includes('token=')
-    } catch {
-      return false
-    }
-  })
+  // F7-11: Detectar invitación pendiente en URL hash
+  const invitacionPendiente = useInvitacionHash()
   const logoutStore = useSesionStore((state) => state.logout)
 
   // F6-H: Timeout de sesión + sincronización entre pestañas + manejo de errores 401
@@ -257,16 +251,10 @@ function App() {
     setPacienteSeleccionado
   )
 
-  // F7-11: Si hay invitación pendiente en URL, mostrar pantalla de aceptar invitación
+  // F7-11: Pantalla de invitación pendiente (antes de LoginScreen)
   if (invitacionPendiente) {
     return (
-      <AceptarInvitacion 
-        onAceptarExitoso={() => {
-          setInvitacionPendiente(false)
-          // Forzar reload para que el useEffect de restauración de sesión funcione
-          window.location.reload()
-        }}
-      />
+      <AceptarInvitacion onAceptarExitoso={() => window.location.reload()} />
     )
   }
 
