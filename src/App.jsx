@@ -44,8 +44,7 @@ const AdminVademecumModulo = lazy(() => import('./modules/administracion').then(
 const GestionMiembrosModulo = lazy(() => import('./modules/gestionMiembros').then(m => ({ default: m.GestionMiembrosModulo })))
 
 function App() {
-  // F4-02e: Persistir activeSection en localStorage para mantener
-  // la navegación entre recargas. Si no hay valor guardado, usar 'Dashboard'.
+  // F4-02e: Persistir activeSection (localStorage). Si no hay, usar 'Dashboard'.
   const [activeSection, setActiveSection] = useState(() => {
     try {
       const guardado = localStorage.getItem('clinica_active_section')
@@ -54,8 +53,7 @@ function App() {
       return 'Dashboard'
     }
   })
-  // F4-02e: Estado del paciente seleccionado. Inicia en null;
-  // se restaura desde Supabase si hay ID persistido en localStorage.
+  // F4-02e: Paciente seleccionado (null inicialmente, restaurado desde Supabase).
   const [pacienteSeleccionado, setPacienteSeleccionadoState] = useState(null)
 
   // F4-02e: Wrapper que persiste el pacienteId al seleccionar
@@ -84,7 +82,6 @@ function App() {
 
   const userProfile = useSesionStore((state) => state.userProfile)
   const loginStore = useSesionStore((state) => state.login)
-
   const bootstrapNecesario = useBootstrapDetection(userProfile) // F7-11b
 
   // F7-11: Detectar invitación pendiente en URL hash
