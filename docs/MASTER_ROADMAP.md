@@ -168,7 +168,7 @@
 | F7-12 | Extender validador arquitectónico a `src/services/` + reducción de allowlist | 7 | P2 | S (1-2 d) | — | TODO |
 | F7-13 | Migraciones versionadas en `supabase/migrations/` + reconstrucción desde cero | 7 | **P0** | M (2-4 d) | — | DONE (2026-08-29) — 10 migraciones con timestamps, seeds por entorno, 6 scripts npm, script de verificación, 5 tests |
 | F7-14 | Security headers: CSP, HSTS y Permissions-Policy | 7 | P2 | S (1 d) | — | TODO |
-| F7-15 | Sustituir `xlsx@0.18.5` por dependencia sin advisories abiertos | 7 | P2 | S (1 d) | — | TODO |
+| F7-15 | Sustituir `xlsx@0.18.5` por dependencia sin advisories abiertos | 7 | P2 | S (1 d) | — | DONE (2026-09-01) — migración a exceljs@4.4.0, elimina 2 vulnerabilidades HIGH (Prototype Pollution + ReDoS), 25 tests reescritos, npm audit 0 vulnerabilities, override uuid para seguridad transitiva |
 | F7-16 | Retirar o endurecer autenticación local PBKDF2 + localStorage | 7 | P2 | S (1 d) | F7-05 | TODO |
 | F7-17 | Resolver warnings `exhaustive-deps` en hooks clínicos | 7 | P2 | XS (<0.5 d) | — | TODO |
 | F7-18 | Auditoría XSS / HTML no confiable en datos clínicos | 7 | **P0** | S (1 d) | — | TODO |

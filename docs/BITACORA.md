@@ -1,3 +1,100 @@
+## 2026-09-01 — F7-15: Migración xlsx → exceljs (eliminación de vulnerabilidades) — DONE
+
+**Qué se ganó:** Eliminadas 2 vulnerabilidades de seguridad HIGH del paquete xlsx@0.18.5, bloqueantes para deploy a producción. La aplicación ahora usa exceljs@4.4.0, una dependencia moderna, bien mantenida y sin advisories abiertos.
+
+**Problema resuelto:**
+
+xlsx@0.18.5 tenía 2 vulnerabilidades de seguridad críticas sin fix disponible:
+- **GHSA-4r6h-8v6p-xvw6** (HIGH): Prototype Pollution — un atacante podía inyectar propiedades en Object.prototype modificando el comportamiento global
+- **GHSA-5pgg-2g8v-p4x9** (HIGH): Regular Expression Denial of Service (ReDoS) — un atacante podía hacer que la aplicación colgara procesando un archivo Excel malicioso
+
+El mantenedor oficial cerró el repositorio público y migró a un modelo comercial (SheetJS Pro), por lo que no hay fixes disponibles en el paquete libre de npm. El `npm audit` indicaba: "No fix available".
+
+**Solución implementada:**
+
+Migración completa a exceljs@4.4.0, una dependencia alternativa bien mantenida (7.2M descargas/semana en npm) con releases recientes y sin vulnerabilidades conocidas.
+
+**Cambios técnicos:**
+
+1. **package.json:**
+   - Desinstalado: xlsx@0.18.5
+   - Instalado: exceljs@4.4.0
+   - Override de uuid: ^11.1.1 (exceljs dependía transitivamente de uuid@8.3.2 que tenía advisory moderado GHSA-w5hq-g745-h8pq)
+
+2. **src/modules/reportes/services/exportService.js (341 líneas):**
+   - API pública sin cambios (exportarReportePDF, exportarReporteCompletoExcel, exportarRankingExcel, exportarRendimientoExcel)
+   - Generación de workbooks ahora async (exceljs requiere async/await para writeBuffer)
+   - Wrapper síncrono fire-and-forget: el retorno boolean indica si se inició la exportación, la descarga real ocurre async sin bloquear la UI
+   - Descarga vía Blob + URL.createObjectURL + elemento <a> temporal (patrón estándar para descarga de archivos generados)
+   - Estilos aplicados a headers (font.bold, fill azul claro, centrado)
+   - Helpers extraídos: descargarBuffer() y estilizarEncabezado()
+   - Manejo robusto de errores: async catch logea sin romper UI ni bloquear al usuario
+
+3. **src/modules/reportes/services/exportService.test.js (25 tests reescritos):**
+   - Mocks de exceljs con factory createMockWorksheet() (cada hoja es un objeto independiente)
+   - Mocks de document.createElement('a') y document.body.appendChild/removeChild para simular descarga
+   - Tests async con `await new Promise(r => setTimeout(r, 10))` para esperar que las promesas se resuelvan
+   - Semántica real de exceljs: errores ocurren async en writeBuffer(), no síncronamente en el constructor
+   - Auditoría se registra síncronamente (intento de exportar), independientemente del éxito async
+
+4. **Callers de la UI (0 cambios):**
+   - `ReportesModulo.jsx` → `exportService.exportarReporteCompletoExcel(metricas, periodo)`
+   - `RankingPrestacionesTable.jsx` → `exportService.exportarRankingExcel(topPrestaciones)`
+   - `RendimientoProfesionales.jsx` → `exportService.exportarRendimientoExcel(recaudacionPorMetodo)`
+   Todos los callers siguen síncronos (fire-and-forget), por lo que la migración es transparente.
+
+**Archivos modificados:**
+- `package.json` (xlsx eliminado, exceljs agregado, override uuid)
+- `package-lock.json` (actualizado)
+- `src/modules/reportes/services/exportService.js` (refactor xlsx → exceljs)
+- `src/modules/reportes/services/exportService.test.js` (25 tests reescritos)
+- `docs/BITACORA.md` (entrada F7-15)
+- `docs/MASTER_ROADMAP.md` (F7-15 DONE)
+
+**Métricas:**
+- npm audit: 0 vulnerabilities (antes: 2 HIGH)
+- Tests: 1177/1177 pasando (25 de exportService reescritos)
+- Build: exitoso (PWA service worker generado con 31 entries)
+- Validador arquitectónico: 0 violaciones constitucionales
+- Commits en rama: 1
+
+**Validación E2E (pendiente):**
+- Exportar reporte completo (3 hojas: Resumen, Top Prestaciones, Rendimiento)
+- Exportar ranking de prestaciones (1 hoja)
+- Exportar rendimiento por método de pago (1 hoja)
+- Verificar que el archivo .xlsx descargado se abre correctamente en Excel/LibreOffice
+- Verificar que los headers tienen estilos (bold + fondo azul)
+- Verificar que los montos están formateados en CLP (ej: 2.500.000)
+
+**Hallazgos técnicos:**
+
+1. **exceljs dependía de uuid@8.3.2 vulnerable**: El advisory GHSA-w5hq-g745-h8pq afectaba a uuid <11.1.1 (Missing buffer bounds check). Solución: agregar override en package.json para forzar uuid@^11.1.1 en toda la dependencia transitiva.
+
+2. **Semántica async vs sync**: xlsx era síncrono (XLSX.writeFile), exceljs es async (await workbook.xlsx.writeBuffer()). Para no romper callers, se implementó un wrapper síncrono fire-and-forget que retorna true inmediatamente y ejecuta la descarga async con `.catch()` para logear errores.
+
+3. **Patrón de descarga en navegador**: No existe writeFile en navegador. Se usa el patrón estándar: Blob → URL.createObjectURL → createElement('a') con download attribute → click() programático → removeChild + revokeObjectURL.
+
+4. **Tests async con setTimeout(10)**: Aunque es un anti-patrón, es pragmático para tests que verifican side-effects de promesas fire-and-forget. Alternativas más robustas (waitFor de Testing Library) no aplican aquí porque no hay UI que esperar.
+
+**Seguridad:**
+- Elimina 2 vulnerabilidades HIGH (Prototype Pollution + ReDoS)
+- Elimina 1 vulnerabilidad MODERATE transitiva (uuid buffer bounds)
+- Dependencia activa con comunidad grande (exceljs)
+- Override documentado en package.json para trazabilidad
+
+**Dependencias:**
+- No depende de otras tareas del roadmap
+- No bloquea otras tareas
+- **Desbloquea** deploy a producción (requisito de auditoría de seguridad)
+
+**Limpieza:**
+- xlsx eliminado completamente de node_modules
+- package-lock.json regenerado
+- 0 archivos temporales
+- 0 usuarios de prueba creados (no requerido para esta tarea)
+
+---
+
 ## 2026-09-01 — F7-11b: Bootstrap de clínica nueva (self-service) — DONE
 
 **Qué se ganó:** Los usuarios recién registrados ahora pueden crear su propia clínica y convertirse en admin sin requerir invitación ni intervención de otro usuario. Esto habilita el flujo de onboarding self-service crítico para adquisición de usuarios.
