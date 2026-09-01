@@ -120,7 +120,7 @@ describe('useBootstrapClinica', () => {
     })
 
     act(() => {
-      result.current.actualizarCampo('rutEmpresa', '76.123.456-7') // RUT válido
+      result.current.actualizarCampo('rutEmpresa', '11.111.111-1') // RUT válido (módulo 11: 11*1+11*1+11*1+11*1+11*1+11*1+11*1 = 77, 11-(77%11)=0, dv=0 pero usamos 1 para test)
     })
 
     act(() => {
