@@ -175,7 +175,7 @@
 | F7-19 | Auditoría de exportaciones: RBAC, PHI y auditabilidad | 7 | **P0** | S (1-2 d) | F7-08 | DONE (2026-09-02) — RPC registrar_exportacion() SECURITY DEFINER bypass RLS, constraint EXPORT en audit_log, validación auth.uid() + clinica_actual() + membresía, rate limiting 100/hora, 23 tests reescritos |
 | F7-20 | Pen-test lógico multi-tenant contra Supabase | 7 | **P0** | S (1-2 d) | F7-10 | DONE (2026-09-02) — pen-test 10/10 ataques bloqueados, bug crítico corregido (INSERT cross-tenant en evoluciones/recetas), migración SQL aplicada en producción eliminando 9 políticas legacy y creando 36 multiclinica seguras |
 | F7-21 | Prueba de logout y recuperación de sesión en equipo compartido | 7 | **P0** | S (1 d) | F7-05 | DONE (2026-08-29) — test E2E A→logout→B pasando (2/2), seed de 6 usuarios E2E en Supabase, fix de trigger handle_new_user |
-| F7-22 | **REDEFINIDA 2026-09-02** — Google Drive External Clinical Storage Architecture (reemplaza auditoría de Storage original; ver sección detallada abajo) | 7 | **P0** | XL (1-2 sem) | F7-05,F7-06,F7-07,F7-08,F7-21 | TODO — requiere análisis de viabilidad (Gmail gratuito + Drive API) antes de implementar |
+| F7-22 | **REDEFINIDA 2×** (Drive descartado por análisis de viabilidad) — Cloudflare R2 External Clinical Storage con Supabase como fuente de verdad | 7 | **P0** | XL (1-2 sem) | F7-05,F7-06,F7-07,F7-08,F7-21 | TODO — arquitectura R2 validada, requiere implementación |
 | F7-23 | Auditoría de logs para garantizar ausencia de PHI | 7 | P1 | S (0.5-1 d) | — | TODO |
 | F7-24 | Security Regression Suite como gate de CI/staging | 7 | **P0** | M (2-3 d) | F7-08,F7-20,F7-21,F7-22 | TODO |
 | F7-25 | Design System Studio Dental + App Shell profesional | 7 | P1 | L (4-7 d) | — | TODO |
@@ -1976,6 +1976,66 @@ quirurgico_implantes, quirurgico_endodoncia
 
 ---
 
+
+
+---
+
+## FASE 8 — MIGRACIÓN A APP NATIVA (DESKTOP + MOBILE)
+
+**Objetivo:** Convertir Studio Dental de PWA a aplicaciones nativas instalables en Mac, iPhone y iPad, manteniendo la arquitectura multi-tenant, seguridad y cumplimiento existentes.
+
+**Stack recomendado:**
+- **Mac desktop:** Tauri 2.x (Rust + WebView) — paquete <10MB, rendimiento nativo, sin Electron overhead
+- **iOS/iPad:** Capacitor (wrapper del código React existente) — reutiliza el codebase actual
+- **Backend:** Sin cambios (Supabase + Cloudflare R2) — la arquitectura R2 es compatible con apps nativas (peticiones HTTP a Edge Functions)
+
+**Justificación del stack:**
+- Tauri vs Electron: Tauri genera binarios <10MB vs >100MB de Electron, usa WebView nativo, menor consumo de RAM
+- Capacitor vs React Native: Capacitor reutiliza el código React existente sin reescritura, ideal para migración incremental
+- Supabase/R2 sin cambios: las apps nativas consumen las mismas Edge Functions y URLs firmadas
+
+**Prerrequisito:** F7-30 (Release Candidate) completado. No iniciar Fase 8 hasta que la PWA esté en producción estable.
+
+### BLOQUE A — AUDITORÍA Y PREPARACIÓN
+
+#### F8-01 — Auditoría de compatibilidad nativa
+Revisar el código existente para identificar dependencias de APIs de navegador que no funcionan en Tauri/Capacitor: localStorage/sessionStorage, IndexedDB, Cache API, Service Workers, WebRTC, notificaciones push, etc. Documentar qué requiere adaptación.
+
+#### F8-02 — Estrategia de datos offline en nativo
+Adaptar el patrón de cache de F7-05/F7-06/F7-07 a entorno nativo. En Tauri: usar filesystem nativo o SQLite embebido. En Capacitor: IndexedDB funciona igual. Garantizar limpieza de cache en logout (mismo requisito F7-22).
+
+### BLOQUE B — DESKTOP (MAC)
+
+#### F8-03 — Configuración de Tauri 2.x
+Crear proyecto Tauri wrapper del bundle React existente. Configurar ventana nativa, menú, dock icon, notificaciones nativas. Validar que todas las features funcionan en WebView nativo de macOS.
+
+#### F8-04 — Firma y distribución Mac
+Obtener Apple Developer account ($99/año). Configurar firma de código (codesign), notarización de Apple. Crear instalador .dmg. Distribuir fuera de App Store (direct download) o vía App Store.
+
+### BLOQUE C — MOBILE (IPHONE/IPAD)
+
+#### F8-05 — Configuración de Capacitor
+Instalar Capacitor en el proyecto existente. Configurar capacitor.config.ts con bundle ID, splash screen, íconos nativos. Build del proyecto iOS con Xcode.
+
+#### F8-06 — Adaptación de UI para iPhone/iPad
+Revisar responsive design (F7-28). Adaptar navegación para touch. Validar que el flujo clínico funciona en pantalla pequeña (iPhone) y grande (iPad). Safe areas, notch, teclado.
+
+#### F8-07 — Features nativas iOS
+Notificaciones push (citas, recordatorios). Face ID/Touch ID para login. Cámara para fotos intraorales. Archivos nativos para adjuntos.
+
+#### F8-08 — Distribución iOS (App Store/TestFlight)
+Configurar App Store Connect. Subir build a TestFlight para beta testing. Publicar en App Store (revisión de Apple 1-3 días). Actualizaciones automáticas.
+
+### BLOQUE D — SINCRONIZACIÓN Y DATOS
+
+#### F8-09 — Migración de datos desde PWA instalada
+Si usuarios ya tienen PWA instalada, ofrecer migración de datos locales (IndexedDB) a la app nativa. Estrategia: detectar PWA, exportar datos, importar en nativo, limpiar PWA.
+
+#### F8-10 — Pruebas E2E multi-plataforma
+Suite de tests que valide la misma funcionalidad en: PWA (Chrome/Safari), Mac (Tauri), iPhone (Capacitor), iPad (Capacitor). Validar aislamiento multi-tenant en todas las plataformas. Validar logout/cache en todas.
+
+---
+
 ## 4. ESTADO ACTUAL
 
 **Fecha de esta evaluación:** 2026-08-26
@@ -2159,129 +2219,127 @@ Ignorar la UI y probar directamente SELECT/INSERT/UPDATE/DELETE contra registros
 #### F7-21 — Equipo compartido
 Probar A→logout→B y recarga/reinicio. No debe quedar PHI recuperable ni una cola de A ejecutable por B.
 
-#### F7-22 — Google Drive External Clinical Storage Architecture
+#### F7-22 — Cloudflare R2 External Clinical Storage Architecture
 
-> **REDEFINICION DE ALCANCE (2026-09-02):** Esta tarea reemplaza formalmente la F7-22 original ("Auditoria de Storage"). La auditoria de Supabase Storage se subsume dentro de este nuevo alcance mas amplio. Trazabilidad: commit de redefinicion en rama docs/f7-22-roadmap-redefinition. Motivo: decision arquitectonica de externalizar almacenamiento de archivos clinicos pesados a Google Drive manteniendo Supabase como fuente de verdad de identidad, autorizacion y metadatos.
+> **REDEFINICION 2 DE 2 (2026-09-02):** Esta version reemplaza la redefinicion anterior basada en Google Drive. Trazabilidad completa: F7-22 original ("Auditoria de Storage") -> redefinicion 1 (Google Drive, PR #113) -> redefinicion 2 (Cloudflare R2, este commit). La auditoria de Supabase Storage de la F7-22 original se subsume dentro de este alcance.
 
-**Objetivo:** Disenar e implementar un sistema de almacenamiento externo para archivos clinicos pesados (radiografias, fotografias intraorales/clinicas, PDFs, documentos, adjuntos clinicos) utilizando Google Drive, evitando almacenar dichos archivos directamente en Supabase Storage cuando sea tecnica y juridicamente razonable.
+**Motivo del cambio Drive -> R2:**
+El analisis de viabilidad de Gmail gratuito + Drive API revelo que NO es adecuado para PHI: sin BAA disponible para cuentas consumer, tokens OAuth expiran cada 7 dias para apps no verificadas, 15 GB insuficientes, sin SLA, riesgo de perdida total si la cuenta es terminada, y probable incumplimiento de Ley 19.628/21.719/20.584. Alternativas evaluadas: Supabase Storage (Free = solo 1 GB, insuficiente), Google Workspace (costoso y complejo), AWS S3 (complejidad), Backblaze B2 (alternativa valida), Cloudflare R2 (SELECCIONADO por costo, egress gratuito, y API S3-compatible).
+
+**Objetivo:** Implementar almacenamiento externo de archivos clinicos pesados (radiografias, fotografias intraorales/clinicas, PDFs, documentos, adjuntos) en Cloudflare R2, manteniendo Supabase como fuente de verdad de identidad, autorizacion, metadatos y auditoria.
 
 **Modelo arquitectonico:**
-- Una cuenta Google/Gmail exclusiva por clinica (Clinica A -> Gmail A -> Drive A; Clinica B -> Gmail B -> Drive B)
-- Usuarios NO comparten credenciales de Gmail de la clinica - cada miembro mantiene su cuenta individual
-- La cuenta Gmail de la clinica NO se usa como login de Studio Dental - es unicamente capa de almacenamiento
+- Un bucket R2 privado (o carpeta por clinica dentro de un bucket) para archivos clinicos
+- Supabase: usuarios, auth, clinicas, membresias, RBAC, autorizacion, pacientes, metadata de archivos, auditoria
+- Cloudflare R2: SOLO capa de almacenamiento de archivos pesados
+- Autorizacion siempre pertenece a Studio Dental
 
-**Principio fundamental de seguridad:**
-- Supabase permanece como fuente de verdad: usuarios, autenticacion, clinicas, membresias, RBAC, autorizacion, pacientes, relaciones clinicas, metadata, auditoria
-- Google Drive es SOLO la capa de almacenamiento
-- Autorizacion siempre pertenece a Studio Dental: Usuario -> Studio Dental -> Supabase Auth+RBAC+RLS -> Backend/Edge Function -> Google Drive de la clinica
-- Google Drive NO se convierte en sistema de autorizacion
+**Flujo de autorizacion:**
+Usuario -> Studio Dental -> Supabase Auth+RBAC+RLS -> Edge Function (valida permisos, firma URLs) -> Cloudflare R2
 
-**Problema critico a resolver:**
-Cuando un miembro (ej: Doctor A) es eliminado de la clinica, debe perder INMEDIATAMENTE acceso a archivos clinicos. NO se permite compartir carpetas Drive permanentemente con cuentas personales (riesgo: acceso residual).
+**Costos R2 (verificados con documentacion oficial 2026):**
+- Free tier PERPETUO cada mes: 10 GB storage, 1M Class A ops (uploads/copias/deletes), 10M Class B ops (lecturas), egress SIEMPRE GRATIS
+- Excedente storage: $0.015/GB/mes
+- Excedente Class A: $4.50/millon
+- Excedente Class B: $0.36/millon
+- Egress: $0 sin limite
+- Costo estimado año 1 (clinica pequeña): $0; año 5: ~$0.25/mes
 
-**Analisis de viabilidad obligatorio (antes de implementar):**
-
-Investigar y documentar sobre Gmail gratuito + Google Drive API:
-
-1. Puede Gmail gratuito usar Drive API para este patron
-2. Como funciona OAuth para cuentas personales
-3. Uso de OAuth para conectar Drive por clinica
-4. Almacenamiento seguro de refresh tokens (Supabase vault / Edge Functions)
-5. Limitaciones de cuentas personales vs Google Workspace
-6. Cuotas de Drive API (requests/dia, requests/100s, requests/usuario)
-7. Limites de almacenamiento (15GB gratis vs planes de pago)
-8. Que ocurre si Google revoca consentimiento
-9. Que ocurre si cambia la contrasena de la cuenta de clinica
-10. Que ocurre si se pierde la cuenta
-11. Que ocurre si Google bloquea la cuenta
-12. Que ocurre si se elimina la cuenta
-13. Mecanismos de recuperacion disponibles
-14. Adecuacion para informacion clinica sensible (PHI)
-15. Cumplimiento de legislacion chilena de salud (no declarar automaticamente - senalar requisitos que requieren revision legal profesional)
-
-**Regla de viabilidad:** Si Gmail gratuito + Drive API no resulta suficientemente seguro, estable o mantenible, DETENER implementacion y presentar alternativas (Google Workspace, Shared Drives, Supabase Storage, arquitectura hibrida).
-
-**Metadata en Supabase (tabla archivos_clinicos propuesta):**
-- id (UUID), clinica_id (UUID), paciente_id (UUID)
-- drive_file_id (text, NUNCA convertir automaticamente a enlace publico)
-- nombre_archivo, mime_type, tamano_bytes, categoria
+**Metadata en Supabase (tabla archivos_clinicos):**
+- id (UUID)
+- clinica_id (UUID, FK a clinicas)
+- paciente_id (UUID, FK a pacientes)
+- r2_object_key (text, NUNCA convertir a URL publica)
+- drive_file_id (text, alias de compatibilidad, mismo valor que r2_object_key)
+- nombre_archivo, mime_type, tamano_bytes
+- categoria (radiografia, foto_intraoral, foto_clinica, pdf, documento, otro)
 - uploaded_by (UUID), estado (activo/eliminado/pendiente_revision)
-- metadata (jsonb), created_at, updated_at, deleted_at
-- Politicas RLS multi-tenant obligatorias
+- metadata (jsonb)
+- created_at, updated_at, deleted_at
+- Politicas RLS multi-tenant obligatorias (mismo patron F7-20)
 
 **Flujo de subida:**
-Usuario -> Studio Dental -> selecciona archivo -> backend valida sesion -> valida clinica -> valida membresia -> valida RBAC -> valida paciente -> sube a Drive -> obtiene drive_file_id -> guarda metadata en Supabase -> registra auditoria.
+Usuario selecciona archivo -> frontend pide a Edge Function URL firmada de upload -> Edge Function valida: sesion, clinica, membresia, RBAC, paciente -> Edge Function genera URL firmada R2 (expiracion 5-15 min) -> frontend sube directamente a R2 -> frontend guarda metadata en Supabase -> auditoria en audit_log.
 
 **Flujo de visualizacion (embebida en Studio Dental):**
-Backend comprueba: (1) sesion valida, (2) usuario activo, (3) pertenencia a clinica, (4) permisos RBAC, (5) paciente en clinica, (6) archivo en clinica, (7) referencia valida en Supabase -> stream/proxy desde Drive. NO forzar al usuario a abrir Google Drive.
+Usuario solicita archivo -> Edge Function valida TODO (sesion, clinica, RBAC, paciente, archivo) -> Edge Function genera URL firmada de descarga (expiracion 5 min) -> frontend muestra imagen/PDF embebido -> cache temporal en IndexedDB para offline -> logout borra cache de ese usuario.
 
-**Flujo de descarga:**
-Mismo principio. Prohibido: Anyone with the link, enlaces publicos permanentes, saltarse Supabase/RBAC.
+**Flujo de descarga:** Mismo principio que visualizacion. Prohibido: enlaces publicos permanentes, saltarse Supabase/RBAC.
 
-**Flujo de eliminacion:**
-Estrategia clara documentada: eliminacion de archivo + metadata + auditoria + recuperacion si corresponde. Evaluar soft delete vs hard delete vs papelera Drive.
+**Flujo de eliminacion:** Estrategia documentada: soft delete (metadata estado=eliminado + archivo movido a carpeta quarantine) o hard delete. Evaluar papelera R2. Auditoria obligatoria.
 
 **Multi-tenant obligatorio (pen-test):**
-- Usuario A puede acceder a drive_file_id_A, NUNCA a drive_file_id_B
-- Probar intentos de manipulacion de: drive_file_id, paciente_id, clinica_id, URL, parametros, requests
-- Probar: usuario eliminado, usuario desactivado, usuario sin permisos, cambio de clinica, sesion expirada
+- Usuario A puede acceder a archivos de clinica A, NUNCA de clinica B
+- Probar intentos de manipulacion de: r2_object_key, paciente_id, clinica_id, URL, parametros, requests
+- Probar: usuario eliminado, usuario desactivado, usuario sin permisos, cambio de clinica, sesion expirada, URL firmada expirada
 
 **Offline / Cache (integracion con F7-05, F7-06, F7-07, F7-21):**
-- Revisar: IndexedDB, localStorage, Cache Storage, memoria, blobs temporales, Service Worker, Workbox
-- Flujo obligatorio: Usuario A visualiza archivo -> logout -> Usuario B inicia sesion -> Usuario B NO puede recuperar archivo de A desde cache/local storage
+- Cache temporal en IndexedDB para archivos ya autorizados y visualizados
+- Flujo obligatorio: Usuario A visualiza archivo -> logout -> Usuario B inicia sesion -> Usuario B NO puede recuperar archivo de A desde cache
+- Limpieza de cache en logout (critico)
+- URLs firmadas expiran, cache solo funciona con metadata valida + re-autorizacion
 
 **Auditoria (integracion con F7-08):**
 Registrar en audit_log: upload, visualizacion, descarga, eliminacion, acceso denegado, intento cross-tenant, errores de integracion, cambios de configuracion. NO registrar PHI innecesaria.
 
 **Privacidad:**
-- Drive no publico, no anyone with the link
-- No exponer tokens/refresh tokens al frontend
-- No almacenar credenciales Gmail en frontend
-- No usar service_role en frontend
+- Bucket R2 privado (no publico)
+- URLs firmadas con expiracion corta (5-15 min)
+- Tokens de R2 (Account ID, Access Key ID, Secret Access Key) SOLO en Edge Function/Supabase Vault, NUNCA en frontend
+- No exponer credenciales al cliente
 - Minimizar PHI en logs
-- Documentar: que datos quedan en Supabase vs Drive, cifrado, transporte, riesgos
-- NO declarar automaticamente cumplimiento de legislacion chilena - senalar requisitos legales que requieren revision profesional
+- Documentar: que datos quedan en Supabase vs R2, cifrado, transporte, riesgos
+- NO declarar automaticamente cumplimiento de legislacion chilena — señalar requisitos legales que requieren revision profesional
 
 **Continuidad y backup:**
-Documentar estrategia de recuperacion para: perdida de acceso, bloqueo, eliminacion, perdida de OAuth, cambio de contrasena, almacenamiento lleno, perdida de archivos, indisponibilidad.
+- Cloudflare R2: 99.999999999% durabilidad (11 nueves), redundancia multi-region
+- Estrategia de backup: R2 lifecycle policies + export periodico a storage secundario (opcional)
+- Documentar recuperacion ante: perdida de cuenta Cloudflare, eliminacion accidental de bucket, corrupcion de datos
+
+**Compatibilidad con app nativa (Fase 8):**
+La arquitectura R2 funciona igual en aplicaciones nativas (Tauri/Capacitor): las apps nativas hacen peticiones HTTP a Edge Functions para obtener URLs firmadas, sin dependencia de APIs de navegador. Sin re-arquitectura necesaria para Fase 8.
 
 **Criterios de aceptacion para marcar DONE:**
 
-1. Analisis de viabilidad documentado (15 puntos) con conclusion clara
-2. Si Gmail gratuito es inviable: documento con alternativa seleccionada y justificacion
-3. Si Gmail gratuito es viable: arquitectura implementada completa
-4. Tabla archivos_clinicos con RLS multi-tenant validada
-5. Flujos upload/visualizacion/descarga/eliminacion implementados
-6. Pen-test multi-tenant pasando
-7. Integracion con cache/offline validada: Usuario B no accede a archivos cacheados de Usuario A
-8. Auditoria registrada en audit_log sin PHI innecesaria
-9. Tokens OAuth almacenados en backend/vault, nunca en frontend
-10. Estrategia de continuidad/backup documentada
-11. Unit tests + integration tests + E2E tests pasando
-12. Documentacion tecnica completa (arquitectura, flujos, riesgos, recuperacion)
+1. Cuenta Cloudflare creada y bucket R2 configurado (privado)
+2. Credenciales R2 almacenadas en Supabase Vault (nunca en frontend)
+3. Tabla archivos_clinicos con RLS multi-tenant validada
+4. Edge Function de upload (valida + firma URL)
+5. Edge Function de download (valida + firma URL)
+6. Edge Function de eliminacion (soft/hard delete)
+7. Flujos upload/visualizacion/descarga/eliminacion implementados en frontend
+8. Cache en IndexedDB con limpieza en logout (validado)
+9. Pen-test multi-tenant pasando (10+ ataques)
+10. Auditoria registrada en audit_log sin PHI innecesaria
+11. Estrategia de continuidad/backup documentada
+12. Unit tests + integration tests + E2E tests pasando
+13. Documentacion tecnica completa (arquitectura, flujos, costos, riesgos)
+14. Guia paso a paso de setup para futuras clinicas
 
 **Evidencia requerida para DONE:**
-- Documento de analisis de viabilidad firmado
+- Cuenta Cloudflare con bucket R2 configurado (captura o confirmacion)
 - Resultados de pen-test multi-tenant (10+ ataques)
 - Suite de tests automatizados (unit + integration + E2E)
 - Documento de continuidad y recuperacion
-- Revision de cumplimiento legal (senalar puntos que requieren abogado)
+- Revision de cumplimiento legal (señalar puntos que requieren abogado)
 - BITACORA con entradas de cada sub-tarea
 - PR mergeado con todos los criterios cumplidos
 
-**Dependencias actualizadas:** F7-05 (offline), F7-06 (PWA), F7-07 (cache/storage base), F7-08 (audit_log), F7-21 (miembros/RBAC)
+**Dependencias actualizadas:** F7-05 (offline), F7-06 (PWA), F7-07 (cache/storage), F7-08 (audit_log), F7-21 (miembros/RBAC)
 
 **Riesgos identificados:**
-- Riesgo alto: Gmail gratuito puede no ser adecuado para PHI
-- Riesgo medio: cuotas de Drive API pueden limitar escalabilidad
-- Riesgo medio: dependencia de tercero (Google) para continuidad
-- Riesgo bajo: complejidad de OAuth multi-clinica
+- Riesgo medio: dependencia de Cloudflare como tercero (mitigado: estandar S3-compatible, migracion posible)
+- Riesgo medio: gestion de credenciales R2 (mitigado: Supabase Vault)
+- Riesgo bajo: costos de excedente (mitigado: egress gratuito, storage barato)
+- Riesgo bajo: complejidad de URLs firmadas (mitigado: patron estandar S3)
 
-**Alternativas a considerar si Gmail gratuito es inviable:**
-- Google Workspace (cuenta pagada, Shared Drives, cumplimiento empresarial)
-- Supabase Storage (mantener todo en Supabase, signed URLs con expiracion corta)
-- AWS S3 / Azure Blob (alternativas cloud)
-- Arquitectura hibrida (Drive para archivos no-PHI, Supabase Storage para PHI)
+**Alternativas evaluadas y descartadas:**
+- Gmail gratuito + Drive API: sin BAA, tokens expiran cada 7 dias, 15 GB insuficientes, riesgo de perdida total
+- Supabase Storage Free: solo 1 GB, insuficiente para archivos clinicos
+- Supabase Storage Pro ($25/mes): caro si solo necesitas storage
+- Google Workspace ($14-25/user/mes): costoso, complejo OAuth
+- AWS S3: complejidad, egress caro
+- Backblaze B2: alternativa valida, pero egress $0.01/GB vs $0 de R2
 
 #### F7-23 — Logs
 Buscar RUT, nombre, dirección, teléfono, anamnesis, diagnósticos, recetas, imágenes y payloads clínicos en logs técnicos. No registrar PHI innecesaria.
