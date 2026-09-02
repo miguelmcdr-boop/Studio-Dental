@@ -172,7 +172,7 @@
 | F7-16 | Retirar o endurecer autenticación local PBKDF2 + localStorage | 7 | P2 | S (1 d) | F7-05 | TODO |
 | F7-17 | Resolver warnings `exhaustive-deps` en hooks clínicos | 7 | P2 | XS (<0.5 d) | — | TODO |
 | F7-18 | Auditoría XSS / HTML no confiable en datos clínicos | 7 | **P0** | S (1 d) | — | DONE (2026-09-02) — auditoría completa confirmó que React protege automáticamente, 0 dangerouslySetInnerHTML en producción, 0 innerHTML/document.write, datos clínicos seguros, defensa en profundidad vía F7-14 (CSP) |
-| F7-19 | Auditoría de exportaciones: RBAC, PHI y auditabilidad | 7 | **P0** | S (1-2 d) | F7-08 | TODO |
+| F7-19 | Auditoría de exportaciones: RBAC, PHI y auditabilidad | 7 | **P0** | S (1-2 d) | F7-08 | DONE (2026-09-02) — RPC registrar_exportacion() SECURITY DEFINER bypass RLS, constraint EXPORT en audit_log, validación auth.uid() + clinica_actual() + membresía, rate limiting 100/hora, 23 tests reescritos |
 | F7-20 | Pen-test lógico multi-tenant contra Supabase sin pasar por la UI | 7 | **P0** | M (1-2 d) | F7-10 | TODO |
 | F7-21 | Prueba de logout y recuperación de sesión en equipo compartido | 7 | **P0** | S (1 d) | F7-05 | DONE (2026-08-29) — test E2E A→logout→B pasando (2/2), seed de 6 usuarios E2E en Supabase, fix de trigger handle_new_user |
 | F7-22 | Auditoría de Storage: buckets privados, signed URLs y aislamiento por clínica | 7 | **P0** | S (1-2 d) | F7-07 | TODO |
