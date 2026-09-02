@@ -151,7 +151,7 @@
 | F6-06 | Checklist de despliegue a producción (dominio, env vars, backups) | 6 | P1 | S (0.5-1 d, proceso) | F6-02, F6-A..F6-E | PARTIAL DONE (2026-08-24) — checklist actualizado + 3 docs técnicos creados; pasos comerciales pendientes (F6-06b) |
 | F6-06b | Pasos comerciales/manuales de despliegue a producción (hallazgo F6-06) | 6 | P1 | M (1-2 d, proceso) | F6-06 | DEFERRED (2026-08-25) — usar free tier hasta escalar a 10+ clínicas |
 | **— FASE 7: seguridad, privacidad, productización y pre-producción (2026-08-26) —** | | | | | | |
-| F7-01 | Cablear `calcularDosisAnestesiaCompleta` a la UI y retirar la API legada de producción | 7 | **P0** | S (1-2 d) | — | TODO |
+| F7-01 | Cablear `calcularDosisAnestesiaCompleta` a la UI y retirar la API legada de producción | 7 | **P0** | S (1-2 d) | — | DONE (2026-08-27) — UI usa API enriquecida F4-03d, edad/cardiopatía/embarazo validados, 17 tests, contraindicaciones específicas por edad visibles, estado restrictivo con datos incompletos |
 | F7-02 | Corregir el cruce de unidades vademécum → calculadora de anestesia | 7 | P0 | S (1 d) | F7-01 | DONE (2026-08-27) — 9 tests integración, 1030/1030 suite, mapeo unidades documentado, refactor a 2 archivos auxiliares |
 | F7-03 | Eliminar defaults numéricos silenciosos restantes en cálculo de anestesia | 7 | P0 | XS (<0.5 d) | F7-02 | DONE (2026-08-27) — 6 tests edge cases, 1036/1036 suite, cero fallbacks numéricos |
 | F7-04 | Poblar y validar columnas numéricas de dosis del vademécum + fallback seguro | 7 | P0 | M (2-3 d) | F7-02 | DONE (2026-08-27) — migración SQL, 7 anestésicos poblados, cálculo derivado eliminado, 1036/1036 tests |
