@@ -5,13 +5,11 @@
 //   Success: { status: "ok", bucket: "...", objects_count: N }
 //   Error:   { status: "error", error: "...", hint: "..." }
 //
-// Sin dependencias externas (firma AWS v4 implementada manualmente)
-// para máxima confiabilidad en producción.
-
-import { hmac } from "https://deno.land/std@0.177.0/hash/hmac.ts";
+// SIN DEPENDENCIAS EXTERNAS - usa solo Web Crypto API (nativa en Deno).
+// Evita problemas de red al importar desde deno.land.
 
 // ============================================================
-// HELPERS: AWS v4 Signature
+// HELPERS: AWS v4 Signature usando Web Crypto API
 // ============================================================
 
 const encoder = new TextEncoder();
@@ -27,14 +25,18 @@ async function sha256Hex(data: string): Promise<string> {
   return toHex(hash);
 }
 
-async function hmacSign(
-  key: string | ArrayBuffer,
+async function hmacSha256(
+  key: ArrayBuffer | Uint8Array,
   data: string
 ): Promise<ArrayBuffer> {
-  const keyData = typeof key === "string" ? encoder.encode(key) : key;
-  const hmacObj = hmac("sha256", keyData, data);
-  // hmac retorna Uint8Array, necesitamos ArrayBuffer
-  return hmacObj.buffer as ArrayBuffer;
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw",
+    key instanceof Uint8Array ? key : key,
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  return await crypto.subtle.sign("HMAC", cryptoKey, encoder.encode(data));
 }
 
 async function getSignatureKey(
@@ -43,18 +45,16 @@ async function getSignatureKey(
   region: string,
   service: string
 ): Promise<ArrayBuffer> {
-  let k = await hmacSign("AWS4" + secret, dateStamp);
-  k = await hmacSign(k, region);
-  k = await hmacSign(k, service);
-  k = await hmacSign(k, "aws4_request");
+  let k = await hmacSha256(encoder.encode("AWS4" + secret), dateStamp);
+  k = await hmacSha256(k, region);
+  k = await hmacSha256(k, service);
+  k = await hmacSha256(k, "aws4_request");
   return k;
 }
 
 function getAmzDate(): { amzDate: string; dateStamp: string } {
   const now = new Date();
-  const amzDate = now
-    .toISOString()
-    .replace(/[:-]|\.\d{3}/g, "");
+  const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
   const dateStamp = amzDate.slice(0, 8);
   return { amzDate, dateStamp };
 }
@@ -69,8 +69,9 @@ Deno.serve(async (req) => {
     return new Response("ok", {
       headers: {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+        "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+        "Access-Control-Allow-Headers":
+          "authorization, x-client-info, apikey, content-type",
       },
     });
   }
@@ -144,7 +145,7 @@ Deno.serve(async (req) => {
       region,
       service
     );
-    const signatureBuffer = await hmacSign(signingKey, stringToSign);
+    const signatureBuffer = await hmacSha256(signingKey, stringToSign);
     const signature = toHex(signatureBuffer);
 
     // 6. Crear Authorization header
@@ -164,18 +165,21 @@ Deno.serve(async (req) => {
 
     if (!response.ok) {
       const errorBody = await response.text();
-      // Mapear errores comunes a mensajes accionables
       let hint = "Revisa las credenciales en Supabase Secrets";
       if (response.status === 403) {
         if (errorBody.includes("InvalidAccessKeyId")) {
-          hint = "Access Key ID incorrecto. Verifica R2_ACCESS_KEY_ID en Supabase Secrets.";
+          hint =
+            "Access Key ID incorrecto. Verifica R2_ACCESS_KEY_ID en Supabase Secrets.";
         } else if (errorBody.includes("SignatureDoesNotMatch")) {
-          hint = "Secret Access Key incorrecto o mal copiado. Verifica R2_SECRET_ACCESS_KEY.";
+          hint =
+            "Secret Access Key incorrecto o mal copiado. Verifica R2_SECRET_ACCESS_KEY.";
         } else if (errorBody.includes("AccessDenied")) {
-          hint = "El token de R2 no tiene permisos suficientes. Verifica que tenga 'Object Read & Write'.";
+          hint =
+            "El token de R2 no tiene permisos suficientes. Verifica que tenga 'Object Read & Write'.";
         }
       } else if (response.status === 404) {
-        hint = "Bucket no encontrado. Verifica R2_BUCKET_NAME y que el bucket exista en Cloudflare.";
+        hint =
+          "Bucket no encontrado. Verifica R2_BUCKET_NAME y que el bucket exista en Cloudflare.";
       }
 
       return jsonResponse(
@@ -192,10 +196,8 @@ Deno.serve(async (req) => {
 
     // 8. Parsear respuesta XML
     const xml = await response.text();
-    // Contar objetos (búsqueda simple en XML)
     const keyMatches = xml.match(/<Key>/g);
     const objectsCount = keyMatches ? keyMatches.length : 0;
-    // Detectar si hay más objetos (IsTruncated)
     const isTruncated = xml.includes("<IsTruncated>true</IsTruncated>");
 
     return jsonResponse({

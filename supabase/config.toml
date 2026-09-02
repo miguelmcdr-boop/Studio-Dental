@@ -1,24 +1,48 @@
-# Supabase CLI Configuration - Studio Dental (F7-13)
-#
-# Este archivo configura el comportamiento de Supabase CLI para:
-# - `supabase db reset`: resetear base de datos local
-# - `supabase db push`: aplicar migraciones a entorno remoto
-# - `supabase db pull`: extraer esquema de entorno remoto
-# - `supabase db diff`: comparar esquemas
-#
-# Documentación: https://supabase.com/docs/reference/cli/config
+# Supabase CLI Configuration - Studio Dental (F7-22)
+# Generado desde template oficial CLI 2.114.0
+# Documentación: https://supabase.com/docs/guides/local-development/cli/config
+
+# Project ID de producción
+project_id = "studio-dental"
 
 [api]
 enabled = true
 port = 54321
+# Esquemas expuestos en el API (Studio Dental usa storage para Supabase Storage)
 schemas = ["public", "storage", "graphql_public"]
 extra_search_path = ["public", "extensions"]
 max_rows = 1000
 
+[api.tls]
+enabled = false
+
 [db]
 port = 54322
 shadow_port = 54320
+# Postgres 15 (mismo que producción)
 major_version = 15
+
+[db.pooler]
+enabled = false
+port = 54329
+pool_mode = "transaction"
+default_pool_size = 20
+max_client_conn = 100
+
+[db.migrations]
+enabled = true
+schema_paths = []
+
+[db.seed]
+enabled = true
+sql_paths = ["./seeds/*.sql"]
+
+[db.network_restrictions]
+enabled = false
+allowed_cidrs = ["0.0.0.0/0"]
+
+[realtime]
+enabled = true
 
 [studio]
 enabled = true
@@ -26,15 +50,21 @@ port = 54323
 api_url = "http://localhost"
 
 [local_smtp]
+# Deshabilitado - Studio Dental usa Supabase Auth de producción para emails
 enabled = false
-port = 54325
+port = 54324
 
 [storage]
 enabled = true
+# Límite de 50 MB por archivo (configurado para adjuntos clínicos F7-22)
 file_size_limit = "50MiB"
+
+[storage.s3_protocol]
+enabled = true
 
 [auth]
 enabled = true
+# URL de producción del frontend
 site_url = "http://localhost:5173"
 additional_redirect_urls = ["http://localhost:5173/auth/callback"]
 jwt_expiry = 3600
@@ -42,6 +72,12 @@ enable_refresh_token_rotation = true
 refresh_token_reuse_interval = 10
 enable_signup = true
 enable_anonymous_sign_ins = false
+
+[auth.rate_limit]
+token_refresh = 150
+sign_in = 30
+sign_up = 30
+otp = 30
 
 [auth.email]
 enable_signup = true
@@ -51,11 +87,13 @@ enable_confirmations = false
 [auth.external.google]
 enabled = false
 
+[edge_runtime]
+enabled = true
+# Request timeout para Edge Functions (5 minutos para procesar archivos grandes)
+request_timeout = "300s"
+policy = "per_worker"
+
 [analytics]
 enabled = false
 
-[functions]
-enabled = true
-
-[realtime]
-enabled = true
+[experimental]
