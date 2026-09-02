@@ -1,3 +1,47 @@
+## 2026-09-02 — F7-19: Auditoría de exportaciones (RBAC, PHI y auditabilidad) — DONE
+
+**Qué se ganó:** Las exportaciones de reportes (Excel/PDF) ahora se auditan correctamente en audit_log vía RPC SECURITY DEFINER. Previamente la auditoría fallaba silenciosamente porque F7-08 eliminó las políticas INSERT del cliente.
+
+**Problema identificado:**
+
+- F7-08 eliminó políticas INSERT del cliente en audit_log (para prevenir inyección)
+- registrarAuditoria() intentaba INSERT directo y fallaba por RLS silenciosamente
+- Exportaciones no se registraban → sin trazabilidad de PHI
+
+**Solución:**
+
+1. **Migración SQL** (2026_09_02_0001_f7_19_registrar_exportacion.sql):
+   - ALTER TABLE audit_log: agrega 'EXPORT' al constraint de action
+   - RPC `registrar_exportacion()` SECURITY DEFINER:
+     - Valida auth.uid() NOT NULL
+     - Valida clinica_actual() NOT NULL
+     - Valida membresía activa
+     - Rate limiting: 100/hora por usuario
+     - Valida formato y tipo
+     - Inserta bypassando RLS (como auditar_cambio de F7-08)
+   - GRANT EXECUTE solo a authenticated
+
+2. **exportService.js**:
+   - Reemplaza registrarAuditoria por supabase.rpc
+   - Fire-and-forget: descarga no espera auditoría
+   - API pública idéntica a F7-15 (sin breaking changes)
+
+3. **exportService.test.js**: 23 tests reescritos con mock de supabase.rpc
+
+**Validación E2E:**
+- ✅ Exportar Excel genera registro en audit_log
+- ✅ action = 'EXPORT'
+- ✅ new_data contiene {formato, tipo, periodo, timestamp}
+- ✅ clinica_id y user_id automáticos
+- ✅ Sin errores en consola
+
+**Métricas:**
+- Tests: 23/23 pasando, suite 1175/1175
+- Build: exitoso
+- Arquitectura: 0 violaciones
+
+---
+
 ## 2026-09-02 — F7-18: Auditoría XSS en datos clínicos — DONE (sin código adicional)
 
 **Qué se ganó:** Confirmación formal mediante auditoría completa de que la aplicación ya está protegida contra Cross-Site Scripting (XSS) en todos los campos de datos clínicos (evoluciones, recetas, postoperatorios, antecedentes). No se requirió código adicional porque React implementa protección automática contra XSS.

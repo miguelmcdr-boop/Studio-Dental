@@ -1,6 +1,5 @@
 /**
- * Servicio centralizado de exportación de reportes (F6-05).
- * Migrado de xlsx a exceljs (F7-15) por vulnerabilidades de seguridad.
+ * Servicio centralizado de exportación de reportes (F6-05, migrado a exceljs en F7-15, auditoría vía RPC en F7-19)
  *
  * API pública:
  * - exportarReportePDF(metricas, userProfile) → genera PDF vía window.print()
@@ -12,20 +11,17 @@
  * - PDF: reutiliza window.print() con vista previa Letter
  * - Excel: usa exceljs (async) con múltiples hojas
  * - Nombres de archivo incluyen timestamp para evitar colisiones
- * - Integración con audit_log para trazabilidad (F6-F)
- * - Descarga vía Blob + URL.createObjectURL (compatible con exceljs)
+ * - Integración con audit_log vía RPC SECURITY DEFINER (F7-19)
+ * - Descarga vía Blob + URL.createObjectURL
  */
 import ExcelJS from 'exceljs'
+import { supabase, USE_SUPABASE } from '../../../services/supabaseClient'
 import { createLogger } from '../../../services/logger'
-import { registrarAuditoria } from '../../../services/conflictDetectionService'
 
 const log = createLogger('exportService')
 
 /**
  * Genera un nombre de archivo con timestamp.
- * @param {string} prefijo - Prefijo del archivo (ej: 'reporte-completo')
- * @param {string} extension - Extensión del archivo (ej: 'xlsx', 'pdf')
- * @returns {string} Nombre de archivo con formato: prefijo_YYYY-MM-DDTHH-MM-SS.extension
  */
 const generarNombreArchivo = (prefijo, extension) => {
   const fecha = new Date()
@@ -35,8 +31,6 @@ const generarNombreArchivo = (prefijo, extension) => {
 
 /**
  * Formatea un monto en CLP para exportación.
- * @param {number} monto - Monto a formatear
- * @returns {string} Monto formateado como string (sin símbolo $)
  */
 const formatearMonto = (monto) => {
   return monto?.toLocaleString('es-CL') || '0'
@@ -44,8 +38,6 @@ const formatearMonto = (monto) => {
 
 /**
  * Descarga un buffer como archivo .xlsx en el navegador.
- * @param {ArrayBuffer} buffer - Buffer del archivo Excel
- * @param {string} nombreArchivo - Nombre del archivo a descargar
  */
 const descargarBuffer = (buffer, nombreArchivo) => {
   const blob = new Blob([buffer], {
@@ -63,8 +55,6 @@ const descargarBuffer = (buffer, nombreArchivo) => {
 
 /**
  * Aplica estilos a una fila de encabezado en una hoja de Excel.
- * @param {ExcelJS.Worksheet} hoja - Hoja de Excel
- * @param {number} numeroFila - Número de fila (1-based)
  */
 const estilizarEncabezado = (hoja, numeroFila) => {
   const fila = hoja.getRow(numeroFila)
@@ -78,38 +68,41 @@ const estilizarEncabezado = (hoja, numeroFila) => {
 }
 
 /**
- * Registra una exportación en audit_log (fire-and-forget, no bloquea).
+ * F7-19: Registra una exportación en audit_log vía RPC SECURITY DEFINER.
+ *
+ * Reemplaza la llamada anterior a registrarAuditoria() que fallaba
+ * silenciosamente porque F7-08 eliminó la política INSERT del cliente.
+ *
  * @param {string} formato - 'pdf' o 'excel'
  * @param {string} tipo - 'completo', 'ranking' o 'rendimiento'
  * @param {string} periodo - Período del reporte (opcional)
  */
-const registrarExportacion = (formato, tipo, periodo = null) => {
+const registrarExportacion = async (formato, tipo, periodo = 'sin_periodo') => {
+  if (!USE_SUPABASE || !supabase) {
+    log.warn('Supabase no disponible, skip auditoría de exportación')
+    return
+  }
+
   try {
-    registrarAuditoria(
-      'reportes',
-      `export_${Date.now()}`,
-      'EXPORT',
-      null,
-      {
-        formato,
-        tipo,
-        periodo,
-        timestamp: new Date().toISOString()
-      },
-      null
-    )
+    const { data, error } = await supabase.rpc('registrar_exportacion', {
+      p_formato: formato,
+      p_tipo: tipo,
+      p_periodo: periodo
+    })
+
+    if (error) {
+      log.error('Error registrando exportación en audit_log:', error.message)
+      return
+    }
+
+    log.info('Exportación registrada en audit_log', { id: data, formato, tipo, periodo })
   } catch (error) {
-    log.warn('No se pudo registrar auditoría de exportación:', error.message)
+    log.error('Error inesperado registrando exportación:', error.message)
   }
 }
 
 /**
  * Exporta el reporte completo como PDF usando window.print().
- * Nota: Este método requiere que el componente ReporteImprimibleLetter esté visible.
- *
- * @param {Object} metricas - Métricas del período
- * @param {Object} userProfile - Perfil del usuario
- * @returns {boolean} true si se inició la impresión, false en caso de error
  */
 export const exportarReportePDF = (metricas, userProfile) => {
   try {
@@ -121,7 +114,12 @@ export const exportarReportePDF = (metricas, userProfile) => {
     window.print()
 
     log.info('Diálogo de impresión abierto')
-    registrarExportacion('pdf', 'completo')
+
+    // F7-19: registrar en audit_log vía RPC (fire-and-forget)
+    registrarExportacion('pdf', 'completo').catch(error => {
+      log.warn('No se pudo registrar auditoría de exportación PDF:', error.message)
+    })
+
     return true
   } catch (error) {
     log.error('Error al exportar PDF:', error)
@@ -130,9 +128,7 @@ export const exportarReportePDF = (metricas, userProfile) => {
 }
 
 /**
- * Genera async el reporte completo con 3 hojas (Resumen, Top Prestaciones, Rendimiento).
- * @param {Object} metricas - Métricas del período
- * @param {string} periodoSeleccionado - Período del reporte
+ * Genera async el reporte completo con 3 hojas.
  */
 const generarReporteCompletoAsync = async (metricas, periodoSeleccionado) => {
   const workbook = new ExcelJS.Workbook()
@@ -192,22 +188,18 @@ const generarReporteCompletoAsync = async (metricas, periodoSeleccionado) => {
 
 /**
  * Exporta el reporte completo como Excel con 3 hojas.
- * API síncrona: retorna true si la exportación se inició correctamente.
- * La descarga real ocurre asincrónicamente (fire-and-forget).
- *
- * @param {Object} metricas - Métricas del período
- * @param {string} periodoSeleccionado - Período del reporte
- * @returns {boolean} true si se exportó correctamente, false en caso de error
+ * API síncrona: retorna true si se inició, descarga ocurre async.
  */
 export const exportarReporteCompletoExcel = (metricas, periodoSeleccionado = 'sin_periodo') => {
   try {
     log.info('Exportando reporte completo Excel', { periodo: periodoSeleccionado })
 
-    generarReporteCompletoAsync(metricas, periodoSeleccionado).catch(error => {
-      log.error('Error en generación async de reporte completo:', error)
-    })
+    generarReporteCompletoAsync(metricas, periodoSeleccionado)
+      .then(() => registrarExportacion('excel', 'completo', periodoSeleccionado))
+      .catch(error => {
+        log.error('Error en generación/auditoría async de reporte completo:', error)
+      })
 
-    registrarExportacion('excel', 'completo', periodoSeleccionado)
     return true
   } catch (error) {
     log.error('Error al exportar reporte completo:', error)
@@ -216,8 +208,7 @@ export const exportarReporteCompletoExcel = (metricas, periodoSeleccionado = 'si
 }
 
 /**
- * Genera async el ranking de prestaciones en una sola hoja.
- * @param {Array} topPrestaciones - Array de prestaciones
+ * Genera async el ranking de prestaciones.
  */
 const generarRankingAsync = async (topPrestaciones) => {
   const workbook = new ExcelJS.Workbook()
@@ -250,10 +241,6 @@ const generarRankingAsync = async (topPrestaciones) => {
 
 /**
  * Exporta solo el ranking de prestaciones como Excel.
- * API síncrona: retorna true si la exportación se inició correctamente.
- *
- * @param {Array} topPrestaciones - Array de prestaciones con nombre, cantidad, montoTotal
- * @returns {boolean} true si se exportó correctamente, false en caso de error
  */
 export const exportarRankingExcel = (topPrestaciones) => {
   try {
@@ -264,11 +251,12 @@ export const exportarRankingExcel = (topPrestaciones) => {
       return false
     }
 
-    generarRankingAsync(topPrestaciones).catch(error => {
-      log.error('Error en generación async de ranking:', error)
-    })
+    generarRankingAsync(topPrestaciones)
+      .then(() => registrarExportacion('excel', 'ranking'))
+      .catch(error => {
+        log.error('Error en generación/auditoría async de ranking:', error)
+      })
 
-    registrarExportacion('excel', 'ranking')
     return true
   } catch (error) {
     log.error('Error al exportar ranking:', error)
@@ -277,8 +265,7 @@ export const exportarRankingExcel = (topPrestaciones) => {
 }
 
 /**
- * Genera async el desglose por método de pago en una sola hoja.
- * @param {Object} recaudacionPorMetodo - Objeto con método -> monto
+ * Genera async el desglose por método de pago.
  */
 const generarRendimientoAsync = async (recaudacionPorMetodo) => {
   const workbook = new ExcelJS.Workbook()
@@ -306,10 +293,6 @@ const generarRendimientoAsync = async (recaudacionPorMetodo) => {
 
 /**
  * Exporta solo el desglose por método de pago como Excel.
- * API síncrona: retorna true si la exportación se inició correctamente.
- *
- * @param {Object} recaudacionPorMetodo - Objeto con método -> monto
- * @returns {boolean} true si se exportó correctamente, false en caso de error
  */
 export const exportarRendimientoExcel = (recaudacionPorMetodo) => {
   try {
@@ -320,11 +303,12 @@ export const exportarRendimientoExcel = (recaudacionPorMetodo) => {
       return false
     }
 
-    generarRendimientoAsync(recaudacionPorMetodo).catch(error => {
-      log.error('Error en generación async de rendimiento:', error)
-    })
+    generarRendimientoAsync(recaudacionPorMetodo)
+      .then(() => registrarExportacion('excel', 'rendimiento'))
+      .catch(error => {
+        log.error('Error en generación/auditoría async de rendimiento:', error)
+      })
 
-    registrarExportacion('excel', 'rendimiento')
     return true
   } catch (error) {
     log.error('Error al exportar rendimiento:', error)
