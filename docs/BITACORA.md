@@ -1,3 +1,149 @@
+## 2026-09-02 — F7-20: Pen-test lógico multi-tenant contra Supabase — DONE
+
+**Qué se ganó:** Validación completa del aislamiento multi-tenant en Supabase REST API mediante pen-test automatizado. Se descubrió y corrigió un **bug crítico de seguridad** que permitía INSERT cross-tenant en tablas clínicas (evoluciones y recetas). El bug fue corregido con migración SQL aplicada en producción. Validación final: 10/10 ataques bloqueados.
+
+**Contexto:**
+
+El módulo de reportes clínicos y datos sensibles (evoluciones, recetas, odontogramas, periodontogramas) tenía políticas RLS legacy basadas en `auth.uid() = user_id` que no validaban el `clinica_id`. Esto permitía un vector de ataque cross-tenant donde un dentista de clínica B podría inyectar evoluciones/recetas falsas en pacientes de clínica A conociendo el `paciente_id`.
+
+**Fase 1: Pen-test automatizado (detección del bug)**
+
+Script creado: `tests/e2e/multi_tenant_isolation_e2e.py` (357 líneas)
+- Reutiliza infraestructura de `rbac_common.py` de F6-B5
+- 10 ataques cross-tenant simulados desde Supabase REST API
+- Credenciales cargadas desde `.env` (no commiteadas)
+- Teardown automático de datos de prueba
+
+**Usuarios E2E usados** (creados previamente en F7-21):
+- Clínica 1: `e2e_admin`, `e2e_dentista`
+- Clínica 2: `e2e_admin_clinica2`, `e2e_dentista_clinica2`
+- Script de utilidad creado: `scripts/reset-e2e-passwords.py` para resetear contraseñas
+
+**Resultado Fase 1: 8/10 PASS, 2 FAIL**
+
+| Ataque | Resultado | Estado |
+|--------|-----------|--------|
+| 1. SELECT evoluciones por user_id | 0 filas | ✅ PASS |
+| 2. SELECT recetas por paciente_id | 0 filas | ✅ PASS |
+| 3. SELECT pacientes por ID | 0 filas | ✅ PASS |
+| 4. SELECT pacientes por clinica_id | 0 filas | ✅ PASS |
+| **5. INSERT evolución en paciente ajeno** | **201 (creada)** | ❌ **FAIL** |
+| **6. INSERT receta en paciente ajeno** | **201 (creada)** | ❌ **FAIL** |
+| 7. UPDATE receta ajena | No modificó | ✅ PASS |
+| 8. DELETE receta ajena | No eliminó | ✅ PASS |
+| 9. Escalación en miembros_clinica | 403 | ✅ PASS |
+| 10. SELECT audit_log ajeno | 0 filas | ✅ PASS |
+
+**Análisis del bug:**
+
+Las políticas legacy `Users can manage own evoluciones/recetas` usaban:
+~~~sql
+FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id)
+~~~
+
+**Por qué INSERT fallaba pero UPDATE/DELETE no:**
+- INSERT: dentista_clinica2 inserta con `user_id = dentista2` → check pasa, sin validar clinica_id del paciente
+- UPDATE/DELETE: requieren que la fila tenga `user_id = dentista2`, pero la fila tiene `user_id = dentista1` → bloqueado correctamente
+
+**Impacto real:** Un dentista malicioso de Clínica B podría inyectar evoluciones/recetas falsas en pacientes de Clínica A si conoce el `paciente_id` (que puede obtener por otros medios o adivinar). Esto violaría HIPAA-equivalente chileno y comprometería integridad clínica.
+
+**Fase 2: Remediación (migración SQL aplicada en producción)**
+
+Archivo creado: `supabase/migrations/2026_09_02_0002_f7_20_politicas_multiclinica_clinicas.sql` (342 líneas, idempotente)
+
+**Políticas eliminadas (9 tablas):**
+- `Users can manage own evoluciones` ON evoluciones_clinicas
+- `Users can manage own recetas` ON recetas
+- `Users can manage own odontogramas` ON odontogramas
+- `Users can manage own periodontogramas` ON periodontogramas
+- `Users can manage own periodontogramas_historial` ON periodontogramas_historial
+- `Users can manage own dsd_configs` ON dsd_configs
+- `Users can manage own odontopediatria` ON odontopediatria
+- `Users can manage own quirurgico_implantes` ON quirurgico_implantes
+- `Users can manage own quirurgico_endodoncia` ON quirurgico_endodoncia
+
+**Políticas nuevas creadas (36 políticas, 4 por tabla):**
+~~~sql
+-- Ejemplo para evoluciones_clinicas
+CREATE POLICY evoluciones_clinicas_insert_clinica ON evoluciones_clinicas FOR INSERT
+  WITH CHECK (
+    paciente_id IN (SELECT id FROM pacientes WHERE clinica_id = clinica_actual())
+    AND user_id = auth.uid()
+    AND tiene_rol_en_clinica(ARRAY['admin','dentista']::app_role[])
+  );
+~~~
+
+**Validación de seguridad en las nuevas políticas:**
+- `paciente_id` debe pertenecer a `clinica_actual()` (subquery a pacientes)
+- `user_id = auth.uid()` para INSERT (ownership)
+- `tiene_rol_en_clinica()` valida rol activo en la clínica
+- Roles permitidos por operación:
+  - SELECT: admin, dentista, asistente, recepcion (según tabla)
+  - INSERT/UPDATE/DELETE: admin, dentista (solo profesionales clínicos)
+
+**Verificación pre-migración (sin riesgo):**
+- 0 pacientes sin clinica_id
+- 0 evoluciones orfanas
+- 0 recetas orfanas
+- Base de datos vacía → migración 100% segura
+
+**Problema encontrado durante aplicación:**
+- SQL Editor default ejecutaba como rol `authenticated`
+- Error: "must be owner of table evoluciones_clinicas"
+- Solución: cambiar selector de rol a `postgres` en SQL Editor
+- Segundo error: políticas ya existían parcialmente → migración hecha idempotente con `DROP POLICY IF EXISTS`
+
+**Validación final: 10/10 PASS**
+
+Re-ejecución del pen-test confirmó:
+- Ataque 5 (INSERT evolución cross): ahora retorna 403 ✅
+- Ataque 6 (INSERT receta cross): ahora retorna 403 ✅
+- Los otros 8 ataques siguen bloqueados ✅
+
+**Archivos creados/modificados:**
+- `tests/e2e/multi_tenant_isolation_e2e.py` (nuevo, 357 líneas)
+- `scripts/reset-e2e-passwords.py` (nuevo, utilidad para resetear contraseñas E2E)
+- `supabase/migrations/2026_09_02_0002_f7_20_politicas_multiclinica_clinicas.sql` (nuevo, 342 líneas, aplicado en producción)
+- `docs/BITACORA.md` (entrada F7-20 completa)
+- `docs/MASTER_ROADMAP.md` (F7-20 marcado DONE)
+
+**Métricas:**
+- Ataques simulados: 10
+- Ataques bloqueados: 10/10 (100%)
+- Políticas legacy eliminadas: 9
+- Políticas multiclinica creadas: 36
+- Tablas protegidas: 9 clínicas
+- Líneas de código de pen-test: 357
+- Líneas de migración SQL: 342
+
+**Precedente técnico establecido:**
+
+1. **Pen-test automatizado como gate de seguridad:** Toda migración que toque RLS debe incluir pen-test E2E contra Supabase REST API
+2. **Políticas multiclinica deben usar subquery a pacientes:** No confiar en `clinica_id` directo en la tabla objetivo
+3. **Migraciones SQL deben ser idempotentes:** Usar `DROP POLICY IF EXISTS` antes de `CREATE POLICY`
+4. **SQL Editor en Supabase Dashboard:** Verificar que el rol sea `postgres` para operaciones DDL (DROP/CREATE POLICY)
+5. **Credenciales nunca en chat:** Script reutiliza `.env` existente (variables VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY)
+
+**Valor clínico:**
+
+La corrección previene que profesionales de una clínica puedan inyectar evoluciones o recetas falsas en pacientes de otras clínicas. Esto es crítico para:
+- Integridad de historias clínicas
+- Cumplimiento de normativas de salud chilenas
+- Protección contra fraude (recetas falsas)
+- Confianza del paciente en la plataforma
+- Defensa legal ante disputas clínicas
+
+**Lecciones aprendidas:**
+
+1. **No confiar en políticas legacy:** Aunque UPDATE/DELETE funcionaban correctamente, INSERT tenía bypass silencioso
+2. **Pen-test descubre lo que auditoría estática no:** El análisis de código mostró "riesgo teórico", pero el pen-test lo confirmó como bug real
+3. **Fase 2 (remediación) vale la pena:** Aunque fue 2 horas adicionales de trabajo, el bug era crítico y habría explotado en producción
+4. **Testing contra producción es riesgoso pero válido:** Con cleanup automático y datos marcados (F7-20 TEST), es aceptable para validaciones puntuales
+
+**Siguiente tarea recomendada:** F7-14 (Content Security Policy) — defensa en profundidad contra XSS a nivel de navegador, complementa la seguridad ya implementada.
+
+---
+
 ## 2026-09-02 — F7-19: Auditoría de exportaciones (RBAC, PHI y auditabilidad) — DONE
 
 **Qué se ganó:** Las exportaciones de reportes (Excel/PDF) ahora se auditan correctamente en audit_log vía RPC SECURITY DEFINER. Previamente la auditoría fallaba silenciosamente porque F7-08 eliminó las políticas INSERT del cliente.
