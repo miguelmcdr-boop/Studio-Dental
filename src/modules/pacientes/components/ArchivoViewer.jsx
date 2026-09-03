@@ -14,7 +14,9 @@ export const ArchivoViewer = memo(({
   cargando,
   tipoArchivo,
   permisos,
+  archivoParaVer,
   onVer,
+  onCerrarModal,
   onDescargar,
   onEliminar,
 }) => {
@@ -101,7 +103,7 @@ export const ArchivoViewer = memo(({
                 {permisos?.puedeVer && (
                   <button
                     type="button"
-                    onClick={() => onVer(archivo.id, archivo.mime_type)}
+                    onClick={() => onVer(archivo.id, archivo.mime_type, archivo.nombre_archivo)}
                     className="text-xs font-semibold text-blue-700 hover:text-blue-900"
                     title="Ver archivo"
                   >

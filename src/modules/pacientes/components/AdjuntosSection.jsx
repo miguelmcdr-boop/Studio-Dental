@@ -2,6 +2,7 @@ import React, { memo, useMemo } from 'react'
 import { useArchivosClinicos } from '../hooks/useArchivosClinicos'
 import { ArchivoUploader } from './ArchivoUploader'
 import { ArchivoViewer } from './ArchivoViewer'
+import { ArchivoModal } from './ArchivoModal'
 
 /**
  * Sección de adjuntos clínicos (fotos, radiografías, consentimientos).
@@ -37,6 +38,8 @@ export const AdjuntosSection = memo(({ tabActiva, pacienteId }) => {
     subirArchivos,
     descargarArchivo,
     verArchivo,
+    archivoParaVer,
+    cerrarArchivoModal,
     eliminarArchivo,
   } = useArchivosClinicos(pacienteId, tipoArchivo)
 
@@ -91,9 +94,19 @@ export const AdjuntosSection = memo(({ tabActiva, pacienteId }) => {
         cargando={cargando}
         tipoArchivo={tipoArchivo}
         permisos={permisos}
+        archivoParaVer={archivoParaVer}
         onVer={verArchivo}
+        onCerrarModal={cerrarArchivoModal}
         onDescargar={descargarArchivo}
         onEliminar={eliminarArchivo}
+      />
+
+      <ArchivoModal
+        abierto={!!archivoParaVer}
+        blobUrl={archivoParaVer?.blobUrl}
+        mimeType={archivoParaVer?.mimeType}
+        nombreArchivo={archivoParaVer?.nombreArchivo}
+        onCerrar={cerrarArchivoModal}
       />
     </div>
   )

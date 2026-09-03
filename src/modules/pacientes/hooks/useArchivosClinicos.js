@@ -67,6 +67,9 @@ export const useArchivosClinicos = (pacienteId, tipoArchivo = 'foto') => {
   const [subiendo, setSubiendo] = useState(false)
   const [progreso, setProgreso] = useState(0)
 
+  // Estado para modal de visualización inline
+  const [archivoParaVer, setArchivoParaVer] = useState(null) // { blobUrl, mimeType, nombreArchivo }
+
   // RBAC oficial del proyecto
   const { rol } = useRBAC()
 
@@ -259,11 +262,12 @@ export const useArchivosClinicos = (pacienteId, tipoArchivo = 'foto') => {
   }, [permisos.puedeDescargar])
 
   /**
-   * Abre archivo en nueva pestaña usando blob URL.
+   * Prepara archivo para ver inline en modal.
    * @param {string} archivoId — UUID del archivo
    * @param {string} mimeType — tipo MIME del archivo
+   * @param {string} nombreArchivo — nombre del archivo
    */
-  const verArchivo = useCallback(async (archivoId, mimeType) => {
+  const verArchivo = useCallback(async (archivoId, mimeType, nombreArchivo) => {
     if (!permisos.puedeVer) {
       setError('No tienes permisos para ver archivos.')
       return
@@ -279,19 +283,38 @@ export const useArchivosClinicos = (pacienteId, tipoArchivo = 'foto') => {
         return
       }
 
-      const exito = await abrirArchivoDeR2({
-        downloadUrl: downloadData.download_url,
-        downloadHeaders: downloadData.download_headers,
-        mimeType,
+      // Fetch del archivo para obtener blob
+      const response = await fetch(downloadData.download_url, {
+        headers: downloadData.download_headers,
       })
 
-      if (!exito) {
-        setError('No se pudo abrir el archivo. El navegador podría haber bloqueado la ventana emergente.')
+      if (!response.ok) {
+        setError('Error descargando archivo para visualización.')
+        return
       }
+
+      const blob = await response.blob()
+      const blobUrl = window.URL.createObjectURL(blob)
+
+      setArchivoParaVer({
+        blobUrl,
+        mimeType: mimeType || blob.type || 'application/octet-stream',
+        nombreArchivo,
+      })
     } catch (e) {
-      setError(e?.message || 'Error abriendo archivo.')
+      setError(e?.message || 'Error cargando archivo para visualización.')
     }
   }, [permisos.puedeVer])
+
+  /**
+   * Cierra el modal de visualización y revoca el blob URL.
+   */
+  const cerrarArchivoModal = useCallback(() => {
+    if (archivoParaVer?.blobUrl) {
+      window.URL.revokeObjectURL(archivoParaVer.blobUrl)
+    }
+    setArchivoParaVer(null)
+  }, [archivoParaVer])
 
   /**
    * Elimina archivo de R2 + soft delete en metadata.
@@ -329,6 +352,8 @@ export const useArchivosClinicos = (pacienteId, tipoArchivo = 'foto') => {
     subirArchivos,
     descargarArchivo,
     verArchivo,
+    archivoParaVer,
+    cerrarArchivoModal,
     eliminarArchivo,
     recargar,
   }
