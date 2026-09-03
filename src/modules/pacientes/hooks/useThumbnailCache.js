@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { solicitaUrlDownload } from '../../../services/r2ArchivosService'
 
 /**
@@ -12,6 +12,11 @@ import { solicitaUrlDownload } from '../../../services/r2ArchivosService'
  * - Cada archivo solo se descarga UNA vez por sesión
  * - Las siguientes vistas usan el cache sin re-descargar
  * - Solo la primera visualización registra FILE_DOWNLOAD
+ *
+ * F7-22 Fase 10: cleanup automático al desmontar.
+ * - useEffect revoca todos los blob URLs al desmontar el componente
+ * - Previene memory leaks entre sesiones
+ * - Integrado con F7-05 (purga al logout)
  *
  * @returns {{cache, cargarThumbnail, limpiarCache}}
  */
@@ -57,6 +62,18 @@ export const useThumbnailCache = () => {
     })
     setCache({})
   }, [cache])
+
+  // F7-22 Fase 10: cleanup automático al desmontar.
+  // Revoca todos los blob URLs para prevenir memory leaks.
+  // Se ejecuta al desmontar el componente que usa este hook.
+  useEffect(() => {
+    return () => {
+      Object.values(cache).forEach((url) => {
+        window.URL.revokeObjectURL(url)
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Solo se ejecuta al desmontar (no al cambiar cache)
 
   return { cache, cargarThumbnail, limpiarCache }
 }
