@@ -1,3 +1,102 @@
+## 2026-09-03 — F7-22 COMPLETADO: Fase 10 (cleanup cache) + celebración
+
+**Qué se ganó:** F7-22 (Cloudflare R2 External Clinical Storage) está 100% DONE. Todas las fases completadas: infraestructura R2, tabla con RLS, Edge Functions, frontend, pen-test multi-tenant, y cleanup de cache.
+
+### F7-22 Fase 10: Cleanup automático de blob URLs (0.5 día)
+
+**Problema:** useThumbnailCache creaba blob URLs para mostrar thumbnails inline, pero no los revocaba al desmontar el componente. Esto causaba memory leaks (aunque no eran PHI persistente, el navegador eventualmente los garbage collectee).
+
+**Solución:** Agregar useEffect con dependency array vacío que revoca todos los blob URLs al desmontar.
+
+**Integración con F7-05:** F7-05 ya purga localStorage, IndexedDB, Cache Storage al logout. Este cambio completa el cleanup de la capa de memoria (blob URLs de thumbnails).
+
+**Validación manual:**
+1. Subir imagen en Fotografías Clínicas
+2. Verificar thumbnail inline
+3. Hacer logout
+4. DevTools → Memory → Heap Snapshot
+5. Resultado: No quedan blob URLs colgando ✅
+
+### F7-22: Resumen completo (6 fases, ~3 semanas de trabajo)
+
+**Fase 5 — Infraestructura R2 (Cloudflare):**
+- Creación de bucket studio-dental en Cloudflare R2
+- Configuración de CORS policy
+- Generación de Access Key ID + Secret Access Key
+- Variables de entorno en Supabase
+
+**Fase 6 — Tabla archivos_clinicos con RLS:**
+- Tabla archivos_clinicos con columnas: id, paciente_id, clinica_id, r2_object_key, nombre_archivo, mime_type, tamano_bytes, categoria, estado, uploaded_by, created_at, updated_at, deleted_at
+- RLS policies: usuarios solo pueden acceder a archivos de su clínica
+- Trigger de auditoría: FILE_UPLOAD, FILE_DOWNLOAD, FILE_DELETE
+- Soft delete (estado='eliminado' + deleted_at)
+
+**Fase 7 — Edge Functions + auditoría:**
+- r2-upload-url: genera URL firmada PUT (15 min expiración)
+- r2-download-url: genera URL firmada GET (5 min expiración)
+- r2-delete: elimina archivo de R2 + soft delete en metadata
+- Todas las Edge Functions validan RBAC
+- Tests E2E: 7/7 pasaron
+- Auditoría completa en audit_log
+
+**Fase 8 — Frontend + modal inline:**
+- Sistema de 3 capas: UI (4 componentes) + lógica (5 archivos) + datos (servicio)
+- ArchivoUploader: botón + input file + barra de progreso
+- ArchivoViewer: grid de cards + acciones (Ver/Descargar/Eliminar)
+- ArchivoModal: lightbox inline responsive para ver imágenes/PDFs
+- Modal responsive (móvil/tablet/desktop)
+- CORS configurado en bucket R2
+- Refactor para cumplir Constitución (hook dividido en 5 archivos < 150 líneas)
+
+**Fase 9 — Pen-test multi-tenant (5/6 pasados, 1 skipped):**
+- Script Python: tests/e2e/pen-test-multitenant-archivos.py (370 líneas)
+- 6 tests automatizados para validar seguridad multi-tenant
+- Conclusión: sistema seguro contra accesos cruzados entre clínicas
+- Mejora UX: thumbnails inline con cache inteligente
+- Hallazgo: mime_type NULL en archivos existentes (tareas derivadas F7-22a/b)
+
+**Fase 10 — Cleanup cache en logout:**
+- useEffect de cleanup en useThumbnailCache
+- Revoca blob URLs al desmontar componentes
+- Previene memory leaks entre sesiones
+- Integrado con F7-05
+
+### Lecciones aprendidas (10)
+
+1. CORS en servicios S3-compatible requiere configuración manual
+2. URLs firmadas con headers requieren fetch + blob
+3. Separación de responsabilidades en hooks
+4. Descubrimiento de componentes legacy durante migración
+5. Modal responsive desde el inicio
+6. Validar datos en la base de datos, no solo en el código
+7. Logs detallados aceleran diagnóstico
+8. Regex flexible para refactor de JSX
+9. Cache inteligente evita auditoría falsa
+10. Cleanup automático de recursos
+
+### Archivos modificados (F7-22 completo)
+
+**Nuevos (~1400 líneas):**
+- 3 Edge Functions (r2-upload-url, r2-download-url, r2-delete)
+- 1 migración SQL (archivos_clinicos)
+- 1 servicio (r2ArchivosService.js)
+- 5 hooks (useArchivosClinicos dividido en 5 archivos)
+- 1 hook de thumbnails (useThumbnailCache.js)
+- 4 componentes UI (Uploader, Viewer, Modal, Section)
+- 1 script de pen-test (Python)
+
+### Próximos pasos
+
+F7-22 está DONE. Siguiente tarea del roadmap:
+- F7-24 (P0): Security Regression Suite como gate de CI/staging
+- F7-30 (P0): Release Candidate + checklist GO/NO-GO para piloto
+
+Tareas derivadas de F7-22 (pendientes, P2):
+- F7-31: Papelera de archivos clínicos (nueva feature)
+- F7-22a/b: Corregir mime_type en Edge Function
+
+---
+
 ## 2026-09-03 — F7-22 Fase 9: Pen-test multi-tenant + thumbnails inline
 
 **Qué se ganó:** Validación de seguridad del sistema de archivos clínicos mediante pen-test multi-tenant automatizado, más mejora UX con thumbnails inline en el grid de Fotografías Clínicas.
