@@ -1,4 +1,4 @@
-import React, { memo } from 'react'
+import React, { memo, useState, useEffect } from 'react'
 
 /**
  * Grid/lista de archivos clínicos almacenados en R2.
@@ -15,11 +15,15 @@ export const ArchivoViewer = memo(({
   tipoArchivo,
   permisos,
   archivoParaVer,
+  thumbnails,
+  cargarThumbnail,
   onVer,
   onCerrarModal,
   onDescargar,
   onEliminar,
 }) => {
+  // Estado de archivos con thumbnail en progreso
+  const [cargandoThumbnails, setCargandoThumbnails] = useState({})
   const textosVacios = {
     foto: 'No hay fotografías clínicas cargadas todavía.',
     rx: 'No hay radiografías cargadas todavía.',
@@ -55,6 +59,23 @@ export const ArchivoViewer = memo(({
     }
   }
 
+  // Cargar thumbnails de imágenes al cambiar la lista de archivos
+  useEffect(() => {
+    archivos?.forEach((archivo) => {
+      if (
+        archivo.mime_type?.startsWith('image/') &&
+        !thumbnails[archivo.id] &&
+        !cargandoThumbnails[archivo.id]
+      ) {
+        setCargandoThumbnails((prev) => ({ ...prev, [archivo.id]: true }))
+        cargarThumbnail(archivo).finally(() => {
+          setCargandoThumbnails((prev) => ({ ...prev, [archivo.id]: false }))
+        })
+      }
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [archivos])
+
   if (cargando) {
     return (
       <p className="text-xs text-gray-400 text-center py-8">
@@ -78,10 +99,20 @@ export const ArchivoViewer = memo(({
           key={archivo.id}
           className="border rounded-xl overflow-hidden bg-gray-50 hover:shadow-md transition-shadow"
         >
-          <div className="aspect-video bg-gray-100 flex items-center justify-center">
-            <span className="text-4xl" aria-hidden="true">
-              {tituloIcono(archivo)}
-            </span>
+          <div className="aspect-video bg-gray-100 flex items-center justify-center overflow-hidden">
+            {thumbnails[archivo.id] && archivo.mime_type?.startsWith('image/') ? (
+              <img
+                src={thumbnails[archivo.id]}
+                alt={archivo.nombre_archivo}
+                className="w-full h-full object-cover cursor-pointer"
+                title="Click para ampliar"
+                onClick={() => onVer(archivo.id, archivo.mime_type, archivo.nombre_archivo)}
+              />
+            ) : (
+              <span className="text-4xl" aria-hidden="true">
+                {tituloIcono(archivo)}
+              </span>
+            )}
           </div>
 
           <div className="p-3 space-y-3">
