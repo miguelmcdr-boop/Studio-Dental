@@ -186,7 +186,7 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         p_archivo_id: archivo_id,
-        p_evento: "download",
+        p_evento: "FILE_DOWNLOAD",
         p_detalle: {
           nombre_archivo: archivo.nombre_archivo,
           mime_type: archivo.mime_type,

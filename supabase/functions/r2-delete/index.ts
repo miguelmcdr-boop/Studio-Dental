@@ -280,7 +280,7 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         p_archivo_id: archivo_id,
-        p_evento: "delete",
+        p_evento: "FILE_DELETE",
         p_detalle: {
           nombre_archivo: archivo.nombre_archivo,
           r2_object_key: r2ObjectKey,

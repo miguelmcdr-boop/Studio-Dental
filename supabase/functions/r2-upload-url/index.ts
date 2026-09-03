@@ -250,7 +250,7 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         p_archivo_id: archivoId,
-        p_evento: "upload",
+        p_evento: "FILE_UPLOAD",
         p_detalle: {
           paciente_id,
           categoria,

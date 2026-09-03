@@ -304,7 +304,7 @@ def test_7_verify_audit_log(archivo_id):
                 acciones.add(evento)
                 print(f"   - {evento}: {entrada.get('created_at')}")
         
-        acciones_esperadas = {"upload", "download", "delete"}
+        acciones_esperadas = {"FILE_UPLOAD", "FILE_DOWNLOAD", "FILE_DELETE"}
         success = acciones_esperadas.issubset(acciones)
         
         if success:
