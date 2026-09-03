@@ -1,3 +1,77 @@
+## 2026-09-02 — F7-22 Fase 5+6: Infraestructura R2 + Tabla archivos_clinicos
+
+**Qué se ganó:** Configuración completa de infraestructura de almacenamiento externo con Cloudflare R2, validación de conexión exitosa, y creación de tabla archivos_clinicos con RLS multi-tenant en Supabase.
+
+### Fase 5 — Infraestructura R2 (PR #115)
+
+**Setup en Cloudflare:**
+- Cuenta Cloudflare creada (free tier)
+- Bucket R2 privado: studio-dental
+- Región: EE.UU.
+- API Token de cuenta con permisos Object Read & Write
+- 5 secrets en Supabase: R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME, R2_ACCOUNT_ID, R2_ENDPOINT
+
+**Edge Function r2-health-check:**
+- Implementa AWS Signature v4 con Web Crypto API (sin dependencias externas)
+- Lee 5 secrets de Deno.env
+- Hace request ListObjectsV2 al bucket
+- Valida conexión sin exponer credenciales
+- Deploy exitoso en producción
+
+**Problemas resueltos:**
+1. Config.toml deprecado: [inbucket] -> [local_smtp], [functions] -> [edge_runtime]
+2. Import de deno.land/std@0.177.0/hash/hmac.ts fallaba en Edge Runtime -> reemplazado por Web Crypto API nativa
+3. Whitespace en R2_BUCKET_NAME (salto de línea al inicio) -> diagnosticado con función temporal y corregido
+
+**Validación:**
+- status: ok
+- bucket: studio-dental
+- endpoint: https://2b929034e21aa74f2ebc59b7fd83f811.r2.cloudflarestorage.com
+- objects_count: 0
+
+### Fase 6 — Tabla archivos_clinicos (PR #116)
+
+**Migración:** supabase/migrations/20260101000011_archivos_clinicos.sql (272 líneas)
+
+**Esquema (14 columnas):**
+- id (UUID, PK)
+- clinica_id (UUID, FK a clinicas) — multi-tenant isolation
+- paciente_id (UUID, FK a pacientes)
+- r2_object_key (TEXT, UNIQUE) — path en R2
+- nombre_archivo, mime_type, tamano_bytes
+- categoria (6 categorías: radiografia, foto_intraoral, foto_clinica, pdf, documento, otro)
+- uploaded_by (UUID, FK a auth.users)
+- estado (activo, eliminado, pendiente_revision)
+- metadata (JSONB, extensible)
+- created_at, updated_at, deleted_at
+
+**Seguridad:**
+- RLS habilitado
+- 4 políticas multi-tenant (patrón F7-20)
+- Soft delete con deleted_at
+- Trigger para updated_at automático
+- Función helper registrar_evento_archivo() para audit_log
+
+**Verificación post-migración:**
+- Columnas: 14 (esperado 14) OK
+- Políticas RLS: 4 (esperado 4) OK
+- Índices: 10 (esperado 10) OK
+- Triggers: 1 (esperado 1) OK
+- Función helper: 1 (esperado 1) OK
+- Archivos: 0 (esperado 0) OK
+- RLS habilitado: true (esperado true) OK
+- Foreign keys: 3 (esperado 3) OK
+
+**Lecciones aprendidas:**
+1. Supabase Edge Runtime no puede acceder a URLs externas (deno.land) — usar Web Crypto API nativa
+2. Config.toml debe coincidir con la versión de Supabase CLI (2.114.0)
+3. Whitespace en secrets es un problema común — siempre validar con trim()
+4. SQL Editor solo muestra última query — usar SELECT unificado con subqueries
+
+**Próximo paso:** Fase 7 — Edge Functions de upload/download reales + integración en frontend
+
+---
+
 ## 2026-09-02 — F7-20: Pen-test lógico multi-tenant contra Supabase — DONE
 
 **Qué se ganó:** Validación completa del aislamiento multi-tenant en Supabase REST API mediante pen-test automatizado. Se descubrió y corrigió un **bug crítico de seguridad** que permitía INSERT cross-tenant en tablas clínicas (evoluciones y recetas). El bug fue corregido con migración SQL aplicada en producción. Validación final: 10/10 ataques bloqueados.
