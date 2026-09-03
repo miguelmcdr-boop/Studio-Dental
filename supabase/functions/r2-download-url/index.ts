@@ -157,7 +157,7 @@ Deno.serve(async (req) => {
 
     // 6. Obtener archivo de archivos_clinicos y validar que pertenece a la clínica
     const archivoResult = await fetch(
-      `${supabaseUrl}/rest/v1/archivos_clinicos?id=eq.${archivo_id}&clinica_id=eq.${clinicaId}&estado=eq.activo&select=id,r2_object_key,nombre_archivo,mime_type`,
+      `${supabaseUrl}/rest/v1/archivos_clinicos?id=eq.${archivo_id}&clinica_id=eq.${clinicaId}&estado=in.(activo,pendiente_revision)&select=id,r2_object_key,nombre_archivo,mime_type`,
       {
         headers: {
           Authorization: `Bearer ${supabaseServiceKey}`,
@@ -176,8 +176,8 @@ Deno.serve(async (req) => {
     const archivo = archivoResult[0];
     const r2ObjectKey = archivo.r2_object_key;
 
-    // 7. Registrar en audit_log
-    await fetch(`${supabaseUrl}/rest/v1/audit_log`, {
+    // 7. Registrar en audit_log via RPC
+    await fetch(`${supabaseUrl}/rest/v1/rpc/registrar_evento_archivo`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${supabaseServiceKey}`,
@@ -185,12 +185,9 @@ Deno.serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        clinica_id: clinicaId,
-        user_id: userId,
-        action: "download",
-        resource_type: "archivo_clinico",
-        resource_id: archivo_id,
-        details: {
+        p_archivo_id: archivo_id,
+        p_evento: "download",
+        p_detalle: {
           nombre_archivo: archivo.nombre_archivo,
           mime_type: archivo.mime_type,
           r2_object_key: r2ObjectKey,

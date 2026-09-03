@@ -270,8 +270,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    // 9. Registrar en audit_log
-    await fetch(`${supabaseUrl}/rest/v1/audit_log`, {
+    // 9. Registrar en audit_log via RPC
+    await fetch(`${supabaseUrl}/rest/v1/rpc/registrar_evento_archivo`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${supabaseServiceKey}`,
@@ -279,12 +279,9 @@ Deno.serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        clinica_id: clinicaId,
-        user_id: userId,
-        action: "delete",
-        resource_type: "archivo_clinico",
-        resource_id: archivo_id,
-        details: {
+        p_archivo_id: archivo_id,
+        p_evento: "delete",
+        p_detalle: {
           nombre_archivo: archivo.nombre_archivo,
           r2_object_key: r2ObjectKey,
         },
