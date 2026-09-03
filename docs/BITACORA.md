@@ -1,3 +1,103 @@
+## 2026-09-03 — F7-22 Fase 7: Edge Functions R2 + Auditoría + Tests E2E (7/7)
+
+**Qué se ganó:** Implementación completa del backend de archivos clínicos con 3 Edge Functions para upload/download/delete en Cloudflare R2, integración con audit_log, y validación E2E con 7/7 tests pasados.
+
+### Entregables
+
+**Edge Functions (3 nuevas):**
+
+1. **r2-upload-url** (346 líneas)
+   - Genera URL firmada S3 PUT con expiración 15 min
+   - Valida: JWT, clínica, RBAC (admin/dentista), paciente pertenece a clínica
+   - Genera r2_object_key único: clinica_id/paciente_id/categoria/uuid-nombre.ext
+   - Guarda metadata en archivos_clinicos (estado: activo)
+   - Registra FILE_UPLOAD en audit_log via RPC
+
+2. **r2-download-url** (281 líneas)
+   - Genera URL firmada S3 GET con expiración 5 min
+   - Valida: JWT, clínica, RBAC (admin/dentista/asistente/recepcion), archivo pertenece a clínica
+   - Permite archivos con estado activo o pendiente_revision
+   - Registra FILE_DOWNLOAD en audit_log via RPC
+
+3. **r2-delete** (320 líneas)
+   - Elimina archivo de R2 con firma AWS v4
+   - Soft delete en archivos_clinicos (estado=eliminado, deleted_at=NOW())
+   - Valida: JWT, clínica, RBAC (admin/dentista)
+   - Registra FILE_DELETE en audit_log via RPC
+
+**Migraciones SQL (2 nuevas):**
+
+1. **20260101000012_fix_archivos_clinicos_audit.sql** (73 líneas)
+   - Corrige función registrar_evento_archivo para usar schema real de audit_log
+   - Usa columnas: table_name, record_id, action, new_data
+   - Función SECURITY DEFINER para bypasear RLS al escribir en audit_log
+
+2. **20260101000013_ampliar_audit_log_action_check.sql** (33 líneas)
+   - Amplía constraint audit_log_action_check para aceptar FILE_*
+   - Nuevos valores: FILE_UPLOAD, FILE_DOWNLOAD, FILE_DELETE, FILE_VIEW
+   - Mantiene consistencia con patrón existente (mayúsculas)
+
+**Tests E2E (nuevo):**
+
+- **tests/e2e/test_r2_complete_flow.py** (418 líneas)
+  - Script Python robusto sin dependencias externas
+  - Ejecuta 7 tests secuenciales
+  - Resultado: 7/7 tests pasados
+
+### Validación E2E completa
+
+Resultado: 7/7 tests pasaron
+
+1. 1_upload_request: OK (URL firmada generada)
+2. 2_upload_real: OK (archivo subido a R2, Status 200)
+3. 3_download_request: OK (URL firmada generada)
+4. 4_download_real: OK (MD5 match = integridad verificada)
+5. 5_delete: OK (archivo eliminado de R2)
+6. 6_verify_metadata: OK (estado=eliminado, deleted_at no nulo)
+7. 7_verify_audit_log: OK (3 entradas: FILE_UPLOAD, FILE_DOWNLOAD, FILE_DELETE)
+
+### Problemas resueltos
+
+1. **Schema de audit_log incorrecto:** Las Edge Functions intentaban escribir en columnas inexistentes (resource_type, resource_id, details). Corregido para usar columnas reales (table_name, record_id, action, new_data).
+
+2. **Constraint de audit_log_action_check:** Solo aceptaba INSERT/UPDATE/DELETE/CONFLICT_RESOLVED/EXPORT. Ampliada para aceptar FILE_UPLOAD/FILE_DOWNLOAD/FILE_DELETE/FILE_VIEW.
+
+3. **Estado de archivos bloqueaba downloads:** r2-upload-url guardaba metadata con estado pendiente_revision pero nunca lo cambiaba a activo. Corregido para usar estado activo desde el inicio.
+
+4. **PostgREST schema cache:** Después de crear la función RPC registrar_evento_archivo, PostgREST no la encontraba (error PGRST202). Solución: NOTIFY pgrst, 'reload schema' para forzar recarga del schema cache.
+
+5. **Errores de zsh con eval:** El script de tests en bash/zsh tenía problemas con comentarios y eval. Reemplazado por script en Python más robusto.
+
+### Lecciones aprendidas
+
+1. **PostgREST cache de schema:** Al crear nuevas funciones RPC en Postgres, PostgREST NO las detecta automáticamente. Siempre ejecutar NOTIFY pgrst, 'reload schema' después de crear/modificar funciones que se usarán via /rest/v1/rpc/.
+
+2. **Validar schema real antes de escribir:** Las Edge Functions deben usar exactamente las columnas que existen en la BD. Nunca asumir nombres de columnas - siempre verificar con SELECT * FROM tabla LIMIT 1.
+
+3. **Check constraints pueden ser restrictivas:** Las tablas existentes pueden tener constraints CHECK que limitan valores aceptados. Verificar pg_constraint antes de insertar valores nuevos.
+
+4. **Scripts de test en Python > bash/zsh:** Para tests E2E complejos con múltiples requests, Python es mucho más robusto que bash/zsh (maneja JSON, MD5, errores con try/except nativamente).
+
+5. **SECURITY DEFINER para escritura en tablas protegidas:** Si una función necesita escribir en una tabla con RLS restrictivo (como audit_log), debe ser SECURITY DEFINER para bypasear RLS al ejecutar.
+
+6. **Nombres de acciones en audit_log:** Usar mayúsculas y prefijos específicos (FILE_UPLOAD en lugar de upload) para evitar ambigüedad con acciones estándar de BD (INSERT/UPDATE/DELETE).
+
+### Arquitectura validada
+
+Frontend -> Edge Function -> RLS en archivos_clinicos -> R2 via AWS v4
+                                       |
+                             metadata en Supabase
+                                       |
+                             audit_log via RPC (SECURITY DEFINER)
+
+### Próximos pasos
+
+- Fase 8: Integración en frontend (reemplazar AdjuntosSection.jsx)
+- Fase 9: Pen-test multi-tenant de archivos clínicos
+- Fase 10: Cleanup de cache en logout (integración con F7-05)
+
+---
+
 ## 2026-09-02 — F7-22 Fase 5+6: Infraestructura R2 + Tabla archivos_clinicos
 
 **Qué se ganó:** Configuración completa de infraestructura de almacenamiento externo con Cloudflare R2, validación de conexión exitosa, y creación de tabla archivos_clinicos con RLS multi-tenant en Supabase.
