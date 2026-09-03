@@ -1,4 +1,4 @@
-import React, { memo } from 'react'
+import React, { memo, useState, useEffect } from 'react'
 
 /**
  * Grid/lista de archivos clínicos almacenados en R2.
@@ -15,11 +15,15 @@ export const ArchivoViewer = memo(({
   tipoArchivo,
   permisos,
   archivoParaVer,
+  thumbnails,
+  cargarThumbnail,
   onVer,
   onCerrarModal,
   onDescargar,
   onEliminar,
 }) => {
+  // Estado de archivos con thumbnail en progreso
+  const [cargandoThumbnails, setCargandoThumbnails] = useState({})
   const textosVacios = {
     foto: 'No hay fotografías clínicas cargadas todavía.',
     rx: 'No hay radiografías cargadas todavía.',
@@ -54,6 +58,19 @@ export const ArchivoViewer = memo(({
       onEliminar(archivo.id)
     }
   }
+
+  // Cargar thumbnails de imágenes al cambiar la lista de archivos
+  useEffect(() => {
+    archivos?.forEach((archivo) => {
+      if (archivo.mime_type?.startsWith('image/') && !thumbnails[archivo.id] && !cargandoThumbnails[archivo.id]) {
+        setCargandoThumbnails((prev) => ({ ...prev, [archivo.id]: true }))
+        cargarThumbnail(archivo).finally(() => {
+          setCargandoThumbnails((prev) => ({ ...prev, [archivo.id]: false }))
+        })
+      }
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [archivos])
 
   if (cargando) {
     return (

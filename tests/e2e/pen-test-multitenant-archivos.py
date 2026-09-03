@@ -276,11 +276,13 @@ def test_5_acceso_directo_r2_sin_url_firmada():
     status, _, _ = api_request("GET", r2_direct_url)
     
     # R2 debería rechazar acceso sin firma (403 o 404)
-    if status in (403, 404):
-        print_result("Acceso directo a R2 bloqueado", True, f"Status: {status}")
+    # 400 es aceptable: R2 rechaza la URL sin firma AWS v4 con Bad Request
+    # (falta de query params de firma). La clave es que NO devuelve el archivo.
+    if status in (400, 403, 404):
+        print_result("Acceso directo a R2 bloqueado", True, f"Status: {status} (bloqueo correcto)")
         return True
     else:
-        print_result("Acceso directo a R2 bloqueado", False, f"Status esperado 403/404, recibido: {status}")
+        print_result("Acceso directo a R2 bloqueado", False, f"Status esperado 400/403/404, recibido: {status}")
         return False
 
 def test_6_inyeccion_r2_object_key():

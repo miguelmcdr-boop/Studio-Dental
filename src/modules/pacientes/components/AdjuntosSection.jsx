@@ -42,6 +42,8 @@ export const AdjuntosSection = memo(({ tabActiva, pacienteId }) => {
     archivoParaVer,
     cerrarArchivoModal,
     eliminarArchivo,
+    thumbnails,
+    cargarThumbnail,
   } = useArchivosClinicos(pacienteId, tipoArchivo)
 
   // Configuración de títulos/descripciones por tab
@@ -91,6 +93,8 @@ export const AdjuntosSection = memo(({ tabActiva, pacienteId }) => {
         tipoArchivo={tipoArchivo}
         permisos={permisos}
         archivoParaVer={archivoParaVer}
+        thumbnails={thumbnails}
+        cargarThumbnail={cargarThumbnail}
         onVer={verArchivo}
         onCerrarModal={cerrarArchivoModal}
         onDescargar={descargarArchivo}
