@@ -61,29 +61,15 @@ export const ArchivoViewer = memo(({
 
   // Cargar thumbnails de imágenes al cambiar la lista de archivos
   useEffect(() => {
-    console.log('[ArchivoViewer] useEffect ejecutado, archivos:', archivos?.length)
-    
     archivos?.forEach((archivo) => {
-      console.log('[ArchivoViewer] Procesando archivo:', archivo.id, {
-        nombre: archivo.nombre_archivo,
-        mime_type: archivo.mime_type,
-        enCache: !!thumbnails[archivo.id],
-        cargando: !!cargandoThumbnails[archivo.id],
-        esImagen: archivo.mime_type?.startsWith('image/')
-      })
-      
-      if (archivo.mime_type?.startsWith('image/') && !thumbnails[archivo.id] && !cargandoThumbnails[archivo.id]) {
-        console.log('[ArchivoViewer] Iniciando carga de thumbnail para:', archivo.id)
+      if (
+        archivo.mime_type?.startsWith('image/') &&
+        !thumbnails[archivo.id] &&
+        !cargandoThumbnails[archivo.id]
+      ) {
         setCargandoThumbnails((prev) => ({ ...prev, [archivo.id]: true }))
         cargarThumbnail(archivo).finally(() => {
-          console.log('[ArchivoViewer] Carga completada para:', archivo.id)
           setCargandoThumbnails((prev) => ({ ...prev, [archivo.id]: false }))
-        })
-      } else {
-        console.log('[ArchivoViewer] Saltando archivo:', archivo.id, {
-          razon: !archivo.mime_type?.startsWith('image/') ? 'no es imagen' 
-                 : thumbnails[archivo.id] ? 'ya cacheado' 
-                 : 'ya cargando'
         })
       }
     })
@@ -113,10 +99,20 @@ export const ArchivoViewer = memo(({
           key={archivo.id}
           className="border rounded-xl overflow-hidden bg-gray-50 hover:shadow-md transition-shadow"
         >
-          <div className="aspect-video bg-gray-100 flex items-center justify-center">
-            <span className="text-4xl" aria-hidden="true">
-              {tituloIcono(archivo)}
-            </span>
+          <div className="aspect-video bg-gray-100 flex items-center justify-center overflow-hidden">
+            {thumbnails[archivo.id] && archivo.mime_type?.startsWith('image/') ? (
+              <img
+                src={thumbnails[archivo.id]}
+                alt={archivo.nombre_archivo}
+                className="w-full h-full object-cover cursor-pointer"
+                title="Click para ampliar"
+                onClick={() => onVer(archivo.id, archivo.mime_type, archivo.nombre_archivo)}
+              />
+            ) : (
+              <span className="text-4xl" aria-hidden="true">
+                {tituloIcono(archivo)}
+              </span>
+            )}
           </div>
 
           <div className="p-3 space-y-3">
