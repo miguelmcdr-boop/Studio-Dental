@@ -34,17 +34,17 @@ import {
  * @param {string} tipoArchivo — 'foto' | 'rx' | 'consentimiento'
  */
 
-// Mapeo bidireccional entre tipo UI y categoría R2
+// Mapeo bidireccional entre tipo UI y categoría R2.
+// Nota: 'consentimiento' NO está aquí porque ConsentimientosSection
+// usa firma digital en canvas, no archivos R2.
 const TIPO_A_CATEGORIA = {
   foto: 'foto_clinica',
   rx: 'radiografia',
-  consentimiento: 'pdf',
 }
 
 const CATEGORIA_A_TIPO = {
   foto_clinica: 'foto',
   radiografia: 'rx',
-  pdf: 'consentimiento',
   documento: 'documento',
   otro: 'otro',
 }

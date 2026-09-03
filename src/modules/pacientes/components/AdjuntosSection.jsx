@@ -20,11 +20,12 @@ import { ArchivoModal } from './ArchivoModal'
  * - pacienteId: UUID del paciente
  */
 export const AdjuntosSection = memo(({ tabActiva, pacienteId }) => {
-  // Mapeo de tab UI a tipo de archivo del hook
+  // Mapeo de tab UI a tipo de archivo del hook.
+  // Nota: la tab 'Consentimientos' usa ConsentimientosSection (firma digital),
+  // no AdjuntosSection. Por eso solo mapeamos 2 tabs.
   const tipoArchivo = useMemo(() => {
     if (tabActiva === 'Fotografías Clínicas') return 'foto'
     if (tabActiva === 'Radiografías') return 'rx'
-    if (tabActiva === 'Consentimientos') return 'consentimiento'
     return 'foto'
   }, [tabActiva])
 
@@ -55,11 +56,6 @@ export const AdjuntosSection = memo(({ tabActiva, pacienteId }) => {
         return {
           titulo: 'Radiografías',
           descripcion: 'Gestiona radiografías panorámicas, periapicales y otros estudios.',
-        }
-      case 'Consentimientos':
-        return {
-          titulo: 'Consentimientos Informados Firmados',
-          descripcion: 'Carga documentos firmados en formato PDF o imagen.',
         }
       default:
         return { titulo: 'Adjuntos', descripcion: '' }

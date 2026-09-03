@@ -30,10 +30,6 @@ export const ArchivoUploader = memo(({
       label: '🩻 Subir Radiografías',
       accept: 'image/*,.pdf',
     },
-    consentimiento: {
-      label: '📄 Adjuntar Documento',
-      accept: 'image/*,.pdf',
-    },
   }
 
   const cfg = config[tipoArchivo] || {
