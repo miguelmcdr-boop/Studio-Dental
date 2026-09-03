@@ -1,175 +1,109 @@
-import React, { memo } from 'react'
-import { useAdjuntos } from '../hooks/useAdjuntos'
+import React, { memo, useMemo } from 'react'
+import { useArchivosClinicos } from '../hooks/useArchivosClinicos'
+import { ArchivoUploader } from './ArchivoUploader'
+import { ArchivoViewer } from './ArchivoViewer'
+import { ArchivoModal } from './ArchivoModal'
 
 /**
  * Sección de adjuntos clínicos (fotos, radiografías, consentimientos).
- * Tarea MASTER_ROADMAP: F1-02 + F6-E (Supabase Storage)
  *
- * F6-E: muestra indicador de sincronización con Supabase:
- * - 🔄 Sincronizando... (durante subida/eliminación)
- * - ✓ Sincronizado (adjunto tiene storagePath en Supabase)
- * - 📱 Local (adjunto solo en IndexedDB, sin storagePath)
+ * F7-22 Fase 8: migrado de Supabase Storage a Cloudflare R2.
+ * - Capa UI: este componente orquesta ArchivoUploader + ArchivoViewer
+ * - Capa lógica: useArchivosClinicos (RBAC, validaciones, estado)
+ * - Capa datos: r2ArchivosService (Edge Functions + R2 + archivos_clinicos)
+ *
+ * Se mantiene la misma interfaz pública (tabActiva, pacienteId) para que
+ * FichaPacienteModulo.jsx no necesite cambios.
+ *
+ * Props:
+ * - tabActiva: 'Fotografías Clínicas' | 'Radiografías' | 'Consentimientos'
+ * - pacienteId: UUID del paciente
  */
 export const AdjuntosSection = memo(({ tabActiva, pacienteId }) => {
-  const { adjuntos, cargando, error, subirArchivos, eliminarArchivo, sincronizando } = useAdjuntos(pacienteId)
+  // Mapeo de tab UI a tipo de archivo del hook.
+  // Nota: la tab 'Consentimientos' usa ConsentimientosSection (firma digital),
+  // no AdjuntosSection. Por eso solo mapeamos 2 tabs.
+  const tipoArchivo = useMemo(() => {
+    if (tabActiva === 'Fotografías Clínicas') return 'foto'
+    if (tabActiva === 'Radiografías') return 'rx'
+    return 'foto'
+  }, [tabActiva])
 
-  const handleSubirArchivo = (e, tipo) => {
-    const files = e.target.files
-    if (files && files.length > 0) {
-      subirArchivos(files, tipo)
+  const {
+    archivos,
+    cargando,
+    error,
+    subiendo,
+    progreso,
+    permisos,
+    subirArchivos,
+    descargarArchivo,
+    verArchivo,
+    archivoParaVer,
+    cerrarArchivoModal,
+    eliminarArchivo,
+  } = useArchivosClinicos(pacienteId, tipoArchivo)
+
+  // Configuración de títulos/descripciones por tab
+  const configuracion = useMemo(() => {
+    switch (tabActiva) {
+      case 'Fotografías Clínicas':
+        return {
+          titulo: 'Fotografías Clínicas',
+          descripcion: 'Documenta el progreso del tratamiento con imágenes clínicas.',
+        }
+      case 'Radiografías':
+        return {
+          titulo: 'Radiografías',
+          descripcion: 'Gestiona radiografías panorámicas, periapicales y otros estudios.',
+        }
+      default:
+        return { titulo: 'Adjuntos', descripcion: '' }
     }
-    e.target.value = ''
-  }
-
-  const BannerError = () =>
-    error ? (
-      <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-300 text-red-800 text-xs font-semibold">
-        ⚠ {error}
-      </div>
-    ) : null
-
-  const BadgeSincronizacion = ({ registro }) => {
-    if (registro.storagePath) {
-      return <span className="text-xs font-semibold bg-green-100 text-green-800 px-2 py-1 rounded">✓ Cloud</span>
-    }
-    return <span className="text-xs font-semibold bg-yellow-100 text-yellow-800 px-2 py-1 rounded">📱 Local</span>
-  }
-
-  const SpinnerSincronizacion = () =>
-    sincronizando ? (
-      <div className="flex items-center justify-center gap-2 py-2 text-xs text-gray-500">
-        <span className="animate-spin">🔄</span>
-        <span>Sincronizando con la nube...</span>
-      </div>
-    ) : null
-
-  if (tabActiva === 'Consentimientos') {
-    const consentimientos = adjuntos.consentimiento
-
-    return (
-      <div className="bg-white border border-gray-200 rounded-2xl p-6 print:hidden">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h3 className="font-bold text-sm text-gray-900">Consentimientos Informados Firmados</h3>
-            <p className="text-xs text-gray-500">Carga documentos firmados en formato PDF o imagen.</p>
-          </div>
-          <label className="bg-black text-white text-xs font-semibold px-4 py-2 rounded-lg cursor-pointer hover:bg-gray-800 transition-colors">
-            📄 Adjuntar Consentimiento
-            <input
-              type="file"
-              multiple
-              accept="image/*,.pdf"
-              onChange={(e) => handleSubirArchivo(e, 'consentimiento')}
-              className="hidden"
-            />
-          </label>
-        </div>
-
-        <BannerError />
-        <SpinnerSincronizacion />
-
-        {cargando && <p className="text-xs text-gray-400 text-center py-8">Cargando adjuntos guardados…</p>}
-
-        {!cargando && (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {consentimientos.map(doc => (
-              <div key={doc.id} className="border rounded-xl p-3 bg-gray-50 flex items-center justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="text-xs font-bold text-gray-800 truncate max-w-[150px]">{doc.nombre}</p>
-                  <p className="text-[10px] text-gray-400">{new Date(doc.fecha).toLocaleDateString('es-CL')}</p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <BadgeSincronizacion registro={doc} />
-                  <button
-                    onClick={() => eliminarArchivo(doc.id)}
-                    title="Eliminar"
-                    className="text-gray-400 hover:text-red-600 text-xs font-bold px-1"
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {!cargando && consentimientos.length === 0 && (
-          <p className="text-xs text-gray-400 text-center py-8">No hay consentimientos informados cargados todavía.</p>
-        )}
-      </div>
-    )
-  }
-
-  const lista = tabActiva === 'Fotografías Clínicas' ? adjuntos.foto : adjuntos.rx
-  const tipoSubida = tabActiva === 'Fotografías Clínicas' ? 'foto' : 'rx'
+  }, [tabActiva])
 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-6 print:hidden">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h3 className="font-bold text-sm text-gray-900">
-            {tabActiva === 'Fotografías Clínicas' ? 'Fotografías Clínicas' : 'Radiografías'}
-          </h3>
-          <p className="text-xs text-gray-500">
-            {tabActiva === 'Fotografías Clínicas' 
-              ? 'Documenta el progreso del tratamiento con imágenes clínicas.'
-              : 'Gestiona radiografías panorámicas, periapicales y otros estudios.'}
-          </p>
+          <h3 className="font-bold text-sm text-gray-900">{configuracion.titulo}</h3>
+          <p className="text-xs text-gray-500">{configuracion.descripcion}</p>
         </div>
-        <label className="bg-black text-white text-xs font-semibold px-4 py-2 rounded-lg cursor-pointer hover:bg-gray-800 transition-colors">
-          📸 Subir {tabActiva === 'Fotografías Clínicas' ? 'Fotos' : 'Radiografías'}
-          <input
-            type="file"
-            multiple
-            accept="image/*,.pdf"
-            onChange={(e) => handleSubirArchivo(e, tipoSubida)}
-            className="hidden"
-          />
-        </label>
+
+        <ArchivoUploader
+          tipoArchivo={tipoArchivo}
+          permisos={permisos}
+          subiendo={subiendo}
+          progreso={progreso}
+          onSubirArchivos={subirArchivos}
+        />
       </div>
 
-      <BannerError />
-      <SpinnerSincronizacion />
-
-      {cargando && <p className="text-xs text-gray-400 text-center py-8">Cargando adjuntos guardados…</p>}
-
-      {!cargando && (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {lista.map(doc => (
-            <div key={doc.id} className="border rounded-xl overflow-hidden bg-gray-50 hover:shadow-md transition-shadow">
-              <div className="aspect-video bg-gray-200 relative">
-                <img
-                  src={doc.url}
-                  alt={doc.nombre}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="p-3 flex items-center justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="text-xs font-bold text-gray-800 truncate max-w-[120px]">{doc.nombre}</p>
-                  <p className="text-[10px] text-gray-400">{new Date(doc.fecha).toLocaleDateString('es-CL')}</p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <BadgeSincronizacion registro={doc} />
-                  <button
-                    onClick={() => eliminarArchivo(doc.id)}
-                    title="Eliminar"
-                    className="text-gray-400 hover:text-red-600 text-xs font-bold px-1"
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+      {error && (
+        <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-300 text-red-800 text-xs font-semibold">
+          ⚠ {error}
         </div>
       )}
 
-      {!cargando && lista.length === 0 && (
-        <p className="text-xs text-gray-400 text-center py-8">
-          No hay {tabActiva === 'Fotografías Clínicas' ? 'fotografías clínicas' : 'radiografías'} cargadas todavía.
-        </p>
-      )}
+      <ArchivoViewer
+        archivos={archivos}
+        cargando={cargando}
+        tipoArchivo={tipoArchivo}
+        permisos={permisos}
+        archivoParaVer={archivoParaVer}
+        onVer={verArchivo}
+        onCerrarModal={cerrarArchivoModal}
+        onDescargar={descargarArchivo}
+        onEliminar={eliminarArchivo}
+      />
+
+      <ArchivoModal
+        abierto={!!archivoParaVer}
+        blobUrl={archivoParaVer?.blobUrl}
+        mimeType={archivoParaVer?.mimeType}
+        nombreArchivo={archivoParaVer?.nombreArchivo}
+        onCerrar={cerrarArchivoModal}
+      />
     </div>
   )
 })
