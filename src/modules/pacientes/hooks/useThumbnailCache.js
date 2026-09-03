@@ -21,31 +21,44 @@ export const useThumbnailCache = () => {
   const [cache, setCache] = useState({}) // { archivoId: blobUrl }
 
   const cargarThumbnail = useCallback(async (archivo) => {
+    console.log('[useThumbnailCache] cargarThumbnail llamado para:', archivo.id, archivo.nombre_archivo)
+    
     // Ya está cacheado
-    if (cache[archivo.id]) return cache[archivo.id]
+    if (cache[archivo.id]) {
+      console.log('[useThumbnailCache] Usando cache para:', archivo.id)
+      return cache[archivo.id]
+    }
 
     try {
       const downloadData = await solicitaUrlDownload(archivo.id)
+      console.log('[useThumbnailCache] downloadData:', downloadData)
 
       if (!downloadData || !downloadData.download_url) {
-        console.warn('No se pudo obtener URL para thumbnail de', archivo.id)
+        console.warn('[useThumbnailCache] No se pudo obtener URL para thumbnail de', archivo.id)
         return null
       }
 
+      console.log('[useThumbnailCache] Haciendo fetch a:', downloadData.download_url)
       const response = await fetch(downloadData.download_url, {
         headers: downloadData.download_headers,
       })
 
+      console.log('[useThumbnailCache] Response status:', response.status)
+
       if (!response.ok) {
-        console.warn('Error descargando thumbnail de', archivo.id)
+        console.warn('[useThumbnailCache] Error descargando thumbnail de', archivo.id, 'Status:', response.status)
         return null
       }
 
       const blob = await response.blob()
+      console.log('[useThumbnailCache] Blob creado, tamaño:', blob.size, 'tipo:', blob.type)
       const blobUrl = window.URL.createObjectURL(blob)
+      console.log('[useThumbnailCache] Blob URL creado:', blobUrl)
 
       // Cachear en state (inmutable update)
+      console.log('[useThumbnailCache] Cacheando blob URL para:', archivo.id)
       setCache((prev) => ({ ...prev, [archivo.id]: blobUrl }))
+      console.log('[useThumbnailCache] Cache actualizado, retornando:', blobUrl)
 
       return blobUrl
     } catch (e) {

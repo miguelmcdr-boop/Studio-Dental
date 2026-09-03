@@ -61,11 +61,29 @@ export const ArchivoViewer = memo(({
 
   // Cargar thumbnails de imágenes al cambiar la lista de archivos
   useEffect(() => {
+    console.log('[ArchivoViewer] useEffect ejecutado, archivos:', archivos?.length)
+    
     archivos?.forEach((archivo) => {
+      console.log('[ArchivoViewer] Procesando archivo:', archivo.id, {
+        nombre: archivo.nombre_archivo,
+        mime_type: archivo.mime_type,
+        enCache: !!thumbnails[archivo.id],
+        cargando: !!cargandoThumbnails[archivo.id],
+        esImagen: archivo.mime_type?.startsWith('image/')
+      })
+      
       if (archivo.mime_type?.startsWith('image/') && !thumbnails[archivo.id] && !cargandoThumbnails[archivo.id]) {
+        console.log('[ArchivoViewer] Iniciando carga de thumbnail para:', archivo.id)
         setCargandoThumbnails((prev) => ({ ...prev, [archivo.id]: true }))
         cargarThumbnail(archivo).finally(() => {
+          console.log('[ArchivoViewer] Carga completada para:', archivo.id)
           setCargandoThumbnails((prev) => ({ ...prev, [archivo.id]: false }))
+        })
+      } else {
+        console.log('[ArchivoViewer] Saltando archivo:', archivo.id, {
+          razon: !archivo.mime_type?.startsWith('image/') ? 'no es imagen' 
+                 : thumbnails[archivo.id] ? 'ya cacheado' 
+                 : 'ya cargando'
         })
       }
     })
