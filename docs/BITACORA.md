@@ -1,3 +1,111 @@
+## 2026-09-03 — F7-22 Fase 8: Frontend archivos clínicos R2 + modal inline responsive
+
+**Qué se ganó:** Integración completa del frontend con Cloudflare R2. Sistema de 3 capas (UI + lógica + datos) reemplaza IndexedDB + Supabase Storage. Los usuarios pueden subir, ver, descargar y eliminar archivos clínicos con auditoría completa.
+
+### Entregables
+
+**Servicio de datos (Capa 1):**
+- **r2ArchivosService.js** (278 líneas): 6 funciones para interactuar con Edge Functions de R2
+  - solicitaUrlUpload() → Edge Function r2-upload-url
+  - subeArchivoAR2() → PUT directo a R2 con XMLHttpRequest (progreso 0-100%)
+  - solicitaUrlDownload() → Edge Function r2-download-url
+  - descargaArchivoDeR2() → blob + descarga automática
+  - abrirArchivoDeR2() → blob + modal inline
+  - eliminaArchivo() → Edge Function r2-delete
+  - listaArchivosDePaciente() → Supabase archivos_clinicos
+
+**Hook de lógica (Capa 2):**
+- **useArchivosClinicos.js** + 4 archivos internos (361 líneas total):
+  - Orquestador principal (93 líneas)
+  - Helpers: constantes + validaciones (73 líneas)
+  - Uploads: subida con progreso (79 líneas)
+  - Downloads: descarga + visualización modal (86 líneas)
+  - Delete: eliminación con soft delete (30 líneas)
+  - Mapeo tipo UI ↔ categoría R2 (foto↔foto_clinica, rx↔radiografia)
+  - RBAC: admin/dentista suben/eliminan, todos ven/descargan
+  - Validaciones: tamaño 50MB, MIME types, permisos
+
+**Componentes UI (Capa 3):**
+- **AdjuntosSection.jsx** (102 líneas): orquestador, recibe tabActiva + pacienteId
+- **ArchivoUploader.jsx** (87 líneas): botón + input file + barra de progreso
+- **ArchivoViewer.jsx** (142 líneas): grid de cards + acciones (Ver/Descargar/Eliminar)
+- **ArchivoModal.jsx** (117 líneas): lightbox inline responsive para ver imágenes/PDFs
+
+### Funcionalidades validadas en navegador
+
+1. **Upload con progreso**: barra 0-100% usando XMLHttpRequest
+2. **Ver inline en modal**: imágenes/PDFs se ven dentro de la app (no abre nueva pestaña)
+   - Modal responsive (se adapta a móvil/tablet/desktop)
+   - Cierra con ESC o click fuera
+   - Fondo oscuro para mejor contraste
+   - Hint sobre cómo cerrar
+3. **Descargar**: blob + descarga automática con nombre original
+4. **Eliminar**: soft delete (estado=eliminado + deleted_at)
+5. **RBAC**: admin/dentista ven botón de subir/eliminar, todos ven archivos
+6. **CORS configurado**: bucket R2 acepta requests desde localhost:5173
+
+### Problemas resueltos
+
+1. **CORS en R2**: Cloudflare R2 S3-compatible API NO soporta CORS nativamente. Solución: configurar CORS policy manualmente en Cloudflare Dashboard → R2 → studio-dental → Settings → CORS Policy.
+
+2. **Ver archivos sin abrir nueva pestaña**: URLs R2 usan firma AWS v4 en headers (no query params), por eso no se puede hacer window.open(downloadUrl). Solución: fetch → blob → crear blob URL → renderizar en modal inline.
+
+3. **Validador arquitectónico**: useArchivosClinicos.js tenía 361 líneas (límite: 150). Solución: dividir en 5 archivos por responsabilidad (helpers, uploads, downloads, delete, orquestador).
+
+4. **Tab "Consentimientos" no usaba AdjuntosSection**: descubrimiento de que ConsentimientosSection es un componente separado para firma digital en canvas (usa localStorage, no R2). Solución: eliminar código muerto de tipo "consentimiento" del nuevo sistema.
+
+### Lecciones aprendidas
+
+1. **CORS en servicios S3-compatible**: siempre verificar requisitos de CORS antes de integrar. Cloudflare R2 requiere configuración manual, no automática.
+
+2. **URLs firmadas con headers vs query params**: cuando la firma está en headers, no se puede hacer redirect directo. Se requiere fetch + blob para consumir el recurso.
+
+3. **Separación de responsabilidades en hooks**: dividir hooks grandes en sub-hooks por funcionalidad mejora mantenibilidad y cumple límites constitucionales.
+
+4. **Descubrimiento de componentes legacy**: durante migración, identificar qué componentes están realmente conectados a la UI vs código muerto. ConsentimientosSection era un caso especial (firma digital) que no debía migrarse a R2.
+
+5. **Modal responsive desde el inicio**: diseñar modales con breakpoints móviles/tablet/desktop evita retrabajo posterior. Usar max-w-* + max-h-[calc(100vh-Xpx)] para adaptabilidad.
+
+### Arquitectura final
+
+Capa 3 (UI): AdjuntosSection (orquestador) → ArchivoUploader, ArchivoViewer, ArchivoModal
+
+Capa 2 (Lógica): useArchivosClinicos (5 archivos) → estado + métodos + RBAC + validaciones
+
+Capa 1 (Datos): r2ArchivosService → requests a Edge Functions
+
+Edge Functions: r2-upload-url, r2-download-url, r2-delete (VERSION 3)
+
+Storage: Cloudflare R2 (bucket: studio-dental) con URLs firmadas AWS v4 (5-15 min) + CORS configurado
+
+### Archivos modificados
+
+**Nuevos (7 archivos, ~1020 líneas):**
+- src/services/r2ArchivosService.js (278 líneas)
+- src/modules/pacientes/hooks/useArchivosClinicos.js (93 líneas)
+- src/modules/pacientes/hooks/useArchivosClinicos.helpers.js (73 líneas)
+- src/modules/pacientes/hooks/useArchivosClinicos.uploads.js (79 líneas)
+- src/modules/pacientes/hooks/useArchivosClinicos.downloads.js (86 líneas)
+- src/modules/pacientes/hooks/useArchivosClinicos.delete.js (30 líneas)
+- src/modules/pacientes/components/ArchivoUploader.jsx (87 líneas)
+- src/modules/pacientes/components/ArchivoViewer.jsx (142 líneas)
+- src/modules/pacientes/components/ArchivoModal.jsx (117 líneas)
+- src/modules/pacientes/components/AdjuntosSection.jsx (reescrito, 102 líneas)
+
+**Eliminados:**
+- src/modules/pacientes/components/AdjuntosSection.jsx.legacy (backup temporal)
+
+**Conservados sin cambios:**
+- src/modules/pacientes/components/ConsentimientosSection.jsx (firma digital, usa localStorage)
+
+### Próximos pasos
+
+- Fase 9: Pen-test multi-tenant de archivos clínicos
+- Fase 10: Cleanup de cache en logout (integración con F7-05)
+- F7-31: Papelera de archivos clínicos (restaurar archivos eliminados de R2)
+
+---
+
 ## 2026-09-03 — F7-22 Fase 7: Edge Functions R2 + Auditoría + Tests E2E (7/7)
 
 **Qué se ganó:** Implementación completa del backend de archivos clínicos con 3 Edge Functions para upload/download/delete en Cloudflare R2, integración con audit_log, y validación E2E con 7/7 tests pasados.
