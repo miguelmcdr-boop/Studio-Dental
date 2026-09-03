@@ -4,7 +4,7 @@
 // 1. Frontend solicita URL firmada para subir archivo
 // 2. Edge Function valida: sesión, clínica, RBAC, paciente
 // 3. Genera r2_object_key único
-// 4. Guarda metadata en archivos_clinicos (estado: pendiente_revision)
+// 4. Guarda metadata en archivos_clinicos (estado: activo)
 // 5. Genera URL firmada S3 (PUT, expiración 15 min)
 // 6. Registra en audit_log: "upload_initiated"
 //
@@ -208,7 +208,7 @@ Deno.serve(async (req) => {
     const safeName = nombre_archivo.replace(/[^a-zA-Z0-9._-]/g, "_").toLowerCase();
     const r2ObjectKey = `${clinicaId}/${paciente_id}/${categoria}/${archivoId}-${safeName}`;
 
-    // 8. Guardar metadata en archivos_clinicos (estado: pendiente_revision)
+    // 8. Guardar metadata en archivos_clinicos (estado: activo)
     const metadataResult = await fetch(`${supabaseUrl}/rest/v1/archivos_clinicos`, {
       method: "POST",
       headers: {
