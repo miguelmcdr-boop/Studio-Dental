@@ -204,6 +204,54 @@ export const descargaArchivoDeR2 = async ({ downloadUrl, downloadHeaders, nombre
   }
 }
 
+
+/**
+ * Abre archivo desde R2 en nueva pestaña usando URL firmada con headers.
+ *
+ * Importante: las URLs generadas por las Edge Functions usan firma AWS v4
+ * en headers, no query params. Por eso NO se puede hacer window.open(downloadUrl)
+ * directamente; primero se hace fetch con headers, luego se crea un blob URL.
+ *
+ * @param {Object} params
+ * @param {string} params.downloadUrl — URL firmada de R2
+ * @param {Record<string, string>} params.downloadHeaders — headers requeridos por R2
+ * @param {string} params.mimeType — tipo MIME del archivo
+ * @returns {Promise<boolean>} true si se abrió correctamente
+ */
+export const abrirArchivoDeR2 = async ({ downloadUrl, downloadHeaders, mimeType }) => {
+  try {
+    const response = await fetch(downloadUrl, {
+      headers: downloadHeaders,
+    })
+
+    if (!response.ok) {
+      log.error(`Error abriendo archivo de R2: ${response.status}`)
+      return false
+    }
+
+    const blob = await response.blob()
+    const blobConTipo = new Blob([blob], { type: mimeType || blob.type || 'application/octet-stream' })
+    const url = window.URL.createObjectURL(blobConTipo)
+
+    const ventana = window.open(url, '_blank', 'noopener,noreferrer')
+    if (!ventana) {
+      log.warn('El navegador bloqueó la apertura de nueva pestaña')
+      window.URL.revokeObjectURL(url)
+      return false
+    }
+
+    // Revocar después de un tiempo prudente para permitir que el navegador cargue el blob
+    setTimeout(() => {
+      window.URL.revokeObjectURL(url)
+    }, 60_000)
+
+    return true
+  } catch (error) {
+    log.error('Excepción abriendo archivo de R2:', error)
+    return false
+  }
+}
+
 /**
  * Elimina archivo de R2 + soft delete en metadata.
  *

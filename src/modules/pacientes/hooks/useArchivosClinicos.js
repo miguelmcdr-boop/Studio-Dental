@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { useSesionStore } from '../../../store/sesionStore'
+import { useRBAC } from '../../../hooks/useRBAC'
+import { ROLES } from '../../../constants/rbacConstants'
 import {
   solicitaUrlUpload,
   subeArchivoAR2,
   solicitaUrlDownload,
   descargaArchivoDeR2,
+  abrirArchivoDeR2,
   eliminaArchivo,
   listaArchivosDePaciente,
 } from '../../../services/r2ArchivosService'
@@ -65,19 +67,20 @@ export const useArchivosClinicos = (pacienteId, tipoArchivo = 'foto') => {
   const [subiendo, setSubiendo] = useState(false)
   const [progreso, setProgreso] = useState(0)
 
-  // Obtener perfil de usuario para RBAC
-  const userProfile = useSesionStore((state) => state.userProfile)
-  const rolUsuario = userProfile?.rol || null
+  // RBAC oficial del proyecto
+  const { rol } = useRBAC()
 
-  // Calcular permisos basados en rol
+  // Calcular permisos basados en rol.
+  // Nota: las Edge Functions también validan RBAC server-side.
+  // Esto solo controla visibilidad/UX en frontend.
   const permisos = useMemo(() => {
-    const puedeSubir = rolUsuario === 'admin' || rolUsuario === 'dentista'
-    const puedeEliminar = rolUsuario === 'admin' || rolUsuario === 'dentista'
-    const puedeVer = ['admin', 'dentista', 'asistente', 'recepcion'].includes(rolUsuario)
+    const puedeSubir = rol === ROLES.ADMIN || rol === ROLES.DENTISTA
+    const puedeEliminar = rol === ROLES.ADMIN || rol === ROLES.DENTISTA
+    const puedeVer = [ROLES.ADMIN, ROLES.DENTISTA, ROLES.ASISTENTE, ROLES.RECEPCION].includes(rol)
     const puedeDescargar = puedeVer
 
-    return { puedeSubir, puedeEliminar, puedeVer, puedeDescargar }
-  }, [rolUsuario])
+    return { puedeSubir, puedeEliminar, puedeVer, puedeDescargar, rol }
+  }, [rol])
 
   // Categoría R2 basada en tipo de archivo UI
   const categoriaR2 = TIPO_A_CATEGORIA[tipoArchivo] || tipoArchivo
@@ -256,6 +259,41 @@ export const useArchivosClinicos = (pacienteId, tipoArchivo = 'foto') => {
   }, [permisos.puedeDescargar])
 
   /**
+   * Abre archivo en nueva pestaña usando blob URL.
+   * @param {string} archivoId — UUID del archivo
+   * @param {string} mimeType — tipo MIME del archivo
+   */
+  const verArchivo = useCallback(async (archivoId, mimeType) => {
+    if (!permisos.puedeVer) {
+      setError('No tienes permisos para ver archivos.')
+      return
+    }
+
+    setError(null)
+
+    try {
+      const downloadData = await solicitaUrlDownload(archivoId)
+
+      if (!downloadData || !downloadData.download_url) {
+        setError('No se pudo obtener URL para ver el archivo. Intenta de nuevo.')
+        return
+      }
+
+      const exito = await abrirArchivoDeR2({
+        downloadUrl: downloadData.download_url,
+        downloadHeaders: downloadData.download_headers,
+        mimeType,
+      })
+
+      if (!exito) {
+        setError('No se pudo abrir el archivo. El navegador podría haber bloqueado la ventana emergente.')
+      }
+    } catch (e) {
+      setError(e?.message || 'Error abriendo archivo.')
+    }
+  }, [permisos.puedeVer])
+
+  /**
    * Elimina archivo de R2 + soft delete en metadata.
    * @param {string} archivoId — UUID del archivo
    */
@@ -290,6 +328,7 @@ export const useArchivosClinicos = (pacienteId, tipoArchivo = 'foto') => {
     permisos,
     subirArchivos,
     descargarArchivo,
+    verArchivo,
     eliminarArchivo,
     recargar,
   }
