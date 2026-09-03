@@ -1,3 +1,98 @@
+## 2026-09-03 — F7-22 Fase 9: Pen-test multi-tenant + thumbnails inline
+
+**Qué se ganó:** Validación de seguridad del sistema de archivos clínicos mediante pen-test multi-tenant automatizado, más mejora UX con thumbnails inline en el grid de Fotografías Clínicas.
+
+### Entregables
+
+**1. Script de pen-test multi-tenant (370 líneas):**
+- tests/e2e/pen-test-multitenant-archivos.py
+- 6 tests automatizados para validar seguridad multi-tenant
+- Sin dependencias externas (solo urllib estándar de Python)
+- Requiere: JWT_CLINICA_A + ARCHIVO_ID_CLINICA_A (variables de entorno)
+
+**2. Hook de cache de thumbnails (61 líneas):**
+- src/modules/pacientes/hooks/useThumbnailCache.js (nuevo)
+- Cachea blob URLs por archivo_id (Map en memoria)
+- Cada imagen se descarga UNA vez por sesión
+- Las siguientes vistas usan el cache sin re-descargar
+- Evita saturar audit_log con FILE_DOWNLOAD repetidos
+
+**3. Mejora de ArchivoViewer:**
+- Render de thumbnails inline usando el cache
+- Click en thumbnail abre modal inline
+- Solo se descargan imágenes (mime_type empieza con image/)
+- Carga lazy al montar archivos
+
+### Resultados del pen-test (5/6 pasados, 1 skipped)
+
+| # | Test | Resultado | Status |
+|---|------|-----------|--------|
+| 1 | Download archivo de otra clínica | BLOQUEADO | 404 |
+| 2 | Upload con clinica_id manipulado en body | BLOQUEADO | 403 |
+| 3 | Delete archivo de otra clínica | BLOQUEADO | 404 |
+| 4 | Upload como rol recepción | SKIP | (requiere JWT de recepción) |
+| 5 | Acceso directo a R2 sin URL firmada | BLOQUEADO | 400 |
+| 6 | Inyección de r2_object_key manipulado | BLOQUEADO | 404 |
+
+**Conclusión:** El sistema es seguro contra accesos cruzados entre clínicas. La defensa en profundidad (RLS + Edge Functions + R2 con URLs firmadas AWS v4) funciona correctamente.
+
+### Problema resuelto: mime_type NULL en archivos existentes
+
+**Síntoma:** Los thumbnails no se mostraban a pesar de que el código estaba correcto.
+
+**Causa raíz:** La Edge Function r2-upload-url NO guardaba el mime_type en la tabla archivos_clinicos (quedaba NULL). La condición archivo.mime_type?.startsWith('image/') fallaba porque mime_type era NULL.
+
+**Solución inmediata (SQL manual en Supabase SQL Editor):**
+    UPDATE archivos_clinicos 
+    SET mime_type = CASE
+        WHEN LOWER(nombre_archivo) LIKE '%.jpg' THEN 'image/jpeg'
+        WHEN LOWER(nombre_archivo) LIKE '%.jpeg' THEN 'image/jpeg'
+        WHEN LOWER(nombre_archivo) LIKE '%.png' THEN 'image/png'
+        WHEN LOWER(nombre_archivo) LIKE '%.gif' THEN 'image/gif'
+        WHEN LOWER(nombre_archivo) LIKE '%.webp' THEN 'image/webp'
+        WHEN LOWER(nombre_archivo) LIKE '%.pdf' THEN 'application/pdf'
+        ELSE 'application/octet-stream'
+    END
+    WHERE mime_type IS NULL;
+
+**Hallazgo registrado:** F7-22 Fase 8 debería haber guardado mime_type al crear la fila. Queda pendiente como mejora técnica (F7-22a/b) para una próxima iteración.
+
+### Lecciones aprendidas
+
+1. **Validar datos en la base de datos, no solo en el código:** Un bug en la capa de persistencia (mime_type NULL) hizo que el código frontend aparentemente correcto no funcionara.
+
+2. **Logs detallados aceleran diagnóstico:** Agregar console.log en cada paso permitió identificar en 5 minutos que el problema era de render, no de lógica.
+
+3. **Regex flexible para refactor de JSX:** Usar regex con espacios variables para tolerar indentación variable evita errores cuando el formato no es exacto.
+
+4. **Test 5 con status 400:** Cloudflare R2 devuelve 400 en vez de 403 cuando se intenta acceder sin URL firmada (faltan query params de firma AWS v4). Es un bloqueo correcto.
+
+5. **Cache inteligente evita auditoría falsa:** El patrón de cachear blob URLs por ID permite mostrar previews sin saturar audit_log con FILE_DOWNLOAD repetidos.
+
+### Archivos modificados
+
+**Nuevos (2):**
+- tests/e2e/pen-test-multitenant-archivos.py (370 líneas)
+- src/modules/pacientes/hooks/useThumbnailCache.js (61 líneas)
+
+**Modificados (3):**
+- src/modules/pacientes/hooks/useArchivosClinicos.js (expone thumbnails)
+- src/modules/pacientes/components/ArchivoViewer.jsx (render de thumbnails)
+- src/modules/pacientes/components/AdjuntosSection.jsx (pasa props)
+
+### Tareas derivadas (hallazgos)
+
+- F7-22a (TODO): Corregir r2-upload-url para guardar mime_type al crear archivo
+- F7-22b (TODO): Agregar validación server-side de mime_type en Edge Function
+
+### Próximos pasos
+
+- Fase 10: Cleanup de cache en logout (integración con F7-05)
+- F7-31: Papelera de archivos clínicos
+- F7-22a/b: Corregir mime_type en Edge Function
+
+---
+
 ## 2026-09-03 — F7-22 Fase 8: Frontend archivos clínicos R2 + modal inline responsive
 
 **Qué se ganó:** Integración completa del frontend con Cloudflare R2. Sistema de 3 capas (UI + lógica + datos) reemplaza IndexedDB + Supabase Storage. Los usuarios pueden subir, ver, descargar y eliminar archivos clínicos con auditoría completa.
