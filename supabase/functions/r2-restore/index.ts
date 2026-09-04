@@ -1,14 +1,14 @@
-// F7-31 Fase 1: Edge Function para soft delete de archivo (NO elimina de R2)
+// F7-31 Fase 3: Edge Function para restaurar archivo eliminado
 //
 // Flujo:
-// 1. Frontend solicita eliminación de archivo
-// 2. Edge Function valida: sesión, clínica, RBAC
-// 3. Soft delete en archivos_clinicos (estado='eliminado', deleted_at=NOW())
-// 4. Registra en audit_log: "FILE_DELETE"
+// 1. Frontend solicita restauración de archivo
+// 2. Edge Function valida: sesión, clínica, RBAC (admin/dentista)
+// 3. Valida que archivo existe, pertenece a la clínica, y tiene estado='eliminado'
+// 4. Actualiza archivos_clinicos SET estado='activo', deleted_at=NULL
+// 5. Registra en audit_log: "FILE_RESTORE"
 //
-// IMPORTANTE (F7-31): El archivo físico NO se elimina de R2.
-// Esto permite restauración posterior mediante r2-restore.
-// La purga física se implementará en F7-32 (automática después de 30 días).
+// IMPORTANTE (F7-31): El archivo físico nunca se eliminó de R2 (gracias a Fase 1),
+// por lo que restaurar solo requiere cambiar metadata.
 //
 // Input (JSON body):
 // {
@@ -19,59 +19,8 @@
 // {
 //   "success": true,
 //   "archivo_id": "uuid",
-//   "message": "Archivo marcado como eliminado (soft delete)"
+//   "message": "Archivo restaurado correctamente"
 // }
-
-// ============================================================
-// HELPERS: AWS v4 Signature (Web Crypto API)
-// ============================================================
-
-const encoder = new TextEncoder();
-
-function toHex(buffer: ArrayBuffer): string {
-  return Array.from(new Uint8Array(buffer))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
-
-async function sha256Hex(data: string): Promise<string> {
-  const hash = await crypto.subtle.digest("SHA-256", encoder.encode(data));
-  return toHex(hash);
-}
-
-async function hmacSha256(
-  key: ArrayBuffer | Uint8Array,
-  data: string
-): Promise<ArrayBuffer> {
-  const cryptoKey = await crypto.subtle.importKey(
-    "raw",
-    key instanceof Uint8Array ? key : key,
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"]
-  );
-  return await crypto.subtle.sign("HMAC", cryptoKey, encoder.encode(data));
-}
-
-async function getSignatureKey(
-  secret: string,
-  dateStamp: string,
-  region: string,
-  service: string
-): Promise<ArrayBuffer> {
-  let k = await hmacSha256(encoder.encode("AWS4" + secret), dateStamp);
-  k = await hmacSha256(k, region);
-  k = await hmacSha256(k, service);
-  k = await hmacSha256(k, "aws4_request");
-  return k;
-}
-
-function getAmzDate(): { amzDate: string; dateStamp: string } {
-  const now = new Date();
-  const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
-  const dateStamp = amzDate.slice(0, 8);
-  return { amzDate, dateStamp };
-}
 
 // ============================================================
 // HANDLER PRINCIPAL
@@ -100,7 +49,6 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // Verificar JWT con Supabase
     const { data: userData, error: authError } = await fetch(
       `${supabaseUrl}/auth/v1/user`,
       {
@@ -131,7 +79,7 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "Missing required field: archivo_id" }, 400);
     }
 
-    // 4. Obtener clínica del usuario
+    // 4. Obtener clínica y rol del usuario
     const clinicaResult = await fetch(
       `${supabaseUrl}/rest/v1/miembros_clinica?user_id=eq.${userId}&select=clinica_id,rol`,
       {
@@ -149,7 +97,7 @@ Deno.serve(async (req) => {
     const clinicaId = clinicaResult[0].clinica_id;
     const userRol = clinicaResult[0].rol;
 
-    // 5. Validar rol del usuario (admin/dentista pueden eliminar)
+    // 5. Validar rol (solo admin/dentista pueden restaurar)
     const allowedRoles = ["admin", "dentista"];
     if (!allowedRoles.includes(userRol)) {
       return jsonResponse(
@@ -158,9 +106,9 @@ Deno.serve(async (req) => {
       );
     }
 
-    // 6. Obtener archivo de archivos_clinicos y validar que pertenece a la clínica
+    // 6. Obtener archivo y validar
     const archivoResult = await fetch(
-      `${supabaseUrl}/rest/v1/archivos_clinicos?id=eq.${archivo_id}&clinica_id=eq.${clinicaId}&select=id,r2_object_key,nombre_archivo`,
+      `${supabaseUrl}/rest/v1/archivos_clinicos?id=eq.${archivo_id}&clinica_id=eq.${clinicaId}&select=id,estado,nombre_archivo,r2_object_key,deleted_at`,
       {
         headers: {
           Authorization: `Bearer ${supabaseServiceKey}`,
@@ -177,13 +125,16 @@ Deno.serve(async (req) => {
     }
 
     const archivo = archivoResult[0];
-    const r2ObjectKey = archivo.r2_object_key;
 
-    // 7. F7-31: NO eliminar archivo físico de R2
-    // El archivo se mantiene en R2 para permitir restauración posterior.
-    // La purga física se implementará en F7-32 (automática después de 30 días).
+    // Validar que el archivo esté en estado 'eliminado'
+    if (archivo.estado !== "eliminado") {
+      return jsonResponse(
+        { error: `Cannot restore archivo: current estado is '${archivo.estado}', expected 'eliminado'` },
+        400
+      );
+    }
 
-    // 8. Soft delete en archivos_clinicos
+    // 7. Restaurar archivo (estado='activo', deleted_at=NULL)
     const updateResult = await fetch(
       `${supabaseUrl}/rest/v1/archivos_clinicos?id=eq.${archivo_id}`,
       {
@@ -194,8 +145,8 @@ Deno.serve(async (req) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          estado: "eliminado",
-          deleted_at: new Date().toISOString(),
+          estado: "activo",
+          deleted_at: null,
         }),
       }
     );
@@ -204,14 +155,14 @@ Deno.serve(async (req) => {
       const errorText = await updateResult.text();
       return jsonResponse(
         {
-          error: "File deleted from R2 but failed to update metadata",
+          error: "Failed to restore archivo metadata",
           details: errorText,
         },
         500
       );
     }
 
-    // 9. Registrar en audit_log via RPC
+    // 8. Registrar en audit_log via RPC
     await fetch(`${supabaseUrl}/rest/v1/rpc/registrar_evento_archivo`, {
       method: "POST",
       headers: {
@@ -221,19 +172,20 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         p_archivo_id: archivo_id,
-        p_evento: "FILE_DELETE",
+        p_evento: "FILE_RESTORE",
         p_detalle: {
           nombre_archivo: archivo.nombre_archivo,
-          r2_object_key: r2ObjectKey,
+          r2_object_key: archivo.r2_object_key,
+          restored_at: new Date().toISOString(),
         },
       }),
     });
 
-    // 10. Retornar respuesta
+    // 9. Retornar respuesta
     return jsonResponse({
       success: true,
       archivo_id: archivo_id,
-      message: "Archivo eliminado correctamente",
+      message: "Archivo restaurado correctamente",
     });
   } catch (error) {
     return jsonResponse(

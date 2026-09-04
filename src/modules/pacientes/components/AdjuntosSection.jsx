@@ -1,8 +1,9 @@
-import React, { memo, useMemo } from 'react'
+import React, { memo, useMemo, useEffect } from 'react'
 import { useArchivosClinicos } from '../hooks/useArchivosClinicos'
 import { ArchivoUploader } from './ArchivoUploader'
 import { ArchivoViewer } from './ArchivoViewer'
 import { ArchivoModal } from './ArchivoModal'
+import { PapeleraArchivos } from './PapeleraArchivos'
 
 /**
  * Sección de adjuntos clínicos (fotos, radiografías, consentimientos).
@@ -42,9 +43,18 @@ export const AdjuntosSection = memo(({ tabActiva, pacienteId }) => {
     archivoParaVer,
     cerrarArchivoModal,
     eliminarArchivo,
+    archivosEliminados,
+    cargandoPapelera,
+    cargarPapelera,
+    restaurarArchivo,
     thumbnails,
     cargarThumbnail,
   } = useArchivosClinicos(pacienteId, tipoArchivo)
+
+  // Cargar papelera al montar el componente
+  useEffect(() => {
+    cargarPapelera()
+  }, [cargarPapelera])
 
   // Configuración de títulos/descripciones por tab
   const configuracion = useMemo(() => {
@@ -107,6 +117,13 @@ export const AdjuntosSection = memo(({ tabActiva, pacienteId }) => {
         mimeType={archivoParaVer?.mimeType}
         nombreArchivo={archivoParaVer?.nombreArchivo}
         onCerrar={cerrarArchivoModal}
+      />
+
+      <PapeleraArchivos
+        archivosEliminados={archivosEliminados}
+        cargando={cargandoPapelera}
+        onRestaurar={restaurarArchivo}
+        permisos={permisos}
       />
     </div>
   )

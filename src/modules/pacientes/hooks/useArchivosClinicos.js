@@ -6,6 +6,7 @@ import { TIPO_A_CATEGORIA, CATEGORIA_A_TIPO, calcularPermisos } from './useArchi
 import { useArchivosClinicosUploads } from './useArchivosClinicos.uploads'
 import { useArchivosClinicosDownloads } from './useArchivosClinicos.downloads'
 import { useArchivosClinicosDelete } from './useArchivosClinicos.delete'
+import { useArchivosClinicosPapelera } from './useArchivosClinicos.papelera'
 import { useThumbnailCache } from './useThumbnailCache'
 
 /**
@@ -76,6 +77,13 @@ export const useArchivosClinicos = (pacienteId, tipoArchivo = 'foto') => {
     permisos, setError, setArchivos
   )
 
+  const {
+    archivosEliminados,
+    cargandoPapelera,
+    cargarPapelera,
+    restaurarArchivo,
+  } = useArchivosClinicosPapelera(pacienteId, setError, recargar, permisos)
+
   const { cache: thumbnails, cargarThumbnail, limpiarCache } = useThumbnailCache()
 
   return {
@@ -92,6 +100,10 @@ export const useArchivosClinicos = (pacienteId, tipoArchivo = 'foto') => {
     cerrarArchivoModal,
     eliminarArchivo,
     recargar,
+    archivosEliminados,
+    cargandoPapelera,
+    cargarPapelera,
+    restaurarArchivo,
     thumbnails,
     cargarThumbnail,
     limpiarCache,

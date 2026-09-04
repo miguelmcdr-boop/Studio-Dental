@@ -324,3 +324,89 @@ export const listaArchivosDePaciente = async (pacienteId, categoria = null) => {
     return []
   }
 }
+
+
+// ============================================================
+// F7-31: MÉTODOS PARA PAPELERA DE ARCHIVOS
+// ============================================================
+
+/**
+ * Lista archivos eliminados (papelera) de un paciente o de toda la clínica.
+ *
+ * F7-31 Fase 4: papelera de archivos clínicos.
+ *
+ * @param {string} pacienteId — UUID del paciente (opcional, null para toda la clínica)
+ * @returns {Promise<Array>} Array de archivos eliminados
+ */
+export const listaArchivosEliminados = async (pacienteId = null) => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      log.error('No hay sesión activa para listar papelera')
+      return []
+    }
+
+    const body = pacienteId ? { paciente_id: pacienteId } : {}
+
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/r2-list-deleted`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify(body),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      log.error('Error listando papelera:', errorData)
+      return []
+    }
+
+    const data = await response.json()
+    return data.archivos || []
+  } catch (e) {
+    log.error('Excepción listando papelera:', e)
+    return []
+  }
+}
+
+/**
+ * Restaura archivo eliminado (papelera → activo).
+ *
+ * F7-31 Fase 4: papelera de archivos clínicos.
+ *
+ * @param {string} archivoId — UUID del archivo a restaurar
+ * @returns {Promise<boolean>} true si se restauró correctamente
+ */
+export const restaurarArchivo = async (archivoId) => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      log.error('No hay sesión activa para restaurar archivo')
+      return false
+    }
+
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/r2-restore`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ archivo_id: archivoId }),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      log.error('Error restaurando archivo:', errorData)
+      return false
+    }
+
+    const data = await response.json()
+    log.info(`Archivo restaurado: ${archivoId}`)
+    return data.success === true
+  } catch (e) {
+    log.error('Excepción restaurando archivo:', e)
+    return false
+  }
+}
