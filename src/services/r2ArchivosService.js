@@ -410,3 +410,55 @@ export const restaurarArchivo = async (archivoId) => {
     return false
   }
 }
+
+/**
+ * Purga archivos de la papelera de forma permanente (Feature 1).
+ *
+ * Llama a Edge Function archivos-purge que:
+ * - Valida rol admin + multi-tenant
+ * - Elimina blobs R2 + DELETE de fila archivos_clinicos
+ * - Registra ADMIN_PURGE_ARCHIVOS en audit_log
+ * - Sin restricción de tiempo (libera espacio R2)
+ *
+ * @param {Array<string>} archivoIds - Lista de UUIDs a purgar
+ * @returns {Promise<Object>} { purgados: [...], rechazados: [{id, razon}] }
+ */
+export const vaciarPapeleraArchivos = async (archivoIds) => {
+  if (!Array.isArray(archivoIds) || archivoIds.length === 0) {
+    log.warn('vaciarPapeleraArchivos: lista vacía')
+    return { purgados: [], rechazados: [] }
+  }
+
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      log.error('No hay sesión activa para purgar archivos')
+      return { purgados: [], rechazados: [], error: 'No hay sesión activa' }
+    }
+
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/archivos-purge`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ archivo_ids: archivoIds }),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      log.error('Error en archivos-purge:', errorData)
+      return { purgados: [], rechazados: [], error: errorData.error || 'Error desconocido' }
+    }
+
+    const data = await response.json()
+    log.info(`Purga completada: ${data.purgados.length} purgados, ${data.rechazados.length} rechazados`)
+    return {
+      purgados: data.purgados || [],
+      rechazados: data.rechazados || [],
+    }
+  } catch (e) {
+    log.error('Excepción al purgar archivos:', e)
+    return { purgados: [], rechazados: [], error: e.message }
+  }
+}

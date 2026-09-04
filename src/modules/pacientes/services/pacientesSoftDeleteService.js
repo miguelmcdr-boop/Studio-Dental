@@ -173,3 +173,61 @@ export const obtenerAutoresDeEliminacion = async (pacienteIds) => {
     return new Map()
   }
 }
+
+/**
+ * Purga pacientes en papelera de forma permanente (Feature 1).
+ *
+ * Llama a Edge Function pacientes-purge que:
+ * - Valida rol admin + multi-tenant
+ * - Verifica retención legal (10 años desde eliminación)
+ * - Elimina blobs R2 + DELETE en cascada
+ * - Registra ADMIN_PURGE_PACIENTES en audit_log
+ *
+ * @param {Array<string>} pacienteIds - Lista de UUIDs a purgar
+ * @returns {Promise<Object>} { purgados: [...], rechazados: [{id, razon}] }
+ */
+export const vaciarPapeleraPacientes = async (pacienteIds) => {
+  if (!Array.isArray(pacienteIds) || pacienteIds.length === 0) {
+    log.warn('[pacientesSoftDelete] vaciarPapeleraPacientes: lista vacía')
+    return { purgados: [], rechazados: [] }
+  }
+
+  if (!USE_SUPABASE || !supabase) {
+    log.warn('[pacientesSoftDelete] Supabase no configurado, no se puede purgar')
+    return { purgados: [], rechazados: [] }
+  }
+
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      log.error('[pacientesSoftDelete] No hay sesión activa para purgar')
+      return { purgados: [], rechazados: [] }
+    }
+
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    const response = await fetch(`${supabaseUrl}/functions/v1/pacientes-purge`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ paciente_ids: pacienteIds }),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      log.error('[pacientesSoftDelete] Error en pacientes-purge:', errorData)
+      return { purgados: [], rechazados: [], error: errorData.error || 'Error desconocido' }
+    }
+
+    const data = await response.json()
+    log.info(`[pacientesSoftDelete] Purga completada: ${data.purgados.length} purgados, ${data.rechazados.length} rechazados`)
+    return {
+      purgados: data.purgados || [],
+      rechazados: data.rechazados || [],
+    }
+  } catch (e) {
+    log.error('[pacientesSoftDelete] Excepción al purgar pacientes:', e)
+    return { purgados: [], rechazados: [], error: e.message }
+  }
+}
