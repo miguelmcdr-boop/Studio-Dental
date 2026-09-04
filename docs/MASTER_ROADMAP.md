@@ -184,7 +184,8 @@
 | F7-28 | Responsive + accesibilidad integral de flujos críticos | 7 | P1 | M (2-4 d) | F7-25 | TODO |
 | F7-29 | Manual de usuario por rol + capacitación | 7 | P2 | L (1-2 sem) | F7-25,F7-26,F7-27 | TODO |
 | F7-30 | Release Candidate + checklist GO/NO-GO para piloto | 7 | **P0** | M (2-3 d) | F7-04,F7-06,F7-08,F7-13,F7-20,F7-21,F7-22,F7-24,F7-28,F7-29 | TODO |
-| F7-31 | Papelera de archivos clínicos (restaurar archivos eliminados de R2) | 7 | P2 | S (1-2 d) | F7-22 | TODO |
+| F7-31 | Papelera de archivos clínicos (restaurar archivos eliminados de R2) | 7 | P2 | S (1-2 d) | F7-22 | DONE (2026-09-04) — r2-delete modificado (soft delete), r2-list-deleted + r2-restore creados, PapeleraArchivos.jsx integrado, tests E2E 3/3 pasados, migración 14 (FILE_RESTORE en constraint) |
+| F7-32 | Purga automática de archivos en papelera después de 30 días (Edge Function + cron) | 7 | P2 | M (2-3 d) | F7-31 | TODO |
 | F7-22a | Corregir r2-upload-url para guardar mime_type al crear archivo | 7 | P2 | XS (<0.5 d) | F7-22 | TODO |
 | F7-22b | Validación server-side de mime_type en Edge Function r2-upload-url | 7 | P2 | XS (<0.5 d) | F7-22a | TODO |
 

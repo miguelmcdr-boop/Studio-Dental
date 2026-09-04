@@ -1,3 +1,99 @@
+## 2026-09-04 — F7-31 COMPLETADO: Papelera de archivos clínicos (restauración)
+
+**Qué se ganó:** Sistema completo de papelera de reciclaje para archivos clínicos. Los usuarios pueden eliminar archivos (soft delete) y restaurarlos después. Auditoría completa de ambos eventos.
+
+### F7-31 Resumen (8 fases, ~2 días de trabajo)
+
+**Fase 1 — Modificar r2-delete (soft delete):**
+- Cambio crítico: ya NO elimina el archivo físico de R2
+- Solo marca metadata como estado='eliminado' + deleted_at=NOW()
+- Habilita restauración posterior
+
+**Fase 2 — Crear r2-list-deleted (150 líneas):**
+- Lista archivos con estado='eliminado' de la clínica del usuario
+- Filtrado por paciente_id opcional
+
+**Fase 3 — Crear r2-restore (210 líneas):**
+- Restaura archivo a estado='activo' + deleted_at=NULL
+- Valida RBAC (solo admin/dentista)
+- Registra FILE_RESTORE en audit_log
+
+**Fase 4 — Métodos en r2ArchivosService:**
+- listaArchivosEliminados(pacienteId)
+- restaurarArchivo(archivoId)
+
+**Fase 5 — Hook useArchivosClinicosPapelera (88 líneas):**
+- Estado: archivosEliminados, cargandoPapelera
+- Métodos: cargarPapelera, restaurarArchivo
+
+**Fase 6 — Componente PapeleraArchivos.jsx (140 líneas):**
+- Sección colapsable (oculta por defecto)
+- Botón "Restaurar" con confirmación
+- Solo visible para admin/dentista
+
+**Fase 7 — Integración en AdjuntosSection:**
+- useEffect para cargar papelera al montar
+- Renderiza PapeleraArchivos después de ArchivoModal
+
+**Fase 8 — Tests E2E (3/3 pasados):**
+- TEST 1: Eliminar → aparece en papelera
+- TEST 2: Restaurar → vuelve a activo
+- TEST 3: RBAC - archivo inexistente bloqueado
+
+### Fix post-deploy: refresh automático
+
+**Problema:** Al eliminar un archivo, la papelera no se actualizaba y el usuario debía recargar.
+
+**Solución (PR #128):** eliminarArchivo retorna true/false + wrapper que recarga papelera.
+
+### Fix post-deploy: FILE_RESTORE en audit_log
+
+**Problema:** Migración 13 no incluyó FILE_RESTORE en constraint. r2-restore fallaba silenciosamente.
+
+**Solución (PR #129):** Migración 14 amplía constraint audit_log_action_check.
+
+### Lecciones aprendidas
+
+1. Soft delete requiere cambio en eliminación física
+2. Edge Functions sin JWT verification requieren validación manual
+3. Constraints de BD bloquean operaciones silenciosamente
+4. Refresh automático mejora UX
+5. Deploy manual tiene errores de copy-paste
+6. Migraciones deben documentar constraint completo
+
+### Archivos modificados
+
+**Nuevos (6):**
+- supabase/functions/r2-list-deleted/index.ts (150 líneas)
+- supabase/functions/r2-restore/index.ts (210 líneas)
+- supabase/migrations/20260101000014_agregar_file_restore_check.sql (40 líneas)
+- src/modules/pacientes/hooks/useArchivosClinicos.papelera.js (88 líneas)
+- src/modules/pacientes/components/PapeleraArchivos.jsx (140 líneas)
+- tests/e2e/test_papelera_archivos.py (166 líneas)
+
+**Modificados (5):**
+- supabase/functions/r2-delete/index.ts (QUITAR eliminación física)
+- src/services/r2ArchivosService.js (+2 funciones)
+- src/modules/pacientes/hooks/useArchivosClinicos.js (integrar papelera)
+- src/modules/pacientes/hooks/useArchivosClinicos.delete.js (retornar éxito)
+- src/modules/pacientes/components/AdjuntosSection.jsx (integrar PapeleraArchivos)
+
+### Limitaciones
+
+Archivos eliminados antes de F7-31 NO pueden restaurarse (archivo físico ya eliminado por versión anterior de r2-delete).
+
+### Tareas derivadas
+
+- F7-32 (P2): Purga automática después de 30 días (Edge Function + cron)
+
+### Próximos pasos
+
+Feature 1: Admin vacía papelera de pacientes
+Feature 2: Admin vacía papelera de archivos
+Feature 3: Carpetas en Fotos/Radiografías
+
+---
+
 ## 2026-09-03 — F7-22 COMPLETADO: Fase 10 (cleanup cache) + celebración
 
 **Qué se ganó:** F7-22 (Cloudflare R2 External Clinical Storage) está 100% DONE. Todas las fases completadas: infraestructura R2, tabla con RLS, Edge Functions, frontend, pen-test multi-tenant, y cleanup de cache.
