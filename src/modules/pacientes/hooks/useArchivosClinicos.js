@@ -86,6 +86,16 @@ export const useArchivosClinicos = (pacienteId, tipoArchivo = 'foto') => {
 
   const { cache: thumbnails, cargarThumbnail, limpiarCache } = useThumbnailCache()
 
+  // F7-31 FIX: wrapper que recarga la papelera tras eliminar con éxito.
+  // Esto evita tener que recargar la página para ver el archivo en papelera.
+  const eliminarArchivoConPapelera = async (archivoId) => {
+    const exito = await eliminarArchivo(archivoId)
+    if (exito) {
+      await cargarPapelera()
+    }
+    return exito
+  }
+
   return {
     archivos,
     cargando,
@@ -98,7 +108,7 @@ export const useArchivosClinicos = (pacienteId, tipoArchivo = 'foto') => {
     verArchivo,
     archivoParaVer,
     cerrarArchivoModal,
-    eliminarArchivo,
+    eliminarArchivo: eliminarArchivoConPapelera,
     recargar,
     archivosEliminados,
     cargandoPapelera,

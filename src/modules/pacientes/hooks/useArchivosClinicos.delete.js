@@ -18,11 +18,14 @@ export const useArchivosClinicosDelete = (permisos, setError, setArchivos) => {
 
       if (exito) {
         setArchivos((prev) => prev.filter((a) => a.id !== archivoId))
+        return true
       } else {
         setError('Error eliminando archivo. Intenta de nuevo.')
+        return false
       }
     } catch (e) {
       setError(e?.message || 'Error eliminando archivo.')
+      return false
     }
   }, [permisos.puedeEliminar, setError, setArchivos])
 
