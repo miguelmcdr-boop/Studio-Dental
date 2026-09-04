@@ -1,14 +1,11 @@
-// F7-31 Fase 1: Edge Function para soft delete de archivo (NO elimina de R2)
+// F7-22 Fase 7c: Edge Function para eliminar archivo de R2 + soft delete en metadata
 //
 // Flujo:
 // 1. Frontend solicita eliminación de archivo
 // 2. Edge Function valida: sesión, clínica, RBAC
-// 3. Soft delete en archivos_clinicos (estado='eliminado', deleted_at=NOW())
-// 4. Registra en audit_log: "FILE_DELETE"
-//
-// IMPORTANTE (F7-31): El archivo físico NO se elimina de R2.
-// Esto permite restauración posterior mediante r2-restore.
-// La purga física se implementará en F7-32 (automática después de 30 días).
+// 3. Elimina archivo de R2 (DELETE con firma AWS v4)
+// 4. Soft delete en archivos_clinicos (estado='eliminado', deleted_at=NOW())
+// 5. Registra en audit_log: "delete"
 //
 // Input (JSON body):
 // {
@@ -19,7 +16,7 @@
 // {
 //   "success": true,
 //   "archivo_id": "uuid",
-//   "message": "Archivo marcado como eliminado (soft delete)"
+//   "message": "Archivo eliminado correctamente"
 // }
 
 // ============================================================
@@ -179,9 +176,71 @@ Deno.serve(async (req) => {
     const archivo = archivoResult[0];
     const r2ObjectKey = archivo.r2_object_key;
 
-    // 7. F7-31: NO eliminar archivo físico de R2
-    // El archivo se mantiene en R2 para permitir restauración posterior.
-    // La purga física se implementará en F7-32 (automática después de 30 días).
+    // 7. Eliminar archivo de R2 (DELETE con firma AWS v4)
+    const accessKeyId = Deno.env.get("R2_ACCESS_KEY_ID")!;
+    const secretAccessKey = Deno.env.get("R2_SECRET_ACCESS_KEY")!;
+    const bucketName = Deno.env.get("R2_BUCKET_NAME")!;
+    const accountId = Deno.env.get("R2_ACCOUNT_ID")!;
+
+    const host = `${accountId}.r2.cloudflarestorage.com`;
+    const method = "DELETE";
+    const region = "auto";
+    const service = "s3";
+    const path = `/${bucketName}/${r2ObjectKey}`;
+    const queryString = "";
+    const payload = "";
+    const payloadHash = await sha256Hex(payload);
+    const { amzDate, dateStamp } = getAmzDate();
+
+    const canonicalHeaders = `host:${host}\nx-amz-content-sha256:${payloadHash}\nx-amz-date:${amzDate}\n`;
+    const signedHeaders = "host;x-amz-content-sha256;x-amz-date";
+    const canonicalRequest = [
+      method,
+      path,
+      queryString,
+      canonicalHeaders,
+      signedHeaders,
+      payloadHash,
+    ].join("\n");
+
+    const algorithm = "AWS4-HMAC-SHA256";
+    const credentialScope = `${dateStamp}/${region}/${service}/aws4_request`;
+    const canonicalRequestHash = await sha256Hex(canonicalRequest);
+    const stringToSign = [
+      algorithm,
+      amzDate,
+      credentialScope,
+      canonicalRequestHash,
+    ].join("\n");
+
+    const signingKey = await getSignatureKey(secretAccessKey, dateStamp, region, service);
+    const signatureBuffer = await hmacSha256(signingKey, stringToSign);
+    const signature = toHex(signatureBuffer);
+
+    const authorization = `${algorithm} Credential=${accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
+
+    const deleteUrl = `https://${host}${path}`;
+    const deleteResponse = await fetch(deleteUrl, {
+      method,
+      headers: {
+        Host: host,
+        "x-amz-date": amzDate,
+        "x-amz-content-sha256": payloadHash,
+        Authorization: authorization,
+      },
+    });
+
+    if (!deleteResponse.ok) {
+      const errorBody = await deleteResponse.text();
+      return jsonResponse(
+        {
+          error: "Failed to delete file from R2",
+          r2_status: deleteResponse.status,
+          r2_body: errorBody.slice(0, 500),
+        },
+        500
+      );
+    }
 
     // 8. Soft delete en archivos_clinicos
     const updateResult = await fetch(
