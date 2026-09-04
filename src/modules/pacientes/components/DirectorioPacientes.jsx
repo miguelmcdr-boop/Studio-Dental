@@ -19,7 +19,11 @@ export const DirectorioPacientes = memo(({ alSeleccionarPaciente, alEliminarPaci
 
   // F6-L: Papelera de reciclaje (solo admin)
   const { puede } = useRBAC()
-  const { pacientesEliminados, cargando, contador, restaurar } = usePapelera()
+  const { 
+    pacientesEliminados, cargando, contador, restaurar, 
+    vaciar, contadorElegibles, aniosRetencion 
+  } = usePapelera()
+  const puedeVaciar = puede(PERMISOS.VACIAR_PAPELERA)
 
   const pacientesFiltrados = pacientes.filter(p =>
     p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -117,6 +121,10 @@ export const DirectorioPacientes = memo(({ alSeleccionarPaciente, alEliminarPaci
           pacientesEliminados={pacientesEliminados}
           cargando={cargando}
           onRestaurar={restaurar}
+          onVaciar={vaciar}
+          contadorElegibles={contadorElegibles}
+          aniosRetencion={aniosRetencion}
+          puedeVaciar={puedeVaciar}
           onCerrar={() => setMostrarPapelera(false)}
         />
       )}
