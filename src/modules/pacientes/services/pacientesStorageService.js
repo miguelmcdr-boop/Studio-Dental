@@ -31,7 +31,8 @@ import { migrationStorageService } from '../../../services/migrationStorageServi
 import { 
   eliminarPaciente as softDeleteEliminar, 
   restaurarPaciente as softDeleteRestaurar, 
-  listarPacientesEliminados as softDeleteListar 
+  listarPacientesEliminados as softDeleteListar,
+  vaciarPapeleraPacientes as softDeleteVaciarPacientes
 } from './pacientesSoftDeleteService'
 import { esUuidValido } from '../../../services/migrations/uuidUtils'
 import { createLogger } from '../../../services/logger'
@@ -398,6 +399,14 @@ export const pacientesStorageService = {
    */
   listarPacientesEliminados: async () => {
     return await softDeleteListar()
+  },
+
+  /**
+   * Feature 1: Purgar pacientes de la papelera (eliminación permanente).
+   * Delega a pacientesSoftDeleteService.vaciarPapeleraPacientes.
+   */
+  vaciarPapeleraPacientes: async (pacienteIds) => {
+    return await softDeleteVaciarPacientes(pacienteIds)
   },
 
   eliminarEvolucionesDePaciente: (pacienteId) => {
