@@ -4457,3 +4457,47 @@ Las 11 tareas de Fase 1 cerradas y verificadas. Sistema apto para datos clínico
 1. `audit_log.user_id` era NULL → fix: agregar `p_user_id` a función SQL y Edge Functions
 2. `Failed to fetch pacientes/archivos` → fix: quitar comillas en query REST `id=in.(...)`
 3. Botón "Vaciar papelera" no aparecía → fix: agregar `VACIAR_PAPELERA` a `rbacConstants.js` (no solo a `rbacConstantsBase.js`)
+
+---
+
+## 2026-09-05 — F7-22b: Validación server-side de mime_type en r2-upload-url — DONE
+
+**Contexto:** F7-22a ya guardaba `mime_type` en `archivos_clinicos` (schema `NOT NULL`) y el cliente lo enviaba correctamente. Pero el servidor aceptaba **cualquier** valor enviado por el cliente, sin validar si era coherente con la categoría y extensión del archivo.
+
+**Riesgo antes:**
+- Cliente podía subir `.exe` renombrado como `.jpg` → sistema lo aceptaba
+- Cliente podía enviar `application/pdf` con extensión `.jpg` → metadata inconsistente
+- Archivos maliciosos podían entrar al sistema sin detección
+- Restauración de papelera podía fallar si metadata inconsistente
+
+**Solución:**
+- Helper `validarFormatoArchivo.ts` (Deno, testeable)
+- Lista blanca de mime_types por categoría clínica
+- Validación de extensión vs mime_type declarado
+- Integración en `r2-upload-url/index.ts` después del check de tamaño
+- Log detallado de rechazos con código `INVALID_FILE_FORMAT`
+- 14 tests unitarios Deno (100% function coverage)
+
+**Lista blanca:**
+- `radiografia`: jpeg, png, webp, dicom
+- `foto_intraoral/foto_clinica`: jpeg, png, webp
+- `pdf`: application/pdf
+- `documento`: pdf, doc, docx
+- `otro`: pdf, jpeg, png, text/plain
+
+**E2E validado:**
+- ✅ `.exe` como `image/jpeg` → rechazado (extensión no coincide)
+- ✅ `.pdf` como `image/jpeg` → rechazado (extensión no coincide)
+- ✅ `application/pdf` como `foto_clinica` → rechazado (mime_type inválido)
+- ✅ archivo válido → `upload_url` generada exitosamente
+
+**Nota arquitectónica:** La validación actual es server-side pero NO verifica magic bytes (contenido real) porque la arquitectura actual sube directamente a R2. Para validación de magic bytes se requeriría cambiar la arquitectura (upload pasa por Edge Function).
+
+**Archivos modificados:**
+- `supabase/functions/r2-upload-url/validarFormatoArchivo.ts` (nuevo, helper testeable)
+- `supabase/functions/r2-upload-url/validarFormatoArchivo.test.ts` (nuevo, 14 tests Deno)
+- `supabase/functions/r2-upload-url/index.ts` (integración de validación)
+
+**Deploy:** `r2-upload-url` v4 activa en producción
+
+**Estado:** ✅ DONE (2026-09-05)

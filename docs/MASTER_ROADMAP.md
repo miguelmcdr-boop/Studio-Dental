@@ -188,7 +188,7 @@
 | F7-32 | Purga automática de archivos en papelera después de 30 días (Edge Function + cron) | 7 | P2 | M (2-3 d) | F7-31 | TODO |
 | F7-33 | Vaciar papeleras: eliminación permanente de pacientes (10 años) y archivos clínicos (R2) | 7 | P1 | M (3-5 d) | F6-L, F7-31 | DONE (2026-09-04) — Edge Functions pacientes-purge + archivos-purge, retención legal 10 años pacientes, confirmación doble, 46 tests, RBAC VACIAR_PAPELERA |
 | F7-22a | Corregir r2-upload-url para guardar mime_type al crear archivo | 7 | P2 | XS (<0.5 d) | F7-22 | TODO |
-| F7-22b | Validación server-side de mime_type en Edge Function r2-upload-url | 7 | P2 | XS (<0.5 d) | F7-22a | TODO |
+| F7-22b | Validación server-side de mime_type en Edge Function r2-upload-url | 7 | P2 | XS (<0.5 d) | F7-22a | DONE (2026-09-05) — helper validarFormatoArchivo + 14 tests Deno, lista blanca por categoría, E2E 4/4, r2-upload-url v4 desplegada |
 
 
 ### F6-06b — Pasos comerciales de despliegue a producción — DEFERRED (2026-08-25)
