@@ -43,7 +43,10 @@ export const PERMISOS = {
   // Administración de datos de referencia (vademécum)
   VER_VADEMECUM: 'ver_vademecum',
   ADMINISTRAR_VADEMECUM: 'administrar_vademecum',
-  VER_PAPELERA: 'ver_papelera'
+  VER_PAPELERA: 'ver_papelera',
+
+  // Papelera de reciclaje (Feature 1 — F7-33)
+  VACIAR_PAPELERA: 'vaciar_papelera'
 }
 
 // Matriz de permisos por rol (extraída a rbacPermisosPorRol.js)
