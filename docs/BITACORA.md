@@ -4441,4 +4441,19 @@ Las 11 tareas de Fase 1 cerradas y verificadas. Sistema apto para datos clínico
 
 **Estado:** ✅ DONE (2026-09-04)
 
-**Pendiente:** Deploy de las 2 Edge Functions en Supabase Dashboard (manual)
+**Pendiente:** ~~Deploy de las 2 Edge Functions en Supabase Dashboard (manual)~~ ✅ Completado
+
+**E2E validado (2026-09-05):**
+- ✅ Edge Functions desplegadas y activas (pacientes-purge v2, archivos-purge v2)
+- ✅ Migración 17 aplicada (registrar_evento_purge con user_id explícito)
+- ✅ Purge de archivos exitoso (blob R2 + fila eliminados)
+- ✅ Audit_log registra user_id del admin (no null)
+- ✅ Query REST corregida (sin comillas en operador IN)
+- ✅ UI muestra botón "Vaciar papelera" correctamente (fix de RBAC: VACIAR_PAPELERA en rbacConstants.js)
+- ✅ 46 tests unitarios pasando
+- ✅ Build + validador arquitectónico OK
+
+**Gaps resueltos durante E2E:**
+1. `audit_log.user_id` era NULL → fix: agregar `p_user_id` a función SQL y Edge Functions
+2. `Failed to fetch pacientes/archivos` → fix: quitar comillas en query REST `id=in.(...)`
+3. Botón "Vaciar papelera" no aparecía → fix: agregar `VACIAR_PAPELERA` a `rbacConstants.js` (no solo a `rbacConstantsBase.js`)
