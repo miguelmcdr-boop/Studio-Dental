@@ -25,6 +25,8 @@
 //   "expires_in": 900
 // }
 
+import { validarFormatoArchivo, CategoriaArchivo } from "./validarFormatoArchivo.ts";
+
 // ============================================================
 // HELPERS: AWS v4 Signature (Web Crypto API)
 // ============================================================
@@ -144,6 +146,30 @@ Deno.serve(async (req) => {
 
     if (tamano_bytes < 0 || tamano_bytes > 50 * 1024 * 1024) {
       return jsonResponse({ error: "Invalid tamano_bytes. Must be between 0 and 50MB" }, 400);
+    }
+
+    // 3b. F7-22b: Validar formato del archivo (mime_type + extensión)
+    // Defensa en profundidad: lista blanca por categoría + validación extensión vs mime_type
+    const validacionFormato = validarFormatoArchivo(
+      categoria as CategoriaArchivo,
+      mime_type,
+      nombre_archivo
+    );
+    if (!validacionFormato.valido) {
+      console.log(`[F7-22b] Formato rechazado: ${validacionFormato.error}`, {
+        categoria,
+        mime_type,
+        nombre_archivo,
+        esperado: validacionFormato.esperado,
+      });
+      return jsonResponse(
+        {
+          error: validacionFormato.error,
+          code: "INVALID_FILE_FORMAT",
+          ...(validacionFormato.esperado && { expected_formats: validacionFormato.esperado }),
+        },
+        400
+      );
     }
 
     // 4. Obtener clínica del usuario (miembros_clinica)
