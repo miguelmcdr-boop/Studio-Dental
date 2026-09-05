@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { listaArchivosEliminados, restaurarArchivo as restaurarArchivoService } from '../../../services/r2ArchivosService'
+import { listaArchivosEliminados, restaurarArchivo as restaurarArchivoService, vaciarPapeleraArchivos } from '../../../services/r2ArchivosService'
 
 /**
  * Hook interno para gestión de papelera de archivos clínicos.
@@ -79,10 +79,45 @@ export const useArchivosClinicosPapelera = (pacienteId, setError, recargarActivo
     }
   }, [permisos.puedeEliminar, setError, recargarActivos])
 
+  const vaciarPapelera = useCallback(async () => {
+    if (!permisos.puedeEliminar) {
+      setError('No tienes permisos para vaciar la papelera. Solo administradores pueden hacerlo.')
+      return { purgados: [], rechazados: [] }
+    }
+
+    if (archivosEliminados.length === 0) {
+      setError('La papelera está vacía.')
+      return { purgados: [], rechazados: [] }
+    }
+
+    setError(null)
+    setCargandoPapelera(true)
+
+    try {
+      const ids = archivosEliminados.map((a) => a.id)
+      const resultado = await vaciarPapeleraArchivos(ids)
+
+      if (resultado.purgados.length > 0) {
+        // Actualizar estado local: quitar los purgados
+        setArchivosEliminados((prev) => 
+          prev.filter((a) => !resultado.purgados.includes(a.id))
+        )
+      }
+
+      return resultado
+    } catch (e) {
+      setError(e?.message || 'Error vaciando papelera.')
+      return { purgados: [], rechazados: [], error: e.message }
+    } finally {
+      setCargandoPapelera(false)
+    }
+  }, [archivosEliminados, permisos.puedeEliminar, setError])
+
   return {
     archivosEliminados,
     cargandoPapelera,
     cargarPapelera,
     restaurarArchivo,
+    vaciarPapelera,
   }
 }

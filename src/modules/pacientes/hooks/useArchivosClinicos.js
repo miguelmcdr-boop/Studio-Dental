@@ -82,6 +82,7 @@ export const useArchivosClinicos = (pacienteId, tipoArchivo = 'foto') => {
     cargandoPapelera,
     cargarPapelera,
     restaurarArchivo,
+    vaciarPapelera,
   } = useArchivosClinicosPapelera(pacienteId, setError, recargar, permisos)
 
   const { cache: thumbnails, cargarThumbnail, limpiarCache } = useThumbnailCache()
@@ -114,6 +115,7 @@ export const useArchivosClinicos = (pacienteId, tipoArchivo = 'foto') => {
     cargandoPapelera,
     cargarPapelera,
     restaurarArchivo,
+    vaciarPapelera,
     thumbnails,
     cargarThumbnail,
     limpiarCache,
