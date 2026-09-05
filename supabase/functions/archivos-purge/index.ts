@@ -104,26 +104,39 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // 1. Validar JWT
+    // 1. Validar autenticación (JWT de usuario O service_role_key interna)
     const authHeader = req.headers.get("Authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return jsonResponse({ error: "Missing or invalid Authorization header" }, 401);
     }
-    const jwt = authHeader.split(" ")[1];
+    const token = authHeader.split(" ")[1];
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    const { data: userData, error: authError } = await fetch(`${supabaseUrl}/auth/v1/user`, {
-      headers: { Authorization: `Bearer ${jwt}`, apikey: supabaseServiceKey },
-    }).then(async (res) => {
-      if (!res.ok) return { data: null, error: await res.text() };
-      return { data: await res.json(), error: null };
-    });
+    // F7-32: Detectar si es una llamada interna del cron (service_role_key)
+    // Si el token coincide con la service_role_key, tratar como "system user"
+    const esLlamadaInterna = token === supabaseServiceKey;
+    let userId: string;
 
-    if (authError || !userData) {
-      return jsonResponse({ error: "Invalid JWT" }, 401);
+    if (esLlamadaInterna) {
+      // Llamada interna del cron: usar user_id de sistema
+      userId = "00000000-0000-0000-0000-000000000000";
+      console.log("[F7-32] Llamada interna del cron detectada (service_role_key)");
+    } else {
+      // Llamada normal de usuario: validar JWT con Supabase
+      const { data: userData, error: authError } = await fetch(`${supabaseUrl}/auth/v1/user`, {
+        headers: { Authorization: `Bearer ${token}`, apikey: supabaseServiceKey },
+      }).then(async (res) => {
+        if (!res.ok) return { data: null, error: await res.text() };
+        return { data: await res.json(), error: null };
+      });
+
+      if (authError || !userData) {
+        return jsonResponse({ error: "Invalid JWT" }, 401);
+      }
+
+      userId = userData.id;
     }
-    const userId = userData.id;
 
     // 2. Parsear body
     const body = await req.json();

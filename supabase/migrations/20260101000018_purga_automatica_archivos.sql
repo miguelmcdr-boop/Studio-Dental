@@ -104,13 +104,14 @@ BEGIN
   -- Invocar Edge Function archivos-purge vía HTTP (pg_net)
   BEGIN
     -- pg_net es asíncrono por defecto. Para uso síncrono usamos:
+    -- F7-32 FIX: Pasar el secreto como header X-Internal-Secret (no como Bearer token)
     SELECT status, content::jsonb
     INTO v_response_status, v_response_body
     FROM net.http_post(
       url := v_supabase_url || '/functions/v1/archivos-purge',
       headers := jsonb_build_object(
         'Content-Type', 'application/json',
-        'Authorization', 'Bearer ' || v_service_key
+        'X-Internal-Secret', v_service_key
       ),
       body := jsonb_build_object(
         'archivo_ids', v_archivo_ids
@@ -215,6 +216,8 @@ END $$;
 -- 3. Ejecutar manualmente (para testing):
 --    SELECT purgar_archivos_expirados();
 --
--- 4. Insertar service_role_key (requerido antes del primer run):
+-- 4. Insertar internal_purge_secret (requerido antes del primer run):
 --    INSERT INTO system_config (key, value)
---    VALUES ('service_role_key', 'TU_SERVICE_ROLE_KEY_AQUI');
+--    VALUES ('internal_purge_secret', 'TU_SECRETO_COMPARTIDO_AQUI');
+--    El mismo secreto debe configurarse como INTERNAL_PURGE_SECRET
+--    en las env vars de archivos-purge (Supabase Dashboard → Edge Functions).
