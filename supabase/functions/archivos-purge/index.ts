@@ -104,26 +104,30 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // 1. Validar autenticación (JWT de usuario O service_role_key interna)
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return jsonResponse({ error: "Missing or invalid Authorization header" }, 401);
-    }
-    const token = authHeader.split(" ")[1];
+    // 1. Validar autenticación (JWT de usuario O secreto interno compartido)
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // F7-32: Detectar si es una llamada interna del cron (service_role_key)
-    // Si el token coincide con la service_role_key, tratar como "system user"
-    const esLlamadaInterna = token === supabaseServiceKey;
+    // F7-32 FIX: Supabase Edge Functions middleware rechaza service_role_key como Bearer token.
+    // Solución: usar header X-Internal-Secret con secreto compartido para llamadas internas del cron.
+    const internalSecret = req.headers.get("X-Internal-Secret");
+    const expectedInternalSecret = Deno.env.get("INTERNAL_PURGE_SECRET");
+    const esLlamadaInterna = internalSecret && expectedInternalSecret && internalSecret === expectedInternalSecret;
+
     let userId: string;
 
     if (esLlamadaInterna) {
-      // Llamada interna del cron: usar user_id de sistema
+      // Llamada interna del cron (desde pg_cron vía system_config secret)
       userId = "00000000-0000-0000-0000-000000000000";
-      console.log("[F7-32] Llamada interna del cron detectada (service_role_key)");
+      console.log("[F7-32] Llamada interna del cron detectada (X-Internal-Secret)");
     } else {
       // Llamada normal de usuario: validar JWT con Supabase
+      const authHeader = req.headers.get("Authorization");
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return jsonResponse({ error: "Missing or invalid Authorization header" }, 401);
+      }
+      const token = authHeader.split(" ")[1];
+
       const { data: userData, error: authError } = await fetch(`${supabaseUrl}/auth/v1/user`, {
         headers: { Authorization: `Bearer ${token}`, apikey: supabaseServiceKey },
       }).then(async (res) => {

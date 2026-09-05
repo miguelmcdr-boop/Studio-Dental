@@ -68,14 +68,17 @@ DECLARE
   v_response_body JSONB;
   v_result BIGINT;
 BEGIN
-  -- Leer service_role_key desde system_config (RLS bloquea a no-service_role)
+  -- F7-32 FIX: Leer internal_purge_secret en lugar de service_role_key
+  -- La service_role_key NO puede usarse como Bearer token en Edge Functions
+  -- (middleware de Supabase la rechaza). Usamos un secreto compartido
+  -- que se pasa como header X-Internal-Secret.
   SELECT value INTO v_service_key 
   FROM system_config 
-  WHERE key = 'service_role_key';
+  WHERE key = 'internal_purge_secret';
   
   IF v_service_key IS NULL OR v_service_key = '' THEN
-    RAISE WARNING '[F7-32] Service role key no configurada en system_config. Abortando purga.'
-      USING HINT = 'Ejecutar: INSERT INTO system_config (key, value) VALUES (''service_role_key'', ''<TU_KEY>'');';
+    RAISE WARNING '[F7-32] internal_purge_secret no configurada en system_config. Abortando purga.'
+      USING HINT = 'Ejecutar: INSERT INTO system_config (key, value) VALUES (''internal_purge_secret'', ''<SECRETO>'');';
     RETURN;
   END IF;
 
