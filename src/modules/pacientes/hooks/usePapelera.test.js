@@ -7,13 +7,15 @@ const mocks = vi.hoisted(() => ({
   mockListar: vi.fn(),
   mockRestaurar: vi.fn(),
   mockObtenerAutores: vi.fn(),
-  mockRefrescar: vi.fn()
+  mockRefrescar: vi.fn(),
+  mockVaciar: vi.fn()
 }))
 
 vi.mock('../services/pacientesStorageService', () => ({
   pacientesStorageService: {
     listarPacientesEliminados: mocks.mockListar,
-    restaurarPaciente: mocks.mockRestaurar
+    restaurarPaciente: mocks.mockRestaurar,
+    vaciarPapeleraPacientes: mocks.mockVaciar
   }
 }))
 
@@ -201,5 +203,98 @@ describe('usePapelera (F6-L)', () => {
     await waitFor(() => {
       expect(result.current.pacientesEliminados[0]?.eliminadoPor).toBe('Usuario desconocido')
     })
+  })
+
+  // === Tests Feature 1: vaciar papelera ===
+
+  it('expone método vaciar y lista elegibles', async () => {
+    const haceDiezAnios = new Date()
+    haceDiezAnios.setFullYear(haceDiezAnios.getFullYear() - 11)
+    const haceDosAnios = new Date()
+    haceDosAnios.setFullYear(haceDosAnios.getFullYear() - 2)
+
+    const mockPacientes = [
+      { id: '1', nombre: 'Antiguo', deleted_at: haceDiezAnios.toISOString() },
+      { id: '2', nombre: 'Reciente', deleted_at: haceDosAnios.toISOString() }
+    ]
+    mocks.mockListar.mockResolvedValue(mockPacientes)
+
+    const { result } = renderHook(() => usePapelera())
+
+    await waitFor(() => {
+      expect(result.current.pacientesEliminados).toHaveLength(2)
+    })
+
+    expect(typeof result.current.vaciar).toBe('function')
+    expect(result.current.elegibles).toHaveLength(1)
+    expect(result.current.contadorElegibles).toBe(1)
+    expect(result.current.aniosRetencion).toBe(10)
+  })
+
+  it('vaciar llama al servicio con IDs de elegibles', async () => {
+    const haceOnceAnios = new Date()
+    haceOnceAnios.setFullYear(haceOnceAnios.getFullYear() - 11)
+    const mockPacientes = [
+      { id: '1', nombre: 'Antiguo', deleted_at: haceOnceAnios.toISOString() }
+    ]
+    mocks.mockListar.mockResolvedValue(mockPacientes)
+    mocks.mockVaciar.mockResolvedValue({ purgados: ['1'], rechazados: [] })
+
+    const { result } = renderHook(() => usePapelera())
+
+    await waitFor(() => {
+      expect(result.current.contadorElegibles).toBe(1)
+    })
+
+    await act(async () => {
+      await result.current.vaciar()
+    })
+
+    expect(mocks.mockVaciar).toHaveBeenCalledWith(['1'])
+    expect(notificationService.success).toHaveBeenCalled()
+  })
+
+  it('vaciar maneja error del servicio', async () => {
+    const haceOnceAnios = new Date()
+    haceOnceAnios.setFullYear(haceOnceAnios.getFullYear() - 11)
+    const mockPacientes = [
+      { id: '1', nombre: 'Antiguo', deleted_at: haceOnceAnios.toISOString() }
+    ]
+    mocks.mockListar.mockResolvedValue(mockPacientes)
+    mocks.mockVaciar.mockResolvedValue({ purgados: [], rechazados: [], error: 'No autorizado' })
+
+    const { result } = renderHook(() => usePapelera())
+
+    await waitFor(() => {
+      expect(result.current.contadorElegibles).toBe(1)
+    })
+
+    await act(async () => {
+      await result.current.vaciar()
+    })
+
+    expect(notificationService.error).toHaveBeenCalled()
+  })
+
+  it('vaciar muestra error si no hay elegibles', async () => {
+    const haceDosAnios = new Date()
+    haceDosAnios.setFullYear(haceDosAnios.getFullYear() - 2)
+    const mockPacientes = [
+      { id: '1', nombre: 'Reciente', deleted_at: haceDosAnios.toISOString() }
+    ]
+    mocks.mockListar.mockResolvedValue(mockPacientes)
+
+    const { result } = renderHook(() => usePapelera())
+
+    await waitFor(() => {
+      expect(result.current.contadorElegibles).toBe(0)
+    })
+
+    await act(async () => {
+      await result.current.vaciar()
+    })
+
+    expect(mocks.mockVaciar).not.toHaveBeenCalled()
+    expect(notificationService.error).toHaveBeenCalledWith('No hay pacientes elegibles para purgar', expect.anything())
   })
 })

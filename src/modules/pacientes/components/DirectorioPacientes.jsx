@@ -21,8 +21,14 @@ export const DirectorioPacientes = memo(({ alSeleccionarPaciente, alEliminarPaci
   const { puede } = useRBAC()
   const { 
     pacientesEliminados, cargando, contador, restaurar, 
-    vaciar, contadorElegibles, aniosRetencion 
+    vaciar, contadorElegibles, aniosRetencion, refrescar
   } = usePapelera()
+  const handleEliminarConPapelera = async (id) => {
+    const exito = await alEliminarPaciente(id)
+    if (exito) {
+      await refrescar()
+    }
+  }
   const puedeVaciar = puede(PERMISOS.VACIAR_PAPELERA)
 
   const pacientesFiltrados = pacientes.filter(p =>
@@ -97,7 +103,7 @@ export const DirectorioPacientes = memo(({ alSeleccionarPaciente, alEliminarPaci
               </button>
               <button
                 data-testid={`btn-eliminar-${p.id}`}
-                onClick={(e) => { e.stopPropagation(); alEliminarPaciente(p.id); }}
+                onClick={(e) => { e.stopPropagation(); handleEliminarConPapelera(p.id); }}
                 className="text-xs text-red-500 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50"
                 title="Eliminar paciente"
               >

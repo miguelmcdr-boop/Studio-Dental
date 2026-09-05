@@ -26,14 +26,14 @@ export const usePacientesActions = (pacientes, setPacientes, pacienteSeleccionad
    * Paciente queda oculto pero reversible por admin.
    */
   const handleEliminarPaciente = async (idPaciente) => {
-    if (eliminando) return
+    if (eliminando) return false
 
     const confirmado = window.confirm(
       '¿Estás seguro de eliminar este paciente?\n\n' +
       'El paciente se archivará y podrá ser restaurado por un administrador.'
     )
 
-    if (!confirmado) return
+    if (!confirmado) return false
 
     setEliminando(true)
 
@@ -66,13 +66,16 @@ export const usePacientesActions = (pacientes, setPacientes, pacienteSeleccionad
         })
 
         log.info(`[F6-F] Paciente ${idPaciente} eliminado (soft delete)`)
+        return true
       } else {
         log.error('[F6-F] Error al eliminar paciente (soft delete falló)')
         alert('No se pudo eliminar el paciente. Intenta de nuevo.')
+        return false
       }
     } catch (e) {
       log.error('[F6-F] Excepción al eliminar paciente:', e)
       alert('Error inesperado al eliminar paciente.')
+      return false
     } finally {
       setEliminando(false)
     }

@@ -87,10 +87,13 @@ export const PapeleraArchivos = memo(({
 
   return (
     <div className="mt-6">
-      {/* Header colapsable */}
-      <button
+      {/* Header colapsable (div + role="button" para permitir botón anidado "Vaciar") */}
+      <div
+        role="button"
+        tabIndex={0}
         onClick={() => setAbierto(!abierto)}
-        className="w-full flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors"
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setAbierto(!abierto) }}
+        className="w-full flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer"
       >
         <div className="flex items-center gap-2">
           <span className="text-lg">🗑️</span>
@@ -115,7 +118,7 @@ export const PapeleraArchivos = memo(({
         <span className="text-gray-500 text-sm">
           {abierto ? '▲ Ocultar' : '▼ Mostrar'}
         </span>
-      </button>
+      </div>
 
       {/* Contenido colapsable */}
       {abierto && (

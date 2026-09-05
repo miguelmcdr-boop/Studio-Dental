@@ -122,4 +122,145 @@ describe('ModalPapelera (F6-L)', () => {
     
     expect(defaultProps.onCerrar).toHaveBeenCalled()
   })
+
+  // === Tests Feature 1: vaciar papelera ===
+
+  it('muestra botón Vaciar papelera cuando puedeVaciar=true y hay elegibles', () => {
+    render(
+      <ModalPapelera 
+        {...defaultProps} 
+        puedeVaciar={true} 
+        contadorElegibles={2}
+        aniosRetencion={10}
+      />
+    )
+    
+    expect(screen.getByText(/Vaciar papelera/)).toBeInTheDocument()
+    // La advertencia específica de retención debe aparecer
+    expect(screen.getByText(/Solo puedes eliminar permanentemente/)).toBeInTheDocument()
+    expect(screen.getByText(/Pacientes elegibles para purga/)).toBeInTheDocument()
+  })
+
+  it('NO muestra sección de acciones admin cuando puedeVaciar=false', () => {
+    render(
+      <ModalPapelera 
+        {...defaultProps} 
+        puedeVaciar={false}
+        contadorElegibles={2}
+      />
+    )
+    
+    // El botón Vaciar no debe aparecer
+    expect(screen.queryByText(/Vaciar papelera/)).not.toBeInTheDocument()
+    // La advertencia específica de retención tampoco
+    expect(screen.queryByText(/Solo puedes eliminar permanentemente/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Pacientes elegibles para purga/)).not.toBeInTheDocument()
+    // Nota: el footer SIEMPRE menciona Ley 20.584, eso es correcto
+  })
+
+  it('botón Vaciar está deshabilitado cuando contadorElegibles=0', () => {
+    render(
+      <ModalPapelera 
+        {...defaultProps} 
+        puedeVaciar={true} 
+        contadorElegibles={0}
+      />
+    )
+    
+    const boton = screen.getByText(/Vaciar papelera/)
+    expect(boton).toBeDisabled()
+  })
+
+  it('abre modal de confirmación al hacer click en Vaciar papelera', () => {
+    render(
+      <ModalPapelera 
+        {...defaultProps} 
+        puedeVaciar={true} 
+        contadorElegibles={2}
+      />
+    )
+    
+    const boton = screen.getByText(/Vaciar papelera/)
+    fireEvent.click(boton)
+    
+    expect(screen.getByText(/Eliminación permanente/)).toBeInTheDocument()
+    expect(screen.getByText(/IRREVERSIBLE/)).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('ELIMINAR')).toBeInTheDocument()
+  })
+
+  it('botón confirmar está deshabilitado hasta escribir "ELIMINAR"', () => {
+    render(
+      <ModalPapelera 
+        {...defaultProps} 
+        puedeVaciar={true} 
+        contadorElegibles={2}
+      />
+    )
+    
+    fireEvent.click(screen.getByText(/Vaciar papelera/))
+    
+    const botonConfirmar = screen.getByText(/Eliminar permanentemente/)
+    expect(botonConfirmar).toBeDisabled()
+    
+    const input = screen.getByPlaceholderText('ELIMINAR')
+    fireEvent.change(input, { target: { value: 'ELIMINAR' } })
+    
+    expect(botonConfirmar).not.toBeDisabled()
+  })
+
+  it('llama onVaciar al confirmar con texto "ELIMINAR"', async () => {
+    const onVaciar = vi.fn().mockResolvedValue({ purgados: ['1'], rechazados: [] })
+    render(
+      <ModalPapelera 
+        {...defaultProps} 
+        puedeVaciar={true} 
+        contadorElegibles={1}
+        onVaciar={onVaciar}
+      />
+    )
+    
+    fireEvent.click(screen.getByText(/Vaciar papelera/))
+    fireEvent.change(screen.getByPlaceholderText('ELIMINAR'), { target: { value: 'ELIMINAR' } })
+    fireEvent.click(screen.getByText(/Eliminar permanentemente/))
+    
+    await waitFor(() => {
+      expect(onVaciar).toHaveBeenCalled()
+    })
+  })
+
+  it('NO llama onVaciar con texto incorrecto', () => {
+    const onVaciar = vi.fn()
+    render(
+      <ModalPapelera 
+        {...defaultProps} 
+        puedeVaciar={true} 
+        contadorElegibles={1}
+        onVaciar={onVaciar}
+      />
+    )
+    
+    fireEvent.click(screen.getByText(/Vaciar papelera/))
+    fireEvent.change(screen.getByPlaceholderText('ELIMINAR'), { target: { value: 'incorrecto' } })
+    
+    const botonConfirmar = screen.getByText(/Eliminar permanentemente/)
+    expect(botonConfirmar).toBeDisabled()
+    expect(onVaciar).not.toHaveBeenCalled()
+  })
+
+  it('cierra modal de confirmación al hacer click en Cancelar', () => {
+    render(
+      <ModalPapelera 
+        {...defaultProps} 
+        puedeVaciar={true} 
+        contadorElegibles={2}
+      />
+    )
+    
+    fireEvent.click(screen.getByText(/Vaciar papelera/))
+    expect(screen.getByText(/Eliminación permanente/)).toBeInTheDocument()
+    
+    fireEvent.click(screen.getByText('Cancelar'))
+    
+    expect(screen.queryByText(/Eliminación permanente/)).not.toBeInTheDocument()
+  })
 })
