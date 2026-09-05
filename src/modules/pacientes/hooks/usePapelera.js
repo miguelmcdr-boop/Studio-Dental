@@ -4,6 +4,7 @@ import { obtenerAutoresDeEliminacion } from '../services/pacientesSoftDeleteServ
 import { usePacientesStore } from '../../../store/pacientesStore'
 import { notificationService } from '../../../services/notificationService'
 import { createLogger } from '../../../services/logger.js'
+import { usePapeleraVaciar } from './usePapelera.vaciar'
 
 const log = createLogger('usePapelera')
 
@@ -93,11 +94,22 @@ export const usePapelera = () => {
     cargarPapelera()
   }, [cargarPapelera])
 
+  const {
+    elegibles,
+    contadorElegibles,
+    aniosRetencion,
+    vaciar,
+  } = usePapeleraVaciar(pacientesEliminados, cargarPapelera, refrescarPacientes)
+
   return {
     pacientesEliminados,
     cargando,
     contador,
     restaurar,
+    vaciar,
+    elegibles,
+    contadorElegibles,
+    aniosRetencion,
     refrescar: cargarPapelera
   }
 }

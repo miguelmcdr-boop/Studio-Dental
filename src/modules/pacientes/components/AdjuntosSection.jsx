@@ -4,6 +4,8 @@ import { ArchivoUploader } from './ArchivoUploader'
 import { ArchivoViewer } from './ArchivoViewer'
 import { ArchivoModal } from './ArchivoModal'
 import { PapeleraArchivos } from './PapeleraArchivos'
+import { useRBAC } from '../../../hooks/useRBAC'
+import { PERMISOS } from '../../../constants/rbacConstants'
 
 /**
  * Sección de adjuntos clínicos (fotos, radiografías, consentimientos).
@@ -45,11 +47,15 @@ export const AdjuntosSection = memo(({ tabActiva, pacienteId }) => {
     eliminarArchivo,
     archivosEliminados,
     cargandoPapelera,
+    vaciarPapelera,
     cargarPapelera,
     restaurarArchivo,
     thumbnails,
     cargarThumbnail,
   } = useArchivosClinicos(pacienteId, tipoArchivo)
+
+  const { puede } = useRBAC()
+  const puedeVaciar = puede(PERMISOS.VACIAR_PAPELERA)
 
   // Cargar papelera al montar el componente
   useEffect(() => {
@@ -123,6 +129,8 @@ export const AdjuntosSection = memo(({ tabActiva, pacienteId }) => {
         archivosEliminados={archivosEliminados}
         cargando={cargandoPapelera}
         onRestaurar={restaurarArchivo}
+        onVaciar={vaciarPapelera}
+        puedeVaciar={puedeVaciar}
         permisos={permisos}
       />
     </div>

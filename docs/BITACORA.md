@@ -4396,3 +4396,64 @@ Las 11 tareas de Fase 1 cerradas y verificadas. Sistema apto para datos clínico
 - `src/utils/anestesiaCalculations.integration.test.js` (nuevo, tests de integración)
 
 **Estado:** ✅ DONE (2026-08-27)
+
+
+---
+
+## 2026-09-04 — F7-33: Vaciar papeleras (eliminación permanente de pacientes y archivos) — DONE
+
+**Contexto:** El sistema tiene papelera de reciclaje para pacientes (F6-L) y archivos clínicos (F7-31), pero no permite eliminar permanentemente. Esto genera crecimiento indefinido de datos y no cumple con el ciclo de vida completo de datos clínicos.
+
+**Requisitos legales:**
+- **Pacientes:** Retención obligatoria de 10 años desde la eliminación (Ley 20.584 de Chile sobre conservación de fichas clínicas)
+- **Archivos:** Sin restricción de tiempo (liberan espacio en Cloudflare R2)
+
+**Solución implementada:**
+
+### Backend (Supabase)
+1. **Migración 15** (`ampliar_audit_purge.sql`): Agrega eventos `ADMIN_PURGE_PACIENTES` y `ADMIN_PURGE_ARCHIVOS` al constraint de `audit_log.action`
+2. **Migración 16** (`registrar_evento_purge.sql`): Función SQL `registrar_evento_purge` con SECURITY DEFINER
+3. **Edge Function `pacientes-purge`** (261 líneas): Valida JWT + clínica + rol admin + retención legal (10 años), elimina blobs R2 + DELETE en cascada, registra auditoría
+4. **Edge Function `archivos-purge`** (237 líneas): Valida JWT + clínica + rol admin, elimina blobs R2 + DELETE de filas, registra auditoría
+
+### Frontend (React)
+1. **Permiso RBAC `VACIAR_PAPELERA`**: Solo rol admin (separación semántica de `VER_PAPELERA`)
+2. **Hook `usePapelera.vaciar.js`**: Calcula pacientes elegibles (10+ años), expone método `vaciar()`
+3. **Hook `useArchivosClinicos.papelera.js`**: Agrega método `vaciarPapelera()`
+4. **UI pacientes** (`ModalPapelera.jsx`): Botón "Vaciar papelera" + confirmación doble (escribir "ELIMINAR") + advertencia legal
+5. **UI archivos** (`PapeleraArchivos.jsx`): Botón "Vaciar papelera" en header + confirmación doble (escribir "VACIAR")
+
+### Fixes adicionales incluidos
+1. **Button anidado HTML inválido**: Header colapsable cambiado de `<button>` a `<div role="button">` para permitir botón "Vaciar" anidado
+2. **Refresco de papelera tras eliminar paciente**: `usePacientesActions.handleEliminarPaciente` ahora retorna boolean, `DirectorioPacientes` usa wrapper que refresca la papelera tras eliminación exitosa (mismo patrón de F7-31)
+
+**Tests:** 46 tests totales (14 usePapelera + 18 ModalPapelera + 14 PapeleraArchivos)
+
+**Archivos clave:**
+- `supabase/migrations/20260101000015_ampliar_audit_purge.sql`
+- `supabase/migrations/20260101000016_registrar_evento_purge.sql`
+- `supabase/functions/pacientes-purge/index.ts`
+- `supabase/functions/archivos-purge/index.ts`
+- `src/constants/rbacConstantsBase.js` (nuevo permiso)
+- `src/modules/pacientes/hooks/usePapelera.vaciar.js` (nuevo)
+- `src/modules/pacientes/components/ModalPapelera.jsx`
+- `src/modules/pacientes/components/PapeleraArchivos.jsx`
+
+**Estado:** ✅ DONE (2026-09-04)
+
+**Pendiente:** ~~Deploy de las 2 Edge Functions en Supabase Dashboard (manual)~~ ✅ Completado
+
+**E2E validado (2026-09-05):**
+- ✅ Edge Functions desplegadas y activas (pacientes-purge v2, archivos-purge v2)
+- ✅ Migración 17 aplicada (registrar_evento_purge con user_id explícito)
+- ✅ Purge de archivos exitoso (blob R2 + fila eliminados)
+- ✅ Audit_log registra user_id del admin (no null)
+- ✅ Query REST corregida (sin comillas en operador IN)
+- ✅ UI muestra botón "Vaciar papelera" correctamente (fix de RBAC: VACIAR_PAPELERA en rbacConstants.js)
+- ✅ 46 tests unitarios pasando
+- ✅ Build + validador arquitectónico OK
+
+**Gaps resueltos durante E2E:**
+1. `audit_log.user_id` era NULL → fix: agregar `p_user_id` a función SQL y Edge Functions
+2. `Failed to fetch pacientes/archivos` → fix: quitar comillas en query REST `id=in.(...)`
+3. Botón "Vaciar papelera" no aparecía → fix: agregar `VACIAR_PAPELERA` a `rbacConstants.js` (no solo a `rbacConstantsBase.js`)

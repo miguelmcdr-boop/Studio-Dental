@@ -41,5 +41,8 @@ export const PERMISOS = {
   ADMINISTRAR_VADEMECUM: 'administrar_vademecum',
 
   // Papelera (F6-L)
-  VER_PAPELERA: 'ver_papelera'
+  VER_PAPELERA: 'ver_papelera',
+
+  // Vaciar papelera (Feature 1: eliminación permanente)
+  VACIAR_PAPELERA: 'vaciar_papelera'
 }
