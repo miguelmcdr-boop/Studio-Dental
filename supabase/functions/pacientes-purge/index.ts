@@ -155,7 +155,7 @@ Deno.serve(async (req) => {
     }
 
     // 5. Obtener pacientes de la papelera de esta clínica
-    const idsParam = pacienteIds.map((id) => `"${id}"`).join(",");
+    const idsParam = pacienteIds.join(",");
     const pacientesResult = await fetch(
       `${supabaseUrl}/rest/v1/pacientes?id=in.(${idsParam})&clinica_id=eq.${clinicaId}&select=id,nombre,rut,deleted_at`,
       { headers: { Authorization: `Bearer ${supabaseServiceKey}`, apikey: supabaseServiceKey } }
@@ -233,6 +233,7 @@ Deno.serve(async (req) => {
             deleted_at_original: paciente.deleted_at,
             archivos_r2_purgados: archivosPurgados,
           },
+          p_user_id: userId,
         }),
       });
 

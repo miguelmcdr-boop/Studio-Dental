@@ -150,7 +150,7 @@ Deno.serve(async (req) => {
     }
 
     // 5. Obtener archivos de la papelera de esta clínica
-    const idsParam = archivoIds.map((id) => `"${id}"`).join(",");
+    const idsParam = archivoIds.join(",");
     const archivosResult = await fetch(
       `${supabaseUrl}/rest/v1/archivos_clinicos?id=in.(${idsParam})&clinica_id=eq.${clinicaId}&select=id,nombre_archivo,r2_object_key,estado`,
       { headers: { Authorization: `Bearer ${supabaseServiceKey}`, apikey: supabaseServiceKey } }
@@ -209,6 +209,7 @@ Deno.serve(async (req) => {
             archivo_id: archivoId,
             nombre_archivo: archivo.nombre_archivo,
           },
+          p_user_id: userId,
         }),
       });
 
