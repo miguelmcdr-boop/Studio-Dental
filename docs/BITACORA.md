@@ -4597,3 +4597,64 @@ Las 11 tareas de Fase 1 cerradas y verificadas. Sistema apto para datos clínico
 - `src/modules/pacientes/hooks/useFichaPaciente.js` (1 línea + disable comment)
 
 **Estado:** ✅ DONE (2026-09-06)
+
+---
+
+## 2026-09-06 — F7-23: Auditoría de logs para garantizar ausencia de PHI — DONE
+
+**Contexto:** En software de salud es crítico garantizar que logs no contengan PHI (Protected Health Information) — nombre, RUT, teléfono, diagnósticos — para cumplir regulaciones HIPAA-like.
+
+**Alcance de auditoría:**
+- 257 archivos JS + 164 JSX en src/
+- 10 Edge Functions en Deno (TypeScript)
+- 12 RAISE NOTICE/WARNING en SQL functions
+
+**Resultados:**
+- ✅ 0 `console.log` en código de producción
+- ✅ 0 PHI en logs de Edge Functions
+- ✅ 0 PHI en SQL RAISE
+
+**Acciones correctivas:**
+1. Migración de `console.warn` al logger centralizado:
+   - `ClinicaSelector.jsx` (1 instancia)
+   - `useThumbnailCache.js` (3 instancias)
+   - `userProfileBuilder.js` (1 instancia)
+2. Utilidad `sanitizePHI()` agregada a `logger.js`:
+   - Enmascara 15 campos sensibles: nombre, rut, telefono, email,
+     direccion, diagnostico, tratamiento, anamnesis, receta
+   - 5 tests nuevos (total: 21 tests en logger.test.js)
+3. JSDoc actualizado en `purgarDatosLocales.js`
+
+**Archivos modificados (6):**
+- src/components/ClinicaSelector.jsx (migración a logger)
+- src/modules/pacientes/hooks/useThumbnailCache.js (3 instancias)
+- src/services/userProfileBuilder.js (migración)
+- src/services/logger.js (+ utility sanitizePHI, 45 líneas)
+- src/services/logger.test.js (+ 5 tests, 65 líneas)
+- src/services/purgarDatosLocales.js (JSDoc)
+
+**Evidencia:**
+- ✅ 0 console.log/warn/error en src/ producción
+- ✅ 27/27 tests pasando
+- ✅ Build OK + Validador PASS
+
+### Guía de Logging Seguro (F7-23)
+
+**Niveles:**
+- `DEBUG`: desarrollo (no en prod)
+- `INFO`: eventos importantes del flujo normal
+- `WARN`: situaciones anómalas no críticas
+- `ERROR`: errores que requieren atención
+
+**5 reglas de oro:**
+1. NUNCA loggear objetos completos de pacientes (solo id, clinica_id)
+2. Usar sanitizePHI() cuando sea necesario loggear datos de pacientes
+3. En Edge Functions, loggear solo metadatos operativos
+4. En SQL RAISE, solo información técnica (contadores, nombres de tabla)
+5. Configuración por ambiente: DEBUG en dev, WARN+ERROR en prod
+
+**Campos enmascarados por sanitizePHI:**
+nombre, apellido, rut, cedula, dni, telefono, email,
+direccion, diagnostico, tratamiento, anamnesis, receta
+
+**Estado:** ✅ DONE (2026-09-06)
