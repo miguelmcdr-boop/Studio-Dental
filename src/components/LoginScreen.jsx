@@ -16,6 +16,7 @@ import { construirUserProfile } from '../services/userProfileBuilder'
 import { NOMBRES_ROLES, DESCRIPCIONES_ROLES } from '../constants/rbacConstants'
 import { obtenerRolPorDefecto } from '../services/rbacService'
 import { createLogger } from '../services/logger.js'
+import { Button } from './ui/Button'
 
 const log = createLogger('LoginScreen')
 
@@ -297,29 +298,17 @@ export const LoginScreen = ({ onLogin }) => {
             </div>
           )}
 
-          <button
-            data-testid="login-submit"
-            type="submit"
-            disabled={cargando}
-            className="w-full bg-black text-white font-medium py-2.5 rounded-lg text-sm hover:bg-gray-800 transition-colors mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+          <Button data-testid="login-submit" type="submit" loading={cargando} fullWidth className="mt-2">
             {cargando ? 'Verificando...' : isFirstTime ? 'Guardar datos e Ingresar' : 'Ingresar al sistema'}
-          </button>
+          </Button>
 
           {/* F4-02b FIX: En modo Supabase, permitir cambiar entre login y registro */}
           {import.meta.env.VITE_USE_SUPABASE === 'true' && (
-            <button
-              type="button"
-              onClick={() => {
-                setIsFirstTime(!isFirstTime)
-                setError('')
-              }}
-              className="w-full text-center text-xs text-gray-500 hover:text-gray-700 mt-3 underline"
-            >
-              {isFirstTime 
-                ? '¿Ya tienes cuenta? Iniciar sesión' 
-                : '¿Primera vez? Crear cuenta'}
-            </button>
+            <Button type="button" variant="ghost" size="sm" fullWidth
+              onClick={() => { setIsFirstTime(!isFirstTime); setError('') }}
+              className="mt-3 text-xs underline">
+              {isFirstTime ? '¿Ya tienes cuenta? Iniciar sesión' : '¿Primera vez? Crear cuenta'}
+            </Button>
           )}
 
           {error && (

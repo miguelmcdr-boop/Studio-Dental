@@ -4780,3 +4780,53 @@ direccion, diagnostico, tratamiento, anamnesis, receta
 - Fase 5: Unificación de 140 componentes existentes (19 globales + 121 en módulos)
 
 **Estado:** ✅ PARCIAL DONE (Fase 1+2 de 5) — 2026-09-06
+
+---
+
+## 2026-09-06 — F7-25 Iteración 1: Button component + refactor de 2 componentes críticos — DONE
+
+**Contexto:** F7-25 Fase 3 busca crear componentes base del Design System. Esta iteración entrega el componente más reutilizable (Button) y lo aplica a 2 componentes críticos de la UX.
+
+**Componente Button creado (src/components/ui/Button.jsx):**
+- **5 variantes**: primary (champagne), secondary (gris), danger (rojo clínico), ghost (transparente), outline (borde)
+- **3 tamaños**: sm (px-3 py-1.5), md (px-4 py-2), lg (px-5 py-2.5)
+- **Iconos**: soporte left/right con Icon wrapper (tamaños xs/sm/md según size)
+- **Loading**: spinner animado con Loader2 + aria-busy
+- **Disabled**: opacity-50 + cursor-not-allowed + aria-disabled
+- **Dark mode**: automático vía tokens Graphite & Champagne
+- **Accesibilidad**: aria-label, forwardRef, focus ring visible
+- **19 tests pasando**: variantes, tamaños, iconos, loading, disabled, eventos, a11y, fullWidth
+
+**Refactor LoginScreen.jsx (346→329 líneas):**
+- Botón submit: `bg-black` nativo → `<Button loading={cargando}>` primary
+- Botón toggle login/registro: nativo → `<Button variant="ghost">`
+- 0 botones nativos restantes
+- Compactado para respetar allowlist (límite 343 líneas)
+
+**Refactor ConflictResolutionModal.jsx:**
+- Botón Cancelar → `<Button variant="ghost">`
+- Botón "Usar versión del servidor" → `<Button variant="secondary" icon={Globe}>`
+- Botón "Mantener mi versión" → `<Button variant="primary" icon={PenLine}>`
+- Headers de diff: 📝→PenLine, 🌐→Globe (Icon wrapper)
+- Footer: `bg-gray-50` → `bg-graphite-50 dark:bg-graphite-900`
+- 0 emojis restantes
+- Accesibilidad F6-04 preservada (trampa de foco, cierre con ESC)
+
+**Evidencia de calidad:**
+- ✅ 76/76 tests de componentes pasando (6 archivos)
+- ✅ Build OK (2239.35 KiB, 31 entradas)
+- ✅ Validador arquitectónico PASS
+- ✅ LoginScreen dentro de allowlist (329 ≤ 343)
+- ✅ 0 emojis en componentes refactorizados
+
+**Archivos creados/modificados:**
+- `src/components/ui/Button.jsx` (NUEVO — 127 líneas)
+- `src/components/ui/Button.test.jsx` (NUEVO — 19 tests)
+- `src/components/LoginScreen.jsx` (MODIFICADO — 346→329 líneas)
+- `src/components/ConflictResolutionModal.jsx` (MODIFICADO — 0 emojis, Button)
+
+**Próximas iteraciones de F7-25:**
+- Iteración 2: `<Modal>` base + `<Input>` + TopBar (App Shell)
+- Iteración 3: Unificación de 140 componentes de módulos (19 globales + 121 módulos)
+
+**Estado:** ✅ DONE (2026-09-06) — Iteración 1 de 3
