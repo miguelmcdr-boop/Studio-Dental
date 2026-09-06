@@ -114,11 +114,12 @@ Deno.serve(async (req) => {
     const expectedInternalSecret = Deno.env.get("INTERNAL_PURGE_SECRET");
     const esLlamadaInterna = internalSecret && expectedInternalSecret && internalSecret === expectedInternalSecret;
 
-    let userId: string;
+    let userId: string | null;
 
     if (esLlamadaInterna) {
       // Llamada interna del cron (desde pg_cron vía system_config secret)
-      userId = "00000000-0000-0000-0000-000000000000";
+      // user_id = NULL en audit_log (campo es nullable, evita FK violation)
+      userId = null;
       console.log("[F7-32] Llamada interna del cron detectada (X-Internal-Secret)");
     } else {
       // Llamada normal de usuario: validar JWT con Supabase
@@ -249,11 +250,12 @@ Deno.serve(async (req) => {
       }
 
       // 8. Registrar auditoría
+      // F7-32 FIX: usar clinica_id del archivo (en modo interno clinicaId es null)
       await fetch(`${supabaseUrl}/rest/v1/rpc/registrar_evento_purge`, {
         method: "POST",
         headers: { Authorization: `Bearer ${supabaseServiceKey}`, apikey: supabaseServiceKey, "Content-Type": "application/json" },
         body: JSON.stringify({
-          p_clinica_id: clinicaId,
+          p_clinica_id: archivo.clinica_id,
           p_evento: "ADMIN_PURGE_ARCHIVOS",
           p_detalle: {
             archivo_id: archivoId,
@@ -273,8 +275,7 @@ Deno.serve(async (req) => {
       const primerArchivoPurgado = archivosResult.find(
         (a: any) => a.id === purgados[0]
       );
-      const clinicaIdForAudit = primerArchivoPurgado?.clinica_id 
-        || "00000000-0000-0000-0000-000000000000";
+      const clinicaIdForAudit = primerArchivoPurgado?.clinica_id;
 
       const auditResponse = await fetch(`${supabaseUrl}/rest/v1/rpc/registrar_evento_purge`, {
         method: "POST",
