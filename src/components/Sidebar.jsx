@@ -1,94 +1,93 @@
-import React, { useState, useMemo } from 'react'
-import { useRBAC } from '../hooks/useRBAC'
-import { PERMISOS, NOMBRES_ROLES } from '../constants/rbacConstants'
-import { ConnectionIndicator } from './ConnectionIndicator'
-import { ClinicaSelector } from './ClinicaSelector'
-
 /**
- * Sidebar con control de acceso por rol (F3-05).
+ * Sidebar con control de acceso por rol (F3-05) + Design System (F7-25).
  *
  * Cada ítem del menú puede tener un campo opcional `permisoRequerido`.
  * Si no lo tiene, siempre es visible para todos los roles.
  * Si lo tiene, solo se renderiza si el usuario actual tiene ese permiso.
  *
- * Esto garantiza que un usuario no vea en la UI opciones a las que no
- * tiene acceso, mejorando UX (menos ruido) y seguridad (defensa en profundidad).
+ * F7-25: Migración de emojis a lucide-react (iconografía profesional consistente).
  */
+import React, { useState, useMemo } from 'react'
+import { useRBAC } from '../hooks/useRBAC'
+import { PERMISOS, NOMBRES_ROLES } from '../constants/rbacConstants'
+import { ConnectionIndicator } from './ConnectionIndicator'
+import { ClinicaSelector } from './ClinicaSelector'
+import { Icon } from './Icon'
+import {
+  Calendar, LayoutDashboard, Users, Siren, FileText, CreditCard, Mail,
+  Sparkles, FlaskConical, Package, Stethoscope, DollarSign, BarChart3,
+  UsersRound, Pill, Settings, LogOut, ChevronLeft, ChevronRight
+} from 'lucide-react'
+
 export const Sidebar = ({ userProfile, activeSection, setActiveSection, onLogout }) => {
   const [colapsado, setColapsado] = useState(false)
   const { puede, rol } = useRBAC()
 
-  // Definición del menú con permisos opcionales (F3-05).
-  // Si `permisoRequerido` no está presente, el ítem es visible para todos.
+  // F7-25: Menú con iconos lucide-react (reemplaza emojis)
   const menuItems = useMemo(() => [
     // Módulos siempre visibles (trabajo diario clínico)
-    { name: 'Agenda', icon: '📅' },
-    { name: 'Dashboard', icon: '🎛️' },
-    { name: 'Pacientes', icon: '👥' },
-    { name: 'Urgencias y GES', icon: '🚨' },
-    { name: 'Presupuestos', icon: '📋' },
-    { name: 'Pagos', icon: '💳' },
-    { name: 'Comunicaciones', icon: '✉️' },
+    { name: 'Agenda', icon: Calendar },
+    { name: 'Dashboard', icon: LayoutDashboard },
+    { name: 'Pacientes', icon: Users },
+    { name: 'Urgencias y GES', icon: Siren },
+    { name: 'Presupuestos', icon: FileText },
+    { name: 'Pagos', icon: CreditCard },
+    { name: 'Comunicaciones', icon: Mail },
 
     // Módulos clínicos de soporte (visibles para clínico y admin)
-    { name: 'Esterilización', icon: '🧼', permisoRequerido: PERMISOS.VER_ESTERILIZACION },
-    { name: 'Laboratorio', icon: '🧪', permisoRequerido: PERMISOS.VER_LABORATORIO },
-    { name: 'Inventario', icon: '📦', permisoRequerido: PERMISOS.VER_INVENTARIO },
+    { name: 'Esterilización', icon: Sparkles, permisoRequerido: PERMISOS.VER_ESTERILIZACION },
+    { name: 'Laboratorio', icon: FlaskConical, permisoRequerido: PERMISOS.VER_LABORATORIO },
+    { name: 'Inventario', icon: Package, permisoRequerido: PERMISOS.VER_INVENTARIO },
 
     // Módulos financieros (visibles para admin y dentista)
-    { name: 'Prestaciones', icon: '🦷', permisoRequerido: PERMISOS.EDITAR_PRECIOS },
-    { name: 'Finanzas', icon: '💰', permisoRequerido: PERMISOS.VER_FINANZAS },
-    { name: 'Reportes', icon: '📊', permisoRequerido: PERMISOS.VER_REPORTES },
+    { name: 'Prestaciones', icon: Stethoscope, permisoRequerido: PERMISOS.EDITAR_PRECIOS },
+    { name: 'Finanzas', icon: DollarSign, permisoRequerido: PERMISOS.VER_FINANZAS },
+    { name: 'Reportes', icon: BarChart3, permisoRequerido: PERMISOS.VER_REPORTES },
 
     // Módulos administrativos
-    { name: 'Miembros', icon: '👥', permisoRequerido: PERMISOS.GESTIONAR_USUARIOS },
-    { name: 'Vademécum', icon: '💊', permisoRequerido: PERMISOS.ADMINISTRAR_VADEMECUM },
-    { name: 'Configuración', icon: '⚡', permisoRequerido: PERMISOS.VER_CONFIGURACION }
+    { name: 'Miembros', icon: UsersRound, permisoRequerido: PERMISOS.GESTIONAR_USUARIOS },
+    { name: 'Vademécum', icon: Pill, permisoRequerido: PERMISOS.ADMINISTRAR_VADEMECUM },
+    { name: 'Configuración', icon: Settings, permisoRequerido: PERMISOS.VER_CONFIGURACION }
   ], [])
 
-  // Filtrar ítems del menú según permisos del usuario actual (F3-05).
   const menuItemsVisibles = useMemo(() => {
     return menuItems.filter(item => {
-      // Si no tiene permisoRequerido, siempre visible
       if (!item.permisoRequerido) return true
-      // Si tiene permisoRequerido, verificar con el hook
       return puede(item.permisoRequerido)
     })
   }, [menuItems, puede])
 
-  const inicial = userProfile?.nombreCompleto 
-    ? userProfile.nombreCompleto.replace('Dr. ', '').replace('Dra. ', '').charAt(0).toUpperCase() 
+  const inicial = userProfile?.nombreCompleto
+    ? userProfile.nombreCompleto.replace('Dr. ', '').replace('Dra. ', '').charAt(0).toUpperCase()
     : 'D'
 
-  // Nombre legible del rol para mostrar en la UI (F3-05)
   const nombreRol = NOMBRES_ROLES[rol] || 'Usuario'
 
   return (
-    <aside className={`${colapsado ? 'w-20' : 'w-64'} bg-gray-50 p-4 border-r border-gray-200 min-h-screen flex flex-col justify-between transition-all duration-300 print:hidden relative`}>
+    <aside className={`${colapsado ? 'w-20' : 'w-64'} bg-graphite-50 dark:bg-graphite-900 p-4 border-r border-graphite-200 dark:border-graphite-700 min-h-screen flex flex-col justify-between transition-all duration-300 print:hidden relative`}>
       <div>
         <div className="flex items-center justify-between mb-6 px-2">
           {!colapsado && (
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-black text-white rounded-full flex items-center justify-center font-bold text-base">C</div>
-              <span className="font-bold text-base text-gray-800">Consulta</span>
+              <div className="w-9 h-9 bg-primary rounded-full flex items-center justify-center font-bold text-base text-white">C</div>
+              <span className="font-bold text-base text-graphite-800 dark:text-graphite-50">Consulta</span>
             </div>
           )}
 
           {colapsado && (
-            <div className="w-9 h-9 bg-black text-white rounded-full flex items-center justify-center font-bold text-base mx-auto">C</div>
+            <div className="w-9 h-9 bg-primary rounded-full flex items-center justify-center font-bold text-base text-white mx-auto">C</div>
           )}
 
           <button
             onClick={() => setColapsado(!colapsado)}
-            className="p-1.5 rounded-lg hover:bg-gray-200 text-gray-500 hover:text-black transition-colors"
+            className="p-1.5 rounded-lg hover:bg-graphite-200 dark:hover:bg-graphite-700 text-graphite-500 dark:text-graphite-400 hover:text-graphite-900 dark:hover:text-graphite-50 transition-colors"
             title={colapsado ? "Expandir menú" : "Minimizar menú"}
             aria-label={colapsado ? "Expandir menú" : "Minimizar menú"}
           >
-            {colapsado ? '▶' : '◀'}
+            <Icon icon={colapsado ? ChevronRight : ChevronLeft} size="sm" />
           </button>
         </div>
 
-        {/* F7-10: Selector de clínica activa */}
         {!colapsado && <ClinicaSelector />}
 
         <nav aria-label="Navegacion principal" className="space-y-1">
@@ -100,35 +99,37 @@ export const Sidebar = ({ userProfile, activeSection, setActiveSection, onLogout
               title={colapsado ? item.name : ''}
               aria-current={activeSection === item.name ? 'page' : undefined}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                activeSection === item.name ? 'bg-black text-white shadow-xs' : 'text-gray-700 hover:bg-gray-200/60'
+                activeSection === item.name
+                  ? 'bg-primary text-white shadow-md'
+                  : 'text-graphite-700 dark:text-graphite-300 hover:bg-graphite-200/60 dark:hover:bg-graphite-800'
               } ${colapsado ? 'justify-center' : ''}`}
             >
-              <span className="text-base">{item.icon}</span>
+              <Icon icon={item.icon} size="md" />
               {!colapsado && <span>{item.name}</span>}
             </button>
           ))}
         </nav>
       </div>
 
-      <div className="border-t border-gray-200 pt-4 mt-6">
+      <div className="border-t border-graphite-200 dark:border-graphite-700 pt-4 mt-6">
         <div className={`flex items-center gap-3 mb-2 ${colapsado ? 'justify-center' : ''}`}>
-          <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center font-semibold text-gray-700 text-xs">{inicial}</div>
+          <div className="w-8 h-8 bg-graphite-300 dark:bg-graphite-700 rounded-full flex items-center justify-center font-semibold text-graphite-700 dark:text-graphite-200 text-xs">{inicial}</div>
           {!colapsado && (
             <div className="text-[11px] overflow-hidden flex-1">
-              <p className="font-semibold text-gray-800 truncate" title={userProfile?.nombreCompleto}>{userProfile?.nombreCompleto || 'Mi sesión'}</p>
-              <p className="text-gray-500 truncate" title={userProfile?.email}>{userProfile?.email}</p>
-              {/* F3-05: mostrar el rol actual del usuario */}
-              <p className="text-gray-400 truncate italic" title={`Rol: ${nombreRol}`}>{nombreRol}</p>
+              <p className="font-semibold text-graphite-800 dark:text-graphite-100 truncate" title={userProfile?.nombreCompleto}>{userProfile?.nombreCompleto || 'Mi sesión'}</p>
+              <p className="text-graphite-500 dark:text-graphite-400 truncate" title={userProfile?.email}>{userProfile?.email}</p>
+              <p className="text-graphite-400 dark:text-graphite-500 truncate italic" title={`Rol: ${nombreRol}`}>{nombreRol}</p>
             </div>
           )}
         </div>
         {!colapsado ? (
-          <button onClick={onLogout} className="w-full text-left text-xs font-medium text-red-600 hover:text-red-800 pt-1">
-            Cerrar sesión
+          <button onClick={onLogout} className="w-full flex items-center gap-2 text-left text-xs font-medium text-clinical-error hover:text-red-800 dark:hover:text-red-400 pt-1 px-3 py-2 rounded-lg hover:bg-graphite-200/60 dark:hover:bg-graphite-800 transition-colors">
+            <Icon icon={LogOut} size="sm" />
+            <span>Cerrar sesión</span>
           </button>
         ) : (
-          <button onClick={onLogout} className="w-full text-center text-xs text-red-600 hover:text-red-800 pt-1" title="Cerrar sesión" aria-label="Cerrar sesión">
-            🚪
+          <button onClick={onLogout} className="w-full flex justify-center text-clinical-error hover:text-red-800 dark:hover:text-red-400 pt-1 p-2 rounded-lg hover:bg-graphite-200/60 dark:hover:bg-graphite-800 transition-colors" title="Cerrar sesión" aria-label="Cerrar sesión">
+            <Icon icon={LogOut} size="md" />
           </button>
         )}
       </div>
