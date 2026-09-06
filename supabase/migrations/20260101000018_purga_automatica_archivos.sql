@@ -64,8 +64,6 @@ DECLARE
   -- F7-32: URL pública de Supabase (segura de hardcodear, no es secreta)
   v_supabase_url TEXT := 'https://nagduvivilmzupdpoayo.supabase.co';
   v_service_key TEXT;
-  v_response_status INTEGER;
-  v_response_body JSONB;
   v_result BIGINT;
 BEGIN
   -- F7-32 FIX: Leer internal_purge_secret en lugar de service_role_key
@@ -107,57 +105,26 @@ BEGIN
   -- Invocar Edge Function archivos-purge vía HTTP (pg_net)
   BEGIN
     -- pg_net es asíncrono por defecto. Para uso síncrono usamos:
-    -- F7-32 FIX: Pasar el secreto como header X-Internal-Secret (no como Bearer token)
-    SELECT status, content::jsonb
-    INTO v_response_status, v_response_body
-    FROM net.http_post(
-      url := v_supabase_url || '/functions/v1/archivos-purge',
-      headers := jsonb_build_object(
-        'Content-Type', 'application/json',
-        'X-Internal-Secret', v_service_key
-      ),
-      body := jsonb_build_object(
-        'archivo_ids', v_archivo_ids
-      )
-    );
-
-    -- Verificar respuesta
-    IF v_response_status = 200 THEN
-      RAISE NOTICE '[F7-32] Purga exitosa: %', v_response_body;
-      
-      -- Registrar en audit_log
-      INSERT INTO audit_log (
-        clinica_id,
-        user_id,
-        table_name,
-        record_id,
-        action,
-        new_data
-      ) VALUES (
-        (SELECT clinica_id FROM archivos_clinicos WHERE id = v_archivo_ids[1]),
-        '00000000-0000-0000-0000-000000000000',  -- system user
-        'cron',
-        'auto-purge',
-        'AUTO_PURGE_ARCHIVOS',
-        jsonb_build_object(
-          'evento', 'AUTO_PURGE_ARCHIVOS',
-          'detalle', jsonb_build_object(
-            'archivo_ids', v_archivo_ids,
-            'count', v_count,
-            'trigger', 'pg_cron',
-            'timestamp', NOW()
-          )
+    -- F7-32 FIX: Fire-and-forget. Solo encola la request, NO espera respuesta.
+    -- net.http_post() retorna un BIGINT (request_id), no columnas.
+    -- El worker de pg_net procesa la cola en background y la Edge Function
+    -- archivos-purge registra AUTO_PURGE_ARCHIVOS en audit_log.
+    BEGIN
+      PERFORM net.http_post(
+        url := v_supabase_url || '/functions/v1/archivos-purge',
+        headers := jsonb_build_object(
+          'Content-Type', 'application/json',
+          'X-Internal-Secret', v_service_key
+        ),
+        body := jsonb_build_object(
+          'archivo_ids', v_archivo_ids
         )
       );
-    ELSE
-      RAISE WARNING '[F7-32] Error en purga: status=%, body=%', 
-        v_response_status, v_response_body;
-    END IF;
-
-  EXCEPTION
-    WHEN OTHERS THEN
-      RAISE WARNING '[F7-32] Error invocando archivos-purge: %', SQLERRM;
-  END;
+      RAISE NOTICE '[F7-32] Request encolada para purgar % archivo(s).', v_count;
+    EXCEPTION
+      WHEN OTHERS THEN
+        RAISE WARNING '[F7-32] Error encolando request: %', SQLERRM;
+    END;
 
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
