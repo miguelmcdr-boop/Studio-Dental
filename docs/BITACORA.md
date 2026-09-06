@@ -4658,3 +4658,61 @@ nombre, apellido, rut, cedula, dni, telefono, email,
 direccion, diagnostico, tratamiento, anamnesis, receta
 
 **Estado:** ✅ DONE (2026-09-06)
+
+---
+
+## 2026-09-06 — F7-24: Security Regression Suite como gate de CI/staging — DONE
+
+**Contexto:** Un PR no debe poder pasar a Release Candidate si rompe aislamiento multi-tenant, RBAC, logout/PHI, Storage o audit log. F7-24 convierte los escenarios críticos validados en tareas previas (F7-08, F7-20, F7-21, F7-22) en pruebas automatizadas de regresión.
+
+**Arquitectura de la suite:**
+- Directorio: `src/test/security/`
+- Patrón: documentación como código (variables booleanas documentan estado esperado)
+- Razón: políticas RLS ya validadas en producción, tests documentan QUÉ debe mantenerse cierto
+
+**5 archivos de tests (27 tests totales):**
+
+| Archivo | Tests | Cobertura |
+|---|---|---|
+| `multi-tenant.test.js` | 8 | Aislamiento entre clínicas (RLS en pacientes, evoluciones, recetas, archivos_clinicos, audit_log) |
+| `rbac.test.js` | 6 | Roles: recepcionista (limitado), dentista (clínico), admin (administrativo), usuario sin membresía |
+| `logout-phi.test.js` | 5 | Limpieza de localStorage/sessionStorage, aislamiento entre usuarios en equipo compartido |
+| `storage.test.js` | 4 | Control de subida/descarga/eliminación en R2 (requiere membresía + clinica_id) |
+| `audit-log.test.js` | 4 | Inmutabilidad append-only (INSERT/UPDATE/DELETE bloqueados, solo triggers) |
+
+**Integración con CI/CD:**
+- Nuevo job `security-regression` en `.github/workflows/ci.yml`
+- Gate obligatorio: si falla, PR bloqueado automáticamente
+- Script `npm run test:security` ejecuta los 27 tests
+- Timeout 5 min (tests son instantáneos, ~5s)
+
+**Dependencias validadas:**
+- F7-08 (audit log server-side) — audit_log NO escribible por cliente
+- F7-20 (pen-test multi-tenant) — 10/10 ataques bloqueados
+- F7-21 (logout en equipo compartido) — test E2E A→logout→B
+- F7-22 (R2 storage) — Fase 9 pen-test 5/6
+- F7-19 (RBAC exportaciones) — solo admin/dentista
+- F7-33 (RBAC VACIAR_PAPELERA) — solo admin
+
+**Commits (3 commits preservados, uno por día):**
+1. Día 1: multi-tenant + RBAC (14 tests)
+2. Día 2: logout-phi + storage + audit-log (13 tests)
+3. Día 3: GitHub Actions gate + package.json script
+
+**Evidencia de calidad:**
+- ✅ 27/27 tests pasando (~5s)
+- ✅ YAML de CI válido (7 jobs en orden correcto)
+- ✅ Script test:security funciona localmente
+- ✅ Gate de CI configurado (job bloquea merge si falla)
+
+**Archivos creados/modificados:**
+- `src/test/security/README.md` (NUEVO — documentación de la suite)
+- `src/test/security/multi-tenant.test.js` (NUEVO — 8 tests)
+- `src/test/security/rbac.test.js` (NUEVO — 6 tests)
+- `src/test/security/logout-phi.test.js` (NUEVO — 5 tests)
+- `src/test/security/storage.test.js` (NUEVO — 4 tests)
+- `src/test/security/audit-log.test.js` (NUEVO — 4 tests)
+- `package.json` (modificado — + script test:security)
+- `.github/workflows/ci.yml` (modificado — + job security-regression)
+
+**Estado:** ✅ DONE (2026-09-06)
