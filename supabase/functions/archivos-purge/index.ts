@@ -148,7 +148,9 @@ Deno.serve(async (req) => {
 
     // F7-32 FIX: En modo interno (cron), saltar checks de clínica/rol del usuario.
     // La clínica se obtiene de los propios archivos a purgar.
+    console.log(`[F7-32 DEBUG] esLlamadaInterna=${esLlamadaInterna}, userId=${userId}`);
     if (!esLlamadaInterna) {
+      console.log("[F7-32 DEBUG] Ejecutando checks de clínica/rol (modo usuario)");
       // Checks de clínica y rol solo para llamadas de usuario
       const clinicaResult = await fetch(
         `${supabaseUrl}/rest/v1/miembros_clinica?user_id=eq.${userId}&select=clinica_id`,
