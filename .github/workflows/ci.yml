@@ -57,6 +57,36 @@ jobs:
       - name: Ejecutar suite de tests
         run: npm run test
 
+
+  security-regression:
+    name: 🔒 Security Regression Suite (F7-24)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Ejecutar Security Regression Suite
+        run: npm run test:security
+
+      - name: Verificar resultado (gate obligatorio)
+        if: failure()
+        run: |
+          echo "❌ Security Regression Suite falló — PR bloqueado"
+          echo "   Un PR no puede mergearse a main si falla aislamiento multi-tenant,"
+          echo "   RBAC, logout/PHI, Storage o audit log (F7-24)."
+          exit 1
+
   build:
     name: 🏗️ Build (Vite production)
     runs-on: ubuntu-latest
