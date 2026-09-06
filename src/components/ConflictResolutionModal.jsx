@@ -1,4 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { Button } from './ui/Button'
+import { Globe, PenLine } from 'lucide-react'
+import { Icon } from './Icon'
 
 /**
  * Modal de resolución de conflictos de edición (F5-04).
@@ -128,7 +131,7 @@ export const ConflictResolutionModal = ({
             {/* Versión local */}
             <div className="border border-blue-200 rounded-lg overflow-hidden">
               <div className="bg-blue-50 px-4 py-2 border-b border-blue-200">
-                <h3 className="font-semibold text-blue-900">📝 Tu versión</h3>
+                <h3 className="font-semibold text-graphite-900 dark:text-graphite-100 flex items-center gap-2"><Icon icon={PenLine} size="xs" /> Tu versión</h3>
                 <p className="text-xs text-blue-700">Los cambios que hiciste</p>
               </div>
               <div className="p-4 space-y-2">
@@ -154,7 +157,7 @@ export const ConflictResolutionModal = ({
             {/* Versión remota */}
             <div className="border border-purple-200 rounded-lg overflow-hidden">
               <div className="bg-purple-50 px-4 py-2 border-b border-purple-200">
-                <h3 className="font-semibold text-purple-900">🌐 Versión del servidor</h3>
+                <h3 className="font-semibold text-graphite-900 dark:text-graphite-100 flex items-center gap-2"><Icon icon={Globe} size="xs" /> Versión del servidor</h3>
                 <p className="text-xs text-purple-700">
                   Actualizada por otro usuario
                   {versionRemota?.updated_at && ` (${new Date(versionRemota.updated_at).toLocaleString()})`}
@@ -183,29 +186,31 @@ export const ConflictResolutionModal = ({
         </div>
 
         {/* Footer */}
-        <div className="border-t border-gray-200 px-6 py-4 bg-gray-50 flex justify-between items-center gap-3">
-          <button
+        <div className="border-t border-graphite-200 dark:border-graphite-700 px-6 py-4 bg-graphite-50 dark:bg-graphite-900 flex justify-between items-center gap-3">
+          <Button
+            variant="ghost"
             onClick={alCerrar}
             disabled={resolviendo}
-            className="px-4 py-2 text-gray-700 hover:bg-gray-200 rounded disabled:opacity-50"
           >
             Cancelar
-          </button>
+          </Button>
           <div className="flex gap-3">
-            <button
+            <Button
+              variant="secondary"
+              icon={Globe}
               onClick={() => handleResolver('remote')}
               disabled={resolviendo}
-              className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50"
             >
-              🌐 Usar versión del servidor
-            </button>
-            <button
+              Usar versión del servidor
+            </Button>
+            <Button
+              variant="primary"
+              icon={PenLine}
               onClick={() => handleResolver('local')}
               disabled={resolviendo}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
             >
-              📝 Mantener mi versión
-            </button>
+              Mantener mi versión
+            </Button>
           </div>
         </div>
       </div>
