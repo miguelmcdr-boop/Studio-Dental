@@ -80,7 +80,7 @@ export const useArchivosClinicosDownloads = (permisos, setError, setArchivoParaV
       }
       return null
     })
-  }, [])
+  }, [setArchivoParaVer])
 
   return { descargarArchivo, verArchivo, cerrarArchivoModal }
 }

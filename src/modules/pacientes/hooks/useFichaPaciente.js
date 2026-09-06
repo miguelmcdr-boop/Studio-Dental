@@ -49,12 +49,15 @@ export const useFichaPaciente = (paciente, alActualizarPaciente) => {
   })
 
   // F6-D-2: cargar odontogramas desde Supabase (vía odontogramaStorageService)
+  // F7-17: odontogramaStorageService es importación de módulo (singleton estable),
+  // NO debe estar en deps. useEffect solo re-ejecuta cuando cambia paciente.id.
   useEffect(() => {
     const dataInicial = odontogramaStorageService.obtenerOdontogramaInicial(paciente.id, {})
     setOdontogramaInicial(dataInicial)
 
     const dataEvolucion = odontogramaStorageService.obtenerOdontogramaEvolucion(paciente.id, {})
     setOdontogramaEvolucion(dataEvolucion)
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [paciente.id])
 
   const handleFichaChange = useCallback((campo, valor) => {

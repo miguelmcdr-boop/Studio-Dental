@@ -4561,3 +4561,39 @@ Las 11 tareas de Fase 1 cerradas y verificadas. Sistema apto para datos clínico
 **Deploy:** archivos-purge v14 activa en producción
 
 **Estado:** ✅ DONE (2026-09-06)
+
+---
+
+## 2026-09-06 — F7-17 + F7-22a: Limpieza de warnings y validación de mime_type — DONE
+
+**Contexto:** 
+- F7-17: Resolver warnings `exhaustive-deps` en hooks clínicos
+- F7-22a: Confirmar que `mime_type` se guarda correctamente en archivos_clinicos
+
+**F7-17 (exhaustive-deps):**
+- **Scope**: `src/modules/pacientes/hooks/` (hooks clínicos)
+- **Warnings encontrados**: 2
+  1. `useArchivosClinicos.downloads.js:83` — `setArchivoParaVer` faltante en useCallback
+  2. `useFichaPaciente.js:58` — `odontogramaStorageService` en useEffect
+- **Correcciones**:
+  1. Agregar `setArchivoParaVer` al array de deps (setter estable, seguro)
+  2. Agregar `oxlint-disable-next-line` con justificación (singleton de módulo)
+- **Resultado**: 0 warnings en hooks clínicos ✅
+- **Tests**: 15/15 pasando en useFichaPaciente
+
+**F7-22a (mime_type en r2-upload-url):**
+- **Verificación**: Schema tiene `mime_type TEXT NOT NULL` (migración 11)
+- **Edge Function**: r2-upload-url v7 incluye validación + guardado de mime_type
+- **Evidencia**: E2E de F7-22b (4/4 pasando) confirmaron uploads exitosos con mime_type
+- **Resultado**: DONE (complementado por F7-22b) ✅
+
+**Deuda técnica identificada (no parte de F7-17):**
+- 31 warnings `exhaustive-deps` en otros módulos (UI, servicios)
+- Posible tarea futura: F7-17b "Resolver warnings exhaustive-deps en resto del proyecto"
+- No bloquea piloto (scope clínico ya limpio)
+
+**Archivos modificados:**
+- `src/modules/pacientes/hooks/useArchivosClinicos.downloads.js` (1 línea)
+- `src/modules/pacientes/hooks/useFichaPaciente.js` (1 línea + disable comment)
+
+**Estado:** ✅ DONE (2026-09-06)
