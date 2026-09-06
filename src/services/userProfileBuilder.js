@@ -7,6 +7,7 @@
  */
 
 import { obtenerRolEnClinicaActual } from './authService.js'
+import { createLogger } from './logger'
 
 /**
  * F7-10b: Construye el objeto userProfile desde los datos de Supabase Auth.
@@ -19,6 +20,8 @@ import { obtenerRolEnClinicaActual } from './authService.js'
  * @param {Object} metadata - Datos del formulario (fallback si userMetadata está incompleto)
  * @returns {Promise<Object>} userProfile listo para pasar a sesionStore
  */
+const log = createLogger('userProfileBuilder')
+
 export const construirUserProfile = async (email, userMetadata, metadata) => {
   // Obtener rol contextual de la clínica activa
   let rolContextual = null
@@ -26,7 +29,7 @@ export const construirUserProfile = async (email, userMetadata, metadata) => {
     rolContextual = await obtenerRolEnClinicaActual()
   } catch (error) {
     // F7-10b: si falla la consulta, degradar al rol global sin romper la app
-    console.warn('[userProfileBuilder] Error obteniendo rol contextual, usando fallback:', error.message)
+    log.warn('Error obteniendo rol contextual, usando fallback:', error.message)
   }
 
   // Fallback: usar rol global de user_metadata si no hay membresía

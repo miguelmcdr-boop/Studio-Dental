@@ -174,7 +174,7 @@ const purgarCacheStorage = async () => {
  *
  * @example
  *   const resultado = await purgarDatosLocales()
- *   console.log(resultado)
+ *   logger.info('Datos locales purgados', resultado)
  *   // { stores: ['pacientesStore','prestacionesStore'],
  *   //   localStorageKeys: 24,
  *   //   indexedDB: { eliminada: true, razon: 'success' },
