@@ -145,6 +145,38 @@ Deno.serve(async (req) => {
     // 2. Parsear body
     const body = await req.json();
     const archivoIds: string[] = Array.isArray(body.archivo_ids) ? body.archivo_ids : [];
+
+    // F7-32 FIX: En modo interno (cron), saltar checks de clínica/rol del usuario.
+    // La clínica se obtiene de los propios archivos a purgar.
+    if (!esLlamadaInterna) {
+      // Checks de clínica y rol solo para llamadas de usuario
+      const clinicaResult = await fetch(
+        `${supabaseUrl}/rest/v1/miembros_clinica?user_id=eq.${userId}&select=clinica_id`,
+        { headers: { Authorization: `Bearer ${supabaseServiceKey}`, apikey: supabaseServiceKey } }
+      ).then((res) => res.json());
+
+      if (!clinicaResult || clinicaResult.length === 0) {
+        return jsonResponse({ error: "User not associated with any clínica" }, 403);
+      }
+
+      const clinicaId = clinicaResult[0].clinica_id;
+
+      const rolResult = await fetch(
+        `${supabaseUrl}/rest/v1/miembros_clinica?user_id=eq.${userId}&clinica_id=eq.${clinicaId}&select=rol`,
+        { headers: { Authorization: `Bearer ${supabaseServiceKey}`, apikey: supabaseServiceKey } }
+      ).then((res) => res.json());
+
+      if (!rolResult || rolResult.length === 0) {
+        return jsonResponse({ error: "User role not found" }, 403);
+      }
+
+      const userRol = rolResult[0].rol;
+      const allowedRoles = ["admin", "dentista"];
+      if (!allowedRoles.includes(userRol)) {
+        return jsonResponse({ error: `Insufficient permissions. Required: ${allowedRoles.join(" or ")}. Current: ${userRol}` }, 403);
+      }
+    }
+
     if (archivoIds.length === 0) {
       return jsonResponse({ error: "Missing required field: archivo_ids" }, 400);
     }
