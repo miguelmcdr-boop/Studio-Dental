@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { createLogger, logger } from './logger'
+import { createLogger, logger, sanitizePHI } from './logger'
 
 /**
  * Tests del logger centralizado (F6-03).
@@ -209,5 +209,68 @@ describe('logger (F6-03)', () => {
         args: ['[app]', 'mensaje debug']
       })
     })
+  })
+})
+
+describe('sanitizePHI (F7-23)', () => {
+  it('enmascara campos sensibles en objetos', () => {
+    const paciente = {
+      id: 'abc-123',
+      nombre: 'Juan Pérez',
+      rut: '12345678-9',
+      telefono: '+56912345678',
+      email: 'juan@example.com',
+      diagnostico: 'Caries dental',
+    }
+    
+    const sanitized = sanitizePHI(paciente)
+    
+    expect(sanitized.id).toBe('abc-123')
+    expect(sanitized.nombre).toBe('***REDACTED***')
+    expect(sanitized.rut).toBe('***REDACTED***')
+    expect(sanitized.telefono).toBe('***REDACTED***')
+    expect(sanitized.email).toBe('***REDACTED***')
+    expect(sanitized.diagnostico).toBe('***REDACTED***')
+  })
+  
+  it('preserva campos no sensibles', () => {
+    const data = {
+      id: 'abc-123',
+      estado: 'activo',
+      clinica_id: 'xyz-789',
+      created_at: '2026-01-01',
+    }
+    
+    const sanitized = sanitizePHI(data)
+    
+    expect(sanitized).toEqual(data)
+  })
+  
+  it('maneja arrays de objetos', () => {
+    const pacientes = [
+      { id: '1', nombre: 'Juan' },
+      { id: '2', nombre: 'María' },
+    ]
+    
+    const sanitized = sanitizePHI(pacientes)
+    
+    expect(sanitized).toHaveLength(2)
+    expect(sanitized[0].nombre).toBe('***REDACTED***')
+    expect(sanitized[1].nombre).toBe('***REDACTED***')
+  })
+  
+  it('maneja valores primitivos (no los modifica)', () => {
+    expect(sanitizePHI('string')).toBe('string')
+    expect(sanitizePHI(123)).toBe(123)
+    expect(sanitizePHI(null)).toBe(null)
+    expect(sanitizePHI(undefined)).toBe(undefined)
+  })
+  
+  it('no muta el objeto original', () => {
+    const original = { nombre: 'Juan', id: '123' }
+    const sanitized = sanitizePHI(original)
+    
+    expect(original.nombre).toBe('Juan')
+    expect(sanitized.nombre).toBe('***REDACTED***')
   })
 })

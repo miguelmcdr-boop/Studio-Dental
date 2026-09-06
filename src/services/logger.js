@@ -99,3 +99,48 @@ export const createLogger = (moduleName) => {
 
 // Logger por defecto para uso simple (sin módulo específico)
 export const logger = createLogger('app')
+
+/**
+ * Sanitiza objetos para logging, enmascarando campos sensibles (PHI).
+ * 
+ * Uso:
+ *   log.info('Paciente:', sanitizePHI(paciente))
+ *   // { id: 'abc-123', nombre: '***REDACTED***', rut: '***REDACTED***' }
+ * 
+ * F7-23: Previene fuga accidental de PHI (Protected Health Information).
+ * 
+ * @param {Object|Array|any} data - Datos a sanitizar
+ * @returns {Object|Array|any} - Datos con campos sensibles enmascarados
+ */
+export const sanitizePHI = (data) => {
+  if (data === null || data === undefined) return data
+  if (typeof data !== 'object') return data
+  
+  const sensitiveFields = [
+    'nombre', 'apellido', 'apellidos',
+    'rut', 'cedula', 'dni', 'identificacion',
+    'telefono', 'celular', 'phone',
+    'email', 'correo',
+    'direccion', 'domicilio', 'address',
+    'diagnostico', 'diagnosis',
+    'tratamiento', 'treatment',
+    'anamnesis',
+    'receta', 'prescripcion',
+  ]
+  
+  // Manejar arrays
+  if (Array.isArray(data)) {
+    return data.map(item => sanitizePHI(item))
+  }
+  
+  // Clonar para no mutar el original
+  const sanitized = { ...data }
+  
+  sensitiveFields.forEach(field => {
+    if (sanitized[field] !== undefined && sanitized[field] !== null) {
+      sanitized[field] = '***REDACTED***'
+    }
+  })
+  
+  return sanitized
+}

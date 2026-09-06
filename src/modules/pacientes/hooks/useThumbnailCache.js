@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
 import { solicitaUrlDownload } from '../../../services/r2ArchivosService'
+import { createLogger } from '../../../services/logger'
 
 /**
  * Hook de cache de thumbnails para archivos clínicos.
@@ -20,6 +21,8 @@ import { solicitaUrlDownload } from '../../../services/r2ArchivosService'
  *
  * @returns {{cache, cargarThumbnail, limpiarCache}}
  */
+const log = createLogger('useThumbnailCache')
+
 export const useThumbnailCache = () => {
   const [cache, setCache] = useState({}) // { archivoId: blobUrl }
 
@@ -31,7 +34,7 @@ export const useThumbnailCache = () => {
       const downloadData = await solicitaUrlDownload(archivo.id)
 
       if (!downloadData || !downloadData.download_url) {
-        console.warn('[useThumbnailCache] Sin URL para thumbnail de', archivo.id)
+        log.warn('Sin URL para thumbnail de', archivo.id)
         return null
       }
 
@@ -40,7 +43,7 @@ export const useThumbnailCache = () => {
       })
 
       if (!response.ok) {
-        console.warn('[useThumbnailCache] Error descargando thumbnail de', archivo.id, 'status', response.status)
+        log.warn('Error descargando thumbnail de', archivo.id, 'status', response.status)
         return null
       }
 
@@ -51,7 +54,7 @@ export const useThumbnailCache = () => {
 
       return blobUrl
     } catch (e) {
-      console.warn('[useThumbnailCache] Excepción cargando thumbnail de', archivo.id, e)
+      log.warn('Excepción cargando thumbnail de', archivo.id, e)
       return null
     }
   }, [cache])

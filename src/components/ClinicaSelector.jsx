@@ -83,7 +83,7 @@ export const ClinicaSelector = ({ onCambioClinica }) => {
           }
         } catch (e) {
           // Silencioso: si falla la actualización, App.jsx reconstruirá el perfil vía construirUserProfile()
-          console.warn('[ClinicaSelector] Error actualizando rol en perfil guardado:', e.message)
+          log.warn('Error actualizando rol en perfil guardado:', e.message)
         }
         setTimeout(() => window.location.reload(), 300)
       } else {
