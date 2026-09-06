@@ -183,27 +183,26 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "Missing required field: archivo_ids" }, 400);
     }
 
-    // 3. Obtener clínica y rol
-    const clinicaResult = await fetch(
-      `${supabaseUrl}/rest/v1/miembros_clinica?user_id=eq.${userId}&select=clinica_id,rol`,
-      { headers: { Authorization: `Bearer ${supabaseServiceKey}`, apikey: supabaseServiceKey } }
-    ).then((res) => res.json());
+    // 3. Obtener clínica (solo para llamadas de usuario)
+    // En modo interno, la clínica se obtiene de los propios archivos
+    let clinicaId: string | null = null;
+    if (!esLlamadaInterna) {
+      const clinicaResult = await fetch(
+        `${supabaseUrl}/rest/v1/miembros_clinica?user_id=eq.${userId}&select=clinica_id`,
+        { headers: { Authorization: `Bearer ${supabaseServiceKey}`, apikey: supabaseServiceKey } }
+      ).then((res) => res.json());
 
-    if (!clinicaResult || clinicaResult.length === 0) {
-      return jsonResponse({ error: "User not associated with any clínica" }, 403);
-    }
-    const clinicaId = clinicaResult[0].clinica_id;
-    const userRol = clinicaResult[0].rol;
-
-    // 4. Solo admin puede purgar
-    if (userRol !== "admin") {
-      return jsonResponse({ error: `Insufficient permissions. Required: admin. Current: ${userRol}` }, 403);
+      if (!clinicaResult || clinicaResult.length === 0) {
+        return jsonResponse({ error: "User not associated with any clínica" }, 403);
+      }
+      clinicaId = clinicaResult[0].clinica_id;
     }
 
-    // 5. Obtener archivos de la papelera de esta clínica
+    // 4. Obtener archivos (con o sin filtro de clínica según el modo)
     const idsParam = archivoIds.join(",");
+    const clinicaFilter = clinicaId ? `&clinica_id=eq.${clinicaId}` : "";
     const archivosResult = await fetch(
-      `${supabaseUrl}/rest/v1/archivos_clinicos?id=in.(${idsParam})&clinica_id=eq.${clinicaId}&select=id,nombre_archivo,r2_object_key,estado`,
+      `${supabaseUrl}/rest/v1/archivos_clinicos?id=in.(${idsParam})${clinicaFilter}&select=id,nombre_archivo,r2_object_key,estado,clinica_id`,
       { headers: { Authorization: `Bearer ${supabaseServiceKey}`, apikey: supabaseServiceKey } }
     ).then((res) => res.json());
 
