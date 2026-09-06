@@ -267,16 +267,16 @@ Deno.serve(async (req) => {
     }
 
     // F7-32: En modo interno (cron), registrar AUTO_PURGE_ARCHIVOS en audit_log
+    // Usamos el clinica_id del primer archivo del resultado ya obtenido (archivosResult),
+    // NO hacemos otro fetch porque los archivos ya fueron eliminados de la BD.
     if (esLlamadaInterna && purgados.length > 0) {
-      // Obtener clinica_id del primer archivo purgado para el audit_log
-      const clinicaForAudit = await fetch(
-        `${supabaseUrl}/rest/v1/archivos_clinicos?id=eq.${purgados[0]}&select=clinica_id`,
-        { headers: { Authorization: `Bearer ${supabaseServiceKey}`, apikey: supabaseServiceKey } }
-      ).then((res) => res.json()).catch(() => []);
+      const primerArchivoPurgado = archivosResult.find(
+        (a: any) => a.id === purgados[0]
+      );
+      const clinicaIdForAudit = primerArchivoPurgado?.clinica_id 
+        || "00000000-0000-0000-0000-000000000000";
 
-      const clinicaIdForAudit = clinicaForAudit?.[0]?.clinica_id || "00000000-0000-0000-0000-000000000000";
-
-      await fetch(`${supabaseUrl}/rest/v1/rpc/registrar_evento_purge`, {
+      const auditResponse = await fetch(`${supabaseUrl}/rest/v1/rpc/registrar_evento_purge`, {
         method: "POST",
         headers: { Authorization: `Bearer ${supabaseServiceKey}`, apikey: supabaseServiceKey, "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -291,6 +291,13 @@ Deno.serve(async (req) => {
           p_user_id: userId,
         }),
       });
+
+      if (!auditResponse.ok) {
+        const auditError = await auditResponse.text();
+        console.warn(`[F7-32] Error registrando AUTO_PURGE_ARCHIVOS: ${auditError}`);
+      } else {
+        console.log(`[F7-32] AUTO_PURGE_ARCHIVOS registrado correctamente (${purgados.length} archivos)`);
+      }
     }
 
     return jsonResponse({
