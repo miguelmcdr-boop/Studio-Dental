@@ -104,55 +104,106 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // 1. Validar JWT
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return jsonResponse({ error: "Missing or invalid Authorization header" }, 401);
-    }
-    const jwt = authHeader.split(" ")[1];
+    // 1. Validar autenticación (JWT de usuario O secreto interno compartido)
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    const { data: userData, error: authError } = await fetch(`${supabaseUrl}/auth/v1/user`, {
-      headers: { Authorization: `Bearer ${jwt}`, apikey: supabaseServiceKey },
-    }).then(async (res) => {
-      if (!res.ok) return { data: null, error: await res.text() };
-      return { data: await res.json(), error: null };
-    });
+    // F7-32 FIX: Supabase Edge Functions middleware rechaza service_role_key como Bearer token.
+    // Solución: usar header X-Internal-Secret con secreto compartido para llamadas internas del cron.
+    const internalSecret = req.headers.get("X-Internal-Secret");
+    const expectedInternalSecret = Deno.env.get("INTERNAL_PURGE_SECRET");
+    const esLlamadaInterna = internalSecret && expectedInternalSecret && internalSecret === expectedInternalSecret;
 
-    if (authError || !userData) {
-      return jsonResponse({ error: "Invalid JWT" }, 401);
+    let userId: string | null;
+
+    if (esLlamadaInterna) {
+      // Llamada interna del cron (desde pg_cron vía system_config secret)
+      // user_id = NULL en audit_log (campo es nullable, evita FK violation)
+      userId = null;
+      console.log("[F7-32] Llamada interna del cron detectada (X-Internal-Secret)");
+    } else {
+      // Llamada normal de usuario: validar JWT con Supabase
+      const authHeader = req.headers.get("Authorization");
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return jsonResponse({ error: "Missing or invalid Authorization header" }, 401);
+      }
+      const token = authHeader.split(" ")[1];
+
+      const { data: userData, error: authError } = await fetch(`${supabaseUrl}/auth/v1/user`, {
+        headers: { Authorization: `Bearer ${token}`, apikey: supabaseServiceKey },
+      }).then(async (res) => {
+        if (!res.ok) return { data: null, error: await res.text() };
+        return { data: await res.json(), error: null };
+      });
+
+      if (authError || !userData) {
+        return jsonResponse({ error: "Invalid JWT" }, 401);
+      }
+
+      userId = userData.id;
     }
-    const userId = userData.id;
 
     // 2. Parsear body
     const body = await req.json();
     const archivoIds: string[] = Array.isArray(body.archivo_ids) ? body.archivo_ids : [];
+
+    // F7-32 FIX: En modo interno (cron), saltar checks de clínica/rol del usuario.
+    // La clínica se obtiene de los propios archivos a purgar.
+    console.log(`[F7-32 DEBUG] esLlamadaInterna=${esLlamadaInterna}, userId=${userId}`);
+    if (!esLlamadaInterna) {
+      console.log("[F7-32 DEBUG] Ejecutando checks de clínica/rol (modo usuario)");
+      // Checks de clínica y rol solo para llamadas de usuario
+      const clinicaResult = await fetch(
+        `${supabaseUrl}/rest/v1/miembros_clinica?user_id=eq.${userId}&select=clinica_id`,
+        { headers: { Authorization: `Bearer ${supabaseServiceKey}`, apikey: supabaseServiceKey } }
+      ).then((res) => res.json());
+
+      if (!clinicaResult || clinicaResult.length === 0) {
+        return jsonResponse({ error: "User not associated with any clínica" }, 403);
+      }
+
+      const clinicaId = clinicaResult[0].clinica_id;
+
+      const rolResult = await fetch(
+        `${supabaseUrl}/rest/v1/miembros_clinica?user_id=eq.${userId}&clinica_id=eq.${clinicaId}&select=rol`,
+        { headers: { Authorization: `Bearer ${supabaseServiceKey}`, apikey: supabaseServiceKey } }
+      ).then((res) => res.json());
+
+      if (!rolResult || rolResult.length === 0) {
+        return jsonResponse({ error: "User role not found" }, 403);
+      }
+
+      const userRol = rolResult[0].rol;
+      const allowedRoles = ["admin", "dentista"];
+      if (!allowedRoles.includes(userRol)) {
+        return jsonResponse({ error: `Insufficient permissions. Required: ${allowedRoles.join(" or ")}. Current: ${userRol}` }, 403);
+      }
+    }
+
     if (archivoIds.length === 0) {
       return jsonResponse({ error: "Missing required field: archivo_ids" }, 400);
     }
 
-    // 3. Obtener clínica y rol
-    const clinicaResult = await fetch(
-      `${supabaseUrl}/rest/v1/miembros_clinica?user_id=eq.${userId}&select=clinica_id,rol`,
-      { headers: { Authorization: `Bearer ${supabaseServiceKey}`, apikey: supabaseServiceKey } }
-    ).then((res) => res.json());
+    // 3. Obtener clínica (solo para llamadas de usuario)
+    // En modo interno, la clínica se obtiene de los propios archivos
+    let clinicaId: string | null = null;
+    if (!esLlamadaInterna) {
+      const clinicaResult = await fetch(
+        `${supabaseUrl}/rest/v1/miembros_clinica?user_id=eq.${userId}&select=clinica_id`,
+        { headers: { Authorization: `Bearer ${supabaseServiceKey}`, apikey: supabaseServiceKey } }
+      ).then((res) => res.json());
 
-    if (!clinicaResult || clinicaResult.length === 0) {
-      return jsonResponse({ error: "User not associated with any clínica" }, 403);
-    }
-    const clinicaId = clinicaResult[0].clinica_id;
-    const userRol = clinicaResult[0].rol;
-
-    // 4. Solo admin puede purgar
-    if (userRol !== "admin") {
-      return jsonResponse({ error: `Insufficient permissions. Required: admin. Current: ${userRol}` }, 403);
+      if (!clinicaResult || clinicaResult.length === 0) {
+        return jsonResponse({ error: "User not associated with any clínica" }, 403);
+      }
+      clinicaId = clinicaResult[0].clinica_id;
     }
 
-    // 5. Obtener archivos de la papelera de esta clínica
+    // 4. Obtener archivos (con o sin filtro de clínica según el modo)
     const idsParam = archivoIds.join(",");
+    const clinicaFilter = clinicaId ? `&clinica_id=eq.${clinicaId}` : "";
     const archivosResult = await fetch(
-      `${supabaseUrl}/rest/v1/archivos_clinicos?id=in.(${idsParam})&clinica_id=eq.${clinicaId}&select=id,nombre_archivo,r2_object_key,estado`,
+      `${supabaseUrl}/rest/v1/archivos_clinicos?id=in.(${idsParam})${clinicaFilter}&select=id,nombre_archivo,r2_object_key,estado,clinica_id`,
       { headers: { Authorization: `Bearer ${supabaseServiceKey}`, apikey: supabaseServiceKey } }
     ).then((res) => res.json());
 
@@ -199,11 +250,12 @@ Deno.serve(async (req) => {
       }
 
       // 8. Registrar auditoría
+      // F7-32 FIX: usar clinica_id del archivo (en modo interno clinicaId es null)
       await fetch(`${supabaseUrl}/rest/v1/rpc/registrar_evento_purge`, {
         method: "POST",
         headers: { Authorization: `Bearer ${supabaseServiceKey}`, apikey: supabaseServiceKey, "Content-Type": "application/json" },
         body: JSON.stringify({
-          p_clinica_id: clinicaId,
+          p_clinica_id: archivo.clinica_id,
           p_evento: "ADMIN_PURGE_ARCHIVOS",
           p_detalle: {
             archivo_id: archivoId,
@@ -214,6 +266,39 @@ Deno.serve(async (req) => {
       });
 
       purgados.push(archivoId);
+    }
+
+    // F7-32: En modo interno (cron), registrar AUTO_PURGE_ARCHIVOS en audit_log
+    // Usamos el clinica_id del primer archivo del resultado ya obtenido (archivosResult),
+    // NO hacemos otro fetch porque los archivos ya fueron eliminados de la BD.
+    if (esLlamadaInterna && purgados.length > 0) {
+      const primerArchivoPurgado = archivosResult.find(
+        (a: any) => a.id === purgados[0]
+      );
+      const clinicaIdForAudit = primerArchivoPurgado?.clinica_id;
+
+      const auditResponse = await fetch(`${supabaseUrl}/rest/v1/rpc/registrar_evento_purge`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${supabaseServiceKey}`, apikey: supabaseServiceKey, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          p_clinica_id: clinicaIdForAudit,
+          p_evento: "AUTO_PURGE_ARCHIVOS",
+          p_detalle: {
+            archivo_ids: purgados,
+            count: purgados.length,
+            trigger: "pg_cron",
+            timestamp: new Date().toISOString(),
+          },
+          p_user_id: userId,
+        }),
+      });
+
+      if (!auditResponse.ok) {
+        const auditError = await auditResponse.text();
+        console.warn(`[F7-32] Error registrando AUTO_PURGE_ARCHIVOS: ${auditError}`);
+      } else {
+        console.log(`[F7-32] AUTO_PURGE_ARCHIVOS registrado correctamente (${purgados.length} archivos)`);
+      }
     }
 
     return jsonResponse({

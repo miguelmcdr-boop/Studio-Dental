@@ -4501,3 +4501,63 @@ Las 11 tareas de Fase 1 cerradas y verificadas. Sistema apto para datos clínico
 **Deploy:** `r2-upload-url` v4 activa en producción
 
 **Estado:** ✅ DONE (2026-09-05)
+
+---
+
+## 2026-09-06 — F7-32: Purga automática de archivos en papelera (30 días) — DONE
+
+**Contexto:** Los archivos eliminados (estado='eliminado') se acumulaban indefinidamente en R2, generando costo sin valor clínico. F7-33 permitía vaciar papelera manualmente, pero dependía de memoria del admin.
+
+**Solución:**
+- Migración 18: función SQL `purgar_archivos_expirados()` + schedule pg_cron diario a las 3 AM
+- Migración 19: ALTER constraint `audit_log_action_check` para incluir `AUTO_PURGE_ARCHIVOS`
+- Tabla `system_config` con RLS estricto para secrets (internal_purge_secret)
+- Edge Function archivos-purge con soporte dual:
+  - **Modo usuario** (JWT): valida clínica y rol del usuario
+  - **Modo interno** (X-Internal-Secret): omite checks, usa clinica_id del archivo
+- Arquitectura fire-and-forget: SQL solo encola en pg_net, worker procesa en background
+
+**Componentes técnicos:**
+- `pg_cron` 1.6.4 (schedule `0 3 * * *` = diario 3 AM)
+- `pg_net` 0.20.4 (cola asíncrona de HTTP requests)
+- `system_config` (RLS: solo service_role puede leer/escribir)
+- Header `X-Internal-Secret` con secreto compartido de 32 chars
+- Lote de 100 archivos por ejecución (evita timeouts)
+
+**Iteraciones de debugging (preservadas en historial):**
+1. service_role_key como Bearer token → 401 (middleware Supabase lo rechaza)
+2. Cambio a X-Internal-Secret + INTERNAL_PURGE_SECRET en env vars ✅
+3. user_id de sistema `00000000-...` violaba FK de auth.users → usar `null` ✅
+4. clinicaId=null en modo interno → obtener del archivo en SELECT ✅
+5. net.http_post() retorna BIGINT, no columnas → fire-and-forget ✅
+6. AUTO_PURGE_ARCHIVOS no estaba en constraint → ALTER ✅
+7. Bloque duplicado de checks → eliminar ✅
+8. Silent fail de RPC → validar response.ok ✅
+
+**E2E validado:**
+- ✅ Archivo con deleted_at=31 días en papelera
+- ✅ `purgar_archivos_expirados()` ejecutada vía SQL
+- ✅ pg_net worker procesa encolado
+- ✅ archivos-purge v14 elimina blob R2 + fila BD
+- ✅ `AUTO_PURGE_ARCHIVOS` registrado (user_id=null, trigger=pg_cron)
+- ✅ `ADMIN_PURGE_ARCHIVOS` registrado (uno por archivo purgado)
+
+**Seguridad:**
+- internal_purge_secret en system_config con RLS (solo service_role)
+- Mismo secreto en INTERNAL_PURGE_SECRET (env var de archivos-purge)
+- X-Internal-Secret no se expone en logs ni respuestas
+- Modo interno solo accesible con secreto válido
+
+**Requisitos de despliegue:**
+1. Habilitar extensiones en Supabase Dashboard: pg_cron + pg_net
+2. Configurar INTERNAL_PURGE_SECRET en archivos-purge (Edge Functions → Secrets)
+3. Insertar mismo secreto en system_config (SQL Editor)
+
+**Archivos modificados:**
+- `supabase/migrations/20260101000018_purga_automatica_archivos.sql` (NUEVO)
+- `supabase/migrations/20260101000019_alter_audit_log_constraint.sql` (NUEVO)
+- `supabase/functions/archivos-purge/index.ts` (soporte dual usuario/interno + audit_log)
+
+**Deploy:** archivos-purge v14 activa en producción
+
+**Estado:** ✅ DONE (2026-09-06)
