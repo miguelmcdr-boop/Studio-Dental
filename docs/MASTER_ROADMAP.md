@@ -170,7 +170,7 @@
 | F7-14 | Security headers: CSP, HSTS y Permissions-Policy | 7 | P2 | S (1 d) | — | TODO |
 | F7-15 | Sustituir `xlsx@0.18.5` por dependencia sin advisories abiertos | 7 | P2 | S (1 d) | — | DONE (2026-09-01) — migración a exceljs@4.4.0, elimina 2 vulnerabilidades HIGH (Prototype Pollution + ReDoS), 25 tests reescritos, npm audit 0 vulnerabilities, override uuid para seguridad transitiva |
 | F7-16 | Retirar o endurecer autenticación local PBKDF2 + localStorage | 7 | P2 | S (1 d) | F7-05 | TODO |
-| F7-17 | Resolver warnings `exhaustive-deps` en hooks clínicos | 7 | P2 | XS (<0.5 d) | — | TODO |
+| F7-17 | Resolver warnings `exhaustive-deps` en hooks clínicos | 7 | P2 | XS (<0.5 d) | — | DONE (2026-09-06) — 0 warnings en hooks clínicos, 2 correcciones (setter + disable comment justificado) |
 | F7-18 | Auditoría XSS / HTML no confiable en datos clínicos | 7 | **P0** | S (1 d) | — | DONE (2026-09-02) — auditoría completa confirmó que React protege automáticamente, 0 dangerouslySetInnerHTML en producción, 0 innerHTML/document.write, datos clínicos seguros, defensa en profundidad vía F7-14 (CSP) |
 | F7-19 | Auditoría de exportaciones: RBAC, PHI y auditabilidad | 7 | **P0** | S (1-2 d) | F7-08 | DONE (2026-09-02) — RPC registrar_exportacion() SECURITY DEFINER bypass RLS, constraint EXPORT en audit_log, validación auth.uid() + clinica_actual() + membresía, rate limiting 100/hora, 23 tests reescritos |
 | F7-20 | Pen-test lógico multi-tenant contra Supabase | 7 | **P0** | S (1-2 d) | F7-10 | DONE (2026-09-02) — pen-test 10/10 ataques bloqueados, bug crítico corregido (INSERT cross-tenant en evoluciones/recetas), migración SQL aplicada en producción eliminando 9 políticas legacy y creando 36 multiclinica seguras |
@@ -187,7 +187,7 @@
 | F7-31 | Papelera de archivos clínicos (restaurar archivos eliminados de R2) | 7 | P2 | S (1-2 d) | F7-22 | DONE (2026-09-04) — r2-delete modificado (soft delete), r2-list-deleted + r2-restore creados, PapeleraArchivos.jsx integrado, tests E2E 3/3 pasados, migración 14 (FILE_RESTORE en constraint) |
 | F7-32 | Purga automática de archivos en papelera después de 30 días (Edge Function + cron) | 7 | P2 | M (2-3 d) | F7-31 | DONE (2026-09-06) — pg_cron + pg_net + system_config + archivos-purge dual mode, 2 migraciones, E2E end-to-end con audit_log |
 | F7-33 | Vaciar papeleras: eliminación permanente de pacientes (10 años) y archivos clínicos (R2) | 7 | P1 | M (3-5 d) | F6-L, F7-31 | DONE (2026-09-04) — Edge Functions pacientes-purge + archivos-purge, retención legal 10 años pacientes, confirmación doble, 46 tests, RBAC VACIAR_PAPELERA |
-| F7-22a | Corregir r2-upload-url para guardar mime_type al crear archivo | 7 | P2 | XS (<0.5 d) | F7-22 | TODO |
+| F7-22a | Corregir r2-upload-url para guardar mime_type al crear archivo | 7 | P2 | XS (<0.5 d) | F7-22 | DONE (2026-09-06) — mime_type se guarda correctamente en r2-upload-url v7, validado en E2E de F7-22b |
 | F7-22b | Validación server-side de mime_type en Edge Function r2-upload-url | 7 | P2 | XS (<0.5 d) | F7-22a | DONE (2026-09-05) — helper validarFormatoArchivo + 14 tests Deno, lista blanca por categoría, E2E 4/4, r2-upload-url v4 desplegada |
 
 
