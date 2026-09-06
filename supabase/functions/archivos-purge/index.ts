@@ -266,6 +266,33 @@ Deno.serve(async (req) => {
       purgados.push(archivoId);
     }
 
+    // F7-32: En modo interno (cron), registrar AUTO_PURGE_ARCHIVOS en audit_log
+    if (esLlamadaInterna && purgados.length > 0) {
+      // Obtener clinica_id del primer archivo purgado para el audit_log
+      const clinicaForAudit = await fetch(
+        `${supabaseUrl}/rest/v1/archivos_clinicos?id=eq.${purgados[0]}&select=clinica_id`,
+        { headers: { Authorization: `Bearer ${supabaseServiceKey}`, apikey: supabaseServiceKey } }
+      ).then((res) => res.json()).catch(() => []);
+
+      const clinicaIdForAudit = clinicaForAudit?.[0]?.clinica_id || "00000000-0000-0000-0000-000000000000";
+
+      await fetch(`${supabaseUrl}/rest/v1/rpc/registrar_evento_purge`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${supabaseServiceKey}`, apikey: supabaseServiceKey, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          p_clinica_id: clinicaIdForAudit,
+          p_evento: "AUTO_PURGE_ARCHIVOS",
+          p_detalle: {
+            archivo_ids: purgados,
+            count: purgados.length,
+            trigger: "pg_cron",
+            timestamp: new Date().toISOString(),
+          },
+          p_user_id: userId,
+        }),
+      });
+    }
+
     return jsonResponse({
       success: true,
       purgados,
