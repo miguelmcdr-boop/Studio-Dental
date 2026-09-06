@@ -4716,3 +4716,67 @@ direccion, diagnostico, tratamiento, anamnesis, receta
 - `.github/workflows/ci.yml` (modificado — + job security-regression)
 
 **Estado:** ✅ DONE (2026-09-06)
+
+---
+
+## 2026-09-06 — F7-25 MVP: Design System Graphite & Champagne + iconografía profesional — PARCIAL (Fase 1+2 de 5)
+
+**Contexto:** F7-25 busca unificar tipografía, jerarquía, espaciado, componentes, estados, iconografía y navegación. Sustituir progresivamente emojis como sistema principal de navegación por iconografía consistente.
+
+**Decisión estratégica:** Implementar MVP (Fase 1+2) en lugar de las 5 fases completas (L, 4-7 días), para validar el enfoque antes de comprometer el resto.
+
+**Paleta elegida: Graphite & Champagne (híbrido claro/oscuro)**
+- **Modo CLARO** (uso diario 8+ horas):
+  - Fondo: Grafito suave #f3f4f6
+  - Primario: Champagne #b08d57 (dorado sutil, no ostentoso)
+  - Acento: Carbón #1f2937
+- **Modo OSCURO** (presentaciones/ejecutivos):
+  - Fondo: Grafito profundo #111827
+  - Primario: Champagne brillante #d4b896
+  - Acento: Gris humo #f9fafb
+- Activación: clase `dark` en `<html>` o `<body>`
+
+**Fase 1 completada — Design tokens:**
+- `src/design/tokens.css` con `@theme` de Tailwind v4 (nativo, sin postcss.config)
+- Paleta completa: champagne-50 a champagne-900, graphite-50 a graphite-950
+- Estados clínicos semánticos: success (#10b981), warning (#f59e0b), error (#dc2626), info (#0369a1)
+- Espaciado base 4px: xs(4) a 2xl(32)
+- Tipografía: Inter/system-ui
+- Radios: sm(6) a xl(16)
+- Sombras: sm, md, lg
+
+**Fase 2 completada — Iconografía lucide-react:**
+- `src/components/Icon.jsx` (wrapper con tamaños xs/sm/md/lg/xl + colores semánticos)
+- Migración completa de Sidebar.jsx:
+  * 📅→Calendar, 🎛️→LayoutDashboard, 👥→Users, 🚨→Siren, 📋→FileText
+  * 💳→CreditCard, ✉️→Mail, 🧼→Sparkles, 🧪→FlaskConical, 📦→Package
+  * 🦷→Stethoscope, 💰→DollarSign, 📊→BarChart3, 👥→UsersRound, 💊→Pill
+  * ⚡→Settings, 🚪→LogOut, ▶→ChevronRight, ◀→ChevronLeft
+- 0 emojis restantes en navegación principal
+
+**Mapeo de iconos por dominio clínico:**
+- Pacientes: Users (no Stethoscope para no confundir con Prestaciones)
+- Prestaciones: Stethoscope (ícono clínico por excelencia)
+- Urgencias: Siren (alarma visual clara)
+- Esterilización: Sparkles (limpieza/brillo)
+- Laboratorio: FlaskConical (ciencia)
+- Vademécum: Pill (medicamentos)
+
+**Evidencia de calidad:**
+- ✅ Build OK (2235.97 KiB, 31 entradas precache)
+- ✅ Validador arquitectónico PASS
+- ✅ 0 emojis en navegación (grep verificado)
+- ✅ Tailwind v4 @theme funcionando nativamente
+
+**Archivos creados/modificados:**
+- `src/design/tokens.css` (NUEVO — 90 líneas, paleta completa)
+- `src/components/Icon.jsx` (NUEVO — wrapper lucide-react)
+- `src/components/Sidebar.jsx` (MODIFICADO — 17 emojis → lucide icons)
+- `src/index.css` (MODIFICADO — importa tokens.css)
+
+**Fases pendientes de F7-25:**
+- Fase 3: Componentes base (Button, Input, Card, Modal unificado)
+- Fase 4: App Shell profesional (TopBar con usuario, clínica, notificaciones)
+- Fase 5: Unificación de 140 componentes existentes (19 globales + 121 en módulos)
+
+**Estado:** ✅ PARCIAL DONE (Fase 1+2 de 5) — 2026-09-06

@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "./design/tokens.css";
+
 /* Configuración global de impresión - Formato Letter (8.5" x 11") */
 @media print {
   @page {
