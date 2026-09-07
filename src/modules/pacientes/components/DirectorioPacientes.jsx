@@ -1,4 +1,6 @@
 import React, { memo, useState } from 'react'
+import { Button } from '../../../components/ui/Button'
+import { Input } from '../../../components/ui/Input'
 import { usePacientesStore } from '../../../store/pacientesStore'
 import { ModalNuevoPaciente } from './ModalNuevoPaciente'
 import { ModalPapelera } from './ModalPapelera'
@@ -51,32 +53,33 @@ export const DirectorioPacientes = memo(({ alSeleccionarPaciente, alEliminarPaci
         </div>
         <div className="flex gap-2">
           {puede(PERMISOS.VER_PAPELERA) && (
-            <button
+            <Button
               data-testid="btn-papelera"
               onClick={() => setMostrarPapelera(true)}
-              className="bg-orange-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-orange-700 transition-colors flex items-center gap-2 shadow-sm"
+              variant="danger"
+              className="bg-orange-600 hover:bg-orange-700"
+              size="sm"
             >
               <span>🗑️</span> Papelera {contador > 0 ? `(${contador})` : ''}
-            </button>
+            </Button>
           )}
-          <button
+          <Button
             data-testid="btn-nuevo-paciente"
             onClick={() => setMostrarModalNuevo(true)}
             className="bg-black text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm"
           >
             <span>➕</span> Nuevo Paciente
-          </button>
+          </Button>
         </div>
       </div>
 
       <div className="mb-6">
-        <input
+        <Input
           data-testid="input-busqueda-paciente"
           type="text"
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           placeholder="🔍 Buscar por nombre o RUT del paciente..."
-          className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:border-black text-sm text-gray-800 shadow-sm"
         />
       </div>
 
@@ -94,21 +97,25 @@ export const DirectorioPacientes = memo(({ alSeleccionarPaciente, alEliminarPaci
             </div>
 
             <div className="flex items-center gap-2">
-              <button
+              <Button
                 data-testid={`btn-ficha-${p.id}`}
                 onClick={() => alSeleccionarPaciente(p)}
-                className="text-xs font-semibold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100 hover:bg-blue-100"
+                size="sm"
+                variant="secondary"
+                className="text-blue-600 bg-blue-50 border-blue-100 hover:bg-blue-100 text-xs"
               >
                 Ficha →
-              </button>
-              <button
+              </Button>
+              <Button
                 data-testid={`btn-eliminar-${p.id}`}
                 onClick={(e) => { e.stopPropagation(); handleEliminarConPapelera(p.id); }}
-                className="text-xs text-red-500 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50"
+                size="sm"
+                variant="danger"
+                className="p-1.5 text-xs"
                 title="Eliminar paciente"
               >
                 🗑️
-              </button>
+              </Button>
             </div>
           </div>
         ))}

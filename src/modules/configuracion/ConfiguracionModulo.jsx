@@ -1,4 +1,5 @@
 import React, { memo, useState } from 'react'
+import { Button } from '../../components/ui/Button'
 import { useConfiguracion } from './hooks/useConfiguracion'
 import { PerfilProfesionalForm } from './components/PerfilProfesionalForm'
 import { DatosClinicaForm } from './components/DatosClinicaForm'
@@ -33,41 +34,37 @@ export const ConfiguracionModulo = memo(() => {
       </div>
 
       <div className="flex gap-2 border-b pb-1 print:hidden text-xs overflow-x-auto">
-        <button
+        <Button
           onClick={() => setTabActual('perfil')}
-          className={`px-4 py-2 rounded-xl font-bold transition-all whitespace-nowrap ${
-            tabActual === 'perfil' ? 'bg-black text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
+          variant={tabActual === 'perfil' ? 'primary' : 'secondary'}
+          size="sm"
         >
           👤 Perfil Profesional
-        </button>
+        </Button>
 
-        <button
+        <Button
           onClick={() => setTabActual('clinica')}
-          className={`px-4 py-2 rounded-xl font-bold transition-all whitespace-nowrap ${
-            tabActual === 'clinica' ? 'bg-black text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
+          variant={tabActual === 'clinica' ? 'primary' : 'secondary'}
+          size="sm"
         >
           🏢 Membrete Clínica
-        </button>
+        </Button>
 
-        <button
+        <Button
           onClick={() => setTabActual('agenda')}
-          className={`px-4 py-2 rounded-xl font-bold transition-all whitespace-nowrap ${
-            tabActual === 'agenda' ? 'bg-black text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
+          variant={tabActual === 'agenda' ? 'primary' : 'secondary'}
+          size="sm"
         >
           📅 Parámetros Agenda
-        </button>
+        </Button>
 
-        <button
+        <Button
           onClick={() => setTabActual('respaldo')}
-          className={`px-4 py-2 rounded-xl font-bold transition-all whitespace-nowrap ${
-            tabActual === 'respaldo' ? 'bg-black text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
+          variant={tabActual === 'respaldo' ? 'primary' : 'secondary'}
+          size="sm"
         >
           💾 Respaldos JSON
-        </button>
+        </Button>
       </div>
 
       {tabActual === 'perfil' && (
