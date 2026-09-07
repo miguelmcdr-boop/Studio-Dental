@@ -97,7 +97,7 @@ export const Button = forwardRef(({
       aria-disabled={isDisabled}
       className={`
         inline-flex items-center justify-center font-semibold
-        transition-all duration-200 ease-out
+        transition-all duration-200 ease-out active:scale-[0.97]
         focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-graphite-900
         disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none
         ${fullWidth ? 'w-full' : ''}
