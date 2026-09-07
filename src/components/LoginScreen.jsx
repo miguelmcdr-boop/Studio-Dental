@@ -17,6 +17,7 @@ import { NOMBRES_ROLES, DESCRIPCIONES_ROLES } from '../constants/rbacConstants'
 import { obtenerRolPorDefecto } from '../services/rbacService'
 import { createLogger } from '../services/logger.js'
 import { Button } from './ui/Button'
+import { Input } from './ui/Input'
 
 const log = createLogger('LoginScreen')
 
@@ -207,33 +208,27 @@ export const LoginScreen = ({ onLogin }) => {
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="login-email" className="block text-xs font-semibold text-gray-600 uppercase mb-1">Correo electrónico</label>
-            <input
-              type="email"
-              id="login-email"
-              data-testid="login-email"
-              required
-              value={email}
-              onChange={handleEmailChange}
-              placeholder="dr.miguel@ejemplo.com"
-              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:border-black text-sm text-gray-800"
-            />
-          </div>
+          <Input
+            label="Correo electrónico"
+            id="login-email"
+            data-testid="login-email"
+            type="email"
+            required
+            value={email}
+            onChange={handleEmailChange}
+            placeholder="dr.miguel@ejemplo.com"
+          />
 
-          <div>
-            <label htmlFor="login-password" className="block text-xs font-semibold text-gray-600 uppercase mb-1">Contraseña</label>
-            <input
-              type="password"
-              id="login-password"
-              data-testid="login-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:border-black text-sm text-gray-800"
-            />
-          </div>
+          <Input
+            label="Contraseña"
+            id="login-password"
+            data-testid="login-password"
+            type="password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
+          />
 
           {isFirstTime && (
             <div className="space-y-4 pt-2 border-t border-gray-100">

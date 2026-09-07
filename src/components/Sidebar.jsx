@@ -11,7 +11,6 @@ import React, { useState, useMemo } from 'react'
 import { useRBAC } from '../hooks/useRBAC'
 import { PERMISOS, NOMBRES_ROLES } from '../constants/rbacConstants'
 import { ConnectionIndicator } from './ConnectionIndicator'
-import { ClinicaSelector } from './ClinicaSelector'
 import { Icon } from './Icon'
 import {
   Calendar, LayoutDashboard, Users, Siren, FileText, CreditCard, Mail,
@@ -87,8 +86,6 @@ export const Sidebar = ({ userProfile, activeSection, setActiveSection, onLogout
             <Icon icon={colapsado ? ChevronRight : ChevronLeft} size="sm" />
           </button>
         </div>
-
-        {!colapsado && <ClinicaSelector />}
 
         <nav aria-label="Navegacion principal" className="space-y-1">
           {menuItemsVisibles.map((item) => (

@@ -4830,3 +4830,94 @@ direccion, diagnostico, tratamiento, anamnesis, receta
 - Iteración 3: Unificación de 140 componentes de módulos (19 globales + 121 módulos)
 
 **Estado:** ✅ DONE (2026-09-06) — Iteración 1 de 3
+
+---
+
+## 2026-09-06 — F7-25 Iteración 2: Modal + Input + TopBar (App Shell profesional) — DONE
+
+**Contexto:** F7-25 Fase 3-4 continúa con la creación de componentes base del Design System. Esta iteración entrega Modal, Input y TopBar, completando el App Shell profesional.
+
+**Componentes creados:**
+
+### 1. Modal (src/components/ui/Modal.jsx — 164 líneas)
+- **Accesibilidad F6-04 automática**: cierre con ESC, trampa de foco con Tab/Shift+Tab, click en overlay opcional
+- **5 tamaños**: sm (max-w-md), md (max-w-lg), lg (max-w-2xl), xl (max-w-4xl), full
+- **Props**: isOpen, onClose, title, showCloseButton, closeOnOverlayClick, closeOnEscape
+- **Dark mode automático**: bg-graphite-800, border-graphite-700
+- **20 tests pasando**: renderizado condicional, a11y, overlay click, botón de cierre, tamaños, prevención de scroll
+
+### 2. Input (src/components/ui/Input.jsx — 164 líneas)
+- **Features**: label, error states, helper text, iconos left/right, required indicator
+- **3 tamaños**: sm, md (default), lg
+- **Estados**: default, focus, error, disabled
+- **Accesibilidad**: aria-invalid, aria-describedby, label association vía htmlFor/id
+- **Dark mode automático**: bg-graphite-900, border-graphite-600
+- **22 tests pasando**: renderizado, label/required, error/helper, tamaños, iconos, disabled, eventos, forwardRef
+
+### 3. TopBar (src/components/TopBar.jsx — 112 líneas)
+- **App Shell profesional**: logo + ClinicaSelector (movido del Sidebar) + dark mode toggle + avatar + rol + logout
+- **Responsive**: logo y ClinicaSelector ocultos en mobile (md:block)
+- **Dark mode toggle**: botón con icono Sun/Moon
+- **16 tests pasando**: renderizado, avatar, logout, dark mode toggle, ClinicaSelector, usuario sin perfil
+
+**Hooks extraídos de App.jsx:**
+
+### 4. useDarkMode (src/hooks/useDarkMode.js — 47 líneas)
+- Persistencia en localStorage ('darkMode')
+- Toggle de clase 'dark' en document.documentElement
+- Aplicación automática al montar
+
+### 5. useRestaurarPaciente (src/hooks/useRestaurarPaciente.js — 82 líneas)
+- Extracción de useEffect grande de App.jsx (reducción de 380→316 líneas)
+- Restauración de paciente seleccionado desde Supabase al recargar
+- Validación de UUID + transformación snake_case → camelCase
+
+**Refactors de validación:**
+
+### 6. ModalEditarAlergiaCruzada.jsx (243→236 líneas)
+- Migrado a `<Modal>` base
+- Accesibilidad F6-04 ahora automática (antes no tenía trampa de foco)
+- Padding del form ajustado (Modal ya tiene p-6)
+
+### 7. LoginScreen.jsx (347→324 líneas)
+- Email + password migrados a `<Input>` base
+- Label + required indicator + focus states ahora consistentes
+- Dark mode automático
+
+### 8. App.jsx (367→316 líneas)
+- TopBar integrado en el App Shell
+- ClinicaSelector movido del Sidebar al TopBar
+- Dark mode toggle con persistencia
+- useRestaurarPaciente extraído (reducción de 64 líneas)
+
+### 9. Sidebar.jsx
+- ClinicaSelector removido (ahora está en TopBar)
+
+**Evidencia de calidad:**
+- ✅ 134/134 tests de componentes pasando (9 archivos)
+- ✅ Modal: 20 tests | Input: 22 tests | TopBar: 16 tests
+- ✅ Build OK (2248.26 KiB, 31 entradas)
+- ✅ Validador arquitectónico PASS
+- ✅ App.jsx: 316 líneas (≤367, dentro del límite de allowlist)
+- ✅ LoginScreen.jsx: 324 líneas (≤343, dentro del límite)
+- ✅ Diff neto: -65 líneas (refactorización limpia)
+
+**Archivos creados/modificados (12):**
+- `src/components/ui/Modal.jsx` (NUEVO — 164 líneas)
+- `src/components/ui/Modal.test.jsx` (NUEVO — 20 tests)
+- `src/components/ui/Input.jsx` (NUEVO — 164 líneas)
+- `src/components/ui/Input.test.jsx` (NUEVO — 22 tests)
+- `src/components/TopBar.jsx` (NUEVO — 112 líneas)
+- `src/components/TopBar.test.jsx` (NUEVO — 16 tests)
+- `src/hooks/useDarkMode.js` (NUEVO — 47 líneas)
+- `src/hooks/useRestaurarPaciente.js` (NUEVO — 82 líneas)
+- `src/App.jsx` (MODIFICADO — 367→316 líneas, TopBar integrado)
+- `src/components/LoginScreen.jsx` (MODIFICADO — 347→324 líneas, 2 inputs migrados)
+- `src/components/Sidebar.jsx` (MODIFICADO — ClinicaSelector removido)
+- `src/modules/administracion/components/ModalEditarAlergiaCruzada.jsx` (MODIFICADO — 243→236 líneas, migrado a Modal)
+
+**Próximas iteraciones de F7-25:**
+- Iteración 3: Unificación de 140 componentes de módulos
+- Aplicación de design system a componentes clínicos y administrativos
+
+**Estado:** ✅ DONE (2026-09-06) — Iteración 2 de 3
