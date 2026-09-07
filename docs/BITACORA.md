@@ -4921,3 +4921,76 @@ direccion, diagnostico, tratamiento, anamnesis, receta
 - Aplicación de design system a componentes clínicos y administrativos
 
 **Estado:** ✅ DONE (2026-09-06) — Iteración 2 de 3
+
+---
+
+## 2026-09-06 — F7-25 Iteración 3: Unificación de 3 modales + 3 componentes del módulo pacientes — DONE
+
+**Contexto:** F7-25 Fase 4 (Iteración 3 de 3). Unificación de componentes de módulos con los componentes base del Design System (Modal, Input, Button).
+
+**3 modales migrados a <Modal> + <Input> + <Button> base:**
+
+### 1. ReajusteMasivoModal.jsx (61→48 líneas, -13 líneas)
+- **Módulo**: prestaciones
+- **Migración**: 1 input (porcentaje) + 2 botones (Cancelar, Aplicar Reajuste)
+- **Beneficios**: accesibilidad F6-04 automática, dark mode, validación consistente
+
+### 2. ModalEditarBitacora.jsx (104→88 líneas, -16 líneas)
+- **Módulo**: comunicaciones
+- **Migración**: 2 inputs (paciente disabled, notaBitacora) + 2 botones (Cancelar, Guardar Cambios)
+- **Beneficios**: accesibilidad F6-04 automática, dark mode, estados de error consistentes
+
+### 3. ModalNuevaPrestacion.jsx (132→113 líneas, -19 líneas)
+- **Módulo**: prestaciones
+- **Migración**: 4 inputs (nombre, precioParticular, precioFonasa, codigoFonasa) + 2 botones (Cancelar, Guardar Prestación)
+- **Beneficios**: accesibilidad F6-04 automática, dark mode, validación de formularios unificada
+
+**3 componentes del módulo pacientes refactorizados:**
+
+### 4. FormularioNuevoCertificado.jsx (160→152 líneas, -8 líneas)
+- **Migración**: 6 inputs (2 radios, fecha, hora inicio, hora fin, días reposo, diagnóstico, observaciones) + 1 botón submit
+- **Preservación**: lógica de generación de certificados intacta
+- **Beneficios**: dark mode automático, estados de focus consistentes
+
+### 5. AnamnesisSection.jsx (148→156 líneas, +8 líneas)
+- **Migración**: 8 inputs (motivoConsulta, anamnesisProxima, alergias, enfermedades, medicamentos, habitos, examenExtraoral, examenIntraoral) + 4 botones (dictado principal + 3 botones de insertar dictado)
+- **Preservación**: lógica de dictado por voz intacta, clases especiales de alergias (rojo) preservadas en Input
+- **Beneficios**: dark mode automático, estados de focus consistentes, accesibilidad mejorada
+
+### 6. PapeleraArchivos.jsx (227→233 líneas, +6 líneas)
+- **Migración**: 1 input (confirmación "VACIAR") + 4 botones (Vaciar papelera header, Restaurar por archivo, Cancelar modal, Vaciar papelera modal)
+- **Preservación**: lógica de confirmación con texto "VACIAR" intacta
+- **Beneficios**: dark mode automático, estados disabled consistentes, accesibilidad mejorada
+
+**Beneficios globales obtenidos:**
+- ✅ Accesibilidad F6-04 automática en 3 modales adicionales (ESC, trampa de foco, overlay click)
+- ✅ Dark mode automático en todos los componentes migrados
+- ✅ Consistencia visual con el Design System Graphite & Champagne
+- ✅ Estados de error/required consistentes
+- ✅ Validación de formularios unificada
+
+**Evidencia:**
+- ✅ 134/134 tests pasando (sin regresiones)
+- ✅ Build OK (2243.66 KiB, 32 entradas)
+- ✅ Validador arquitectónico PASS
+- ✅ Diff neto: -42 líneas (6 archivos, 168 additions / 210 deletions)
+
+**Total de componentes migrados en F7-25 completo:**
+- Iteración 1: 2 componentes (LoginScreen, ConflictResolutionModal)
+- Iteración 2: 4 componentes (ModalEditarAlergiaCruzada, LoginScreen inputs, App.jsx, Sidebar)
+- Iteración 3: 6 componentes (3 modales + 3 componentes pacientes)
+- **TOTAL: 12 componentes refactorizados**
+
+**Archivos modificados (6):**
+- `src/modules/prestaciones/components/ReajusteMasivoModal.jsx` (61→48 líneas)
+- `src/modules/comunicaciones/components/ModalEditarBitacora.jsx` (104→88 líneas)
+- `src/modules/prestaciones/components/ModalNuevaPrestacion.jsx` (132→113 líneas)
+- `src/modules/pacientes/components/FormularioNuevoCertificado.jsx` (160→152 líneas)
+- `src/modules/pacientes/components/AnamnesisSection.jsx` (148→156 líneas)
+- `src/modules/pacientes/components/PapeleraArchivos.jsx` (227→233 líneas)
+
+**Próximo paso pendiente de F7-25:**
+- Unificación gradual de los 19 modales restantes y 113 componentes no-modales
+- Priorización por impacto clínico (agenda, urgenciasGes, odontograma)
+
+**Estado:** ✅ DONE (2026-09-06) — Iteración 3 de 3
