@@ -1,4 +1,7 @@
 import React, { memo, useState, useEffect } from 'react'
+import { Modal } from '../../../components/ui/Modal'
+import { Input } from '../../../components/ui/Input'
+import { Button } from '../../../components/ui/Button'
 import { ESTADOS_CONFIRMACION_CITA } from '../constants/comunicacionesConstants'
 
 export const ModalEditarBitacora = memo(({ registroEditar, alGuardar, alCerrar }) => {
@@ -29,23 +32,15 @@ export const ModalEditarBitacora = memo(({ registroEditar, alGuardar, alCerrar }
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 print:hidden">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-md border border-gray-200 shadow-xl space-y-4 text-xs">
-        <div className="flex justify-between items-center border-b pb-3">
-          <h3 className="text-base font-bold text-gray-900">✏️ Editar Entrada de Bitácora / Registro</h3>
-          <button onClick={alCerrar} className="text-gray-400 hover:text-black font-bold text-lg">✕</button>
-        </div>
+    <Modal isOpen={true} onClose={alCerrar} title="Editar Entrada de Bitácora / Registro" size="md">
 
         <form onSubmit={handleSubmit} className="space-y-3">
-          <div>
-            <label className="block font-semibold text-gray-700 mb-1">Paciente</label>
-            <input
-              type="text"
-              disabled
-              value={`${registroEditar?.pacienteNombre} (${registroEditar?.pacienteTelefono || 'Sin fono'})`}
-              className="w-full p-2.5 rounded-xl border bg-gray-100 font-bold text-gray-700"
-            />
-          </div>
+          <Input
+            label="Paciente"
+            type="text"
+            disabled
+            value={`${registroEditar?.pacienteNombre} (${registroEditar?.pacienteTelefono || 'Sin fono'})`}
+          />
 
           <div>
             <label className="block font-semibold text-gray-700 mb-1">Estado de Confirmación de Cita</label>
@@ -70,35 +65,24 @@ export const ModalEditarBitacora = memo(({ registroEditar, alGuardar, alCerrar }
             />
           </div>
 
-          <div>
-            <label className="block font-semibold text-gray-700 mb-1">Nota Interna de Recepción / Auditoría</label>
-            <input
-              type="text"
-              placeholder="Ej: Paciente llamó por teléfono solicitando mover la hora a las 16:00."
-              value={notaBitacora}
-              onChange={(e) => setNotaBitacora(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-gray-300"
-            />
-          </div>
+          <Input
+            label="Nota Interna de Recepción / Auditoría"
+            type="text"
+            placeholder="Ej: Paciente llamó por teléfono solicitando mover la hora a las 16:00."
+            value={notaBitacora}
+            onChange={(e) => setNotaBitacora(e.target.value)}
+          />
 
           <div className="flex gap-2 pt-2">
-            <button
-              type="button"
-              onClick={alCerrar}
-              className="w-1/2 py-2.5 rounded-xl border border-gray-300 font-bold text-gray-700 hover:bg-gray-100"
-            >
+            <Button type="button" onClick={alCerrar} variant="ghost" fullWidth>
               Cancelar
-            </button>
-            <button
-              type="submit"
-              className="w-1/2 bg-black text-white py-2.5 rounded-xl font-bold hover:bg-gray-800"
-            >
+            </Button>
+            <Button type="submit" variant="primary" fullWidth>
               Guardar Cambios
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   )
 })
 

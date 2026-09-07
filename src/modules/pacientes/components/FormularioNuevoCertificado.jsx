@@ -1,4 +1,6 @@
 import React, { memo, useState } from 'react'
+import { Input } from '../../../components/ui/Input'
+import { Button } from '../../../components/ui/Button'
 import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
 
 /**
@@ -52,38 +54,33 @@ export const FormularioNuevoCertificado = memo(({ userProfile, onGenerarCertific
       
       <form onSubmit={handleSubmit} className="space-y-4 text-xs">
         <div className="flex gap-4">
-          <label className="flex items-center gap-2 font-bold cursor-pointer">
-            <input
-              type="radio"
-              name="tipoCert"
-              value="asistencia"
-              checked={tipoCertificado === 'asistencia'}
-              onChange={() => setTipoCertificado('asistencia')}
-              className="accent-black"
-            />
-            📋 Certificado de Asistencia
-          </label>
-          <label className="flex items-center gap-2 font-bold cursor-pointer">
-            <input
-              type="radio"
-              name="tipoCert"
-              value="reposo"
-              checked={tipoCertificado === 'reposo'}
-              onChange={() => setTipoCertificado('reposo')}
-              className="accent-black"
-            />
-            🛌 Certificado de Reposo / Licencia Médica
-          </label>
+          <Input
+            type="radio"
+            name="tipoCert"
+            value="asistencia"
+            checked={tipoCertificado === 'asistencia'}
+            onChange={() => setTipoCertificado('asistencia')}
+            className="accent-black"
+          />
+          <span className="font-bold">📋 Certificado de Asistencia</span>
+          <Input
+            type="radio"
+            name="tipoCert"
+            value="reposo"
+            checked={tipoCertificado === 'reposo'}
+            onChange={() => setTipoCertificado('reposo')}
+            className="accent-black"
+          />
+          <span className="font-bold">🛌 Certificado de Reposo / Licencia Médica</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div>
             <label className="block text-gray-600 mb-1 font-semibold">Fecha de Atención</label>
-            <input
+            <Input
               type="date"
               value={fechaAtencion}
               onChange={(e) => setFechaAtencion(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg bg-white"
             />
           </div>
 
@@ -91,33 +88,30 @@ export const FormularioNuevoCertificado = memo(({ userProfile, onGenerarCertific
             <>
               <div>
                 <label className="block text-gray-600 mb-1 font-semibold">Hora Inicio</label>
-                <input
+                <Input
                   type="time"
                   value={horaInicio}
                   onChange={(e) => setHoraInicio(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg bg-white"
                 />
               </div>
               <div>
                 <label className="block text-gray-600 mb-1 font-semibold">Hora Término</label>
-                <input
+                <Input
                   type="time"
                   value={horaFin}
                   onChange={(e) => setHoraFin(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg bg-white"
                 />
               </div>
             </>
           ) : (
             <div>
               <label className="block text-gray-600 mb-1 font-semibold">Días de Reposo Indicados</label>
-              <input
+              <Input
                 type="number"
                 min="1"
                 max="30"
                 value={diasReposo}
                 onChange={(e) => setDiasReposo(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg bg-white font-bold"
               />
             </div>
           )}
@@ -127,30 +121,28 @@ export const FormularioNuevoCertificado = memo(({ userProfile, onGenerarCertific
           <label className="block text-gray-600 mb-1 font-semibold">
             {tipoCertificado === 'asistencia' ? 'Procedimiento / Atención Realizada' : 'Diagnóstico Clínico / Causa del Reposo'}
           </label>
-          <input
+          <Input
             type="text"
             placeholder={tipoCertificado === 'asistencia' ? 'Ej: Exodoncia de pieza 3.8 y sutura' : 'Ej: Cirugía de terceros molares e inflamación moderada'}
             value={diagnosticoMotivo}
             onChange={(e) => setDiagnosticoMotivo(e.target.value)}
-            className="w-full px-3 py-2 border rounded-lg bg-white font-medium"
           />
         </div>
 
         <div>
           <label className="block text-gray-600 mb-1 font-semibold">Observaciones o Indicaciones Adicionales (Opcional)</label>
-          <input
+          <Input
             type="text"
             placeholder="Ej: Se sugiere no realizar actividad física intensa por 48 hrs."
             value={observaciones}
             onChange={(e) => setObservaciones(e.target.value)}
-            className="w-full px-3 py-2 border rounded-lg bg-white"
           />
         </div>
 
         <div className="flex justify-end">
-          <button type="submit" className="bg-black text-white font-semibold px-5 py-2.5 rounded-xl hover:bg-gray-800">
+          <Button type="submit" variant="primary">
             📄 Generar y Guardar Certificado
-          </button>
+          </Button>
         </div>
       </form>
     </div>

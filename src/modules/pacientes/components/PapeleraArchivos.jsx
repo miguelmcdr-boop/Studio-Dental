@@ -1,4 +1,6 @@
 import React, { memo, useState } from 'react'
+import { Input } from '../../../components/ui/Input'
+import { Button } from '../../../components/ui/Button'
 
 /**
  * Sección colapsable de papelera de archivos clínicos.
@@ -104,15 +106,16 @@ export const PapeleraArchivos = memo(({
             {archivosEliminados.length} archivo{archivosEliminados.length !== 1 ? 's' : ''}
           </span>
           {puedeVaciar && archivosEliminados.length > 0 && (
-            <button
+            <Button
               onClick={(e) => {
                 e.stopPropagation()
                 setMostrarConfirmacionVaciar(true)
               }}
-              className="text-xs text-red-600 hover:text-red-800 font-semibold px-2 py-0.5 rounded border border-red-300 hover:bg-red-50 transition-colors"
+              size="sm"
+              variant="danger"
             >
               🗑️ Vaciar papelera
-            </button>
+            </Button>
           )}
         </div>
         <span className="text-gray-500 text-sm">
@@ -151,13 +154,15 @@ export const PapeleraArchivos = memo(({
                       </p>
                     </div>
                   </div>
-                  <button
+                  <Button
                     onClick={() => handleRestaurar(archivo.id)}
                     disabled={restaurandoId === archivo.id}
-                    className="ml-3 px-3 py-1.5 bg-black text-white text-xs font-semibold rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                    size="sm"
+                    variant="primary"
+                    className="ml-3"
                   >
                     {restaurandoId === archivo.id ? 'Restaurando...' : '♻️ Restaurar'}
-                  </button>
+                  </Button>
                 </div>
               ))}
             </div>
@@ -189,33 +194,34 @@ export const PapeleraArchivos = memo(({
               <p className="font-semibold">
                 Para confirmar, escribe <code className="bg-gray-100 px-2 py-0.5 rounded font-mono">VACIAR</code>:
               </p>
-              <input
+              <Input
                 type="text"
                 value={textoConfirmacion}
                 onChange={(e) => setTextoConfirmacion(e.target.value)}
                 placeholder="VACIAR"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-red-500 text-sm font-mono"
                 autoFocus
               />
             </div>
             <div className="flex gap-2 mt-5">
-              <button
+              <Button
                 onClick={() => {
                   setMostrarConfirmacionVaciar(false)
                   setTextoConfirmacion('')
                 }}
                 disabled={vaciando}
-                className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 text-sm font-semibold rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50"
+                variant="secondary"
+                fullWidth
               >
                 Cancelar
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={handleVaciar}
                 disabled={textoConfirmacion !== 'VACIAR' || vaciando}
-                className="flex-1 px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                variant="danger"
+                fullWidth
               >
                 {vaciando ? 'Vaciando...' : 'Vaciar papelera'}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
