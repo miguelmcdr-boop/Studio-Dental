@@ -3,6 +3,7 @@
  * F4-03f-5a
  */
 import React, { useState, useEffect } from 'react'
+import { Modal } from '../../../components/ui/Modal'
 import { validarAlergiaCruzada, FAMILIAS_ALERGIAS, NIVELES_SEVERIDAD } from '../schemas/alergiaCruzadaSchema'
 
 const VALOR_INICIAL = {
@@ -93,22 +94,15 @@ export const ModalEditarAlergiaCruzada = ({ celda, onGuardar, onClose, guardando
   )
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-blue-50 border-b border-blue-200 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900">
-            🧬 {celda?.regla ? 'Editar Regla de Alergia Cruzada' : 'Nueva Regla de Alergia Cruzada'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
-            disabled={guardando}
-          >
-            ×
-          </button>
-        </div>
+    <Modal
+      isOpen={true}
+      onClose={onClose}
+      title={celda?.regla ? 'Editar Regla de Alergia Cruzada' : 'Nueva Regla de Alergia Cruzada'}
+      size="lg"
+      closeOnOverlayClick={!guardando}
+    >
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Fila 1: Familias */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -237,7 +231,6 @@ export const ModalEditarAlergiaCruzada = ({ celda, onGuardar, onClose, guardando
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   )
 }

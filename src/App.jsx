@@ -4,6 +4,7 @@ import { Sidebar } from './components/Sidebar'
 import { CargandoModulo } from './components/CargandoModulo'
 import { ErrorBoundary } from './components/ErrorBoundary' // F6-01
 import { ToastContainer } from './components/ToastContainer'
+import { TopBar } from './components/TopBar'
 import { usePacientesStore } from './store/pacientesStore'
 import { usePrestacionesStore } from './store/prestacionesStore'
 import { useSesionStore } from './store/sesionStore'
@@ -17,6 +18,8 @@ import { AceptarInvitacion } from './components/AceptarInvitacion'
 import { BootstrapClinica } from './components/BootstrapClinica'
 import { VerificandoCuenta } from './components/VerificandoCuenta'
 import { useInvitacionHash } from './hooks/useInvitacionHash'
+import { useDarkMode } from './hooks/useDarkMode'
+import { useRestaurarPaciente } from './hooks/useRestaurarPaciente'
 
 // Módulos de uso diario — carga eager (Public API, Constitución v3.0.0)
 import { Agenda as AgendaModulo } from './modules/agenda'
@@ -86,6 +89,9 @@ function App() {
   const bootstrapNecesario = useBootstrapDetection(userProfile) // F7-11b
   // F7-11: Detectar invitación pendiente en URL hash
   const invitacionPendiente = useInvitacionHash()
+
+  // F7-25: Dark mode con persistencia
+  const { darkMode, toggleDarkMode } = useDarkMode()
   const logoutStore = useSesionStore((state) => state.logout)
 
   // F6-H: Timeout de sesión + sincronización entre pestañas + manejo de errores 401
@@ -94,72 +100,8 @@ function App() {
   // F4-02c-2: ejecutar migración automática de datos al primer login con Supabase
 
 
-  // F4-02e: Restaurar paciente seleccionado desde Supabase al recargar.
-  useEffect(() => {
-    // Solo ejecutar si el usuario está autenticado y aún no hay paciente cargado
-    if (!userProfile || !USE_SUPABASE || !supabase || pacienteSeleccionado !== null) {
-      return
-    }
-
-    const restaurarPacienteSeleccionado = async () => {
-      try {
-        const pacienteIdGuardado = localStorage.getItem('clinica_paciente_seleccionado_id')
-        if (!pacienteIdGuardado) return
-
-        // Validar que sea UUID válido
-        if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(pacienteIdGuardado)) {
-          localStorage.removeItem('clinica_paciente_seleccionado_id')
-          return
-        }
-
-        log.info('Restaurando ficha de paciente desde Supabase:', pacienteIdGuardado)
-
-        const { data, error } = await supabase
-          .from('pacientes')
-          .select('*')
-          .eq('id', pacienteIdGuardado)
-          .maybeSingle()
-
-        if (error) {
-          log.error('Error al restaurar paciente:', error.message)
-          return
-        }
-
-        if (!data) {
-          // El paciente fue eliminado en otro dispositivo — limpiar selección
-          log.warn('Paciente no encontrado (pudo ser eliminado), limpiando selección')
-          localStorage.removeItem('clinica_paciente_seleccionado_id')
-          return
-        }
-
-        // Transformar de snake_case a camelCase
-        const pacienteRestaurado = {
-          id: data.id,
-          rut: data.rut,
-          nombre: data.nombre,
-          edad: data.edad,
-          telefono: data.telefono,
-          email: data.email,
-          ocupacion: data.ocupacion,
-          prevision: data.prevision,
-          alergias: data.alergias,
-          fechaNacimiento: data.fecha_nacimiento,
-          direccion: data.direccion,
-          createdAt: data.created_at,
-          updatedAt: data.updated_at
-        }
-
-        // Asegurar que estamos en la sección correcta
-        setPacienteSeleccionadoState(pacienteRestaurado)
-        setActiveSection('Pacientes')
-        log.info('✅ Ficha de paciente restaurada:', pacienteRestaurado.nombre)
-      } catch (e) {
-        log.error('Error inesperado al restaurar paciente:', e)
-      }
-    }
-
-    restaurarPacienteSeleccionado()
-  }, [userProfile, pacienteSeleccionado])
+  // F4-02e: Restaurar paciente seleccionado desde Supabase al recargar
+  useRestaurarPaciente(userProfile, pacienteSeleccionado, setPacienteSeleccionadoState, setActiveSection)
   useDataMigration(userProfile)
 
   // F5-02: activar sincronización en tiempo real
@@ -263,10 +205,17 @@ function App() {
   return (
     <>
       <ToastContainer />
-      <div className="min-h-screen flex bg-white font-sans">
-      <Sidebar userProfile={userProfile} activeSection={activeSection} setActiveSection={setActiveSection} onLogout={handleLogout} />
+      <div className="min-h-screen flex flex-col bg-graphite-50 dark:bg-graphite-900 font-sans">
+        <TopBar
+          userProfile={userProfile}
+          onLogout={handleLogout}
+          darkMode={darkMode}
+          onToggleDarkMode={toggleDarkMode}
+        />
+        <div className="flex flex-1">
+          <Sidebar userProfile={userProfile} activeSection={activeSection} setActiveSection={setActiveSection} onLogout={handleLogout} />
 
-      <main className="flex-1 p-8 print:p-0 overflow-x-hidden">
+          <main className="flex-1 p-8 print:p-0 overflow-x-hidden">
         <Suspense fallback={<CargandoModulo />}>
           {activeSection === 'Dashboard' && (
             <DashboardModulo 
@@ -357,8 +306,9 @@ function App() {
               )}
             </ErrorBoundary>
           )}
-        </Suspense>
-      </main>
+          </Suspense>
+          </main>
+        </div>
       </div>
     </>
   )
