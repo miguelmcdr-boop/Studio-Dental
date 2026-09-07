@@ -4994,3 +4994,103 @@ direccion, diagnostico, tratamiento, anamnesis, receta
 - Priorización por impacto clínico (agenda, urgenciasGes, odontograma)
 
 **Estado:** ✅ DONE (2026-09-06) — Iteración 3 de 3
+
+---
+
+## 2026-09-07 — F7-25 Iteración 4: Migración masiva (Fase A + B + C) — DONE
+
+**Contexto:** F7-25 Fase 4 (Iteración 4). Migración masiva de componentes para mejorar cobertura visual del Design System.
+
+**Fase A — 5 modales pequeños migrados a <Modal> base:**
+
+### 1. ModalNuevoMovimiento.jsx (134→118 líneas, -16 líneas)
+- **Módulo**: finanzas
+- **Migración**: 2 inputs (monto, detalle) + botones toggle Ingreso/Egreso + botones Cancelar/Guardar
+- **Beneficios**: accesibilidad F6-04 automática, dark mode
+
+### 2. ModalEditarPaciente.jsx (138→104 líneas, -34 líneas)
+- **Módulo**: pacientes (crítico visual)
+- **Migración**: 8 inputs (nombre, RUT, edad, teléfono, email, ocupación, dirección, contacto emergencia) + 2 botones
+- **Beneficios**: accesibilidad F6-04 automática, dark mode
+
+### 3. ModalEditarFarmaco.jsx (142→137 líneas, -5 líneas)
+- **Módulo**: administración
+- **Migración**: wrapper + botones (CamposFormularioFarmaco preservado)
+- **Beneficios**: accesibilidad F6-04 automática, dark mode
+
+### 4. ModalNuevoBloqueo.jsx (154→122 líneas, -32 líneas)
+- **Módulo**: agenda
+- **Migración**: 4 inputs (fecha, box, hora inicio, hora fin) + botones
+- **Beneficios**: accesibilidad F6-04 automática, dark mode
+
+### 5. ModalDescuentoInventario.jsx (164→157 líneas, -7 líneas)
+- **Módulo**: pacientes
+- **Migración**: wrapper + botones (lógica de lista custom preservada)
+- **Beneficios**: accesibilidad F6-04 automática, dark mode
+
+**Fase B — 4 componentes NO-modales refactorizados con <Button> + <Input>:**
+
+### 6. ConfiguracionModulo.jsx (94→91 líneas)
+- **Módulo**: configuración
+- **Migración**: 4 botones de pestañas (perfil/clinica/agenda/respaldo)
+- **Beneficios**: dark mode, consistencia visual
+
+### 7. TablaInventario.jsx (107→116 líneas)
+- **Módulo**: inventario
+- **Migración**: 4 botones (+/- stock, editar, eliminar)
+- **Beneficios**: dark mode, estados disabled consistentes
+
+### 8. DirectorioPacientes.jsx (140→147 líneas)
+- **Módulo**: pacientes (crítico visual)
+- **Migración**: 4 botones + 1 input de búsqueda
+- **Beneficios**: dark mode, consistencia visual
+
+### 9. DirectorioLaboratorios.jsx (223→216 líneas)
+- **Módulo**: laboratorio
+- **Migración**: 6 botones + 4 inputs (formulario completo + directorio)
+- **Beneficios**: dark mode, consistencia visual
+
+**Fase C — Pulido visual de componentes base:**
+
+### 10. Button.jsx — feedback táctil
+- **Cambio**: active:scale-[0.97] para feedback al click
+- **Seguro**: solo agrega clase, no rompe tests
+
+### 11. Modal.jsx — efecto frosted glass
+- **Cambio**: backdrop-blur-sm en overlay
+- **Seguro**: solo agrega clase, no rompe tests
+
+### 12. Input.jsx — transición de sombra
+- **Cambio**: shadow-sm → focus:shadow-md
+- **Seguro**: solo agrega clase, no rompe tests
+
+**Beneficios globales obtenidos:**
+- ✅ 9 archivos modificados en una sesión
+- ✅ 27 elementos migrados (botones + inputs)
+- ✅ Cobertura de modales: 9/23 (39%)
+- ✅ Componentes usando <Button>: 19
+- ✅ Componentes usando <Input>: 13
+- ✅ Dark mode automático en 9 componentes
+- ✅ Accesibilidad F6-04 automática en 5 modales adicionales
+
+**Evidencia:**
+- ✅ 768/768 tests pasando (44 archivos)
+- ✅ Build OK (2236.48 KiB)
+- ✅ Validador arquitectónico PASS
+- ✅ 61/61 tests de componentes base pasando
+
+**Commits locales en rama `feat/F7-25-migracion-masiva`:**
+- `823521e` feat(F7-25): Fase B — 4 componentes NO-modales refactorizados
+- `0318ff3` feat(F7-25): Fase A — 5 modales pequeños migrados
+- `[pending]` style(F7-25): Fase C — Pulido visual de componentes base
+
+**Próximas iteraciones necesarias para llegar al 100%:**
+- Iteración 5: 5 modales medianos + 5 componentes clínicos (~55% cobertura)
+- Iteración 6: 4 modales grandes (agenda, presupuestos) (~70% cobertura)
+- Iteración 7: Odontograma, odontopediatría, urgenciasGes (~80% cobertura)
+- Iteración 8: Componentes administrativos restantes (~95% cobertura)
+- Iteración 9: Edge cases + pulido final (100% cobertura)
+
+**Tiempo estimado restante**: ~5-6 sesiones de 2 horas = 10-12 horas
+
+**Estado:** ✅ DONE (2026-09-07) — Iteración 4 de F7-25
