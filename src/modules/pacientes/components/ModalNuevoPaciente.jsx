@@ -1,4 +1,7 @@
 import React, { memo, useState } from 'react'
+import { Modal } from '../../../components/ui/Modal'
+import { Input } from '../../../components/ui/Input'
+import { Button } from '../../../components/ui/Button'
 import { formatearRut, obtenerErrorRut } from '../../../utils/validarRut'
 import { rutDuplicado } from '../schemas/pacienteSchema'
 
@@ -73,26 +76,23 @@ export const ModalNuevoPaciente = memo(({ alGuardar, alCerrar, pacientes = [] })
   const puedeGuardar = nuevoPaciente.nombre && nuevoPaciente.rut && rutValido && !errorRut
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 print:hidden">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-lg border border-gray-200 shadow-xl max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-4 border-b pb-3">
-          <h3 className="text-lg font-bold text-gray-900">Registrar Nuevo Paciente</h3>
-          <button onClick={alCerrar} className="text-gray-400 hover:text-black font-bold text-lg">✕</button>
-        </div>
+    <Modal
+      isOpen={true}
+      onClose={alCerrar}
+      title="Registrar Nuevo Paciente"
+      size="lg"
+    >
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-          <div>
-            <label className="block font-semibold text-gray-600 uppercase mb-1">Nombre Completo *</label>
-            <input
-              data-testid="paciente-nombre"
-              type="text"
-              required
-              value={nuevoPaciente.nombre}
-              onChange={(e) => setNuevoPaciente({ ...nuevoPaciente, nombre: e.target.value })}
-              placeholder="Ej: Juan Pérez González"
-              className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm"
-            />
-          </div>
+          <Input
+            data-testid="paciente-nombre"
+            label="Nombre Completo"
+            type="text"
+            required
+            value={nuevoPaciente.nombre}
+            onChange={(e) => setNuevoPaciente({ ...nuevoPaciente, nombre: e.target.value })}
+            placeholder="Ej: Juan Pérez González"
+          />
 
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -124,12 +124,12 @@ export const ModalNuevoPaciente = memo(({ alGuardar, alCerrar, pacientes = [] })
             </div>
             <div>
               <label className="block font-semibold text-gray-600 uppercase mb-1">Teléfono</label>
-              <input
+              <Input
+                label="Teléfono"
                 type="text"
                 value={nuevoPaciente.telefono}
                 onChange={(e) => setNuevoPaciente({ ...nuevoPaciente, telefono: e.target.value })}
                 placeholder="+56 9 1234 5678"
-                className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm"
               />
             </div>
           </div>
@@ -137,22 +137,22 @@ export const ModalNuevoPaciente = memo(({ alGuardar, alCerrar, pacientes = [] })
           <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="block font-semibold text-gray-600 uppercase mb-1">Edad</label>
-              <input
+              <Input
+                label="Edad"
                 type="number"
                 value={nuevoPaciente.edad}
                 onChange={(e) => setNuevoPaciente({ ...nuevoPaciente, edad: e.target.value })}
                 placeholder="30"
-                className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm"
               />
             </div>
             <div>
               <label className="block font-semibold text-gray-600 uppercase mb-1">Correo</label>
-              <input
+              <Input
+                label="Correo"
                 type="email"
                 value={nuevoPaciente.email}
                 onChange={(e) => setNuevoPaciente({ ...nuevoPaciente, email: e.target.value })}
                 placeholder="juan@ejemplo.com"
-                className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm"
               />
             </div>
             <div>
@@ -182,30 +182,27 @@ export const ModalNuevoPaciente = memo(({ alGuardar, alCerrar, pacientes = [] })
           </div>
 
           <div className="flex gap-2 pt-2">
-            <button
+            <Button
               data-testid="paciente-cancelar"
               type="button"
               onClick={alCerrar}
-              className="w-1/2 py-2.5 rounded-xl border border-gray-300 font-semibold text-gray-700 hover:bg-gray-100"
+              variant="ghost"
+              fullWidth
             >
               Cancelar
-            </button>
-            <button
+            </Button>
+            <Button
               data-testid="paciente-crear"
               type="submit"
               disabled={!puedeGuardar}
-              className={`w-1/2 py-2.5 rounded-xl font-semibold ${
-                puedeGuardar
-                  ? 'bg-black text-white hover:bg-gray-800'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
+              variant="primary"
+              fullWidth
             >
               Crear Paciente
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   )
 })
 
