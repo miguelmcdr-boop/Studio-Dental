@@ -123,7 +123,6 @@ export const ModalNuevoPaciente = memo(({ alGuardar, alCerrar, pacientes = [] })
               )}
             </div>
             <div>
-              <label className="block font-semibold text-gray-600 uppercase mb-1">Teléfono</label>
               <Input
                 label="Teléfono"
                 type="text"
@@ -136,7 +135,6 @@ export const ModalNuevoPaciente = memo(({ alGuardar, alCerrar, pacientes = [] })
 
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="block font-semibold text-gray-600 uppercase mb-1">Edad</label>
               <Input
                 label="Edad"
                 type="number"
@@ -146,7 +144,6 @@ export const ModalNuevoPaciente = memo(({ alGuardar, alCerrar, pacientes = [] })
               />
             </div>
             <div>
-              <label className="block font-semibold text-gray-600 uppercase mb-1">Correo</label>
               <Input
                 label="Correo"
                 type="email"
