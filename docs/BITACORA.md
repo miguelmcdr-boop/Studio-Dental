@@ -5291,3 +5291,59 @@ direccion, diagnostico, tratamiento, anamnesis, receta
 **Tiempo estimado restante**: ~3-4 sesiones de 2 horas = 6-8 horas
 
 **Estado:** ✅ DONE (2026-09-08) — Iteración 6 de F7-25
+
+---
+
+## 2026-09-08 — F7-25 Hotfix P0: Regresión visual por migración Tailwind v4 — DONE
+
+**Contexto:** Bug crítico visual detectado tras migración masiva (Iteraciones 4-6). Login y modales colapsados a 66-130px de ancho + mezcla de colores "antiguo + nuevo" + overlay negro sólido + labels duplicados.
+
+**Causas raíz (4 issues independientes):**
+
+### Fix 1: dark-variant media-based en Tailwind v4
+- **Problema:** Tailwind v4 sin config usa `prefers-color-scheme` (media query del OS) para el variante `dark:`. Con OS en dark mode, todas las clases `dark:` aplican siempre → textos claros sobre fondos claros.
+- **Fix:** Agregar `@custom-variant dark (&:where(.dark, .dark *));` en `src/index.css` para forzar `dark:` a depender de la clase `.dark` gestionada por `useDarkMode`.
+- **Archivo:** `src/index.css` (+1 línea)
+- **Commit:** `03d95e8`
+
+### Fix 2: Tokens `--spacing-*` colisionando con utilidades `max-w-*`
+- **Problema:** En Tailwind v4, claves `--spacing-<nombre>` dentro de `@theme` se registran como valores de utilidades de espaciado. `max-w-md` resolvió a `var(--spacing-md)=12px` en vez de `var(--container-md)=28rem` → login y TODOS los modales colapsados a ~66-130px.
+- **Evidencia (sonda DevTools):** `maxWidth: 12px`, `--container-md: ""` antes del fix; `maxWidth: 448px`, `--container-md: 28rem` después.
+- **Fix:** Mover bloque `--spacing-xs/sm/md/lg/xl/2xl` de `@theme` a `:root`. Las variables siguen disponibles para `var(--spacing-md)` pero ya no secuestran utilidades `max-w-*/w-*/p-*`.
+- **Archivo:** `src/design/tokens.css` (movimiento de bloque, +14/-8)
+- **Commit:** `a50784f`
+
+### Fix 3: Overlay de Modal con sintaxis v3 eliminada en v4
+- **Problema:** `bg-opacity-50` y `dark:bg-opacity-70` fueron eliminadas en Tailwind v4 (sintaxis nueva: slash `/`). Resultado: overlay renderizaba `bg-black` sólido (modal "embargado" en negro).
+- **Fix:** Cambiar a `bg-black/50 dark:bg-black/70` (sintaxis v4).
+- **Archivo:** `src/components/ui/Modal.jsx` (1 línea)
+- **Commit:** `5694489`
+
+### Fix 4: Labels nativos duplicados en ModalNuevoPaciente
+- **Problema:** Residual de migración Iteración 6. Los inputs de Teléfono/Edad/Correo se migraron a `<Input label=...>` pero quedaron los `<label>` nativos originales → labels duplicados visibles ("TELÉFONO TELÉFONO").
+- **Fix:** Eliminar los 3 labels nativos residuales.
+- **Archivo:** `src/modules/pacientes/components/ModalNuevoPaciente.jsx` (-3 líneas)
+- **Commit:** `0a1e06f`
+
+**Evidencia final:**
+- ✅ 768/768 tests pasando (44 archivos)
+- ✅ Build OK (2239.18 KiB)
+- ✅ Validador arquitectónico PASS
+- ✅ Verificación visual: login + modales con anchos correctos, overlay semitransparente con blur, labels únicos
+
+**Hallazgos colaterales (tareas nuevas):**
+- **dark-sweep:** Barrido de clases `dark:` en módulos NO migrados (agenda, sidebar de ficha, etc.) para dark mode completo. Prioridad media, postergado hasta completar migración base.
+- **bg-opacity restantes:** 3 modales nativos aún usan `bg-opacity-*` v3 (`ConflictResolutionModal`, `ArchivoModal`, `ModalEditarProtocolo`). Se migrarán cuando esos modales pasen a `<Modal>` base (Iteración 7-8).
+
+**Commits del hotfix (rama `feat/F7-25-migracion-masiva`):**
+- `0a1e06f` fix(F7-25): eliminar labels nativos duplicados en ModalNuevoPaciente
+- `5694489` fix(F7-25): overlay de Modal a sintaxis de opacidad v4 (bg-black/50)
+- `a50784f` fix(F7-25): mover tokens --spacing-* de @theme a :root (colisión namespace v4)
+- `03d95e8` fix(F7-25): hotfix dark-variant class-based para Tailwind v4
+
+**Lecciones aprendidas:**
+1. Tailwind v4 CSS-first tiene comportamiento distinto al v3 JS-first: `@custom-variant` requerido para dark class-based, `--spacing-*` dentro de `@theme` afecta utilidades, `bg-opacity-*` eliminado.
+2. La sonda de DevTools (`getComputedStyle` + `getPropertyValue`) fue clave para confirmar causa raíz sin suposiciones.
+3. Fix mínimo (1-14 líneas) > refactorización masiva cuando el bug tiene causa técnica específica.
+
+**Estado:** ✅ DONE (2026-09-08) — Hotfix P0 cerrado
