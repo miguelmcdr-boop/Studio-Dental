@@ -5192,3 +5192,102 @@ direccion, diagnostico, tratamiento, anamnesis, receta
 **Tiempo estimado restante**: ~4-5 sesiones de 2 horas = 8-10 horas
 
 **Estado:** ✅ DONE (2026-09-08) — Iteración 5 de F7-25
+
+---
+
+## 2026-09-08 — F7-25 Iteración 6: Migración masiva Fase A + Refactorización profunda Fase B — DONE
+
+**Contexto:** F7-25 Fase 6 (Iteración 6). Continuación de migración masiva de componentes + refactorización arquitectónica profunda de componentes grandes.
+
+### Fase A — 4 modales grandes migrados a <Modal> base:
+
+#### 1. ModalNuevaOrden.jsx (205→204 líneas)
+- **Módulo**: laboratorio
+- **Migración**: 6 inputs + 2 botones
+- **Preservados**: 2 selects (Paciente, Laboratorio) + datalist
+- **Beneficios**: accesibilidad F6-04 automática, dark mode
+
+#### 2. ModalNuevoPaciente.jsx (212→209 líneas)
+- **Módulo**: pacientes (crítico visual)
+- **Migración**: 4 inputs + 2 botones
+- **Preservados intencionalmente**: input RUT (validación 3 estados con colores), input Alergias (estilo clínico rojo), select Previsión
+- **Beneficios**: accesibilidad F6-04 automática, dark mode, data-testid preservados
+
+#### 3. ModalEditarInteraccion.jsx (227→113 líneas, -114 líneas)
+- **Módulo**: administración (vademecum)
+- **Migración**: 2 botones del footer
+- **Refactorización**: creado CamposFormularioInteraccion.jsx (141 líneas)
+- **Beneficios**: accesibilidad F6-04, cumplimiento de allowlist (límite 228), banner orange preservado
+
+#### 4. ModalNuevoPago.jsx (245→239 líneas)
+- **Módulo**: pagos (crítico flujo de caja)
+- **Migración**: 3 inputs + 2 botones
+- **Preservados intencionalmente**: 4 selects (Paciente, Método, Tipo DTE, Concepto) + checkbox list de imputación a prestaciones (F2-07a)
+- **Beneficios**: accesibilidad F6-04 automática, dark mode, estilo emerald del monto preservado
+
+### Fase B — 2 componentes NO-modales refactorizados profundamente:
+
+#### 5. PresupuestoSection.jsx (517→120 líneas, -77%)
+- **Módulo**: pacientes (crítico flujo clínico)
+- **Problema**: 517 líneas violaba límite 250 JSX
+- **Solución**: Extraer 3 hooks + 4 sub-componentes
+- **3 hooks extraídos**:
+  - usePresupuesto.js (18 líneas): Hook orquestador
+  - usePresupuestoForm.js (147 líneas): Lógica de formularios de prestación y abono
+  - useDescuentoInventario.js (133 líneas): Lógica de descuento de inventario (F2-12)
+- **4 sub-componentes extraídos**:
+  - FormularioAgregarPrestacion.jsx (112 líneas)
+  - FormularioRegistrarAbono.jsx (83 líneas)
+  - TablaItemsPresupuesto.jsx (108 líneas)
+  - DocumentoImprimiblePresupuesto.jsx (87 líneas)
+- **Preservación completa de lógica F2-07a (arancel global) y F2-12 (descuento inventario)**
+
+#### 6. AsociacionesInsumos.jsx (380→79 líneas, -79%)
+- **Módulo**: inventario
+- **Problema**: 380 líneas violaba límite 250 JSX
+- **Solución**: Extraer 1 hook + 3 sub-componentes
+- **1 hook extraído**:
+  - useAsociaciones.js (135 líneas): Lógica de CRUD de asociaciones, categorías y palabras clave
+- **3 sub-componentes extraídos**:
+  - SelectorCategoria.jsx (80 líneas)
+  - FormularioPalabrasClave.jsx (54 líneas)
+  - TablaAsociaciones.jsx (133 líneas)
+- **Beneficios**: dark mode automático, migración de botones a <Button> e inputs a <Input>
+
+**Beneficios globales obtenidos:**
+- ✅ 6 archivos refactorizados + 12 componentes/hooks nuevos creados
+- ✅ 8 inputs + 6 botones migrados a componentes base
+- ✅ Cobertura de modales: 18/23 (78%)
+- ✅ Componentes usando <Button>: 29
+- ✅ Componentes usando <Input>: 21
+- ✅ Dark mode automático en 6 componentes adicionales
+- ✅ Accesibilidad F6-04 automática en 4 modales adicionales
+- ✅ 2 refactorizaciones arquitectónicas profundas (PresupuestoSection, AsociacionesInsumos)
+- ✅ 1 refactorización de allowlist (ModalEditarInteraccion)
+- ✅ Todos los archivos cumplen límites constitucionales
+
+**Evidencia:**
+- ✅ 768/768 tests pasando (44 archivos)
+- ✅ Build OK (2237.55 KiB)
+- ✅ Validador arquitectónico PASS
+
+**Commits locales en rama `feat/F7-25-migracion-masiva`:**
+- `[pending]` refactor(F7-25): AsociacionesInsumos — Extraer hook + 3 sub-componentes
+- `04ce8be` refactor(F7-25): PresupuestoSection — Extraer 3 hooks + 4 sub-componentes
+- `fd45b44` feat(F7-25): Fase A Iteración 6 — 4 modales grandes migrados
+- `8f04762` docs(F7-25): Iteración 5 en BITACORA + actualizar MASTER_ROADMAP
+- `2aefc2a` feat(F7-25): Fase B Iteración 5 — 4 componentes NO-modales refactorizados
+- `6dc5ffa` feat(F7-25): Fase A Iteración 5 — 5 modales medianos migrados
+- `ada9a95` docs(F7-25): Iteración 4 en BITACORA + actualizar MASTER_ROADMAP
+- `d53c1a5` style(F7-25): Fase C — Pulido visual de componentes base
+- `823521e` feat(F7-25): Fase B — Refactorizar 4 componentes NO-modales
+- `0318ff3` feat(F7-25): Fase A — Migrar 5 modales pequeños
+
+**Próximas iteraciones necesarias para llegar al 100%:**
+- Iteración 7: ModalPapelera.jsx (249) + ModalEditarProtocolo.jsx (258) (~85% cobertura)
+- Iteración 8: ModalNuevoPresupuesto.jsx (295) + ModalNuevaCita.jsx (324) (~95% cobertura)
+- Iteración 9: Edge cases + pulido final + push + PR (100% cobertura)
+
+**Tiempo estimado restante**: ~3-4 sesiones de 2 horas = 6-8 horas
+
+**Estado:** ✅ DONE (2026-09-08) — Iteración 6 de F7-25
