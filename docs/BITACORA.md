@@ -5347,3 +5347,67 @@ direccion, diagnostico, tratamiento, anamnesis, receta
 3. Fix mínimo (1-14 líneas) > refactorización masiva cuando el bug tiene causa técnica específica.
 
 **Estado:** ✅ DONE (2026-09-08) — Hotfix P0 cerrado
+
+---
+
+## 2026-09-09 — F7-25 Iteración 7: Migrar ModalPapelera + ModalEditarProtocolo — DONE
+
+**Contexto:** F7-25 Fase 7 (Iteración 7). Continuación de migración masiva de modales a `<Modal>` base.
+
+### 1. ModalPapelera.jsx (249→249 líneas)
+- **Módulo**: pacientes (papelera de reciclaje F6-L)
+- **Migración**: wrapper + header → `<Modal size="xl" showCloseButton={false}>`
+- **Preservaciones críticas**:
+  - Botón ✕ visible nativo (test usa `getByText('✕')`)
+  - 3 botones nativos (Restaurar, Vaciar papelera, Eliminar permanentemente) porque
+    `ModalPapelera.test.jsx` usa `getByText(...)` + `toBeDisabled()`, y `<Button>` envuelve
+    children en `<span>` que no tiene atributo disabled
+  - Modal anidado de confirmación doble (z-[60]) preservado nativo con overlay v4
+  - Todos los strings críticos del test (14 frases verificadas)
+- **Resultado**: 18/18 tests del componente pasando sin modificaciones
+
+### 2. ModalEditarProtocolo.jsx (258→148 líneas, -110)
+- **Módulo**: administración (protocolos clínicos F4-03f-5c)
+- **Migración**: wrapper + header → `<Modal size="lg">` con banner cyan/rosé preservado
+- **Refactorización**: extraído `CamposFormularioProtocolo.jsx` (133 líneas) para cumplir allowlist
+- **Preservaciones**:
+  - Campos nativos con validación custom (campoError/mensajeError)
+  - Botón submit nativo (color clínico dinámico cyan/rosé no garantizado con `<Button>`)
+  - Botón Cancelar migrado a `<Button variant="ghost">`
+- **Fix incluido**: `bg-opacity-50` v3 eliminado al usar `<Modal>` base
+
+**Beneficios globales:**
+- ✅ Accesibilidad F6-04 automática en 2 modales adicionales
+- ✅ Dark mode automático en 2 modales + banners distintivos
+- ✅ Overlay semitransparente v4 en ambos
+- ✅ Cobertura de modales: 20/23 (87%)
+- ✅ Componentes usando `<Button>`: 30
+- ✅ Componentes usando `<Input>`: 22
+
+**Lección aprendida (patrón de migración segura):**
+- Cuando un test existente usa `getByText(...)` + `toBeDisabled()`, el `<Button>` del Design
+  System no es compatible porque envuelve children en `<span>`. En esos casos se preservan
+  botones nativos para no romper el contrato del test. Alternativa futura: modificar `<Button>`
+  para no envolver children en `<span>` cuando no hay iconos, o actualizar tests a `getByRole`.
+
+**Evidencia:**
+- ✅ 768/768 tests pasando (44 archivos, incluidos 18/18 de ModalPapelera.test.jsx)
+- ✅ Build OK (2240.64 KiB)
+- ✅ Validador arquitectónico PASS
+
+**Commits locales en rama `feat/F7-25-migracion-masiva`:**
+- `[pending]` feat(F7-25): Iteración 7 — Migrar ModalPapelera + ModalEditarProtocolo
+- `4e72372` docs(F7-25): Hotfix P0 en BITACORA + actualizar MASTER_ROADMAP
+- `0a1e06f` fix(F7-25): eliminar labels nativos duplicados en ModalNuevoPaciente
+- `5694489` fix(F7-25): overlay de Modal a sintaxis de opacidad v4 (bg-black/50)
+- `a50784f` fix(F7-25): mover tokens --spacing-* de @theme a :root (colisión namespace v4)
+- `03d95e8` fix(F7-25): hotfix dark-variant class-based para Tailwind v4
+- `7eaf4f9` docs(F7-25): Iteración 6 en BITACORA + actualizar MASTER_ROADMAP
+
+**Próximas iteraciones necesarias para llegar al 100%:**
+- Iteración 8: ModalNuevoPresupuesto.jsx (295) + ModalNuevaCita.jsx (324) (~95% cobertura)
+- Iteración 9: ArchivoModal.jsx (117) + ConflictResolutionModal + edge cases + pulido final + push + PR (100% cobertura)
+
+**Tiempo estimado restante**: ~2-3 sesiones de 2 horas = 4-6 horas
+
+**Estado:** ✅ DONE (2026-09-09) — Iteración 7 de F7-25
