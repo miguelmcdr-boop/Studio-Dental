@@ -1,4 +1,5 @@
 import React, { memo } from 'react'
+import { Button } from '../../components/ui/Button'
 import { DienteSVG } from '../../components/DienteSVG'
 import {
   PERMANENTE_SUPERIOR,
@@ -41,37 +42,39 @@ export const OdontogramaModulo = memo(({
       {/* Barra Superior de Control */}
       <div className="flex justify-between items-center mb-4 flex-wrap gap-3 print:hidden">
         <div className="flex gap-2">
-          <button
+          <Button
             type="button"
             onClick={() => setTipoDenticion('permanente')}
-            className={`px-4 py-2 rounded-xl text-xs font-extrabold border transition-all cursor-pointer ${
-              tipoDenticion === 'permanente' ? 'bg-black text-white border-black shadow-xs' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-            }`}
+            variant={tipoDenticion === 'permanente' ? 'primary' : 'outline'}
+            size="sm"
+            className={tipoDenticion === 'permanente' ? 'font-extrabold' : 'font-extrabold'}
           >
             🦷 Permanente (11-48)
-          </button>
+          </Button>
 
-          <button
+          <Button
             type="button"
             onClick={() => setTipoDenticion('temporal')}
-            className={`px-4 py-2 rounded-xl text-xs font-extrabold border transition-all cursor-pointer ${
-              tipoDenticion === 'temporal' ? 'bg-black text-white border-black shadow-xs' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-            }`}
+            variant={tipoDenticion === 'temporal' ? 'primary' : 'outline'}
+            size="sm"
+            className="font-extrabold"
           >
             🧸 Temporal (51-85)
-          </button>
+          </Button>
         </div>
 
         {odontogramaComparar && (
-          <button
+          <Button
             type="button"
             onClick={() => setModoComparativoSplit(!modoComparativoSplit)}
-            className={`px-4 py-2 rounded-xl text-xs font-extrabold border transition-all cursor-pointer shadow-xs ${
-              modoComparativoSplit ? 'bg-purple-700 text-white border-purple-800' : 'bg-purple-50 text-purple-900 border-purple-300 hover:bg-purple-100'
-            }`}
+            variant="outline"
+            size="sm"
+            className={modoComparativoSplit 
+              ? 'bg-purple-700 text-white border-purple-800 hover:bg-purple-800 font-extrabold' 
+              : 'bg-purple-50 text-purple-900 border-purple-300 hover:bg-purple-100 font-extrabold'}
           >
             🪞 {modoComparativoSplit ? 'Cerrar Vista Comparativa Split' : 'Ver Antes vs. Después (Split)'}
-          </button>
+          </Button>
         )}
 
         {esEvolucion && (
@@ -88,22 +91,24 @@ export const OdontogramaModulo = memo(({
       <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 flex flex-wrap gap-2.5 items-center text-xs print:hidden shadow-2xs">
         <span className="font-extrabold text-gray-600 uppercase mr-2 text-[11px] tracking-wider">Herramienta:</span>
         {HERRAMIENTAS_ODONTOGRAMA.map(h => (
-          <button
+          <Button
             key={h.id}
             type="button"
             onClick={() => setModoSeleccionado(h.id)}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-              modoSeleccionado === h.id ? `${h.color} ring-2 ring-black shadow-xs` : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
-            }`}
+            variant="outline"
+            size="sm"
+            className={modoSeleccionado === h.id 
+              ? `${h.color} ring-2 ring-black font-bold` 
+              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100 font-bold'}
           >
             {h.label}
-          </button>
+          </Button>
         ))}
 
         <div className="h-5 w-px bg-gray-300 mx-2"></div>
-        <button type="button" onClick={() => handleEstadoGeneral('implante')} className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white border border-gray-300 text-gray-800 hover:bg-gray-100 cursor-pointer">Implante</button>
-        <button type="button" onClick={() => handleEstadoGeneral('ausente')} className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white border border-red-200 text-red-600 hover:bg-red-50 cursor-pointer">Ausente</button>
-        <button type="button" onClick={() => handleEstadoGeneral('indicacion_exodoncia')} className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white border border-red-300 text-red-800 hover:bg-red-50 cursor-pointer">Exodoncia</button>
+        <Button type="button" onClick={() => handleEstadoGeneral('implante')} variant="outline" size="sm" className="font-bold">Implante</Button>
+        <Button type="button" onClick={() => handleEstadoGeneral('ausente')} variant="outline" size="sm" className="border-red-200 text-red-600 hover:bg-red-50 font-bold">Ausente</Button>
+        <Button type="button" onClick={() => handleEstadoGeneral('indicacion_exodoncia')} variant="outline" size="sm" className="border-red-300 text-red-800 hover:bg-red-50 font-bold">Exodoncia</Button>
       </div>
 
       {/* Grid de Odontograma Split con ancho contenedor independiente */}
@@ -214,7 +219,7 @@ export const OdontogramaModulo = memo(({
       <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-2xs print:hidden">
         <div className="flex justify-between items-center mb-2">
           <h4 className="text-xs font-extrabold text-gray-900">Observación Clínica — Pieza Dental {piezaActiva}</h4>
-          <button type="button" onClick={handleLimpiarPieza} className="text-xs text-red-600 font-bold hover:underline cursor-pointer">🧹 Limpiar Pieza</button>
+          <Button type="button" onClick={handleLimpiarPieza} variant="ghost" size="sm" className="text-red-600 font-bold">🧹 Limpiar Pieza</Button>
         </div>
         <textarea
           rows="2"

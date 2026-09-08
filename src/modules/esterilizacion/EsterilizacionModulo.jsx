@@ -1,4 +1,6 @@
 import React, { memo, useState } from 'react'
+import { Input } from '../../components/ui/Input'
+import { Button } from '../../components/ui/Button'
 import { EQUIPOS_AUTOCLAVE } from './constants/esterilizacionConstants'
 import { useEsterilizacion } from './hooks/useEsterilizacion'
 import { EsterilizacionSummaryCards } from './components/EsterilizacionSummaryCards'
@@ -44,12 +46,13 @@ export const EsterilizacionModulo = memo(() => {
         </div>
 
         {tabActual === 'cargas' && (
-          <button
+          <Button
             onClick={() => setModalAbierto(true)}
-            className="bg-black text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-gray-800 transition-colors shadow-xs cursor-pointer"
+            variant="primary"
+            size="sm"
           >
             + Registrar Ciclo Autoclave
-          </button>
+          </Button>
         )}
       </div>
 
@@ -58,41 +61,37 @@ export const EsterilizacionModulo = memo(() => {
       </div>
 
       <div className="flex gap-2 border-b pb-1 print:hidden text-xs">
-        <button
+        <Button
           onClick={() => setTabActual('cargas')}
-          className={`px-4 py-2 rounded-xl font-bold transition-all ${
-            tabActual === 'cargas' ? 'bg-black text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
+          variant={tabActual === 'cargas' ? 'primary' : 'secondary'}
+          size="sm"
         >
           🏷️ Cargas y Trazabilidad
-        </button>
+        </Button>
 
-        <button
+        <Button
           onClick={() => setTabActual('biologico')}
-          className={`px-4 py-2 rounded-xl font-bold transition-all ${
-            tabActual === 'biologico' ? 'bg-black text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
+          variant={tabActual === 'biologico' ? 'primary' : 'secondary'}
+          size="sm"
         >
           🧬 Control Biológico (Ampollas)
-        </button>
+        </Button>
 
-        <button
+        <Button
           onClick={() => setTabActual('test')}
-          className={`px-4 py-2 rounded-xl font-bold transition-all ${
-            tabActual === 'test' ? 'bg-black text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
+          variant={tabActual === 'test' ? 'primary' : 'secondary'}
+          size="sm"
         >
           🛠️ Test Bowie-Dick / Fugas
-        </button>
+        </Button>
 
-        <button
+        <Button
           onClick={() => setTabActual('libro')}
-          className={`px-4 py-2 rounded-xl font-bold transition-all ${
-            tabActual === 'libro' ? 'bg-black text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
+          variant={tabActual === 'libro' ? 'primary' : 'secondary'}
+          size="sm"
         >
           📖 Libro Oficial SEREMI
-        </button>
+        </Button>
       </div>
 
       {tabActual === 'cargas' && (
@@ -113,12 +112,12 @@ export const EsterilizacionModulo = memo(() => {
                 </select>
               </div>
 
-              <input
+              <Input
                 type="text"
                 placeholder="🔍 Buscar lote, contenido u operador..."
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
-                className="p-2 border rounded-xl bg-white w-full sm:w-64"
+                className="w-full sm:w-64"
               />
             </div>
 

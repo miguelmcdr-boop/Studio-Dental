@@ -1,4 +1,6 @@
 import React, { memo, useState } from 'react'
+import { Input } from '../../../components/ui/Input'
+import { Button } from '../../../components/ui/Button'
 import { CANALES_COMUNICACION } from '../constants/comunicacionesConstants'
 
 export const PlantillasManager = memo(({ plantillas, alGuardarPlantilla, alEliminarPlantilla }) => {
@@ -51,23 +53,20 @@ export const PlantillasManager = memo(({ plantillas, alGuardarPlantilla, alElimi
             {plantillaEditar ? '✏️ Editar Plantilla' : '➕ Crear Plantilla'}
           </h3>
           {plantillaEditar && (
-            <button type="button" onClick={handleCancelarEdicion} className="text-gray-400 font-bold hover:text-black">
+            <Button type="button" onClick={handleCancelarEdicion} variant="ghost" size="sm">
               ✕ Cancelar
-            </button>
+            </Button>
           )}
         </div>
 
-        <div>
-          <label className="block font-semibold text-gray-700 mb-1">Nombre Identificador *</label>
-          <input
-            type="text"
-            required
-            placeholder="Ej: 📅 Confirmación de Cita"
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
-            className="w-full p-2.5 rounded-xl border border-gray-300 font-bold"
-          />
-        </div>
+        <Input
+          label="Nombre Identificador"
+          type="text"
+          required
+          placeholder="Ej: 📅 Confirmación de Cita"
+          value={nombre}
+          onChange={(e) => setNombre(e.target.value)}
+        />
 
         <div>
           <label className="block font-semibold text-gray-700 mb-1">Canal Predeterminado</label>
@@ -81,16 +80,13 @@ export const PlantillasManager = memo(({ plantillas, alGuardarPlantilla, alElimi
         </div>
 
         {canal === 'email' && (
-          <div>
-            <label className="block font-semibold text-gray-700 mb-1">Asunto del Correo</label>
-            <input
-              type="text"
-              placeholder="Ej: Su Atención Odontológica"
-              value={asunto}
-              onChange={(e) => setAsunto(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-gray-300"
-            />
-          </div>
+          <Input
+            label="Asunto del Correo"
+            type="text"
+            placeholder="Ej: Su Atención Odontológica"
+            value={asunto}
+            onChange={(e) => setAsunto(e.target.value)}
+          />
         )}
 
         <div>
@@ -123,12 +119,13 @@ export const PlantillasManager = memo(({ plantillas, alGuardarPlantilla, alElimi
           </div>
         </div>
 
-        <button
+        <Button
           type="submit"
-          className="w-full bg-black text-white font-bold py-2.5 rounded-xl hover:bg-gray-800 transition-colors shadow-xs"
+          variant="primary"
+          fullWidth
         >
           {plantillaEditar ? 'Guardar Cambios' : 'Guardar Plantilla'}
-        </button>
+        </Button>
       </form>
 
       <div className="md:col-span-2 space-y-4">
@@ -143,8 +140,8 @@ export const PlantillasManager = memo(({ plantillas, alGuardarPlantilla, alElimi
                 <div className="flex justify-between items-start border-b pb-2">
                   <h4 className="font-black text-sm text-gray-900">{pl.nombre}</h4>
                   <div className="flex gap-1">
-                    <button onClick={() => handleAbrirEditar(pl)} className="text-gray-600 hover:text-black font-bold p-1" aria-label="Editar plantilla">✏️</button>
-                    <button onClick={() => alEliminarPlantilla(pl.id)} className="text-red-500 hover:text-red-700 font-bold p-1" aria-label="Eliminar plantilla">🗑️</button>
+                    <Button onClick={() => handleAbrirEditar(pl)} variant="ghost" size="sm" className="p-1" aria-label="Editar plantilla">✏️</Button>
+                    <Button onClick={() => alEliminarPlantilla(pl.id)} variant="danger" size="sm" className="p-1" aria-label="Eliminar plantilla">🗑️</Button>
                   </div>
                 </div>
                 <p className="text-gray-600 mt-2 font-mono text-[10px] leading-relaxed">{pl.cuerpo}</p>
