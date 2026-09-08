@@ -58,14 +58,6 @@
   --color-surface-muted: #f3f4f6;
   --color-border: #e5e7eb;
 
-  /* === ESPACIADO (base 4px) === */
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 12px;
-  --spacing-lg: 16px;
-  --spacing-xl: 24px;
-  --spacing-2xl: 32px;
-
   /* === TIPOGRAFÍA === */
   --font-display: 'Inter', system-ui, -apple-system, sans-serif;
   --font-body: 'Inter', system-ui, -apple-system, sans-serif;
@@ -80,6 +72,20 @@
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+/* === ESPACIADO (base 4px) ===
+   FUERA de @theme a propósito (F7-25 hotfix): dentro de @theme, Tailwind v4
+   registra --spacing-* como valores de utilidades (max-w-md = 12px!) y
+   colapsa todos los max-w-*. Como variables :root siguen disponibles
+   para var(--spacing-md) sin tocar el namespace de utilidades. */
+:root {
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+  --spacing-2xl: 32px;
 }
 
 /* === MODO OSCURO === */
