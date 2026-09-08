@@ -5094,3 +5094,101 @@ direccion, diagnostico, tratamiento, anamnesis, receta
 **Tiempo estimado restante**: ~5-6 sesiones de 2 horas = 10-12 horas
 
 **Estado:** ✅ DONE (2026-09-07) — Iteración 4 de F7-25
+
+---
+
+## 2026-09-08 — F7-25 Iteración 5: Migración masiva (Fase A + B) — DONE
+
+**Contexto:** F7-25 Fase 5 (Iteración 5). Continuación de migración masiva de componentes para mejorar cobertura visual del Design System.
+
+**Fase A — 5 modales medianos migrados a <Modal> base:**
+
+### 1. ModalEnviarMensaje.jsx (166→169 líneas)
+- **Módulo**: comunicaciones
+- **Migración**: 4 botones (Cancelar, WhatsApp Web, App Móvil, Registrar Envío)
+- **Preservados**: 3 selects + 1 textarea (Input no soporta select/textarea)
+- **Beneficios**: accesibilidad F6-04 automática, dark mode
+
+### 2. ModalEditarAntirresortivo.jsx (175→117 líneas, -58 líneas)
+- **Módulo**: administración (MRONJ)
+- **Migración**: wrapper + 2 botones del footer
+- **Refactorización**: creado CamposFormularioAntirresortivo.jsx (105 líneas)
+- **Beneficios**: accesibilidad F6-04, cumplimiento de allowlist (límite 176), banner purple preservado
+
+### 3. ModalNuevoItemStock.jsx (178→162 líneas, -16 líneas)
+- **Módulo**: inventario
+- **Migración**: 6 inputs + 2 botones
+- **Preservados**: 2 selects
+- **Beneficios**: accesibilidad F6-04 automática, dark mode
+
+### 4. ModalNuevaCarga.jsx (183→175 líneas, -8 líneas)
+- **Módulo**: esterilización
+- **Migración**: 4 inputs + 2 botones
+- **Preservados**: 4 selects + 1 textarea
+- **Beneficios**: accesibilidad F6-04 automática, dark mode
+
+### 5. ModalEditarUrgencia.jsx (196→118 líneas, -78 líneas)
+- **Módulo**: administración (urgencias)
+- **Migración**: wrapper + 2 botones del footer
+- **Refactorización**: creado CamposFormularioUrgencia.jsx (124 líneas)
+- **Beneficios**: accesibilidad F6-04, cumplimiento de allowlist (límite 197), banner red preservado
+
+**Fase B — 4 componentes NO-modales refactorizados con <Button> + <Input>:**
+
+### 6. OdontogramaModulo.jsx (230→235 líneas)
+- **Módulo**: odontograma (crítico visual)
+- **Migración**: 8 botones (Permanente/Temporal, Split, 5 herramientas dinámicas, Implante/Ausente/Exodoncia, Limpiar Pieza)
+- **Preservados**: 1 textarea (observaciones)
+- **Beneficios**: dark mode, consistencia visual, colores dinámicos preservados
+
+### 7. PlantillasManager.jsx (165→162 líneas)
+- **Módulo**: comunicaciones
+- **Migración**: 2 inputs + 4 botones (formulario + directorio)
+- **Preservados**: 1 select, 1 textarea, chips de variables (estilo específico)
+- **Beneficios**: dark mode, consistencia visual
+
+### 8. EsterilizacionModulo.jsx (167→166 líneas)
+- **Módulo**: esterilización
+- **Migración**: 1 input + 5 botones (registrar ciclo, 4 pestañas, búsqueda)
+- **Preservados**: 1 select (filtro autoclave)
+- **Beneficios**: dark mode, consistencia visual
+
+### 9. TarjetaPieza.jsx (170→171 líneas)
+- **Módulo**: periodontograma (crítico clínico)
+- **Migración mínima**: 1 botón (Presente/Ausente)
+- **Preservados intencionalmente**: 12 inputs numéricos (text-[11px]), 18 botones de flag B/P/S (w-3.5 h-3.5), 2 selects (Movilidad/Furca)
+- **Razón**: layout ultra-compacto esencial para captura clínica
+
+**Bonus: 2 componentes nuevos creados para cumplir allowlist:**
+- CamposFormularioAntirresortivo.jsx (105 líneas)
+- CamposFormularioUrgencia.jsx (124 líneas)
+
+**Beneficios globales obtenidos:**
+- ✅ 9 archivos modificados + 2 componentes nuevos creados
+- ✅ 8 inputs + 26 botones migrados
+- ✅ Cobertura de modales: 14/23 (61%)
+- ✅ Componentes usando <Button>: 23
+- ✅ Componentes usando <Input>: 15
+- ✅ Dark mode automático en 9 componentes
+- ✅ Accesibilidad F6-04 automática en 5 modales adicionales
+- ✅ 2 refactorizaciones arquitectónicas (cumplimiento de allowlist)
+
+**Evidencia:**
+- ✅ 768/768 tests pasando (44 archivos)
+- ✅ Build OK (2231.51 KiB)
+- ✅ Validador arquitectónico PASS
+
+**Commits locales en rama `feat/F7-25-migracion-masiva`:**
+- `[pending]` feat(F7-25): Fase B Iteración 5 — 4 componentes NO-modales refactorizados
+- `6dc5ffa` feat(F7-25): Fase A Iteración 5 — 5 modales medianos migrados
+- `ada9a95` docs(F7-25): Iteración 4 en BITACORA + actualizar MASTER_ROADMAP
+
+**Próximas iteraciones necesarias para llegar al 100%:**
+- Iteración 6: 4 modales grandes (agenda, presupuestos) (~70% cobertura)
+- Iteración 7: Odontograma, odontopediatría, urgenciasGes (~80% cobertura)
+- Iteración 8: Componentes administrativos restantes (~95% cobertura)
+- Iteración 9: Edge cases + pulido final (100% cobertura)
+
+**Tiempo estimado restante**: ~4-5 sesiones de 2 horas = 8-10 horas
+
+**Estado:** ✅ DONE (2026-09-08) — Iteración 5 de F7-25
