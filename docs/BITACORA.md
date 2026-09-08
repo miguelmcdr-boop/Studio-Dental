@@ -5411,3 +5411,59 @@ direccion, diagnostico, tratamiento, anamnesis, receta
 **Tiempo estimado restante**: ~2-3 sesiones de 2 horas = 4-6 horas
 
 **Estado:** ✅ DONE (2026-09-09) — Iteración 7 de F7-25
+
+---
+
+## 2026-09-09 — F7-25 Iteración 8: Migrar ModalNuevoPresupuesto + ModalNuevaCita — DONE
+
+**Contexto:** F7-25 Fase 8 (Iteración 8). Continuación de migración masiva de modales a `<Modal>` base.
+
+### 1. ModalNuevoPresupuesto.jsx (295→195 líneas, -100)
+- **Módulo**: presupuestos (presupuesto formal cotizado)
+- **Migración**: wrapper + header → `<Modal size="lg">`
+- **Refactorización**: extraído `CamposFormularioPresupuesto.jsx` (159 líneas) para cumplir allowlist
+- **Lógica crítica preservada**:
+  - Sincronización bidireccional con Ficha del Paciente (`presupuestosStorageService.sincronizarConFichaPaciente`)
+  - Importación de hallazgos del odontograma (carga dinámica + botones de precarga)
+  - Cálculo de montoTotal en tiempo real
+- **Preservaciones**:
+  - 4 botones dinámicos nativos (3 importar hallazgo + 1 eliminar item)
+  - 3 selects (Paciente, Convenio, Prestación)
+  - 1 input (Pieza dental) migrado a `<Input>`
+  - 1 textarea (Observaciones)
+
+### 2. ModalNuevaCita.jsx (324→180 líneas, -144)
+- **Módulo**: agenda (flujo principal de citas, crítico)
+- **Migración**: wrapper + header → `<Modal size="lg">`
+- **Refactorización**: extraído `CamposFormularioCita.jsx` (200 líneas) para cumplir allowlist
+- **Preservaciones**:
+  - Toggle dual (Paciente Registrado vs Express) preservado nativo con dark mode
+  - Select de pacientes con formato enriquecido (nombre + RUT + teléfono)
+  - Checkbox `autoCrearFicha` preservado nativo
+  - 5 inputs simples migrados a `<Input>` (Nombre, Teléfono, Fecha, Hora Inicio, Duración)
+  - Cálculo automático de `horaFinCalculada` preservado
+- **Botones**: Cancelar + Confirmar migrados a `<Button>`
+
+**Beneficios globales:**
+- ✅ Accesibilidad F6-04 automática en 2 modales adicionales
+- ✅ Dark mode automático en 2 modales + toggle dual de citas
+- ✅ Cobertura de modales: 22/23 (96%)
+- ✅ Componentes usando `<Button>`: 31
+- ✅ Componentes usando `<Input>`: 24
+
+**Evidencia:**
+- ✅ 768/768 tests pasando (44 archivos, incluidos 44/44 de presupuestos + 41/41 de agenda)
+- ✅ Build OK (2241.89 KiB)
+- ✅ Validador arquitectónico PASS
+
+**Commits locales en rama `feat/F7-25-migracion-masiva`:**
+- `[pending]` feat(F7-25): Iteración 8 — Migrar ModalNuevoPresupuesto + ModalNuevaCita
+- `1883939` docs(F7-25): Iteración 7 en BITACORA + actualizar MASTER_ROADMAP
+- `dfbfb04` feat(F7-25): Iteración 7 — Migrar ModalPapelera + ModalEditarProtocolo
+
+**Próximas iteraciones necesarias para llegar al 100%:**
+- Iteración 9: ArchivoModal.jsx (117) + ConflictResolutionModal + edge cases + pulido final + **push + PR** (100% cobertura)
+
+**Tiempo estimado restante**: ~1 sesión de 2 horas
+
+**Estado:** ✅ DONE (2026-09-09) — Iteración 8 de F7-25
