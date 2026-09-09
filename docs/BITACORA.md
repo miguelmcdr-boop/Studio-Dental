@@ -5535,3 +5535,78 @@ direccion, diagnostico, tratamiento, anamnesis, receta
 **Próximo paso:** Push + PR a main
 
 **Estado:** ✅ DONE (2026-09-09) — Iteración 9 de F7-25 — F7-25 COMPLETADO AL 100%
+
+---
+
+## 2026-09-09 — F10-B: Shell (Sidebar v2 + TopBar v2 + CommandPalette) — DONE
+
+**Contexto:** F10 (Rediseño "Clinical Precision v2"), Fase B — Shell.
+Transformación del chrome de la app al patrón Linear/Clerk: navegación agrupada, identidad única en avatar-menu, búsqueda omnicanal ⌘K.
+
+### B1: Icono custom Tooth (F10-B1)
+- **Archivo:** `src/components/icons/Tooth.jsx` (46 líneas)
+- **Tests:** `src/components/icons/Tooth.test.jsx` (5 tests nuevos, 43 líneas)
+- **Razón:** lucide-react no tiene icono de diente y 🦷 es central en el dominio clínico
+- **API:** replica la de lucide (size/color/strokeWidth/className + forwardRef) para ser intercambiable via `<Icon icon={Tooth} />`
+- **Diseño:** molar outline de trazo continuo (corona + 2 raíces), viewBox 24x24
+
+### B2: Sidebar v2 — navegación agrupada (F10-B2)
+- **Archivo:** `src/components/Sidebar.jsx` (119 líneas, dentro del límite congelado 142)
+- **Extracciones:**
+  - `src/constants/sidebarConstants.js` (50 líneas): `SECCIONES_SIDEBAR` con 4 secciones
+  - `src/components/SidebarUserFooter.jsx` (61 líneas): luego eliminado en B3
+- **4 secciones con labels (10px uppercase muted):**
+  - CLÍNICA: Agenda · Dashboard · Pacientes · Urgencias y GES · Comunicaciones
+  - OPERACIONES: Esterilización · Laboratorio · Inventario (con permisos RBAC preservados)
+  - FINANZAS: Presupuestos · Pagos · Prestaciones · Finanzas · Reportes
+  - ADMIN: Miembros · Vademécum · Configuración
+- **Item activo:** `bg-graphite-900` en claro / `dark:bg-graphite-100` (champagne reservado para marca)
+- **Contadores vía props API** (conectados a datos reales en B2.5)
+- **Contratos preservados:** `data-testid="sidebar-menu-*"`, `aria-current="page"`, RBAC
+
+### B2.5: Hook useSidebarCounters (F10-B2.5)
+- **Archivo:** `src/hooks/useSidebarCounters.js` (93 líneas)
+- **3 contadores reales:**
+  - `agenda`: filtra `agendaStorageService.obtenerCitas()` por fecha de hoy
+  - `inventario`: filtra por `item.cantidad ?? stockActual < item.minimoCritico ?? stockMinimo`
+  - `papelera`: async `listarPacientesEliminados()` con manejo de errores
+- **Refrescos automáticos:** storage event + citas_actualizadas + pacientes_actualizados
+- **Integración:** `<Sidebar counters={sidebarCounters}>` en App.jsx
+
+### B3: TopBar v2 con avatar-menu (F10-B3)
+- **Archivo:** `src/components/TopBar.jsx` (206 líneas)
+- **Cambios:**
+  - Avatar clickeable con dropdown accesible (role="menu", aria-haspopup)
+  - Header del menú: avatar grande + nombre + email + Badge con rol
+  - Toggle dark mode + "Cerrar sesión" duplicados (siempre visibles + en menú) por contrato con TopBar.test.jsx
+  - Cierre con ESC + click fuera (F6-04 simplificado)
+- **Eliminación:** `SidebarUserFooter.jsx` (identidad duplicada del Sidebar)
+- **TopBar.test.jsx:** 16/16 tests pasando (contrato aria-label preservado)
+
+### B4: CommandPalette ⌘K (F10-B4)
+- **Archivos:**
+  - `src/hooks/useCommandPalette.js` (136 líneas)
+  - `src/components/CommandPalette.jsx` (223 líneas)
+- **3 secciones de resultados:**
+  - Pacientes (top 5 por match nombre/RUT, fuzzy insensible a acentos)
+  - Módulos (filtrados por RBAC desde SECCIONES_SIDEBAR)
+  - Acciones rápidas (nueva cita, nuevo paciente, nuevo presupuesto)
+- **Navegación:** ↑↓ Enter Esc, atajo global ⌘K / Ctrl+K
+- **Accesibilidad F6-04:** role="dialog", trap de foco, autofocus en input
+
+### Lecciones aprendidas en F10-B
+1. **TDZ en App.jsx:** el `useEffect` del atajo ⌘K se inyectó antes de `const commandPalette = ...` → Runtime error. Fix: declaración antes del efecto. Tests unitarios no lo detectaron (no renderizan App.jsx completo).
+2. **Límites congelados de allowlist:** Sidebar estaba en 142 líneas congeladas. B2 requirió extracción a `sidebarConstants.js` + `SidebarUserFooter.jsx` para cumplir.
+3. **Test contracts:** TopBar.test.jsx espera botones siempre visibles. Solución: duplicar (accesos rápidos + menú), patrón Gmail/Notion.
+4. **Proceso reforzado:** commit SOLO con tests + validador VERDE. Detectado 2 veces (B2 initial + B3 initial) y corregido con amend.
+
+### Métricas F10-B
+- Commits: 5 (B1, B2, B2.5, B3, B4)
+- Tests: 1315/1315 (+5 del icono Tooth respecto al baseline)
+- Build: OK
+- Validador: VERDE
+- Archivos nuevos: 5
+- Archivos eliminados: 1 (SidebarUserFooter.jsx)
+
+### Estado: ✅ DONE (2026-09-09) — F10-B completada
+### Siguiente fase: F10-C (módulos core — Agenda, Directorio, Presupuestos con PageHeader + Badge + EmptyState)
