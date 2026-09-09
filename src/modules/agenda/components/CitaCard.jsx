@@ -13,6 +13,7 @@
 import React, { memo } from 'react'
 import { Ban, Clock, Armchair, Trash2, Stethoscope, Folder, MessageCircle } from 'lucide-react'
 import { Icon } from '../../../components/Icon'
+import { stripEmojis } from '../../../utils/stringUtils'
 import { Badge } from '../../../components/ui/Badge'
 
 const ESTADO_BADGE_VARIANT = {
@@ -40,7 +41,7 @@ export const CitaCard = memo(({
         <div className="space-y-0.5">
           <span className="font-semibold text-[11px] flex items-center gap-1.5">
             <Icon icon={Ban} size="xs" />
-            {cita.motivoBloqueo || 'Bloqueo Horario'}
+            {stripEmojis(cita.motivoBloqueo) || 'Bloqueo Horario'}
           </span>
           <p className="text-[10px] font-medium text-red-700 dark:text-red-300 flex items-center gap-1">
             <Icon icon={Clock} size="xs" />
