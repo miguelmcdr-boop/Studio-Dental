@@ -20,6 +20,7 @@ import { VerificandoCuenta } from './components/VerificandoCuenta'
 import { useInvitacionHash } from './hooks/useInvitacionHash'
 import { useDarkMode } from './hooks/useDarkMode'
 import { useRestaurarPaciente } from './hooks/useRestaurarPaciente'
+import { useSidebarCounters } from './hooks/useSidebarCounters'
 
 // Módulos de uso diario — carga eager (Public API, Constitución v3.0.0)
 import { Agenda as AgendaModulo } from './modules/agenda'
@@ -102,6 +103,9 @@ function App() {
 
   // F4-02e: Restaurar paciente seleccionado desde Supabase al recargar
   useRestaurarPaciente(userProfile, pacienteSeleccionado, setPacienteSeleccionadoState, setActiveSection)
+  // F10-B2.5: contadores para el Sidebar
+  const sidebarCounters = useSidebarCounters()
+
   useDataMigration(userProfile)
 
   // F5-02: activar sincronización en tiempo real
@@ -213,7 +217,7 @@ function App() {
           onToggleDarkMode={toggleDarkMode}
         />
         <div className="flex flex-1">
-          <Sidebar userProfile={userProfile} activeSection={activeSection} setActiveSection={setActiveSection} onLogout={handleLogout} />
+          <Sidebar userProfile={userProfile} activeSection={activeSection} setActiveSection={setActiveSection} onLogout={handleLogout} counters={sidebarCounters} />
 
           <main className="flex-1 p-8 print:p-0 overflow-x-hidden">
         <Suspense fallback={<CargandoModulo />}>
