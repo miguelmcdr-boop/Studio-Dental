@@ -2,6 +2,7 @@
  * ModalNuevaCita — Modal para agendar cita médica
  * Migrado a <Modal> base + CamposFormularioCita (F7-25)
  */
+import { Plus } from 'lucide-react'
 import React, { memo, useState, useMemo } from 'react'
 import { SILLONES_DENTALES } from '../constants/agendaConstants'
 import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
@@ -87,7 +88,7 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
     <Modal
       isOpen={true}
       onClose={alCerrar}
-      title="📅 Agendar Cita Médica"
+      title="Agendar cita médica"
       size="lg"
     >
       <p className="text-[11px] text-graphite-500 dark:text-graphite-400 mb-4">
@@ -166,11 +167,12 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
             Cancelar
           </Button>
           <Button
-            type="submit"
-            variant="primary"
-          >
-            <span>➕</span> Confirmar Cita
-          </Button>
+              type="submit"
+              variant="primary"
+              icon={Plus}
+            >
+              Confirmar cita
+            </Button>
         </div>
       </form>
     </Modal>
