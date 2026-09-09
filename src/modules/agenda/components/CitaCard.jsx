@@ -13,6 +13,7 @@
 import React, { memo } from 'react'
 import { Ban, Clock, Armchair, Trash2, Stethoscope, Folder, MessageCircle } from 'lucide-react'
 import { Icon } from '../../../components/Icon'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 import { stripEmojis } from '../../../utils/stringUtils'
 import { Badge } from '../../../components/ui/Badge'
 
@@ -33,6 +34,7 @@ export const CitaCard = memo(({
   alVerFicha,
   alEliminar
 }) => {
+  const { confirm } = useAppDialog()
   const esBloqueo = cita.esBloqueo
 
   if (esBloqueo) {
@@ -54,9 +56,15 @@ export const CitaCard = memo(({
 
         <button
           type="button"
-          onClick={(e) => {
+          onClick={async (e) => {
             e.stopPropagation()
-            if (confirm('¿Deseas quitar este bloqueo de la agenda?')) {
+            const ok = await confirm({
+              title: 'Quitar bloqueo de agenda',
+              description: '¿Deseas quitar este bloqueo de la agenda?',
+              variant: 'danger',
+              confirmText: 'Quitar'
+            })
+            if (ok) {
               alEliminar?.(cita.id)
             }
           }}
@@ -107,9 +115,15 @@ export const CitaCard = memo(({
 
           <button
             type="button"
-            onClick={(e) => {
+            onClick={async (e) => {
               e.stopPropagation()
-              if (confirm(`¿Eliminar la cita de "${cita.pacienteNombre}"?`)) {
+              const ok = await confirm({
+                title: 'Eliminar cita',
+                description: `¿Eliminar la cita de "${cita.pacienteNombre}"?`,
+                variant: 'danger',
+                confirmText: 'Eliminar'
+              })
+              if (ok) {
                 alEliminar?.(cita.id)
               }
             }}
