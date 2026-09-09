@@ -65,7 +65,7 @@ export const ConflictResolutionModal = ({
     <Modal
       isOpen={true}
       onClose={alCerrar}
-      title={`⚠️ ${titulo}`}
+      title={titulo}
       size="xl"
       closeOnOverlayClick={!resolviendo}
       closeOnEscape={!resolviendo}

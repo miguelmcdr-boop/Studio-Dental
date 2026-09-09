@@ -5467,3 +5467,71 @@ direccion, diagnostico, tratamiento, anamnesis, receta
 **Tiempo estimado restante**: ~1 sesión de 2 horas
 
 **Estado:** ✅ DONE (2026-09-09) — Iteración 8 de F7-25
+
+---
+
+## 2026-09-09 — F7-25 Iteración 9: Migrar ArchivoModal + ConflictResolutionModal (100% cobertura) — DONE
+
+**Contexto:** F7-25 Fase 9 (Iteración 9 FINAL). Completación de migración masiva de modales a `<Modal>` base.
+
+### 1. ArchivoModal.jsx (117→85 líneas, -32)
+- **Módulo**: pacientes (visualización de archivos clínicos F7-22)
+- **Migración**: wrapper + header → `<Modal size="full">`
+- **Fix incluido**: `bg-opacity-80` v3 eliminado al usar `<Modal>` base
+- **Preservaciones**:
+  - Contenido adaptable (img para imágenes, iframe para PDFs, fallback para otros)
+  - Responsive design (móvil/tablet/desktop)
+  - Dark mode automático en footer + contenido
+
+### 2. ConflictResolutionModal.jsx (219→158 líneas, -61)
+- **Módulo**: global (resolución de conflictos de edición F5-04)
+- **Migración**: wrapper + header → `<Modal size="xl">`
+- **Fix incluido**: `bg-opacity-50` v3 eliminado al usar `<Modal>` base
+- **Simplificación**: lógica F6-04 (trampa de foco + ESC) eliminada porque `<Modal>` ya la tiene
+- **Preservaciones**:
+  - 3 botones `<Button>` (Cancelar, Usar servidor, Mantener local)
+  - Banners comparativos (azul local, púrpura remoto, amarillo diferencias)
+  - Dark mode automático en todos los banners
+
+### COBERTURA FINAL F7-25:
+- ✅ **23/23 modales migrados a `<Modal>` base (100%)**
+- ✅ Componentes usando `<Button>`: 31
+- ✅ Componentes usando `<Input>`: 24
+- ✅ Accesibilidad F6-04 automática en todos los modales
+- ✅ Dark mode automático en todos los modales
+- ✅ Overlay semitransparente v4 en todos los modales
+
+**Evidencia:**
+- ✅ 768/768 tests pasando (44 archivos, incluidos componentes-criticos.test.jsx)
+- ✅ Build OK
+- ✅ Validador arquitectónico PASS
+
+**Commits locales en rama `feat/F7-25-migracion-masiva`:**
+- `[pending]` feat(F7-25): Iteración 9 — Migrar ArchivoModal + ConflictResolutionModal (100% cobertura)
+- `77399ce` docs(F7-25): Iteración 8 en BITACORA + actualizar MASTER_ROADMAP
+- `5ba247a` feat(F7-25): Iteración 8 — Migrar ModalNuevoPresupuesto + ModalNuevaCita
+- `1883939` docs(F7-25): Iteración 7 en BITACORA + actualizar MASTER_ROADMAP
+- `dfbfb04` feat(F7-25): Iteración 7 — Migrar ModalPapelera + ModalEditarProtocolo
+- `4e72372` docs(F7-25): Hotfix P0 en BITACORA + actualizar MASTER_ROADMAP
+- `0a1e06f` fix(F7-25): eliminar labels nativos duplicados en ModalNuevoPaciente
+- `5694489` fix(F7-25): overlay de Modal a sintaxis de opacidad v4 (bg-black/50)
+- `a50784f` fix(F7-25): mover tokens --spacing-* de @theme a :root (colisión namespace v4)
+- `03d95e8` fix(F7-25): hotfix dark-variant class-based para Tailwind v4
+
+**Resumen completo de F7-25 (9 iteraciones + hotfix):**
+- Iteración 1: Button component (9 commits)
+- Iteración 2: Modal + Input + TopBar + App Shell
+- Iteración 3: 3 modales + 3 componentes pacientes
+- Iteración 4: 5 modales pequeños + 4 componentes + pulido visual
+- Iteración 5: 5 modales medianos + 4 componentes + 2 refactorizaciones
+- Iteración 6: 4 modales grandes + 2 refactorizaciones profundas
+- Hotfix P0: 4 fixes (dark-variant + spacing tokens + overlay v4 + labels dupes)
+- Iteración 7: ModalPapelera + ModalEditarProtocolo
+- Iteración 8: ModalNuevoPresupuesto + ModalNuevaCita
+- Iteración 9: ArchivoModal + ConflictResolutionModal (100% cobertura)
+
+**Total:** 22 commits locales, ~35 archivos modificados, 768/768 tests, build estable
+
+**Próximo paso:** Push + PR a main
+
+**Estado:** ✅ DONE (2026-09-09) — Iteración 9 de F7-25 — F7-25 COMPLETADO AL 100%
