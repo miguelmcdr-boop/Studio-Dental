@@ -15,7 +15,6 @@ import React, { useState, useMemo } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useRBAC } from '../hooks/useRBAC'
 import { ConnectionIndicator } from './ConnectionIndicator'
-import { SidebarUserFooter } from './SidebarUserFooter'
 import { Icon } from './Icon'
 import { Badge } from './ui/Badge'
 import { SECCIONES_SIDEBAR } from '../constants/sidebarConstants'
@@ -109,7 +108,7 @@ export const Sidebar = ({ userProfile, activeSection, setActiveSection, onLogout
         </nav>
       </div>
 
-      <SidebarUserFooter userProfile={userProfile} rol={rol} colapsado={colapsado} onLogout={onLogout} />
+      
 
       <div className="px-2 mb-4">
         <ConnectionIndicator />
