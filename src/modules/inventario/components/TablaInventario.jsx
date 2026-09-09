@@ -1,4 +1,5 @@
 import React, { memo } from 'react'
+import { Button } from '../../../components/ui/Button'
 import { evaluarEstadoStock, evaluarVencimiento } from '../utils/inventarioCalculations'
 
 export const TablaInventario = memo(({ items, onAjustarCantidad, onEditar, onEliminar }) => {
@@ -42,21 +43,25 @@ export const TablaInventario = memo(({ items, onAjustarCantidad, onEditar, onEli
 
                 <td className="p-3 text-center font-bold">
                   <div className="inline-flex items-center gap-1.5 bg-gray-50 px-2 py-1 rounded-xl border">
-                    <button
+                    <Button
                       onClick={() => onAjustarCantidad(item.id, -1)}
-                      className="w-5 h-5 bg-white border text-gray-700 rounded-lg hover:bg-gray-200 font-black flex items-center justify-center text-xs"
+                      size="sm"
+                      variant="secondary"
+                      className="w-5 h-5 p-0 font-black text-xs"
                       title="Disminuir stock"
                     >
                       -
-                    </button>
+                    </Button>
                     <span className="text-sm px-1">{item.cantidad}</span>
-                    <button
+                    <Button
                       onClick={() => onAjustarCantidad(item.id, 1)}
-                      className="w-5 h-5 bg-white border text-gray-700 rounded-lg hover:bg-gray-200 font-black flex items-center justify-center text-xs"
+                      size="sm"
+                      variant="secondary"
+                      className="w-5 h-5 p-0 font-black text-xs"
                       title="Aumentar stock"
                     >
                       +
-                    </button>
+                    </Button>
                   </div>
                 </td>
 
@@ -81,20 +86,24 @@ export const TablaInventario = memo(({ items, onAjustarCantidad, onEditar, onEli
                 <td className="p-3 text-gray-600">{item.proveedor || 'N/I'}</td>
 
                 <td className="p-3 text-right print:hidden space-x-1">
-                  <button
+                  <Button
                     onClick={() => onEditar(item)}
-                    className="p-1.5 text-gray-600 hover:text-black font-semibold rounded-lg hover:bg-gray-100"
+                    size="sm"
+                    variant="ghost"
+                    className="p-1.5"
                     title="Editar insumo"
                   >
                     ✏️
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={() => onEliminar(item.id)}
-                    className="p-1.5 text-red-500 hover:text-red-700 font-semibold rounded-lg hover:bg-red-50"
+                    size="sm"
+                    variant="danger"
+                    className="p-1.5"
                     title="Eliminar insumo"
                   >
                     🗑️
-                  </button>
+                  </Button>
                 </td>
               </tr>
             )

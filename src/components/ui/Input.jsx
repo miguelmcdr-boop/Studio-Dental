@@ -87,7 +87,7 @@ export const Input = forwardRef(({
     text-graphite-900 dark:text-graphite-50
     placeholder:text-graphite-400 dark:placeholder:text-graphite-500
     focus:outline-none focus:ring-2
-    transition-colors duration-200
+    transition-all duration-200 shadow-sm focus:shadow-md
     disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-graphite-100 dark:disabled:bg-graphite-800
     ${IconComponent && iconPosition === 'left' ? 'pl-10' : ''}
     ${IconComponent && iconPosition === 'right' ? 'pr-10' : ''}

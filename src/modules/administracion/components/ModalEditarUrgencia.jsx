@@ -3,6 +3,9 @@
  * F4-03f-3
  */
 import React, { useState, useEffect } from 'react'
+import { Modal } from '../../../components/ui/Modal'
+import { CamposFormularioUrgencia } from './CamposFormularioUrgencia'
+import { Button } from '../../../components/ui/Button'
 import { validarUrgencia, VIAS_ADMINISTRACION } from '../schemas/vademecumSchema'
 
 const VALOR_INICIAL = {
@@ -65,132 +68,51 @@ export const ModalEditarUrgencia = ({ farmaco, onGuardar, onClose, guardando }) 
   )
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-red-50 border-b border-red-200 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900">
-            🚨 {esEdicion ? `Editar Fármaco de Urgencia #${form.numero}` : 'Nuevo Fármaco de Urgencia'}
-          </h2>
-          <button onClick={onClose} disabled={guardando} className="text-gray-400 hover:text-gray-600 text-2xl font-bold">×</button>
-        </div>
+    <Modal
+      isOpen={true}
+      onClose={onClose}
+      title={esEdicion ? `🚨 Editar Fármaco de Urgencia #${form.numero}` : '🚨 Nuevo Fármaco de Urgencia'}
+      size="lg"
+      closeOnOverlayClick={!guardando}
+      closeOnEscape={!guardando}
+    >
+      {/* Header distintivo urgencia preservado como banner interno */}
+      <div className="bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800 px-6 py-3 mb-4 rounded-t-lg">
+        <p className="text-sm font-semibold text-red-800 dark:text-red-200">
+          ⚠️ Fármaco crítico del carro de reanimación
+        </p>
+      </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Número <span className="text-red-500">*</span></label>
-              <input
-                type="number"
-                value={form.numero}
-                onChange={(e) => handleChange('numero', parseInt(e.target.value) || '')}
-                className={`w-full px-3 py-2 border rounded-lg text-sm ${campoError('numero')}`}
-                disabled={esEdicion}
-              />
-              {mensajeError('numero')}
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Nombre genérico <span className="text-red-500">*</span></label>
-              <input
-                type="text"
-                value={form.nombre_generico}
-                onChange={(e) => handleChange('nombre_generico', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg text-sm ${campoError('nombre_generico')}`}
-                placeholder="Ej: Adrenalina (Epinefrina)"
-              />
-              {mensajeError('nombre_generico')}
-            </div>
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <CamposFormularioUrgencia
+            form={form}
+            errores={errores}
+            esEdicion={esEdicion}
+            handleChange={handleChange}
+          />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Concentración</label>
-              <input
-                type="text"
-                value={form.concentracion}
-                onChange={(e) => handleChange('concentracion', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                placeholder="Ej: 1:1000 (1 mg/ml)"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Presentación <span className="text-red-500">*</span></label>
-              <input
-                type="text"
-                value={form.presentacion}
-                onChange={(e) => handleChange('presentacion', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg text-sm ${campoError('presentacion')}`}
-                placeholder="Ej: Ampolla 1 ml"
-              />
-              {mensajeError('presentacion')}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Indicación <span className="text-red-500">*</span></label>
-            <input
-              type="text"
-              value={form.indicacion}
-              onChange={(e) => handleChange('indicacion', e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg text-sm ${campoError('indicacion')}`}
-              placeholder="Ej: Anafilaxia / shock anafiláctico"
-            />
-            {mensajeError('indicacion')}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Posología adulto</label>
-              <textarea
-                value={form.posologia_adulto}
-                onChange={(e) => handleChange('posologia_adulto', e.target.value)}
-                rows={2}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Posología pediátrica</label>
-              <textarea
-                value={form.posologia_pediatrica}
-                onChange={(e) => handleChange('posologia_pediatrica', e.target.value)}
-                rows={2}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Vía de administración <span className="text-red-500">*</span></label>
-            <select
-              value={form.via_administracion}
-              onChange={(e) => handleChange('via_administracion', e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg text-sm ${campoError('via_administracion')}`}
-            >
-              <option value="">-- Seleccione --</option>
-              {VIAS_ADMINISTRACION.map(v => <option key={v} value={v}>{v}</option>)}
-            </select>
-            {mensajeError('via_administracion')}
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Advertencias</label>
-            <textarea
-              value={form.advertencias}
-              onChange={(e) => handleChange('advertencias', e.target.value)}
-              rows={2}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-              placeholder="Ej: Nunca IV directa a esta concentración"
-            />
-          </div>
-
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 text-sm text-yellow-800 dark:text-yellow-200">
             ⚠️ <strong>Recuerde:</strong> Todo box dental debe contar con estos fármacos accesibles y con verificación periódica de fechas de vencimiento.
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t">
-            <button type="button" onClick={onClose} disabled={guardando} className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancelar</button>
-            <button type="submit" disabled={guardando} className="px-6 py-2 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:bg-red-400">{guardando ? 'Guardando...' : (esEdicion ? 'Actualizar' : 'Crear')}</button>
+            <Button
+              type="button"
+              onClick={onClose}
+              variant="ghost"
+              disabled={guardando}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              variant="danger"
+              disabled={guardando}
+            >
+              {guardando ? 'Guardando...' : (esEdicion ? 'Actualizar' : 'Crear')}
+            </Button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   )
 }

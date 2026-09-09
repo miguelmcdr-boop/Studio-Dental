@@ -1,10 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { Button } from './ui/Button'
-import { Globe, PenLine } from 'lucide-react'
-import { Icon } from './Icon'
-
 /**
  * Modal de resolución de conflictos de edición (F5-04).
+ * Migrado a <Modal> base (F7-25)
  *
  * Muestra ambas versiones (local y remota) de un registro conflictivo
  * y permite al usuario elegir cuál conservar.
@@ -27,6 +23,12 @@ import { Icon } from './Icon'
  *     alCerrar={() => setShowModal(false)}
  *   />
  */
+import React, { useState } from 'react'
+import { Button } from './ui/Button'
+import { Globe, PenLine } from 'lucide-react'
+import { Icon } from './Icon'
+import { Modal } from './ui/Modal'
+
 export const ConflictResolutionModal = ({
   titulo = 'Conflicto de edición detectado',
   versionLocal,
@@ -36,50 +38,6 @@ export const ConflictResolutionModal = ({
   alCerrar
 }) => {
   const [resolviendo, setResolviendo] = useState(false)
-  const modalRef = useRef(null)
-
-  // Accesibilidad (F6-04): trampa de foco y cierre con ESC
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      // Cerrar con ESC
-      if (e.key === 'Escape') {
-        e.preventDefault()
-        alCerrar()
-        return
-      }
-
-      // Trampa de foco con Tab
-      if (e.key === 'Tab' && modalRef.current) {
-        const focusableElements = modalRef.current.querySelectorAll(
-          'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        )
-        const firstElement = focusableElements[0]
-        const lastElement = focusableElements[focusableElements.length - 1]
-
-        if (e.shiftKey && document.activeElement === firstElement) {
-          // Shift+Tab en primer elemento: ir al ultimo
-          e.preventDefault()
-          lastElement.focus()
-        } else if (!e.shiftKey && document.activeElement === lastElement) {
-          // Tab en ultimo elemento: ir al primero
-          e.preventDefault()
-          firstElement.focus()
-        }
-      }
-    }
-
-    document.addEventListener('keydown', handleKeyDown)
-
-    // Enfocar el primer boton al abrir el modal
-    if (modalRef.current) {
-      const firstButton = modalRef.current.querySelector('button')
-      if (firstButton) firstButton.focus()
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [alCerrar])
 
   const handleResolver = async (decision) => {
     if (resolviendo) return
@@ -104,116 +62,127 @@ export const ConflictResolutionModal = ({
   }
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="conflict-modal-title"
-      ref={modalRef}
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+    <Modal
+      isOpen={true}
+      onClose={alCerrar}
+      title={titulo}
+      size="xl"
+      closeOnOverlayClick={!resolviendo}
+      closeOnEscape={!resolviendo}
     >
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-        {/* Header */}
-        <div className="bg-yellow-50 border-b border-yellow-200 px-6 py-4">
-          <div className="flex items-center gap-3">
-            <div className="text-yellow-600 text-2xl">⚠️</div>
-            <div>
-              <h2 id="conflict-modal-title" className="text-lg font-semibold text-yellow-900">{titulo}</h2>
-              <p className="text-sm text-yellow-700 mt-1">
-                Otro usuario modificó este registro mientras lo editabas. Elige qué versión conservar.
-              </p>
-            </div>
+      {/* Banner de advertencia */}
+      <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mb-4">
+        <p className="text-sm text-yellow-900 dark:text-yellow-200">
+          Otro usuario modificó este registro mientras lo editabas. Elige qué versión conservar.
+        </p>
+      </div>
+
+      {/* Content */}
+      <div className="grid grid-cols-2 gap-6 mb-4">
+        {/* Versión local */}
+        <div className="border border-blue-200 dark:border-blue-800 rounded-lg overflow-hidden">
+          <div className="bg-blue-50 dark:bg-blue-900/20 px-4 py-2 border-b border-blue-200 dark:border-blue-800">
+            <h3 className="font-semibold text-graphite-900 dark:text-graphite-100 flex items-center gap-2">
+              <Icon icon={PenLine} size="xs"/> Tu versión
+            </h3>
+            <p className="text-xs text-blue-700 dark:text-blue-300">Los cambios que hiciste</p>
+          </div>
+          <div className="p-4 space-y-2">
+            {camposComparar.map((campo) => {
+              const diferente = sonDiferentes(campo)
+              return (
+                <div
+                  key={campo}
+                  className={`p-2 rounded ${
+                    diferente 
+                      ? 'bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800' 
+                      : 'bg-gray-50 dark:bg-graphite-800'
+                  }`}
+                >
+                  <div className="text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">
+                    {campo.replace(/_/g, ' ')}
+                  </div>
+                  <div className={`text-sm mt-1 ${
+                    diferente 
+                      ? 'text-yellow-900 dark:text-yellow-200 font-medium' 
+                      : 'text-gray-700 dark:text-graphite-300'
+                  }`}>
+                    {formatearValor(versionLocal?.[campo])}
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="grid grid-cols-2 gap-6">
-            {/* Versión local */}
-            <div className="border border-blue-200 rounded-lg overflow-hidden">
-              <div className="bg-blue-50 px-4 py-2 border-b border-blue-200">
-                <h3 className="font-semibold text-graphite-900 dark:text-graphite-100 flex items-center gap-2"><Icon icon={PenLine} size="xs" /> Tu versión</h3>
-                <p className="text-xs text-blue-700">Los cambios que hiciste</p>
-              </div>
-              <div className="p-4 space-y-2">
-                {camposComparar.map((campo) => {
-                  const diferente = sonDiferentes(campo)
-                  return (
-                    <div
-                      key={campo}
-                      className={`p-2 rounded ${diferente ? 'bg-yellow-50 border border-yellow-200' : 'bg-gray-50'}`}
-                    >
-                      <div className="text-xs font-semibold text-gray-600 uppercase">
-                        {campo.replace(/_/g, ' ')}
-                      </div>
-                      <div className={`text-sm mt-1 ${diferente ? 'text-yellow-900 font-medium' : 'text-gray-700'}`}>
-                        {formatearValor(versionLocal?.[campo])}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* Versión remota */}
-            <div className="border border-purple-200 rounded-lg overflow-hidden">
-              <div className="bg-purple-50 px-4 py-2 border-b border-purple-200">
-                <h3 className="font-semibold text-graphite-900 dark:text-graphite-100 flex items-center gap-2"><Icon icon={Globe} size="xs" /> Versión del servidor</h3>
-                <p className="text-xs text-purple-700">
-                  Actualizada por otro usuario
-                  {versionRemota?.updated_at && ` (${new Date(versionRemota.updated_at).toLocaleString()})`}
-                </p>
-              </div>
-              <div className="p-4 space-y-2">
-                {camposComparar.map((campo) => {
-                  const diferente = sonDiferentes(campo)
-                  return (
-                    <div
-                      key={campo}
-                      className={`p-2 rounded ${diferente ? 'bg-yellow-50 border border-yellow-200' : 'bg-gray-50'}`}
-                    >
-                      <div className="text-xs font-semibold text-gray-600 uppercase">
-                        {campo.replace(/_/g, ' ')}
-                      </div>
-                      <div className={`text-sm mt-1 ${diferente ? 'text-yellow-900 font-medium' : 'text-gray-700'}`}>
-                        {formatearValor(versionRemota?.[campo])}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
+        {/* Versión remota */}
+        <div className="border border-purple-200 dark:border-purple-800 rounded-lg overflow-hidden">
+          <div className="bg-purple-50 dark:bg-purple-900/20 px-4 py-2 border-b border-purple-200 dark:border-purple-800">
+            <h3 className="font-semibold text-graphite-900 dark:text-graphite-100 flex items-center gap-2">
+              <Icon icon={Globe} size="xs" /> Versión del servidor
+            </h3>
+            <p className="text-xs text-purple-700 dark:text-purple-300">
+              Actualizada por otro usuario
+              {versionRemota?.updated_at && ` (${new Date(versionRemota.updated_at).toLocaleString()})`}
+            </p>
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className="border-t border-graphite-200 dark:border-graphite-700 px-6 py-4 bg-graphite-50 dark:bg-graphite-900 flex justify-between items-center gap-3">
-          <Button
-            variant="ghost"
-            onClick={alCerrar}
-            disabled={resolviendo}
-          >
-            Cancelar
-          </Button>
-          <div className="flex gap-3">
-            <Button
-              variant="secondary"
-              icon={Globe}
-              onClick={() => handleResolver('remote')}
-              disabled={resolviendo}
-            >
-              Usar versión del servidor
-            </Button>
-            <Button
-              variant="primary"
-              icon={PenLine}
-              onClick={() => handleResolver('local')}
-              disabled={resolviendo}
-            >
-              Mantener mi versión
-            </Button>
+          <div className="p-4 space-y-2">
+            {camposComparar.map((campo) => {
+              const diferente = sonDiferentes(campo)
+              return (
+                <div
+                  key={campo}
+                  className={`p-2 rounded ${
+                    diferente 
+                      ? 'bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800' 
+                      : 'bg-gray-50 dark:bg-graphite-800'
+                  }`}
+                >
+                  <div className="text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">
+                    {campo.replace(/_/g, ' ')}
+                  </div>
+                  <div className={`text-sm mt-1 ${
+                    diferente 
+                      ? 'text-yellow-900 dark:text-yellow-200 font-medium' 
+                      : 'text-gray-700 dark:text-graphite-300'
+                  }`}>
+                    {formatearValor(versionRemota?.[campo])}
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Footer */}
+      <div className="flex justify-between items-center gap-3 pt-4 border-t dark:border-graphite-700">
+        <Button
+          variant="ghost"
+          onClick={alCerrar}
+          disabled={resolviendo}
+        >
+          Cancelar
+        </Button>
+        <div className="flex gap-3">
+          <Button
+            variant="secondary"
+            icon={Globe}
+            onClick={() => handleResolver('remote')}
+            disabled={resolviendo}
+          >
+            Usar versión del servidor
+          </Button>
+          <Button
+            variant="primary"
+            icon={PenLine}
+            onClick={() => handleResolver('local')}
+            disabled={resolviendo}
+          >
+            Mantener mi versión
+          </Button>
+        </div>
+      </div>
+    </Modal>
   )
 }

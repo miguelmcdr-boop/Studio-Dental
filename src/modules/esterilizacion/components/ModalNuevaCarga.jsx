@@ -1,4 +1,7 @@
 import React, { memo, useState } from 'react'
+import { Modal } from '../../../components/ui/Modal'
+import { Input } from '../../../components/ui/Input'
+import { Button } from '../../../components/ui/Button'
 import { EQUIPOS_AUTOCLAVE, PROGRAMAS_ESTERILIZACION, INDICADORES_QUIMICOS, INDICADORES_BIOLOGICOS } from '../constants/esterilizacionConstants'
 import { generarCodigoLoteEsterilizacion } from '../utils/esterilizacionCalculations'
 
@@ -54,12 +57,12 @@ export const ModalNuevaCarga = memo(({ userProfile, alGuardar, alCerrar }) => {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 print:hidden">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-lg border border-gray-200 shadow-xl space-y-4 text-xs max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center border-b pb-3">
-          <h3 className="text-base font-bold text-gray-900">Registrar Nuevo Ciclo de Autoclave</h3>
-          <button onClick={alCerrar} className="text-gray-400 hover:text-black font-bold text-lg">✕</button>
-        </div>
+    <Modal
+      isOpen={true}
+      onClose={alCerrar}
+      title="Registrar Nuevo Ciclo de Autoclave"
+      size="lg"
+    >
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
@@ -85,34 +88,25 @@ export const ModalNuevaCarga = memo(({ userProfile, alGuardar, alCerrar }) => {
           </div>
 
           <div className="grid grid-cols-3 gap-2">
-            <div>
-              <label className="block font-semibold text-gray-700 mb-1">Temp (°C)</label>
-              <input
-                type="number"
-                value={temperatura}
-                onChange={(e) => setTemperatura(e.target.value)}
-                className="w-full p-2 rounded-xl border border-gray-300 font-bold"
-              />
-            </div>
-            <div>
-              <label className="block font-semibold text-gray-700 mb-1">Presión (Bar)</label>
-              <input
-                type="number"
-                step="0.1"
-                value={presion}
-                onChange={(e) => setPresion(e.target.value)}
-                className="w-full p-2 rounded-xl border border-gray-300 font-bold"
-              />
-            </div>
-            <div>
-              <label className="block font-semibold text-gray-700 mb-1">Tiempo (min)</label>
-              <input
-                type="number"
-                value={tiempoMinutos}
-                onChange={(e) => setTiempoMinutos(e.target.value)}
-                className="w-full p-2 rounded-xl border border-gray-300 font-bold"
-              />
-            </div>
+            <Input
+              label="Temp (°C)"
+              type="number"
+              value={temperatura}
+              onChange={(e) => setTemperatura(e.target.value)}
+            />
+            <Input
+              label="Presión (Bar)"
+              type="number"
+              step="0.1"
+              value={presion}
+              onChange={(e) => setPresion(e.target.value)}
+            />
+            <Input
+              label="Tiempo (min)"
+              type="number"
+              value={tiempoMinutos}
+              onChange={(e) => setTiempoMinutos(e.target.value)}
+            />
           </div>
 
           <div>
@@ -150,34 +144,32 @@ export const ModalNuevaCarga = memo(({ userProfile, alGuardar, alCerrar }) => {
             </div>
           </div>
 
-          <div>
-            <label className="block font-semibold text-gray-700 mb-1">Responsable del Ciclo</label>
-            <input
-              type="text"
-              value={responsable}
-              onChange={(e) => setResponsable(e.target.value)}
-              className="w-full p-2 rounded-xl border border-gray-300 font-semibold"
-            />
-          </div>
+          <Input
+            label="Responsable del Ciclo"
+            type="text"
+            value={responsable}
+            onChange={(e) => setResponsable(e.target.value)}
+          />
 
           <div className="flex gap-2 pt-3">
-            <button
+            <Button
               type="button"
               onClick={alCerrar}
-              className="w-1/2 py-2.5 rounded-xl border border-gray-300 font-bold text-gray-700 hover:bg-gray-100"
+              variant="ghost"
+              fullWidth
             >
               Cancelar
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              className="w-1/2 bg-black text-white py-2.5 rounded-xl font-bold hover:bg-gray-800"
+              variant="primary"
+              fullWidth
             >
               Guardar Carga
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   )
 })
 

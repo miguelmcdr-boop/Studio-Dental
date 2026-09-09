@@ -1,4 +1,7 @@
 import React, { memo, useState } from 'react'
+import { Modal } from '../../../components/ui/Modal'
+import { Input } from '../../../components/ui/Input'
+import { Button } from '../../../components/ui/Button'
 import { CATEGORIAS_INGRESO, CATEGORIAS_EGRESO } from '../constants/finanzasConstants'
 
 export const ModalNuevoMovimiento = memo(({ alGuardar, alCerrar }) => {
@@ -32,46 +35,38 @@ export const ModalNuevoMovimiento = memo(({ alGuardar, alCerrar }) => {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 print:hidden">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-md border border-gray-200 shadow-xl space-y-4 text-xs">
-        <div className="flex justify-between items-center border-b pb-3">
-          <h3 className="text-base font-bold text-gray-900">Registrar Movimiento de Caja</h3>
-          <button onClick={alCerrar} className="text-gray-400 hover:text-black font-bold text-lg">✕</button>
-        </div>
+    <Modal isOpen={true} onClose={alCerrar} title="Registrar Movimiento de Caja" size="md">
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div className="grid grid-cols-2 gap-2">
-            <button
+            <Button
               type="button"
               onClick={() => handleTipoChange('ingreso')}
-              className={`py-2 rounded-xl font-bold transition-all ${
-                tipo === 'ingreso' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-gray-100 text-gray-600'
-              }`}
+              variant={tipo === 'ingreso' ? 'primary' : 'secondary'}
+              className={tipo === 'ingreso' ? 'bg-emerald-600 hover:bg-emerald-700' : ''}
+              fullWidth
             >
               🟢 Ingreso
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               onClick={() => handleTipoChange('egreso')}
-              className={`py-2 rounded-xl font-bold transition-all ${
-                tipo === 'egreso' ? 'bg-red-600 text-white shadow-xs' : 'bg-gray-100 text-gray-600'
-              }`}
+              variant={tipo === 'egreso' ? 'danger' : 'secondary'}
+              className={tipo === 'egreso' ? 'bg-red-600 hover:bg-red-700' : ''}
+              fullWidth
             >
               🔴 Egreso / Gasto
-            </button>
+            </Button>
           </div>
 
-          <div>
-            <label className="block font-semibold text-gray-700 mb-1">Monto ($ CLP)</label>
-            <input
-              type="number"
-              required
-              placeholder="Ej: 45000"
-              value={monto}
-              onChange={(e) => setMonto(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-gray-300 font-bold text-sm"
-            />
-          </div>
+          <Input
+            label="Monto ($ CLP)"
+            type="number"
+            required
+            placeholder="Ej: 45000"
+            value={monto}
+            onChange={(e) => setMonto(e.target.value)}
+          />
 
           <div>
             <label className="block font-semibold text-gray-700 mb-1">Categoría</label>
@@ -100,35 +95,24 @@ export const ModalNuevoMovimiento = memo(({ alGuardar, alCerrar }) => {
             </select>
           </div>
 
-          <div>
-            <label className="block font-semibold text-gray-700 mb-1">Detalle / Observación</label>
-            <input
-              type="text"
-              placeholder="Ej: Compra de cajas de guantes y anestesia..."
-              value={detalle}
-              onChange={(e) => setDetalle(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-gray-300"
-            />
-          </div>
+          <Input
+            label="Detalle / Observación"
+            type="text"
+            placeholder="Ej: Compra de cajas de guantes y anestesia..."
+            value={detalle}
+            onChange={(e) => setDetalle(e.target.value)}
+          />
 
           <div className="flex gap-2 pt-3">
-            <button
-              type="button"
-              onClick={alCerrar}
-              className="w-1/2 py-2.5 rounded-xl border border-gray-300 font-bold text-gray-700 hover:bg-gray-100"
-            >
+            <Button type="button" onClick={alCerrar} variant="ghost" fullWidth>
               Cancelar
-            </button>
-            <button
-              type="submit"
-              className="w-1/2 bg-black text-white py-2.5 rounded-xl font-bold hover:bg-gray-800"
-            >
+            </Button>
+            <Button type="submit" variant="primary" fullWidth>
               Guardar Registro
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   )
 })
 

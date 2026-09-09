@@ -4,6 +4,8 @@
  * F4-03f-3
  */
 import React, { useState, useEffect } from 'react'
+import { Modal } from '../../../components/ui/Modal'
+import { Button } from '../../../components/ui/Button'
 import { validarFarmaco } from '../schemas/vademecumSchema'
 import { CamposFormularioFarmaco } from './CamposFormularioFarmaco'
 
@@ -93,22 +95,16 @@ export const ModalEditarFarmaco = ({ farmaco, onGuardar, onClose, guardando }) =
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900">
-            {esEdicion ? `Editar Fármaco #${form.numero}` : 'Nuevo Fármaco'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
-            disabled={guardando}
-          >
-            ×
-          </button>
-        </div>
+    <Modal
+      isOpen={true}
+      onClose={onClose}
+      title={esEdicion ? `Editar Fármaco #${form.numero}` : 'Nuevo Fármaco'}
+      size="xl"
+      closeOnOverlayClick={!guardando}
+      closeOnEscape={!guardando}
+    >
 
-        <form onSubmit={handleSubmit} className="p-6">
+        <form onSubmit={handleSubmit}>
           <CamposFormularioFarmaco
             form={form}
             onChange={handleChange}
@@ -119,24 +115,23 @@ export const ModalEditarFarmaco = ({ farmaco, onGuardar, onClose, guardando }) =
 
           {/* Botones */}
           <div className="flex justify-end gap-3 pt-4 mt-4 border-t">
-            <button
+            <Button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+              variant="ghost"
               disabled={guardando}
             >
               Cancelar
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              className="px-6 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+              variant="primary"
               disabled={guardando}
             >
               {guardando ? 'Guardando...' : (esEdicion ? 'Actualizar' : 'Crear')}
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   )
 }

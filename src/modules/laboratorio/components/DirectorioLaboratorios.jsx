@@ -1,4 +1,6 @@
 import React, { memo, useState } from 'react'
+import { Input } from '../../../components/ui/Input'
+import { Button } from '../../../components/ui/Button'
 import { TIPOS_TRABAJO_SUGERIDOS } from '../constants/laboratorioConstants'
 
 export const DirectorioLaboratorios = memo(({ laboratorios, alGuardarLab, alEliminarLab }) => {
@@ -80,43 +82,34 @@ export const DirectorioLaboratorios = memo(({ laboratorios, alGuardarLab, alElim
             {labEditar ? 'Editar Proveedor Lab' : '➕ Registrar Nuevo Lab'}
           </h3>
           {labEditar && (
-            <button type="button" onClick={handleAbrirNuevo} className="text-gray-400 font-bold hover:text-black">✕ Cancelar</button>
+            <Button type="button" onClick={handleAbrirNuevo} variant="ghost" size="sm">✕ Cancelar</Button>
           )}
         </div>
 
-        <div>
-          <label className="block font-semibold text-gray-700 mb-1">Nombre Laboratorio *</label>
-          <input
-            type="text"
-            required
-            placeholder="Ej: Laboratorio Estética & Cerámica"
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
-            className="w-full p-2.5 rounded-xl border border-gray-300 font-bold"
-          />
-        </div>
+        <Input
+          label="Nombre Laboratorio"
+          type="text"
+          required
+          placeholder="Ej: Laboratorio Estética & Cerámica"
+          value={nombre}
+          onChange={(e) => setNombre(e.target.value)}
+        />
 
         <div className="grid grid-cols-2 gap-2">
-          <div>
-            <label className="block font-semibold text-gray-700 mb-1">Contacto / Ceramista</label>
-            <input
-              type="text"
-              placeholder="Ej: Roberto Gómez"
-              value={contacto}
-              onChange={(e) => setContacto(e.target.value)}
-              className="w-full p-2 rounded-xl border border-gray-300"
-            />
-          </div>
-          <div>
-            <label className="block font-semibold text-gray-700 mb-1">Teléfono</label>
-            <input
-              type="text"
-              placeholder="+56 9 1234 5678"
-              value={telefono}
-              onChange={(e) => setTelefono(e.target.value)}
-              className="w-full p-2 rounded-xl border border-gray-300"
-            />
-          </div>
+          <Input
+            label="Contacto / Ceramista"
+            type="text"
+            placeholder="Ej: Roberto Gómez"
+            value={contacto}
+            onChange={(e) => setContacto(e.target.value)}
+          />
+          <Input
+            label="Teléfono"
+            type="text"
+            placeholder="+56 9 1234 5678"
+            value={telefono}
+            onChange={(e) => setTelefono(e.target.value)}
+          />
         </div>
 
         <div className="border-t pt-3 space-y-2">
@@ -136,20 +129,19 @@ export const DirectorioLaboratorios = memo(({ laboratorios, alGuardarLab, alElim
             </datalist>
 
             <div className="flex gap-2">
-              <input
+              <Input
                 type="number"
                 placeholder="Precio ($ CLP)"
                 value={precioSel}
                 onChange={(e) => setPrecioSel(e.target.value)}
-                className="w-full p-2 rounded-lg border bg-white font-bold"
               />
-              <button
+              <Button
                 type="button"
                 onClick={handleAgregarTarifa}
-                className="bg-black text-white px-3 py-2 rounded-lg font-bold hover:bg-gray-800"
+                variant="primary"
               >
                 + Añadir
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -159,19 +151,20 @@ export const DirectorioLaboratorios = memo(({ laboratorios, alGuardarLab, alElim
                 <span className="font-semibold text-[11px] text-gray-800 truncate max-w-[170px]">{t.trabajo}</span>
                 <div className="flex items-center gap-2">
                   <span className="font-black text-emerald-800">${t.precio.toLocaleString('es-CL')}</span>
-                  <button type="button" onClick={() => handleEliminarTarifa(t.trabajo)} className="text-red-500 font-bold">✕</button>
+                  <Button type="button" onClick={() => handleEliminarTarifa(t.trabajo)} variant="danger" size="sm" className="px-2 py-0.5">✕</Button>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        <button
+        <Button
           type="submit"
-          className="w-full bg-black text-white font-bold py-2.5 rounded-xl hover:bg-gray-800 transition-colors shadow-xs"
+          variant="primary"
+          fullWidth
         >
           {labEditar ? 'Guardar Cambios Proveedor' : 'Registrar Laboratorio y Tarifas'}
-        </button>
+        </Button>
       </form>
 
       {/* Directorio de Laboratorios Guardados */}
@@ -187,8 +180,8 @@ export const DirectorioLaboratorios = memo(({ laboratorios, alGuardarLab, alElim
                 <div className="flex justify-between items-start border-b pb-2">
                   <h4 className="font-black text-sm text-gray-900">{lab.nombre}</h4>
                   <div className="flex gap-1">
-                    <button onClick={() => handleAbrirEditar(lab)} className="p-1 hover:bg-gray-100 rounded" title="Editar" aria-label="Editar laboratorio">✏️</button>
-                    <button onClick={() => alEliminarLab(lab.id)} className="p-1 text-red-500 hover:bg-red-50 rounded" title="Eliminar" aria-label="Eliminar laboratorio">🗑️</button>
+                    <Button onClick={() => handleAbrirEditar(lab)} variant="ghost" size="sm" className="p-1" title="Editar" aria-label="Editar laboratorio">✏️</Button>
+                    <Button onClick={() => alEliminarLab(lab.id)} variant="danger" size="sm" className="p-1" title="Eliminar" aria-label="Eliminar laboratorio">🗑️</Button>
                   </div>
                 </div>
 

@@ -1,4 +1,6 @@
 import React, { memo, useState, useEffect } from 'react'
+import { Modal } from '../../../components/ui/Modal'
+import { Button } from '../../../components/ui/Button'
 import { CANALES_COMUNICACION } from '../constants/comunicacionesConstants'
 import { interpolarVariablesMensaje, generarLinkWhatsAppWeb, generarLinkWhatsAppApp } from '../utils/comunicacionesCalculations'
 
@@ -63,12 +65,8 @@ export const ModalEnviarMensaje = memo(({ pacientes = [], plantillas = [], userP
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 print:hidden">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-md border border-gray-200 shadow-xl space-y-4 text-xs max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center border-b pb-3">
-          <h3 className="text-base font-bold text-gray-900">💬 Transmitir Mensaje / Notificación</h3>
-          <button onClick={alCerrar} className="text-gray-400 hover:text-black font-bold text-lg">✕</button>
-        </div>
+    <Modal isOpen={true} onClose={alCerrar} title="💬 Transmitir Mensaje / Notificación" size="md">
+      <div className="space-y-3 text-xs">
 
         <div className="space-y-3">
           <div>
@@ -121,46 +119,51 @@ export const ModalEnviarMensaje = memo(({ pacientes = [], plantillas = [], userP
           </div>
 
           <div className="flex gap-2 pt-2">
-            <button
+            <Button
               type="button"
               onClick={alCerrar}
-              className="w-1/3 py-2.5 rounded-xl border border-gray-300 font-bold text-gray-700 hover:bg-gray-100"
+              variant="ghost"
+              fullWidth
             >
               Cancelar
-            </button>
+            </Button>
 
             {canal === 'whatsapp' ? (
               <>
-                <button
+                <Button
                   type="button"
                   onClick={() => handleEnviar('web')}
-                  className="w-1/3 bg-emerald-700 text-white py-2.5 rounded-xl font-bold hover:bg-emerald-800"
+                  variant="primary"
+                  fullWidth
+                  className="bg-emerald-700 hover:bg-emerald-800"
                   title="Abrir en navegador de escritorio"
                 >
                   💻 WhatsApp Web
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
                   onClick={() => handleEnviar('app')}
-                  className="w-1/3 bg-black text-white py-2.5 rounded-xl font-bold hover:bg-gray-800"
+                  variant="primary"
+                  fullWidth
                   title="Abrir App móvil wa.me"
                 >
                   📱 App Móvil
-                </button>
+                </Button>
               </>
             ) : (
-              <button
+              <Button
                 type="button"
                 onClick={() => handleEnviar('web')}
-                className="w-2/3 bg-black text-white py-2.5 rounded-xl font-bold hover:bg-gray-800"
+                variant="primary"
+                fullWidth
               >
                 ✉️ Registrar Envío
-              </button>
+              </Button>
             )}
           </div>
         </div>
       </div>
-    </div>
+    </Modal>
   )
 })
 

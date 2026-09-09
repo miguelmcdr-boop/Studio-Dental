@@ -1,4 +1,7 @@
 import React, { memo, useState, useEffect } from 'react'
+import { Modal } from '../../../components/ui/Modal'
+import { Input } from '../../../components/ui/Input'
+import { Button } from '../../../components/ui/Button'
 import { CATEGORIAS_INSUMOS, UNIDADES_MEDIDA } from '../constants/inventarioConstants'
 
 export const ModalNuevoItemStock = memo(({ itemEditar, alGuardar, alCerrar }) => {
@@ -45,27 +48,22 @@ export const ModalNuevoItemStock = memo(({ itemEditar, alGuardar, alCerrar }) =>
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 print:hidden">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-lg border border-gray-200 shadow-xl space-y-4 text-xs max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center border-b pb-3">
-          <h3 className="text-base font-bold text-gray-900">
-            {itemEditar ? 'Editar Insumo de Stock' : 'Registrar Nuevo Insumo / Compra'}
-          </h3>
-          <button onClick={alCerrar} className="text-gray-400 hover:text-black font-bold text-lg">✕</button>
-        </div>
+    <Modal
+      isOpen={true}
+      onClose={alCerrar}
+      title={itemEditar ? 'Editar Insumo de Stock' : 'Registrar Nuevo Insumo / Compra'}
+      size="lg"
+    >
 
         <form onSubmit={handleSubmit} className="space-y-3">
-          <div>
-            <label className="block font-semibold text-gray-700 mb-1">Nombre del Insumo / Material *</label>
-            <input
-              type="text"
-              required
-              placeholder="Ej: Resina Z350 A2, Lidocaína 2%, Agujas Cortas..."
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-gray-300 font-semibold"
-            />
-          </div>
+          <Input
+            label="Nombre del Insumo / Material"
+            type="text"
+            required
+            placeholder="Ej: Resina Z350 A2, Lidocaína 2%, Agujas Cortas..."
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+          />
 
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -92,87 +90,73 @@ export const ModalNuevoItemStock = memo(({ itemEditar, alGuardar, alCerrar }) =>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block font-semibold text-gray-700 mb-1">Cantidad Inicial / Comprada</label>
-              <input
-                type="number"
-                required
-                step="0.01"
-                min="0"
-                placeholder="Ej: 10 o 0.5"
-                value={cantidad}
-                onChange={(e) => setCantidad(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-gray-300 font-bold text-sm"
-              />
-            </div>
+            <Input
+              label="Cantidad Inicial / Comprada"
+              type="number"
+              required
+              step="0.01"
+              min="0"
+              placeholder="Ej: 10 o 0.5"
+              value={cantidad}
+              onChange={(e) => setCantidad(e.target.value)}
+            />
 
-            <div>
-              <label className="block font-semibold text-gray-700 mb-1">Stock Mínimo Crítico</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="Ej: 3 o 0.1"
-                value={minimoCritico}
-                onChange={(e) => setMinimoCritico(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-gray-300 font-bold text-sm"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block font-semibold text-gray-700 mb-1">Fecha de Vencimiento</label>
-              <input
-                type="date"
-                value={fechaVencimiento}
-                onChange={(e) => setFechaVencimiento(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-gray-300 bg-white"
-              />
-            </div>
-
-            <div>
-              <label className="block font-semibold text-gray-700 mb-1">Precio Unitario ($ CLP)</label>
-              <input
-                type="number"
-                step="0.01"
-                placeholder="Ej: 12500"
-                value={precioUnitario}
-                onChange={(e) => setPrecioUnitario(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-gray-300"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block font-semibold text-gray-700 mb-1">Proveedor / Casa Dental</label>
-            <input
-              type="text"
-              placeholder="Ej: Dental Ahumada, 3M, Voco, Directo..."
-              value={proveedor}
-              onChange={(e) => setProveedor(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-gray-300"
+            <Input
+              label="Stock Mínimo Crítico"
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="Ej: 3 o 0.1"
+              value={minimoCritico}
+              onChange={(e) => setMinimoCritico(e.target.value)}
             />
           </div>
 
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              label="Fecha de Vencimiento"
+              type="date"
+              value={fechaVencimiento}
+              onChange={(e) => setFechaVencimiento(e.target.value)}
+            />
+
+            <Input
+              label="Precio Unitario ($ CLP)"
+              type="number"
+              step="0.01"
+              placeholder="Ej: 12500"
+              value={precioUnitario}
+              onChange={(e) => setPrecioUnitario(e.target.value)}
+            />
+          </div>
+
+          <Input
+            label="Proveedor / Casa Dental"
+            type="text"
+            placeholder="Ej: Dental Ahumada, 3M, Voco, Directo..."
+            value={proveedor}
+            onChange={(e) => setProveedor(e.target.value)}
+          />
+
           <div className="flex gap-2 pt-3">
-            <button
+            <Button
               type="button"
               onClick={alCerrar}
-              className="w-1/2 py-2.5 rounded-xl border border-gray-300 font-bold text-gray-700 hover:bg-gray-100"
+              variant="ghost"
+              fullWidth
             >
               Cancelar
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              className="w-1/2 bg-black text-white py-2.5 rounded-xl font-bold hover:bg-gray-800"
+              variant="primary"
+              fullWidth
             >
               Guardar Insumo
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   )
 })
 

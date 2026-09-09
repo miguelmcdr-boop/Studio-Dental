@@ -1,4 +1,7 @@
 import React, { memo, useState, useEffect } from 'react'
+import { Modal } from '../../../components/ui/Modal'
+import { Input } from '../../../components/ui/Input'
+import { Button } from '../../../components/ui/Button'
 import { METODOS_PAGO_GOLD, TIPOS_DOCUMENTO_TRIBUTARIO, CONCEPTOS_PAGO } from '../constants/pagosConstants'
 import { generarFolioRecibo } from '../utils/pagosCalculations'
 import { presupuestosStorageService } from '../../presupuestos/services/presupuestosStorageService'
@@ -95,14 +98,12 @@ export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, a
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 print:hidden">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-lg border border-gray-200 shadow-xl space-y-4 text-xs max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center border-b pb-3">
-          <h3 className="text-base font-bold text-gray-900">
-            {pagoEditar ? '✏️ Editar Recibo / Transacción de Pago' : '💳 Registrar Cobro e Imputación de Pago'}
-          </h3>
-          <button onClick={alCerrar} className="text-gray-400 hover:text-black font-bold text-lg">✕</button>
-        </div>
+    <Modal
+      isOpen={true}
+      onClose={alCerrar}
+      title={pagoEditar ? '✏️ Editar Recibo / Transacción de Pago' : '💳 Registrar Cobro e Imputación de Pago'}
+      size="lg"
+    >
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
@@ -121,17 +122,15 @@ export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, a
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block font-semibold text-gray-700 mb-1">Monto a Cobrar ($ CLP) *</label>
-              <input
-                type="text"
-                required
-                placeholder="Ej: 50000"
-                value={monto}
-                onChange={(e) => setMonto(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-gray-300 font-black text-emerald-900 bg-emerald-50/50 text-sm"
-              />
-            </div>
+            <Input
+              label="Monto a Cobrar ($ CLP)"
+              type="text"
+              required
+              placeholder="Ej: 50000"
+              value={monto}
+              onChange={(e) => setMonto(e.target.value)}
+              className="font-black text-emerald-900 bg-emerald-50/50"
+            />
 
             <div>
               <label className="block font-semibold text-gray-700 mb-1">Método de Pago</label>
@@ -161,16 +160,13 @@ export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, a
               </select>
             </div>
 
-            <div>
-              <label className="block font-semibold text-gray-700 mb-1">Folio DTE / N° Bono</label>
-              <input
-                type="text"
-                placeholder="Ej: BH-104 o I-MED-88"
-                value={folioDTE}
-                onChange={(e) => setFolioDTE(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-gray-300 font-bold"
-              />
-            </div>
+            <Input
+              label="Folio DTE / N° Bono"
+              type="text"
+              placeholder="Ej: BH-104 o I-MED-88"
+              value={folioDTE}
+              onChange={(e) => setFolioDTE(e.target.value)}
+            />
           </div>
 
           <div>
@@ -211,35 +207,33 @@ export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, a
             </div>
           )}
 
-          <div>
-            <label className="block font-semibold text-gray-700 mb-1">Observaciones Internas / N° Operación</label>
-            <input
-              type="text"
-              placeholder="Ej: N° Voucher Transbank 48512..."
-              value={observacion}
-              onChange={(e) => setObservacion(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-gray-300"
-            />
-          </div>
+          <Input
+            label="Observaciones Internas / N° Operación"
+            type="text"
+            placeholder="Ej: N° Voucher Transbank 48512..."
+            value={observacion}
+            onChange={(e) => setObservacion(e.target.value)}
+          />
 
           <div className="flex gap-2 pt-2">
-            <button
+            <Button
               type="button"
               onClick={alCerrar}
-              className="w-1/2 py-2.5 rounded-xl border border-gray-300 font-bold text-gray-700 hover:bg-gray-100"
+              variant="ghost"
+              fullWidth
             >
               Cancelar
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              className="w-1/2 bg-black text-white py-2.5 rounded-xl font-bold hover:bg-gray-800"
+              variant="primary"
+              fullWidth
             >
               {pagoEditar ? 'Guardar Cambios' : 'Emitir Pago'}
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   )
 })
 

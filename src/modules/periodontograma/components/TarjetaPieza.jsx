@@ -1,4 +1,5 @@
 import React, { memo } from 'react'
+import { Button } from '../../../components/ui/Button'
 
 export const TarjetaPieza = memo(({ numero, piezaData = {}, onChange }) => {
   const ausente = !!piezaData.ausente
@@ -38,15 +39,15 @@ export const TarjetaPieza = memo(({ numero, piezaData = {}, onChange }) => {
       {/* Cabecera */}
       <div className="flex justify-between items-center border-b pb-1">
         <span className="font-black text-xs text-gray-900">Pieza {numero}</span>
-        <button
+        <Button
           type="button"
           onClick={() => onChange(numero, null, 'ausente', !ausente)}
-          className={`text-[9px] font-bold px-1.5 py-0.5 rounded cursor-pointer ${
-            ausente ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
+          variant={ausente ? 'danger' : 'secondary'}
+          size="sm"
+          className="text-[9px] px-1.5 py-0.5"
         >
           {ausente ? 'Ausente' : 'Presente'}
-        </button>
+        </Button>
       </div>
 
       {!ausente && (

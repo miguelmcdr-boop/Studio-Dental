@@ -3,6 +3,9 @@
  * F4-03f-3
  */
 import React, { useState, useEffect } from 'react'
+import { Modal } from '../../../components/ui/Modal'
+import { Button } from '../../../components/ui/Button'
+import { CamposFormularioAntirresortivo } from './CamposFormularioAntirresortivo'
 import { validarAntirresortivo, FAMILIAS_ANTIRRESORTIVOS, NIVELES_RIESGO_MRONG } from '../schemas/vademecumSchema'
 
 const VALOR_INICIAL = {
@@ -63,113 +66,52 @@ export const ModalEditarAntirresortivo = ({ farmaco, onGuardar, onClose, guardan
   )
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-purple-50 border-b border-purple-200 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900">
-            🦴 {esEdicion ? `Editar Antirresortivo #${form.numero}` : 'Nuevo Antirresortivo (MRONJ)'}
-          </h2>
-          <button onClick={onClose} disabled={guardando} className="text-gray-400 hover:text-gray-600 text-2xl font-bold">×</button>
-        </div>
+    <Modal
+      isOpen={true}
+      onClose={onClose}
+      title={esEdicion ? `🦴 Editar Antirresortivo #${form.numero}` : '🦴 Nuevo Antirresortivo (MRONJ)'}
+      size="lg"
+      closeOnOverlayClick={!guardando}
+      closeOnEscape={!guardando}
+    >
+      {/* Header distintivo MRONJ preservado como banner interno */}
+      <div className="bg-purple-50 dark:bg-purple-900/20 border-b border-purple-200 dark:border-purple-800 px-6 py-3 mb-4 rounded-t-lg">
+        <p className="text-sm font-semibold text-purple-800 dark:text-purple-200">
+          ⚠️ Fármaco de riesgo MRONJ (osteonecrosis maxilar)
+        </p>
+      </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Número <span className="text-red-500">*</span></label>
-              <input
-                type="number"
-                value={form.numero}
-                onChange={(e) => handleChange('numero', parseInt(e.target.value) || '')}
-                className={`w-full px-3 py-2 border rounded-lg text-sm ${campoError('numero')}`}
-                disabled={esEdicion}
-              />
-              {mensajeError('numero')}
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Familia <span className="text-red-500">*</span></label>
-              <select
-                value={form.familia}
-                onChange={(e) => handleChange('familia', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg text-sm ${campoError('familia')}`}
-              >
-                <option value="">-- Seleccione --</option>
-                {FAMILIAS_ANTIRRESORTIVOS.map(f => <option key={f} value={f}>{f.replace(/_/g, ' ')}</option>)}
-              </select>
-              {mensajeError('familia')}
-            </div>
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <CamposFormularioAntirresortivo
+            form={form}
+            errores={errores}
+            esEdicion={esEdicion}
+            handleChange={handleChange}
+          />
 
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Nombre genérico <span className="text-red-500">*</span></label>
-            <input
-              type="text"
-              value={form.nombre_generico}
-              onChange={(e) => handleChange('nombre_generico', e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg text-sm ${campoError('nombre_generico')}`}
-              placeholder="Ej: Alendronato 70 mg semanal"
-            />
-            {mensajeError('nombre_generico')}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Vía / Dosis habitual</label>
-              <input
-                type="text"
-                value={form.via_administracion}
-                onChange={(e) => handleChange('via_administracion', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                placeholder="Ej: VO, 1 vez/semana"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Indicación <span className="text-red-500">*</span></label>
-              <input
-                type="text"
-                value={form.indicacion}
-                onChange={(e) => handleChange('indicacion', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg text-sm ${campoError('indicacion')}`}
-                placeholder="Ej: Osteoporosis"
-              />
-              {mensajeError('indicacion')}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Riesgo de MRONJ <span className="text-red-500">*</span></label>
-            <select
-              value={form.riesgo_mronj}
-              onChange={(e) => handleChange('riesgo_mronj', e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg text-sm ${campoError('riesgo_mronj')}`}
-            >
-              <option value="">-- Seleccione --</option>
-              {NIVELES_RIESGO_MRONG.map(n => <option key={n} value={n}>{n.toUpperCase()}</option>)}
-            </select>
-            {mensajeError('riesgo_mronj')}
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Manejo odontológico <span className="text-red-500">*</span></label>
-            <textarea
-              value={form.manejo_odontologico}
-              onChange={(e) => handleChange('manejo_odontologico', e.target.value)}
-              rows={4}
-              className={`w-full px-3 py-2 border rounded-lg text-sm ${campoError('manejo_odontologico')}`}
-              placeholder="Ej: Coordinar con oncólogo antes de cirugía electiva; priorizar tratamiento conservador"
-            />
-            {mensajeError('manejo_odontologico')}
-          </div>
-
-          <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 text-sm text-purple-800">
+          <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-3 text-sm text-purple-800 dark:text-purple-200">
             🦴 <strong>Relevancia clínica:</strong> Identificar estos fármacos en la anamnesis es crítico antes de exodoncias, cirugía periodontal o implantes para prevenir MRONJ (osteonecrosis maxilar relacionada a fármacos).
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t">
-            <button type="button" onClick={onClose} disabled={guardando} className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancelar</button>
-            <button type="submit" disabled={guardando} className="px-6 py-2 text-sm font-semibold text-white bg-purple-600 rounded-lg hover:bg-purple-700 disabled:bg-purple-400">{guardando ? 'Guardando...' : (esEdicion ? 'Actualizar' : 'Crear')}</button>
+            <Button
+              type="button"
+              onClick={onClose}
+              variant="ghost"
+              disabled={guardando}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={guardando}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              {guardando ? 'Guardando...' : (esEdicion ? 'Actualizar' : 'Crear')}
+            </Button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   )
 }

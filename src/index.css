@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "./design/tokens.css";
 
+/* F7-25: forzar dark: a depender de clase .dark (no de prefers-color-scheme del OS) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Configuración global de impresión - Formato Letter (8.5" x 11") */
 @media print {
   @page {
