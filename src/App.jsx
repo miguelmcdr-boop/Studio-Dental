@@ -21,6 +21,8 @@ import { useInvitacionHash } from './hooks/useInvitacionHash'
 import { useDarkMode } from './hooks/useDarkMode'
 import { useRestaurarPaciente } from './hooks/useRestaurarPaciente'
 import { useSidebarCounters } from './hooks/useSidebarCounters'
+import { useCommandPalette } from './hooks/useCommandPalette'
+import { CommandPalette } from './components/CommandPalette'
 
 // Módulos de uso diario — carga eager (Public API, Constitución v3.0.0)
 import { Agenda as AgendaModulo } from './modules/agenda'
@@ -105,6 +107,26 @@ function App() {
   useRestaurarPaciente(userProfile, pacienteSeleccionado, setPacienteSeleccionadoState, setActiveSection)
   // F10-B2.5: contadores para el Sidebar
   const sidebarCounters = useSidebarCounters()
+  // F10-B4: CommandPalette con ⌘K
+  const commandPalette = useCommandPalette({
+    onNavigate: setActiveSection,
+    onCreateCita: () => setActiveSection('Agenda'),
+    onCreatePaciente: () => setActiveSection('Pacientes'),
+    onCreatePresupuesto: () => setActiveSection('Presupuestos'),
+  })
+
+  // F10-B4: Atajo ⌘K / Ctrl+K para abrir CommandPalette
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        commandPalette.toggle()
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [commandPalette])
+
 
   useDataMigration(userProfile)
 
