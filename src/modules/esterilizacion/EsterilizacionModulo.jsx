@@ -1,4 +1,6 @@
 import React, { memo, useState } from 'react'
+import { Icon } from '../../components/Icon'
+import { Wrench } from 'lucide-react'
 import { Input } from '../../components/ui/Input'
 import { Button } from '../../components/ui/Button'
 import { EQUIPOS_AUTOCLAVE } from './constants/esterilizacionConstants'
@@ -82,7 +84,10 @@ export const EsterilizacionModulo = memo(() => {
           variant={tabActual === 'test' ? 'primary' : 'secondary'}
           size="sm"
         >
-          🛠️ Test Bowie-Dick / Fugas
+          <span className="flex items-center gap-2">
+          <Icon icon={Wrench} size="sm" />
+          Test Bowie-Dick / Fugas
+        </span>
         </Button>
 
         <Button

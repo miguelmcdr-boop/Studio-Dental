@@ -4,6 +4,8 @@
  */
 import { Plus } from 'lucide-react'
 import React, { memo, useState, useMemo } from 'react'
+import { Icon } from '../../../components/Icon'
+import { User, Zap } from 'lucide-react'
 import { SILLONES_DENTALES } from '../constants/agendaConstants'
 import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
 import { Modal } from '../../../components/ui/Modal'
@@ -108,7 +110,7 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
             !esPacienteExpress ? 'bg-graphite-900 dark:bg-graphite-100 text-white dark:text-graphite-900 shadow-xs' : 'text-gray-600 dark:text-graphite-400 hover:text-graphite-900 dark:hover:text-graphite-100'
           }`}
         >
-          <span>👤</span> Paciente Registrado ({pacientes.length})
+          <Icon icon={User} size="xs" /> Paciente Registrado ({pacientes.length})
         </button>
         <button
           type="button"
@@ -122,7 +124,7 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
             esPacienteExpress ? 'bg-graphite-900 dark:bg-graphite-100 text-white dark:text-graphite-900 shadow-xs' : 'text-gray-600 dark:text-graphite-400 hover:text-graphite-900 dark:hover:text-graphite-100'
           }`}
         >
-          <span>⚡</span> Paciente Nuevo / Express
+          <Icon icon={Zap} size="xs" /> Paciente Nuevo / Express
         </button>
       </div>
 

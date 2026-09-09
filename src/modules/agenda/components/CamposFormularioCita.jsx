@@ -1,21 +1,19 @@
 /**
- * CamposFormularioCita — Campos del formulario de nueva cita
+ * CamposFormularioCita — Campos del formulario de nueva cita (F10-C2.7)
  * Extraído de ModalNuevaCita.jsx para cumplir límites de allowlist (F7-25)
+ *
+ * Componente "dumb": recibe props + setters del padre (ModalNuevaCita).
+ * NO tiene form propio, NO tiene estado local, NO tiene botones.
+ *
+ * Migración DS v2: CustomSelect para paciente/box (sin emojis 👤📞🪑),
+ * iconos lucide para confirmación, ficha y horario.
  */
 import React from 'react'
 import { Input } from '../../../components/ui/Input'
-
-const TRATAMIENTOS_RAPIDOS = [
-  'Evaluación / Diagnóstico Inicial',
-  'Limpieza / Destartraje Higiene',
-  'Obturación / Tapadura Resina',
-  'Exodoncia / Extracción Simple',
-  'Exodoncia Tercer Molar (Muela Juicio)',
-  'Tratamiento de Conducto (Endodoncia)',
-  'Control de Ortodoncia / Frenillos',
-  'Instalación / Blanqueamiento Dental',
-  'Control / Urgencia Dental'
-]
+import { CustomSelect } from '../../../components/ui/CustomSelect'
+import { Icon } from '../../../components/Icon'
+import { Armchair, Check, Phone, Folder, Clock, Timer } from 'lucide-react'
+import { TRATAMIENTOS_RAPIDOS } from '../constants/agendaConstants'
 
 export const CamposFormularioCita = ({
   pacientes,
@@ -46,35 +44,41 @@ export const CamposFormularioCita = ({
   setObservaciones,
   handleSelectPacienteChange
 }) => {
+  // El CustomSelect emite onChange(value) directo; el padre espera un evento.
+  // Wrapper para mantener compatibilidad sin tocar el handler del padre.
+  const handlePacienteChange = (value) => {
+    handleSelectPacienteChange({ target: { value } })
+  }
+
   return (
     <>
       {/* Sección de paciente */}
       {!esPacienteExpress ? (
         <div>
-          <label className="font-extrabold text-gray-800 dark:text-graphite-100 block mb-1">
-            Seleccionar Paciente de la Base de Datos *
-          </label>
-          <select
-            value={pacienteSeleccionadoId}
-            onChange={handleSelectPacienteChange}
-            className="w-full p-3 rounded-xl border border-gray-300 dark:border-graphite-600 font-bold bg-gray-50 dark:bg-graphite-900 focus:bg-white dark:focus:bg-graphite-800 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-graphite-400 cursor-pointer text-xs dark:text-graphite-100"
-            required
-          >
-            <option value="">-- Despliega para elegir paciente registrado --</option>
-            {pacientes.map(p => {
+          <CustomSelect
+            label="Seleccionar Paciente de la Base de Datos *"
+            options={pacientes.map(p => {
               const nombreFull = `${p.nombre || ''} ${p.apellido || ''}`.trim() || p.nombreCompleto || 'Sin Nombre'
-              return (
-                <option key={p.id} value={p.id}>
-                  👤 {nombreFull} {p.rut ? `(RUT: ${p.rut})` : ''} {p.telefono ? `- 📞 ${p.telefono}` : ''}
-                </option>
-              )
+              return {
+                value: p.id,
+                label: `${nombreFull} ${p.rut ? `(RUT: ${p.rut})` : ''} ${p.telefono ? `- Tel: ${p.telefono}` : ''}`
+              }
             })}
-          </select>
+            value={pacienteSeleccionadoId}
+            onChange={handlePacienteChange}
+            placeholder="-- Despliega para elegir paciente registrado --"
+          />
 
           {pacienteSeleccionadoId && (
             <div className="mt-2 p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 font-extrabold text-[11px] flex justify-between items-center">
-              <span>✓ Paciente: <strong>{pacienteNombre}</strong></span>
-              <span>📞 {pacienteTelefono || 'Sin fono registrado'}</span>
+              <span className="flex items-center gap-1">
+                <Icon icon={Check} size="xs" />
+                Paciente: <strong>{pacienteNombre}</strong>
+              </span>
+              <span className="flex items-center gap-1">
+                <Icon icon={Phone} size="xs" />
+                {pacienteTelefono || 'Sin fono registrado'}
+              </span>
             </div>
           )}
         </div>
@@ -107,8 +111,9 @@ export const CamposFormularioCita = ({
               onChange={(e) => setAutoCrearFicha(e.target.checked)}
               className="w-4 h-4 rounded text-black focus:ring-black cursor-pointer"
             />
-            <label htmlFor="autoCrear" className="font-bold text-gray-800 dark:text-graphite-100 text-[11px] cursor-pointer">
-              📁 Crear automáticamente Ficha Clínica en el Módulo Pacientes
+            <label htmlFor="autoCrear" className="font-bold text-gray-800 dark:text-graphite-100 text-[11px] cursor-pointer flex items-center gap-1">
+              <Icon icon={Folder} size="xs" />
+              Crear automáticamente Ficha Clínica en el Módulo Pacientes
             </label>
           </div>
         </div>
@@ -129,18 +134,16 @@ export const CamposFormularioCita = ({
           </select>
         </div>
 
-        <div>
-          <label className="font-extrabold text-gray-700 dark:text-graphite-300 block mb-1">Sillón / Box Dental</label>
-          <select
-            value={boxAsignado}
-            onChange={(e) => setBoxAsignado(e.target.value)}
-            className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 font-bold bg-gray-50 dark:bg-graphite-900 focus:bg-white dark:focus:bg-graphite-800 cursor-pointer dark:text-graphite-100"
-          >
-            {sillonesDentales.map(s => (
-              <option key={s.id} value={s.nombre}>🪑 {s.nombre}</option>
-            ))}
-          </select>
-        </div>
+        <CustomSelect
+          label="Sillón / Box Dental"
+          options={sillonesDentales.map(s => ({
+            value: s.nombre,
+            label: s.nombre,
+            icon: Armchair
+          }))}
+          value={boxAsignado}
+          onChange={(value) => setBoxAsignado(value)}
+        />
       </div>
 
       {/* Fecha + Hora + Duración */}
@@ -180,8 +183,14 @@ export const CamposFormularioCita = ({
 
       {/* Horario calculado */}
       <div className="p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800 flex justify-between items-center text-[11px] font-extrabold text-blue-900 dark:text-blue-200">
-        <span>⏰ Horario Asignado: {horaInicio} hrs a {horaFinCalculada} hrs</span>
-        <span>⏱️ {duracionMinutos} min</span>
+        <span className="flex items-center gap-1">
+          <Icon icon={Clock} size="xs" />
+          Horario Asignado: {horaInicio} hrs a {horaFinCalculada} hrs
+        </span>
+        <span className="flex items-center gap-1">
+          <Icon icon={Timer} size="xs" />
+          {duracionMinutos} min
+        </span>
       </div>
 
       {/* Observaciones */}

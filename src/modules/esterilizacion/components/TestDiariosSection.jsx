@@ -1,4 +1,6 @@
 import React, { memo, useState } from 'react'
+import { Icon } from '../../../components/Icon'
+import { Wrench } from 'lucide-react'
 import { EQUIPOS_AUTOCLAVE, RESULTADOS_BOWIE_DICK } from '../constants/esterilizacionConstants'
 
 export const TestDiariosSection = memo(({ testDiarios, alAgregarTest }) => {
@@ -29,7 +31,10 @@ export const TestDiariosSection = memo(({ testDiarios, alAgregarTest }) => {
       <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-4">
         <div className="border-b pb-2">
           <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider">
-            🛠️ Test Diarios de Penetración de Vapor (Bowie-Dick / Pre-Vacío)
+            <span className="flex items-center gap-2">
+            <Icon icon={Wrench} size="sm" />
+            Test Diarios de Penetración de Vapor (Bowie-Dick / Pre-Vacío)
+          </span>
           </h3>
           <p className="text-gray-500 text-[11px]">
             Verificación técnica matutina obligatoria por la SEREMI antes de procesar cargas de pacientes.

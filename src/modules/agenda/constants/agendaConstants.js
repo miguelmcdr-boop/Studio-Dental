@@ -25,3 +25,17 @@ export const ESTADOS_CITA = {
 // 💡 Exportamos un Arreglo Mapeable seguro para ModalNuevaCita.jsx
 export const ESTADOS_CITA_GOLD = Object.values(ESTADOS_CITA)
 export const ESTADOS_CITA_WORLD_CLASS = ESTADOS_CITA_GOLD
+/**
+ * Tratamientos rápidos para el formulario de nueva cita (F10-C2.7)
+ */
+export const TRATAMIENTOS_RAPIDOS = [
+  'Evaluación / Diagnóstico Inicial',
+  'Limpieza / Destartraje Higiene',
+  'Obturación / Tapadura Resina',
+  'Exodoncia / Extracción Simple',
+  'Exodoncia Tercer Molar (Muela Juicio)',
+  'Tratamiento de Conducto (Endodoncia)',
+  'Control de Ortodoncia / Frenillos',
+  'Instalación / Blanqueamiento Dental',
+  'Control / Urgencia Dental'
+]
