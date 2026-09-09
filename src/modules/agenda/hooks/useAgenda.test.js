@@ -20,6 +20,7 @@ import { useAgenda } from './useAgenda'
 import { agendaStorageService } from '../services/agendaStorageService'
 import { pacientesStorageService } from '../../pacientes/services/pacientesStorageService'
 import { usePacientesStore } from '../../../store/pacientesStore'
+import { useDialogStore } from '../../../store/dialogStore'
 
 describe('useAgenda', () => {
   beforeEach(() => {
@@ -45,6 +46,7 @@ describe('useAgenda', () => {
 
     // Restaurar cualquier mock previo (window.open, window.alert)
     vi.restoreAllMocks()
+    useDialogStore.setState({ dialog: null })
   })
 
   describe('inicialización', () => {
@@ -360,10 +362,9 @@ describe('useAgenda', () => {
       expect(url).toMatch(/wa\.me\/56912345678/)
     })
 
-    it('muestra alerta si no hay teléfono disponible y no abre WhatsApp', () => {
+    it('muestra alerta si no hay teléfono disponible y no abre WhatsApp', async () => {
       const { result } = renderHook(() => useAgenda())
       const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
-      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {})
 
       // F2-04b: agregados horaInicio y estado obligatorios
       act(() => {
@@ -376,12 +377,21 @@ describe('useAgenda', () => {
         })
       })
 
-      act(() => {
-        result.current.enviarWhatsAppConfirmacion(result.current.citas[0])
+      // F10-C3.3: enviarWhatsAppConfirmacion ahora es async y usa useAppDialog
+      let promiseResolve
+      const dialogPromise = new Promise((resolve) => { promiseResolve = resolve })
+      
+      await act(async () => {
+        const promise = result.current.enviarWhatsAppConfirmacion(result.current.citas[0])
+        // El diálogo se abrió en el store
+        expect(useDialogStore.getState().dialog).not.toBeNull()
+        expect(useDialogStore.getState().dialog.description).toContain('Sin Teléfono')
+        expect(useDialogStore.getState().dialog.variant).toBe('warning')
+        // Resolver el diálogo para que la función complete
+        useDialogStore.getState().closeDialog(undefined)
+        await promise
       })
 
-      expect(alertSpy).toHaveBeenCalledOnce()
-      expect(alertSpy.mock.calls[0][0]).toContain('Sin Teléfono')
       expect(openSpy).not.toHaveBeenCalled()
     })
 

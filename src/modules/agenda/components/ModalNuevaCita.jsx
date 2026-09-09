@@ -10,6 +10,7 @@ import { SILLONES_DENTALES } from '../constants/agendaConstants'
 import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
 import { Modal } from '../../../components/ui/Modal'
 import { Button } from '../../../components/ui/Button'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 import { CamposFormularioCita } from './CamposFormularioCita'
 
 export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGuardar, alCerrar }) => {
@@ -27,6 +28,7 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
   const [horaInicio, setHoraInicio] = useState('09:00')
   const [duracionMinutos, setDuracionMinutos] = useState(30)
   const [observaciones, setObservaciones] = useState('')
+  const { alert: dialogAlert } = useAppDialog()
 
   const handleSelectPacienteChange = (e) => {
     const pId = e.target.value
@@ -58,11 +60,16 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
     return `${hFin}:${mFin}`
   }, [horaInicio, duracionMinutos])
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
     if (!pacienteNombre.trim()) {
-      alert('⚠️ Por favor selecciona o ingresa un paciente.')
+      await dialogAlert({
+        title: 'Paciente requerido',
+        description: 'Por favor selecciona o ingresa un paciente.',
+        variant: 'warning',
+        confirmText: 'Entendido'
+      })
       return
     }
 

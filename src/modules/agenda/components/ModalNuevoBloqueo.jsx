@@ -14,6 +14,7 @@ import { Ban, Building, Armchair } from 'lucide-react'
 import { Modal } from '../../../components/ui/Modal'
 import { Input } from '../../../components/ui/Input'
 import { Button } from '../../../components/ui/Button'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 import { CustomSelect } from '../../../components/ui/CustomSelect'
 import { Utensils, Wrench, GraduationCap, AlertTriangle } from 'lucide-react'
 import { TIPOS_BLOQUEO_AGENDA, SILLONES_DENTALES } from '../constants/agendaConstants'
@@ -28,6 +29,7 @@ const MOTIVOS_BLOQUEO = [
 ]
 
 export const ModalNuevoBloqueo = memo(({ fechaPredeterminada, alGuardar, alCerrar }) => {
+  const { alert: dialogAlert } = useAppDialog()
   const [form, setForm] = useState({
     motivoBloqueo: '🍱 Horario de Almuerzo',
     fecha: fechaPredeterminada || obtenerFechaLocalISO(),
@@ -37,11 +39,16 @@ export const ModalNuevoBloqueo = memo(({ fechaPredeterminada, alGuardar, alCerra
     observaciones: ''
   })
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
     if (form.horaInicio >= form.horaFin) {
-      alert('⚠️ La hora de fin debe ser posterior a la hora de inicio.')
+      await dialogAlert({
+        title: 'Horario inválido',
+        description: 'La hora de fin debe ser posterior a la hora de inicio.',
+        variant: 'warning',
+        confirmText: 'Entendido'
+      })
       return
     }
 

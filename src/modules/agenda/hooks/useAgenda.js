@@ -3,6 +3,7 @@ import { agendaStorageService } from '../services/agendaStorageService'
 import { pacientesStorageService } from '../../pacientes/services/pacientesStorageService'
 import { usePacientesStore } from '../../../store/pacientesStore'
 import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
+import { useWhatsAppConfirmacion } from './useWhatsAppConfirmacion'
 
 export const useAgenda = (pacientesProp = null) => {
   const [citas, setCitas] = useState([])
@@ -121,37 +122,11 @@ export const useAgenda = (pacientesProp = null) => {
     })
   }, [])
 
-  const enviarWhatsAppConfirmacion = useCallback((cita) => {
-    if (!cita) return
 
-    let telefonoRaw = cita.pacienteTelefono || cita.telefono || ''
-
-    if (!telefonoRaw && cita.pacienteId) {
-      const pEncontrado = pacientes.find(p => String(p.id) === String(cita.pacienteId))
-      if (pEncontrado?.telefono) {
-        telefonoRaw = pEncontrado.telefono
-      }
-    }
-
-    let numLimpio = String(telefonoRaw).replace(/\D/g, '')
-
-    if (!numLimpio) {
-      alert(`⚠️ El/la paciente "${cita.pacienteNombre}" no tiene número de teléfono registrado.`)
-      return
-    }
-
-    if (numLimpio.length === 9 && numLimpio.startsWith('9')) {
-      numLimpio = `56${numLimpio}`
-    } else if (numLimpio.length === 8) {
-      numLimpio = `569${numLimpio}`
-    }
-
-    const fechaTxt = cita.fecha ? new Date(cita.fecha + 'T00:00:00').toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' }) : 'su cita'
-    const texto = `Hola ${cita.pacienteNombre}, te saludamos de Studio Dental. Confirmamos tu hora para el ${fechaTxt} a las ${cita.horaInicio} hrs en ${cita.boxAsignado || 'Sillón 1'}. Por favor responde 'Confirmar' a este mensaje.`
-
-    cambiarEstadoCita(cita.id, 'Confirmado')
-    window.open(`https://wa.me/${numLimpio}?text=${encodeURIComponent(texto)}`, '_blank', 'noopener,noreferrer')
-  }, [pacientes, cambiarEstadoCita])
+  const { enviarWhatsAppConfirmacion } = useWhatsAppConfirmacion({
+    pacientes,
+    alCambiarEstado: cambiarEstadoCita,
+  })
 
   return {
     citas,
