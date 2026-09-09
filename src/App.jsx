@@ -4,6 +4,7 @@ import { Sidebar } from './components/Sidebar'
 import { CargandoModulo } from './components/CargandoModulo'
 import { ErrorBoundary } from './components/ErrorBoundary' // F6-01
 import { ToastContainer } from './components/ToastContainer'
+import { AppDialogProvider } from './components/AppDialogProvider'
 import { TopBar } from './components/TopBar'
 import { usePacientesStore } from './store/pacientesStore'
 import { usePrestacionesStore } from './store/prestacionesStore'
@@ -231,6 +232,7 @@ function App() {
   return (
     <>
       <ToastContainer />
+      <AppDialogProvider />
       <div className="min-h-screen flex flex-col bg-graphite-50 dark:bg-graphite-900 font-sans">
         <TopBar
           userProfile={userProfile}

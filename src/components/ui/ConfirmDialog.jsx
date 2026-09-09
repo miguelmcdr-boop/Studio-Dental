@@ -55,7 +55,7 @@ export const ConfirmDialog = ({
   title,
   description,
   confirmText = 'Confirmar',
-  cancelText = 'Cancelar',
+  cancelText,
   onConfirm,
   onCancel,
   variant = 'warning',
@@ -100,9 +100,11 @@ export const ConfirmDialog = ({
 
       {/* Acciones */}
       <div className="flex justify-end gap-2 mt-6">
-        <Button variant="ghost" onClick={onCancel} disabled={loading}>
-          {cancelText}
-        </Button>
+        {cancelText != null && cancelText !== '' && (
+          <Button variant="ghost" onClick={onCancel} disabled={loading}>
+            {cancelText}
+          </Button>
+        )}
         <Button variant={config.confirmVariant} onClick={onConfirm} loading={loading}>
           {confirmText}
         </Button>
