@@ -14,8 +14,18 @@ import { Ban, Building, Armchair } from 'lucide-react'
 import { Modal } from '../../../components/ui/Modal'
 import { Input } from '../../../components/ui/Input'
 import { Button } from '../../../components/ui/Button'
+import { CustomSelect } from '../../../components/ui/CustomSelect'
+import { Utensils, Wrench, GraduationCap, AlertTriangle } from 'lucide-react'
 import { TIPOS_BLOQUEO_AGENDA, SILLONES_DENTALES } from '../constants/agendaConstants'
 import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
+
+
+const MOTIVOS_BLOQUEO = [
+  { value: '🍱 Horario de Almuerzo', label: 'Horario de Almuerzo', icon: Utensils },
+  { value: '🛠️ Mantenimiento Técnico', label: 'Mantenimiento Técnico de Box', icon: Wrench },
+  { value: '🎓 Capacitación / Evento', label: 'Capacitación / Evento Clínico', icon: GraduationCap },
+  { value: '🚨 Ausencia / Urgencia', label: 'Ausencia del Profesional', icon: AlertTriangle },
+]
 
 export const ModalNuevoBloqueo = memo(({ fechaPredeterminada, alGuardar, alCerrar }) => {
   const [form, setForm] = useState({
@@ -55,23 +65,12 @@ export const ModalNuevoBloqueo = memo(({ fechaPredeterminada, alGuardar, alCerra
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-        <div>
-          <label className="font-semibold text-graphite-700 dark:text-graphite-300 block mb-1">
-            Motivo del Bloqueo
-          </label>
-          <select
+        <CustomSelect
+            label="Motivo del Bloqueo"
+            options={MOTIVOS_BLOQUEO}
             value={form.motivoBloqueo}
-            onChange={(e) => setForm({ ...form, motivoBloqueo: e.target.value })}
-            className="w-full p-3 rounded-xl border border-graphite-300 dark:border-graphite-600 font-semibold bg-graphite-50 dark:bg-graphite-900 focus:bg-white dark:focus:bg-graphite-800 focus:outline-none focus:ring-2 focus:ring-graphite-900 dark:focus:ring-graphite-100 dark:text-graphite-100"
-          >
-            {TIPOS_BLOQUEO_AGENDA.map(b => (
-              <option key={b.id} value={b.label}>{b.label}</option>
-            ))}
-            <option value="🛠️ Mantenimiento Técnico">🛠️ Mantenimiento Técnico de Box</option>
-            <option value="🎓 Capacitación / Evento">🎓 Capacitación / Evento Clínico</option>
-            <option value="🚨 Ausencia / Urgencia">🚨 Ausencia del Profesional</option>
-          </select>
-        </div>
+            onChange={(value) => setForm({ ...form, motivoBloqueo: value })}
+          />
 
         <div className="grid grid-cols-2 gap-3">
           <Input
