@@ -3,6 +3,7 @@ import { tiempoRelativo } from '../../../utils/dateUtils'
 import { Modal } from '../../../components/ui/Modal'
 import { Input } from '../../../components/ui/Input'
 import { Button } from '../../../components/ui/Button'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 /**
  * Modal de papelera de reciclaje (F6-L).
@@ -28,6 +29,7 @@ export const ModalPapelera = ({
   onCerrar
 }) => {
   const [busqueda, setBusqueda] = useState('')
+  const { confirm } = useAppDialog()
   const [restaurandoId, setRestaurandoId] = useState(null)
   const [mostrarConfirmacionVaciar, setMostrarConfirmacionVaciar] = useState(false)
   const [textoConfirmacion, setTextoConfirmacion] = useState('')
@@ -55,10 +57,12 @@ export const ModalPapelera = ({
   }, [pacientesEliminados, busqueda])
 
   const handleRestaurar = async (pacienteId) => {
-    const confirmado = window.confirm(
-      '¿Estás seguro de restaurar este paciente?\n\n' +
-      'El paciente volverá al directorio activo con toda su ficha clínica.'
-    )
+    const confirmado = await confirm({
+      title: 'Restaurar paciente',
+      description: '¿Estás seguro de restaurar este paciente? El paciente volverá al directorio activo con toda su ficha clínica.',
+      variant: 'warning',
+      confirmText: 'Restaurar'
+    })
     if (!confirmado) return
     setRestaurandoId(pacienteId)
     try {

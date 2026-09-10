@@ -1,6 +1,7 @@
 import React, { memo, useState } from 'react'
 import { Input } from '../../../components/ui/Input'
 import { Button } from '../../../components/ui/Button'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 /**
  * Sección colapsable de papelera de archivos clínicos.
@@ -28,6 +29,7 @@ export const PapeleraArchivos = memo(({
   permisos,
 }) => {
   const [abierto, setAbierto] = useState(false)
+  const { confirm } = useAppDialog()
   const [restaurandoId, setRestaurandoId] = useState(null)
   const [mostrarConfirmacionVaciar, setMostrarConfirmacionVaciar] = useState(false)
   const [textoConfirmacion, setTextoConfirmacion] = useState('')
@@ -49,10 +51,12 @@ export const PapeleraArchivos = memo(({
   if (!permisos.puedeEliminar) return null
 
   const handleRestaurar = async (archivoId) => {
-    const confirmado = window.confirm(
-      '¿Estás seguro de restaurar este archivo?\n\n' +
-      'El archivo volverá a la lista de archivos activos.'
-    )
+    const confirmado = await confirm({
+      title: 'Restaurar archivo',
+      description: '¿Estás seguro de restaurar este archivo? El archivo volverá a la lista de archivos activos.',
+      variant: 'warning',
+      confirmText: 'Restaurar'
+    })
 
     if (!confirmado) return
 

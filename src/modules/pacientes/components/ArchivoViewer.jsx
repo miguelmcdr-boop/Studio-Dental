@@ -1,4 +1,5 @@
 import React, { memo, useState, useEffect } from 'react'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 /**
  * Grid/lista de archivos clínicos almacenados en R2.
@@ -24,6 +25,7 @@ export const ArchivoViewer = memo(({
 }) => {
   // Estado de archivos con thumbnail en progreso
   const [cargandoThumbnails, setCargandoThumbnails] = useState({})
+  const { confirm } = useAppDialog()
   const textosVacios = {
     foto: 'No hay fotografías clínicas cargadas todavía.',
     rx: 'No hay radiografías cargadas todavía.',
@@ -52,8 +54,13 @@ export const ArchivoViewer = memo(({
     }
   }
 
-  const confirmarEliminar = (archivo) => {
-    const ok = window.confirm(`¿Eliminar "${archivo.nombre_archivo}"? Esta acción no se puede deshacer.`)
+  const confirmarEliminar = async (archivo) => {
+    const ok = await confirm({
+      title: 'Eliminar archivo',
+      description: `¿Eliminar "${archivo.nombre_archivo}"? Esta acción no se puede deshacer.`,
+      variant: 'danger',
+      confirmText: 'Eliminar'
+    })
     if (ok) {
       onEliminar(archivo.id)
     }

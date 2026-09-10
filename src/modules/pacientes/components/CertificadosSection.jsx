@@ -3,6 +3,7 @@ import React, { memo, useState } from 'react'
 import { certificadosStorageService } from '../services/certificadosStorageService'
 import { FormularioNuevoCertificado } from './FormularioNuevoCertificado'
 import { createLogger } from '../../../services/logger'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 const log = createLogger('CertificadosSection')
 
@@ -21,6 +22,7 @@ export const CertificadosSection = memo(({
   setCertificados = () => {}
 }) => {
   const [certSeleccionadoVer, setCertSeleccionadoVer] = useState(null)
+  const { confirm } = useAppDialog()
 
   const listaCertificados = Array.isArray(certificados) ? certificados : []
 
@@ -32,8 +34,14 @@ export const CertificadosSection = memo(({
     setCertSeleccionadoVer(nuevoCertificado)
   }
 
-  const handleEliminarCertificado = (id) => {
-    if (window.confirm('¿Deseas eliminar este registro de certificado del historial?')) {
+  const handleEliminarCertificado = async (id) => {
+    const ok = await confirm({
+      title: 'Eliminar certificado',
+      description: '¿Deseas eliminar este registro de certificado del historial?',
+      variant: 'danger',
+      confirmText: 'Eliminar'
+    })
+    if (ok) {
       const actualizados = listaCertificados.filter(c => c.id !== id)
       setCertificados(actualizados)
       // F6-D-6: usar certificadosStorageService (Supabase + localStorage)

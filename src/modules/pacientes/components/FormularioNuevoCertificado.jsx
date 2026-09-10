@@ -2,6 +2,7 @@ import React, { memo, useState } from 'react'
 import { Input } from '../../../components/ui/Input'
 import { Button } from '../../../components/ui/Button'
 import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 /**
  * Formulario para emitir nuevo certificado médico (F6-D-6 refactor)
@@ -14,6 +15,7 @@ import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
  */
 export const FormularioNuevoCertificado = memo(({ userProfile, onGenerarCertificado }) => {
   const [tipoCertificado, setTipoCertificado] = useState('asistencia')
+  const { alert: dialogAlert } = useAppDialog()
   const [fechaAtencion, setFechaAtencion] = useState(obtenerFechaLocalISO())
   const [horaInicio, setHoraInicio] = useState('10:00')
   const [horaFin, setHoraFin] = useState('11:00')
@@ -21,10 +23,15 @@ export const FormularioNuevoCertificado = memo(({ userProfile, onGenerarCertific
   const [diagnosticoMotivo, setDiagnosticoMotivo] = useState('')
   const [observaciones, setObservaciones] = useState('')
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!diagnosticoMotivo) {
-      alert('Por favor ingresa el motivo o diagnóstico de la atención.')
+      await dialogAlert({
+        title: 'Motivo requerido',
+        description: 'Por favor ingresa el motivo o diagnóstico de la atención.',
+        variant: 'warning',
+        confirmText: 'Entendido'
+      })
       return
     }
 

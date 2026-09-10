@@ -1,6 +1,7 @@
 import React, { memo, useState } from 'react'
 import { FirmaDigitalCanvas } from '../../../components/FirmaDigitalCanvas'
 import { pacientesStorageService } from '../services/pacientesStorageService'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 const PLANTILLAS_CONSENTIMIENTO = [
   {
@@ -22,6 +23,7 @@ const PLANTILLAS_CONSENTIMIENTO = [
 
 export const ConsentimientosSection = memo(({ paciente, userProfile }) => {
   const [plantillaId, setPlantillaId] = useState(PLANTILLAS_CONSENTIMIENTO[0].id)
+  const { alert: dialogAlert } = useAppDialog()
   const [firmaBase64, setFirmaBase64] = useState('')
   const [historialConsentimientos, setHistorialConsentimientos] = useState(() =>
     pacientesStorageService.obtenerItem(`consentimientos_${paciente.id}`, [])
@@ -29,9 +31,14 @@ export const ConsentimientosSection = memo(({ paciente, userProfile }) => {
 
   const plantillaActual = PLANTILLAS_CONSENTIMIENTO.find(p => p.id === plantillaId) || PLANTILLAS_CONSENTIMIENTO[0]
 
-  const handleGuardarConsentimiento = () => {
+  const handleGuardarConsentimiento = async () => {
     if (!firmaBase64) {
-      alert('Por favor solicita al paciente que firme en el recuadro digital antes de guardar.')
+      await dialogAlert({
+        title: 'Firma requerida',
+        description: 'Por favor solicita al paciente que firme en el recuadro digital antes de guardar.',
+        variant: 'warning',
+        confirmText: 'Entendido'
+      })
       return
     }
 
@@ -50,7 +57,12 @@ export const ConsentimientosSection = memo(({ paciente, userProfile }) => {
     setHistorialConsentimientos(actualizados)
     pacientesStorageService.guardarItem(`consentimientos_${paciente.id}`, actualizados)
     setFirmaBase64('')
-    alert('✅ Consentimiento informado firmado y guardado inmutablemente.')
+    await dialogAlert({
+      title: 'Consentimiento guardado',
+      description: 'Consentimiento informado firmado y guardado inmutablemente.',
+      variant: 'success',
+      confirmText: 'Entendido'
+    })
   }
 
   return (

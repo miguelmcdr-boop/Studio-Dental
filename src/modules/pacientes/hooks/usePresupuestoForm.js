@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { obtenerDescuentoConvenio } from '../utils/pacientesCalculations'
 import { pacientesStorageService } from '../services/pacientesStorageService'
 import { prestacionesStorageService } from '../../prestaciones/services/prestacionesStorageService'
+import { useEliminarAbono } from './useEliminarAbono'
 
 export const usePresupuestoForm = ({
   paciente,
@@ -114,12 +115,12 @@ export const usePresupuestoForm = ({
     setValorAbono('')
   }
 
-  const handleEliminarAbono = (idAbono) => {
-    if (!window.confirm('¿Deseas eliminar este registro de abono ingresado?')) return
-    const actualizados = abonos.filter(a => a.id !== idAbono)
-    setAbonos(actualizados)
-    pacientesStorageService.guardarItem(`abonos_${paciente.id}`, actualizados)
-  }
+
+  const { handleEliminarAbono } = useEliminarAbono({
+    abonos,
+    setAbonos,
+    paciente,
+  })
 
   return {
     arancelActualizado,

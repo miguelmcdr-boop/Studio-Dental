@@ -3,11 +3,13 @@ import React, { memo, useState } from 'react'
 import { evolucionesStorageService } from '../services/evolucionesStorageService'
 import { useDictadoVoz } from '../hooks/useDictadoVoz'
 import { createLogger } from '../../../services/logger.js'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 const log = createLogger('BitacoraSection')
 
 export const BitacoraSection = memo(({ pacienteId, evolucionesNotas = [], setEvolucionesNotas }) => {
   const [textoNuevaEvolucion, setTextoNuevaEvolucion] = useState('')
+  const { confirm } = useAppDialog()
   const [loteAutoclave, setLoteAutoclave] = useState('')
 
   const { escuchando, textoDictado, iniciarDictado, detenerDictado, soporteNativo } = useDictadoVoz()
@@ -43,8 +45,14 @@ export const BitacoraSection = memo(({ pacienteId, evolucionesNotas = [], setEvo
     setTextoNuevaEvolucion(prev => prev ? `${prev} ${textoDictado}` : textoDictado)
   }
 
-  const handleEliminarNota = (idNota) => {
-    if (window.confirm('¿Deseas eliminar esta nota clínica de la bitácora?')) {
+  const handleEliminarNota = async (idNota) => {
+    const ok = await confirm({
+      title: 'Eliminar nota clínica',
+      description: '¿Deseas eliminar esta nota clínica de la bitácora?',
+      variant: 'danger',
+      confirmText: 'Eliminar'
+    })
+    if (ok) {
       const actualizadas = evolucionesNotas.filter(n => n.id !== idNota)
       setEvolucionesNotas(actualizadas)
       // F6-D-5: usar evolucionesStorageService (Supabase + localStorage)
