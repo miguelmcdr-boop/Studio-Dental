@@ -19,6 +19,7 @@ import { leerJSON, escribirJSON, createLocalStorageRepository } from '../../../s
 import { supabase, USE_SUPABASE } from '../../../services/supabaseClient'
 import { migrationStorageService } from '../../../services/migrationStorageService'
 import { esUuidValido } from '../../../services/migrations/uuidUtils'
+import { transformarDesdeSupabase, transformarParaSupabase } from './pagosTransformations'
 import { createLogger } from '../../../services/logger'
 
 const log = createLogger('pagosStorageService')
@@ -29,32 +30,6 @@ const pagosRepo = createLocalStorageRepository(STORAGE_KEY_PAGOS, [])
 // Caché en memoria
 let pagosCache = null
 let cacheInicializado = false
-
-// ═══════════════════════════════════════════════════════════════════
-// MAPEO DE CAMPOS (camelCase JS ↔ snake_case SQL)
-// ═══════════════════════════════════════════════════════════════════
-
-const SNAKE_TO_CAMEL_MAP = {
-  paciente_id: 'pacienteId',
-  metodo_pago: 'metodoPago',
-  user_id: 'userId',
-  created_at: 'createdAt',
-  updated_at: 'updatedAt'
-}
-
-const CAMEL_TO_SNAKE_MAP = Object.fromEntries(
-  Object.entries(SNAKE_TO_CAMEL_MAP).map(([snake, camel]) => [camel, snake])
-)
-
-const transformarDesdeSupabase = (pagoDb) => {
-  if (!pagoDb) return null
-  const resultado = {}
-  for (const [claveDb, valor] of Object.entries(pagoDb)) {
-    const claveJs = SNAKE_TO_CAMEL_MAP[claveDb] || claveDb
-    resultado[claveJs] = valor
-  }
-  return resultado
-}
 
 const transformarParaSupabase = (pagoJs) => {
   if (!pagoJs) return null
