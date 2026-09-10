@@ -23,7 +23,7 @@ export const calcularResumenJornada = (pacientes = [], citas = [], pagos = [], p
 
   // 4. Sumar ingresos recaudados hoy
   const recaudacionHoy = pagos
-    .filter(p => p.fecha === hoyStr && p.estado !== 'Anulado')
+    .filter(p => p.fecha === hoyIso && p.estado !== 'Anulado')
     .reduce((acc, curr) => acc + (parseFloat(curr.monto) || 0), 0)
 
   // 5. Métricas de Conversión de Presupuestos
