@@ -2,8 +2,10 @@ import { useState, useMemo, useCallback } from 'react'
 import { PAGOS_DEFAULT } from '../constants/pagosConstants'
 import { pagosStorageService } from '../services/pagosStorageService'
 import { calcularResumenRecaudacion } from '../utils/pagosCalculations'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 export const usePagos = () => {
+  const { confirm } = useAppDialog()
   const [pagos, setPagos] = useState(() => 
     pagosStorageService.obtenerPagos(PAGOS_DEFAULT)
   )
@@ -44,8 +46,14 @@ export const usePagos = () => {
     })
   }, [])
 
-  const anularPago = useCallback((idPago, motivoAnulacion) => {
-    if (window.confirm('¿Estás seguro de anular este comprobante de pago? El registro quedará guardado en auditoría.')) {
+  const anularPago = useCallback(async (idPago, motivoAnulacion) => {
+    const ok = await confirm({
+      title: 'Anular comprobante de pago',
+      description: '¿Estás seguro de anular este comprobante de pago? El registro quedará guardado en auditoría.',
+      variant: 'danger',
+      confirmText: 'Anular'
+    })
+    if (ok) {
       setPagos(prev => {
         const actualizados = prev.map(p => {
           if (String(p.id) === String(idPago)) {
@@ -62,7 +70,7 @@ export const usePagos = () => {
         return actualizados
       })
     }
-  }, [])
+  }, [confirm])
 
   return {
     pagos: pagosFiltrados,

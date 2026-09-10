@@ -6,11 +6,13 @@ import { METODOS_PAGO_GOLD, TIPOS_DOCUMENTO_TRIBUTARIO, CONCEPTOS_PAGO } from '.
 import { generarFolioRecibo } from '../utils/pagosCalculations'
 import { presupuestosStorageService } from '../../presupuestos/services/presupuestosStorageService'
 import { createLogger } from '../../../services/logger.js'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 const log = createLogger('ModalNuevoPago')
 
 export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, alGuardar, alCerrar }) => {
   const [pacienteId, setPacienteId] = useState('')
+  const { alert: dialogAlert } = useAppDialog()
   const [monto, setMonto] = useState('')
   const [metodoPago, setMetodoPago] = useState(METODOS_PAGO_GOLD[0].id)
   const [tipoDTE, setTipoDTE] = useState(TIPOS_DOCUMENTO_TRIBUTARIO[0].id)
@@ -63,12 +65,17 @@ export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, a
     }
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const montoLimpio = parseFloat(String(monto).replace(/[^0-9]/g, '')) || 0
 
     if (!pacienteId || montoLimpio <= 0) {
-      alert('Selecciona un paciente e ingresa un monto mayor a $0.')
+      await dialogAlert({
+        title: 'Datos incompletos',
+        description: 'Selecciona un paciente e ingresa un monto mayor a $0.',
+        variant: 'warning',
+        confirmText: 'Entendido'
+      })
       return
     }
 
