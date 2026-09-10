@@ -82,7 +82,7 @@ export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, a
     const pac = pacientes.find(p => String(p.id) === String(pacienteId))
 
     const pagoFinal = {
-      id: pagoEditar ? pagoEditar.id : Date.now(),
+      id: pagoEditar ? pagoEditar.id : (crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`),
       folioComprobante: pagoEditar ? pagoEditar.folioComprobante : generarFolioRecibo(),
       tipoDTE,
       folioDTE: folioDTE.trim(),
@@ -118,7 +118,6 @@ export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, a
             <select
               value={pacienteId}
               onChange={(e) => setPacienteId(e.target.value)}
-              required
               className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-bold"
             >
               <option value="">-- Seleccionar paciente --</option>
