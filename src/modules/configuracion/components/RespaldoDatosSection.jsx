@@ -1,8 +1,10 @@
 import React, { memo } from 'react'
 import { configuracionStorageService } from '../services/configuracionStorageService'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 export const RespaldoDatosSection = memo(({ alExportarBackup, alImportarBackup }) => {
-  const handleFileChange = (e) => {
+  const { confirm, alert: dialogAlert } = useAppDialog()
+  const handleFileChange = async (e) => {
     const file = e.target.files[0]
     if (file) {
       const reader = new FileReader()
@@ -11,22 +13,43 @@ export const RespaldoDatosSection = memo(({ alExportarBackup, alImportarBackup }
           const parsed = JSON.parse(event.target.result)
           alImportarBackup(parsed)
         } catch {
-          alert('❌ El archivo seleccionado no es un JSON válido.')
+          await dialogAlert({
+            title: 'Archivo inválido',
+            description: 'El archivo seleccionado no es un JSON válido.',
+            variant: 'error',
+            confirmText: 'Entendido'
+          })
         }
       }
       reader.readAsText(file)
     }
   }
 
-  const handleLimpiarSistema = () => {
-    if (window.confirm('⚠️ ADVERTENCIA DE SEGURIDAD:\n¿Estás completamente seguro de borrar TODA la información local? Se perderán pacientes, fichas y agenda.')) {
+  const handleLimpiarSistema = async () => {
+    const confirmado = await confirm({
+      title: '⚠️ Advertencia de seguridad',
+      description: '¿Estás completamente seguro de borrar TODA la información local? Se perderán pacientes, fichas y agenda.',
+      variant: 'danger',
+      confirmText: 'Borrar todo'
+    })
+    if (confirmado) {
       // F2-07: migrado a servicio, no acceso directo a localStorage
       const ok = configuracionStorageService.limpiarBaseDeDatosCompleta()
       if (ok) {
-        alert('💥 Sistema reiniciado a estado inicial. Se recargará la aplicación.')
+        await dialogAlert({
+          title: 'Sistema reiniciado',
+          description: 'Sistema reiniciado a estado inicial. Se recargará la aplicación.',
+          variant: 'info',
+          confirmText: 'Entendido'
+        })
         window.location.reload()
       } else {
-        alert('❌ Error al limpiar la base de datos. Verifica el almacenamiento del navegador.')
+        await dialogAlert({
+          title: 'Error al limpiar',
+          description: 'Error al limpiar la base de datos. Verifica el almacenamiento del navegador.',
+          variant: 'error',
+          confirmText: 'Entendido'
+        })
       }
     }
   }

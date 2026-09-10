@@ -5,10 +5,12 @@ import { descargarArchivoBackupJSON } from '../utils/configuracionCalculations'
 import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
 import { guardarPerfil } from '../../../services/authService'
 import { createLogger } from '../../../services/logger.js'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 const log = createLogger('useConfiguracion')
 
 export const useConfiguracion = (userProfileProps, setUserProfileProps) => {
+  const { alert: dialogAlert } = useAppDialog()
   const [datosClinica, setDatosClinica] = useState(() =>
     configuracionStorageService.obtenerClinica(CLINICA_DEFAULT)
   )
@@ -47,7 +49,7 @@ export const useConfiguracion = (userProfileProps, setUserProfileProps) => {
     return () => { cancelado = true }
   }, [userProfileProps?.clinicaId, userProfileProps?.rol])
 
-  const guardarPerfilProfesional = useCallback((nuevoPerfil) => {
+  const guardarPerfilProfesional = useCallback(async (nuevoPerfil) => {
     if (setUserProfileProps) {
       setUserProfileProps(nuevoPerfil)
     }
@@ -55,11 +57,21 @@ export const useConfiguracion = (userProfileProps, setUserProfileProps) => {
     const email = nuevoPerfil.email || 'active_user'
     const ok = guardarPerfil(email, nuevoPerfil)
     if (ok) {
-      alert('✅ Perfil profesional guardado exitosamente.')
+      await dialogAlert({
+        title: 'Perfil guardado',
+        description: 'Perfil profesional guardado exitosamente.',
+        variant: 'success',
+        confirmText: 'Entendido'
+      })
     } else {
-      alert('❌ Error al guardar el perfil. Verifica el almacenamiento del navegador.')
+      await dialogAlert({
+        title: 'Error al guardar perfil',
+        description: 'Error al guardar el perfil. Verifica el almacenamiento del navegador.',
+        variant: 'error',
+        confirmText: 'Entendido'
+      })
     }
-  }, [setUserProfileProps])
+  }, [setUserProfileProps, dialogAlert])
 
   // F6-C-e: guardar en Supabase + localStorage. Si Supabase no está configurado
   // o no hay clinicaId, guarda solo en localStorage (comportamiento legacy).
@@ -69,18 +81,33 @@ export const useConfiguracion = (userProfileProps, setUserProfileProps) => {
 
     if (clinicaId) {
       await configuracionStorageService.guardarClinicaCompleta(clinicaId, nuevosDatos)
-      alert('✅ Datos de membrete e información de clínica actualizados (compartidos con todos los miembros).')
+      await dialogAlert({
+        title: 'Datos actualizados',
+        description: 'Datos de membrete e información de clínica actualizados (compartidos con todos los miembros).',
+        variant: 'success',
+        confirmText: 'Entendido'
+      })
     } else {
       configuracionStorageService.guardarClinica(nuevosDatos)
-      alert('✅ Datos de membrete e información de clínica actualizados (solo en este dispositivo).')
+      await dialogAlert({
+        title: 'Datos actualizados',
+        description: 'Datos de membrete e información de clínica actualizados (solo en este dispositivo).',
+        variant: 'success',
+        confirmText: 'Entendido'
+      })
     }
-  }, [userProfileProps?.clinicaId])
+  }, [userProfileProps?.clinicaId, dialogAlert])
 
-  const guardarParametrosAgendaHook = useCallback((nuevosParametros) => {
+  const guardarParametrosAgendaHook = useCallback(async (nuevosParametros) => {
     setParametrosAgenda(nuevosParametros)
     configuracionStorageService.guardarParametrosAgenda(nuevosParametros)
-    alert('✅ Parámetros de agenda actualizados.')
-  }, [])
+    await dialogAlert({
+      title: 'Parámetros actualizados',
+      description: 'Parámetros de agenda actualizados.',
+      variant: 'success',
+      confirmText: 'Entendido'
+    })
+  }, [dialogAlert])
 
   const ejecutarExportacionBackup = useCallback(() => {
     const backupObj = configuracionStorageService.exportarBaseDeDatosCompleta()
@@ -88,15 +115,25 @@ export const useConfiguracion = (userProfileProps, setUserProfileProps) => {
     descargarArchivoBackupJSON(backupObj, `Backup_StudioDental_${fecha}.json`)
   }, [])
 
-  const ejecutarImportacionBackup = useCallback((jsonBackup) => {
+  const ejecutarImportacionBackup = useCallback(async (jsonBackup) => {
     try {
       configuracionStorageService.importarBaseDeDatosCompleta(jsonBackup)
-      alert('🚀 Base de datos restaurada con éxito. La página se recargará.')
+      await dialogAlert({
+        title: 'Base de datos restaurada',
+        description: 'Base de datos restaurada con éxito. La página se recargará.',
+        variant: 'success',
+        confirmText: 'Entendido'
+      })
       window.location.reload()
     } catch (e) {
-      alert('❌ Error al importar respaldo: ' + e.message)
+      await dialogAlert({
+        title: 'Error al importar',
+        description: 'Error al importar respaldo: ' + e.message,
+        variant: 'error',
+        confirmText: 'Entendido'
+      })
     }
-  }, [])
+  }, [dialogAlert])
 
   return {
     datosClinica,
