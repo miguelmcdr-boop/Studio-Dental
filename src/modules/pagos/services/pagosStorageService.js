@@ -31,32 +31,6 @@ const pagosRepo = createLocalStorageRepository(STORAGE_KEY_PAGOS, [])
 let pagosCache = null
 let cacheInicializado = false
 
-const transformarParaSupabase = (pagoJs) => {
-  if (!pagoJs) return null
-  const resultado = {}
-  for (const [claveJs, valor] of Object.entries(pagoJs)) {
-    if (claveJs === 'createdAt' || claveJs === 'updatedAt' || claveJs === 'userId') {
-      continue
-    }
-    const claveDb = CAMEL_TO_SNAKE_MAP[claveJs] || claveJs
-    if (claveJs === 'pacienteId') {
-      if (esUuidValido(valor)) {
-        resultado.paciente_id = valor
-      } else if (valor !== null && valor !== undefined) {
-        const pacienteUuid = migrationStorageService.obtenerSupabaseId(valor)
-        resultado.paciente_id = pacienteUuid || null
-      } else {
-        resultado.paciente_id = null
-      }
-    } else if (valor === '' || valor === null || valor === undefined) {
-      resultado[claveDb] = null
-    } else {
-      resultado[claveDb] = valor
-    }
-  }
-  return resultado
-}
-
 // ═══════════════════════════════════════════════════════════════════
 // INICIALIZACIÓN DE CACHÉ
 // ═══════════════════════════════════════════════════════════════════
