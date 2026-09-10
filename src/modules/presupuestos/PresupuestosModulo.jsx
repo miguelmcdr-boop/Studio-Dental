@@ -8,6 +8,7 @@ import { DocumentoPresupuestoImprimible } from './components/DocumentoPresupuest
 import { usePacientesStore } from '../../store/pacientesStore'
 import { usePrestacionesStore } from '../../store/prestacionesStore'
 import { useSesionStore } from '../../store/sesionStore'
+import { useAppDialog } from '../../hooks/useAppDialog'
 
 export const PresupuestosModulo = memo(({ setPacienteSeleccionado, setActiveSection }) => {
   // (F2-02) — pacientes, prestacionesArancel y userProfile ya no llegan como prop
@@ -19,6 +20,7 @@ export const PresupuestosModulo = memo(({ setPacienteSeleccionado, setActiveSect
   const userProfile = useSesionStore((state) => state.userProfile)
 
   const [modalAbierto, setModalAbierto] = useState(false)
+  const { alert: dialogAlert } = useAppDialog()
   const [presupuestoVerDocumento, setPresupuestoVerDocumento] = useState(null)
 
   const {
@@ -33,13 +35,18 @@ export const PresupuestosModulo = memo(({ setPacienteSeleccionado, setActiveSect
     eliminarPresupuesto
   } = usePresupuestos(pacientes)
 
-  const handleVerFichaPaciente = (presupuesto) => {
+  const handleVerFichaPaciente = async (presupuesto) => {
     const pac = pacientes.find(p => String(p.id) === String(presupuesto.pacienteId))
     if (pac && setPacienteSeleccionado && setActiveSection) {
       setPacienteSeleccionado(pac)
       setActiveSection('Pacientes')
     } else {
-      alert('Abre la sección Pacientes para consultar la ficha clínica.')
+      await dialogAlert({
+        title: 'Ficha clínica no disponible',
+        description: 'Abre la sección Pacientes para consultar la ficha clínica.',
+        variant: 'info',
+        confirmText: 'Entendido'
+      })
     }
   }
 

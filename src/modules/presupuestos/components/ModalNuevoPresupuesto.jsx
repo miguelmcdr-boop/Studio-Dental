@@ -11,11 +11,13 @@ import { createLogger } from '../../../services/logger.js'
 import { Modal } from '../../../components/ui/Modal'
 import { Button } from '../../../components/ui/Button'
 import { CamposFormularioPresupuesto } from './CamposFormularioPresupuesto'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 const log = createLogger('ModalNuevoPresupuesto')
 
 export const ModalNuevoPresupuesto = memo(({ pacientes = [], prestaciones = [], alGuardar, alCerrar }) => {
   const [pacienteId, setPacienteId] = useState('')
+  const { alert: dialogAlert } = useAppDialog()
   const [convenio, setConvenio] = useState('Particular')
   const [observacion, setObservacion] = useState('')
   
@@ -101,14 +103,24 @@ export const ModalNuevoPresupuesto = memo(({ pacientes = [], prestaciones = [], 
 
   const montoTotal = itemsSeleccionados.reduce((acc, curr) => acc + curr.valor, 0)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!pacienteId) {
-      alert('⚠️ Por favor selecciona un paciente.')
+      await dialogAlert({
+        title: 'Paciente requerido',
+        description: 'Por favor selecciona un paciente.',
+        variant: 'warning',
+        confirmText: 'Entendido'
+      })
       return
     }
     if (itemsSeleccionados.length === 0) {
-      alert('⚠️ Agrega al menos una prestación al presupuesto.')
+      await dialogAlert({
+        title: 'Prestaciones requeridas',
+        description: 'Agrega al menos una prestación al presupuesto.',
+        variant: 'warning',
+        confirmText: 'Entendido'
+      })
       return
     }
 

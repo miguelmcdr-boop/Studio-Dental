@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { presupuestosStorageService } from '../services/presupuestosStorageService'
 import { calcularResumenPresupuestos } from '../utils/presupuestosCalculations'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 export const usePresupuestos = (pacientes = [], _prestaciones = []) => {
+  const { confirm } = useAppDialog()
   const [presupuestos, setPresupuestos] = useState([])
   const [modalNuevoAbierto, setModalNuevoAbierto] = useState(false)
   const [presupuestoImprimir, setPresupuestoImprimir] = useState(null)
@@ -43,8 +45,14 @@ export const usePresupuestos = (pacientes = [], _prestaciones = []) => {
     cargarPresupuestos()
   }, [cargarPresupuestos])
 
-  const eliminarPresupuesto = useCallback((presupuestoId, pacienteId, items = []) => {
-    if (confirm('¿Estás seguro de eliminar este presupuesto? Se eliminará también del plan de tratamiento del paciente.')) {
+  const eliminarPresupuesto = useCallback(async (presupuestoId, pacienteId, items = []) => {
+    const ok = await confirm({
+      title: 'Eliminar presupuesto',
+      description: '¿Estás seguro de eliminar este presupuesto? Se eliminará también del plan de tratamiento del paciente.',
+      variant: 'danger',
+      confirmText: 'Eliminar'
+    })
+    if (ok) {
       presupuestosStorageService.eliminarPresupuestoYFicha(presupuestoId, pacienteId, items)
       cargarPresupuestos()
     }
