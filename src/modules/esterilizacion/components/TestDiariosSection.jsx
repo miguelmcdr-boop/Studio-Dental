@@ -2,14 +2,16 @@ import React, { memo, useState } from 'react'
 import { Icon } from '../../../components/Icon'
 import { Wrench } from 'lucide-react'
 import { EQUIPOS_AUTOCLAVE, RESULTADOS_BOWIE_DICK } from '../constants/esterilizacionConstants'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 export const TestDiariosSection = memo(({ testDiarios, alAgregarTest }) => {
   const [equipo, setEquipo] = useState(EQUIPOS_AUTOCLAVE[0])
+  const { alert: dialogAlert } = useAppDialog()
   const [resultado, setResultado] = useState(RESULTADOS_BOWIE_DICK[0].nombre)
   const [operador, setOperador] = useState('TENS Esterilización')
   const [observacion, setObservacion] = useState('')
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
     const nuevoTest = {
@@ -22,7 +24,12 @@ export const TestDiariosSection = memo(({ testDiarios, alAgregarTest }) => {
     }
 
     alAgregarTest(nuevoTest)
-    alert('✅ Test Diario de Bowie-Dick registrado correctamente.')
+    await dialogAlert({
+      title: 'Test registrado',
+      description: 'Test Diario de Bowie-Dick registrado correctamente.',
+      variant: 'success',
+      confirmText: 'Entendido'
+    })
     setObservacion('')
   }
 

@@ -1,18 +1,25 @@
 import React, { memo, useState } from 'react'
 import { PATOLOGIAS_GES_ODONTO, DIAGNOSTICOS_URGENCIA_COMMON, CATEGORIAS_TRIAGE_URGENCIA } from '../constants/urgenciasGesConstants'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 export const FormRegistroGes = memo(({ pacientes = [], alRegistrar }) => {
   const [pacienteId, setPacienteId] = useState('')
+  const { alert: dialogAlert } = useAppDialog()
   const [triage, setTriage] = useState(CATEGORIAS_TRIAGE_URGENCIA[1].id)
   const [patologiaGes, setPatologiaGes] = useState(PATOLOGIAS_GES_ODONTO[0].id)
   const [diagnostico, setDiagnostico] = useState(DIAGNOSTICOS_URGENCIA_COMMON[0])
   const [indicacionesTratamiento, setIndicacionesTratamiento] = useState('')
   const [aceptaAtencion, setAceptaAtencion] = useState(true)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!pacienteId) {
-      alert('Por favor selecciona un paciente de la lista.')
+      await dialogAlert({
+        title: 'Paciente requerido',
+        description: 'Por favor selecciona un paciente de la lista.',
+        variant: 'warning',
+        confirmText: 'Entendido'
+      })
       return
     }
 
@@ -36,7 +43,12 @@ export const FormRegistroGes = memo(({ pacientes = [], alRegistrar }) => {
     }
 
     alRegistrar(registro)
-    alert('✅ Registro de Urgencia y Constancia GES generado exitosamente.')
+    await dialogAlert({
+      title: 'Registro GES generado',
+      description: 'Registro de Urgencia y Constancia GES generado exitosamente.',
+      variant: 'success',
+      confirmText: 'Entendido'
+    })
   }
 
   return (

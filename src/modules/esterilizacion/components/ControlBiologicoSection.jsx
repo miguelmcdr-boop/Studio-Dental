@@ -1,17 +1,24 @@
 import React, { memo, useState } from 'react'
 import { EQUIPOS_AUTOCLAVE } from '../constants/esterilizacionConstants'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 export const ControlBiologicoSection = memo(({ biologicos, alAgregar, alActualizarResultado }) => {
   const [loteAsociado, setLoteAsociado] = useState('')
+  const { alert: dialogAlert } = useAppDialog()
   const [equipo, setEquipo] = useState(EQUIPOS_AUTOCLAVE[0])
   const [marcaAmpolla] = useState('3M Attest 1262')
   const [horasRequeridas, setHorasRequeridas] = useState(24)
   const [observacion, setObservacion] = useState('')
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!loteAsociado.trim()) {
-      alert('Ingresa el código de Lote asociado a la ampolla biológica.')
+      await dialogAlert({
+        title: 'Lote requerido',
+        description: 'Ingresa el código de Lote asociado a la ampolla biológica.',
+        variant: 'warning',
+        confirmText: 'Entendido'
+      })
       return
     }
 

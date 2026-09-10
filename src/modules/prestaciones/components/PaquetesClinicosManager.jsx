@@ -1,7 +1,9 @@
 import React, { memo, useState } from 'react'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 export const PaquetesClinicosManager = memo(({ paquetes, alGuardarPaquete, alEliminarPaquete }) => {
   const [packEditar, setPackEditar] = useState(null)
+  const { alert: dialogAlert } = useAppDialog()
   const [nombre, setNombre] = useState('')
   const [descripcion, setDescripcion] = useState('')
   const [precioCombo, setPrecioCombo] = useState('')
@@ -24,7 +26,7 @@ export const PaquetesClinicosManager = memo(({ paquetes, alGuardarPaquete, alEli
     setAhorroEstimado('15%')
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!nombre.trim() || !precioCombo) return
 
@@ -40,7 +42,12 @@ export const PaquetesClinicosManager = memo(({ paquetes, alGuardarPaquete, alEli
     })
 
     handleCancelarEdicion()
-    alert(packEditar ? '✅ Pack modificado exitosamente.' : '✅ Paquete o promoción clínica creada exitosamente.')
+    await dialogAlert({
+      title: 'Pack guardado',
+      description: packEditar ? 'Pack modificado exitosamente.' : 'Paquete o promoción clínica creada exitosamente.',
+      variant: 'success',
+      confirmText: 'Entendido'
+    })
   }
 
   return (

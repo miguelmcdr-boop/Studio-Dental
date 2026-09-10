@@ -4,9 +4,11 @@ import { Input } from '../../../components/ui/Input'
 import { Button } from '../../../components/ui/Button'
 import { EQUIPOS_AUTOCLAVE, PROGRAMAS_ESTERILIZACION, INDICADORES_QUIMICOS, INDICADORES_BIOLOGICOS } from '../constants/esterilizacionConstants'
 import { generarCodigoLoteEsterilizacion } from '../utils/esterilizacionCalculations'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 export const ModalNuevaCarga = memo(({ userProfile, alGuardar, alCerrar }) => {
   const [equipo, setEquipo] = useState(EQUIPOS_AUTOCLAVE[0])
+  const { alert: dialogAlert } = useAppDialog()
   const [programaId, setProgramaId] = useState(PROGRAMAS_ESTERILIZACION[0].id)
   const [temperatura, setTemperatura] = useState(134)
   const [presion, setPresion] = useState(2.1)
@@ -26,10 +28,15 @@ export const ModalNuevaCarga = memo(({ userProfile, alGuardar, alCerrar }) => {
     }
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!contenido.trim()) {
-      alert('Ingresa el contenido o paquetes esterilizados en la carga.')
+      await dialogAlert({
+        title: 'Contenido requerido',
+        description: 'Ingresa el contenido o paquetes esterilizados en la carga.',
+        variant: 'warning',
+        confirmText: 'Entendido'
+      })
       return
     }
 
