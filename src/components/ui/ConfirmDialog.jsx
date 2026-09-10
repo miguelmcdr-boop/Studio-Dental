@@ -74,6 +74,7 @@ export const ConfirmDialog = ({
       size="sm"
       closeOnOverlayClick={!loading}
       closeOnEscape={!loading}
+      zIndex="z-[60]"
     >
       <div className="flex items-start gap-4">
         {/* Icono de variante */}
