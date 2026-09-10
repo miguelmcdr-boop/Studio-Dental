@@ -9,11 +9,13 @@ import { pacientesStorageService } from '../pacientes/services/pacientesStorageS
 // F2-07b: acceso centralizado vía servicio (antes localStorage directo)
 import { periodontogramaStorageService } from './services/periodontogramaStorageService'
 import { createLogger } from '../../services/logger.js'
+import { useAppDialog } from '../../hooks/useAppDialog'
 
 const log = createLogger('PeriodontogramaModulo')
 
 export const PeriodontogramaModulo = memo(({ pacienteId }) => {
   const [periodontoData, setPeriodontoData] = useState(() => {
+  const { alert: dialogAlert } = useAppDialog()
     const saved = periodontogramaStorageService.obtenerPeriodontogramaDePaciente(pacienteId, {})
     return saved
   })
@@ -67,7 +69,7 @@ export const PeriodontogramaModulo = memo(({ pacienteId }) => {
     }
   }, [periodontoControl, pacienteId])
 
-  const handleGuardarPeriodontograma = () => {
+  const handleGuardarPeriodontograma = async () => {
     const dataToSave = modoComparativoReeval ? periodontoControl : periodontoData
 
     if (modoComparativoReeval) {
@@ -89,7 +91,12 @@ export const PeriodontogramaModulo = memo(({ pacienteId }) => {
     const evolucionesActualizadas = [notaPeriodontal, ...evolucionesPrevias]
     pacientesStorageService.guardarItem(`evoluciones_notas_${pacienteId}`, evolucionesActualizadas)
 
-    alert(`✅ Periodontograma (${modoComparativoReeval ? 'Reevaluación' : 'Inicial'}) guardado y evolucionado en la Bitácora.`)
+    await dialogAlert({
+      title: 'Periodontograma guardado',
+      description: `Periodontograma (${modoComparativoReeval ? 'Reevaluación' : 'Inicial'}) guardado y evolucionado en la Bitácora.`,
+      variant: 'success',
+      confirmText: 'Entendido'
+    })
   }
 
   return (

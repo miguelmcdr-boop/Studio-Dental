@@ -1,54 +1,23 @@
-import React, { memo, useState } from 'react'
-import { PORCENTAJE_RETENCION_HONORARIOS_DEFAULT } from '../constants/finanzasConstants'
-import { calcularBoletaHonorarios, calcularMontoComision, formatearCLP } from '../utils/finanzasCalculations'
+import React, { memo } from 'react'
+import { useCalculadoraBoletas } from '../hooks/useCalculadoraBoletas'
 
 export const CalculadoraBoletas = memo(({ alRegistrarGastoHonorario }) => {
-  const [usarPorcentajePrestacion, setUsarPorcentajePrestacion] = useState(true)
-  const [nombrePrestacion, setNombrePrestacion] = useState('')
-  const [valorPrestacion, setValorPrestacion] = useState('')
-  const [pctComisionEspecialista, setPctComisionEspecialista] = useState(60)
-
-  const [montoDirecto, setMontoDirecto] = useState('')
-  const [modoCalculo, setModoCalculo] = useState('liquido')
-  const [pctRetencion, setPctRetencion] = useState(PORCENTAJE_RETENCION_HONORARIOS_DEFAULT)
-  const [nombreEspecialista, setNombreEspecialidad] = useState('')
-  const [especialidad, setEspecialidad] = useState('')
-
-  // 1. Cálculo del honorario base
-  const valPrestacionNum = parseFloat(valorPrestacion) || 0
-  const comisionInfo = calcularMontoComision(valPrestacionNum, pctComisionEspecialista)
-  const montoBaseParaBoleta = usarPorcentajePrestacion ? comisionInfo.montoEspecialista : (parseFloat(montoDirecto) || 0)
-
-  // 2. Desglose de boleta (Bruto / Retención / Líquido)
-  const resultado = calcularBoletaHonorarios(montoBaseParaBoleta, modoCalculo, pctRetencion)
-
-  const handleCargarAGastos = () => {
-    if (!resultado.liquido || resultado.liquido <= 0) return
-
-    const detalleTexto = usarPorcentajePrestacion
-      ? `Honorario (${pctComisionEspecialista}% de ${nombrePrestacion || 'Prestación'} ${formatearCLP(valPrestacionNum)}): ${nombreEspecialista || 'Dr.'} (${especialidad || 'Especialista'}) — Boleta Bruta: ${formatearCLP(resultado.bruto)}, Retención SII (${pctRetencion}%): ${formatearCLP(resultado.retencion)}`
-      : `Pago Honorarios: ${nombreEspecialista || 'Especialista'} (${especialidad || 'Dental'}) — Boleta Bruta: ${formatearCLP(resultado.bruto)}, Retención SII (${pctRetencion}%): ${formatearCLP(resultado.retencion)}`
-
-    const nuevoGasto = {
-      id: Date.now(),
-      fecha: new Date().toLocaleDateString('es-CL'),
-      tipo: 'egreso',
-      monto: resultado.liquido,
-      categoria: 'Pago Honorarios Especialista',
-      metodoPago: 'Transferencia',
-      detalle: detalleTexto
-    }
-
-    if (alRegistrarGastoHonorario) {
-      alRegistrarGastoHonorario(nuevoGasto)
-      alert('✅ Pago de honorarios registrado exitosamente en el Flujo de Caja.')
-      setValorPrestacion('')
-      setMontoDirecto('')
-      setNombrePrestacion('')
-      setNombreEspecialidad('')
-      setEspecialidad('')
-    }
-  }
+  const {
+    usarPorcentajePrestacion, setUsarPorcentajePrestacion,
+    nombrePrestacion, setNombrePrestacion,
+    valorPrestacion, setValorPrestacion,
+    pctComisionEspecialista, setPctComisionEspecialista,
+    montoDirecto, setMontoDirecto,
+    modoCalculo, setModoCalculo,
+    pctRetencion, setPctRetencion,
+    nombreEspecialista, setNombreEspecialidad,
+    especialidad, setEspecialidad,
+    valPrestacionNum,
+    comisionInfo,
+    resultado,
+    handleCargarAGastos,
+    formatearCLP,
+  } = useCalculadoraBoletas({ alRegistrarGastoHonorario })
 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-6 text-xs">

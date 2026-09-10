@@ -4,10 +4,12 @@ import { calcularBalanceFinanzas } from '../utils/finanzasCalculations'
 import { CONVENIOS_DEFAULT } from '../constants/finanzasConstants'
 import { pagosStorageService } from '../../pagos/services/pagosStorageService'
 import { createLogger } from '../../../services/logger.js'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 const log = createLogger('useFinanzas')
 
 export const useFinanzas = (pacientes = []) => {
+  const { confirm } = useAppDialog()
   const [movimientosManuales, setMovimientosManuales] = useState(() =>
     finanzasStorageService.obtenerMovimientos([])
   )
@@ -103,8 +105,14 @@ export const useFinanzas = (pacientes = []) => {
     })
   }, [])
 
-  const eliminarMovimiento = useCallback((id) => {
-    if (window.confirm('¿Deseas eliminar este registro de movimiento de caja chica?')) {
+  const eliminarMovimiento = useCallback(async (id) => {
+    const ok = await confirm({
+      title: 'Eliminar movimiento',
+      description: '¿Deseas eliminar este registro de movimiento de caja chica?',
+      variant: 'danger',
+      confirmText: 'Eliminar'
+    })
+    if (ok) {
       setMovimientosManuales(prev => {
         const actualizados = prev.filter(m => m.id !== id)
         finanzasStorageService.guardarMovimientos(actualizados)
@@ -122,7 +130,7 @@ export const useFinanzas = (pacientes = []) => {
       finanzasStorageService.guardarConvenios(actualizados)
       return actualizados
     })
-  }, [])
+  }, [confirm])
 
   return {
     movimientos: movimientosConsolidadosTotal,

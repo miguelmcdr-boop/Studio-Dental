@@ -2,9 +2,11 @@ import React, { memo, useState } from 'react'
 import { Input } from '../../../components/ui/Input'
 import { Button } from '../../../components/ui/Button'
 import { CANALES_COMUNICACION } from '../constants/comunicacionesConstants'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 export const PlantillasManager = memo(({ plantillas, alGuardarPlantilla, alEliminarPlantilla }) => {
   const [plantillaEditar, setPlantillaEditar] = useState(null)
+  const { alert: dialogAlert } = useAppDialog()
   const [nombre, setNombre] = useState('')
   const [canal, setCanal] = useState(CANALES_COMUNICACION[0].id)
   const [asunto, setAsunto] = useState('')
@@ -29,7 +31,7 @@ export const PlantillasManager = memo(({ plantillas, alGuardarPlantilla, alElimi
     setCuerpo(prev => prev + ` ${variable} `)
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!nombre.trim() || !cuerpo.trim()) return
 
@@ -42,7 +44,12 @@ export const PlantillasManager = memo(({ plantillas, alGuardarPlantilla, alElimi
     })
 
     handleCancelarEdicion()
-    alert(plantillaEditar ? '✅ Plantilla modificada exitosamente.' : '✅ Nueva plantilla creada exitosamente.')
+    await dialogAlert({
+      title: 'Plantilla guardada',
+      description: plantillaEditar ? 'Plantilla modificada exitosamente.' : 'Nueva plantilla creada exitosamente.',
+      variant: 'success',
+      confirmText: 'Entendido'
+    })
   }
 
   return (

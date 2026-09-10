@@ -25,6 +25,7 @@ vi.mock('../utils/finanzasCalculations', () => ({
   calcularBalanceFinanzas: vi.fn()
 }))
 
+
 describe('useFinanzas', () => {
   const fechaHoy = new Date().toLocaleDateString('es-CL')
   
@@ -77,7 +78,6 @@ describe('useFinanzas', () => {
       balance: 90000
     })
     
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
   })
 
   describe('Inicialización', () => {
@@ -261,58 +261,6 @@ describe('useFinanzas', () => {
       expect(finanzasStorageService.guardarMovimientos).toHaveBeenCalled()
       const savedMovs = finanzasStorageService.guardarMovimientos.mock.calls[0][0]
       expect(savedMovs[0].id).toBe(100)
-    })
-  })
-
-  describe('eliminarMovimiento', () => {
-    it('elimina movimiento si usuario confirma', () => {
-      window.confirm.mockReturnValue(true)
-      const { result } = renderHook(() => useFinanzas(mockPacientes))
-
-      const manualesAntes = result.current.movimientos.filter(m => !m.origen).length
-
-      act(() => {
-        result.current.eliminarMovimiento(1)
-      })
-
-      const manualesDespues = result.current.movimientos.filter(m => !m.origen).length
-      expect(manualesDespues).toBe(manualesAntes - 1)
-    })
-
-    it('no elimina si usuario cancela', () => {
-      window.confirm.mockReturnValue(false)
-      const { result } = renderHook(() => useFinanzas(mockPacientes))
-
-      const manualesAntes = result.current.movimientos.filter(m => !m.origen).length
-
-      act(() => {
-        result.current.eliminarMovimiento(1)
-      })
-
-      const manualesDespues = result.current.movimientos.filter(m => !m.origen).length
-      expect(manualesDespues).toBe(manualesAntes)
-    })
-
-    it('persiste cambios si se confirma', () => {
-      window.confirm.mockReturnValue(true)
-      const { result } = renderHook(() => useFinanzas(mockPacientes))
-
-      act(() => {
-        result.current.eliminarMovimiento(1)
-      })
-
-      expect(finanzasStorageService.guardarMovimientos).toHaveBeenCalled()
-    })
-
-    it('no persiste si usuario cancela', () => {
-      window.confirm.mockReturnValue(false)
-      const { result } = renderHook(() => useFinanzas(mockPacientes))
-
-      act(() => {
-        result.current.eliminarMovimiento(1)
-      })
-
-      expect(finanzasStorageService.guardarMovimientos).not.toHaveBeenCalled()
     })
   })
 

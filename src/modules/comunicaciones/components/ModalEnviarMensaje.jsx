@@ -3,9 +3,11 @@ import { Modal } from '../../../components/ui/Modal'
 import { Button } from '../../../components/ui/Button'
 import { CANALES_COMUNICACION } from '../constants/comunicacionesConstants'
 import { interpolarVariablesMensaje, generarLinkWhatsAppWeb, generarLinkWhatsAppApp } from '../utils/comunicacionesCalculations'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 export const ModalEnviarMensaje = memo(({ pacientes = [], plantillas = [], userProfile, alRegistrarEnvio, alCerrar }) => {
   const [pacienteId, setPacienteId] = useState('')
+  const { alert: dialogAlert } = useAppDialog()
   const [plantillaId, setPlantillaId] = useState('')
   const [canal, setCanal] = useState(CANALES_COMUNICACION[0].id)
   const [mensajeTexto, setMensajeTexto] = useState('')
@@ -26,9 +28,14 @@ export const ModalEnviarMensaje = memo(({ pacientes = [], plantillas = [], userP
     }
   }, [plantillaId, pacienteId, plantillas, pacientes, userProfile])
 
-  const handleEnviar = (tipoApertura = 'web') => {
+  const handleEnviar = async (tipoApertura = 'web') => {
     if (!pacienteId || !mensajeTexto) {
-      alert('Selecciona un paciente y redacta o carga un mensaje.')
+      await dialogAlert({
+        title: 'Datos incompletos',
+        description: 'Selecciona un paciente y redacta o carga un mensaje.',
+        variant: 'warning',
+        confirmText: 'Entendido'
+      })
       return
     }
 
@@ -58,7 +65,12 @@ export const ModalEnviarMensaje = memo(({ pacientes = [], plantillas = [], userP
         : generarLinkWhatsAppApp(pac.telefono, mensajeTexto)
       window.open(link, '_blank')
     } else {
-      alert('✅ Mensaje registrado exitosamente en la bitácora.')
+      await dialogAlert({
+        title: 'Mensaje registrado',
+        description: 'Mensaje registrado exitosamente en la bitácora.',
+        variant: 'success',
+        confirmText: 'Entendido'
+      })
     }
 
     alCerrar()
