@@ -19,6 +19,7 @@ import { CustomSelect } from '../../../components/ui/CustomSelect'
 import { Utensils, Wrench, GraduationCap, AlertTriangle } from 'lucide-react'
 import { TIPOS_BLOQUEO_AGENDA, SILLONES_DENTALES } from '../constants/agendaConstants'
 import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
+import { detectarConflictoBloqueo } from '../utils/agendaConflictos'
 
 
 const MOTIVOS_BLOQUEO = [
@@ -28,7 +29,7 @@ const MOTIVOS_BLOQUEO = [
   { value: '🚨 Ausencia / Urgencia', label: 'Ausencia del Profesional', icon: AlertTriangle },
 ]
 
-export const ModalNuevoBloqueo = memo(({ fechaPredeterminada, alGuardar, alCerrar }) => {
+export const ModalNuevoBloqueo = memo(({ fechaPredeterminada, alGuardar, alCerrar, citasExistentes = [] }) => {
   const { alert: dialogAlert } = useAppDialog()
   const [form, setForm] = useState({
     motivoBloqueo: '🍱 Horario de Almuerzo',
@@ -46,6 +47,36 @@ export const ModalNuevoBloqueo = memo(({ fechaPredeterminada, alGuardar, alCerra
       await dialogAlert({
         title: 'Horario inválido',
         description: 'La hora de fin debe ser posterior a la hora de inicio.',
+        variant: 'warning',
+        confirmText: 'Entendido'
+      })
+      return
+    }
+
+    // Validar conflicto con citas/bloqueos existentes
+    const { hayConflicto, citasConflicto } = detectarConflictoBloqueo(
+      {
+        fecha: form.fecha,
+        horaInicio: form.horaInicio,
+        horaFin: form.horaFin,
+        boxAsignado: form.boxAsignado,
+      },
+      citasExistentes
+    )
+
+    if (hayConflicto) {
+      const descripcion = citasConflicto
+        .map(c => {
+          const label = c.esBloqueo
+            ? `Bloqueo: ${c.motivoBloqueo || 'Sin motivo'}`
+            : `Cita: ${c.pacienteNombre || c.trataMiento || 'Sin paciente'}`
+          return `• ${label} (${c.horaInicio} - ${c.horaFin}, ${c.boxAsignado || 'Box'})`
+        })
+        .join('\n')
+
+      await dialogAlert({
+        title: 'Conflicto de horario',
+        description: `El bloqueo se superpone con ${citasConflicto.length === 1 ? 'una actividad existente' : `${citasConflicto.length} actividades existentes`}:\n${descripcion}`,
         variant: 'warning',
         confirmText: 'Entendido'
       })

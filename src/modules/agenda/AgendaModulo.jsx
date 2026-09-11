@@ -169,6 +169,7 @@ export const AgendaModulo = memo(({ alSeleccionarPaciente, alVerFichaPaciente })
           fechaPredeterminada={fechaSeleccionada}
           alGuardar={guardarCita}
           alCerrar={() => setModalNuevoBloqueoAbierto(false)}
+          citasExistentes={citas}
         />
       )}
     </div>
