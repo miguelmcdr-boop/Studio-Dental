@@ -96,7 +96,7 @@ export const TablaPresupuestosGlobales = memo(({
                   </button>
 
                   <button
-                    onClick={() => onEliminar(p.id)}
+                    onClick={() => onEliminar(p.id, p.pacienteId, p.items)}
                     className="p-1.5 text-red-500 hover:text-red-700 font-semibold rounded-lg hover:bg-red-50"
                     title="Eliminar presupuesto"
                   >

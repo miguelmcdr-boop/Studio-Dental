@@ -145,6 +145,14 @@ export const ModalNuevoPresupuesto = memo(({ pacientes = [], prestaciones = [], 
     presupuestosStorageService.sincronizarConFichaPaciente(pac?.id, itemsSeleccionados, convenio)
 
     alGuardar(nuevoPresupuesto)
+    
+    await dialogAlert({
+      title: 'Presupuesto creado',
+      description: `Presupuesto ${nuevoPresupuesto.folio} creado exitosamente para ${pac?.nombre || 'paciente'}.`,
+      variant: 'success',
+      confirmText: 'Entendido'
+    })
+    
     alCerrar()
   }
 
