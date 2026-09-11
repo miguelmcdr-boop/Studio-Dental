@@ -8,7 +8,7 @@ export const RespaldoDatosSection = memo(({ alExportarBackup, alImportarBackup }
     const file = e.target.files[0]
     if (file) {
       const reader = new FileReader()
-      reader.onload = (event) => {
+      reader.onload = async (event) => {
         try {
           const parsed = JSON.parse(event.target.result)
           alImportarBackup(parsed)
