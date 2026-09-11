@@ -38,7 +38,6 @@ export const CamposFormularioPresupuesto = ({
               const pac = pacientes.find(p => String(p.id) === String(e.target.value))
               if (pac?.prevision) setConvenio(pac.prevision)
             }}
-            required
             className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-900 font-bold cursor-pointer dark:text-graphite-100"
           >
             <option value="">-- Seleccionar Paciente --</option>

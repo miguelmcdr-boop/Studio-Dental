@@ -84,7 +84,7 @@ const transformarParaSupabase = (presupuestoJs) => {
   if (!presupuestoJs) return null
   const resultado = {}
   for (const [claveJs, valor] of Object.entries(presupuestoJs)) {
-    if (claveJs === 'createdAt' || claveJs === 'updatedAt' || claveJs === 'userId' || claveJs === 'items') {
+    if (claveJs === 'createdAt' || claveJs === 'updatedAt' || claveJs === 'userId' || claveJs === 'items' || claveJs === 'vigenciaDias') {
       continue
     }
     const claveDb = CAMEL_TO_SNAKE_MAP[claveJs] || claveJs
