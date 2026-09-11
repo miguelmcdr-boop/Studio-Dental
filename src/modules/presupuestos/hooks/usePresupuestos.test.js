@@ -25,11 +25,9 @@ describe('usePresupuestos', () => {
     { id: 2, nombre: 'Carlos Ruiz', rut: '11.222.333-4' }
   ]
 
+  // Fix F10-C3.12: todos los presupuestos son directos (no hay consolidados virtuales)
   const mockPresupuestosDirectos = [
-    { id: 1, folio: 'P-001', pacienteNombre: 'Juan Pérez', pacienteRut: '12.345.678-9', estado: 'Pendiente', total: 50000 }
-  ]
-
-  const mockPresupuestosPacientes = [
+    { id: 1, folio: 'P-001', pacienteNombre: 'Juan Pérez', pacienteRut: '12.345.678-9', estado: 'Pendiente', total: 50000 },
     { id: 2, folio: 'P-002', pacienteNombre: 'Ana García', pacienteRut: '12.345.678-9', estado: 'Aprobado', total: 75000 },
     { id: 3, folio: 'P-003', pacienteNombre: 'Carlos Ruiz', pacienteRut: '11.222.333-4', estado: 'Rechazado', total: 30000 }
   ]
@@ -38,7 +36,7 @@ describe('usePresupuestos', () => {
     vi.clearAllMocks()
     
     presupuestosStorageService.obtenerPresupuestos.mockReturnValue(mockPresupuestosDirectos)
-    presupuestosStorageService.consolidarPresupuestosDesdePacientes.mockReturnValue(mockPresupuestosPacientes)
+    // Fix F10-C3.12: ya no se llama a consolidarPresupuestosDesdePacientes
     presupuestosStorageService.guardarPresupuestos.mockImplementation(() => {})
     presupuestosStorageService.actualizarEstadoPresupuesto.mockImplementation(() => {})
     presupuestosStorageService.eliminarPresupuestoYFicha.mockImplementation(() => {})
@@ -59,17 +57,17 @@ describe('usePresupuestos', () => {
       const { result } = renderHook(() => usePresupuestos(mockPacientes))
 
       expect(presupuestosStorageService.obtenerPresupuestos).toHaveBeenCalledWith([])
-      expect(presupuestosStorageService.consolidarPresupuestosDesdePacientes).toHaveBeenCalledWith(mockPacientes)
+      // Fix F10-C3.12: ya no se llama a consolidarPresupuestosDesdePacientes
+      expect(presupuestosStorageService.consolidarPresupuestosDesdePacientes).not.toHaveBeenCalled()
       expect(result.current.presupuestos).toBeDefined()
     })
 
-    it('fusiona presupuestos directos y de pacientes sin duplicados', () => {
+    it('carga todos los presupuestos directos sin consolidados virtuales', () => {
       const { result } = renderHook(() => usePresupuestos(mockPacientes))
 
-      // Debe tener 3 presupuestos únicos (1 directo + 2 de pacientes)
+      // Fix F10-C3.12: solo presupuestos directos, no consolidados
       expect(result.current.presupuestos).toHaveLength(3)
-      // El orden depende del Map: pacientes primero (2, 3), luego directos (1)
-      expect(result.current.presupuestos.map(p => p.id)).toEqual([2, 3, 1])
+      expect(result.current.presupuestos.map(p => p.id)).toEqual([1, 2, 3])
     })
 
     it('inicializa estado de filtros con valores por defecto', () => {
@@ -95,18 +93,15 @@ describe('usePresupuestos', () => {
     })
   })
 
-  describe('Deduplicación por ID', () => {
-    it('presupuesto directo sobrescribe presupuesto de paciente con mismo ID', () => {
-      const presupuestoDirectoDuplicado = { id: 2, folio: 'P-002-DIRECTO', pacienteNombre: 'Ana García', estado: 'Pendiente', total: 100000 }
-      presupuestosStorageService.obtenerPresupuestos.mockReturnValue([presupuestoDirectoDuplicado])
-
+  describe('IDs únicos', () => {
+    it('cada presupuesto directo tiene ID único sin conflictos', () => {
       const { result } = renderHook(() => usePresupuestos(mockPacientes))
 
-      // Debe tener 2 presupuestos únicos (ID 2 directo sobrescribe al del paciente, ID 3 queda)
-      expect(result.current.presupuestos).toHaveLength(2)
-      const presupuestoId2 = result.current.presupuestos.find(p => p.id === 2)
-      expect(presupuestoId2.folio).toBe('P-002-DIRECTO')
-      expect(presupuestoId2.total).toBe(100000)
+      // Fix F10-C3.12: todos son presupuestos directos con IDs únicos
+      expect(result.current.presupuestos).toHaveLength(3)
+      const ids = result.current.presupuestos.map(p => p.id)
+      expect(new Set(ids).size).toBe(3) // Todos únicos
+      expect(ids).toEqual([1, 2, 3])
     })
   })
 
@@ -320,5 +315,17 @@ describe('usePresupuestos', () => {
 
       expect(presupuestosStorageService.obtenerPresupuestos.mock.calls.length).toBeGreaterThan(llamadasIniciales)
     })
+  })
+
+  it('no incluye presupuestos consolidados virtuales (PRES-PAC-*) en la lista global', () => {
+    // Fix F10-C3.12: los consolidados quedan solo en Ficha Clínica
+    presupuestosStorageService.obtenerPresupuestos.mockReturnValue([
+      { id: 1, folio: 'PRES-2026-001', pacienteNombre: 'Test' }
+    ])
+
+    const { result } = renderHook(() => usePresupuestos(mockPacientes))
+
+    expect(result.current.presupuestos).toHaveLength(1)
+    expect(presupuestosStorageService.consolidarPresupuestosDesdePacientes).not.toHaveBeenCalled()
   })
 })

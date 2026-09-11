@@ -12,15 +12,12 @@ export const usePresupuestos = (pacientes = [], _prestaciones = []) => {
   const [busqueda, setBusqueda] = useState('')
 
   const cargarPresupuestos = useCallback(() => {
+    // Solo presupuestos formales (creados manualmente desde PresupuestosModulo).
+    // Los consolidados virtuales (PRES-PAC-*) quedan solo en la Ficha Clínica
+    // del paciente, no aparecen en este módulo para evitar confusión
+    // (su estado se calcula desde items del plan, no desde presupuestos formales).
     const creadosDirectos = presupuestosStorageService.obtenerPresupuestos([])
-    const consolidadosPacientes = presupuestosStorageService.consolidarPresupuestosDesdePacientes(pacientes)
-
-    // Fusionar evitando duplicados por ID
-    const mapa = new Map()
-    consolidadosPacientes.forEach(p => mapa.set(String(p.id), p))
-    creadosDirectos.forEach(p => mapa.set(String(p.id), p))
-
-    setPresupuestos(Array.from(mapa.values()))
+    setPresupuestos(creadosDirectos)
   }, [pacientes])
 
   useEffect(() => {
