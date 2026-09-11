@@ -171,7 +171,7 @@ export const FichaPacienteModulo = memo(({
         <PresupuestoSection
           paciente={paciente}
           userProfile={userProfile}
-          prestacionesArancel={prestacionesArancel}
+          prestacionesProp={prestacionesArancel}
           itemsPresupuesto={itemsPresupuesto}
           setItemsPresupuesto={setItemsPresupuesto}
           abonos={abonos}

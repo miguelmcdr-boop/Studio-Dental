@@ -363,7 +363,7 @@ export const presupuestosStorageService = {
     // Si Supabase está activo, eliminar de Supabase también
     if (USE_SUPABASE && supabase && esUuidValido(presupuestoId)) {
       supabase.from('presupuestos').delete().eq('id', presupuestoId)
-        .catch(err => log.error('Error al eliminar de Supabase:', err))
+        .then(({ error }) => { if (error) log.error('Error al eliminar de Supabase:', error) })
     }
 
     // 2. Borrar del Plan de Tratamiento del paciente si existe pacienteId
@@ -400,7 +400,7 @@ export const presupuestosStorageService = {
     // Si Supabase está activo, actualizar en Supabase también
     if (USE_SUPABASE && supabase && esUuidValido(presupuestoId)) {
       supabase.from('presupuestos').update({ estado: nuevoEstado }).eq('id', presupuestoId)
-        .catch(err => log.error('Error al actualizar estado en Supabase:', err))
+        .then(({ error }) => { if (error) log.error('Error al actualizar estado en Supabase:', error) })
     }
   },
 
