@@ -14,8 +14,9 @@ import { useAppDialog } from '../../hooks/useAppDialog'
 const log = createLogger('PeriodontogramaModulo')
 
 export const PeriodontogramaModulo = memo(({ pacienteId }) => {
-  const [periodontoData, setPeriodontoData] = useState(() => {
   const { alert: dialogAlert } = useAppDialog()
+  
+  const [periodontoData, setPeriodontoData] = useState(() => {
     const saved = periodontogramaStorageService.obtenerPeriodontogramaDePaciente(pacienteId, {})
     return saved
   })
