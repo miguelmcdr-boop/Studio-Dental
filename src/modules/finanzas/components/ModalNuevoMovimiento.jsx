@@ -3,8 +3,10 @@ import { Modal } from '../../../components/ui/Modal'
 import { Input } from '../../../components/ui/Input'
 import { Button } from '../../../components/ui/Button'
 import { CATEGORIAS_INGRESO, CATEGORIAS_EGRESO } from '../constants/finanzasConstants'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 export const ModalNuevoMovimiento = memo(({ alGuardar, alCerrar }) => {
+  const { alert: dialogAlert } = useAppDialog()
   const [tipo, setTipo] = useState('ingreso')
   const [monto, setMonto] = useState('')
   const [categoria, setCategoria] = useState(CATEGORIAS_INGRESO[0])
@@ -16,21 +18,39 @@ export const ModalNuevoMovimiento = memo(({ alGuardar, alCerrar }) => {
     setCategoria(nuevoTipo === 'ingreso' ? CATEGORIAS_INGRESO[0] : CATEGORIAS_EGRESO[0])
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!monto || parseInt(monto) <= 0) return
+    const montoLimpio = parseInt(monto) || 0
+    
+    if (!montoLimpio || montoLimpio <= 0) {
+      await dialogAlert({
+        title: 'Monto inválido',
+        description: 'Ingresa un monto mayor a $0.',
+        variant: 'warning',
+        confirmText: 'Entendido'
+      })
+      return
+    }
 
     const nuevoMov = {
       id: Date.now(),
       fecha: new Date().toLocaleDateString('es-CL'),
       tipo,
-      monto: parseInt(monto),
+      monto: montoLimpio,
       categoria,
       metodoPago,
       detalle
     }
 
     alGuardar(nuevoMov)
+    
+    await dialogAlert({
+      title: 'Movimiento registrado',
+      description: `${tipo === 'ingreso' ? 'Ingreso' : 'Egreso'} de ${formatearCLP(montoLimpio)} registrado exitosamente.`,
+      variant: 'success',
+      confirmText: 'Entendido'
+    })
+    
     alCerrar()
   }
 

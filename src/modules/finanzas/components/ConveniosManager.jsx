@@ -1,6 +1,20 @@
-import React, { memo } from 'react'
+import React, { memo, useState, useEffect } from 'react'
 
 export const ConveniosManager = memo(({ convenios, onActualizarDescuento }) => {
+  const [convenioRecienGuardado, setConvenioRecienGuardado] = useState(null)
+
+  const handleCambioDescuento = (convenioId, nuevoValor) => {
+    onActualizarDescuento(convenioId, nuevoValor)
+    setConvenioRecienGuardado(convenioId)
+  }
+
+  useEffect(() => {
+    if (convenioRecienGuardado) {
+      const timer = setTimeout(() => setConvenioRecienGuardado(null), 1500)
+      return () => clearTimeout(timer)
+    }
+  }, [convenioRecienGuardado])
+
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-4 text-xs">
       <div className="border-b pb-2">
@@ -20,16 +34,23 @@ export const ConveniosManager = memo(({ convenios, onActualizarDescuento }) => {
               <span className="text-[10px] text-gray-500 block">{c.descripcion}</span>
             </div>
 
-            <div className="flex items-center gap-1">
-              <input
-                type="number"
-                min="0"
-                max="100"
-                value={c.descuentoDefecto}
-                onChange={(e) => onActualizarDescuento(c.id, e.target.value)}
-                className="w-16 p-2 border border-gray-300 rounded-lg text-center font-black text-sm bg-white"
-              />
-              <span className="font-bold text-gray-700">%</span>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={c.descuentoDefecto}
+                  onChange={(e) => handleCambioDescuento(c.id, e.target.value)}
+                  className="w-16 p-2 border border-gray-300 rounded-lg text-center font-black text-sm bg-white"
+                />
+                <span className="font-bold text-gray-700">%</span>
+              </div>
+              {convenioRecienGuardado === c.id && (
+                <span className="text-emerald-600 font-bold text-[10px] animate-pulse">
+                  ✓ Guardado
+                </span>
+              )}
             </div>
           </div>
         ))}

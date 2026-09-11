@@ -13,82 +13,68 @@ export const useFinanzas = (pacientes = []) => {
   const [movimientosManuales, setMovimientosManuales] = useState(() =>
     finanzasStorageService.obtenerMovimientos([])
   )
-
-  // NUEVO: estado de convenios, requerido por ConveniosManager
   const [convenios, setConvenios] = useState(() =>
     finanzasStorageService.obtenerConvenios(CONVENIOS_DEFAULT)
   )
-
   const [fechaArqueo, setFechaArqueo] = useState(
     new Date().toLocaleDateString('es-CL')
   )
-
-  // Escanear todos los abonos y pagos globales (vía servicios, F2-07a)
   const [todosLosAbonosYPagos, setTodosLosAbonosYPagos] = useState([])
 
   const recargarTransaccionesConsolidadas = useCallback(() => {
-    const listaConsolidada = []
-
-    // 1. Cargar Pagos Globales (vía pagosStorageService, F2-07a)
+    const lista = []
+    const hoy = () => new Date().toLocaleDateString('es-CL')
+    let pagos = []
     try {
-      const pagosGlobales = pagosStorageService.obtenerPagos([])
-      if (Array.isArray(pagosGlobales)) {
-        pagosGlobales.forEach(p => {
-          listaConsolidada.push({
-            id: `pago_global_${p.id}`,
-            fecha: p.fecha || new Date().toLocaleDateString('es-CL'),
-            tipo: 'Ingreso',
-            categoria: 'Pago Paciente (Boleta/Factura)',
-            monto: parseInt(p.monto || 0),
-            metodoPago: p.metodoPago || 'Efectivo',
-            pacienteNombre: p.pacienteNombre || 'Paciente General',
-            origen: 'Pagos'
-          })
-        })
-      }
+      pagos = pagosStorageService.obtenerPagos([]) || []
     } catch (e) {
       log.error(e)
     }
-
-    // 2. Cargar Abonos de cada Paciente (vía pagosStorageService, F2-07a)
+    const idsPago = new Set(pagos.map(p => String(p.id)))
+    // Pagos globales vigentes: los anulados quedan solo en auditoría de Pagos
+    pagos.forEach(p => {
+      if (p.estado === 'Anulado') return
+      lista.push({
+        id: `pago_global_${p.id}`, fecha: p.fecha || hoy(), tipo: 'Ingreso',
+        categoria: 'Pago Paciente (Boleta/Factura)', monto: parseInt(p.monto || 0),
+        metodoPago: p.metodoPago || 'Efectivo',
+        pacienteNombre: p.pacienteNombre || 'Paciente General', origen: 'Pagos'
+      })
+    })
+    // Abonos de ficha que NO duplican un pago global (evita doble conteo)
+    const idsAbonoVistos = new Set()
     pacientes.forEach(pac => {
+      let abonos = []
       try {
-        const abonosPac = pagosStorageService.obtenerAbonosPorPaciente(pac.id)
-        if (Array.isArray(abonosPac)) {
-          abonosPac.forEach(a => {
-            listaConsolidada.push({
-              id: `abono_${pac.id}_${a.id}`,
-              fecha: a.fecha || new Date().toLocaleDateString('es-CL'),
-              tipo: 'Ingreso',
-              categoria: 'Abono Plan de Tratamiento',
-              monto: parseInt(a.monto || 0),
-              metodoPago: a.metodoPago || 'Efectivo',
-              pacienteNombre: pac.nombre,
-              origen: 'Presupuestos'
-            })
-          })
-        }
+        abonos = pagosStorageService.obtenerAbonosPorPaciente(pac.id) || []
       } catch (e) {
         log.error(e)
       }
+      abonos.forEach(a => {
+        const aid = String(a.id)
+        if (idsPago.has(aid) || idsAbonoVistos.has(aid)) return
+        idsAbonoVistos.add(aid)
+        lista.push({
+          id: `abono_${pac.id}_${a.id}`, fecha: a.fecha || hoy(), tipo: 'Ingreso',
+          categoria: 'Abono Plan de Tratamiento', monto: parseInt(a.monto || 0),
+          metodoPago: a.metodoPago || 'Efectivo', pacienteNombre: pac.nombre,
+          origen: 'Presupuestos'
+        })
+      })
     })
-
-    setTodosLosAbonosYPagos(listaConsolidada)
+    setTodosLosAbonosYPagos(lista)
   }, [pacientes])
 
   useEffect(() => {
     recargarTransaccionesConsolidadas()
-
     window.addEventListener('storage', recargarTransaccionesConsolidadas)
     return () => window.removeEventListener('storage', recargarTransaccionesConsolidadas)
   }, [recargarTransaccionesConsolidadas])
 
-  // Unificar movimientos manuales con cobros de pacientes
   const movimientosConsolidadosTotal = useMemo(() => {
     return [...movimientosManuales, ...todosLosAbonosYPagos]
   }, [movimientosManuales, todosLosAbonosYPagos])
 
-  // Filtrar para el día del Arqueo de Caja
   const transaccionesDiaArqueo = useMemo(() => {
     return movimientosConsolidadosTotal.filter(m => m.fecha === fechaArqueo)
   }, [movimientosConsolidadosTotal, fechaArqueo])
@@ -106,22 +92,33 @@ export const useFinanzas = (pacientes = []) => {
   }, [])
 
   const eliminarMovimiento = useCallback(async (id) => {
+    const strId = String(id)
+    const esPagoGlobal = strId.startsWith('pago_global_')
+    const esAbono = strId.startsWith('abono_')
     const ok = await confirm({
       title: 'Eliminar movimiento',
-      description: '¿Deseas eliminar este registro de movimiento de caja chica?',
+      description: esPagoGlobal || esAbono
+        ? 'Se eliminará el registro original en Pagos / Ficha Clínica. ¿Continuar?'
+        : '¿Deseas eliminar este registro de movimiento de caja chica?',
       variant: 'danger',
       confirmText: 'Eliminar'
     })
-    if (ok) {
+    if (!ok) return
+    if (esPagoGlobal) {
+      pagosStorageService.eliminarPago(strId.replace('pago_global_', ''))
+    } else if (esAbono) {
+      const partes = strId.split('_')
+      pagosStorageService.eliminarAbono(partes[1], partes.slice(2).join('_'))
+    } else {
       setMovimientosManuales(prev => {
         const actualizados = prev.filter(m => m.id !== id)
         finanzasStorageService.guardarMovimientos(actualizados)
         return actualizados
       })
     }
-  }, [])
+    recargarTransaccionesConsolidadas()
+  }, [recargarTransaccionesConsolidadas])
 
-  // NUEVO: actualizar el % de descuento por defecto de un convenio
   const actualizarDescuentoConvenio = useCallback((convenioId, nuevoDescuento) => {
     setConvenios(prev => {
       const actualizados = prev.map(c =>
@@ -130,7 +127,7 @@ export const useFinanzas = (pacientes = []) => {
       finanzasStorageService.guardarConvenios(actualizados)
       return actualizados
     })
-  }, [confirm])
+  }, [])
 
   return {
     movimientos: movimientosConsolidadosTotal,

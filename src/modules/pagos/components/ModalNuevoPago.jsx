@@ -7,9 +7,7 @@ import { generarFolioRecibo } from '../utils/pagosCalculations'
 import { presupuestosStorageService } from '../../presupuestos/services/presupuestosStorageService'
 import { createLogger } from '../../../services/logger.js'
 import { useAppDialog } from '../../../hooks/useAppDialog'
-
 const log = createLogger('ModalNuevoPago')
-
 export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, alGuardar, alCerrar }) => {
   const [pacienteId, setPacienteId] = useState('')
   const { alert: dialogAlert } = useAppDialog()
@@ -19,10 +17,8 @@ export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, a
   const [folioDTE, setFolioDTE] = useState('')
   const [concepto, setConcepto] = useState(CONCEPTOS_PAGO[0])
   const [observacion, setObservacion] = useState('')
-
   const [prestacionesPaciente, setPrestacionesPaciente] = useState([])
   const [prestacionesSeleccionadas, setPrestacionesSeleccionadas] = useState([])
-
   // Carga inicial en modo edición
   useEffect(() => {
     if (pagoEditar) {
@@ -101,6 +97,14 @@ export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, a
     }
 
     alGuardar(pagoFinal)
+    
+    await dialogAlert({
+      title: pagoEditar ? 'Pago actualizado' : 'Pago registrado',
+      description: `Comprobante ${pagoFinal.folioComprobante} ${pagoEditar ? 'actualizado' : 'registrado'} exitosamente por $${montoLimpio.toLocaleString('es-CL')} CLP.`,
+      variant: 'success',
+      confirmText: 'Entendido'
+    })
+    
     alCerrar()
   }
 

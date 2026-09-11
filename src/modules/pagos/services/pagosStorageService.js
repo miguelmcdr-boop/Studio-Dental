@@ -262,5 +262,26 @@ export const pagosStorageService = {
     } catch (e) {
       log.error(`Error al eliminar abonos del paciente ${pacienteId}:`, e)
     }
+  },
+
+  // Elimina un pago global específico (F10-C3.12)
+  eliminarPago: (pagoId) => {
+    const actuales = pagosCache || pagosRepo.obtener([])
+    const actualizados = actuales.filter(p => String(p.id) !== String(pagoId))
+    pagosCache = actualizados
+    pagosRepo.guardar(actualizados)
+    if (USE_SUPABASE && supabase && esUuidValido(pagoId)) {
+      supabase.from('pagos').delete().eq('id', pagoId)
+        .then(({ error }) => { if (error) log.error('Error al eliminar pago en Supabase:', error) })
+    }
+    return true
+  },
+
+  // Elimina un abono específico de la ficha del paciente (F10-C3.12)
+  eliminarAbono: (pacienteId, abonoId) => {
+    if (!pacienteId) return
+    const key = `abonos_${pacienteId}`
+    const actuales = leerJSON(key, [])
+    escribirJSON(key, actuales.filter(a => String(a.id) !== String(abonoId)), { notify: true })
   }
 }

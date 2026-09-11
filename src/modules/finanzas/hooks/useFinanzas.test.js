@@ -49,12 +49,14 @@ describe('useFinanzas', () => {
     { id: 2, nombre: 'Carlos Ruiz' }
   ]
 
+  // Ids de abonos NO colisionan con ids de pagos globales (reflejo de producción:
+  // los abonos de ficha tienen timestamps, los pagos globales tienen otros ids).
   const mockAbonosPaciente1 = [
-    { id: 1, fecha: fechaHoy, monto: 20000, metodoPago: 'Efectivo' }
+    { id: 101, fecha: fechaHoy, monto: 20000, metodoPago: 'Efectivo' }
   ]
 
   const mockAbonosPaciente2 = [
-    { id: 2, fecha: fechaHoy, monto: 15000, metodoPago: 'Transferencia' }
+    { id: 102, fecha: fechaHoy, monto: 15000, metodoPago: 'Transferencia' }
   ]
 
   beforeEach(() => {
@@ -162,6 +164,28 @@ describe('useFinanzas', () => {
 
       // Debe seguir funcionando: 2 manuales + 2 pagos + 1 abono (paciente 2)
       expect(result.current.movimientos).toHaveLength(5)
+    })
+
+    it('excluye abonos cuyo id coincide con un pago global (anti-doble-conteo)', () => {
+      // Regla contable: el mismo dinero no puede sumar dos veces
+      // (pago global + su abono sincronizado en ficha)
+      pagosStorageService.obtenerAbonosPorPaciente.mockImplementation((pacienteId) => {
+        // El paciente 1 tiene un abono con id 1 que colisiona con el pago global id 1
+        if (pacienteId === 1) return [{ id: 1, fecha: fechaHoy, monto: 20000 }]
+        if (pacienteId === 2) return [{ id: 999, fecha: fechaHoy, monto: 15000 }]
+        return []
+      })
+
+      const { result } = renderHook(() => useFinanzas(mockPacientes))
+
+      // Solo debe consolidar: 2 manuales + 2 pagos globales + 1 abono (el id 999)
+      // El abono con id 1 se excluye porque ya existe el pago global con id 1
+      expect(result.current.movimientos).toHaveLength(5)
+      const abonosConsolidados = result.current.movimientos.filter(
+        m => m.origen === 'Presupuestos'
+      )
+      expect(abonosConsolidados).toHaveLength(1)
+      expect(abonosConsolidados[0].id).toBe('abono_2_999')
     })
   })
 

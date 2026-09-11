@@ -1,6 +1,8 @@
 import React, { memo } from 'react'
 import { formatearCLP } from '../utils/finanzasCalculations'
 
+const esIngreso = (m) => (m.tipo || '').toLowerCase() === 'ingreso'
+
 export const TablaMovimientos = memo(({ movimientos, onEliminar }) => {
   if (movimientos.length === 0) {
     return (
@@ -29,17 +31,17 @@ export const TablaMovimientos = memo(({ movimientos, onEliminar }) => {
               <td className="p-3 font-semibold text-gray-600">{m.fecha}</td>
               <td className="p-3">
                 <span className={`px-2 py-0.5 rounded-md font-extrabold text-[10px] ${
-                  m.tipo === 'ingreso' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
+                  esIngreso(m) ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
                 }`}>
-                  {m.tipo === 'ingreso' ? '🟢 INGRESO' : '🔴 EGRESO'}
+                  {esIngreso(m) ? '🟢 INGRESO' : '🔴 EGRESO'}
                 </span>
               </td>
               <td className="p-3 font-bold text-gray-800">
                 {m.categoria} {m.detalle && <span className="font-normal text-gray-500">({m.detalle})</span>}
               </td>
               <td className="p-3 font-medium text-gray-600">{m.metodoPago}</td>
-              <td className={`p-3 text-right font-black ${m.tipo === 'ingreso' ? 'text-emerald-700' : 'text-red-700'}`}>
-                {m.tipo === 'ingreso' ? '+' : '-'}{formatearCLP(m.monto)}
+              <td className={`p-3 text-right font-black ${esIngreso(m) ? 'text-emerald-700' : 'text-red-700'}`}>
+                {esIngreso(m) ? '+' : '-'}{formatearCLP(m.monto)}
               </td>
               <td className="p-3 text-center print:hidden">
                 <button
