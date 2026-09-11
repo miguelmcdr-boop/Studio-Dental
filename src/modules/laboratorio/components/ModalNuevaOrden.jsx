@@ -5,9 +5,11 @@ import { Button } from '../../../components/ui/Button'
 import { TIPOS_TRABAJO_SUGERIDOS } from '../constants/laboratorioConstants'
 import { generarCodigoOrdenLab, buscarTarifaSugerida } from '../utils/laboratorioCalculations'
 import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 export const ModalNuevaOrden = memo(({ pacientes = [], laboratorios = [], alGuardar, alCerrar }) => {
   const [pacienteId, setPacienteId] = useState('')
+  const { alert: dialogAlert } = useAppDialog()
   const [laboratorioId, setLaboratorioId] = useState(laboratorios[0]?.id || '')
   const [tipoTrabajo, setTipoTrabajo] = useState('')
   const [piezaDientaria, setPiezaDientaria] = useState('')
@@ -27,14 +29,24 @@ export const ModalNuevaOrden = memo(({ pacientes = [], laboratorios = [], alGuar
     }
   }, [laboratorioId, tipoTrabajo, laboratorios])
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!pacienteId) {
-      alert('Selecciona un paciente para la orden de trabajo.')
+      await dialogAlert({
+        title: 'Paciente requerido',
+        description: 'Selecciona un paciente para la orden de trabajo.',
+        variant: 'warning',
+        confirmText: 'Entendido'
+      })
       return
     }
     if (!tipoTrabajo.trim()) {
-      alert('Ingresa el tipo de trabajo o procedimiento de laboratorio.')
+      await dialogAlert({
+        title: 'Tipo de trabajo requerido',
+        description: 'Ingresa el tipo de trabajo o procedimiento de laboratorio.',
+        variant: 'warning',
+        confirmText: 'Entendido'
+      })
       return
     }
 

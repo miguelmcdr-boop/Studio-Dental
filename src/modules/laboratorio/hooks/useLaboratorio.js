@@ -2,8 +2,10 @@ import { useState, useMemo, useCallback } from 'react'
 import { ORDENES_DEFAULT, LABORATORIOS_BASE } from '../constants/laboratorioConstants'
 import { laboratorioStorageService } from '../services/laboratorioStorageService'
 import { calcularResumenLaboratorio } from '../utils/laboratorioCalculations'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 export const useLaboratorio = () => {
+  const { confirm } = useAppDialog()
   const [ordenes, setOrdenes] = useState(() => laboratorioStorageService.obtenerOrdenes(ORDENES_DEFAULT))
   const [laboratorios, setLaboratorios] = useState(() => laboratorioStorageService.obtenerLaboratorios(LABORATORIOS_BASE))
   
@@ -48,15 +50,21 @@ export const useLaboratorio = () => {
     })
   }, [])
 
-  const eliminarOrden = useCallback((idOrden) => {
-    if (window.confirm('¿Deseas eliminar esta orden de trabajo de laboratorio?')) {
+  const eliminarOrden = useCallback(async (idOrden) => {
+    const ok = await confirm({
+      title: 'Eliminar orden de laboratorio',
+      description: '¿Deseas eliminar esta orden de trabajo de laboratorio?',
+      variant: 'danger',
+      confirmText: 'Eliminar'
+    })
+    if (ok) {
       setOrdenes(prev => {
         const actualizadas = prev.filter(o => o.id !== idOrden)
         laboratorioStorageService.guardarOrdenes(actualizadas)
         return actualizadas
       })
     }
-  }, [])
+  }, [confirm])
 
   const guardarOActualizarLaboratorio = useCallback((labData) => {
     setLaboratorios(prev => {
@@ -74,15 +82,21 @@ export const useLaboratorio = () => {
     })
   }, [])
 
-  const eliminarLaboratorio = useCallback((idLab) => {
-    if (window.confirm('¿Deseas eliminar este laboratorio de tu directorio?')) {
+  const eliminarLaboratorio = useCallback(async (idLab) => {
+    const ok = await confirm({
+      title: 'Eliminar laboratorio',
+      description: '¿Deseas eliminar este laboratorio de tu directorio?',
+      variant: 'danger',
+      confirmText: 'Eliminar'
+    })
+    if (ok) {
       setLaboratorios(prev => {
         const actualizados = prev.filter(l => l.id !== idLab)
         laboratorioStorageService.guardarLaboratorios(actualizados)
         return actualizados
       })
     }
-  }, [])
+  }, [confirm])
 
   return {
     ordenes: ordenesFiltradas,

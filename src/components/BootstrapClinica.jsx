@@ -1,6 +1,7 @@
 import React from 'react'
 import { useBootstrapClinica } from '../hooks/useBootstrapClinica'
 import { supabaseSignOut } from '../services/authService'
+import { useAppDialog } from '../hooks/useAppDialog'
 
 /**
  * F7-11b: Wizard de creación de clínica nueva.
@@ -72,7 +73,14 @@ export const BootstrapClinica = ({ onComplete }) => {
           <button
             type="button"
             onClick={async () => {
-              if (confirm('¿Seguro que quieres salir? Puedes iniciar sesión más tarde.')) {
+              const ok = await confirm({
+                title: '¿Salir del asistente?',
+                description: 'Puedes iniciar sesión más tarde para completar la configuración.',
+                variant: 'warning',
+                confirmText: 'Salir',
+                cancelText: 'Continuar'
+              })
+              if (ok) {
                 await supabaseSignOut()
                 window.location.href = '/'
               }

@@ -35,6 +35,13 @@ vi.mock('../../services/logger', () => ({
   })
 }))
 
+vi.mock('../../hooks/useAppDialog', () => ({
+  useAppDialog: vi.fn(() => ({
+    confirm: vi.fn().mockResolvedValue(true),
+    alert: vi.fn().mockResolvedValue(undefined),
+  }))
+}))
+
 import { 
   invitarMiembro, 
   listarInvitaciones, 
@@ -42,10 +49,12 @@ import {
   generarUrlInvitacion,
   listarMiembros 
 } from '../../services/authService'
+import { useDialogStore } from '../../store/dialogStore'
 
 describe('GestionMiembrosModulo', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    useDialogStore.setState({ dialog: null })
     
     // Mock por defecto
     listarMiembros.mockResolvedValue({
@@ -123,9 +132,6 @@ describe('GestionMiembrosModulo', () => {
   })
 
   it('debe revocar invitación (flujo básico)', async () => {
-    // Spy de confirm con auto-accept
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
-    
     listarInvitaciones.mockResolvedValue({
       success: true,
       invitaciones: [
@@ -137,19 +143,19 @@ describe('GestionMiembrosModulo', () => {
     
     render(<GestionMiembrosModulo />)
     
+    // Esperar que carguen las invitaciones
     await waitFor(() => {
       expect(screen.getByText('pendiente@test.com')).toBeInTheDocument()
     })
     
-    const revocarButtons = screen.getAllByText('Revocar')
+    // Click en botón revocar (el mock de useAppDialog retorna true automáticamente)
+    const revocarButtons = screen.getAllByText(/Revocar/i)
     fireEvent.click(revocarButtons[0])
     
+    // Esperar que se llame a revocarInvitacion
     await waitFor(() => {
-      expect(confirmSpy).toHaveBeenCalled()
       expect(revocarInvitacion).toHaveBeenCalledWith('inv1')
     })
-    
-    confirmSpy.mockRestore()
   })
 
   it('debe copiar link de invitación', async () => {
