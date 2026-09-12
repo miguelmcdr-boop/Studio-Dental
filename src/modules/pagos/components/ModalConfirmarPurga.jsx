@@ -1,0 +1,79 @@
+import React, { memo, useState } from 'react'
+import { Modal } from '../../../components/ui/Modal'
+import { Button } from '../../../components/ui/Button'
+
+/**
+ * ModalConfirmarPurga — Confirmación con textarea obligatoria (Decisión 1C).
+ *
+ * Se usa para purgar pagos anulados: acción destructiva que requiere
+ * auditoría trazable. El motivo es obligatorio (mínimo 10 caracteres).
+ */
+export const ModalConfirmarPurga = memo(({ pago, onConfirmar, alCerrar }) => {
+  const [motivo, setMotivo] = useState('')
+  const [error, setError] = useState('')
+
+  const motivoValido = motivo.trim().length >= 10
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    if (!motivoValido) {
+      setError('El motivo debe tener al menos 10 caracteres.')
+      return
+    }
+    onConfirmar(motivo.trim())
+  }
+
+  return (
+    <Modal isOpen={true} onClose={alCerrar} title="🗑️ Purgar pago definitivamente" size="md">
+      <div className="space-y-4 text-xs">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-3">
+          <p className="font-bold text-red-900 text-sm">⚠️ Acción destructiva irreversible</p>
+          <p className="text-red-800 mt-1">
+            Vas a eliminar permanentemente este pago del sistema. Solo debe usarse
+            cuando el registro fue un error administrativo y no debe quedar traza contable.
+          </p>
+        </div>
+
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-1">
+          <p><span className="font-bold text-gray-700">Folio:</span> {pago?.folioComprobante}</p>
+          <p><span className="font-bold text-gray-700">Paciente:</span> {pago?.pacienteNombre} ({pago?.pacienteRut})</p>
+          <p><span className="font-bold text-gray-700">Monto:</span> ${Number(pago?.monto || 0).toLocaleString('es-CL')} CLP</p>
+          <p><span className="font-bold text-gray-700">Fecha:</span> {pago?.fecha}</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div>
+            <label className="block font-semibold text-gray-700 mb-1">
+              Motivo de la purga * <span className="text-gray-400">(mínimo 10 caracteres)</span>
+            </label>
+            <textarea
+              value={motivo}
+              onChange={(e) => { setMotivo(e.target.value); setError('') }}
+              placeholder="Ej: Pago duplicado por error del cajero, anulado previamente pero requiere purga definitiva..."
+              className="w-full p-2.5 rounded-xl border border-gray-300 bg-white text-xs font-medium min-h-[80px] resize-none"
+              autoFocus
+            />
+            {error && <p className="text-red-600 text-[10px] font-semibold mt-1">{error}</p>}
+            <p className="text-gray-400 text-[10px] mt-1">{motivo.trim().length}/10 caracteres mínimo</p>
+          </div>
+
+          <div className="flex gap-2 pt-2">
+            <Button type="button" onClick={alCerrar} variant="ghost" fullWidth>
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              variant="danger"
+              fullWidth
+              className="bg-red-700 hover:bg-red-800 font-extrabold"
+            >
+              🗑️ Purgar definitivamente
+            </Button>
+          </div>
+        </form>
+      </div>
+    </Modal>
+  )
+})
+
+ModalConfirmarPurga.displayName = 'ModalConfirmarPurga'

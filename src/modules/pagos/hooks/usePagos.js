@@ -1,11 +1,14 @@
 import { useState, useMemo, useCallback } from 'react'
 import { PAGOS_DEFAULT } from '../constants/pagosConstants'
 import { pagosStorageService } from '../services/pagosStorageService'
+import { exportarAuditoriaPagosCSV } from '../services/pagosExportService'
 import { calcularResumenRecaudacion } from '../utils/pagosCalculations'
 import { useAppDialog } from '../../../hooks/useAppDialog'
+import { useSesionStore } from '../../../store/sesionStore'
 
 export const usePagos = () => {
-  const { confirm } = useAppDialog()
+  const { confirm, alert } = useAppDialog()
+  const userProfile = useSesionStore((state) => state.userProfile)
   const [pagos, setPagos] = useState(() => 
     pagosStorageService.obtenerPagos(PAGOS_DEFAULT)
   )
@@ -72,8 +75,59 @@ export const usePagos = () => {
     }
   }, [confirm])
 
+  const purgarPago = useCallback(async (idPago, motivo) => {
+    if (!motivo || motivo.trim().length < 10) {
+      await alert({
+        title: 'Motivo inválido',
+        description: 'El motivo debe tener al menos 10 caracteres.',
+        variant: 'warning',
+        confirmText: 'Entendido'
+      })
+      return false
+    }
+    const ok = pagosStorageService.purgarPago(idPago, motivo, userProfile?.email || 'desconocido')
+    if (ok) {
+      setPagos(prev => prev.filter(p => String(p.id) !== String(idPago)))
+      await alert({
+        title: 'Pago purgado',
+        description: 'El pago fue eliminado definitivamente del sistema. La acción quedó registrada en auditoría.',
+        variant: 'success',
+        confirmText: 'Entendido'
+      })
+      return true
+    }
+    await alert({
+      title: 'Error al purgar',
+      description: 'No se encontró el pago en el sistema.',
+      variant: 'error',
+      confirmText: 'Entendido'
+    })
+    return false
+  }, [alert, userProfile])
+
+  const exportarAuditoria = useCallback(async () => {
+    const todos = pagosStorageService.obtenerPagosParaAuditoria()
+    const resultado = exportarAuditoriaPagosCSV(todos)
+    if (resultado.ok) {
+      await alert({
+        title: 'Auditoría exportada',
+        description: `Se exportaron ${resultado.total} pagos (vigentes + anulados) a ${resultado.nombreArchivo}.`,
+        variant: 'success',
+        confirmText: 'Entendido'
+      })
+    } else {
+      await alert({
+        title: 'Error al exportar',
+        description: 'No se pudo generar el archivo CSV.',
+        variant: 'error',
+        confirmText: 'Entendido'
+      })
+    }
+  }, [alert])
+
   return {
     pagos: pagosFiltrados,
+    todosLosPagos: pagos,
     resumen,
     busqueda,
     setBusqueda,
@@ -82,6 +136,8 @@ export const usePagos = () => {
     estadoFiltro,
     setEstadoFiltro,
     agregarOActualizarPago,
-    anularPago
+    anularPago,
+    purgarPago,
+    exportarAuditoria
   }
 }

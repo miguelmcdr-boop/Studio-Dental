@@ -1,6 +1,6 @@
 import React, { memo } from 'react'
 
-export const TablaHistorialPagos = memo(({ pagos, onVerComprobante, onEditar, onAnular }) => {
+export const TablaHistorialPagos = memo(({ pagos, onVerComprobante, onEditar, onAnular, onPurgar, puedePurgar }) => {
   if (pagos.length === 0) {
     return (
       <div className="p-10 text-center text-xs text-gray-400 bg-white border border-gray-200 rounded-2xl">
@@ -104,6 +104,15 @@ export const TablaHistorialPagos = memo(({ pagos, onVerComprobante, onEditar, on
                         🚫
                       </button>
                     </>
+                  )}
+                  {esAnulado && puedePurgar && onPurgar && (
+                    <button
+                      onClick={() => onPurgar(p)}
+                      className="p-1.5 bg-red-900 text-white text-[10px] font-bold rounded-lg hover:bg-red-950"
+                      title="Purgar definitivamente (solo admin)"
+                    >
+                      🗑️ Purgar
+                    </button>
                   )}
                 </td>
               </tr>

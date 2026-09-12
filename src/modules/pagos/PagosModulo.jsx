@@ -4,18 +4,26 @@ import { usePagos } from './hooks/usePagos'
 import { PagosSummaryCards } from './components/PagosSummaryCards'
 import { TablaHistorialPagos } from './components/TablaHistorialPagos'
 import { ModalNuevoPago } from './components/ModalNuevoPago'
+import { ModalConfirmarPurga } from './components/ModalConfirmarPurga'
 import { ComprobantePagoImprimible } from './components/ComprobantePagoImprimible'
 import { usePacientesStore } from '../../store/pacientesStore'
 import { useSesionStore } from '../../store/sesionStore'
+import { useRBAC } from '../../hooks/useRBAC'
+import { PERMISOS } from '../../constants/rbacConstants'
 
 export const PagosModulo = memo(() => {
   // (F2-02) — pacientes y userProfile ya no llegan como prop desde App.jsx: se leen directo de los stores.
   const pacientes = usePacientesStore((state) => state.pacientes)
   const userProfile = useSesionStore((state) => state.userProfile)
 
+  const { puede } = useRBAC()
+  const puedeExportar = puede(PERMISOS.EXPORTAR_AUDITORIA_PAGOS)
+  const puedePurgar = puede(PERMISOS.PURGAR_PAGOS)
+
   const [modalAbierto, setModalAbierto] = useState(false)
   const [pagoEditar, setPagoEditar] = useState(null)
   const [comprobanteVer, setComprobanteVer] = useState(null)
+  const [pagoAPurgar, setPagoAPurgar] = useState(null)
 
   const {
     pagos,
@@ -27,8 +35,16 @@ export const PagosModulo = memo(() => {
     estadoFiltro,
     setEstadoFiltro,
     agregarOActualizarPago,
-    anularPago
+    anularPago,
+    purgarPago,
+    exportarAuditoria
   } = usePagos()
+
+  const handlePurgarConfirmado = async (motivo) => {
+    if (!pagoAPurgar) return
+    const ok = await purgarPago(pagoAPurgar.id, motivo)
+    if (ok) setPagoAPurgar(null)
+  }
 
   const handleAbrirNuevo = () => {
     setPagoEditar(null)
@@ -48,12 +64,23 @@ export const PagosModulo = memo(() => {
           <p className="text-xs text-gray-500">Gestión de ingresos por caja, boletas de honorarios, bonos I-Med e imputación a tratamientos.</p>
         </div>
 
-        <button
-          onClick={handleAbrirNuevo}
-          className="bg-black text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-gray-800 transition-colors shadow-xs cursor-pointer"
-        >
-          + Registrar Pago / Recibo
-        </button>
+        <div className="flex gap-2 flex-wrap">
+          {puedeExportar && (
+            <button
+              onClick={exportarAuditoria}
+              className="bg-gray-100 text-gray-800 text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-gray-200 transition-colors border border-gray-300 cursor-pointer"
+              title="Exportar todos los pagos (vigentes + anulados) a CSV"
+            >
+              📥 Exportar auditoría CSV
+            </button>
+          )}
+          <button
+            onClick={handleAbrirNuevo}
+            className="bg-black text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-gray-800 transition-colors shadow-xs cursor-pointer"
+          >
+            + Registrar Pago / Recibo
+          </button>
+        </div>
       </div>
 
       <div className="print:hidden">
@@ -106,6 +133,8 @@ export const PagosModulo = memo(() => {
             onVerComprobante={setComprobanteVer}
             onEditar={handleAbrirEditar}
             onAnular={anularPago}
+            onPurgar={setPagoAPurgar}
+            puedePurgar={puedePurgar}
           />
         </>
       )}
@@ -117,6 +146,14 @@ export const PagosModulo = memo(() => {
           userProfile={userProfile}
           alGuardar={agregarOActualizarPago}
           alCerrar={() => setModalAbierto(false)}
+        />
+      )}
+
+      {pagoAPurgar && (
+        <ModalConfirmarPurga
+          pago={pagoAPurgar}
+          onConfirmar={handlePurgarConfirmado}
+          alCerrar={() => setPagoAPurgar(null)}
         />
       )}
     </div>

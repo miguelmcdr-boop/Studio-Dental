@@ -283,5 +283,27 @@ export const pagosStorageService = {
     const key = `abonos_${pacienteId}`
     const actuales = leerJSON(key, [])
     escribirJSON(key, actuales.filter(a => String(a.id) !== String(abonoId)), { notify: true })
-  }
+  },
+
+  // Purga definitiva de un pago (Commit B — solo admin con motivo)
+  purgarPago: (pagoId, motivo, userId = null) => {
+    const actuales = pagosCache || pagosRepo.obtener([])
+    const pago = actuales.find(p => String(p.id) === String(pagoId))
+    if (!pago) {
+      log.warn(`purgarPago: pago ${pagoId} no encontrado`)
+      return false
+    }
+    const actualizados = actuales.filter(p => String(p.id) !== String(pagoId))
+    pagosCache = actualizados
+    pagosRepo.guardar(actualizados)
+    log.warn(`[AUDITORÍA] Purga de pago: id=${pagoId}, folio=${pago.folioComprobante || 's/d'}, monto=${pago.monto}, motivo="${motivo}", userId=${userId}, fecha=${new Date().toISOString()}`)
+    if (USE_SUPABASE && supabase && esUuidValido(pagoId)) {
+      supabase.from('pagos').delete().eq('id', pagoId)
+        .then(({ error }) => { if (error) log.error('Error purgando en Supabase:', error) })
+    }
+    return true
+  },
+
+  // Devuelve todos los pagos (vigentes + anulados) para exportar auditoría
+  obtenerPagosParaAuditoria: () => pagosCache || pagosRepo.obtener([])
 }
