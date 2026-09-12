@@ -219,7 +219,7 @@ const resetCache = () => {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// API PÚBLICA (preserva métodos legacy de abonos por paciente)
+// API PÚBLICA — métodos legacy de abonos por paciente (localStorage, migración pendiente F4-02d)
 // ═══════════════════════════════════════════════════════════════════
 
 export const pagosStorageService = {
@@ -273,7 +273,8 @@ export const pagosStorageService = {
     pagosCache = actualizados
     pagosRepo.guardar(actualizados)
     if (USE_SUPABASE && supabase && esUuidValido(pagoId)) {
-      supabase.from('pagos').delete().eq('id', pagoId).then(({ error }) => { if (error) log.error('Error eliminando pago Supabase:', error) })
+      supabase.from('pagos').delete().eq('id', pagoId)
+        .then(({ error }) => { if (error) log.error('Error eliminando pago Supabase:', error) })
     }
     return true
   },
@@ -286,9 +287,7 @@ export const pagosStorageService = {
     escribirJSON(key, actuales.filter(a => String(a.id) !== String(abonoId)), { notify: true })
   },
 
-  // Remueve abono de ficha al anular/purgar el pago asociado (Commit C).
-  // Propaga la anulación/purga al Plan de Tratamiento del paciente para que
-  // no quede un abono "vivo" cuando su pago de origen ya no es vigente.
+  // Remueve abono de ficha al anular/purgar el pago asociado (Commit C)
   removerAbonoDeFichaPaciente: (pacienteId, abonoId) => {
     if (!pacienteId) return false
     const key = `abonos_${pacienteId}`, actuales = leerJSON(key, [])
@@ -307,7 +306,8 @@ export const pagosStorageService = {
     pagosRepo.guardar(actualizados)
     log.warn(`[AUDITORÍA] Purga: id=${pagoId}, folio=${pago.folioComprobante || 's/d'}, monto=${pago.monto}, motivo="${motivo}", userId=${userId}, fecha=${new Date().toISOString()}`)
     if (USE_SUPABASE && supabase && esUuidValido(pagoId)) {
-      supabase.from('pagos').delete().eq('id', pagoId).then(({ error }) => { if (error) log.error('Error purgando Supabase:', error) })
+      supabase.from('pagos').delete().eq('id', pagoId)
+        .then(({ error }) => { if (error) log.error('Error purgando Supabase:', error) })
     }
     return true
   },
