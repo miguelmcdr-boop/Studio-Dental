@@ -71,7 +71,7 @@ export const PagosModulo = memo(() => {
               className="bg-gray-100 text-gray-800 text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-gray-200 transition-colors border border-gray-300 cursor-pointer"
               title="Exportar todos los pagos (vigentes + anulados) a CSV"
             >
-              📥 Exportar auditoría CSV
+              📥 Exportar auditoría
             </button>
           )}
           <button

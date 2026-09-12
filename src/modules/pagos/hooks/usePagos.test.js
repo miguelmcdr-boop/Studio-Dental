@@ -13,12 +13,13 @@ vi.mock('../services/pagosStorageService', () => ({
     guardarPagos: vi.fn(),
     sincronizarAbonoConFichaPaciente: vi.fn(),
     purgarPago: vi.fn(() => true),
-    obtenerPagosParaAuditoria: vi.fn(() => [])
+    obtenerPagosParaAuditoria: vi.fn(() => []),
+    removerAbonoDeFichaPaciente: vi.fn(() => true)
   }
 }))
 
 vi.mock('../services/pagosExportService', () => ({
-  exportarAuditoriaPagosCSV: vi.fn(() => ({ ok: true, total: 2, nombreArchivo: 'test.csv' }))
+  exportarAuditoriaPagosXLSX: vi.fn(() => Promise.resolve({ ok: true, total: 2, nombreArchivo: 'test.xlsx' }))
 }))
 
 vi.mock('../../../hooks/useAppDialog', () => ({
@@ -36,7 +37,7 @@ vi.mock('../../../store/sesionStore', () => ({
 
 import { usePagos } from './usePagos'
 import { pagosStorageService } from '../services/pagosStorageService'
-import { exportarAuditoriaPagosCSV } from '../services/pagosExportService'
+import { exportarAuditoriaPagosXLSX } from '../services/pagosExportService'
 
 describe('usePagos', () => {
   beforeEach(() => {
@@ -110,7 +111,7 @@ describe('usePagos', () => {
         await result.current.exportarAuditoria()
       })
 
-      expect(exportarAuditoriaPagosCSV).toHaveBeenCalledWith([
+      expect(exportarAuditoriaPagosXLSX).toHaveBeenCalledWith([
         { id: 1, estado: 'Emitido' },
         { id: 2, estado: 'Anulado' }
       ])
@@ -118,7 +119,7 @@ describe('usePagos', () => {
     })
 
     it('muestra error si la exportación falla', async () => {
-      exportarAuditoriaPagosCSV.mockReturnValueOnce({ ok: false, total: 0, nombreArchivo: '' })
+      exportarAuditoriaPagosXLSX.mockReturnValueOnce(Promise.resolve({ ok: false, total: 0, nombreArchivo: '' }))
       const { result } = renderHook(() => usePagos())
 
       await act(async () => {
@@ -126,6 +127,47 @@ describe('usePagos', () => {
       })
 
       expect(mockAlert).toHaveBeenCalledWith(expect.objectContaining({ variant: 'error' }))
+    })
+  })
+
+  describe('propagación a Plan de Tratamiento (Commit C)', () => {
+    it('anularPago remueve abono de la ficha del paciente', async () => {
+      pagosStorageService.obtenerPagos.mockReturnValue([
+        { id: 1, folioComprobante: 'REC-001', estado: 'Emitido', pacienteId: 42, monto: 50000, metodoPago: 'Efectivo', pacienteNombre: 'Test', pacienteRut: '1-1' }
+      ])
+      const { result } = renderHook(() => usePagos())
+
+      await act(async () => {
+        await result.current.anularPago(1, 'Error de caja')
+      })
+
+      expect(pagosStorageService.removerAbonoDeFichaPaciente).toHaveBeenCalledWith(42, 1)
+    })
+
+    it('purgarPago remueve abono de la ficha del paciente', async () => {
+      pagosStorageService.obtenerPagos.mockReturnValue([
+        { id: 1, folioComprobante: 'REC-001', estado: 'Anulado', pacienteId: 42, monto: 50000 }
+      ])
+      const { result } = renderHook(() => usePagos())
+
+      await act(async () => {
+        await result.current.purgarPago(1, 'Motivo válido para purgar este pago')
+      })
+
+      expect(pagosStorageService.removerAbonoDeFichaPaciente).toHaveBeenCalledWith(42, 1)
+    })
+
+    it('anularPago no falla si el pago no tiene pacienteId', async () => {
+      pagosStorageService.obtenerPagos.mockReturnValue([
+        { id: 1, folioComprobante: 'REC-001', estado: 'Emitido', monto: 50000, metodoPago: 'Efectivo', pacienteNombre: 'Test', pacienteRut: '1-1' }
+      ])
+      const { result } = renderHook(() => usePagos())
+
+      await act(async () => {
+        await result.current.anularPago(1, 'Error de caja')
+      })
+
+      expect(pagosStorageService.removerAbonoDeFichaPaciente).not.toHaveBeenCalled()
     })
   })
 

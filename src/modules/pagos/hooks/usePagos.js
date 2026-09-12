@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react'
 import { PAGOS_DEFAULT } from '../constants/pagosConstants'
 import { pagosStorageService } from '../services/pagosStorageService'
-import { exportarAuditoriaPagosCSV } from '../services/pagosExportService'
+import { exportarAuditoriaPagosXLSX } from '../services/pagosExportService'
 import { calcularResumenRecaudacion } from '../utils/pagosCalculations'
 import { useAppDialog } from '../../../hooks/useAppDialog'
 import { useSesionStore } from '../../../store/sesionStore'
@@ -60,6 +60,10 @@ export const usePagos = () => {
       setPagos(prev => {
         const actualizados = prev.map(p => {
           if (String(p.id) === String(idPago)) {
+            // Propagar anulación al Plan de Tratamiento (Commit C)
+            if (p.pacienteId) {
+              pagosStorageService.removerAbonoDeFichaPaciente(p.pacienteId, p.id)
+            }
             return {
               ...p,
               estado: 'Anulado',
@@ -77,16 +81,17 @@ export const usePagos = () => {
 
   const purgarPago = useCallback(async (idPago, motivo) => {
     if (!motivo || motivo.trim().length < 10) {
-      await alert({
-        title: 'Motivo inválido',
-        description: 'El motivo debe tener al menos 10 caracteres.',
-        variant: 'warning',
-        confirmText: 'Entendido'
-      })
+      await alert({ title: 'Motivo inválido', description: 'El motivo debe tener al menos 10 caracteres.', variant: 'warning', confirmText: 'Entendido' })
       return false
     }
+    // Obtener el pago antes de purgar para conocer pacienteId
+    const pagoAPurgar = pagos.find(p => String(p.id) === String(idPago))
     const ok = pagosStorageService.purgarPago(idPago, motivo, userProfile?.email || 'desconocido')
     if (ok) {
+      // Propagar purga al Plan de Tratamiento (Commit C)
+      if (pagoAPurgar?.pacienteId) {
+        pagosStorageService.removerAbonoDeFichaPaciente(pagoAPurgar.pacienteId, idPago)
+      }
       setPagos(prev => prev.filter(p => String(p.id) !== String(idPago)))
       await alert({
         title: 'Pago purgado',
@@ -103,11 +108,11 @@ export const usePagos = () => {
       confirmText: 'Entendido'
     })
     return false
-  }, [alert, userProfile])
+  }, [alert, userProfile, pagos])
 
   const exportarAuditoria = useCallback(async () => {
     const todos = pagosStorageService.obtenerPagosParaAuditoria()
-    const resultado = exportarAuditoriaPagosCSV(todos)
+    const resultado = await exportarAuditoriaPagosXLSX(todos)
     if (resultado.ok) {
       await alert({
         title: 'Auditoría exportada',
