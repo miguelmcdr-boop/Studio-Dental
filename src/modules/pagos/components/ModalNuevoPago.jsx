@@ -4,10 +4,10 @@ import { Input } from '../../../components/ui/Input'
 import { Button } from '../../../components/ui/Button'
 import { METODOS_PAGO_GOLD, TIPOS_DOCUMENTO_TRIBUTARIO, CONCEPTOS_PAGO } from '../constants/pagosConstants'
 import { generarFolioRecibo } from '../utils/pagosCalculations'
-import { presupuestosStorageService } from '../../presupuestos/services/presupuestosStorageService'
-import { createLogger } from '../../../services/logger.js'
 import { useAppDialog } from '../../../hooks/useAppDialog'
-const log = createLogger('ModalNuevoPago')
+import { usePrestacionesPaciente } from '../hooks/usePrestacionesPaciente'
+import { SelectorPrestacionesImputadas } from './SelectorPrestacionesImputadas'
+
 export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, alGuardar, alCerrar }) => {
   const [pacienteId, setPacienteId] = useState('')
   const { alert: dialogAlert } = useAppDialog()
@@ -17,8 +17,13 @@ export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, a
   const [folioDTE, setFolioDTE] = useState('')
   const [concepto, setConcepto] = useState(CONCEPTOS_PAGO[0])
   const [observacion, setObservacion] = useState('')
-  const [prestacionesPaciente, setPrestacionesPaciente] = useState([])
-  const [prestacionesSeleccionadas, setPrestacionesSeleccionadas] = useState([])
+
+  const {
+    prestacionesPaciente,
+    prestacionesSeleccionadas,
+    handleTogglePrestacion
+  } = usePrestacionesPaciente(pacienteId, pagoEditar)
+
   // Carga inicial en modo edición
   useEffect(() => {
     if (pagoEditar) {
@@ -29,37 +34,8 @@ export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, a
       setFolioDTE(pagoEditar.folioDTE || '')
       setConcepto(pagoEditar.concepto || CONCEPTOS_PAGO[0])
       setObservacion(pagoEditar.observacion || '')
-      setPrestacionesSeleccionadas(pagoEditar.prestacionesImputadas || [])
     }
   }, [pagoEditar])
-
-  // Carga de prestaciones desde el plan de tratamiento del paciente (vía servicio, F2-07a)
-  useEffect(() => {
-    if (!pacienteId) {
-      setPrestacionesPaciente([])
-      return
-    }
-
-    try {
-      const items = presupuestosStorageService.obtenerItemsPorPaciente(pacienteId)
-      if (Array.isArray(items)) {
-        setPrestacionesPaciente(items)
-      } else {
-        setPrestacionesPaciente([])
-      }
-    } catch (e) {
-      log.error(e)
-      setPrestacionesPaciente([])
-    }
-  }, [pacienteId])
-
-  const handleTogglePrestacion = (nombreItem) => {
-    if (prestacionesSeleccionadas.includes(nombreItem)) {
-      setPrestacionesSeleccionadas(prestacionesSeleccionadas.filter(i => i !== nombreItem))
-    } else {
-      setPrestacionesSeleccionadas([...prestacionesSeleccionadas, nombreItem])
-    }
-  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -190,32 +166,11 @@ export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, a
             </select>
           </div>
 
-          {/* Imputación de dinero a prestaciones específicas */}
-          {prestacionesPaciente.length > 0 && (
-            <div className="bg-gray-50 p-3 rounded-xl border space-y-1.5">
-              <label className="block font-bold text-gray-800 uppercase text-[10px]">
-                Imputar Abono a Tratamientos Específicos del Paciente:
-              </label>
-              <div className="space-y-1 max-h-28 overflow-y-auto">
-                {prestacionesPaciente.map(p => {
-                  const labelItem = `${p.prestacion} (${p.pieza}) - $${(parseFloat(p.valor) || 0).toLocaleString('es-CL')}`
-                  const estaCheck = prestacionesSeleccionadas.includes(labelItem)
-
-                  return (
-                    <label key={p.id} className="flex items-center gap-2 p-1.5 bg-white border rounded-lg cursor-pointer hover:bg-gray-100">
-                      <input
-                        type="checkbox"
-                        checked={estaCheck}
-                        onChange={() => handleTogglePrestacion(labelItem)}
-                        className="rounded"
-                      />
-                      <span className="font-semibold text-gray-800">{labelItem}</span>
-                    </label>
-                  )
-                })}
-              </div>
-            </div>
-          )}
+          <SelectorPrestacionesImputadas
+            prestaciones={prestacionesPaciente}
+            seleccionadas={prestacionesSeleccionadas}
+            onToggle={handleTogglePrestacion}
+          />
 
           <Input
             label="Observaciones Internas / N° Operación"
