@@ -181,4 +181,48 @@ describe('usePagos', () => {
       expect(result.current.todosLosPagos).toHaveLength(2)
     })
   })
+
+  describe('robustez de datos (Commit E)', () => {
+    it('pagosFiltrados no crashea con pagos sin folioComprobante ni pacienteRut', () => {
+      pagosStorageService.obtenerPagos.mockReturnValue([
+        { id: 1, estado: 'Emitido', metodoPago: 'Efectivo', pacienteNombre: 'Ana García' }
+      ])
+      const { result } = renderHook(() => usePagos())
+
+      // Buscar por nombre funciona aunque falten folio y RUT
+      act(() => { result.current.setBusqueda('ana') })
+      expect(result.current.pagos).toHaveLength(1)
+
+      // Buscar por folio no crashea aunque el campo no exista
+      act(() => { result.current.setBusqueda('REC-2026') })
+      expect(result.current.pagos).toHaveLength(0)
+    })
+
+    it('agregarOActualizarPago rechaza pago sin folioComprobante', () => {
+      pagosStorageService.obtenerPagos.mockReturnValue([])
+      const { result } = renderHook(() => usePagos())
+
+      let ok
+      act(() => {
+        ok = result.current.agregarOActualizarPago({ id: 1, pacienteNombre: 'Ana' })
+      })
+
+      expect(ok).toBe(false)
+      expect(pagosStorageService.guardarPagos).not.toHaveBeenCalled()
+      expect(mockAlert).toHaveBeenCalledWith(expect.objectContaining({ variant: 'error' }))
+    })
+
+    it('agregarOActualizarPago rechaza pago sin pacienteNombre', () => {
+      pagosStorageService.obtenerPagos.mockReturnValue([])
+      const { result } = renderHook(() => usePagos())
+
+      let ok
+      act(() => {
+        ok = result.current.agregarOActualizarPago({ id: 1, folioComprobante: 'REC-1' })
+      })
+
+      expect(ok).toBe(false)
+      expect(pagosStorageService.guardarPagos).not.toHaveBeenCalled()
+    })
+  })
 })

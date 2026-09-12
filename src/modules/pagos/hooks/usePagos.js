@@ -20,19 +20,21 @@ export const usePagos = () => {
   const resumen = useMemo(() => calcularResumenRecaudacion(pagos), [pagos])
 
   const pagosFiltrados = useMemo(() => {
+    const q = busqueda.trim().toLowerCase()
     return pagos.filter(p => {
       const coincideMetodo = metodoFiltro === 'Todos' || p.metodoPago === metodoFiltro
       const coincideEstado = estadoFiltro === 'Todos' || p.estado === estadoFiltro
-      const coincideBusqueda = !busqueda.trim() ||
-        p.folioComprobante.toLowerCase().includes(busqueda.toLowerCase()) ||
-        (p.folioDTE && p.folioDTE.toLowerCase().includes(busqueda.toLowerCase())) ||
-        p.pacienteNombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-        p.pacienteRut.includes(busqueda)
+      const coincideBusqueda = !q ||
+        (p.folioComprobante || '').toLowerCase().includes(q) ||
+        (p.folioDTE || '').toLowerCase().includes(q) ||
+        (p.pacienteNombre || '').toLowerCase().includes(q) ||
+        (p.pacienteRut || '').toLowerCase().includes(q)
       return coincideMetodo && coincideEstado && coincideBusqueda
     })
   }, [pagos, busqueda, metodoFiltro, estadoFiltro])
 
   const agregarOActualizarPago = useCallback((pagoData) => {
+    if (!pagoData?.folioComprobante || !pagoData?.pacienteNombre) { alert({ title: 'Pago inválido', description: 'El pago requiere folio y paciente.', variant: 'error' }); return false }
     setPagos(prev => {
       let actualizados = []
       const existe = prev.some(p => String(p.id) === String(pagoData.id))
