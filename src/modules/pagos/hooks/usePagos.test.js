@@ -225,4 +225,34 @@ describe('usePagos', () => {
       expect(pagosStorageService.guardarPagos).not.toHaveBeenCalled()
     })
   })
+
+  describe('estado Purgado (Commit H)', () => {
+    it('purgarPago marca el pago como Purgado en el estado local', async () => {
+      pagosStorageService.obtenerPagos.mockReturnValue([
+        { id: 1, folioComprobante: 'REC-001', estado: 'Anulado', pacienteId: 42, monto: 50000, metodoPago: 'Efectivo', pacienteNombre: 'A', pacienteRut: '1-1' }
+      ])
+      const { result } = renderHook(() => usePagos())
+
+      await act(async () => {
+        await result.current.purgarPago(1, 'Motivo válido de purga aquí')
+      })
+
+      expect(result.current.todosLosPagos[0].estado).toBe('Purgado')
+    })
+
+    it('oculta pagos purgados por defecto en pagosFiltrados', () => {
+      pagosStorageService.obtenerPagos.mockReturnValue([
+        { id: 1, estado: 'Purgado', metodoPago: 'Efectivo', folioComprobante: 'R1', pacienteNombre: 'A', pacienteRut: '1-1' },
+        { id: 2, estado: 'Emitido', metodoPago: 'Efectivo', folioComprobante: 'R2', pacienteNombre: 'B', pacienteRut: '2-2' }
+      ])
+      const { result } = renderHook(() => usePagos())
+      expect(result.current.pagos).toHaveLength(1)
+
+      act(() => { result.current.setMostrarPurgados(true) })
+      expect(result.current.pagos).toHaveLength(2)
+
+      act(() => { result.current.setMostrarPurgados(false) })
+      expect(result.current.pagos).toHaveLength(1)
+    })
+  })
 })

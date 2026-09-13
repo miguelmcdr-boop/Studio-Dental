@@ -16,6 +16,7 @@ export const usePagos = () => {
   const [busqueda, setBusqueda] = useState('')
   const [metodoFiltro, setMetodoFiltro] = useState('Todos')
   const [estadoFiltro, setEstadoFiltro] = useState('Todos')
+  const [mostrarPurgados, setMostrarPurgados] = useState(false)
 
   const resumen = useMemo(() => calcularResumenRecaudacion(pagos), [pagos])
 
@@ -23,7 +24,7 @@ export const usePagos = () => {
     const q = busqueda.trim().toLowerCase()
     return pagos.filter(p => {
       const coincideMetodo = metodoFiltro === 'Todos' || p.metodoPago === metodoFiltro
-      const coincideEstado = estadoFiltro === 'Todos' || p.estado === estadoFiltro
+      const coincideEstado = estadoFiltro === 'Todos' ? (p.estado !== 'Purgado' || mostrarPurgados) : p.estado === estadoFiltro
       const coincideBusqueda = !q ||
         (p.folioComprobante || '').toLowerCase().includes(q) ||
         (p.folioDTE || '').toLowerCase().includes(q) ||
@@ -31,7 +32,7 @@ export const usePagos = () => {
         (p.pacienteRut || '').toLowerCase().includes(q)
       return coincideMetodo && coincideEstado && coincideBusqueda
     })
-  }, [pagos, busqueda, metodoFiltro, estadoFiltro])
+  }, [pagos, busqueda, metodoFiltro, estadoFiltro, mostrarPurgados])
 
   const agregarOActualizarPago = useCallback((pagoData) => {
     if (!pagoData?.folioComprobante || !pagoData?.pacienteNombre) { alert({ title: 'Pago inválido', description: 'El pago requiere folio y paciente.', variant: 'error' }); return false }
@@ -94,7 +95,7 @@ export const usePagos = () => {
       if (pagoAPurgar?.pacienteId) {
         pagosStorageService.removerAbonoDeFichaPaciente(pagoAPurgar.pacienteId, idPago)
       }
-      setPagos(prev => prev.filter(p => String(p.id) !== String(idPago)))
+      setPagos(prev => prev.map(p => String(p.id) === String(idPago) ? { ...p, estado: 'Purgado' } : p))
       await alert({
         title: 'Pago purgado',
         description: 'El pago fue eliminado definitivamente del sistema. La acción quedó registrada en auditoría.',
@@ -116,19 +117,9 @@ export const usePagos = () => {
     const todos = pagosStorageService.obtenerPagosParaAuditoria()
     const resultado = await exportarAuditoriaPagosXLSX(todos)
     if (resultado.ok) {
-      await alert({
-        title: 'Auditoría exportada',
-        description: `Se exportaron ${resultado.total} pagos (vigentes + anulados) a ${resultado.nombreArchivo}.`,
-        variant: 'success',
-        confirmText: 'Entendido'
-      })
+      await alert({ title: 'Auditoría exportada', description: `Se exportaron ${resultado.total} pagos (vigentes, anulados y purgados) a ${resultado.nombreArchivo}.`, variant: 'success', confirmText: 'Entendido' })
     } else {
-      await alert({
-        title: 'Error al exportar',
-        description: 'No se pudo generar el archivo CSV.',
-        variant: 'error',
-        confirmText: 'Entendido'
-      })
+      await alert({ title: 'Error al exportar', description: 'No se pudo generar el archivo.', variant: 'error', confirmText: 'Entendido' })
     }
   }, [alert])
 
@@ -142,6 +133,8 @@ export const usePagos = () => {
     setMetodoFiltro,
     estadoFiltro,
     setEstadoFiltro,
+    mostrarPurgados,
+    setMostrarPurgados,
     agregarOActualizarPago,
     anularPago,
     purgarPago,

@@ -54,7 +54,10 @@ const formatearFilas = (hoja) => {
   hoja.eachRow((fila, numFila) => {
     if (numFila === 1) return
     const estado = fila.getCell(11).value
-    if (estado === 'Anulado') {
+    if (estado === 'Purgado') {
+      fila.font = { color: { argb: 'FF4B5563' }, italic: true, strike: true }
+      fila.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE5E7EB' } }
+    } else if (estado === 'Anulado') {
       fila.font = { color: { argb: 'FF991B1B' }, italic: true }
       fila.fill = {
         type: 'pattern',

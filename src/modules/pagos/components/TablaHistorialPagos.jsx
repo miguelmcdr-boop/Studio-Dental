@@ -27,9 +27,10 @@ export const TablaHistorialPagos = memo(({ pagos, onVerComprobante, onEditar, on
         <tbody className="divide-y divide-gray-100">
           {pagos.map((p) => {
             const esAnulado = p.estado === 'Anulado'
+            const esPurgado = p.estado === 'Purgado'
 
             return (
-              <tr key={p.id} className={`hover:bg-gray-50 transition-colors ${esAnulado ? 'bg-red-50/40' : ''}`}>
+              <tr key={p.id} className={`hover:bg-gray-50 transition-colors ${esPurgado ? 'bg-gray-100/60' : esAnulado ? 'bg-red-50/40' : ''}`}>
                 <td className="p-3">
                   <span className="bg-gray-100 px-2 py-0.5 rounded border border-gray-300 font-mono text-[11px] font-bold block w-max">
                     {p.folioComprobante}
@@ -67,13 +68,13 @@ export const TablaHistorialPagos = memo(({ pagos, onVerComprobante, onEditar, on
 
                 <td className="p-3 text-center">
                   <span className={`px-2 py-0.5 rounded-lg font-black text-[10px] border ${
-                    esAnulado ? 'bg-red-100 text-red-900 border-red-300' : 'bg-emerald-100 text-emerald-900 border-emerald-300'
+                    esPurgado ? 'bg-gray-200 text-gray-600 border-gray-400' : esAnulado ? 'bg-red-100 text-red-900 border-red-300' : 'bg-emerald-100 text-emerald-900 border-emerald-300'
                   }`}>
-                    {esAnulado ? '🔴 Anulado' : '🟢 Vigente'}
+                    {esPurgado ? '⚫ Purgado' : esAnulado ? '🔴 Anulado' : '🟢 Vigente'}
                   </span>
                 </td>
 
-                <td className={`p-3 text-right font-black text-sm ${esAnulado ? 'line-through text-gray-400' : 'text-gray-900'}`}>
+                <td className={`p-3 text-right font-black text-sm ${esPurgado ? 'line-through text-gray-500 opacity-60' : esAnulado ? 'line-through text-gray-400' : 'text-gray-900'}`}>
                   ${(parseFloat(p.monto) || 0).toLocaleString('es-CL')} CLP
                 </td>
 
@@ -86,7 +87,7 @@ export const TablaHistorialPagos = memo(({ pagos, onVerComprobante, onEditar, on
                     🧾 Recibo
                   </button>
 
-                  {!esAnulado && (
+                  {!esAnulado && !esPurgado && (
                     <>
                       <button
                         onClick={() => onEditar(p)}

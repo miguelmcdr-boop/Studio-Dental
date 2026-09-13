@@ -34,6 +34,8 @@ export const PagosModulo = memo(() => {
     setMetodoFiltro,
     estadoFiltro,
     setEstadoFiltro,
+    mostrarPurgados,
+    setMostrarPurgados,
     agregarOActualizarPago,
     anularPago,
     purgarPago,
@@ -118,6 +120,16 @@ export const PagosModulo = memo(() => {
                 <option value="Anulado">🔴 Anulados</option>
               </select>
             </div>
+
+            <label className="flex items-center gap-1.5 font-semibold text-gray-600 cursor-pointer ml-2">
+              <input
+                type="checkbox"
+                checked={mostrarPurgados}
+                onChange={(e) => setMostrarPurgados(e.target.checked)}
+                className="rounded"
+              />
+              Mostrar purgados
+            </label>
 
             <input
               type="text"

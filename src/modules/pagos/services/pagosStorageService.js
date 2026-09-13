@@ -296,17 +296,17 @@ export const pagosStorageService = {
     escribirJSON(key, filtrados, { notify: true }); return true
   },
 
-  // Purga definitiva de un pago (Commit B — solo admin con motivo)
+  // Purga = marcar estado 'Purgado' (Commit H — auditoría inmutable, sin hard delete)
   purgarPago: (pagoId, motivo, userId = null) => {
     const actuales = pagosCache || pagosRepo.obtener([])
     const pago = actuales.find(p => String(p.id) === String(pagoId))
     if (!pago) { log.warn(`purgarPago: pago ${pagoId} no encontrado`); return false }
-    const actualizados = actuales.filter(p => String(p.id) !== String(pagoId))
+    const actualizados = actuales.map(p => String(p.id) === String(pagoId) ? { ...p, estado: 'Purgado', motivoPurga: motivo, fechaPurga: new Date().toLocaleDateString('es-CL'), purgadoPor: userId } : p)
     pagosCache = actualizados
     pagosRepo.guardar(actualizados)
     log.warn(`[AUDITORÍA] Purga: id=${pagoId}, folio=${pago.folioComprobante || 's/d'}, monto=${pago.monto}, motivo="${motivo}", userId=${userId}, fecha=${new Date().toISOString()}`)
     if (USE_SUPABASE && supabase && esUuidValido(pagoId)) {
-      supabase.from('pagos').delete().eq('id', pagoId)
+      supabase.from('pagos').update({ estado: 'Purgado' }).eq('id', pagoId)
         .then(({ error }) => { if (error) log.error('Error purgando Supabase:', error) })
     }
     return true
