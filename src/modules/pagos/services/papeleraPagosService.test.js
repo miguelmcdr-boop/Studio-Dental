@@ -17,7 +17,8 @@ import {
   obtenerPagosPurgados,
   restaurarPago,
   limpiarVencidos,
-  diasRestantes
+  diasRestantes,
+  vaciarPapelera
 } from './papeleraPagosService'
 import { pagosStorageService } from './pagosStorageService'
 
@@ -128,6 +129,35 @@ describe('papeleraPagosService (Commit K)', () => {
       ])
 
       const eliminados = await limpiarVencidos()
+      expect(eliminados).toBe(0)
+      expect(pagosStorageService.guardarPagos).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('vaciarPapelera (Commit K3)', () => {
+    it('elimina todos los purgados y preserva el resto', async () => {
+      pagosStorageService.obtenerPagos.mockReturnValue([
+        { id: 1, estado: 'Purgado', folioComprobante: 'REC-001', monto: 100 },
+        { id: 2, estado: 'Purgado', folioComprobante: 'REC-002', monto: 200 },
+        { id: 3, estado: 'Emitido', folioComprobante: 'REC-003', monto: 300 },
+        { id: 4, estado: 'Anulado', folioComprobante: 'REC-004', monto: 400 }
+      ])
+
+      const eliminados = await vaciarPapelera()
+
+      expect(eliminados).toBe(2)
+      expect(pagosStorageService.guardarPagos).toHaveBeenCalled()
+      const restantes = pagosStorageService.guardarPagos.mock.calls[0][0]
+      expect(restantes).toHaveLength(2)
+      expect(restantes.map(p => p.id)).toEqual([3, 4])
+    })
+
+    it('retorna 0 si la papelera está vacía', async () => {
+      pagosStorageService.obtenerPagos.mockReturnValue([
+        { id: 1, estado: 'Emitido' }
+      ])
+
+      const eliminados = await vaciarPapelera()
       expect(eliminados).toBe(0)
       expect(pagosStorageService.guardarPagos).not.toHaveBeenCalled()
     })

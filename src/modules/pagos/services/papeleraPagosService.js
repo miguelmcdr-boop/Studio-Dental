@@ -107,3 +107,23 @@ export const limpiarVencidos = async () => {
 
   return vencidos.length
 }
+
+/**
+ * Vacía la papelera: elimina definitivamente TODOS los pagos purgados.
+ * La eliminación se propaga a Supabase vía guardarPagos (hard delete).
+ * @returns {number} cantidad de pagos eliminados
+ */
+export const vaciarPapelera = async () => {
+  const todos = pagosStorageService.obtenerPagos([])
+  const purgados = todos.filter(p => p.estado === 'Purgado')
+  if (purgados.length === 0) return 0
+
+  const restantes = todos.filter(p => p.estado !== 'Purgado')
+  await pagosStorageService.guardarPagos(restantes)
+
+  purgados.forEach(p => {
+    log.warn(`[AUDITORÍA] Vaciar papelera: eliminación definitiva id=${p.id}, folio=${p.folioComprobante || 's/d'}, monto=${p.monto}, purgado=${p.fechaPurga || 's/f'}`)
+  })
+
+  return purgados.length
+}

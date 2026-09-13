@@ -10,7 +10,7 @@ import { diasRestantes } from '../services/papeleraPagosService'
  * Cada fila muestra: folio, paciente, monto, fecha purga, motivo, días restantes.
  * La eliminación automática (>730 días) ocurre en background al cargar el módulo.
  */
-export const ModalPapeleraPagos = memo(({ pagos, alCerrar, onRestaurar }) => {
+export const ModalPapeleraPagos = memo(({ pagos, alCerrar, onRestaurar, onVaciar }) => {
   const handleRestaurar = async (pagoId) => {
     await onRestaurar(pagoId)
   }
@@ -23,9 +23,21 @@ export const ModalPapeleraPagos = memo(({ pagos, alCerrar, onRestaurar }) => {
       size="lg"
     >
       <div className="space-y-3">
-        <p className="text-xs text-gray-600">
-          Pagos purgados. Pueden restaurarse (volver a estado "Anulado") o serán eliminados automáticamente después de 730 días.
-        </p>
+        <div className="flex justify-between items-start gap-3">
+          <p className="text-xs text-gray-600 flex-1">
+            Pagos purgados. Pueden restaurarse (volver a estado "Anulado") o serán eliminados automáticamente después de 730 días.
+          </p>
+          {pagos.length > 0 && onVaciar && (
+            <Button
+              onClick={onVaciar}
+              variant="danger"
+              size="sm"
+              className="shrink-0"
+            >
+              🗑️ Vaciar papelera
+            </Button>
+          )}
+        </div>
 
         {pagos.length === 0 ? (
           <div className="text-center py-8 text-gray-400">

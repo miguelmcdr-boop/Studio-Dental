@@ -9,8 +9,9 @@ import { ComprobantePagoImprimible } from './components/ComprobantePagoImprimibl
 import { usePacientesStore } from '../../store/pacientesStore'
 import { useSesionStore } from '../../store/sesionStore'
 import { useRBAC } from '../../hooks/useRBAC'
+import { useAppDialog } from '../../hooks/useAppDialog'
 import { PERMISOS } from '../../constants/rbacConstants'
-import { obtenerPagosPurgados, restaurarPago, limpiarVencidos } from './services/papeleraPagosService'
+import { obtenerPagosPurgados, restaurarPago, limpiarVencidos, vaciarPapelera } from './services/papeleraPagosService'
 import { ModalPapeleraPagos } from './components/ModalPapeleraPagos'
 
 export const PagosModulo = memo(() => {
@@ -18,6 +19,7 @@ export const PagosModulo = memo(() => {
   const userProfile = useSesionStore((state) => state.userProfile)
 
   const { puede } = useRBAC()
+  const { confirm, alert } = useAppDialog()
   const puedeExportar = puede(PERMISOS.EXPORTAR_AUDITORIA_PAGOS)
   const puedePurgar = puede(PERMISOS.PURGAR_PAGOS)
 
@@ -81,6 +83,22 @@ export const PagosModulo = memo(() => {
     if (ok) {
       refrescarPagos()
       setPagosPurgados(obtenerPagosPurgados())
+    }
+  }
+
+  const handleVaciarPapelera = async () => {
+    const ok = await confirm({
+      title: 'Vaciar papelera',
+      description: `Esto eliminará definitivamente los ${pagosPurgados.length} pagos de la papelera. Esta acción no se puede deshacer.`,
+      variant: 'danger',
+      confirmText: 'Vaciar papelera'
+    })
+    if (!ok) return
+    const eliminados = await vaciarPapelera()
+    if (eliminados > 0) {
+      refrescarPagos()
+      setPagosPurgados(obtenerPagosPurgados())
+      await alert({ title: 'Papelera vaciada', description: `Se eliminaron ${eliminados} pagos definitivamente.`, variant: 'success', confirmText: 'Entendido' })
     }
   }
 
