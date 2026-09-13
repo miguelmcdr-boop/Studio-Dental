@@ -25,7 +25,10 @@ export const SNAKE_TO_CAMEL_MAP = {
   motivo_anulacion: 'motivoAnulacion',
   fecha_anulacion: 'fechaAnulacion',
   clinica_id: 'clinicaId',
-  folio: 'folioComprobante'
+  folio: 'folioComprobante',
+  motivo_purga: 'motivoPurga',
+  fecha_purga: 'fechaPurga',
+  purgado_por: 'purgadoPor'
 }
 
 export const CAMEL_TO_SNAKE_MAP = Object.fromEntries(
@@ -57,6 +60,7 @@ const COLUMNAS_SUPABASE_VALIDAS = new Set([
   'folio', 'monto', 'metodo_pago', 'fecha',
   'concepto', 'estado',
   'motivo_anulacion', 'fecha_anulacion',
+  'motivo_purga', 'fecha_purga', 'purgado_por',
   'created_at', 'updated_at'
 ])
 
@@ -98,8 +102,8 @@ export const transformarParaSupabase = (pagoJs) => {
       } else {
         filtrado.paciente_id = null
       }
-    } else if (claveDb === 'fecha') {
-      // Commit L1: convertir DD/MM/YYYY a YYYY-MM-DD para Supabase
+    } else if (claveDb === 'fecha' || claveDb === 'fecha_purga' || claveDb === 'fecha_anulacion') {
+      // Commit L1/K7: convertir DD/MM/YYYY a YYYY-MM-DD para Supabase
       const fechaISO = convertirFechaAISO(valor)
       filtrado[claveDb] = fechaISO || null
     } else if (valor === '' || valor === null || valor === undefined) {

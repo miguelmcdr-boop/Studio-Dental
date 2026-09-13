@@ -9,9 +9,8 @@ import { ComprobantePagoImprimible } from './components/ComprobantePagoImprimibl
 import { usePacientesStore } from '../../store/pacientesStore'
 import { useSesionStore } from '../../store/sesionStore'
 import { useRBAC } from '../../hooks/useRBAC'
-import { useAppDialog } from '../../hooks/useAppDialog'
 import { PERMISOS } from '../../constants/rbacConstants'
-import { restaurarPago, limpiarVencidos, vaciarPapelera } from './services/papeleraPagosService'
+import { restaurarPago, limpiarVencidos } from './services/papeleraPagosService'
 import { ModalPapeleraPagos } from './components/ModalPapeleraPagos'
 
 export const PagosModulo = memo(() => {
@@ -19,7 +18,6 @@ export const PagosModulo = memo(() => {
   const userProfile = useSesionStore((state) => state.userProfile)
 
   const { puede } = useRBAC()
-  const { confirm, alert } = useAppDialog()
   const puedeExportar = puede(PERMISOS.EXPORTAR_AUDITORIA_PAGOS)
   const puedePurgar = puede(PERMISOS.PURGAR_PAGOS)
 
@@ -47,8 +45,6 @@ export const PagosModulo = memo(() => {
     refrescarPagos
   } = usePagos()
 
-  // Derivado: la papelera siempre sincronizada con el estado de pagos
-  const pagosPurgados = pagos.filter(p => p.estado === 'Purgado')
 
   // Job de limpieza: eliminar pagos purgados con >730 días (Commit K)
   useEffect(() => {
@@ -82,21 +78,6 @@ export const PagosModulo = memo(() => {
   const handleRestaurarPago = async (pagoId) => {
     const ok = await restaurarPago(pagoId)
     if (ok) refrescarPagos()
-  }
-
-  const handleVaciarPapelera = async () => {
-    const ok = await confirm({
-      title: 'Vaciar papelera',
-      description: `Esto eliminará definitivamente los ${pagosPurgados.length} pagos de la papelera. Esta acción no se puede deshacer.`,
-      variant: 'danger',
-      confirmText: 'Vaciar papelera'
-    })
-    if (!ok) return
-    const eliminados = await vaciarPapelera()
-    if (eliminados > 0) {
-      refrescarPagos()
-      await alert({ title: 'Papelera vaciada', description: `Se eliminaron ${eliminados} pagos definitivamente.`, variant: 'success', confirmText: 'Entendido' })
-    }
   }
 
   return (
@@ -221,10 +202,9 @@ export const PagosModulo = memo(() => {
 
       {modalPapeleraAbierto && (
         <ModalPapeleraPagos
-          pagos={pagosPurgados}
           alCerrar={() => setModalPapeleraAbierto(false)}
           onRestaurar={handleRestaurarPago}
-          onVaciar={handleVaciarPapelera}
+          onVaciarCompleto={refrescarPagos}
         />
       )}
     </div>

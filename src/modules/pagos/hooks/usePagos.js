@@ -95,7 +95,7 @@ export const usePagos = () => {
       if (pagoAPurgar?.pacienteId) {
         pagosStorageService.removerAbonoDeFichaPaciente(pagoAPurgar.pacienteId, idPago)
       }
-      setPagos(prev => prev.map(p => String(p.id) === String(idPago) ? { ...p, estado: 'Purgado' } : p))
+      setPagos([...pagosStorageService.obtenerPagos([])])
       await alert({
         title: 'Pago purgado',
         description: 'El pago fue eliminado definitivamente del sistema. La acción quedó registrada en auditoría.',

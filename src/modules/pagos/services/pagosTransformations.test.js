@@ -15,7 +15,7 @@ import { transformarParaSupabase, transformarDesdeSupabase, mergeCamposLocales }
 
 describe('pagosTransformations (Commit K1)', () => {
   describe('transformarParaSupabase', () => {
-    it('omite columnas que no existen en Supabase', () => {
+    it('omite columnas que no existen en Supabase (Commit K7 actualizado)', () => {
       const pagoJs = {
         id: '0f6bc8ef-965a-4962-ac20-0ab5edf95e46',
         folioComprobante: 'REC-2026-1730',
@@ -36,10 +36,16 @@ describe('pagosTransformations (Commit K1)', () => {
 
       const result = transformarParaSupabase(pagoJs)
 
+      // Columnas válidas en Supabase (incluyendo metadata de purga desde K7)
       expect(result.id).toBe('0f6bc8ef-965a-4962-ac20-0ab5edf95e46')
       expect(result.folio).toBe('REC-2026-1730')
       expect(result.monto).toBe(10000)
       expect(result.metodo_pago).toBe('Efectivo')
+      expect(result.motivo_purga).toBe('Probando APP')
+      expect(result.fecha_purga).toBe('2026-09-13') // Convertido a ISO
+      expect(result.purgado_por).toBe('admin@test.com')
+      
+      // Columnas que NO están en Supabase
       expect(result.tipo_dte).toBeUndefined()
       expect(result.folio_dte).toBeUndefined()
       expect(result.paciente_nombre).toBeUndefined()
@@ -47,9 +53,6 @@ describe('pagosTransformations (Commit K1)', () => {
       expect(result.hora).toBeUndefined()
       expect(result.observacion).toBeUndefined()
       expect(result.emitido_por).toBeUndefined()
-      expect(result.motivo_purga).toBeUndefined()
-      expect(result.fecha_purga).toBeUndefined()
-      expect(result.purgado_por).toBeUndefined()
       expect(result.prestaciones_imputadas).toBeUndefined()
     })
 
@@ -72,7 +75,7 @@ describe('pagosTransformations (Commit K1)', () => {
       expect(result.folio).toBe('REC-001')
       expect(result.estado).toBe('Anulado')
       expect(result.motivo_anulacion).toBe('Error cajero')
-      expect(result.fecha_anulacion).toBe('13/09/2026')
+      expect(result.fecha_anulacion).toBe('2026-09-13') // Convertido a ISO
     })
 
     it('maneja pacienteId con UUID valido', () => {

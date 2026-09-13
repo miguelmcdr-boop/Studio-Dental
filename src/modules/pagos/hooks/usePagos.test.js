@@ -35,6 +35,13 @@ vi.mock('../../../store/sesionStore', () => ({
   })
 }))
 
+vi.mock('../../store/sesionStore', () => ({
+  useSesionStore: vi.fn((selector) => {
+    const state = { userProfile: { email: 'test@test.com', rol: 'admin' } }
+    return selector ? selector(state) : state
+  })
+}))
+
 import { usePagos } from './usePagos'
 import { pagosStorageService } from '../services/pagosStorageService'
 import { exportarAuditoriaPagosXLSX } from '../services/pagosExportService'
@@ -227,16 +234,26 @@ describe('usePagos', () => {
   })
 
   describe('estado Purgado (Commit H)', () => {
-    it('purgarPago marca el pago como Purgado en el estado local', async () => {
-      pagosStorageService.obtenerPagos.mockReturnValue([
-        { id: 1, folioComprobante: 'REC-001', estado: 'Anulado', pacienteId: 42, monto: 50000, metodoPago: 'Efectivo', pacienteNombre: 'A', pacienteRut: '1-1' }
-      ])
+    it('purgarPago recarga el estado desde storage (Commit K4)', async () => {
+      const pagoAnulado = { id: 1, folioComprobante: 'REC-001', estado: 'Anulado', metodoPago: 'Efectivo', pacienteNombre: 'A', pacienteRut: '1-1', monto: 50000 }
+      const pagoPurgado = { ...pagoAnulado, estado: 'Purgado' }
+      
+      pagosStorageService.obtenerPagos.mockReturnValueOnce([pagoAnulado])
+      pagosStorageService.obtenerPagos.mockReturnValueOnce([pagoPurgado])
+      pagosStorageService.purgarPago.mockResolvedValue(true)
+
       const { result } = renderHook(() => usePagos())
+      expect(result.current.todosLosPagos[0].estado).toBe('Anulado')
 
       await act(async () => {
         await result.current.purgarPago(1, 'Motivo válido de purga aquí')
       })
 
+      expect(pagosStorageService.purgarPago).toHaveBeenCalledWith(
+        1, 
+        'Motivo válido de purga aquí',
+        expect.any(String)
+      )
       expect(result.current.todosLosPagos[0].estado).toBe('Purgado')
     })
 
@@ -253,6 +270,29 @@ describe('usePagos', () => {
 
       act(() => { result.current.setMostrarPurgados(false) })
       expect(result.current.pagos).toHaveLength(1)
+    })
+
+    it('purgarPago deja metadata completa en el estado local sin recargar (Commit K4)', async () => {
+      let storage = [
+        { id: 1, folioComprobante: 'REC-001', estado: 'Anulado', metodoPago: 'Efectivo', pacienteNombre: 'A', pacienteRut: '1-1', monto: 100 }
+      ]
+      pagosStorageService.obtenerPagos.mockImplementation(() => storage)
+      pagosStorageService.purgarPago.mockImplementation(async () => {
+        storage = [{ ...storage[0], estado: 'Purgado', fechaPurga: '13/09/2026', motivoPurga: 'Motivo largo de prueba', purgadoPor: 'admin@x.cl' }]
+        return true
+      })
+
+      const { result } = renderHook(() => usePagos())
+      expect(result.current.todosLosPagos[0].fechaPurga).toBeUndefined()
+
+      await act(async () => {
+        await result.current.purgarPago(1, 'Motivo largo de prueba')
+      })
+
+      expect(result.current.todosLosPagos[0].estado).toBe('Purgado')
+      expect(result.current.todosLosPagos[0].fechaPurga).toBe('13/09/2026')
+      expect(result.current.todosLosPagos[0].motivoPurga).toBe('Motivo largo de prueba')
+      expect(result.current.todosLosPagos[0].purgadoPor).toBe('admin@x.cl')
     })
 
     it('resumen excluye pagos purgados del total recaudado (Commit I)', () => {

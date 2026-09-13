@@ -1,18 +1,49 @@
-import React, { memo } from 'react'
+import React, { memo, useState } from 'react'
 import { Modal } from '../../../components/ui/Modal'
 import { Button } from '../../../components/ui/Button'
-import { diasRestantes } from '../services/papeleraPagosService'
+import { useAppDialog } from '../../../hooks/useAppDialog'
+import { diasRestantes, obtenerPagosPurgados, vaciarPapelera } from '../services/papeleraPagosService'
 
 /**
  * Modal de Papelera de Pagos (Commit K)
  *
- * Muestra pagos purgados con opción de restaurar (volver a 'Anulado').
- * Cada fila muestra: folio, paciente, monto, fecha purga, motivo, días restantes.
- * La eliminación automática (>730 días) ocurre en background al cargar el módulo.
+ * Commit K6: el modal es dueño TOTAL del flujo de vaciar (confirm +
+ * vaciar + reload + alert). Garantiza secuencia atómica sin timing
+ * conflicts con el padre.
  */
-export const ModalPapeleraPagos = memo(({ pagos, alCerrar, onRestaurar, onVaciar }) => {
+export const ModalPapeleraPagos = memo(({ alCerrar, onRestaurar, onVaciarCompleto }) => {
+  const { confirm, alert } = useAppDialog()
+  const [pagos, setPagos] = useState(() => obtenerPagosPurgados())
+
+  const reload = () => setPagos(obtenerPagosPurgados())
+
   const handleRestaurar = async (pagoId) => {
     await onRestaurar(pagoId)
+    reload()
+  }
+
+  const handleVaciar = async () => {
+    const ok = await confirm({
+      title: 'Vaciar papelera',
+      description: `Esto eliminará definitivamente los ${pagos.length} pagos de la papelera. Esta acción no se puede deshacer.`,
+      variant: 'danger',
+      confirmText: 'Vaciar papelera'
+    })
+    if (!ok) return
+
+    const eliminados = await vaciarPapelera()
+    reload()
+    if (onVaciarCompleto) onVaciarCompleto()
+
+    if (eliminados > 0) {
+      await alert({
+        title: 'Papelera vaciada',
+        description: `Se eliminaron ${eliminados} pagos definitivamente.`,
+        variant: 'success',
+        confirmText: 'Entendido'
+      })
+      reload()
+    }
   }
 
   return (
@@ -27,9 +58,9 @@ export const ModalPapeleraPagos = memo(({ pagos, alCerrar, onRestaurar, onVaciar
           <p className="text-xs text-gray-600 flex-1">
             Pagos purgados. Pueden restaurarse (volver a estado "Anulado") o serán eliminados automáticamente después de 730 días.
           </p>
-          {pagos.length > 0 && onVaciar && (
+          {pagos.length > 0 && (
             <Button
-              onClick={onVaciar}
+              onClick={handleVaciar}
               variant="danger"
               size="sm"
               className="shrink-0"
@@ -60,9 +91,9 @@ export const ModalPapeleraPagos = memo(({ pagos, alCerrar, onRestaurar, onVaciar
                           {dias !== null ? `${dias} días restantes` : 'Sin fecha registrada (no se auto-elimina)'}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-700 font-semibold">{pago.pacienteNombre}</p>
+                      <p className="text-sm text-gray-700 font-semibold">{pago.pacienteNombre || 'Paciente sin nombre'}</p>
                       <p className="text-xs text-gray-600">
-                        <span className="font-bold">${pago.monto.toLocaleString('es-CL')} CLP</span> · {pago.metodoPago}
+                        <span className="font-bold">${(pago.monto || 0).toLocaleString('es-CL')} CLP</span> · {pago.metodoPago}
                       </p>
                       <p className="text-xs text-gray-500 mt-1">
                         Purgado: {pago.fechaPurga || 'sin fecha'} por {pago.purgadoPor || 'sin registro'}
