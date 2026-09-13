@@ -143,6 +143,7 @@ export const usePagos = () => {
     agregarOActualizarPago,
     anularPago,
     purgarPago,
-    exportarAuditoria
+    exportarAuditoria,
+    refrescarPagos,
   }
 }
