@@ -18,9 +18,14 @@ export const ModalPapeleraPagos = memo(({ alCerrar, onRestaurar, onAccionComplet
   const reload = () => setPagos(obtenerPagosPurgados())
 
   const handleRestaurar = async (pagoId) => {
-    await onRestaurar(pagoId)
-    reload()
-    if (onAccionCompletada) onAccionCompletada()
+    try {
+      await onRestaurar(pagoId)
+    } finally {
+      // Defensivo (Commit K10): recargar SIEMPRE, aunque el padre falle,
+      // para que el modal nunca quede con lista stale
+      reload()
+      if (onAccionCompletada) onAccionCompletada()
+    }
   }
 
   const handleVaciar = async () => {
