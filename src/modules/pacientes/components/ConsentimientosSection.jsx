@@ -32,7 +32,9 @@ export const ConsentimientosSection = memo(({ paciente, userProfile }) => {
   const plantillaActual = PLANTILLAS_CONSENTIMIENTO.find(p => p.id === plantillaId) || PLANTILLAS_CONSENTIMIENTO[0]
 
   const handleGuardarConsentimiento = async () => {
+    console.log('[TRACE-1] handleGuardarConsentimiento: inicio | firmaBase64.length =', firmaBase64?.length || 0)
     if (!firmaBase64) {
+      console.log('[TRACE-2] handleGuardarConsentimiento: SIN firma → warning')
       await dialogAlert({
         title: 'Firma requerida',
         description: 'Por favor solicita al paciente que firme en el recuadro digital antes de guardar.',
@@ -41,6 +43,7 @@ export const ConsentimientosSection = memo(({ paciente, userProfile }) => {
       })
       return
     }
+    console.log('[TRACE-3] handleGuardarConsentimiento: firma OK, creando registro')
 
     const nuevoRegistro = {
       id: Date.now(),
@@ -57,12 +60,14 @@ export const ConsentimientosSection = memo(({ paciente, userProfile }) => {
     setHistorialConsentimientos(actualizados)
     pacientesStorageService.guardarItem(`consentimientos_${paciente.id}`, actualizados)
     setFirmaBase64('')
+    console.log('[TRACE-4] handleGuardarConsentimiento: guardado OK, llamando alert success')
     await dialogAlert({
       title: 'Consentimiento guardado',
       description: 'Consentimiento informado firmado y guardado inmutablemente.',
       variant: 'success',
       confirmText: 'Entendido'
     })
+    console.log('[TRACE-5] handleGuardarConsentimiento: alert success cerrado')
   }
 
   return (
