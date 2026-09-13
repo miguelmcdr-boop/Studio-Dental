@@ -1,4 +1,5 @@
 import React, { memo, useState, useMemo } from 'react'
+import { formatearCLP } from '../../../utils/formatoMoneda'
 
 export const TimelineClinicoWidget = memo(({
   evolucionesNotas = [],
@@ -37,7 +38,7 @@ export const TimelineClinicoWidget = memo(({
         fecha: new Date(tr.id).toLocaleDateString('es-CL'),
         timestamp: tr.id,
         titulo: `Tratamiento Completado: ${tr.prestacion}`,
-        detalle: `Pieza: ${tr.pieza} | Convenio: ${tr.convenio || 'Particular'} | Valor: $${tr.valor?.toLocaleString('es-CL')} CLP`
+        detalle: `Pieza: ${tr.pieza} | Convenio: ${tr.convenio || 'Particular'} | Valor: ${formatearCLP(tr.valor)}`
       })
     })
 

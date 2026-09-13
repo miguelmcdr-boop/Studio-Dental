@@ -4,6 +4,7 @@
  * F2-07a: sincronización con arancel global
  */
 import React, { memo } from 'react'
+import { formatearCLP } from '../../../utils/formatoMoneda'
 import { Input } from '../../../components/ui/Input'
 import { Button } from '../../../components/ui/Button'
 
@@ -69,7 +70,7 @@ export const FormularioAgregarPrestacion = memo(({
               const precioMostrar = parseFloat(p.precio ?? p.precioParticular) || 0
               return (
                 <option key={p.id} value={p.id}>
-                  [{p.especialidad || 'General'}] {p.nombre} — Base: ${precioMostrar.toLocaleString('es-CL')} CLP
+                  [{p.especialidad || 'General'}] {p.nombre} — Base: {formatearCLP(precioMostrar)}
                 </option>
               )
             })}
@@ -102,7 +103,7 @@ export const FormularioAgregarPrestacion = memo(({
       {precioBaseOriginal > 0 && porcentajeDescuentoAplicado > 0 && (
         <div className="text-[11px] bg-emerald-50 dark:bg-emerald-900/20 text-emerald-800 dark:text-emerald-200 p-2 rounded-lg border border-emerald-200 dark:border-emerald-800 flex justify-between items-center">
           <span>🏷️ Descuento aplicado por Convenio (<strong>{convenioAplicado}</strong>): -{porcentajeDescuentoAplicado}%</span>
-          <span>Precio Base: <del>${precioBaseOriginal.toLocaleString('es-CL')}</del> → Precio Final: <strong>${parseInt(valorPrestacion).toLocaleString('es-CL')} CLP</strong></span>
+          <span>Precio Base: <del>{formatearCLP(precioBaseOriginal)}</del> → Precio Final: <strong>{formatearCLP(valorPrestacion)}</strong></span>
         </div>
       )}
     </div>

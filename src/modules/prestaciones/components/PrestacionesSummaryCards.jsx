@@ -1,4 +1,5 @@
 import React, { memo } from 'react'
+import { formatearCLP } from '../../../utils/formatoMoneda'
 
 export const PrestacionesSummaryCards = memo(({ resumen }) => {
   return (
@@ -11,7 +12,7 @@ export const PrestacionesSummaryCards = memo(({ resumen }) => {
       <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl shadow-xs">
         <span className="text-[10px] font-bold text-blue-800 uppercase tracking-wider block">Valor Promedio Particular</span>
         <span className="text-2xl font-black text-blue-900 mt-1 block">
-          ${resumen.precioPromedio.toLocaleString('es-CL')} CLP
+          {formatearCLP(resumen.precioPromedio)}
         </span>
       </div>
 
@@ -25,7 +26,7 @@ export const PrestacionesSummaryCards = memo(({ resumen }) => {
       <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl shadow-xs">
         <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">Arancel Máximo</span>
         <span className="text-2xl font-black text-emerald-900 mt-1 block">
-          ${resumen.precioMaximo.toLocaleString('es-CL')} CLP
+          {formatearCLP(resumen.precioMaximo)}
         </span>
       </div>
     </div>

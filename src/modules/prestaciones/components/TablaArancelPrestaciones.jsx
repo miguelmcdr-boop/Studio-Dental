@@ -1,4 +1,5 @@
 import React, { memo } from 'react'
+import { formatearCLP } from '../../../utils/formatoMoneda'
 
 export const TablaArancelPrestaciones = memo(({ prestaciones, onEditar, onEliminar }) => {
   if (prestaciones.length === 0) {
@@ -42,11 +43,11 @@ export const TablaArancelPrestaciones = memo(({ prestaciones, onEditar, onElimin
               </td>
 
               <td className="p-3 text-right font-black text-emerald-900 text-sm">
-                ${(parseFloat(p.precioParticular) || 0).toLocaleString('es-CL')} CLP
+                {formatearCLP(p.precioParticular)}
               </td>
 
               <td className="p-3 text-right font-bold text-blue-900">
-                ${(parseFloat(p.precioFonasa) || 0).toLocaleString('es-CL')} CLP
+                {formatearCLP(p.precioFonasa)}
               </td>
 
               <td className="p-3 text-right print:hidden space-x-1">

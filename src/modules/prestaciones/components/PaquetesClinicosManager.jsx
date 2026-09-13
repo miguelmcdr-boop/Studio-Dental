@@ -1,4 +1,5 @@
 import React, { memo, useState } from 'react'
+import { formatearCLP } from '../../../utils/formatoMoneda'
 import { useAppDialog } from '../../../hooks/useAppDialog'
 
 export const PaquetesClinicosManager = memo(({ paquetes, alGuardarPaquete, alEliminarPaquete }) => {
@@ -163,7 +164,7 @@ export const PaquetesClinicosManager = memo(({ paquetes, alGuardarPaquete, alEli
 
                 <div className="flex justify-between items-center pt-3 border-t">
                   <span className="font-black text-emerald-900 text-sm">
-                    ${precioMostrar.toLocaleString('es-CL')} CLP
+                    {formatearCLP(precioMostrar)}
                   </span>
                   <span className="bg-emerald-100 text-emerald-900 px-2.5 py-1 rounded-lg font-extrabold text-[10px]">
                     Ahorro {pk.ahorroEstimado}

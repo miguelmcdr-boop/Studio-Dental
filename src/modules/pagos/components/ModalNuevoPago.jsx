@@ -1,4 +1,5 @@
 import React, { memo, useState, useEffect } from 'react'
+import { formatearCLP } from '../../../utils/formatoMoneda'
 import { Modal } from '../../../components/ui/Modal'
 import { Input } from '../../../components/ui/Input'
 import { Button } from '../../../components/ui/Button'
@@ -76,7 +77,7 @@ export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, a
     
     await dialogAlert({
       title: pagoEditar ? 'Pago actualizado' : 'Pago registrado',
-      description: `Comprobante ${pagoFinal.folioComprobante} ${pagoEditar ? 'actualizado' : 'registrado'} exitosamente por $${montoLimpio.toLocaleString('es-CL')} CLP.`,
+      description: `Comprobante ${pagoFinal.folioComprobante} ${pagoEditar ? 'actualizado' : 'registrado'} exitosamente por ${formatearCLP(montoLimpio)}.`,
       variant: 'success',
       confirmText: 'Entendido'
     })

@@ -3,6 +3,7 @@
  * Extraído de PresupuestoSection.jsx para cumplir límites arquitectónicos (F7-25)
  */
 import React, { memo } from 'react'
+import { formatearCLP } from '../../../utils/formatoMoneda'
 import { Button } from '../../../components/ui/Button'
 
 export const TablaItemsPresupuesto = memo(({
@@ -62,7 +63,7 @@ export const TablaItemsPresupuesto = memo(({
                 </select>
               </td>
               <td className="p-3 text-right font-medium text-graphite-900 dark:text-graphite-100">
-                ${item.valor.toLocaleString('es-CL')} CLP
+                {formatearCLP(item.valor)}
               </td>
               <td className="p-3 text-right print:hidden">
                 <Button
@@ -83,15 +84,15 @@ export const TablaItemsPresupuesto = memo(({
       <div className="border-t-2 border-black dark:border-graphite-300 pt-4 space-y-1 text-right text-xs">
         <p>
           <span className="text-graphite-600 dark:text-graphite-400">Total Tratamiento:</span>{' '}
-          <span className="font-bold dark:text-graphite-100">${totalPresupuesto.toLocaleString('es-CL')} CLP</span>
+          <span className="font-bold dark:text-graphite-100">{formatearCLP(totalPresupuesto)}</span>
         </p>
         <p>
           <span className="text-green-700 dark:text-green-400">Total Abonado:</span>{' '}
-          <span className="font-bold text-green-700 dark:text-green-400">-${totalAbonado.toLocaleString('es-CL')} CLP</span>
+          <span className="font-bold text-green-700 dark:text-green-400">-{formatearCLP(totalAbonado)}</span>
         </p>
         <p className="text-sm pt-2">
           <span className="font-bold text-graphite-900 dark:text-graphite-100">Saldo Pendiente:</span>{' '}
-          <span className="font-extrabold text-clinical-error">${saldoPendiente.toLocaleString('es-CL')} CLP</span>
+          <span className="font-extrabold text-clinical-error">{formatearCLP(saldoPendiente)}</span>
         </p>
       </div>
 
