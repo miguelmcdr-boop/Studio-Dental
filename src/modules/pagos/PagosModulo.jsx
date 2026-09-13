@@ -11,7 +11,7 @@ import { useSesionStore } from '../../store/sesionStore'
 import { useRBAC } from '../../hooks/useRBAC'
 import { useAppDialog } from '../../hooks/useAppDialog'
 import { PERMISOS } from '../../constants/rbacConstants'
-import { obtenerPagosPurgados, restaurarPago, limpiarVencidos, vaciarPapelera } from './services/papeleraPagosService'
+import { restaurarPago, limpiarVencidos, vaciarPapelera } from './services/papeleraPagosService'
 import { ModalPapeleraPagos } from './components/ModalPapeleraPagos'
 
 export const PagosModulo = memo(() => {
@@ -28,7 +28,6 @@ export const PagosModulo = memo(() => {
   const [comprobanteVer, setComprobanteVer] = useState(null)
   const [pagoAPurgar, setPagoAPurgar] = useState(null)
   const [modalPapeleraAbierto, setModalPapeleraAbierto] = useState(false)
-  const [pagosPurgados, setPagosPurgados] = useState([])
 
   const {
     pagos,
@@ -47,6 +46,9 @@ export const PagosModulo = memo(() => {
     exportarAuditoria,
     refrescarPagos
   } = usePagos()
+
+  // Derivado: la papelera siempre sincronizada con el estado de pagos
+  const pagosPurgados = pagos.filter(p => p.estado === 'Purgado')
 
   // Job de limpieza: eliminar pagos purgados con >730 días (Commit K)
   useEffect(() => {
@@ -74,16 +76,12 @@ export const PagosModulo = memo(() => {
   }
 
   const handleAbrirPapelera = () => {
-    setPagosPurgados(obtenerPagosPurgados())
     setModalPapeleraAbierto(true)
   }
 
   const handleRestaurarPago = async (pagoId) => {
     const ok = await restaurarPago(pagoId)
-    if (ok) {
-      refrescarPagos()
-      setPagosPurgados(obtenerPagosPurgados())
-    }
+    if (ok) refrescarPagos()
   }
 
   const handleVaciarPapelera = async () => {
@@ -97,7 +95,6 @@ export const PagosModulo = memo(() => {
     const eliminados = await vaciarPapelera()
     if (eliminados > 0) {
       refrescarPagos()
-      setPagosPurgados(obtenerPagosPurgados())
       await alert({ title: 'Papelera vaciada', description: `Se eliminaron ${eliminados} pagos definitivamente.`, variant: 'success', confirmText: 'Entendido' })
     }
   }

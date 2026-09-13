@@ -124,7 +124,7 @@ export const usePagos = () => {
   }, [alert])
 
   const refrescarPagos = useCallback(() => {
-    setPagos(pagosStorageService.obtenerPagos([]))
+    setPagos([...pagosStorageService.obtenerPagos([])])
   }, [])
 
   return {
