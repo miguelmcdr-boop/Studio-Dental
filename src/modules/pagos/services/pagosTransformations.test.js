@@ -11,7 +11,7 @@ vi.mock('../../../services/migrations/uuidUtils', () => ({
   esUuidValido: (v) => typeof v === 'string' && v.length > 20
 }))
 
-import { transformarParaSupabase, transformarDesdeSupabase } from './pagosTransformations'
+import { transformarParaSupabase, transformarDesdeSupabase, mergeCamposLocales } from './pagosTransformations'
 
 describe('pagosTransformations (Commit K1)', () => {
   describe('transformarParaSupabase', () => {
@@ -136,6 +136,40 @@ describe('pagosTransformations (Commit K1)', () => {
 
     it('retorna null si pagoDb es null', () => {
       expect(transformarDesdeSupabase(null)).toBeNull()
+    })
+  })
+
+  describe('mergeCamposLocales (Commit K2)', () => {
+    it('preserva campos locales que Supabase no almacena', () => {
+      const pagosSupabase = [
+        { id: 1, folioComprobante: 'REC-001', estado: 'Purgado', pacienteNombre: null, fechaPurga: null, motivoPurga: null }
+      ]
+      const previos = [
+        { id: 1, pacienteNombre: 'Ana García', pacienteRut: '12.345.678-9', fechaPurga: '13/09/2026', motivoPurga: 'Prueba', purgadoPor: 'admin@x.cl' }
+      ]
+
+      const result = mergeCamposLocales(pagosSupabase, previos)
+
+      expect(result[0].pacienteNombre).toBe('Ana García')
+      expect(result[0].pacienteRut).toBe('12.345.678-9')
+      expect(result[0].fechaPurga).toBe('13/09/2026')
+      expect(result[0].motivoPurga).toBe('Prueba')
+      expect(result[0].purgadoPor).toBe('admin@x.cl')
+    })
+
+    it('no sobrescribe campos que Supabase sí trae', () => {
+      const pagosSupabase = [{ id: 1, estado: 'Anulado', pacienteNombre: 'Nombre Supabase' }]
+      const previos = [{ id: 1, pacienteNombre: 'Nombre Local' }]
+
+      const result = mergeCamposLocales(pagosSupabase, previos)
+      expect(result[0].pacienteNombre).toBe('Nombre Supabase')
+      expect(result[0].estado).toBe('Anulado')
+    })
+
+    it('pago sin copia local previa queda igual', () => {
+      const pagosSupabase = [{ id: 99, estado: 'Emitido' }]
+      const result = mergeCamposLocales(pagosSupabase, [{ id: 1 }])
+      expect(result[0]).toEqual({ id: 99, estado: 'Emitido' })
     })
   })
 })

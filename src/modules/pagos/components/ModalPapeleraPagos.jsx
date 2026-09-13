@@ -45,7 +45,7 @@ export const ModalPapeleraPagos = memo(({ pagos, alCerrar, onRestaurar }) => {
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-bold text-gray-900">{pago.folioComprobante}</span>
                         <span className="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full">
-                          {dias !== null ? `${dias} días restantes` : 'Fecha inválida'}
+                          {dias !== null ? `${dias} días restantes` : 'Sin fecha registrada (no se auto-elimina)'}
                         </span>
                       </div>
                       <p className="text-sm text-gray-700 font-semibold">{pago.pacienteNombre}</p>
@@ -53,7 +53,7 @@ export const ModalPapeleraPagos = memo(({ pagos, alCerrar, onRestaurar }) => {
                         <span className="font-bold">${pago.monto.toLocaleString('es-CL')} CLP</span> · {pago.metodoPago}
                       </p>
                       <p className="text-xs text-gray-500 mt-1">
-                        Purgado: {pago.fechaPurga} por {pago.purgadoPor || 'N/I'}
+                        Purgado: {pago.fechaPurga || 'sin fecha'} por {pago.purgadoPor || 'sin registro'}
                       </p>
                       {pago.motivoPurga && (
                         <p className="text-xs text-gray-600 mt-1 italic">

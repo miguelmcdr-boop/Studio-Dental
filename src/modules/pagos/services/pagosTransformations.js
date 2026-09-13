@@ -110,3 +110,33 @@ export const transformarParaSupabase = (pagoJs) => {
   }
   return filtrado
 }
+
+// Campos que NO viven en Supabase y deben preservarse desde localStorage
+// al sincronizar (Commit K2). Supabase no los almacena; si la sync los
+// sobrescribe con null, se pierde metadata de auditoría y de UI.
+const CAMPOS_SOLO_LOCALES = [
+  'pacienteNombre', 'pacienteRut',
+  'motivoPurga', 'fechaPurga', 'purgadoPor',
+  'emitidoPor', 'prestacionesImputadas',
+  'tipoDTE', 'folioDTE', 'hora'
+]
+
+/**
+ * Merge de campos locales al sincronizar desde Supabase (Commit K2).
+ * Toma el pago de Supabase como base y rellena los campos que Supabase
+ * no almacena desde la copia local previa (match por id).
+ */
+export const mergeCamposLocales = (pagosSupabase, pagosPrevios = []) => {
+  const previosMap = new Map(pagosPrevios.map(p => [String(p.id), p]))
+  return pagosSupabase.map(pago => {
+    const previo = previosMap.get(String(pago.id))
+    if (!previo) return pago
+    const out = { ...pago }
+    CAMPOS_SOLO_LOCALES.forEach(k => {
+      if ((out[k] === null || out[k] === undefined) && previo[k] !== null && previo[k] !== undefined) {
+        out[k] = previo[k]
+      }
+    })
+    return out
+  })
+}

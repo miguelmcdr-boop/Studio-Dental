@@ -19,7 +19,7 @@ import { leerJSON, escribirJSON, createLocalStorageRepository } from '../../../s
 import { supabase, USE_SUPABASE } from '../../../services/supabaseClient'
 import { migrationStorageService } from '../../../services/migrationStorageService'
 import { esUuidValido } from '../../../services/migrations/uuidUtils'
-import { transformarDesdeSupabase, transformarParaSupabase } from './pagosTransformations'
+import { transformarDesdeSupabase, transformarParaSupabase, mergeCamposLocales } from './pagosTransformations'
 import { createLogger } from '../../../services/logger'
 
 const log = createLogger('pagosStorageService')
@@ -80,10 +80,10 @@ const sincronizarDesdeSupabase = async () => {
       return pagosCache
     }
 
-    const nuevos = data.map(transformarDesdeSupabase).filter(Boolean)
+    const previos = pagosCache || pagosRepo.obtener([])
+    const nuevos = mergeCamposLocales(data.map(transformarDesdeSupabase).filter(Boolean), previos)
     pagosCache = nuevos
     pagosRepo.guardar(nuevos)
-
     return nuevos
   } catch (error) {
     log.error('Excepción al sincronizar desde Supabase:', error)
