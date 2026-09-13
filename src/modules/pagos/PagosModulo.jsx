@@ -14,7 +14,6 @@ import { obtenerPagosPurgados, restaurarPago, limpiarVencidos } from './services
 import { ModalPapeleraPagos } from './components/ModalPapeleraPagos'
 
 export const PagosModulo = memo(() => {
-  // (F2-02) — pacientes y userProfile ya no llegan como prop desde App.jsx: se leen directo de los stores.
   const pacientes = usePacientesStore((state) => state.pacientes)
   const userProfile = useSesionStore((state) => state.userProfile)
 
@@ -26,6 +25,8 @@ export const PagosModulo = memo(() => {
   const [pagoEditar, setPagoEditar] = useState(null)
   const [comprobanteVer, setComprobanteVer] = useState(null)
   const [pagoAPurgar, setPagoAPurgar] = useState(null)
+  const [modalPapeleraAbierto, setModalPapeleraAbierto] = useState(false)
+  const [pagosPurgados, setPagosPurgados] = useState([])
 
   const {
     pagos,
@@ -41,8 +42,18 @@ export const PagosModulo = memo(() => {
     agregarOActualizarPago,
     anularPago,
     purgarPago,
-    exportarAuditoria
+    exportarAuditoria,
+    refrescarPagos
   } = usePagos()
+
+  // Job de limpieza: eliminar pagos purgados con >730 días (Commit K)
+  useEffect(() => {
+    const ejecutarLimpieza = async () => {
+      const eliminados = await limpiarVencidos()
+      if (eliminados > 0) refrescarPagos()
+    }
+    ejecutarLimpieza()
+  }, [refrescarPagos])
 
   const handlePurgarConfirmado = async (motivo) => {
     if (!pagoAPurgar) return
@@ -60,6 +71,19 @@ export const PagosModulo = memo(() => {
     setModalAbierto(true)
   }
 
+  const handleAbrirPapelera = () => {
+    setPagosPurgados(obtenerPagosPurgados())
+    setModalPapeleraAbierto(true)
+  }
+
+  const handleRestaurarPago = async (pagoId) => {
+    const ok = await restaurarPago(pagoId)
+    if (ok) {
+      refrescarPagos()
+      setPagosPurgados(obtenerPagosPurgados())
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center flex-wrap gap-3 print:hidden">
@@ -69,11 +93,20 @@ export const PagosModulo = memo(() => {
         </div>
 
         <div className="flex gap-2 flex-wrap">
+          {puedePurgar && (
+            <button
+              onClick={handleAbrirPapelera}
+              className="bg-gray-100 text-gray-800 text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-gray-200 transition-colors border border-gray-300 cursor-pointer"
+              title="Ver pagos purgados (papelera)"
+            >
+              🗑️ Papelera
+            </button>
+          )}
           {puedeExportar && (
             <button
               onClick={exportarAuditoria}
               className="bg-gray-100 text-gray-800 text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-gray-200 transition-colors border border-gray-300 cursor-pointer"
-              title="Exportar todos los pagos (vigentes + anulados) a CSV"
+              title="Exportar todos los pagos (vigentes + anulados) a XLSX"
             >
               📥 Exportar auditoría
             </button>
@@ -99,7 +132,7 @@ export const PagosModulo = memo(() => {
         />
       ) : (
         <>
-          <div className="bg-gray-50 p-4 border border-gray-200 rounded-2xl flex justify-between items-center flex-wrap gap-3 text-xs print:hidden">
+          <div className="bg-gray-50 p-4 border border-gray-200 rounded-2xl flex justify-between items-center flex-wrap gap-3 text-xsprint:hidden">
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <span className="font-semibold text-gray-600">Medio:</span>
               <select
@@ -168,6 +201,14 @@ export const PagosModulo = memo(() => {
           pago={pagoAPurgar}
           onConfirmar={handlePurgarConfirmado}
           alCerrar={() => setPagoAPurgar(null)}
+        />
+      )}
+
+      {modalPapeleraAbierto && (
+        <ModalPapeleraPagos
+          pagos={pagosPurgados}
+          alCerrar={() => setModalPapeleraAbierto(false)}
+          onRestaurar={handleRestaurarPago}
         />
       )}
     </div>
