@@ -123,6 +123,10 @@ export const usePagos = () => {
     }
   }, [alert])
 
+  const refrescarPagos = useCallback(() => {
+    setPagos(pagosStorageService.obtenerPagos([]))
+  }, [])
+
   return {
     pagos: pagosFiltrados,
     todosLosPagos: pagos,

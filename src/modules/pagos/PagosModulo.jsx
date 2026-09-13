@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react'
+import React, { memo, useState, useEffect } from 'react'
 import { METODOS_PAGO_GOLD } from './constants/pagosConstants'
 import { usePagos } from './hooks/usePagos'
 import { PagosSummaryCards } from './components/PagosSummaryCards'
@@ -10,6 +10,8 @@ import { usePacientesStore } from '../../store/pacientesStore'
 import { useSesionStore } from '../../store/sesionStore'
 import { useRBAC } from '../../hooks/useRBAC'
 import { PERMISOS } from '../../constants/rbacConstants'
+import { obtenerPagosPurgados, restaurarPago, limpiarVencidos } from './services/papeleraPagosService'
+import { ModalPapeleraPagos } from './components/ModalPapeleraPagos'
 
 export const PagosModulo = memo(() => {
   // (F2-02) — pacientes y userProfile ya no llegan como prop desde App.jsx: se leen directo de los stores.
