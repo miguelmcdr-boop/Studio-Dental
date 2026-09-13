@@ -1,19 +1,23 @@
 import React, { memo, useState } from 'react'
+import { createPortal } from 'react-dom'
 // F6-D-6: usar certificadosStorageService en lugar de pacientesStorageService.guardarItem
 import { certificadosStorageService } from '../services/certificadosStorageService'
+import { imprimirCertificadoAislado } from '../services/certificadosPrintService'
 import { FormularioNuevoCertificado } from './FormularioNuevoCertificado'
+import { CertificadoImprimible } from './CertificadoImprimible'
 import { createLogger } from '../../../services/logger'
 import { useAppDialog } from '../../../hooks/useAppDialog'
 
 const log = createLogger('CertificadosSection')
 
 /**
- * Sección de Certificados Médicos (F6-D-6 refactor)
- * 
+ * Sección de Certificados Médicos (F6-D-6 refactor, M2a print isolation)
+ *
  * Componente padre que renderiza:
  * - FormularioNuevoCertificado (extraído para respetar límite de 285 líneas)
  * - Historial de certificados emitidos
- * - Documento imprimible del certificado seleccionado
+ * - Preview del certificado seleccionado (CertificadoImprimible)
+ * - Portal de impresión aislada (M2a)
  */
 export const CertificadosSection = memo(({
   paciente,
@@ -50,6 +54,13 @@ export const CertificadosSection = memo(({
     }
   }
 
+  const handleVerCertificado = (cert) => {
+    setCertSeleccionadoVer(cert)
+    setTimeout(() => {
+      document.getElementById('certificado-preview')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 50)
+  }
+
   const certAMostrar = certSeleccionadoVer || (listaCertificados.length > 0 ? listaCertificados[0] : null)
 
   return (
@@ -68,7 +79,7 @@ export const CertificadosSection = memo(({
             {listaCertificados.map(c => (
               <div
                 key={c.id}
-                onClick={() => setCertSeleccionadoVer(c)}
+                onClick={() => handleVerCertificado(c)}
                 className={`p-3 rounded-xl border text-xs flex justify-between items-center cursor-pointer transition-all ${
                   certAMostrar?.id === c.id ? 'bg-black text-white border-black' : 'bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-800'
                 }`}
@@ -80,7 +91,12 @@ export const CertificadosSection = memo(({
                   <span>({c.fechaEmision}) — {c.diagnosticoMotivo}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] opacity-75">Ver/Imprimir →</span>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleVerCertificado(c); }}
+                    className="text-[10px] opacity-75 hover:opacity-100 underline cursor-pointer"
+                  >
+                    Ver/Imprimir →
+                  </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); handleEliminarCertificado(c.id); }}
                     className="text-red-400 hover:text-red-200 font-bold ml-2"
@@ -94,77 +110,34 @@ export const CertificadosSection = memo(({
         </div>
       )}
 
-      {/* Documento de Certificado Listo para Impresión Letter */}
+      {/* Preview del Certificado Listo para Impresión Letter */}
       {certAMostrar ? (
         <div className="space-y-4">
           <div className="flex justify-end print:hidden">
             <button
-              onClick={() => window.print()}
+              onClick={imprimirCertificadoAislado}
               className="bg-black text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-gray-800 shadow-sm flex items-center gap-2"
             >
               🖨️ Imprimir Certificado Oficial (Letter)
             </button>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-2xl p-10 print:border-none print:p-0 min-h-[500px] flex flex-col justify-between">
-            <div>
-              {/* Membrete */}
-              <div className="border-b-2 border-black pb-4 mb-8 flex justify-between items-start">
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900">{certAMostrar.profesional}</h1>
-                  <p className="text-xs text-gray-600">{certAMostrar.especialidad} | RUT: {certAMostrar.rutProfesional}</p>
-                  <p className="text-xs text-gray-500">Consulta Odontológica Particular</p>
-                </div>
-                <div className="text-right">
-                  <h2 className="text-sm font-bold text-gray-800 uppercase tracking-widest">
-                    {certAMostrar.tipo === 'asistencia' ? 'CERTIFICADO DE ASISTENCIA' : 'CERTIFICADO DE REPOSO MÉDICO'}
-                  </h2>
-                  <p className="text-xs text-gray-500">Fecha de Emisión: {certAMostrar.fechaEmision}</p>
-                </div>
-              </div>
-
-              {/* Cuerpo del Certificado */}
-              <div className="space-y-6 text-sm leading-relaxed text-gray-800 py-4">
-                <p>
-                  El profesional cirujano dentista que suscribe certifica que don/doña <strong>{paciente.nombre}</strong>, RUT <strong>{paciente.rut}</strong>:
-                </p>
-
-                {certAMostrar.tipo === 'asistencia' ? (
-                  <p className="bg-gray-50 p-4 rounded-xl border border-gray-200 print:bg-transparent print:border-none">
-                    Asistió a atención odontológica el día <strong>{certAMostrar.fechaAtencion}</strong> en el horario comprendido entre las <strong>{certAMostrar.horaInicio} hrs.</strong> y las <strong>{certAMostrar.horaFin} hrs.</strong>, debido a: <em>{certAMostrar.diagnosticoMotivo}</em>.
-                  </p>
-                ) : (
-                  <p className="bg-gray-50 p-4 rounded-xl border border-gray-200 print:bg-transparent print:border-none">
-                    Requiere guardar reposo médico odontológico por un período de <strong>{certAMostrar.diasReposo} día(s)</strong> a contar del día <strong>{certAMostrar.fechaAtencion}</strong>, debido al cuadro clínico de: <em>{certAMostrar.diagnosticoMotivo}</em>.
-                  </p>
-                )}
-
-                {certAMostrar.observaciones && (
-                  <p className="text-xs text-gray-600 italic">
-                    <strong>Observaciones:</strong> {certAMostrar.observaciones}
-                  </p>
-                )}
-
-                <p className="text-xs text-gray-500 pt-4">
-                  Se extiende el presente certificado a solicitud del interesado para los fines que estime convenientes.
-                </p>
-              </div>
-            </div>
-
-            {/* Firma al Pie */}
-            <div className="pt-20 text-center">
-              <div className="w-64 mx-auto border-t border-black pt-2">
-                <p className="font-bold text-xs text-gray-900">{certAMostrar.profesional}</p>
-                <p className="text-[10px] text-gray-600">{certAMostrar.especialidad}</p>
-                <p className="text-[10px] text-gray-500">RUT: {certAMostrar.rutProfesional}</p>
-              </div>
-            </div>
+          <div id="certificado-preview">
+            <CertificadoImprimible cert={certAMostrar} paciente={paciente} />
           </div>
         </div>
       ) : (
         <div className="text-center py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-300 text-xs text-gray-500 print:hidden">
           No hay certificados emitidos para este paciente. Completa el formulario superior para generar uno.
         </div>
+      )}
+
+      {/* Portal de impresión aislada (M2a): solo visible al imprimir */}
+      {certAMostrar && createPortal(
+        <div className="certificado-print-portal">
+          <CertificadoImprimible cert={certAMostrar} paciente={paciente} />
+        </div>,
+        document.body
       )}
     </div>
   )

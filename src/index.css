@@ -16,3 +16,17 @@
     -webkit-print-color-adjust: exact;
   }
 }
+
+/* M2a: aislamiento de impresión de certificados */
+.certificado-print-portal {
+  display: none;
+}
+
+@media print {
+  body.print-cert-activo #root {
+    display: none !important;
+  }
+  body.print-cert-activo .certificado-print-portal {
+    display: block !important;
+  }
+}
