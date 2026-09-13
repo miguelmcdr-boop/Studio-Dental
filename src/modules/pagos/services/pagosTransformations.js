@@ -32,6 +32,18 @@ export const CAMEL_TO_SNAKE_MAP = Object.fromEntries(
   Object.entries(SNAKE_TO_CAMEL_MAP).map(([snake, camel]) => [camel, snake])
 )
 
+/**
+ * Convierte formato chileno DD/MM/YYYY o DD-MM-YYYY a ISO YYYY-MM-DD.
+ * Retorna null si no matchea (fallback seguro para evitar error 400).
+ */
+const convertirFechaAISO = (valor) => {
+  if (!valor || typeof valor !== 'string') return null
+  const match = valor.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/)
+  if (!match) return null
+  const [, dd, mm, yyyy] = match
+  return `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`
+}
+
 // ALLOWLIST DE COLUMNAS VALIDAS EN SUPABASE (Commit K1)
 // Columnas que SI existen en la tabla pagos de Supabase (schema real).
 // Cualquier campo fuera de esta lista se omite en el upsert.
@@ -86,6 +98,10 @@ export const transformarParaSupabase = (pagoJs) => {
       } else {
         filtrado.paciente_id = null
       }
+    } else if (claveDb === 'fecha') {
+      // Commit L1: convertir DD/MM/YYYY a YYYY-MM-DD para Supabase
+      const fechaISO = convertirFechaAISO(valor)
+      filtrado[claveDb] = fechaISO || null
     } else if (valor === '' || valor === null || valor === undefined) {
       filtrado[claveDb] = null
     } else {

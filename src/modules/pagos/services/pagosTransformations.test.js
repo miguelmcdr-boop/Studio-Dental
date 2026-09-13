@@ -87,6 +87,24 @@ describe('pagosTransformations (Commit K1)', () => {
     it('retorna null si pagoJs es null', () => {
       expect(transformarParaSupabase(null)).toBeNull()
     })
+
+    it('convierte fecha DD/MM/YYYY a ISO YYYY-MM-DD (Commit L1)', () => {
+      const pagoJs = { id: 'uuid-1', fecha: '13/09/2026' }
+      const result = transformarParaSupabase(pagoJs)
+      expect(result.fecha).toBe('2026-09-13')
+    })
+
+    it('convierte fecha DD-MM-YYYY a ISO YYYY-MM-DD', () => {
+      const pagoJs = { id: 'uuid-1', fecha: '13-09-2026' }
+      const result = transformarParaSupabase(pagoJs)
+      expect(result.fecha).toBe('2026-09-13')
+    })
+
+    it('retorna null si fecha tiene formato invalido', () => {
+      const pagoJs = { id: 'uuid-1', fecha: 'fecha-invalida' }
+      const result = transformarParaSupabase(pagoJs)
+      expect(result.fecha).toBeNull()
+    })
   })
 
   describe('transformarDesdeSupabase', () => {
