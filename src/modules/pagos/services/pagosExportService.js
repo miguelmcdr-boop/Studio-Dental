@@ -29,7 +29,10 @@ const COLUMNAS = [
   { header: 'Motivo Anulación', key: 'motivoAnulacion', width: 30 },
   { header: 'Fecha Anulación', key: 'fechaAnulacion', width: 15 },
   { header: 'Emitido por', key: 'emitidoPor', width: 22 },
-  { header: 'Observación', key: 'observacion', width: 40 }
+  { header: 'Observación', key: 'observacion', width: 40 },
+  { header: 'Motivo Purga', key: 'motivoPurga', width: 35 },
+  { header: 'Fecha Purga', key: 'fechaPurga', width: 15 },
+  { header: 'Purgado por', key: 'purgadoPor', width: 25 }
 ]
 
 const generarTimestamp = () => {

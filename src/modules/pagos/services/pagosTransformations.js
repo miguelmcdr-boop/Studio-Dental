@@ -6,14 +6,18 @@
  * Responsabilidad:
  * - Mapeo entre snake_case (DB) y camelCase (JS)
  * - Transformación de objetos para lectura/escritura en Supabase
+ * - Commit J: filtrado por allowlist para omitir columnas que no existen en Supabase
  */
 import { migrationStorageService } from '../../../services/migrationStorageService'
 import { esUuidValido } from '../../../services/migrations/uuidUtils'
 
 // ═══════════════════════════════════════════════════════════════════
-// MAPEO DE CLAVES: DB (snake_case) ↔ JS (camelCase)
+// MAPEO COMPLETO DE CLAVES: DB (snake_case) ↔ JS (camelCase)
 // ═══════════════════════════════════════════════════════════════════
 
+// Mapa COMPLETO: TODAS las columnas que la app conoce.
+// Si una columna es igual en DB y JS (ej: 'monto'), se omite del mapa
+// y se pasa tal cual.
 export const SNAKE_TO_CAMEL_MAP = {
   paciente_id: 'pacienteId',
   metodo_pago: 'metodoPago',
@@ -21,7 +25,12 @@ export const SNAKE_TO_CAMEL_MAP = {
   created_at: 'createdAt',
   updated_at: 'updatedAt',
   motivo_anulacion: 'motivoAnulacion',
-  fecha_anulacion: 'fechaAnulacion'
+  fecha_anulacion: 'fechaAnulacion',
+  folio_comprobante: 'folioComprobante',
+  tipo_dte: 'tipoDTE',
+  folio_dte: 'folioDTE',
+  paciente_nombre: 'pacienteNombre',
+  paciente_rut: 'pacienteRut'
 }
 
 export const CAMEL_TO_SNAKE_MAP = Object.fromEntries(
@@ -29,13 +38,33 @@ export const CAMEL_TO_SNAKE_MAP = Object.fromEntries(
 )
 
 // ═══════════════════════════════════════════════════════════════════
+// ALLOWLIST DE COLUMNAS VÁLIDAS EN SUPABASE (Commit J)
+// ═══════════════════════════════════════════════════════════════════
+//
+// Columnas que SÍ existen en la tabla `pagos` de Supabase.
+// Cualquier campo fuera de esta lista se omite en el upsert para
+// evitar error 400 "Could not find the 'X' column of 'pagos' in the
+// schema cache".
+//
+// Columnas que viven solo en memoria/localStorage (NO en Supabase):
+// - emitidoPor, prestacionesImputadas (campos de UI)
+// - motivoPurga, fechaPurga, purgadoPor (auditoría en log y Excel)
+const COLUMNAS_SUPABASE_VALIDAS = new Set([
+  'id',
+  'folio_comprobante', 'tipo_dte', 'folio_dte',
+  'paciente_id', 'paciente_nombre', 'paciente_rut',
+  'fecha', 'hora', 'monto', 'metodo_pago',
+  'concepto', 'estado', 'observacion',
+  'user_id', 'motivo_anulacion', 'fecha_anulacion',
+  'created_at', 'updated_at'
+])
+
+// ═══════════════════════════════════════════════════════════════════
 // TRANSFORMACIONES
 // ═══════════════════════════════════════════════════════════════════
 
 /**
  * Transforma un pago desde Supabase (snake_case) a JavaScript (camelCase)
- * @param {Object} pagoDb - Objeto de pago desde Supabase
- * @returns {Object|null} - Objeto transformado o null si pagoDb es inválido
  */
 export const transformarDesdeSupabase = (pagoDb) => {
   if (!pagoDb) return null
@@ -48,32 +77,35 @@ export const transformarDesdeSupabase = (pagoDb) => {
 }
 
 /**
- * Transforma un pago desde JavaScript (camelCase) a Supabase (snake_case)
- * @param {Object} pagoJs - Objeto de pago en formato JavaScript
- * @returns {Object|null} - Objeto transformado o null si pagoJs es inválido
+ * Transforma un pago desde JavaScript (camelCase) a Supabase (snake_case).
+ * Omite columnas que no existen en Supabase (Commit J).
  */
 export const transformarParaSupabase = (pagoJs) => {
   if (!pagoJs) return null
-  const resultado = {}
+  const filtrado = {}
   for (const [claveJs, valor] of Object.entries(pagoJs)) {
     if (claveJs === 'createdAt' || claveJs === 'updatedAt' || claveJs === 'userId') {
       continue
     }
     const claveDb = CAMEL_TO_SNAKE_MAP[claveJs] || claveJs
+
+    // Commit J: filtrar columnas que no existen en Supabase
+    if (!COLUMNAS_SUPABASE_VALIDAS.has(claveDb)) continue
+
     if (claveJs === 'pacienteId') {
       if (esUuidValido(valor)) {
-        resultado.paciente_id = valor
+        filtrado.paciente_id = valor
       } else if (valor !== null && valor !== undefined) {
         const pacienteUuid = migrationStorageService.obtenerSupabaseId(valor)
-        resultado.paciente_id = pacienteUuid || null
+        filtrado.paciente_id = pacienteUuid || null
       } else {
-        resultado.paciente_id = null
+        filtrado.paciente_id = null
       }
     } else if (valor === '' || valor === null || valor === undefined) {
-      resultado[claveDb] = null
+      filtrado[claveDb] = null
     } else {
-      resultado[claveDb] = valor
+      filtrado[claveDb] = valor
     }
   }
-  return resultado
+  return filtrado
 }
