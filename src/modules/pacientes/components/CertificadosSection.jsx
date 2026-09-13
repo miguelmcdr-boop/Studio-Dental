@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 // F6-D-6: usar certificadosStorageService en lugar de pacientesStorageService.guardarItem
 import { certificadosStorageService } from '../services/certificadosStorageService'
 import { imprimirCertificadoAislado } from '../services/certificadosPrintService'
+import { generarPDFCertificado, respaldarCertificadoEnR2, descargarBlob } from '../services/certificadosPDFService'
 import { FormularioNuevoCertificado } from './FormularioNuevoCertificado'
 import { CertificadoImprimible } from './CertificadoImprimible'
 import { createLogger } from '../../../services/logger'
@@ -26,7 +27,8 @@ export const CertificadosSection = memo(({
   setCertificados = () => {}
 }) => {
   const [certSeleccionadoVer, setCertSeleccionadoVer] = useState(null)
-  const { confirm } = useAppDialog()
+  const [generandoPDF, setGenerandoPDF] = useState(false)
+  const { confirm, alert } = useAppDialog()
 
   const listaCertificados = Array.isArray(certificados) ? certificados : []
 
@@ -51,6 +53,36 @@ export const CertificadosSection = memo(({
       // F6-D-6: usar certificadosStorageService (Supabase + localStorage)
       certificadosStorageService.guardarCertificados(paciente.id, actualizados).catch(err => log.warn("Error al guardar:", err))
       if (certSeleccionadoVer?.id === id) setCertSeleccionadoVer(null)
+    }
+  }
+
+  const handleDescargarPDF = async () => {
+    if (!certAMostrar || generandoPDF) return
+    setGenerandoPDF(true)
+    try {
+      const nodo = document.getElementById('certificado-preview')
+      const blob = await generarPDFCertificado(nodo)
+      if (!blob) throw new Error('No se pudo generar el blob PDF')
+
+      const nombre = `certificado-${certAMostrar.tipo}-${(certAMostrar.fechaEmision || '').replace(/\//g, '-')}.pdf`
+      descargarBlob(blob, nombre)
+
+      const respaldo = await respaldarCertificadoEnR2({ blob, pacienteId: paciente.id, nombreArchivo: nombre })
+      if (respaldo) {
+        const actualizados = listaCertificados.map(c =>
+          c.id === certAMostrar.id ? { ...c, r2ArchivoId: respaldo.archivoId, r2ObjectKey: respaldo.objectKey } : c
+        )
+        setCertificados(actualizados)
+        certificadosStorageService.guardarCertificados(paciente.id, actualizados).catch(err => log.warn('Error al guardar:', err))
+        await alert({ title: 'PDF descargado y respaldado', description: 'El certificado se descargó y quedó respaldado en R2 Cloudflare.', variant: 'success', confirmText: 'Entendido' })
+      } else {
+        await alert({ title: 'PDF descargado sin respaldo', description: 'El PDF se descargó correctamente pero no se pudo respaldar en R2. Intenta de nuevo más tarde.', variant: 'warning', confirmText: 'Entendido' })
+      }
+    } catch (e) {
+      log.error('Error generando PDF:', e)
+      await alert({ title: 'Error al generar PDF', description: 'No se pudo generar el PDF del certificado. Intenta de nuevo.', variant: 'error', confirmText: 'Entendido' })
+    } finally {
+      setGenerandoPDF(false)
     }
   }
 
@@ -114,6 +146,13 @@ export const CertificadosSection = memo(({
       {certAMostrar ? (
         <div className="space-y-4">
           <div className="flex justify-end print:hidden">
+            <button
+              onClick={handleDescargarPDF}
+              disabled={generandoPDF}
+              className="bg-gray-100 text-gray-800 text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-gray-200 border border-gray-300 shadow-sm flex items-center gap-2 disabled:opacity-50"
+            >
+              {generandoPDF ? '⏳ Generando PDF...' : '📥 Descargar PDF'}
+            </button>
             <button
               onClick={imprimirCertificadoAislado}
               className="bg-black text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-gray-800 shadow-sm flex items-center gap-2"
