@@ -25,6 +25,7 @@ export const ConsentimientosSection = memo(({ paciente, userProfile }) => {
   const [plantillaId, setPlantillaId] = useState(PLANTILLAS_CONSENTIMIENTO[0].id)
   const { alert: dialogAlert } = useAppDialog()
   const [firmaBase64, setFirmaBase64] = useState('')
+  const [firmaResetCounter, setFirmaResetCounter] = useState(0)
   const [historialConsentimientos, setHistorialConsentimientos] = useState(() =>
     pacientesStorageService.obtenerItem(`consentimientos_${paciente.id}`, [])
   )
@@ -60,7 +61,7 @@ export const ConsentimientosSection = memo(({ paciente, userProfile }) => {
     setHistorialConsentimientos(actualizados)
     pacientesStorageService.guardarItem(`consentimientos_${paciente.id}`, actualizados)
     setFirmaBase64('')
-    console.log('[TRACE-4] handleGuardarConsentimiento: guardado OK, llamando alert success')
+    setFirmaResetCounter(c => c + 1)
     await dialogAlert({
       title: 'Consentimiento guardado',
       description: 'Consentimiento informado firmado y guardado inmutablemente.',
@@ -98,7 +99,7 @@ export const ConsentimientosSection = memo(({ paciente, userProfile }) => {
         {/* Componente Firma Digital Canvas */}
         <div>
           <label className="block font-bold text-gray-800 mb-2">✍️ Firma Táctil / Digital del Paciente:</label>
-          <FirmaDigitalCanvas alGuardarFirma={setFirmaBase64} />
+          <FirmaDigitalCanvas alGuardarFirma={setFirmaBase64} resetSignal={firmaResetCounter} />
         </div>
 
         <div className="flex justify-end pt-2">

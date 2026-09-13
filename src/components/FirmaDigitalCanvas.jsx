@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 
-export const FirmaDigitalCanvas = ({ alGuardarFirma, alLimpiarFirma }) => {
+export const FirmaDigitalCanvas = ({ alGuardarFirma, alLimpiarFirma, resetSignal = 0 }) => {
   const canvasRef = useRef(null)
   const [dibujando, setDibujando] = useState(false)
 
@@ -14,6 +14,15 @@ export const FirmaDigitalCanvas = ({ alGuardarFirma, alLimpiarFirma }) => {
       ctx.strokeStyle = '#000000'
     }
   }, [])
+
+  // M1.5: auto-limpieza cuando el padre incrementa resetSignal
+  useEffect(() => {
+    if (resetSignal === 0) return
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height)
+  }, [resetSignal])
 
   const obtenerCoordenadas = (e) => {
     const canvas = canvasRef.current
