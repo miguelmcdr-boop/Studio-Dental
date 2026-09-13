@@ -33,7 +33,7 @@ export const useFinanzas = (pacientes = []) => {
     const idsPago = new Set(pagos.map(p => String(p.id)))
     // Pagos globales vigentes: los anulados quedan solo en auditoría de Pagos
     pagos.forEach(p => {
-      if (p.estado === 'Anulado') return
+      if (p.estado === 'Anulado' || p.estado === 'Purgado') return
       lista.push({
         id: `pago_global_${p.id}`, fecha: p.fecha || hoy(), tipo: 'Ingreso',
         categoria: 'Pago Paciente (Boleta/Factura)', monto: parseInt(p.monto || 0),

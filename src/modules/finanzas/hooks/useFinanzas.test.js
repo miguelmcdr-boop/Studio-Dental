@@ -187,6 +187,17 @@ describe('useFinanzas', () => {
       expect(abonosConsolidados).toHaveLength(1)
       expect(abonosConsolidados[0].id).toBe('abono_2_999')
     })
+
+    it('excluye pagos purgados de la consolidación (Commit I)', () => {
+      pagosStorageService.obtenerPagos.mockReturnValue([
+        { id: 1, fecha: fechaHoy, monto: 50000, metodoPago: 'Efectivo', pacienteNombre: 'A', estado: 'Purgado' },
+        { id: 2, fecha: fechaHoy, monto: 30000, metodoPago: 'Efectivo', pacienteNombre: 'B', estado: 'Emitido' }
+      ])
+      const { result } = renderHook(() => useFinanzas(mockPacientes))
+      const pagosConsolidados = result.current.movimientos.filter(m => m.origen === 'Pagos')
+      expect(pagosConsolidados).toHaveLength(1)
+      expect(pagosConsolidados[0].monto).toBe(30000)
+    })
   })
 
   describe('Filtrado por fecha de arqueo', () => {

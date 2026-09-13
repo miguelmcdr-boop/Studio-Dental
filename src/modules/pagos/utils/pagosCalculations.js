@@ -20,6 +20,7 @@ export const calcularResumenRecaudacion = (pagos = []) => {
   pagos.forEach(p => {
     const monto = parseFloat(p.monto) || 0
 
+    if (p.estado === 'Purgado') return
     if (p.estado === 'Anulado') {
       totalAnulados += monto
       return
@@ -37,7 +38,7 @@ export const calcularResumenRecaudacion = (pagos = []) => {
   })
 
   return {
-    totalTransacciones: pagos.length,
+    totalTransacciones: pagos.filter(p => p.estado !== 'Purgado').length,
     recaudadoHoy,
     totalRecaudado,
     totalBoletasHonorarios,

@@ -254,5 +254,16 @@ describe('usePagos', () => {
       act(() => { result.current.setMostrarPurgados(false) })
       expect(result.current.pagos).toHaveLength(1)
     })
+
+    it('resumen excluye pagos purgados del total recaudado (Commit I)', () => {
+      const hoy = new Date().toLocaleDateString('es-CL')
+      pagosStorageService.obtenerPagos.mockReturnValue([
+        { id: 1, estado: 'Purgado', monto: 50000, metodoPago: 'Efectivo', folioComprobante: 'R1', pacienteNombre: 'A', pacienteRut: '1-1', fecha: hoy },
+        { id: 2, estado: 'Emitido', monto: 30000, metodoPago: 'Efectivo', folioComprobante: 'R2', pacienteNombre: 'B', pacienteRut: '2-2', fecha: hoy }
+      ])
+      const { result } = renderHook(() => usePagos())
+      expect(result.current.resumen.totalRecaudado).toBe(30000)
+      expect(result.current.resumen.totalTransacciones).toBe(1)
+    })
   })
 })
