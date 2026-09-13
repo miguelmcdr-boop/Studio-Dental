@@ -1,9 +1,9 @@
 import React, { memo, useState } from 'react'
 import { createPortal } from 'react-dom'
-// F6-D-6: usar certificadosStorageService en lugar de pacientesStorageService.guardarItem
 import { certificadosStorageService } from '../services/certificadosStorageService'
 import { imprimirCertificadoAislado } from '../services/certificadosPrintService'
-import { generarPDFCertificado, respaldarCertificadoEnR2, descargarBlob } from '../services/certificadosPDFService'
+import { generarPDFCertificado, respaldarCertificadoEnR2, descargarBlob, descargarCertificadoDesdeR2 } from '../services/certificadosPDFService'
+import { useAutoRespaldoCertificados } from '../hooks/useAutoRespaldoCertificados'
 import { FormularioNuevoCertificado } from './FormularioNuevoCertificado'
 import { CertificadoImprimible } from './CertificadoImprimible'
 import { createLogger } from '../../../services/logger'
@@ -12,12 +12,12 @@ import { useAppDialog } from '../../../hooks/useAppDialog'
 const log = createLogger('CertificadosSection')
 
 /**
- * Sección de Certificados Médicos (F6-D-6 refactor, M2a print isolation)
+ * Sección de Certificados Médicos (F6-D-6 refactor, M2c auto-respaldo)
  *
  * Componente padre que renderiza:
- * - FormularioNuevoCertificado (extraído para respetar límite de 285 líneas)
- * - Historial de certificados emitidos
- * - Preview del certificado seleccionado (CertificadoImprimible)
+ * - FormularioNuevoCertificado
+ * - Historial de certificados emitidos (con mini-badge 🔒 si respaldado)
+ * - Preview del certificado seleccionado (con badge grande de estado R2)
  * - Portal de impresión aislada (M2a)
  */
 export const CertificadosSection = memo(({
@@ -31,11 +31,15 @@ export const CertificadosSection = memo(({
   const { confirm, alert } = useAppDialog()
 
   const listaCertificados = Array.isArray(certificados) ? certificados : []
+  const { respaldandoIds, idsConError, reintentarRespaldo } = useAutoRespaldoCertificados(
+    listaCertificados,
+    paciente.id,
+    setCertificados
+  )
 
   const handleGenerarCertificado = (nuevoCertificado) => {
     const actualizados = [nuevoCertificado, ...listaCertificados]
     setCertificados(actualizados)
-    // F6-D-6: usar certificadosStorageService (Supabase + localStorage)
     certificadosStorageService.guardarCertificados(paciente.id, actualizados).catch(err => log.warn("Error al guardar:", err))
     setCertSeleccionadoVer(nuevoCertificado)
   }
@@ -50,21 +54,37 @@ export const CertificadosSection = memo(({
     if (ok) {
       const actualizados = listaCertificados.filter(c => c.id !== id)
       setCertificados(actualizados)
-      // F6-D-6: usar certificadosStorageService (Supabase + localStorage)
       certificadosStorageService.guardarCertificados(paciente.id, actualizados).catch(err => log.warn("Error al guardar:", err))
       if (certSeleccionadoVer?.id === id) setCertSeleccionadoVer(null)
     }
+  }
+
+  const handleVerCertificado = (cert) => {
+    setCertSeleccionadoVer(cert)
+    setTimeout(() => {
+      document.getElementById('certificado-preview')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 50)
   }
 
   const handleDescargarPDF = async () => {
     if (!certAMostrar || generandoPDF) return
     setGenerandoPDF(true)
     try {
+      const nombre = `certificado-${certAMostrar.tipo}-${(certAMostrar.fechaEmision || '').replace(/\//g, '-')}.pdf`
+
+      if (certAMostrar.r2ArchivoId) {
+        const ok = await descargarCertificadoDesdeR2(certAMostrar.r2ArchivoId, nombre)
+        if (ok) {
+          await alert({ title: 'PDF descargado', description: 'El certificado se descargó desde R2 Cloudflare.', variant: 'success', confirmText: 'Entendido' })
+          return
+        }
+        log.warn('Descarga desde R2 falló, regenerando PDF local')
+      }
+
       const nodo = document.getElementById('certificado-preview')
       const blob = await generarPDFCertificado(nodo)
       if (!blob) throw new Error('No se pudo generar el blob PDF')
 
-      const nombre = `certificado-${certAMostrar.tipo}-${(certAMostrar.fechaEmision || '').replace(/\//g, '-')}.pdf`
       descargarBlob(blob, nombre)
 
       const respaldo = await respaldarCertificadoEnR2({ blob, pacienteId: paciente.id, nombreArchivo: nombre })
@@ -86,24 +106,25 @@ export const CertificadosSection = memo(({
     }
   }
 
-  const handleVerCertificado = (cert) => {
-    setCertSeleccionadoVer(cert)
-    setTimeout(() => {
-      document.getElementById('certificado-preview')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }, 50)
-  }
-
   const certAMostrar = certSeleccionadoVer || (listaCertificados.length > 0 ? listaCertificados[0] : null)
+
+  const estadoRespaldo = certAMostrar
+    ? respaldandoIds.has(certAMostrar.id)
+      ? 'respaldando'
+      : certAMostrar.r2ArchivoId
+        ? 'respaldado'
+        : idsConError.has(certAMostrar.id)
+          ? 'error'
+          : 'pendiente'
+    : null
 
   return (
     <div className="space-y-6">
-      {/* Formulario de Emisión */}
       <FormularioNuevoCertificado 
         userProfile={userProfile} 
         onGenerarCertificado={handleGenerarCertificado} 
       />
 
-      {/* Historial de Certificados Guardados */}
       {listaCertificados.length > 0 && (
         <div className="bg-white p-4 border border-gray-200 rounded-2xl print:hidden">
           <h4 className="font-bold text-xs text-gray-800 mb-3 uppercase tracking-wider">Historial de Certificados Emitidos ({listaCertificados.length})</h4>
@@ -121,6 +142,9 @@ export const CertificadosSection = memo(({
                     {c.tipo === 'asistencia' ? '📋 Asistencia' : '🛌 Reposo'}
                   </span>
                   <span>({c.fechaEmision}) — {c.diagnosticoMotivo}</span>
+                  {c.r2ArchivoId && <span className="ml-2" title="Respaldado en R2">🔒</span>}
+                  {respaldandoIds.has(c.id) && <span className="ml-2" title="Respaldando...">⏳</span>}
+                  {idsConError.has(c.id) && <span className="ml-2" title="Error al respaldar">❌</span>}
                 </div>
                 <div className="flex items-center gap-2">
                   <button
@@ -142,23 +166,49 @@ export const CertificadosSection = memo(({
         </div>
       )}
 
-      {/* Preview del Certificado Listo para Impresión Letter */}
       {certAMostrar ? (
         <div className="space-y-4">
-          <div className="flex justify-end print:hidden">
-            <button
-              onClick={handleDescargarPDF}
-              disabled={generandoPDF}
-              className="bg-gray-100 text-gray-800 text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-gray-200 border border-gray-300 shadow-sm flex items-center gap-2 disabled:opacity-50"
-            >
-              {generandoPDF ? '⏳ Generando PDF...' : '📥 Descargar PDF'}
-            </button>
-            <button
-              onClick={imprimirCertificadoAislado}
-              className="bg-black text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-gray-800 shadow-sm flex items-center gap-2"
-            >
-              🖨️ Imprimir Certificado Oficial (Letter)
-            </button>
+          <div className="flex justify-between items-center print:hidden">
+            <div className="flex items-center gap-2">
+              {estadoRespaldo === 'respaldado' && (
+                <span className="text-xs bg-green-100 text-green-800 border border-green-200 px-3 py-1 rounded-full font-semibold flex items-center gap-1">
+                  🔒 Respaldado en R2
+                </span>
+              )}
+              {estadoRespaldo === 'respaldando' && (
+                <span className="text-xs bg-amber-100 text-amber-800 border border-amber-200 px-3 py-1 rounded-full font-semibold flex items-center gap-1 animate-pulse">
+                  ⏳ Respaldando en R2...
+                </span>
+              )}
+              {estadoRespaldo === 'error' && (
+                <button
+                  onClick={() => reintentarRespaldo(certAMostrar.id)}
+                  className="text-xs bg-red-100 text-red-800 border border-red-200 px-3 py-1 rounded-full font-semibold flex items-center gap-1 hover:bg-red-200"
+                >
+                  ❌ Sin respaldo — Click para reintentar
+                </button>
+              )}
+              {estadoRespaldo === 'pendiente' && (
+                <span className="text-xs bg-gray-100 text-gray-600 border border-gray-200 px-3 py-1 rounded-full font-semibold">
+                  Pendiente de respaldo
+                </span>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleDescargarPDF}
+                disabled={generandoPDF || estadoRespaldo === 'respaldando'}
+                className="bg-gray-100 text-gray-800 text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-gray-200 border border-gray-300 shadow-sm flex items-center gap-2 disabled:opacity-50"
+              >
+                {generandoPDF ? '⏳ Generando PDF...' : '📥 Descargar PDF'}
+              </button>
+              <button
+                onClick={imprimirCertificadoAislado}
+                className="bg-black text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-gray-800 shadow-sm flex items-center gap-2"
+              >
+                🖨️ Imprimir Certificado Oficial (Letter)
+              </button>
+            </div>
           </div>
 
           <div id="certificado-preview">
@@ -171,7 +221,6 @@ export const CertificadosSection = memo(({
         </div>
       )}
 
-      {/* Portal de impresión aislada (M2a): solo visible al imprimir */}
       {certAMostrar && createPortal(
         <div className="certificado-print-portal">
           <CertificadoImprimible cert={certAMostrar} paciente={paciente} />

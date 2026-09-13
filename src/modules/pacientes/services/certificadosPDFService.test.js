@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { generarPDFCertificado, respaldarCertificadoEnR2, descargarBlob } from './certificadosPDFService'
-import { solicitaUrlUpload, subeArchivoAR2 } from '../../../services/r2ArchivosService'
+import { generarPDFCertificado, respaldarCertificadoEnR2, descargarBlob, descargarCertificadoDesdeR2 } from './certificadosPDFService'
+import { solicitaUrlUpload, subeArchivoAR2, solicitaUrlDownload, descargaArchivoDeR2 } from '../../../services/r2ArchivosService'
 
 // Mocks estables fuera de factory (sobreviven a mockClear)
 const mockAddImage = vi.fn()
@@ -20,7 +20,9 @@ vi.mock('jspdf', () => ({
 
 vi.mock('../../../services/r2ArchivosService', () => ({
   solicitaUrlUpload: vi.fn(),
-  subeArchivoAR2: vi.fn()
+  subeArchivoAR2: vi.fn(),
+  solicitaUrlDownload: vi.fn(),
+  descargaArchivoDeR2: vi.fn()
 }))
 
 describe('certificadosPDFService (M2b)', () => {
@@ -93,6 +95,37 @@ describe('certificadosPDFService (M2b)', () => {
 
       expect(createObjectURL).toHaveBeenCalled()
       expect(revokeObjectURL).toHaveBeenCalledWith('blob:test')
+    })
+  })
+
+
+  describe('descargarCertificadoDesdeR2 (M2c)', () => {
+    it('descarga desde R2 usando URL firmada', async () => {
+      solicitaUrlDownload.mockResolvedValue({
+        download_url: 'https://r2/download',
+        download_headers: { 'x-auth': '1' }
+      })
+      descargaArchivoDeR2.mockResolvedValue(true)
+
+      const result = await descargarCertificadoDesdeR2('arch-123', 'cert.pdf')
+      expect(result).toBe(true)
+      expect(solicitaUrlDownload).toHaveBeenCalledWith('arch-123')
+      expect(descargaArchivoDeR2).toHaveBeenCalledWith({
+        downloadUrl: 'https://r2/download',
+        downloadHeaders: { 'x-auth': '1' },
+        nombreArchivo: 'cert.pdf'
+      })
+    })
+
+    it('retorna false si no hay archivoId', async () => {
+      const result = await descargarCertificadoDesdeR2(null, 'cert.pdf')
+      expect(result).toBe(false)
+    })
+
+    it('retorna false si solicitaUrlDownload falla', async () => {
+      solicitaUrlDownload.mockResolvedValue(null)
+      const result = await descargarCertificadoDesdeR2('arch-123', 'cert.pdf')
+      expect(result).toBe(false)
     })
   })
 })

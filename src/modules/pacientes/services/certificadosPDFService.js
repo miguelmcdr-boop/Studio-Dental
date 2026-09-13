@@ -1,6 +1,6 @@
 import html2canvas from 'html2canvas-pro'
 import { jsPDF } from 'jspdf'
-import { solicitaUrlUpload, subeArchivoAR2 } from '../../../services/r2ArchivosService'
+import { solicitaUrlUpload, subeArchivoAR2, solicitaUrlDownload, descargaArchivoDeR2 } from '../../../services/r2ArchivosService'
 import { createLogger } from '../../../services/logger'
 
 const log = createLogger('certificadosPDFService')
@@ -87,4 +87,28 @@ export const descargarBlob = (blob, nombreArchivo) => {
   a.click()
   document.body.removeChild(a)
   window.URL.revokeObjectURL(url)
+}
+
+/**
+ * Descarga el certificado desde R2 usando URL firmada (M2c).
+ * Más rápido que regenerar el PDF localmente.
+ * @param {string} archivoId — UUID del archivo en archivos_clinicos
+ * @param {string} nombreArchivo — nombre para el download
+ * @returns {Promise<boolean>} true si se descargó correctamente
+ */
+export const descargarCertificadoDesdeR2 = async (archivoId, nombreArchivo) => {
+  if (!archivoId) {
+    log.warn('descargarCertificadoDesdeR2: sin archivoId')
+    return false
+  }
+  const downloadData = await solicitaUrlDownload(archivoId)
+  if (!downloadData?.download_url) {
+    log.warn('descargarCertificadoDesdeR2: sin URL de descarga')
+    return false
+  }
+  return descargaArchivoDeR2({
+    downloadUrl: downloadData.download_url,
+    downloadHeaders: downloadData.download_headers || {},
+    nombreArchivo
+  })
 }
