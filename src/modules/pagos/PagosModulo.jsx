@@ -26,6 +26,7 @@ export const PagosModulo = memo(() => {
   const [comprobanteVer, setComprobanteVer] = useState(null)
   const [pagoAPurgar, setPagoAPurgar] = useState(null)
   const [modalPapeleraAbierto, setModalPapeleraAbierto] = useState(false)
+  const [tickTabla, setTickTabla] = useState(0)
 
   const {
     pagos,
