@@ -227,6 +227,7 @@ export const PagosModulo = memo(() => {
           pagos={pagosPurgados}
           alCerrar={() => setModalPapeleraAbierto(false)}
           onRestaurar={handleRestaurarPago}
+          onVaciar={handleVaciarPapelera}
         />
       )}
     </div>
