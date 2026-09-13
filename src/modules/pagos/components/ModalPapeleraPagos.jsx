@@ -11,7 +11,7 @@ import { diasRestantes, obtenerPagosPurgados, vaciarPapelera } from '../services
  * vaciar + reload + alert). Garantiza secuencia atómica sin timing
  * conflicts con el padre.
  */
-export const ModalPapeleraPagos = memo(({ alCerrar, onRestaurar, onVaciarCompleto }) => {
+export const ModalPapeleraPagos = memo(({ alCerrar, onRestaurar, onAccionCompletada }) => {
   const { confirm, alert } = useAppDialog()
   const [pagos, setPagos] = useState(() => obtenerPagosPurgados())
 
@@ -20,6 +20,7 @@ export const ModalPapeleraPagos = memo(({ alCerrar, onRestaurar, onVaciarComplet
   const handleRestaurar = async (pagoId) => {
     await onRestaurar(pagoId)
     reload()
+    if (onAccionCompletada) onAccionCompletada()
   }
 
   const handleVaciar = async () => {
@@ -33,7 +34,7 @@ export const ModalPapeleraPagos = memo(({ alCerrar, onRestaurar, onVaciarComplet
 
     const eliminados = await vaciarPapelera()
     reload()
-    if (onVaciarCompleto) onVaciarCompleto()
+    if (onAccionCompletada) onAccionCompletada()
 
     if (eliminados > 0) {
       await alert({

@@ -204,7 +204,7 @@ export const PagosModulo = memo(() => {
         <ModalPapeleraPagos
           alCerrar={() => setModalPapeleraAbierto(false)}
           onRestaurar={handleRestaurarPago}
-          onVaciarCompleto={refrescarPagos}
+          onAccionCompletada={refrescarPagos}
         />
       )}
     </div>

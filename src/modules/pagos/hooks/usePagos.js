@@ -124,7 +124,10 @@ export const usePagos = () => {
   }, [alert])
 
   const refrescarPagos = useCallback(() => {
-    setPagos([...pagosStorageService.obtenerPagos([])])
+    // Estrategia robusta: crear nueva referencia + timestamp
+    // Garantiza que React detecte el cambio y re-renderice (fix K8)
+    const nuevos = pagosStorageService.obtenerPagos([]).map(p => ({ ...p }))
+    setPagos(nuevos)
   }, [])
 
   return {
