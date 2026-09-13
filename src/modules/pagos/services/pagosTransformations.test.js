@@ -13,7 +13,7 @@ vi.mock('../../../services/migrations/uuidUtils', () => ({
 
 import { transformarParaSupabase, transformarDesdeSupabase } from './pagosTransformations'
 
-describe('pagosTransformations (Commit J)', () => {
+describe('pagosTransformations (Commit K1)', () => {
   describe('transformarParaSupabase', () => {
     it('omite columnas que no existen en Supabase', () => {
       const pagoJs = {
@@ -21,6 +21,12 @@ describe('pagosTransformations (Commit J)', () => {
         folioComprobante: 'REC-2026-1730',
         monto: 10000,
         metodoPago: 'Efectivo',
+        tipoDTE: 'boleta_honorarios',
+        folioDTE: 'BH-100',
+        pacienteNombre: 'Ana Garcia',
+        pacienteRut: '12.345.678-9',
+        hora: '10:30',
+        observacion: 'Test',
         emitidoPor: 'Cajero',
         motivoPurga: 'Probando APP',
         fechaPurga: '13/09/2026',
@@ -30,49 +36,46 @@ describe('pagosTransformations (Commit J)', () => {
 
       const result = transformarParaSupabase(pagoJs)
 
-      // Columnas válidas deben estar (en snake_case)
       expect(result.id).toBe('0f6bc8ef-965a-4962-ac20-0ab5edf95e46')
-      expect(result.folio_comprobante).toBe('REC-2026-1730')
+      expect(result.folio).toBe('REC-2026-1730')
       expect(result.monto).toBe(10000)
       expect(result.metodo_pago).toBe('Efectivo')
-      // Columnas desconocidas NO deben estar (evita 400 de Supabase)
+      expect(result.tipo_dte).toBeUndefined()
+      expect(result.folio_dte).toBeUndefined()
+      expect(result.paciente_nombre).toBeUndefined()
+      expect(result.paciente_rut).toBeUndefined()
+      expect(result.hora).toBeUndefined()
+      expect(result.observacion).toBeUndefined()
       expect(result.emitido_por).toBeUndefined()
-      expect(result.emitidoPor).toBeUndefined()
       expect(result.motivo_purga).toBeUndefined()
-      expect(result.motivoPurga).toBeUndefined()
       expect(result.fecha_purga).toBeUndefined()
-      expect(result.fechaPurga).toBeUndefined()
       expect(result.purgado_por).toBeUndefined()
-      expect(result.purgadoPor).toBeUndefined()
       expect(result.prestaciones_imputadas).toBeUndefined()
-      expect(result.prestacionesImputadas).toBeUndefined()
     })
 
-    it('incluye columnas válidas con conversión correcta', () => {
+    it('mapea folioComprobante a folio correctamente', () => {
+      const pagoJs = { id: 'uuid-1', folioComprobante: 'REC-001' }
+      const result = transformarParaSupabase(pagoJs)
+      expect(result.folio).toBe('REC-001')
+      expect(result.folio_comprobante).toBeUndefined()
+    })
+
+    it('incluye columnas validas de anulacion', () => {
       const pagoJs = {
         id: 'uuid-largo-123456789012345678',
         folioComprobante: 'REC-001',
-        tipoDTE: 'boleta_honorarios',
-        folioDTE: 'BH-100',
-        pacienteNombre: 'Ana García',
-        pacienteRut: '12.345.678-9',
         estado: 'Anulado',
         motivoAnulacion: 'Error cajero',
         fechaAnulacion: '13/09/2026'
       }
-
       const result = transformarParaSupabase(pagoJs)
-      expect(result.folio_comprobante).toBe('REC-001')
-      expect(result.tipo_dte).toBe('boleta_honorarios')
-      expect(result.folio_dte).toBe('BH-100')
-      expect(result.paciente_nombre).toBe('Ana García')
-      expect(result.paciente_rut).toBe('12.345.678-9')
+      expect(result.folio).toBe('REC-001')
       expect(result.estado).toBe('Anulado')
       expect(result.motivo_anulacion).toBe('Error cajero')
       expect(result.fecha_anulacion).toBe('13/09/2026')
     })
 
-    it('maneja pacienteId con UUID válido', () => {
+    it('maneja pacienteId con UUID valido', () => {
       const pagoJs = {
         id: 'uuid-1',
         pacienteId: '0f6bc8ef-965a-4962-ac20-0ab5edf95e46'
@@ -90,21 +93,21 @@ describe('pagosTransformations (Commit J)', () => {
     it('mapea snake_case a camelCase', () => {
       const db = {
         id: 'uuid-1',
-        folio_comprobante: 'REC-001',
-        tipo_dte: 'boleta_honorarios',
+        folio: 'REC-001',
         paciente_id: 'pac-uuid',
         metodo_pago: 'Efectivo',
         motivo_anulacion: 'err',
-        fecha_anulacion: '13/09'
+        fecha_anulacion: '13/09',
+        clinica_id: 'clin-uuid'
       }
       const result = transformarDesdeSupabase(db)
       expect(result.id).toBe('uuid-1')
       expect(result.folioComprobante).toBe('REC-001')
-      expect(result.tipoDTE).toBe('boleta_honorarios')
       expect(result.pacienteId).toBe('pac-uuid')
       expect(result.metodoPago).toBe('Efectivo')
       expect(result.motivoAnulacion).toBe('err')
       expect(result.fechaAnulacion).toBe('13/09')
+      expect(result.clinicaId).toBe('clin-uuid')
     })
 
     it('pasa columnas desconocidas tal cual', () => {

@@ -1,23 +1,21 @@
 /**
- * Transformaciones de datos para pagos (Supabase ↔ JavaScript)
+ * Transformaciones de datos para pagos (Supabase <-> JavaScript)
  *
- * Extraído de pagosStorageService.js para respetar límites arquitectónicos.
+ * Extraido de pagosStorageService.js para respetar limites arquitectonicos.
  *
  * Responsabilidad:
  * - Mapeo entre snake_case (DB) y camelCase (JS)
- * - Transformación de objetos para lectura/escritura en Supabase
- * - Commit J: filtrado por allowlist para omitir columnas que no existen en Supabase
+ * - Transformacion de objetos para lectura/escritura en Supabase
+ * - Commit K1: allowlist ajustada a schema REAL de Supabase
  */
 import { migrationStorageService } from '../../../services/migrationStorageService'
 import { esUuidValido } from '../../../services/migrations/uuidUtils'
 
-// ═══════════════════════════════════════════════════════════════════
-// MAPEO COMPLETO DE CLAVES: DB (snake_case) ↔ JS (camelCase)
-// ═══════════════════════════════════════════════════════════════════
-
-// Mapa COMPLETO: TODAS las columnas que la app conoce.
-// Si una columna es igual en DB y JS (ej: 'monto'), se omite del mapa
-// y se pasa tal cual.
+// MAPEO DE CLAVES: DB (snake_case) <-> JS (camelCase)
+// Schema real de Supabase (consultado el 2026-09-13):
+// id, user_id, paciente_id, folio, monto, metodo_pago, fecha,
+// concepto, created_at, updated_at, clinica_id, estado,
+// motivo_anulacion, fecha_anulacion
 export const SNAKE_TO_CAMEL_MAP = {
   paciente_id: 'pacienteId',
   metodo_pago: 'metodoPago',
@@ -26,42 +24,29 @@ export const SNAKE_TO_CAMEL_MAP = {
   updated_at: 'updatedAt',
   motivo_anulacion: 'motivoAnulacion',
   fecha_anulacion: 'fechaAnulacion',
-  folio_comprobante: 'folioComprobante',
-  tipo_dte: 'tipoDTE',
-  folio_dte: 'folioDTE',
-  paciente_nombre: 'pacienteNombre',
-  paciente_rut: 'pacienteRut'
+  clinica_id: 'clinicaId',
+  folio: 'folioComprobante'
 }
 
 export const CAMEL_TO_SNAKE_MAP = Object.fromEntries(
   Object.entries(SNAKE_TO_CAMEL_MAP).map(([snake, camel]) => [camel, snake])
 )
 
-// ═══════════════════════════════════════════════════════════════════
-// ALLOWLIST DE COLUMNAS VÁLIDAS EN SUPABASE (Commit J)
-// ═══════════════════════════════════════════════════════════════════
-//
-// Columnas que SÍ existen en la tabla `pagos` de Supabase.
-// Cualquier campo fuera de esta lista se omite en el upsert para
-// evitar error 400 "Could not find the 'X' column of 'pagos' in the
-// schema cache".
+// ALLOWLIST DE COLUMNAS VALIDAS EN SUPABASE (Commit K1)
+// Columnas que SI existen en la tabla pagos de Supabase (schema real).
+// Cualquier campo fuera de esta lista se omite en el upsert.
 //
 // Columnas que viven solo en memoria/localStorage (NO en Supabase):
+// - tipoDTE, folioDTE, pacienteNombre, pacienteRut, hora, observacion
 // - emitidoPor, prestacionesImputadas (campos de UI)
-// - motivoPurga, fechaPurga, purgadoPor (auditoría en log y Excel)
+// - motivoPurga, fechaPurga, purgadoPor (auditoria en log y Excel)
 const COLUMNAS_SUPABASE_VALIDAS = new Set([
-  'id',
-  'folio_comprobante', 'tipo_dte', 'folio_dte',
-  'paciente_id', 'paciente_nombre', 'paciente_rut',
-  'fecha', 'hora', 'monto', 'metodo_pago',
-  'concepto', 'estado', 'observacion',
-  'user_id', 'motivo_anulacion', 'fecha_anulacion',
+  'id', 'user_id', 'paciente_id', 'clinica_id',
+  'folio', 'monto', 'metodo_pago', 'fecha',
+  'concepto', 'estado',
+  'motivo_anulacion', 'fecha_anulacion',
   'created_at', 'updated_at'
 ])
-
-// ═══════════════════════════════════════════════════════════════════
-// TRANSFORMACIONES
-// ═══════════════════════════════════════════════════════════════════
 
 /**
  * Transforma un pago desde Supabase (snake_case) a JavaScript (camelCase)
@@ -78,7 +63,7 @@ export const transformarDesdeSupabase = (pagoDb) => {
 
 /**
  * Transforma un pago desde JavaScript (camelCase) a Supabase (snake_case).
- * Omite columnas que no existen en Supabase (Commit J).
+ * Omite columnas que no existen en Supabase (Commit K1).
  */
 export const transformarParaSupabase = (pagoJs) => {
   if (!pagoJs) return null
@@ -89,7 +74,7 @@ export const transformarParaSupabase = (pagoJs) => {
     }
     const claveDb = CAMEL_TO_SNAKE_MAP[claveJs] || claveJs
 
-    // Commit J: filtrar columnas que no existen en Supabase
+    // Commit K1: filtrar columnas que no existen en Supabase
     if (!COLUMNAS_SUPABASE_VALIDAS.has(claveDb)) continue
 
     if (claveJs === 'pacienteId') {
