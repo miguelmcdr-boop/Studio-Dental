@@ -35,17 +35,23 @@ export const CertificadosSection = memo(({
 
   const [certSeleccionadoVer, setCertSeleccionadoVer] = useState(null)
   
-  // Estado local shadow: evita problemas de sincronización con el padre
-  const [certsLocal, setCertsLocal] = useState(certificados || [])
-  
-  // Sincronizar con el padre cuando la prop cambie externamente
-  useEffect(() => {
-    if (Array.isArray(certificados)) {
-      setCertsLocal(certificados)
-    }
-  }, [certificados])
+  // Estado local como FUENTE DE VERDAD dentro de este componente
+  // Se inicializa con la prop pero NO se sincroniza automáticamente
+  // (eso causaba que el estado se sobrescribiera con datos viejos)
+  const [certsLocal, setCertsLocal] = useState(() => 
+    Array.isArray(certificados) ? certificados : []
+  )
   
   const { confirm, alert } = useAppDialog()
+  
+  // CRÍTICO: Sincronizar con el padre al desmontar (para persistencia)
+  useEffect(() => {
+    return () => {
+      if (Array.isArray(certsLocal) && certsLocal.length > 0) {
+        setCertificados(certsLocal)
+      }
+    }
+  }, [certsLocal, setCertificados])
 
   // useMemo para estabilizar referencia (evita disparar useEffect en cada render)
   // CRÍTICO: usar certsLocal (estado local) en lugar de certificados (prop)
@@ -257,9 +263,9 @@ export const CertificadosSection = memo(({
           onRestaurar={restaurar}
           onEliminar={eliminarDefinitivo}
           onAccionCompletada={() => {
-            // CRÍTICO: recargar certificados desde storage y sincronizar con padre
+            // CRÍTICO: recargar certificados desde storage y actualizar estado local
             const recargados = certificadosStorageService.obtenerCertificados(paciente.id, [])
-            sincronizarConPadre(recargados)
+            actualizarEstado(recargados)
           }}
         />
       )}
