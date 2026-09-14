@@ -18,6 +18,8 @@ export const ModalPapeleraCertificados = memo(({
   onEliminar,
   onVaciar
 }) => {
+  console.log('[TRACE-MODAL] Render con', certificadosEliminados.length, 'certs eliminados')
+  
   const { confirm, alert } = useAppDialog()
 
   const handleRestaurar = async (certId) => {

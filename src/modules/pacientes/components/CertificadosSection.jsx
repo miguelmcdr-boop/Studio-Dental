@@ -78,10 +78,11 @@ export const CertificadosSection = memo(({
   } = usePapeleraCertificados(paciente.id, certsLocal, setCertsLocal)
 
   // Certificados eliminados para el modal (derivado de certsLocal)
-  const certificadosEliminados = useMemo(
-    () => (Array.isArray(certsLocal) ? certsLocal.filter(c => c.eliminadoAt) : []),
-    [certsLocal]
-  )
+  const certificadosEliminados = useMemo(() => {
+    const result = Array.isArray(certsLocal) ? certsLocal.filter(c => c.eliminadoAt) : []
+    console.log('[TRACE-PADRE] certificadosEliminados calculado:', result.length, 'certs')
+    return result
+  }, [certsLocal])
 
   const { generandoPDF, descargarPDF } = useDescargaCertificado(paciente.id, listaCertificados, setCertsLocal)
 
@@ -262,6 +263,7 @@ export const CertificadosSection = memo(({
       )}
 
       {papeleraAbierta && (
+        console.log('[TRACE-PADRE] Renderizando modal con', certificadosEliminados.length, 'certs eliminados'),
         <ModalPapeleraCertificados
           alCerrar={cerrarPapelera}
           certificadosEliminados={certificadosEliminados}

@@ -40,6 +40,7 @@ export const usePapeleraCertificados = (pacienteId, certificados, setCertificado
   }, [certificados])
 
   const moverAPapelera = async (certId, motivo = 'Movido a papelera') => {
+    console.log('[TRACE-HOOK] moverAPapelera: certId =', certId)
     if (!Array.isArray(certificados) || !pacienteId) return false
 
     const actualizados = certificados.map(c =>
@@ -53,6 +54,7 @@ export const usePapeleraCertificados = (pacienteId, certificados, setCertificado
         : c
     )
     
+    console.log('[TRACE-HOOK] setCertificados: actualizados.length =', actualizados.length)
     // CRÍTICO: actualizar estado local PRIMERO
     setCertificados(actualizados)
     
