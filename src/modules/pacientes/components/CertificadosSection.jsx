@@ -4,6 +4,8 @@ import { certificadosStorageService } from '../services/certificadosStorageServi
 import { imprimirCertificadoAislado } from '../services/certificadosPrintService'
 import { generarPDFCertificado, respaldarCertificadoEnR2, descargarBlob, descargarCertificadoDesdeR2 } from '../services/certificadosPDFService'
 import { useAutoRespaldoCertificados } from '../hooks/useAutoRespaldoCertificados'
+import { usePapeleraCertificados } from '../hooks/usePapeleraCertificados'
+import { ModalPapeleraCertificados } from './ModalPapeleraCertificados'
 import { FormularioNuevoCertificado } from './FormularioNuevoCertificado'
 import { CertificadoImprimible } from './CertificadoImprimible'
 import { createLogger } from '../../../services/logger'
@@ -37,6 +39,17 @@ export const CertificadosSection = memo(({
     setCertificados
   )
 
+  const {
+    papeleraAbierta,
+    abrirPapelera,
+    cerrarPapelera,
+    certificadosActivos,
+    hayEliminados,
+    moverAPapelera,
+    restaurar,
+    eliminarDefinitivo
+  } = usePapeleraCertificados(paciente.id, certificados, setCertificados)
+
   const handleGenerarCertificado = (nuevoCertificado) => {
     const actualizados = [nuevoCertificado, ...listaCertificados]
     setCertificados(actualizados)
@@ -46,16 +59,14 @@ export const CertificadosSection = memo(({
 
   const handleEliminarCertificado = async (id) => {
     const ok = await confirm({
-      title: 'Eliminar certificado',
-      description: '¿Deseas eliminar este registro de certificado del historial?',
+      title: 'Mover a papelera',
+      description: 'El certificado se moverá a la papelera. Podrás restaurarlo o eliminarlo definitivamente después (se conservará 730 días).',
       variant: 'danger',
-      confirmText: 'Eliminar'
+      confirmText: 'Mover a papelera'
     })
     if (ok) {
-      const actualizados = listaCertificados.filter(c => c.id !== id)
-      setCertificados(actualizados)
-      certificadosStorageService.guardarCertificados(paciente.id, actualizados).catch(err => log.warn("Error al guardar:", err))
-      if (certSeleccionadoVer?.id === id) setCertSeleccionadoVer(null)
+      const movido = await moverAPapelera(id)
+      if (movido && certSeleccionadoVer?.id === id) setCertSeleccionadoVer(null)
     }
   }
 
@@ -106,7 +117,7 @@ export const CertificadosSection = memo(({
     }
   }
 
-  const certAMostrar = certSeleccionadoVer || (listaCertificados.length > 0 ? listaCertificados[0] : null)
+  const certAMostrar = certSeleccionadoVer || (certificadosActivos.length > 0 ? certificadosActivos[0] : null)
 
   const estadoRespaldo = certAMostrar
     ? respaldandoIds.has(certAMostrar.id)
@@ -125,11 +136,21 @@ export const CertificadosSection = memo(({
         onGenerarCertificado={handleGenerarCertificado} 
       />
 
-      {listaCertificados.length > 0 && (
+      {certificadosActivos.length > 0 && (
         <div className="bg-white p-4 border border-gray-200 rounded-2xl print:hidden">
-          <h4 className="font-bold text-xs text-gray-800 mb-3 uppercase tracking-wider">Historial de Certificados Emitidos ({listaCertificados.length})</h4>
+          <div className="flex justify-between items-center mb-3">
+            <h4 className="font-bold text-xs text-gray-800 uppercase tracking-wider">Historial de Certificados Emitidos ({certificadosActivos.length})</h4>
+            {hayEliminados && (
+              <button
+                onClick={abrirPapelera}
+                className="text-xs bg-gray-100 text-gray-700 border border-gray-300 px-3 py-1 rounded-lg hover:bg-gray-200 flex items-center gap-1"
+              >
+                🗑️ Papelera
+              </button>
+            )}
+          </div>
           <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
-            {listaCertificados.map(c => (
+            {certificadosActivos.map(c => (
               <div
                 key={c.id}
                 onClick={() => handleVerCertificado(c)}
@@ -226,6 +247,16 @@ export const CertificadosSection = memo(({
           <CertificadoImprimible cert={certAMostrar} paciente={paciente} />
         </div>,
         document.body
+      )}
+
+      {papeleraAbierta && (
+        <ModalPapeleraCertificados
+          pacienteId={paciente.id}
+          alCerrar={cerrarPapelera}
+          onRestaurar={restaurar}
+          onEliminar={eliminarDefinitivo}
+          onAccionCompletada={() => {}}
+        />
       )}
     </div>
   )
