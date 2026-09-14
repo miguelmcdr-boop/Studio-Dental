@@ -15,12 +15,15 @@ export const LETTER_MM = { ancho: 215.9, alto: 279.4 }
  * @returns {Promise<Blob|null>} blob PDF o null si falla
  */
 export const generarPDFCertificado = async (nodoDOM) => {
+  console.log('[TRACE-PDF-1] generarPDFCertificado: inicio | nodo =', !!nodoDOM)
   if (!nodoDOM) {
+    console.log('[TRACE-PDF-2] ERROR: nodo DOM no encontrado')
     log.error('generarPDFCertificado: nodo DOM no encontrado')
     return null
   }
 
   try {
+    console.log('[TRACE-PDF-3] Llamando html2canvas')
     const canvas = await html2canvas(nodoDOM, {
       scale: 2,
       backgroundColor: '#ffffff',
@@ -48,6 +51,7 @@ export const generarPDFCertificado = async (nodoDOM) => {
  * @returns {Promise<{archivoId, objectKey}|null>} referencia R2 o null si falla
  */
 export const respaldarCertificadoEnR2 = async ({ blob, pacienteId, nombreArchivo }) => {
+  console.log('[TRACE-R2-1] respaldarCertificadoEnR2: blob.size =', blob?.size)
   const uploadData = await solicitaUrlUpload({
     pacienteId,
     categoria: 'pdf',

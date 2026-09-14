@@ -37,16 +37,29 @@ export const useAutoRespaldoCertificados = (listaCertificados, pacienteId, setCe
 
   // useEffect ESTABLE: solo dispara cuando cambia la lista o el paciente
   useEffect(() => {
-    if (!Array.isArray(listaCertificados) || !pacienteId) return
-    if (enProgresoRef.current) return // ya hay un respaldo corriendo
-    if (abortRef.current.signal.aborted) return
+    console.log('[TRACE-AUTO-1] useEffect disparado | lista.length =', listaCertificados?.length, '| enProgreso =', enProgresoRef.current)
+    
+    if (!Array.isArray(listaCertificados) || !pacienteId) {
+      console.log('[TRACE-AUTO-2] Guard: lista o pacienteId inválidos')
+      return
+    }
+    if (enProgresoRef.current) {
+      console.log('[TRACE-AUTO-3] Guard: ya hay respaldo en progreso')
+      return
+    }
+    if (abortRef.current.signal.aborted) {
+      console.log('[TRACE-AUTO-4] Guard: abortado')
+      return
+    }
 
     const pendientes = listaCertificados.filter(
       c => !c.r2ArchivoId && !respaldandoRef.current.has(c.id) && !erroresRef.current.has(c.id)
     )
+    console.log('[TRACE-AUTO-5] Pendientes encontrados:', pendientes.length)
     if (pendientes.length === 0) return
 
     const respaldar = async () => {
+      console.log('[TRACE-AUTO-6] Iniciando respaldo de cert:', pendientes[0]?.id)
       enProgresoRef.current = true
       const cert = pendientes[0]
 
@@ -57,11 +70,17 @@ export const useAutoRespaldoCertificados = (listaCertificados, pacienteId, setCe
 
       try {
         // Esperar render del preview
+        console.log('[TRACE-AUTO-7] Esperando 500ms para render del preview')
         await new Promise(r => setTimeout(r, 500))
-        if (abortRef.current.signal.aborted) return
+        if (abortRef.current.signal.aborted) {
+          console.log('[TRACE-AUTO-8] Abortado durante espera')
+          return
+        }
 
         const nodo = document.getElementById('certificado-preview')
+        console.log('[TRACE-AUTO-9] Preview encontrado:', !!nodo)
         if (!nodo) {
+          console.log('[TRACE-AUTO-10] ERROR: preview no disponible')
           log.warn(`Auto-respaldo: preview no disponible para cert ${cert.id}`)
           return
         }
