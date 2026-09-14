@@ -146,19 +146,26 @@ export const CertificadosSection = memo(({
         onGenerarCertificado={handleGenerarCertificado} 
       />
 
+      {/* Sección Papelera - siempre visible */}
+      <div className="bg-white p-3 border border-gray-200 rounded-2xl print:hidden flex justify-between items-center">
+        <span className="text-xs text-gray-600">
+          {hayEliminados
+            ? 'Hay certificados en papelera'
+            : 'Papelera vacía'}
+        </span>
+        <button
+          onClick={abrirPapelera}
+          disabled={!hayEliminados}
+          className="text-xs bg-gray-100 text-gray-700 border border-gray-300 px-3 py-1.5 rounded-lg hover:bg-gray-200 flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
+          title={hayEliminados ? 'Abrir papelera' : 'No hay certificados en papelera'}
+        >
+          🗑️ Papelera
+        </button>
+      </div>
+
       {certificadosActivos.length > 0 && (
         <div className="bg-white p-4 border border-gray-200 rounded-2xl print:hidden">
-          <div className="flex justify-between items-center mb-3">
-            <h4 className="font-bold text-xs text-gray-800 uppercase tracking-wider">Historial de Certificados Emitidos ({certificadosActivos.length})</h4>
-              <button
-                onClick={abrirPapelera}
-                disabled={!hayEliminados}
-                className="text-xs bg-gray-100 text-gray-700 border border-gray-300 px-3 py-1 rounded-lg hover:bg-gray-200 flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
-                title={hayEliminados ? 'Abrir papelera' : 'No hay certificados en papelera'}
-              >
-                🗑️ Papelera
-              </button>
-          </div>
+          <h4 className="font-bold text-xs text-gray-800 mb-3 uppercase tracking-wider">Historial de Certificados Emitidos ({certificadosActivos.length})</h4>
           <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
             {certificadosActivos.map(c => (
               <div
