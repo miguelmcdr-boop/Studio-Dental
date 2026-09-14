@@ -42,6 +42,22 @@ export const CertificadosSection = memo(({
     Array.isArray(certificados) ? certificados : []
   )
   
+  // CRÍTICO: Sincronizar con el padre cuando lleguen NUEVOS certificados
+  // (pero NO sobrescribir cambios locales como eliminadoAt)
+  useEffect(() => {
+    if (!Array.isArray(certificados) || certificados.length === 0) return
+    
+    // Buscar certificados que están en el padre pero NO en el estado local
+    const nuevosCerts = certificados.filter(certPadre => 
+      !certsLocal.some(certLocal => certLocal.id === certPadre.id)
+    )
+    
+    // Si hay nuevos, agregarlos al estado local
+    if (nuevosCerts.length > 0) {
+      setCertsLocal(prev => [...prev, ...nuevosCerts])
+    }
+  }, [certificados, certsLocal])
+  
   const { confirm, alert } = useAppDialog()
   
   // CRÍTICO: Sincronizar con el padre al desmontar (para persistencia)

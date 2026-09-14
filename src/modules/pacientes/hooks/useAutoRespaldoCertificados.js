@@ -81,10 +81,17 @@ export const useAutoRespaldoCertificados = (listaCertificados, pacienteId, setCe
           // (evita race condition con papelera)
           const listaActual = listaActualRef.current || []
           
-          // Guard: si el cert ya no está en la lista o ya está en papelera, skip
+          // Guard: si el cert ya no está en la lista, skip
           const certActual = listaActual.find(c => c.id === cert.id)
-          if (!certActual || certActual.eliminadoAt) {
-            log.warn(`Auto-respaldo: cert ${cert.id} no está activo, skip update`)
+          if (!certActual) {
+            log.warn(`Auto-respaldo: cert ${cert.id} no está en la lista, skip update`)
+            return
+          }
+          
+          // Guard CRÍTICO: si el cert está en papelera, NO actualizar
+          // (el usuario lo movió a papelera, no debe volver al historial)
+          if (certActual.eliminadoAt) {
+            log.warn(`Auto-respaldo: cert ${cert.id} está en papelera, skip update para no resucitarlo`)
             return
           }
           
