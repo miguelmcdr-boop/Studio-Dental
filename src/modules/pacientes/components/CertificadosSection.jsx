@@ -2,7 +2,7 @@ import React, { memo, useState, useCallback, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { certificadosStorageService } from '../services/certificadosStorageService'
 import { imprimirCertificadoAislado } from '../services/certificadosPrintService'
-import { generarPDFCertificado, respaldarCertificadoEnR2, descargarBlob, descargarCertificadoDesdeR2 } from '../services/certificadosPDFService'
+import { useDescargaCertificado } from '../hooks/useDescargaCertificado'
 import { useAutoRespaldoCertificados } from '../hooks/useAutoRespaldoCertificados'
 import { usePapeleraCertificados } from '../hooks/usePapeleraCertificados'
 import { ModalPapeleraCertificados } from './ModalPapeleraCertificados'
@@ -34,7 +34,6 @@ export const CertificadosSection = memo(({
   }, [setCertificadosProp])
 
   const [certSeleccionadoVer, setCertSeleccionadoVer] = useState(null)
-  const [generandoPDF, setGenerandoPDF] = useState(false)
   const { confirm, alert } = useAppDialog()
 
   // useMemo para estabilizar referencia (evita disparar useEffect en cada render)
@@ -53,6 +52,8 @@ export const CertificadosSection = memo(({
     restaurar,
     eliminarDefinitivo
   } = usePapeleraCertificados(paciente.id, certificados, setCertificados)
+
+  const { generandoPDF, descargarPDF } = useDescargaCertificado(paciente.id, listaCertificados, setCertificados)
 
   const { respaldandoIds, idsConError, reintentarRespaldo } = useAutoRespaldoCertificados(
     listaCertificados,
@@ -87,45 +88,7 @@ export const CertificadosSection = memo(({
     }, 50)
   }
 
-  const handleDescargarPDF = async () => {
-    if (!certAMostrar || generandoPDF) return
-    setGenerandoPDF(true)
-    try {
-      const nombre = `certificado-${certAMostrar.tipo}-${(certAMostrar.fechaEmision || '').replace(/\//g, '-')}.pdf`
-
-      if (certAMostrar.r2ArchivoId) {
-        const ok = await descargarCertificadoDesdeR2(certAMostrar.r2ArchivoId, nombre)
-        if (ok) {
-          await alert({ title: 'PDF descargado', description: 'El certificado se descargó desde R2 Cloudflare.', variant: 'success', confirmText: 'Entendido' })
-          return
-        }
-        log.warn('Descarga desde R2 falló, regenerando PDF local')
-      }
-
-      const nodo = document.getElementById('certificado-preview')
-      const blob = await generarPDFCertificado(nodo)
-      if (!blob) throw new Error('No se pudo generar el blob PDF')
-
-      descargarBlob(blob, nombre)
-
-      const respaldo = await respaldarCertificadoEnR2({ blob, pacienteId: paciente.id, nombreArchivo: nombre })
-      if (respaldo) {
-        const actualizados = listaCertificados.map(c =>
-          c.id === certAMostrar.id ? { ...c, r2ArchivoId: respaldo.archivoId, r2ObjectKey: respaldo.objectKey } : c
-        )
-        setCertificados(actualizados)
-        certificadosStorageService.guardarCertificados(paciente.id, actualizados).catch(err => log.warn('Error al guardar:', err))
-        await alert({ title: 'PDF descargado y respaldado', description: 'El certificado se descargó y quedó respaldado en R2 Cloudflare.', variant: 'success', confirmText: 'Entendido' })
-      } else {
-        await alert({ title: 'PDF descargado sin respaldo', description: 'El PDF se descargó correctamente pero no se pudo respaldar en R2. Intenta de nuevo más tarde.', variant: 'warning', confirmText: 'Entendido' })
-      }
-    } catch (e) {
-      log.error('Error generando PDF:', e)
-      await alert({ title: 'Error al generar PDF', description: 'No se pudo generar el PDF del certificado. Intenta de nuevo.', variant: 'error', confirmText: 'Entendido' })
-    } finally {
-      setGenerandoPDF(false)
-    }
-  }
+  const handleDescargarPDF = () => descargarPDF(certAMostrar)
 
   const certAMostrar = certSeleccionadoVer || (certificadosActivos.length > 0 ? certificadosActivos[0] : null)
 
@@ -272,7 +235,11 @@ export const CertificadosSection = memo(({
           alCerrar={cerrarPapelera}
           onRestaurar={restaurar}
           onEliminar={eliminarDefinitivo}
-          onAccionCompletada={() => {}}
+          onAccionCompletada={() => {
+            // CRÍTICO: recargar certificados desde storage cuando el modal completa acción
+            const recargados = certificadosStorageService.obtenerCertificados(paciente.id, [])
+            setCertificados(recargados)
+          }}
         />
       )}
     </div>

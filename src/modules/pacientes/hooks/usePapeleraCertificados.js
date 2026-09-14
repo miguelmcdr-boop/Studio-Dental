@@ -12,21 +12,10 @@ const log = createLogger('usePapeleraCertificados')
 /**
  * Hook que encapsula la lógica de papelera de certificados (M3).
  *
- * Proporciona:
- * - Estado del modal (abierto/cerrado)
- * - Handlers para mover/restaurar/eliminar definitivo
- * - Lista filtrada de certificados activos (sin eliminadoAt)
- * - Indicador si hay eliminados (para mostrar botón de papelera)
- *
- * @param {string} pacienteId - UUID del paciente
- * @param {Array} certificados - lista completa (activos + en papelera)
- * @param {Function} setCertificados - setter para actualizar la lista
- * @returns {Object} API del hook
+ * FIX CRÍTICO: Todas las operaciones recargan desde storage después
+ * para mantener el estado del padre sincronizado.
  */
 export const usePapeleraCertificados = (pacienteId, certificados, setCertificados) => {
-  // Guard defensivo: si certificados es null/undefined, usar array vacío
-  const certs = Array.isArray(certificados) ? certificados : []
-  
   const [papeleraAbierta, setPapeleraAbierta] = useState(false)
   const [userId, setUserId] = useState(null)
 
@@ -39,14 +28,23 @@ export const usePapeleraCertificados = (pacienteId, certificados, setCertificado
   }, [])
 
   const certificadosActivos = useMemo(() => {
-    if (!Array.isArray(certs)) return []
-    return certs.filter(c => !c.eliminadoAt)
-  }, [certs])
+    if (!Array.isArray(certificados)) return []
+    return certificados.filter(c => !c.eliminadoAt)
+  }, [certificados])
 
   const hayEliminados = useMemo(() => {
     if (!Array.isArray(certificados)) return false
-    return certs.some(c => c.eliminadoAt)
-  }, [certs])
+    return certificados.some(c => c.eliminadoAt)
+  }, [certificados])
+
+  /**
+   * Recarga certificados desde storage y actualiza estado del padre
+   */
+  const recargarDesdeStorage = () => {
+    if (!pacienteId) return
+    const recargados = certificadosStorageService.obtenerCertificados(pacienteId, [])
+    setCertificados(recargados)
+  }
 
   const moverAPapelera = async (certId, motivo = 'Movido a papelera') => {
     if (!Array.isArray(certificados) || !pacienteId) return false
@@ -61,17 +59,20 @@ export const usePapeleraCertificados = (pacienteId, certificados, setCertificado
           }
         : c
     )
-    // CRÍTICO: actualizar estado ANTES de guardar en storage
     setCertificados(actualizados)
     await certificadosStorageService.guardarCertificados(pacienteId, actualizados)
+    
+    // CRÍTICO: recargar desde storage para sincronizar estado
+    recargarDesdeStorage()
+    
     return true
   }
 
   const restaurar = async (certId) => {
     const ok = await restaurarCertificado(pacienteId, certId)
     if (ok) {
-      const recargados = certificadosStorageService.obtenerCertificados(pacienteId, [])
-      setCertificados(recargados)
+      // CRÍTICO: recargar desde storage
+      recargarDesdeStorage()
     }
     return ok
   }
@@ -79,8 +80,8 @@ export const usePapeleraCertificados = (pacienteId, certificados, setCertificado
   const eliminarDef = async (certId) => {
     const ok = await eliminarDefinitivo(pacienteId, certId)
     if (ok) {
-      const recargados = certificadosStorageService.obtenerCertificados(pacienteId, [])
-      setCertificados(recargados)
+      // CRÍTICO: recargar desde storage
+      recargarDesdeStorage()
     }
     return ok
   }

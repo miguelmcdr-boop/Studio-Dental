@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react'
+import React, { memo, useState, useEffect } from 'react'
 import { Modal } from '../../../components/ui/Modal'
 import { Button } from '../../../components/ui/Button'
 import { useAppDialog } from '../../../hooks/useAppDialog'
@@ -35,6 +35,20 @@ export const ModalPapeleraCertificados = memo(({
     obtenerCertificadosEliminados(pacienteId)
   )
 
+  // CRÍTICO: recargar cuando cambie el estado del padre
+  // (después de restaurar, el padre actualiza su estado, y necesitamos
+  // que el modal también se actualice para no mostrar el cert restaurado)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const actuales = obtenerCertificadosEliminados(pacienteId)
+      // Solo actualizar si cambió la cantidad (evita re-renders innecesarios)
+      if (actuales.length !== certificados.length) {
+        setCertificados(actuales)
+      }
+    }, 500)
+    return () => clearInterval(interval)
+  }, [pacienteId, certificados.length])
+
   const reload = () => setCertificados(obtenerCertificadosEliminados(pacienteId))
 
   const handleRestaurar = async (certId) => {
@@ -62,6 +76,11 @@ export const ModalPapeleraCertificados = memo(({
     } finally {
       reload()
       if (onAccionCompletada) onAccionCompletada()
+      
+      // CRÍTICO: forzar recarga en el padre después de eliminar
+      setTimeout(() => {
+        if (onAccionCompletada) onAccionCompletada()
+      }, 100)
     }
   }
 
@@ -82,6 +101,11 @@ export const ModalPapeleraCertificados = memo(({
     const eliminados = await vaciarPapelera(pacienteId)
     reload()
     if (onAccionCompletada) onAccionCompletada()
+    
+    // CRÍTICO: forzar recarga en el padre después de vaciar
+    setTimeout(() => {
+      if (onAccionCompletada) onAccionCompletada()
+    }, 100)
 
     if (eliminados > 0) {
       await alert({
