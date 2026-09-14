@@ -12,8 +12,9 @@ const log = createLogger('usePapeleraCertificados')
 /**
  * Hook que encapsula la lógica de papelera de certificados (M3).
  *
- * FIX CRÍTICO: Todas las operaciones recargan desde storage después
- * para mantener el estado del padre sincronizado.
+ * SOLUCIÓN DEFINITIVA: NO recargar desde storage después de operaciones.
+ * El estado local es la fuente única de verdad. Solo persistimos en
+ * storage sin sobrescribir el estado local.
  */
 export const usePapeleraCertificados = (pacienteId, certificados, setCertificados) => {
   const [papeleraAbierta, setPapeleraAbierta] = useState(false)
@@ -37,17 +38,7 @@ export const usePapeleraCertificados = (pacienteId, certificados, setCertificado
     return certificados.some(c => c.eliminadoAt)
   }, [certificados])
 
-  /**
-   * Recarga certificados desde storage y actualiza estado del padre
-   */
-  const recargarDesdeStorage = () => {
-    if (!pacienteId) return
-    const recargados = certificadosStorageService.obtenerCertificados(pacienteId, [])
-    setCertificados(recargados)
-  }
-
   const moverAPapelera = async (certId, motivo = 'Movido a papelera') => {
-    console.log('[TRACE-PAPELERA-1] moverAPapelera: inicio | certId =', certId, '| certs.length =', certificados?.length)
     if (!Array.isArray(certificados) || !pacienteId) return false
 
     const actualizados = certificados.map(c =>
@@ -60,15 +51,14 @@ export const usePapeleraCertificados = (pacienteId, certificados, setCertificado
           }
         : c
     )
-    console.log('[TRACE-PAPELERA-2] setCertificados | actualizados.length =', actualizados.length)
-    setCertificados(actualizados)
-    console.log('[TRACE-PAPELERA-3] guardando en storage')
-    await certificadosStorageService.guardarCertificados(pacienteId, actualizados)
     
-    console.log('[TRACE-PAPELERA-4] llamando recargarDesdeStorage')
-    // CRÍTICO: recargar desde storage para sincronizar estado
-    recargarDesdeStorage()
-    console.log('[TRACE-PAPELERA-5] moverAPapelera completado')
+    // CRÍTICO: actualizar estado local PRIMERO
+    setCertificados(actualizados)
+    
+    // CRÍTICO: persistir en storage SIN esperar Supabase (fire-and-forget)
+    // NO llamar recargarDesdeStorage() porque sobrescribe con datos viejos
+    certificadosStorageService.guardarCertificados(pacienteId, actualizados)
+      .catch(err => log.warn('Error persistiendo:', err))
     
     return true
   }
@@ -76,8 +66,13 @@ export const usePapeleraCertificados = (pacienteId, certificados, setCertificado
   const restaurar = async (certId) => {
     const ok = await restaurarCertificado(pacienteId, certId)
     if (ok) {
-      // CRÍTICO: recargar desde storage
-      recargarDesdeStorage()
+      // Actualizar estado local sin recargar desde storage
+      const actualizados = certificados.map(c =>
+        String(c.id) === String(certId)
+          ? { ...c, eliminadoAt: null, eliminadoPor: null, eliminadoMotivo: null }
+          : c
+      )
+      setCertificados(actualizados)
     }
     return ok
   }
@@ -85,8 +80,9 @@ export const usePapeleraCertificados = (pacienteId, certificados, setCertificado
   const eliminarDef = async (certId) => {
     const ok = await eliminarDefinitivo(pacienteId, certId)
     if (ok) {
-      // CRÍTICO: recargar desde storage
-      recargarDesdeStorage()
+      // Actualizar estado local eliminando el cert
+      const actualizados = certificados.filter(c => String(c.id) !== String(certId))
+      setCertificados(actualizados)
     }
     return ok
   }
