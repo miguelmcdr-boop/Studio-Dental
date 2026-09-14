@@ -42,28 +42,10 @@ export const CertificadosSection = memo(({
     Array.isArray(certificados) ? certificados : []
   )
   
-  // CRÍTICO: Sincronizar con el padre cuando lleguen NUEVOS certificados
-  // (pero NO sobrescribir cambios locales como eliminadoAt)
-  useEffect(() => {
-    console.log('[TRACE-SYNC-1] useEffect disparado | padre.length =', certificados?.length, '| local.length =', certsLocal.length)
-    if (!Array.isArray(certificados) || certificados.length === 0) {
-      console.log('[TRACE-SYNC-2] Guard: certificados del padre vacío')
-      return
-    }
-    
-    // Buscar certificados que están en el padre pero NO en el estado local
-    const nuevosCerts = certificados.filter(certPadre => 
-      !certsLocal.some(certLocal => certLocal.id === certPadre.id)
-    )
-    
-    console.log('[TRACE-SYNC-3] Nuevos certificados detectados:', nuevosCerts.length)
-    
-    // Si hay nuevos, agregarlos al estado local
-    if (nuevosCerts.length > 0) {
-      console.log('[TRACE-SYNC-4] Agregando nuevos certs al estado local')
-      setCertsLocal(prev => [...prev, ...nuevosCerts])
-    }
-  }, [certificados, certsLocal])
+  // CRÍTICO: NO sincronizar con el padre automáticamente.
+  // El estado local (certsLocal) es la FUENTE ÚNICA de verdad.
+  // Sincronizar causaba duplicados (mismo ID con diferentes props).
+  // El padre se actualiza solo al desmontar este componente.
   
   const { confirm, alert } = useAppDialog()
   

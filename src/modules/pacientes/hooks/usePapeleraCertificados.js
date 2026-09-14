@@ -47,6 +47,7 @@ export const usePapeleraCertificados = (pacienteId, certificados, setCertificado
   }
 
   const moverAPapelera = async (certId, motivo = 'Movido a papelera') => {
+    console.log('[TRACE-PAPELERA-1] moverAPapelera: inicio | certId =', certId, '| certs.length =', certificados?.length)
     if (!Array.isArray(certificados) || !pacienteId) return false
 
     const actualizados = certificados.map(c =>
@@ -59,11 +60,15 @@ export const usePapeleraCertificados = (pacienteId, certificados, setCertificado
           }
         : c
     )
+    console.log('[TRACE-PAPELERA-2] setCertificados | actualizados.length =', actualizados.length)
     setCertificados(actualizados)
+    console.log('[TRACE-PAPELERA-3] guardando en storage')
     await certificadosStorageService.guardarCertificados(pacienteId, actualizados)
     
+    console.log('[TRACE-PAPELERA-4] llamando recargarDesdeStorage')
     // CRÍTICO: recargar desde storage para sincronizar estado
     recargarDesdeStorage()
+    console.log('[TRACE-PAPELERA-5] moverAPapelera completado')
     
     return true
   }
