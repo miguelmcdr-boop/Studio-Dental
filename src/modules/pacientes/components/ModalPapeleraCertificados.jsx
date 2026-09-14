@@ -18,7 +18,13 @@ export const ModalPapeleraCertificados = memo(({
   onEliminar,
   onVaciar
 }) => {
-  console.log('[TRACE-MODAL] Render con', certificadosEliminados.length, 'certs eliminados')
+  console.log('[TRACE-MODAL] Render con', certificadosEliminados.length, 'certs:', certificadosEliminados.map(c => ({
+    id: c.id,
+    tipo: c.tipo,
+    eliminadoAt: c.eliminadoAt,
+    fechaEmision: c.fechaEmision,
+    r2ArchivoId: c.r2ArchivoId ? 'SI' : 'NO'
+  })))
   
   const { confirm, alert } = useAppDialog()
 
