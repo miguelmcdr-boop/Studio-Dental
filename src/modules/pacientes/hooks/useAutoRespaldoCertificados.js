@@ -11,11 +11,9 @@ const log = createLogger('useAutoRespaldoCertificados')
  * Observa la lista de certificados y detecta los que NO tienen r2ArchivoId.
  * Los respalda automáticamente en background, uno por uno (cola secuencial).
  *
- * FIX BUG LOOP: los sets de IDs en progreso/error se guardan en useRef
- * (no en useState) para evitar re-renders al cambiar. El useEffect solo
- * se dispara cuando listaCertificados o pacienteId cambian.
- * El estado que renderiza (Set para badges) se setea en paralelo vía
- * useState, pero NO está en las dependencias del useEffect.
+ * FIX BUG: El cleanup del useEffect de respaldo NO debe abortar en cada
+ * re-render. Solo debe abortar cuando el componente se desmonta realmente.
+ * Se usa isMountedRef para trackear el estado de montaje.
  */
 export const useAutoRespaldoCertificados = (listaCertificados, pacienteId, setCertificados) => {
   // Estado que TRIGGERA re-renders (para badges UI)
@@ -25,68 +23,47 @@ export const useAutoRespaldoCertificados = (listaCertificados, pacienteId, setCe
   // Refs que NO triggeran re-renders (para lógica interna del efecto)
   const respaldandoRef = useRef(new Set())
   const erroresRef = useRef(new Set())
-  const abortRef = useRef(new AbortController())
-  const enProgresoRef = useRef(false) // evita múltiples respaldos en paralelo
+  const enProgresoRef = useRef(false)
+  const isMountedRef = useRef(true)
 
+  // Cleanup SOLO al desmontar realmente (no en cada re-render)
   useEffect(() => {
+    isMountedRef.current = true
     return () => {
-      abortRef.current.abort()
-      enProgresoRef.current = false
+      isMountedRef.current = false
     }
   }, [])
 
   // useEffect ESTABLE: solo dispara cuando cambia la lista o el paciente
   useEffect(() => {
-    console.log('[TRACE-AUTO-1] useEffect disparado | lista.length =', listaCertificados?.length, '| enProgreso =', enProgresoRef.current)
-    
-    if (!Array.isArray(listaCertificados) || !pacienteId) {
-      console.log('[TRACE-AUTO-2] Guard: lista o pacienteId inválidos')
-      return
-    }
-    if (enProgresoRef.current) {
-      console.log('[TRACE-AUTO-3] Guard: ya hay respaldo en progreso')
-      return
-    }
-    if (abortRef.current.signal.aborted) {
-      console.log('[TRACE-AUTO-4] Guard: abortado')
-      return
-    }
+    if (!Array.isArray(listaCertificados) || !pacienteId) return
+    if (!isMountedRef.current) return
+    if (enProgresoRef.current) return
 
     const pendientes = listaCertificados.filter(
       c => !c.r2ArchivoId && !respaldandoRef.current.has(c.id) && !erroresRef.current.has(c.id)
     )
-    console.log('[TRACE-AUTO-5] Pendientes encontrados:', pendientes.length)
     if (pendientes.length === 0) return
 
     const respaldar = async () => {
-      console.log('[TRACE-AUTO-6] Iniciando respaldo de cert:', pendientes[0]?.id)
       enProgresoRef.current = true
       const cert = pendientes[0]
 
-      // Actualizar refs ANTES del await (no triggera re-render)
       respaldandoRef.current = new Set(respaldandoRef.current).add(cert.id)
-      // Actualizar estado UI (triggera re-render UNA SOLA VEZ)
       setRespaldandoIds(new Set(respaldandoRef.current))
 
       try {
-        // Esperar render del preview
-        console.log('[TRACE-AUTO-7] Esperando 500ms para render del preview')
         await new Promise(r => setTimeout(r, 500))
-        if (abortRef.current.signal.aborted) {
-          console.log('[TRACE-AUTO-8] Abortado durante espera')
-          return
-        }
+        if (!isMountedRef.current) return
 
         const nodo = document.getElementById('certificado-preview')
-        console.log('[TRACE-AUTO-9] Preview encontrado:', !!nodo)
         if (!nodo) {
-          console.log('[TRACE-AUTO-10] ERROR: preview no disponible')
           log.warn(`Auto-respaldo: preview no disponible para cert ${cert.id}`)
           return
         }
 
         const blob = await generarPDFCertificado(nodo)
-        if (abortRef.current.signal.aborted) return
+        if (!isMountedRef.current) return
         if (!blob) throw new Error('No se pudo generar el blob PDF')
 
         const nombreArchivo = `certificado-${cert.tipo}-${(cert.fechaEmision || '').replace(/\//g, '-')}-${cert.id}.pdf`
@@ -95,10 +72,9 @@ export const useAutoRespaldoCertificados = (listaCertificados, pacienteId, setCe
           pacienteId,
           nombreArchivo
         })
-        if (abortRef.current.signal.aborted) return
+        if (!isMountedRef.current) return
 
         if (respaldo) {
-          // Leer la lista actualizada desde storage (puede haber cambiado)
           const actuales = certificadosStorageService.obtenerCertificados(pacienteId, [])
           const actualizados = actuales.map(c =>
             c.id === cert.id
@@ -115,7 +91,7 @@ export const useAutoRespaldoCertificados = (listaCertificados, pacienteId, setCe
           log.warn(`Auto-respaldo falló para cert ${cert.id}`)
         }
       } catch (e) {
-        if (abortRef.current.signal.aborted) return
+        if (!isMountedRef.current) return
         log.error(`Auto-respaldo error cert ${cert.id}:`, e)
         erroresRef.current = new Set(erroresRef.current).add(cert.id)
         setIdsConError(new Set(erroresRef.current))
