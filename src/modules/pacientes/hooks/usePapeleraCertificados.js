@@ -63,6 +63,14 @@ export const usePapeleraCertificados = (pacienteId, certificados, setCertificado
     )
     setCertificados(actualizados)
     const ok = await certificadosStorageService.guardarCertificados(pacienteId, actualizados)
+    
+    // CRÍTICO: recargar desde storage para forzar update del estado
+    // (igual que hace restaurar, evita tener que recargar la página)
+    if (ok !== false) {
+      const recargados = certificadosStorageService.obtenerCertificados(pacienteId, [])
+      setCertificados(recargados)
+    }
+    
     return ok !== false
   }
 
