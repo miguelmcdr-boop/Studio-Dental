@@ -45,15 +45,22 @@ export const CertificadosSection = memo(({
   // CRÍTICO: Sincronizar con el padre cuando lleguen NUEVOS certificados
   // (pero NO sobrescribir cambios locales como eliminadoAt)
   useEffect(() => {
-    if (!Array.isArray(certificados) || certificados.length === 0) return
+    console.log('[TRACE-SYNC-1] useEffect disparado | padre.length =', certificados?.length, '| local.length =', certsLocal.length)
+    if (!Array.isArray(certificados) || certificados.length === 0) {
+      console.log('[TRACE-SYNC-2] Guard: certificados del padre vacío')
+      return
+    }
     
     // Buscar certificados que están en el padre pero NO en el estado local
     const nuevosCerts = certificados.filter(certPadre => 
       !certsLocal.some(certLocal => certLocal.id === certPadre.id)
     )
     
+    console.log('[TRACE-SYNC-3] Nuevos certificados detectados:', nuevosCerts.length)
+    
     // Si hay nuevos, agregarlos al estado local
     if (nuevosCerts.length > 0) {
+      console.log('[TRACE-SYNC-4] Agregando nuevos certs al estado local')
       setCertsLocal(prev => [...prev, ...nuevosCerts])
     }
   }, [certificados, certsLocal])
@@ -97,7 +104,9 @@ export const CertificadosSection = memo(({
 
   const handleGenerarCertificado = (nuevoCertificado) => {
     const actualizados = [nuevoCertificado, ...listaCertificados]
-    setCertificados(actualizados)
+    // CRÍTICO: usar setCertsLocal (estado local) en lugar de setCertificados (padre)
+    // para evitar que el useEffect de sincronización sobrescriba con datos viejos
+    setCertsLocal(actualizados)
     certificadosStorageService.guardarCertificados(paciente.id, actualizados).catch(err => log.warn("Error al guardar:", err))
     setCertSeleccionadoVer(nuevoCertificado)
   }
