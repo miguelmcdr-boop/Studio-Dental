@@ -1,4 +1,4 @@
-import React, { memo, useState, useCallback } from 'react'
+import React, { memo, useState, useCallback, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { certificadosStorageService } from '../services/certificadosStorageService'
 import { imprimirCertificadoAislado } from '../services/certificadosPrintService'
@@ -37,7 +37,11 @@ export const CertificadosSection = memo(({
   const [generandoPDF, setGenerandoPDF] = useState(false)
   const { confirm, alert } = useAppDialog()
 
-  const listaCertificados = Array.isArray(certificados) ? certificados : []
+  // useMemo para estabilizar referencia (evita disparar useEffect en cada render)
+  const listaCertificados = useMemo(
+    () => (Array.isArray(certificados) ? certificados : []),
+    [certificados]
+  )
 
   const {
     papeleraAbierta,
@@ -146,14 +150,14 @@ export const CertificadosSection = memo(({
         <div className="bg-white p-4 border border-gray-200 rounded-2xl print:hidden">
           <div className="flex justify-between items-center mb-3">
             <h4 className="font-bold text-xs text-gray-800 uppercase tracking-wider">Historial de Certificados Emitidos ({certificadosActivos.length})</h4>
-            {hayEliminados && (
               <button
                 onClick={abrirPapelera}
-                className="text-xs bg-gray-100 text-gray-700 border border-gray-300 px-3 py-1 rounded-lg hover:bg-gray-200 flex items-center gap-1"
+                disabled={!hayEliminados}
+                className="text-xs bg-gray-100 text-gray-700 border border-gray-300 px-3 py-1 rounded-lg hover:bg-gray-200 flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
+                title={hayEliminados ? 'Abrir papelera' : 'No hay certificados en papelera'}
               >
                 🗑️ Papelera
               </button>
-            )}
           </div>
           <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
             {certificadosActivos.map(c => (

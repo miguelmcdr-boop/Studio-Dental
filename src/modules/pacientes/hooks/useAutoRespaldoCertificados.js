@@ -29,7 +29,10 @@ export const useAutoRespaldoCertificados = (listaCertificados, pacienteId, setCe
   const enProgresoRef = useRef(false) // evita múltiples respaldos en paralelo
 
   useEffect(() => {
-    return () => abortRef.current.abort()
+    return () => {
+      abortRef.current.abort()
+      enProgresoRef.current = false
+    }
   }, [])
 
   // useEffect ESTABLE: solo dispara cuando cambia la lista o el paciente
