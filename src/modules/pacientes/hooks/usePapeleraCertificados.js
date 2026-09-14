@@ -61,17 +61,10 @@ export const usePapeleraCertificados = (pacienteId, certificados, setCertificado
           }
         : c
     )
+    // CRÍTICO: actualizar estado ANTES de guardar en storage
     setCertificados(actualizados)
-    const ok = await certificadosStorageService.guardarCertificados(pacienteId, actualizados)
-    
-    // CRÍTICO: recargar desde storage para forzar update del estado
-    // (igual que hace restaurar, evita tener que recargar la página)
-    if (ok !== false) {
-      const recargados = certificadosStorageService.obtenerCertificados(pacienteId, [])
-      setCertificados(recargados)
-    }
-    
-    return ok !== false
+    await certificadosStorageService.guardarCertificados(pacienteId, actualizados)
+    return true
   }
 
   const restaurar = async (certId) => {
