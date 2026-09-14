@@ -19,6 +19,12 @@ export const useAutoRespaldoCertificados = (listaCertificados, pacienteId, setCe
   const erroresRef = useRef(new Set())
   const enProgresoRef = useRef(false)
   const isMountedRef = useRef(true)
+  const listaActualRef = useRef(listaCertificados)
+
+  // Mantener ref sincronizado con la lista más reciente
+  useEffect(() => {
+    listaActualRef.current = listaCertificados
+  }, [listaCertificados])
 
   useEffect(() => {
     isMountedRef.current = true
@@ -73,7 +79,18 @@ export const useAutoRespaldoCertificados = (listaCertificados, pacienteId, setCe
         if (!isMountedRef.current) return
 
         if (respaldo) {
-          const actualizados = listaCertificados.map(c =>
+          // CRÍTICO: usar listaActualRef para obtener la lista MÁS RECIENTE
+          // (evita race condition con papelera)
+          const listaActual = listaActualRef.current || []
+          
+          // Guard: si el cert ya no está en la lista o ya está en papelera, skip
+          const certActual = listaActual.find(c => c.id === cert.id)
+          if (!certActual || certActual.eliminadoAt) {
+            log.warn(`Auto-respaldo: cert ${cert.id} no está activo, skip update`)
+            return
+          }
+          
+          const actualizados = listaActual.map(c =>
             c.id === cert.id
               ? { ...c, r2ArchivoId: respaldo.archivoId, r2ObjectKey: respaldo.objectKey }
               : c
