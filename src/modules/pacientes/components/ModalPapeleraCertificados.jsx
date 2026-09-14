@@ -29,7 +29,9 @@ export const ModalPapeleraCertificados = memo(({
   const { confirm, alert } = useAppDialog()
 
   const handleRestaurar = async (certId) => {
+    console.log('[TRACE-MODAL] handleRestaurar: certId =', certId)
     const ok = await onRestaurar(certId)
+    console.log('[TRACE-MODAL] handleRestaurar: resultado =', ok)
     if (ok) {
       await alert({
         title: 'Certificado restaurado',
@@ -54,6 +56,7 @@ export const ModalPapeleraCertificados = memo(({
   }
 
   const handleVaciar = async () => {
+    console.log('[TRACE-MODAL] handleVaciar: certs =', certificadosEliminados.length)
     const hayConR2 = certificadosEliminados.some(c => c.r2ArchivoId)
     const descripcion = hayConR2
       ? `Esto eliminará DEFINITIVAMENTE los ${certificadosEliminados.length} certificados de la papelera, incluyendo sus PDFs respaldados en R2. Esta acción NO se puede deshacer.`
@@ -65,9 +68,12 @@ export const ModalPapeleraCertificados = memo(({
       variant: 'danger',
       confirmText: 'Vaciar papelera'
     })
+    console.log('[TRACE-MODAL] handleVaciar: confirm resultado =', ok)
     if (!ok) return
 
+    console.log('[TRACE-MODAL] handleVaciar: llamando onVaciar')
     const eliminados = await onVaciar()
+    console.log('[TRACE-MODAL] handleVaciar: eliminados =', eliminados)
     if (eliminados > 0) {
       await alert({
         title: 'Papelera vaciada',

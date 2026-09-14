@@ -67,14 +67,16 @@ export const usePapeleraCertificados = (pacienteId, certificados, setCertificado
   }
 
   const restaurar = async (certId) => {
+    console.log('[TRACE-HOOK] restaurar: certId =', certId, '| certificados.length =', certificados?.length)
     const ok = await restaurarCertificado(pacienteId, certId)
+    console.log('[TRACE-HOOK] restaurar: service resultado =', ok)
     if (ok) {
-      // Construir lista localmente (NO leer de storage que puede estar stale)
       const actualizados = certificados.map(c =>
         String(c.id) === String(certId)
           ? { ...c, eliminadoAt: null, eliminadoPor: null, eliminadoMotivo: null }
           : c
       )
+      console.log('[TRACE-HOOK] restaurar: setCertificados.length =', actualizados.length)
       setCertificados(actualizados)
     }
     return ok
@@ -91,18 +93,20 @@ export const usePapeleraCertificados = (pacienteId, certificados, setCertificado
   }
 
   const vaciarPapeleraLocal = async () => {
+    console.log('[TRACE-HOOK] vaciarPapelera: certificados.length =', certificados?.length)
     const eliminados = certificados.filter(c => c.eliminadoAt)
+    console.log('[TRACE-HOOK] vaciarPapelera: eliminados.length =', eliminados.length)
     if (eliminados.length === 0) return 0
     
-    // Llamar al service para cada uno (borra R2 + Supabase + localStorage)
     const resultados = await Promise.all(
       eliminados.map(c => eliminarDefinitivo(pacienteId, c.id))
     )
     
     const exitosos = resultados.filter(Boolean).length
+    console.log('[TRACE-HOOK] vaciarPapelera: exitosos =', exitosos)
     if (exitosos > 0) {
-      // Actualizar estado local eliminando todos los que estaban en papelera
       const actualizados = certificados.filter(c => !c.eliminadoAt)
+      console.log('[TRACE-HOOK] vaciarPapelera: setCertificados.length =', actualizados.length)
       setCertificados(actualizados)
     }
     
