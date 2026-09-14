@@ -21,10 +21,8 @@ export const useAutoRespaldoCertificados = (listaCertificados, pacienteId, setCe
   const isMountedRef = useRef(true)
   const listaActualRef = useRef(listaCertificados)
 
-  // Mantener ref sincronizado con la lista más reciente
-  useEffect(() => {
-    listaActualRef.current = listaCertificados
-  }, [listaCertificados])
+  // Actualizar ref en cada render (sin useEffect para evitar problemas de hooks)
+  listaActualRef.current = listaCertificados
 
   useEffect(() => {
     isMountedRef.current = true
