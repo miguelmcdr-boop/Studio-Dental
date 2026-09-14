@@ -73,7 +73,8 @@ export const CertificadosSection = memo(({
     hayEliminados,
     moverAPapelera,
     restaurar,
-    eliminarDefinitivo
+    eliminarDefinitivo,
+    vaciarPapelera
   } = usePapeleraCertificados(paciente.id, certsLocal, setCertsLocal)
 
   // Certificados eliminados para el modal (derivado de certsLocal)
@@ -262,15 +263,11 @@ export const CertificadosSection = memo(({
 
       {papeleraAbierta && (
         <ModalPapeleraCertificados
-          pacienteId={paciente.id}
           alCerrar={cerrarPapelera}
           certificadosEliminados={certificadosEliminados}
           onRestaurar={restaurar}
           onEliminar={eliminarDefinitivo}
-          onAccionCompletada={() => {
-            // Filtrar localmente: mantener solo activos (sin eliminadoAt)
-            setCertsLocal(prev => (Array.isArray(prev) ? prev.filter(c => !c.eliminadoAt) : []))
-          }}
+          onVaciar={vaciarPapelera}
         />
       )}
     </div>

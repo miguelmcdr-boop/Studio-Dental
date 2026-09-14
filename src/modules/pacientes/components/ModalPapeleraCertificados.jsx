@@ -1,33 +1,34 @@
-import React, { memo, useState } from 'react'
+import React, { memo } from 'react'
 import { Modal } from '../../../components/ui/Modal'
 import { Button } from '../../../components/ui/Button'
 import { useAppDialog } from '../../../hooks/useAppDialog'
-import {
-  diasRestantes,
-  vaciarPapelera
-} from '../services/papeleraCertificadosService'
+import { diasRestantes } from '../services/papeleraCertificadosService'
 
 /**
  * Modal de Papelera de Certificados (M3)
  *
- * SOLUCIÓN DEFINITIVA: Recibe certificados eliminados como prop.
- * NO lee desde storage (causaba desfase de sincronización).
+ * SOLUCIÓN FINAL: Modal es CONTROLADO. Recibe certificados como prop
+ * y delega TODAS las operaciones al padre vía callbacks.
+ * NO tiene estado propio de certificados.
  */
 export const ModalPapeleraCertificados = memo(({
-  pacienteId,
   alCerrar,
   certificadosEliminados = [],
   onRestaurar,
   onEliminar,
-  onAccionCompletada
+  onVaciar
 }) => {
   const { confirm, alert } = useAppDialog()
 
   const handleRestaurar = async (certId) => {
-    try {
-      await onRestaurar(certId)
-    } finally {
-      if (onAccionCompletada) onAccionCompletada()
+    const ok = await onRestaurar(certId)
+    if (ok) {
+      await alert({
+        title: 'Certificado restaurado',
+        description: 'El certificado ha sido restaurado exitosamente.',
+        variant: 'success',
+        confirmText: 'Entendido'
+      })
     }
   }
 
@@ -41,11 +42,7 @@ export const ModalPapeleraCertificados = memo(({
     })
     if (!ok) return
 
-    try {
-      await onEliminar(certId)
-    } finally {
-      if (onAccionCompletada) onAccionCompletada()
-    }
+    await onEliminar(certId)
   }
 
   const handleVaciar = async () => {
@@ -62,9 +59,7 @@ export const ModalPapeleraCertificados = memo(({
     })
     if (!ok) return
 
-    const eliminados = await vaciarPapelera(pacienteId)
-    if (onAccionCompletada) onAccionCompletada()
-
+    const eliminados = await onVaciar()
     if (eliminados > 0) {
       await alert({
         title: 'Papelera vaciada',

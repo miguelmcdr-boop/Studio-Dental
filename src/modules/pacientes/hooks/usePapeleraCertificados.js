@@ -3,7 +3,8 @@ import { supabase } from '../../../services/supabaseClient'
 import { certificadosStorageService } from '../services/certificadosStorageService'
 import {
   eliminarDefinitivo,
-  restaurarCertificado
+  restaurarCertificado,
+  vaciarPapelera
 } from '../services/papeleraCertificadosService'
 import { createLogger } from '../../../services/logger'
 
@@ -87,6 +88,25 @@ export const usePapeleraCertificados = (pacienteId, certificados, setCertificado
     return ok
   }
 
+  const vaciarPapeleraLocal = async () => {
+    const eliminados = certificados.filter(c => c.eliminadoAt)
+    if (eliminados.length === 0) return 0
+    
+    // Llamar al service para cada uno (borra R2 + Supabase + localStorage)
+    const resultados = await Promise.all(
+      eliminados.map(c => eliminarDefinitivo(pacienteId, c.id))
+    )
+    
+    const exitosos = resultados.filter(Boolean).length
+    if (exitosos > 0) {
+      // Actualizar estado local eliminando todos los que estaban en papelera
+      const actualizados = certificados.filter(c => !c.eliminadoAt)
+      setCertificados(actualizados)
+    }
+    
+    return exitosos
+  }
+
   return {
     papeleraAbierta,
     abrirPapelera: () => setPapeleraAbierta(true),
@@ -95,6 +115,7 @@ export const usePapeleraCertificados = (pacienteId, certificados, setCertificado
     hayEliminados,
     moverAPapelera,
     restaurar,
-    eliminarDefinitivo: eliminarDef
+    eliminarDefinitivo: eliminarDef,
+    vaciarPapelera: vaciarPapeleraLocal
   }
 }
