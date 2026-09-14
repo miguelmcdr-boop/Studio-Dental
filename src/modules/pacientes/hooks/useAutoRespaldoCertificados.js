@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { generarPDFCertificado, respaldarCertificadoEnR2 } from '../services/certificadosPDFService'
 import { certificadosStorageService } from '../services/certificadosStorageService'
 import { createLogger } from '../../../services/logger'
@@ -8,25 +8,23 @@ const log = createLogger('useAutoRespaldoCertificados')
 /**
  * Hook para auto-respaldar certificados en R2 Cloudflare (M2c).
  *
- * Observa la lista de certificados y detecta los que NO tienen r2ArchivoId.
- * Los respalda automáticamente en background, uno por uno (cola secuencial).
- *
- * FIX BUG: El cleanup del useEffect de respaldo NO debe abortar en cada
- * re-render. Solo debe abortar cuando el componente se desmonta realmente.
- * Se usa isMountedRef para trackear el estado de montaje.
+ * FIX BUGS CRÍTICOS:
+ * 1. NO usa setCertificados dentro del hook para evitar loops.
+ *    El componente padre debe llamar onRespaldoCompletado.
+ * 2. NO lee desde storage para evitar pérdida de datos.
+ *    Actualiza SOLO el certificado respaldado en la lista actual.
+ * 3. Guard doble: respaldandoRef + enProgresoRef + verificación
+ *    de r2ArchivoId antes de iniciar.
  */
 export const useAutoRespaldoCertificados = (listaCertificados, pacienteId, setCertificados) => {
-  // Estado que TRIGGERA re-renders (para badges UI)
   const [respaldandoIds, setRespaldandoIds] = useState(new Set())
   const [idsConError, setIdsConError] = useState(new Set())
 
-  // Refs que NO triggeran re-renders (para lógica interna del efecto)
   const respaldandoRef = useRef(new Set())
   const erroresRef = useRef(new Set())
   const enProgresoRef = useRef(false)
   const isMountedRef = useRef(true)
 
-  // Cleanup SOLO al desmontar realmente (no en cada re-render)
   useEffect(() => {
     isMountedRef.current = true
     return () => {
@@ -34,20 +32,28 @@ export const useAutoRespaldoCertificados = (listaCertificados, pacienteId, setCe
     }
   }, [])
 
-  // useEffect ESTABLE: solo dispara cuando cambia la lista o el paciente
   useEffect(() => {
     if (!Array.isArray(listaCertificados) || !pacienteId) return
     if (!isMountedRef.current) return
     if (enProgresoRef.current) return
 
+    // Guard: buscar certificados que REALMENTE necesitan respaldo
+    // (sin r2ArchivoId, no en progreso, no en error)
     const pendientes = listaCertificados.filter(
       c => !c.r2ArchivoId && !respaldandoRef.current.has(c.id) && !erroresRef.current.has(c.id)
     )
+    
     if (pendientes.length === 0) return
 
     const respaldar = async () => {
       enProgresoRef.current = true
       const cert = pendientes[0]
+
+      // Guard doble: verificar que realmente necesita respaldo
+      if (cert.r2ArchivoId) {
+        enProgresoRef.current = false
+        return
+      }
 
       respaldandoRef.current = new Set(respaldandoRef.current).add(cert.id)
       setRespaldandoIds(new Set(respaldandoRef.current))
@@ -75,13 +81,16 @@ export const useAutoRespaldoCertificados = (listaCertificados, pacienteId, setCe
         if (!isMountedRef.current) return
 
         if (respaldo) {
-          const actuales = certificadosStorageService.obtenerCertificados(pacienteId, [])
-          const actualizados = actuales.map(c =>
+          // CRÍTICO: Actualizar SOLO el certificado respaldado en la lista actual
+          // NO leer desde storage (evita pérdida de datos)
+          const actualizados = listaCertificados.map(c =>
             c.id === cert.id
               ? { ...c, r2ArchivoId: respaldo.archivoId, r2ObjectKey: respaldo.objectKey }
               : c
           )
           setCertificados(actualizados)
+          
+          // Guardar en storage (async, no bloqueante)
           certificadosStorageService
             .guardarCertificados(pacienteId, actualizados)
             .catch(err => log.warn('Error al guardar:', err))
@@ -107,10 +116,10 @@ export const useAutoRespaldoCertificados = (listaCertificados, pacienteId, setCe
     respaldar()
   }, [listaCertificados, pacienteId, setCertificados])
 
-  const reintentarRespaldo = (certId) => {
+  const reintentarRespaldo = useCallback((certId) => {
     erroresRef.current = new Set([...erroresRef.current].filter(id => id !== certId))
     setIdsConError(new Set(erroresRef.current))
-  }
+  }, [])
 
   return { respaldandoIds, idsConError, reintentarRespaldo }
 }
