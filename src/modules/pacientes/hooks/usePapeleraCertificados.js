@@ -1,21 +1,15 @@
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '../../../services/supabaseClient'
 import { certificadosStorageService } from '../services/certificadosStorageService'
-import {
-  eliminarDefinitivo,
-  restaurarCertificado,
-  vaciarPapelera
-} from '../services/papeleraCertificadosService'
+import { eliminaArchivo } from '../../../services/r2ArchivosService'
 import { createLogger } from '../../../services/logger'
 
 const log = createLogger('usePapeleraCertificados')
 
 /**
- * Hook que encapsula la lógica de papelera de certificados (M3).
- *
- * SOLUCIÓN DEFINITIVA: NO recargar desde storage después de operaciones.
- * El estado local es la fuente única de verdad. Solo persistimos en
- * storage sin sobrescribir el estado local.
+ * Hook papelera de certificados (M3).
+ * Estado local como fuente única de verdad.
+ * Storage se actualiza de forma async (fire-and-forget).
  */
 export const usePapeleraCertificados = (pacienteId, certificados, setCertificados) => {
   const [papeleraAbierta, setPapeleraAbierta] = useState(false)
@@ -39,78 +33,62 @@ export const usePapeleraCertificados = (pacienteId, certificados, setCertificado
     return certificados.some(c => c.eliminadoAt)
   }, [certificados])
 
+  const persistir = (lista) => {
+    certificadosStorageService.guardarCertificados(pacienteId, lista)
+      .catch(err => log.warn('Error persistiendo:', err))
+  }
+
   const moverAPapelera = async (certId, motivo = 'Movido a papelera') => {
-    console.log('[TRACE-HOOK] moverAPapelera: certId =', certId)
     if (!Array.isArray(certificados) || !pacienteId) return false
 
     const actualizados = certificados.map(c =>
       String(c.id) === String(certId)
-        ? {
-            ...c,
-            eliminadoAt: new Date().toISOString(),
-            eliminadoPor: userId,
-            eliminadoMotivo: motivo
-          }
+        ? { ...c, eliminadoAt: new Date().toISOString(), eliminadoPor: userId, eliminadoMotivo: motivo }
         : c
     )
-    
-    console.log('[TRACE-HOOK] setCertificados: actualizados.length =', actualizados.length)
-    // CRÍTICO: actualizar estado local PRIMERO
     setCertificados(actualizados)
-    
-    // CRÍTICO: persistir en storage SIN esperar Supabase (fire-and-forget)
-    // NO llamar recargarDesdeStorage() porque sobrescribe con datos viejos
-    certificadosStorageService.guardarCertificados(pacienteId, actualizados)
-      .catch(err => log.warn('Error persistiendo:', err))
-    
+    persistir(actualizados)
     return true
   }
 
   const restaurar = async (certId) => {
-    console.log('[TRACE-HOOK] restaurar: certId =', certId, '| certificados.length =', certificados?.length)
-    const ok = await restaurarCertificado(pacienteId, certId)
-    console.log('[TRACE-HOOK] restaurar: service resultado =', ok)
-    if (ok) {
-      const actualizados = certificados.map(c =>
-        String(c.id) === String(certId)
-          ? { ...c, eliminadoAt: null, eliminadoPor: null, eliminadoMotivo: null }
-          : c
-      )
-      console.log('[TRACE-HOOK] restaurar: setCertificados.length =', actualizados.length)
-      setCertificados(actualizados)
-    }
-    return ok
+    const actualizados = certificados.map(c =>
+      String(c.id) === String(certId)
+        ? { ...c, eliminadoAt: null, eliminadoPor: null, eliminadoMotivo: null }
+        : c
+    )
+    setCertificados(actualizados)
+    persistir(actualizados)
+    log.info(`[AUDITORÍA] Restauración: id=${certId}, paciente=${pacienteId}`)
+    return true
   }
 
   const eliminarDef = async (certId) => {
-    const ok = await eliminarDefinitivo(pacienteId, certId)
-    if (ok) {
-      // Filtrar directamente usando certificados actual
-      const actualizados = certificados.filter(c => String(c.id) !== String(certId))
-      setCertificados(actualizados)
+    const cert = certificados.find(c => String(c.id) === String(certId))
+    const actualizados = certificados.filter(c => String(c.id) !== String(certId))
+    setCertificados(actualizados)
+    persistir(actualizados)
+    if (cert?.r2ArchivoId) {
+      eliminaArchivo(cert.r2ArchivoId).catch(err => log.warn('Error borrando R2:', err))
     }
-    return ok
+    log.info(`[AUDITORÍA] Eliminación definitiva: id=${certId}, paciente=${pacienteId}`)
+    return true
   }
 
   const vaciarPapeleraLocal = async () => {
-    console.log('[TRACE-HOOK] vaciarPapelera: certificados.length =', certificados?.length)
     const eliminados = certificados.filter(c => c.eliminadoAt)
-    console.log('[TRACE-HOOK] vaciarPapelera: eliminados.length =', eliminados.length)
     if (eliminados.length === 0) return 0
-    
-    const resultados = await Promise.all(
-      eliminados.map(c => eliminarDefinitivo(pacienteId, c.id))
-    )
-    
-    const exitosos = resultados.filter(Boolean).length
-    console.log('[TRACE-HOOK] vaciarPapelera: exitosos =', exitosos)
-    if (exitosos > 0) {
-      const actualizados = certificados.filter(c => !c.eliminadoAt)
-      console.log('[TRACE-HOOK] vaciarPapelera: setCertificados.length =', actualizados.length)
-      setCertificados(actualizados)
+    const actualizados = certificados.filter(c => !c.eliminadoAt)
+    setCertificados(actualizados)
+    persistir(actualizados)
+    const conR2 = eliminados.filter(c => c.r2ArchivoId)
+    if (conR2.length > 0) {
+      Promise.all(conR2.map(c => eliminaArchivo(c.r2ArchivoId)))
+        .then(res => log.info(`[AUDITORÍA] Vaciado papelera: R2 eliminados=${res.filter(Boolean).length}`))
+        .catch(err => log.warn('Error vaciando R2:', err))
     }
-    
-    return exitosos
+    log.info(`[AUDITORÍA] Vaciado papelera: paciente=${pacienteId}, eliminados=${eliminados.length}`)
+    return eliminados.length
   }
 
   return {

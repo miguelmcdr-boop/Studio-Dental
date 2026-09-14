@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, act, waitFor } from '@testing-library/react'
 
-// Mocks definidos con vi.hoisted() para que existan antes de vi.mock()
 const mocks = vi.hoisted(() => ({
   mockGetUser: vi.fn(() => Promise.resolve({ data: { user: { id: 'user-123' } } })),
   mockGuardarCertificados: vi.fn(() => Promise.resolve(true)),
@@ -11,9 +10,7 @@ const mocks = vi.hoisted(() => ({
 }))
 
 vi.mock('../../../services/supabaseClient', () => ({
-  supabase: {
-    auth: { getUser: mocks.mockGetUser }
-  }
+  supabase: { auth: { getUser: mocks.mockGetUser } }
 }))
 
 vi.mock('../services/certificadosStorageService', () => ({
@@ -123,7 +120,6 @@ describe('usePapeleraCertificados (M3)', () => {
       const movido = actualizados.find(c => c.id === 'cert-1')
       expect(movido.eliminadoAt).toBeTruthy()
       expect(movido.eliminadoMotivo).toBe('Motivo test')
-      expect(mocks.mockGuardarCertificados).toHaveBeenCalledWith('pac-1', actualizados)
     })
 
     it('usa motivo por defecto si no se proporciona', async () => {
@@ -178,12 +174,13 @@ describe('usePapeleraCertificados (M3)', () => {
   })
 
   describe('restaurar', () => {
-    it('delega al service y recarga certificados', async () => {
+    it('actualiza estado local limpiando eliminadoAt', async () => {
       const setCertificados = vi.fn()
-      mocks.mockObtenerCertificados.mockReturnValue([{ id: 'cert-1' }])
-
+      const certs = [
+        { id: 'cert-1', tipo: 'asistencia', eliminadoAt: '2026-09-14T10:00:00Z' }
+      ]
       const { result } = renderHook(() =>
-        usePapeleraCertificados('pac-1', [], setCertificados)
+        usePapeleraCertificados('pac-1', certs, setCertificados)
       )
 
       await act(async () => {
@@ -191,18 +188,23 @@ describe('usePapeleraCertificados (M3)', () => {
         expect(ok).toBe(true)
       })
 
-      expect(mocks.mockRestaurarCertificado).toHaveBeenCalledWith('pac-1', 'cert-1')
       expect(setCertificados).toHaveBeenCalled()
+      const actualizados = setCertificados.mock.calls[0][0]
+      expect(actualizados[0].eliminadoAt).toBeNull()
+      expect(actualizados[0].eliminadoPor).toBeNull()
+      expect(actualizados[0].eliminadoMotivo).toBeNull()
     })
   })
 
   describe('eliminarDefinitivo', () => {
-    it('delega al service y recarga certificados', async () => {
+    it('filtra certificado del estado local', async () => {
       const setCertificados = vi.fn()
-      mocks.mockObtenerCertificados.mockReturnValue([])
-
+      const certs = [
+        { id: 'cert-1', tipo: 'asistencia', eliminadoAt: '2026-09-14T10:00:00Z' },
+        { id: 'cert-2', tipo: 'reposo', eliminadoAt: '2026-09-14T11:00:00Z' }
+      ]
       const { result } = renderHook(() =>
-        usePapeleraCertificados('pac-1', [], setCertificados)
+        usePapeleraCertificados('pac-1', certs, setCertificados)
       )
 
       await act(async () => {
@@ -210,8 +212,51 @@ describe('usePapeleraCertificados (M3)', () => {
         expect(ok).toBe(true)
       })
 
-      expect(mocks.mockEliminarDefinitivo).toHaveBeenCalledWith('pac-1', 'cert-1')
       expect(setCertificados).toHaveBeenCalled()
+      const actualizados = setCertificados.mock.calls[0][0]
+      expect(actualizados).toHaveLength(1)
+      expect(actualizados[0].id).toBe('cert-2')
+    })
+  })
+
+  describe('vaciarPapelera', () => {
+    it('filtra todos los certificados eliminados', async () => {
+      const setCertificados = vi.fn()
+      const certs = [
+        { id: 'cert-1', tipo: 'asistencia', eliminadoAt: '2026-09-14T10:00:00Z' },
+        { id: 'cert-2', tipo: 'reposo' },
+        { id: 'cert-3', tipo: 'asistencia', eliminadoAt: '2026-09-14T11:00:00Z' }
+      ]
+      const { result } = renderHook(() =>
+        usePapeleraCertificados('pac-1', certs, setCertificados)
+      )
+
+      let count
+      await act(async () => {
+        count = await result.current.vaciarPapelera()
+      })
+
+      expect(count).toBe(2)
+      expect(setCertificados).toHaveBeenCalled()
+      const actualizados = setCertificados.mock.calls[0][0]
+      expect(actualizados).toHaveLength(1)
+      expect(actualizados[0].id).toBe('cert-2')
+    })
+
+    it('retorna 0 si no hay eliminados', async () => {
+      const setCertificados = vi.fn()
+      const certs = [{ id: 'cert-1', tipo: 'asistencia' }]
+      const { result } = renderHook(() =>
+        usePapeleraCertificados('pac-1', certs, setCertificados)
+      )
+
+      let count
+      await act(async () => {
+        count = await result.current.vaciarPapelera()
+      })
+
+      expect(count).toBe(0)
+      expect(setCertificados).not.toHaveBeenCalled()
     })
   })
 })
