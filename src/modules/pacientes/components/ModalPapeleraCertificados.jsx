@@ -1,68 +1,38 @@
-import React, { memo, useState, useEffect } from 'react'
+import React, { memo, useState } from 'react'
 import { Modal } from '../../../components/ui/Modal'
 import { Button } from '../../../components/ui/Button'
 import { useAppDialog } from '../../../hooks/useAppDialog'
 import {
   diasRestantes,
-  obtenerCertificadosEliminados,
   vaciarPapelera
 } from '../services/papeleraCertificadosService'
 
 /**
  * Modal de Papelera de Certificados (M3)
  *
- * Patrón reutilizado de ModalPapeleraPagos (Commit K6):
- * - Modal es dueño TOTAL del flujo de vaciar (confirm + vaciar + reload + alert)
- * - Recarga defensiva post-acción (Commit K10)
- * - Scope por paciente (a diferencia de pagos que es global)
- *
- * Props:
- *   pacienteId — UUID del paciente
- *   alCerrar — callback al cerrar modal
- *   onRestaurar(certId) — callback delegado al padre para restaurar
- *   onEliminar(certId) — callback delegado al padre para eliminar individual
- *   onAccionCompletada — callback post-acción (recarga lista del padre)
+ * SOLUCIÓN DEFINITIVA: Recibe certificados eliminados como prop.
+ * NO lee desde storage (causaba desfase de sincronización).
  */
 export const ModalPapeleraCertificados = memo(({
   pacienteId,
   alCerrar,
+  certificadosEliminados = [],
   onRestaurar,
   onEliminar,
   onAccionCompletada
 }) => {
   const { confirm, alert } = useAppDialog()
-  const [certificados, setCertificados] = useState(() =>
-    obtenerCertificadosEliminados(pacienteId)
-  )
-
-  // CRÍTICO: recargar cuando cambie el estado del padre
-  // (después de restaurar, el padre actualiza su estado, y necesitamos
-  // que el modal también se actualice para no mostrar el cert restaurado)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const actuales = obtenerCertificadosEliminados(pacienteId)
-      // Solo actualizar si cambió la cantidad (evita re-renders innecesarios)
-      if (actuales.length !== certificados.length) {
-        setCertificados(actuales)
-      }
-    }, 500)
-    return () => clearInterval(interval)
-  }, [pacienteId, certificados.length])
-
-  const reload = () => setCertificados(obtenerCertificadosEliminados(pacienteId))
 
   const handleRestaurar = async (certId) => {
     try {
       await onRestaurar(certId)
     } finally {
-      // Recarga defensiva: siempre recargar aunque el padre falle
-      reload()
       if (onAccionCompletada) onAccionCompletada()
     }
   }
 
   const handleEliminarDefinitivo = async (certId) => {
-    const cert = certificados.find(c => String(c.id) === String(certId))
+    const cert = certificadosEliminados.find(c => String(c.id) === String(certId))
     const ok = await confirm({
       title: 'Eliminar definitivamente',
       description: `Esto eliminará el certificado de forma permanente${cert?.r2ArchivoId ? ' (incluyendo el PDF respaldado en R2)' : ''}. Esta acción no se puede deshacer.`,
@@ -74,21 +44,15 @@ export const ModalPapeleraCertificados = memo(({
     try {
       await onEliminar(certId)
     } finally {
-      reload()
       if (onAccionCompletada) onAccionCompletada()
-      
-      // CRÍTICO: forzar recarga en el padre después de eliminar
-      setTimeout(() => {
-        if (onAccionCompletada) onAccionCompletada()
-      }, 100)
     }
   }
 
   const handleVaciar = async () => {
-    const hayConR2 = certificados.some(c => c.r2ArchivoId)
+    const hayConR2 = certificadosEliminados.some(c => c.r2ArchivoId)
     const descripcion = hayConR2
-      ? `Esto eliminará DEFINITIVAMENTE los ${certificados.length} certificados de la papelera, incluyendo sus PDFs respaldados en R2. Esta acción NO se puede deshacer.`
-      : `Esto eliminará DEFINITIVAMENTE los ${certificados.length} certificados de la papelera. Esta acción NO se puede deshacer.`
+      ? `Esto eliminará DEFINITIVAMENTE los ${certificadosEliminados.length} certificados de la papelera, incluyendo sus PDFs respaldados en R2. Esta acción NO se puede deshacer.`
+      : `Esto eliminará DEFINITIVAMENTE los ${certificadosEliminados.length} certificados de la papelera. Esta acción NO se puede deshacer.`
 
     const ok = await confirm({
       title: 'Vaciar papelera',
@@ -99,13 +63,7 @@ export const ModalPapeleraCertificados = memo(({
     if (!ok) return
 
     const eliminados = await vaciarPapelera(pacienteId)
-    reload()
     if (onAccionCompletada) onAccionCompletada()
-    
-    // CRÍTICO: forzar recarga en el padre después de vaciar
-    setTimeout(() => {
-      if (onAccionCompletada) onAccionCompletada()
-    }, 100)
 
     if (eliminados > 0) {
       await alert({
@@ -142,7 +100,7 @@ export const ModalPapeleraCertificados = memo(({
             Certificados en papelera. Pueden restaurarse o serán eliminados
             automáticamente después de 730 días.
           </p>
-          {certificados.length > 0 && (
+          {certificadosEliminados.length > 0 && (
             <Button
               onClick={handleVaciar}
               variant="danger"
@@ -154,13 +112,13 @@ export const ModalPapeleraCertificados = memo(({
           )}
         </div>
 
-        {certificados.length === 0 ? (
+        {certificadosEliminados.length === 0 ? (
           <div className="text-center py-8 text-gray-400">
             <p className="text-sm">No hay certificados en la papelera</p>
           </div>
         ) : (
           <div className="space-y-2 max-h-96 overflow-y-auto">
-            {certificados.map(cert => {
+            {certificadosEliminados.map(cert => {
               const dias = diasRestantes(cert.eliminadoAt)
               return (
                 <div

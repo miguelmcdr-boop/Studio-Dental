@@ -76,6 +76,12 @@ export const CertificadosSection = memo(({
     eliminarDefinitivo
   } = usePapeleraCertificados(paciente.id, certsLocal, setCertsLocal)
 
+  // Certificados eliminados para el modal (derivado de certsLocal)
+  const certificadosEliminados = useMemo(
+    () => (Array.isArray(certsLocal) ? certsLocal.filter(c => c.eliminadoAt) : []),
+    [certsLocal]
+  )
+
   const { generandoPDF, descargarPDF } = useDescargaCertificado(paciente.id, listaCertificados, setCertsLocal)
 
   const { respaldandoIds, idsConError, reintentarRespaldo } = useAutoRespaldoCertificados(
@@ -111,15 +117,6 @@ export const CertificadosSection = memo(({
     setTimeout(() => {
       document.getElementById('certificado-preview')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }, 50)
-  }
-
-  /**
-   * CRÍTICO: Sincronizar estado local con el padre después de cambios.
-   */
-  const sincronizarConPadre = (nuevosCerts) => {
-    if (!Array.isArray(nuevosCerts)) return
-    setCertsLocal(nuevosCerts)
-    setCertificados(nuevosCerts)
   }
 
   const handleDescargarPDF = () => descargarPDF(certAMostrar)
@@ -267,12 +264,12 @@ export const CertificadosSection = memo(({
         <ModalPapeleraCertificados
           pacienteId={paciente.id}
           alCerrar={cerrarPapelera}
+          certificadosEliminados={certificadosEliminados}
           onRestaurar={restaurar}
           onEliminar={eliminarDefinitivo}
           onAccionCompletada={() => {
-            // CRÍTICO: recargar certificados desde storage y actualizar estado local
-            const recargados = certificadosStorageService.obtenerCertificados(paciente.id, [])
-            actualizarEstado(recargados)
+            // Filtrar localmente: mantener solo activos (sin eliminadoAt)
+            setCertsLocal(prev => (Array.isArray(prev) ? prev.filter(c => !c.eliminadoAt) : []))
           }}
         />
       )}

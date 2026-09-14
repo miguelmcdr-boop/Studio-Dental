@@ -66,7 +66,7 @@ export const usePapeleraCertificados = (pacienteId, certificados, setCertificado
   const restaurar = async (certId) => {
     const ok = await restaurarCertificado(pacienteId, certId)
     if (ok) {
-      // Actualizar estado local sin recargar desde storage
+      // Construir lista localmente (NO leer de storage que puede estar stale)
       const actualizados = certificados.map(c =>
         String(c.id) === String(certId)
           ? { ...c, eliminadoAt: null, eliminadoPor: null, eliminadoMotivo: null }
@@ -80,7 +80,7 @@ export const usePapeleraCertificados = (pacienteId, certificados, setCertificado
   const eliminarDef = async (certId) => {
     const ok = await eliminarDefinitivo(pacienteId, certId)
     if (ok) {
-      // Actualizar estado local eliminando el cert
+      // Filtrar directamente usando certificados actual
       const actualizados = certificados.filter(c => String(c.id) !== String(certId))
       setCertificados(actualizados)
     }
