@@ -24,6 +24,9 @@ const log = createLogger('usePapeleraCertificados')
  * @returns {Object} API del hook
  */
 export const usePapeleraCertificados = (pacienteId, certificados, setCertificados) => {
+  // Guard defensivo: si certificados es null/undefined, usar array vacío
+  const certs = Array.isArray(certificados) ? certificados : []
+  
   const [papeleraAbierta, setPapeleraAbierta] = useState(false)
   const [userId, setUserId] = useState(null)
 
@@ -36,14 +39,14 @@ export const usePapeleraCertificados = (pacienteId, certificados, setCertificado
   }, [])
 
   const certificadosActivos = useMemo(() => {
-    if (!Array.isArray(certificados)) return []
-    return certificados.filter(c => !c.eliminadoAt)
-  }, [certificados])
+    if (!Array.isArray(certs)) return []
+    return certs.filter(c => !c.eliminadoAt)
+  }, [certs])
 
   const hayEliminados = useMemo(() => {
     if (!Array.isArray(certificados)) return false
-    return certificados.some(c => c.eliminadoAt)
-  }, [certificados])
+    return certs.some(c => c.eliminadoAt)
+  }, [certs])
 
   const moverAPapelera = async (certId, motivo = 'Movido a papelera') => {
     if (!Array.isArray(certificados) || !pacienteId) return false

@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react'
+import React, { memo, useState, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { certificadosStorageService } from '../services/certificadosStorageService'
 import { imprimirCertificadoAislado } from '../services/certificadosPrintService'
@@ -26,18 +26,18 @@ export const CertificadosSection = memo(({
   paciente,
   userProfile,
   certificados = [],
-  setCertificados = () => {}
+  setCertificados: setCertificadosProp = () => {}
 }) => {
+  // Estabilizar setCertificados para evitar re-renders masivos
+  const setCertificados = useCallback((nuevos) => {
+    setCertificadosProp(nuevos)
+  }, [setCertificadosProp])
+
   const [certSeleccionadoVer, setCertSeleccionadoVer] = useState(null)
   const [generandoPDF, setGenerandoPDF] = useState(false)
   const { confirm, alert } = useAppDialog()
 
   const listaCertificados = Array.isArray(certificados) ? certificados : []
-  const { respaldandoIds, idsConError, reintentarRespaldo } = useAutoRespaldoCertificados(
-    listaCertificados,
-    paciente.id,
-    setCertificados
-  )
 
   const {
     papeleraAbierta,
@@ -49,6 +49,12 @@ export const CertificadosSection = memo(({
     restaurar,
     eliminarDefinitivo
   } = usePapeleraCertificados(paciente.id, certificados, setCertificados)
+
+  const { respaldandoIds, idsConError, reintentarRespaldo } = useAutoRespaldoCertificados(
+    listaCertificados,
+    paciente.id,
+    setCertificados
+  )
 
   const handleGenerarCertificado = (nuevoCertificado) => {
     const actualizados = [nuevoCertificado, ...listaCertificados]
