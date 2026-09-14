@@ -1,4 +1,4 @@
-import React, { memo, useState, useCallback, useMemo } from 'react'
+import React, { memo, useState, useCallback, useMemo, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { certificadosStorageService } from '../services/certificadosStorageService'
 import { imprimirCertificadoAislado } from '../services/certificadosPrintService'
@@ -34,12 +34,24 @@ export const CertificadosSection = memo(({
   }, [setCertificadosProp])
 
   const [certSeleccionadoVer, setCertSeleccionadoVer] = useState(null)
+  
+  // Estado local shadow: evita problemas de sincronización con el padre
+  const [certsLocal, setCertsLocal] = useState(certificados || [])
+  
+  // Sincronizar con el padre cuando la prop cambie externamente
+  useEffect(() => {
+    if (Array.isArray(certificados)) {
+      setCertsLocal(certificados)
+    }
+  }, [certificados])
+  
   const { confirm, alert } = useAppDialog()
 
   // useMemo para estabilizar referencia (evita disparar useEffect en cada render)
+  // CRÍTICO: usar certsLocal (estado local) en lugar de certificados (prop)
   const listaCertificados = useMemo(
-    () => (Array.isArray(certificados) ? certificados : []),
-    [certificados]
+    () => (Array.isArray(certsLocal) ? certsLocal : []),
+    [certsLocal]
   )
 
   const {
@@ -51,14 +63,14 @@ export const CertificadosSection = memo(({
     moverAPapelera,
     restaurar,
     eliminarDefinitivo
-  } = usePapeleraCertificados(paciente.id, certificados, setCertificados)
+  } = usePapeleraCertificados(paciente.id, certsLocal, setCertsLocal)
 
-  const { generandoPDF, descargarPDF } = useDescargaCertificado(paciente.id, listaCertificados, setCertificados)
+  const { generandoPDF, descargarPDF } = useDescargaCertificado(paciente.id, listaCertificados, setCertsLocal)
 
   const { respaldandoIds, idsConError, reintentarRespaldo } = useAutoRespaldoCertificados(
     listaCertificados,
     paciente.id,
-    setCertificados
+    setCertsLocal
   )
 
   const handleGenerarCertificado = (nuevoCertificado) => {
@@ -86,6 +98,15 @@ export const CertificadosSection = memo(({
     setTimeout(() => {
       document.getElementById('certificado-preview')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }, 50)
+  }
+
+  /**
+   * CRÍTICO: Sincronizar estado local con el padre después de cambios.
+   */
+  const sincronizarConPadre = (nuevosCerts) => {
+    if (!Array.isArray(nuevosCerts)) return
+    setCertsLocal(nuevosCerts)
+    setCertificados(nuevosCerts)
   }
 
   const handleDescargarPDF = () => descargarPDF(certAMostrar)
@@ -236,9 +257,9 @@ export const CertificadosSection = memo(({
           onRestaurar={restaurar}
           onEliminar={eliminarDefinitivo}
           onAccionCompletada={() => {
-            // CRÍTICO: recargar certificados desde storage cuando el modal completa acción
+            // CRÍTICO: recargar certificados desde storage y sincronizar con padre
             const recargados = certificadosStorageService.obtenerCertificados(paciente.id, [])
-            setCertificados(recargados)
+            sincronizarConPadre(recargados)
           }}
         />
       )}
