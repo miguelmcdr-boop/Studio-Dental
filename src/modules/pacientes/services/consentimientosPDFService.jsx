@@ -1,6 +1,6 @@
 import html2canvas from 'html2canvas-pro'
 import { jsPDF } from 'jspdf'
-import { solicitaUrlUpload, subeArchivoAR2, solicitaUrlDownload, descargaArchivoDeR2 } from '../../../services/r2ArchivosService'
+import { solicitaUrlUpload, subeArchivoAR2, solicitaUrlDownload, descargaArchivoDeR2, actualizarMetadataArchivo } from '../../../services/r2ArchivosService'
 import { createLogger } from '../../../services/logger'
 
 const log = createLogger('consentimientosPDFService')
@@ -43,10 +43,19 @@ export const generarPDFConsentimiento = async (nodoDOM) => {
 }
 
 /**
- * Respalda el blob PDF en R2 Cloudflare con categoría 'consentimiento' (M4a).
+ * Respalda el blob PDF en R2 Cloudflare con categoría 'pdf' (M4b).
+ *
+ * M4b: Usa categoría 'pdf' (válida en Edge Function) y agrega metadata
+ * con subcategoria='consentimiento' para distinguir de otros PDFs.
+ *
+ * @param {Object} params
+ * @param {Blob} params.blob — PDF generado
+ * @param {string} params.pacienteId — UUID del paciente
+ * @param {string} params.nombreArchivo — nombre del archivo
+ * @param {Object} [params.metadata] — metadata opcional a guardar
  * @returns {Promise<{archivoId, objectKey}|null>} referencia R2 o null si falla
  */
-export const respaldarConsentimientoEnR2 = async ({ blob, pacienteId, nombreArchivo }) => {
+export const respaldarConsentimientoEnR2 = async ({ blob, pacienteId, nombreArchivo, metadata }) => {
   if (!blob || !pacienteId || !nombreArchivo) {
     log.warn('respaldarConsentimientoEnR2: parámetros inválidos')
     return null
@@ -54,7 +63,7 @@ export const respaldarConsentimientoEnR2 = async ({ blob, pacienteId, nombreArch
 
   const uploadData = await solicitaUrlUpload({
     pacienteId,
-    categoria: 'consentimiento',
+    categoria: 'pdf',
     nombreArchivo,
     mimeType: 'application/pdf',
     tamanoBytes: blob.size
@@ -74,6 +83,17 @@ export const respaldarConsentimientoEnR2 = async ({ blob, pacienteId, nombreArch
   if (!ok) {
     log.warn('respaldarConsentimientoEnR2: subida falló')
     return null
+  }
+
+  if (metadata && typeof metadata === 'object') {
+    const metadataCompleta = {
+      ...metadata,
+      subcategoria: 'consentimiento'
+    }
+    const metadataOk = await actualizarMetadataArchivo(uploadData.archivo_id, metadataCompleta)
+    if (!metadataOk) {
+      log.warn('respaldarConsentimientoEnR2: metadata no se pudo actualizar')
+    }
   }
 
   return { archivoId: uploadData.archivo_id, objectKey: uploadData.r2_object_key }

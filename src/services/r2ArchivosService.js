@@ -462,3 +462,49 @@ export const vaciarPapeleraArchivos = async (archivoIds) => {
     return { purgados: [], rechazados: [], error: e.message }
   }
 }
+
+/**
+ * M4b: Actualiza el campo metadata de un archivo en archivos_clinicos.
+ *
+ * Frontend-only: hace UPDATE directo via Supabase client (Opción A aprobada).
+ * No requiere Edge Function porque ya tenemos sesión activa y el usuario
+ * tiene permisos de UPDATE (validados por RLS de archivos_clinicos).
+ *
+ * Uso principal: guardar metadata de consentimientos después del upload.
+ * El Edge Function r2-upload-url inserta metadata vacía por defecto.
+ *
+ * @param {string} archivoId — UUID del archivo en archivos_clinicos
+ * @param {Object} metadata — objeto JSON a guardar (ej: {subcategoria, titulo, ...})
+ * @returns {Promise<boolean>} true si se actualizó correctamente
+ */
+export const actualizarMetadataArchivo = async (archivoId, metadata) => {
+  if (!archivoId || !metadata || typeof metadata !== 'object') {
+    log.warn('actualizarMetadataArchivo: parámetros inválidos')
+    return false
+  }
+
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      log.error('actualizarMetadataArchivo: no hay sesión activa')
+      return false
+    }
+
+    // UPDATE directo via Supabase client (RLS valida permisos server-side)
+    const { error } = await supabase
+      .from('archivos_clinicos')
+      .update({ metadata })
+      .eq('id', archivoId)
+
+    if (error) {
+      log.error('actualizarMetadataArchivo: error en UPDATE', error.message)
+      return false
+    }
+
+    log.info(`Metadata actualizada para archivo ${archivoId}`)
+    return true
+  } catch (e) {
+    log.error('Excepción al actualizar metadata:', e)
+    return false
+  }
+}
