@@ -28,7 +28,7 @@ export const useConsentimientosPDF = (paciente, userProfile, datosClinica) => {
   /**
    * Genera PDF del consentimiento y lo sube a R2.
    */
-  const generarYSubirPDF = async (consentimiento) => {
+  const generarYSubirPDF = async (consentimiento, metadata = {}) => {
     try {
       setGenerandoPDF(true)
 
@@ -49,7 +49,8 @@ export const useConsentimientosPDF = (paciente, userProfile, datosClinica) => {
       const respaldo = await respaldarConsentimientoEnR2({
         blob,
         pacienteId: paciente.id,
-        nombreArchivo
+        nombreArchivo,
+        metadata
       })
 
       return respaldo
