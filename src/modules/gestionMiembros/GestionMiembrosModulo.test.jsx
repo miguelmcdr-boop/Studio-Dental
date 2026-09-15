@@ -120,7 +120,7 @@ describe('GestionMiembrosModulo', () => {
     listarInvitaciones.mockResolvedValue({
       success: true,
       invitaciones: [
-        { id: 'inv1', email: 'pendiente@test.com', rol: 'recepcion', token: 'token123', creada_en: new Date().toISOString() }
+        { id: 'inv1', email: 'pendiente@test.com', rol: 'recepcion', token: 'token123', creada_en: new Date().toISOString(), status: 'pending' }
       ]
     })
     
@@ -135,7 +135,7 @@ describe('GestionMiembrosModulo', () => {
     listarInvitaciones.mockResolvedValue({
       success: true,
       invitaciones: [
-        { id: 'inv1', email: 'pendiente@test.com', rol: 'recepcion', token: 'token123', creada_en: new Date().toISOString() }
+        { id: 'inv1', email: 'pendiente@test.com', rol: 'recepcion', token: 'token123', creada_en: new Date().toISOString(), status: 'pending' }
       ]
     })
     
@@ -162,7 +162,7 @@ describe('GestionMiembrosModulo', () => {
     listarInvitaciones.mockResolvedValue({
       success: true,
       invitaciones: [
-        { id: 'inv1', email: 'pendiente@test.com', rol: 'recepcion', token: 'token123', creada_en: new Date().toISOString() }
+        { id: 'inv1', email: 'pendiente@test.com', rol: 'recepcion', token: 'token123', creada_en: new Date().toISOString(), status: 'pending' }
       ]
     })
     

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { useGestionMiembros } from './useGestionMiembros'
 import { NOMBRES_ROLES } from '../../constants/rbacConstants'
 
@@ -13,6 +13,11 @@ export const GestionMiembrosModulo = () => {
     invitando, urlCopiada, rolesDisponibles,
     handleInvitar, handleRevocar, handleCopiarLink
   } = useGestionMiembros()
+
+  // BUG-GESTION-MIEMBROS: Filtrar solo invitaciones pendientes
+  const invitacionesPendientes = useMemo(() => {
+    return invitaciones.filter(i => i.status === 'pending')
+  }, [invitaciones])
 
   if (loading) {
     return (
@@ -124,10 +129,10 @@ export const GestionMiembrosModulo = () => {
 
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">Invitaciones Pendientes ({invitaciones.length})</h2>
+          <h2 className="text-xl font-semibold text-gray-900">Invitaciones Pendientes ({invitacionesPendientes.length})</h2>
         </div>
 
-        {invitaciones.length === 0 ? (
+        {invitacionesPendientes.length === 0 ? (
           <div className="p-8 text-center text-gray-500">No hay invitaciones pendientes</div>
         ) : (
           <div className="overflow-x-auto">
@@ -136,17 +141,23 @@ export const GestionMiembrosModulo = () => {
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rol</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Enviada</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {invitaciones.map((invitacion) => (
+                {invitacionesPendientes.map((invitacion) => (
                   <tr key={invitacion.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{invitacion.email}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
                         {NOMBRES_ROLES[invitacion.rol] || invitacion.rol}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                        Pendiente
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -157,8 +168,11 @@ export const GestionMiembrosModulo = () => {
                         title="Copiar link de invitación">
                         {urlCopiada === invitacion.token ? '✓ Copiado' : 'Copiar Link'}
                       </button>
-                      <button onClick={() => handleRevocar(invitacion.id)} className="text-red-600 hover:text-red-900"
-                        title="Revocar invitación">
+                      <button 
+                        onClick={() => handleRevocar(invitacion.id)} 
+                        className="text-red-600 hover:text-red-900"
+                        title="Revocar invitación"
+                      >
                         Revocar
                       </button>
                     </td>
