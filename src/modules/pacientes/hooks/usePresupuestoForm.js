@@ -1,9 +1,15 @@
-// Hook de formularios de presupuesto (F7-25)
+/**
+ * usePresupuestoForm — Hook coordinador de formulario de presupuesto (F7-25)
+ * 
+ * Refactorizado en F3-02: extraída lógica de items a usePresupuestoItems.js
+ * Este hook ahora solo coordina entre items y abonos.
+ */
 import { useState, useEffect } from 'react'
-import { obtenerDescuentoConvenio } from '../utils/pacientesCalculations'
-import { pacientesStorageService } from '../services/pacientesStorageService'
 import { prestacionesStorageService } from '../../prestaciones/services/prestacionesStorageService'
+import { pacientesStorageService } from '../services/pacientesStorageService'
+import { pagosStorageService } from '../../pagos/services/pagosStorageService'
 import { useEliminarAbono } from './useEliminarAbono'
+import { usePresupuestoItems } from './usePresupuestoItems'
 
 export const usePresupuestoForm = ({
   paciente,
@@ -13,22 +19,25 @@ export const usePresupuestoForm = ({
   abonos = [],
   setAbonos = () => {}
 }) => {
-  // Estados de prestación
+  // Estados de arancel y convenio
   const [arancelActualizado, setArancelActualizado] = useState(() => {
     const actuales = prestacionesStorageService.obtenerPrestaciones()
     return Array.isArray(actuales) && actuales.length > 0 ? actuales : prestacionesProp
   })
   const [convenioAplicado, setConvenioAplicado] = useState(paciente.prevision || 'Particular')
-  const [piezaPresupuesto, setPiezaPresupuesto] = useState('')
-  const [prestacionSeleccionadaId, setPrestacionSeleccionadaId] = useState('')
-  const [nombrePrestacion, setNombrePrestacion] = useState('')
-  const [valorPrestacion, setValorPrestacion] = useState('')
-  const [precioBaseOriginal, setPrecioBaseOriginal] = useState(0)
-  const [porcentajeDescuentoAplicado, setPorcentajeDescuentoAplicado] = useState(0)
 
   // Estados de abono
   const [montoAbono, setValorAbono] = useState('')
   const [metodoPagoAbono, setMetodoPagoAbono] = useState('Efectivo')
+
+  // Hook de items
+  const itemsHook = usePresupuestoItems({
+    paciente,
+    arancelActualizado,
+    convenioAplicado,
+    itemsPresupuesto,
+    setItemsPresupuesto
+  })
 
   // Sincronización con arancel global (F2-07a)
   useEffect(() => {
@@ -48,57 +57,6 @@ export const usePresupuestoForm = ({
     if (prestacionesProp?.length > 0) setArancelActualizado(prestacionesProp)
   }, [prestacionesProp])
 
-  const handleSeleccionarPrestacion = (id, convenioNombre = convenioAplicado) => {
-    setPrestacionSeleccionadaId(id)
-    if (!id) return
-    const prest = arancelActualizado.find(p => String(p.id) === String(id))
-    if (prest) {
-      const precioBase = parseFloat(prest.precio ?? prest.precioParticular) || 0
-      setNombrePrestacion(prest.nombre)
-      setPrecioBaseOriginal(precioBase)
-      
-      const pctDesc = obtenerDescuentoConvenio(convenioNombre)
-      setPorcentajeDescuentoAplicado(pctDesc)
-      const precioConDescuento = Math.round(precioBase * (1 - pctDesc / 100))
-      setValorPrestacion(precioConDescuento)
-    }
-  }
-
-  const handleCambiarConvenioSelect = (nuevoConvenio) => {
-    setConvenioAplicado(nuevoConvenio)
-    if (prestacionSeleccionadaId) handleSeleccionarPrestacion(prestacionSeleccionadaId, nuevoConvenio)
-  }
-
-  const handleAgregarItemPresupuesto = (e) => {
-    e.preventDefault()
-    if (!nombrePrestacion || !valorPrestacion) return
-    const nuevoItem = {
-      id: Date.now(),
-      pieza: piezaPresupuesto || 'General',
-      prestacion: nombrePrestacion,
-      convenio: convenioAplicado,
-      precioBase: precioBaseOriginal || parseInt(valorPrestacion),
-      descuentoPct: porcentajeDescuentoAplicado,
-      valor: parseInt(valorPrestacion),
-      estado: 'Pendiente'
-    }
-    const actualizados = [...itemsPresupuesto, nuevoItem]
-    setItemsPresupuesto(actualizados)
-    pacientesStorageService.guardarItem(`presupuesto_items_${paciente.id}`, actualizados)
-    setPiezaPresupuesto('')
-    setPrestacionSeleccionadaId('')
-    setNombrePrestacion('')
-    setValorPrestacion('')
-    setPrecioBaseOriginal(0)
-    setPorcentajeDescuentoAplicado(0)
-  }
-
-  const handleEliminarItem = (id) => {
-    const actualizados = itemsPresupuesto.filter(i => i.id !== id)
-    setItemsPresupuesto(actualizados)
-    pacientesStorageService.guardarItem(`presupuesto_items_${paciente.id}`, actualizados)
-  }
-
   const handleAgregarAbono = (e) => {
     e.preventDefault()
     if (!montoAbono) return
@@ -112,9 +70,12 @@ export const usePresupuestoForm = ({
     const actualizados = [abonoObj, ...abonos]
     setAbonos(actualizados)
     pacientesStorageService.guardarItem(`abonos_${paciente.id}`, actualizados)
+
+    // BUG-ABONOS-PAGOS: sincronizar con módulo Pagos
+    pagosStorageService.crearPagoDesdeAbono(paciente, abonoObj)
+
     setValorAbono('')
   }
-
 
   const { handleEliminarAbono } = useEliminarAbono({
     abonos,
@@ -122,26 +83,20 @@ export const usePresupuestoForm = ({
     paciente,
   })
 
+  const handleCambiarConvenioSelect = (nuevoConvenio) => {
+    setConvenioAplicado(nuevoConvenio)
+    itemsHook.handleCambiarConvenioSelect(nuevoConvenio)
+  }
+
   return {
+    ...itemsHook,
     arancelActualizado,
     convenioAplicado,
-    piezaPresupuesto,
-    prestacionSeleccionadaId,
-    nombrePrestacion,
-    valorPrestacion,
-    precioBaseOriginal,
-    porcentajeDescuentoAplicado,
     montoAbono,
     metodoPagoAbono,
-    handleSeleccionarPrestacion,
-    handleCambiarConvenioSelect,
-    handleAgregarItemPresupuesto,
-    handleEliminarItem,
     handleAgregarAbono,
     handleEliminarAbono,
-    setPiezaPresupuesto,
-    setNombrePrestacion,
-    setValorPrestacion,
+    handleCambiarConvenioSelect,
     setValorAbono,
     setMetodoPagoAbono
   }

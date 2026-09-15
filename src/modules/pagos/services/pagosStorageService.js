@@ -11,9 +11,8 @@
  * - sincronizarDesdeSupabase()        → ASYNC, refresca caché desde Supabase
  * - resetCache()                      → limpia caché (para tests)
  *
- * Nota: Los métodos de abonos por paciente (obtenerAbonosPorPaciente,
- * sincronizarAbonoConFichaPaciente, eliminarAbonosDePaciente) siguen usando
- * localStorage en esta fase. Se migrarán completamente en F4-02d.
+ * Nota: Los métodos legacy de abonos por paciente fueron extraídos a
+ * pagosAbonosLegacyService.js (F3-02 refactor). Se migrarán a Supabase en F4-02d.
  */
 import { leerJSON, escribirJSON, createLocalStorageRepository } from '../../../services/localStorageRepository'
 import { supabase, USE_SUPABASE } from '../../../services/supabaseClient'
@@ -228,43 +227,8 @@ export const pagosStorageService = {
   sincronizarDesdeSupabase,
   resetCache,
 
-  // Lee los abonos de un paciente específico (clave dinámica)
-  // Nota: sigue usando localStorage (se migrará en F4-02d)
-  obtenerAbonosPorPaciente: (pacienteId) => {
-    if (!pacienteId) return []
-    return leerJSON(`abonos_${pacienteId}`, [])
-  },
 
-  // Sincroniza el abono directamente en la ficha del paciente para actualizar su saldo
-  // Nota: sigue usando localStorage (se migrará en F4-02d)
-  sincronizarAbonoConFichaPaciente: (pacienteId, nuevoPago) => {
-    if (!pacienteId) return
-    const keyAbonos = `abonos_${pacienteId}`
-    const abonosActuales = leerJSON(keyAbonos, [])
 
-    const abonoObj = {
-      id: nuevoPago.id,
-      fecha: nuevoPago.fecha,
-      monto: nuevoPago.monto,
-      metodoPago: `${nuevoPago.metodoPago} (${nuevoPago.folioComprobante})`,
-      pacienteNombre: nuevoPago.pacienteNombre
-    }
-
-    // Dedup por id: reemplaza abono existente con mismo id (evita duplicados)
-    const sinDuplicados = abonosActuales.filter(a => String(a.id) !== String(nuevoPago.id))
-    escribirJSON(keyAbonos, [abonoObj, ...sinDuplicados], { notify: true })
-  },
-
-  // Elimina todos los abonos de un paciente (F2-07d)
-  // Nota: sigue usando localStorage (se migrará en F4-02d)
-  eliminarAbonosDePaciente: (pacienteId) => {
-    if (!pacienteId) return
-    try {
-      localStorage.removeItem(`abonos_${pacienteId}`)
-    } catch (e) {
-      log.error(`Error al eliminar abonos del paciente ${pacienteId}:`, e)
-    }
-  },
 
   // Elimina un pago global específico (F10-C3.12)
   eliminarPago: (pagoId) => {
@@ -279,22 +243,7 @@ export const pagosStorageService = {
     return true
   },
 
-  // Elimina un abono específico de la ficha del paciente (F10-C3.12)
-  eliminarAbono: (pacienteId, abonoId) => {
-    if (!pacienteId) return
-    const key = `abonos_${pacienteId}`
-    const actuales = leerJSON(key, [])
-    escribirJSON(key, actuales.filter(a => String(a.id) !== String(abonoId)), { notify: true })
-  },
 
-  // Remueve abono de ficha al anular/purgar el pago asociado (Commit C)
-  removerAbonoDeFichaPaciente: (pacienteId, abonoId) => {
-    if (!pacienteId) return false
-    const key = `abonos_${pacienteId}`, actuales = leerJSON(key, [])
-    const filtrados = actuales.filter(a => String(a.id) !== String(abonoId))
-    if (filtrados.length === actuales.length) return false
-    escribirJSON(key, filtrados, { notify: true }); return true
-  },
 
   // Purga = marcar estado 'Purgado' (Commit H — auditoría inmutable, sin hard delete)
   purgarPago: (pagoId, motivo, userId = null) => {
@@ -309,6 +258,58 @@ export const pagosStorageService = {
       supabase.from('pagos').update({ estado: 'Purgado' }).eq('id', pagoId)
         .then(({ error }) => { if (error) log.error('Error purgando Supabase:', error) })
     }
+    return true
+  },
+
+
+
+  // BUG-ABONOS-PAGOS: Crear pago desde abono registrado en Ficha Clínica
+  // Cuando se registra un abono en el Plan de Tratamiento, este método crea
+  // el pago correspondiente en el módulo Pagos para mantener sincronización.
+  crearPagoDesdeAbono: (paciente, abono) => {
+    if (!paciente?.id || !abono?.id) {
+      log.warn('crearPagoDesdeAbono: paciente o abono inválido')
+      return false
+    }
+
+    const actuales = pagosCache || pagosRepo.obtener([])
+    // Verificar que no exista ya un pago con este ID (idempotencia)
+    const existe = actuales.some(p => String(p.id) === String(abono.id))
+    if (existe) {
+      log.info(`crearPagoDesdeAbono: pago ${abono.id} ya existe, omitiendo`)
+      return true
+    }
+
+    // Generar folio único: REC-YYYY-XXXX (donde XXXX es timestamp-based)
+    const año = new Date().getFullYear()
+    const secuencia = String(Date.now()).slice(-4)
+    const folioComprobante = `REC-${año}-${secuencia}`
+
+    // Crear objeto pago con MISMO ID que el abono (crítico para eliminación)
+    const nuevoPago = {
+      id: abono.id,
+      folioComprobante,
+      tipoDTE: 'recibo_interno',
+      folioDTE: null,
+      pacienteId: paciente.id,
+      pacienteNombre: paciente.nombre || abono.pacienteNombre || '',
+      pacienteRut: paciente.rut || '',
+      fecha: abono.fecha || new Date().toLocaleDateString('es-CL'),
+      hora: new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }),
+      monto: parseInt(abono.monto || 0),
+      metodoPago: abono.metodoPago || 'Efectivo',
+      concepto: 'Abono Plan de Tratamiento',
+      estado: 'Emitido',
+      prestacionesImputadas: [],
+      emitidoPor: 'Sistema (desde Ficha Clínica)',
+      observacion: 'Abono registrado desde Plan de Tratamiento del paciente'
+    }
+
+    const actualizados = [nuevoPago, ...actuales]
+    pagosCache = actualizados
+    pagosRepo.guardar(actualizados)
+
+    log.info(`crearPagoDesdeAbono: pago ${folioComprobante} creado para paciente ${paciente.nombre}`)
     return true
   },
 
