@@ -11,11 +11,14 @@ vi.mock('../services/pagosStorageService', () => ({
   pagosStorageService: {
     obtenerPagos: vi.fn(() => []),
     guardarPagos: vi.fn(),
-    sincronizarAbonoConFichaPaciente: vi.fn(),
     purgarPago: vi.fn(() => true),
-    obtenerPagosParaAuditoria: vi.fn(() => []),
-    removerAbonoDeFichaPaciente: vi.fn(() => true)
+    obtenerPagosParaAuditoria: vi.fn(() => [])
   }
+}))
+
+vi.mock('../services/pagosAbonosLegacyService', () => ({
+  sincronizarAbonoConFichaPaciente: vi.fn(),
+  removerAbonoDeFichaPaciente: vi.fn(() => true)
 }))
 
 vi.mock('../services/pagosExportService', () => ({
@@ -44,6 +47,7 @@ vi.mock('../../store/sesionStore', () => ({
 
 import { usePagos } from './usePagos'
 import { pagosStorageService } from '../services/pagosStorageService'
+import { sincronizarAbonoConFichaPaciente, removerAbonoDeFichaPaciente } from '../services/pagosAbonosLegacyService'
 import { exportarAuditoriaPagosXLSX } from '../services/pagosExportService'
 
 describe('usePagos', () => {
@@ -148,7 +152,7 @@ describe('usePagos', () => {
         await result.current.anularPago(1, 'Error de caja')
       })
 
-      expect(pagosStorageService.removerAbonoDeFichaPaciente).toHaveBeenCalledWith(42, 1)
+      expect(removerAbonoDeFichaPaciente).toHaveBeenCalledWith(42, 1)
     })
 
     it('purgarPago remueve abono de la ficha del paciente', async () => {
@@ -161,7 +165,7 @@ describe('usePagos', () => {
         await result.current.purgarPago(1, 'Motivo válido para purgar este pago')
       })
 
-      expect(pagosStorageService.removerAbonoDeFichaPaciente).toHaveBeenCalledWith(42, 1)
+      expect(removerAbonoDeFichaPaciente).toHaveBeenCalledWith(42, 1)
     })
 
     it('anularPago no falla si el pago no tiene pacienteId', async () => {
@@ -174,7 +178,7 @@ describe('usePagos', () => {
         await result.current.anularPago(1, 'Error de caja')
       })
 
-      expect(pagosStorageService.removerAbonoDeFichaPaciente).not.toHaveBeenCalled()
+      expect(removerAbonoDeFichaPaciente).not.toHaveBeenCalled()
     })
   })
 

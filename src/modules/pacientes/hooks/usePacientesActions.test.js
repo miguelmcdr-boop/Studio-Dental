@@ -26,10 +26,8 @@ vi.mock('../../presupuestos/services/presupuestosStorageService', () => ({
   }
 }))
 
-vi.mock('../../pagos/services/pagosStorageService', () => ({
-  pagosStorageService: {
-    eliminarAbonosDePaciente: vi.fn()
-  }
+vi.mock('../../pagos/services/pagosAbonosLegacyService', () => ({
+  eliminarAbonosDePaciente: vi.fn()
 }))
 
 vi.mock('../../../services/adjuntosStorageService', () => ({
@@ -50,7 +48,7 @@ import { usePacientesActions } from './usePacientesActions'
 import { pacientesStorageService } from '../services/pacientesStorageService'
 import { odontogramaStorageService } from '../../odontograma/services/odontogramaStorageService'
 import { presupuestosStorageService } from '../../presupuestos/services/presupuestosStorageService'
-import { pagosStorageService } from '../../pagos/services/pagosStorageService'
+import { eliminarAbonosDePaciente } from '../../pagos/services/pagosAbonosLegacyService'
 import { eliminarTodosPorPaciente } from '../../../services/adjuntosStorageService'
 
 describe('usePacientesActions (Commit G3)', () => {
@@ -84,7 +82,7 @@ describe('usePacientesActions (Commit G3)', () => {
       expect(odontogramaStorageService.eliminarOdontogramasDePaciente).toHaveBeenCalledWith(1)
       expect(pacientesStorageService.eliminarEvolucionesDePaciente).toHaveBeenCalledWith(1)
       expect(presupuestosStorageService.eliminarItemsDePaciente).toHaveBeenCalledWith(1)
-      expect(pagosStorageService.eliminarAbonosDePaciente).toHaveBeenCalledWith(1)
+      expect(eliminarAbonosDePaciente).toHaveBeenCalledWith(1)
       expect(pacientesStorageService.eliminarRecetasDePaciente).toHaveBeenCalledWith(1)
       expect(eliminarTodosPorPaciente).toHaveBeenCalledWith(1)
     })

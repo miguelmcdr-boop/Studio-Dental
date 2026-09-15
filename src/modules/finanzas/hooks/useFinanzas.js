@@ -2,7 +2,9 @@ import { useState, useMemo, useEffect, useCallback } from 'react'
 import { finanzasStorageService } from '../services/finanzasStorageService'
 import { calcularBalanceFinanzas } from '../utils/finanzasCalculations'
 import { CONVENIOS_DEFAULT } from '../constants/finanzasConstants'
-import { pagosStorageService } from '../../pagos/services/pagosStorageService'
+import { pagosStorageService } from "../../pagos/services/pagosStorageService"
+import { obtenerAbonosPorPaciente, eliminarAbono } from "../../pagos/services/pagosAbonosLegacyService"
+// OLD: import { pagosStorageService } from '../../pagos/services/pagosStorageService'
 import { createLogger } from '../../../services/logger.js'
 import { useAppDialog } from '../../../hooks/useAppDialog'
 
@@ -46,7 +48,7 @@ export const useFinanzas = (pacientes = []) => {
     pacientes.forEach(pac => {
       let abonos = []
       try {
-        abonos = pagosStorageService.obtenerAbonosPorPaciente(pac.id) || []
+        abonos = obtenerAbonosPorPaciente(pac.id) || []
       } catch (e) {
         log.error(e)
       }
@@ -108,7 +110,7 @@ export const useFinanzas = (pacientes = []) => {
       pagosStorageService.eliminarPago(strId.replace('pago_global_', ''))
     } else if (esAbono) {
       const partes = strId.split('_')
-      pagosStorageService.eliminarAbono(partes[1], partes.slice(2).join('_'))
+      eliminarAbono(partes[1], partes.slice(2).join('_'))
     } else {
       setMovimientosManuales(prev => {
         const actualizados = prev.filter(m => m.id !== id)

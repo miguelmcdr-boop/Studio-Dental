@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react'
 import { PAGOS_DEFAULT } from '../constants/pagosConstants'
 import { pagosStorageService } from '../services/pagosStorageService'
+import { sincronizarAbonoConFichaPaciente, removerAbonoDeFichaPaciente } from '../services/pagosAbonosLegacyService'
 import { exportarAuditoriaPagosXLSX } from '../services/pagosExportService'
 import { calcularResumenRecaudacion } from '../utils/pagosCalculations'
 import { useAppDialog } from '../../../hooks/useAppDialog'
@@ -47,7 +48,7 @@ export const usePagos = () => {
       }
 
       pagosStorageService.guardarPagos(actualizados)
-      pagosStorageService.sincronizarAbonoConFichaPaciente(pagoData.pacienteId, pagoData)
+      sincronizarAbonoConFichaPaciente(pagoData.pacienteId, pagoData)
       return actualizados
     })
   }, [])
@@ -65,7 +66,7 @@ export const usePagos = () => {
           if (String(p.id) === String(idPago)) {
             // Propagar anulación al Plan de Tratamiento (Commit C)
             if (p.pacienteId) {
-              pagosStorageService.removerAbonoDeFichaPaciente(p.pacienteId, p.id)
+              removerAbonoDeFichaPaciente(p.pacienteId, p.id)
             }
             return {
               ...p,
@@ -93,7 +94,7 @@ export const usePagos = () => {
     if (ok) {
       // Propagar purga al Plan de Tratamiento (Commit C)
       if (pagoAPurgar?.pacienteId) {
-        pagosStorageService.removerAbonoDeFichaPaciente(pagoAPurgar.pacienteId, idPago)
+        removerAbonoDeFichaPaciente(pagoAPurgar.pacienteId, idPago)
       }
       setPagos([...pagosStorageService.obtenerPagos([])])
       await alert({

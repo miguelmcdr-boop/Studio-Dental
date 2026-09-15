@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { useFinanzas } from './useFinanzas'
 import { finanzasStorageService } from '../services/finanzasStorageService'
 import { pagosStorageService } from '../../pagos/services/pagosStorageService'
+import { obtenerAbonosPorPaciente, eliminarAbono } from '../../pagos/services/pagosAbonosLegacyService'
 import { calcularBalanceFinanzas } from '../utils/finanzasCalculations'
 
 vi.mock('../services/finanzasStorageService', () => ({
@@ -16,9 +17,13 @@ vi.mock('../services/finanzasStorageService', () => ({
 
 vi.mock('../../pagos/services/pagosStorageService', () => ({
   pagosStorageService: {
-    obtenerPagos: vi.fn(),
-    obtenerAbonosPorPaciente: vi.fn()
+    obtenerPagos: vi.fn()
   }
+}))
+
+vi.mock('../../pagos/services/pagosAbonosLegacyService', () => ({
+  obtenerAbonosPorPaciente: vi.fn(),
+  eliminarAbono: vi.fn()
 }))
 
 vi.mock('../utils/finanzasCalculations', () => ({
@@ -68,7 +73,7 @@ describe('useFinanzas', () => {
     finanzasStorageService.guardarConvenios.mockImplementation(() => {})
     
     pagosStorageService.obtenerPagos.mockReturnValue(mockPagosGlobales)
-    pagosStorageService.obtenerAbonosPorPaciente.mockImplementation((pacienteId) => {
+    obtenerAbonosPorPaciente.mockImplementation((pacienteId) => {
       if (pacienteId === 1) return mockAbonosPaciente1
       if (pacienteId === 2) return mockAbonosPaciente2
       return []
@@ -155,7 +160,7 @@ describe('useFinanzas', () => {
     })
 
     it('maneja errores al cargar abonos de un paciente sin romper', () => {
-      pagosStorageService.obtenerAbonosPorPaciente.mockImplementation((pacienteId) => {
+      obtenerAbonosPorPaciente.mockImplementation((pacienteId) => {
         if (pacienteId === 1) throw new Error('Storage error')
         return mockAbonosPaciente2
       })
@@ -169,7 +174,7 @@ describe('useFinanzas', () => {
     it('excluye abonos cuyo id coincide con un pago global (anti-doble-conteo)', () => {
       // Regla contable: el mismo dinero no puede sumar dos veces
       // (pago global + su abono sincronizado en ficha)
-      pagosStorageService.obtenerAbonosPorPaciente.mockImplementation((pacienteId) => {
+      obtenerAbonosPorPaciente.mockImplementation((pacienteId) => {
         // El paciente 1 tiene un abono con id 1 que colisiona con el pago global id 1
         if (pacienteId === 1) return [{ id: 1, fecha: fechaHoy, monto: 20000 }]
         if (pacienteId === 2) return [{ id: 999, fecha: fechaHoy, monto: 15000 }]

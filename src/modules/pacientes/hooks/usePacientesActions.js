@@ -3,6 +3,7 @@ import { pacientesStorageService } from '../services/pacientesStorageService'
 import { odontogramaStorageService } from '../../odontograma/services/odontogramaStorageService'
 import { presupuestosStorageService } from '../../presupuestos/services/presupuestosStorageService'
 import { pagosStorageService } from '../../pagos/services/pagosStorageService'
+import { eliminarAbonosDePaciente } from '../../pagos/services/pagosAbonosLegacyService'
 import { eliminarTodosPorPaciente as eliminarAdjuntosDelPaciente } from '../../../services/adjuntosStorageService'
 import { createLogger } from '../../../services/logger'
 import { useAppDialog } from '../../../hooks/useAppDialog'
@@ -60,7 +61,7 @@ export const usePacientesActions = (pacientes, setPacientes, pacienteSeleccionad
         odontogramaStorageService.eliminarOdontogramasDePaciente(idPaciente)
         pacientesStorageService.eliminarEvolucionesDePaciente(idPaciente)
         presupuestosStorageService.eliminarItemsDePaciente(idPaciente)
-        pagosStorageService.eliminarAbonosDePaciente(idPaciente)
+        eliminarAbonosDePaciente(idPaciente)
         pacientesStorageService.eliminarRecetasDePaciente(idPaciente)
 
         // Los adjuntos clínicos viven en Supabase Storage + IndexedDB (F6-E).
