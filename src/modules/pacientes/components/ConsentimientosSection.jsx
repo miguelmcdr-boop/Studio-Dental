@@ -1,11 +1,15 @@
-import React, { memo, useState, useEffect } from 'react'
+import React, { memo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { FirmaDigitalCanvas } from '../../../components/FirmaDigitalCanvas'
 import { ConsentimientoImprimible } from './ConsentimientoImprimible'
+import { TarjetaConsentimiento } from './TarjetaConsentimiento'
+import { PapeleraArchivos } from './PapeleraArchivos'
 import { useAppDialog } from '../../../hooks/useAppDialog'
+import { useRBAC } from '../../../hooks/useRBAC'
+import { PERMISOS } from '../../../constants/rbacConstants'
+import { useArchivosClinicos } from '../hooks/useArchivosClinicos'
 import { useConsentimientosPDF } from '../hooks/useConsentimientosPDF.jsx'
-import { configuracionStorageService } from '../../configuracion/services/configuracionStorageService'
-import { CLINICA_DEFAULT } from '../../configuracion/constants/configuracionConstants'
+import { useConsentimientosInit } from '../hooks/useConsentimientosInit'
 import { PLANTILLAS_CONSENTIMIENTO } from '../constants/plantillasConsentimiento'
 import { createLogger } from '../../../services/logger'
 
@@ -16,18 +20,27 @@ export const ConsentimientosSection = memo(({ paciente, userProfile }) => {
   const { alert: dialogAlert } = useAppDialog()
   const [firmaBase64, setFirmaBase64] = useState('')
   const [firmaResetCounter, setFirmaResetCounter] = useState(0)
-  const [historialConsentimientos, setHistorialConsentimientos] = useState([])
-  const [datosClinica, setDatosClinica] = useState(CLINICA_DEFAULT)
 
-  // Cargar configuración de clínica al montar
-  useEffect(() => {
-    try {
-      const config = configuracionStorageService.obtenerClinica(CLINICA_DEFAULT)
-      if (config) setDatosClinica(config)
-    } catch (e) {
-      log.warn('Error cargando configuración de clínica:', e)
-    }
-  }, [])
+  // M4b: Integración con useArchivosClinicos para papelera M2
+  const {
+    archivos,
+    cargando,
+    error,
+    permisos,
+    eliminarArchivo,
+    archivosEliminados,
+    cargandoPapelera,
+    cargarPapelera,
+    restaurarArchivo,
+    vaciarPapelera,
+    recargar
+  } = useArchivosClinicos(paciente.id, 'consentimiento')
+
+  // M4b: Hook de inicialización (config clínica, papelera, limpieza legacy)
+  const { datosClinica } = useConsentimientosInit(paciente.id, cargarPapelera)
+
+  const { puede } = useRBAC()
+  const puedeVaciar = puede(PERMISOS.VACIAR_PAPELERA)
 
   const {
     generandoPDF,
@@ -38,6 +51,9 @@ export const ConsentimientosSection = memo(({ paciente, userProfile }) => {
   } = useConsentimientosPDF(paciente, userProfile, datosClinica)
 
   const plantillaActual = PLANTILLAS_CONSENTIMIENTO.find(p => p.id === plantillaId) || PLANTILLAS_CONSENTIMIENTO[0]
+
+  // M4b: Filtrar solo consentimientos (no otros PDFs)
+  const consentimientos = archivos.filter(a => a.metadata?.subcategoria === 'consentimiento')
 
   const handleGuardarConsentimiento = async () => {
     if (!firmaBase64) {
@@ -50,9 +66,11 @@ export const ConsentimientosSection = memo(({ paciente, userProfile }) => {
       return
     }
 
+    const fechaActual = new Date().toLocaleDateString('es-CL') + ' ' + new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })
+
     const nuevoRegistro = {
       id: Date.now(),
-      fecha: new Date().toLocaleDateString('es-CL') + ' ' + new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }),
+      fecha: fechaActual,
       titulo: plantillaActual.nombre,
       contenido: plantillaActual.texto,
       firma: firmaBase64,
@@ -61,19 +79,26 @@ export const ConsentimientosSection = memo(({ paciente, userProfile }) => {
       profesional: userProfile?.nombreCompleto || 'Dr. Miguel Díaz Rodríguez'
     }
 
-    // M4a: Generar PDF y subir a R2
-    const respaldo = await generarYSubirPDF(nuevoRegistro)
-
-    if (respaldo) {
-      nuevoRegistro.r2ArchivoId = respaldo.archivoId
-      nuevoRegistro.r2ObjectKey = respaldo.objectKey
-    } else {
-      log.warn('No se pudo generar/subir PDF a R2, guardando solo metadata')
+    // M4b: Generar PDF y subir a R2 con metadata
+    const metadata = {
+      titulo: plantillaActual.nombre,
+      contenido: plantillaActual.texto,
+      firma: firmaBase64,
+      pacienteNombre: paciente.nombre,
+      pacienteRut: paciente.rut,
+      profesional: userProfile?.nombreCompleto || 'Dr. Miguel Díaz Rodríguez',
+      fecha: fechaActual
     }
 
-    // Guardar en memoria (M4: sin localStorage, todo en R2)
-    const actualizados = [nuevoRegistro, ...historialConsentimientos]
-    setHistorialConsentimientos(actualizados)
+    const respaldo = await generarYSubirPDF(nuevoRegistro, metadata)
+
+    if (respaldo) {
+      log.info(`Consentimiento respaldado en R2: ${respaldo.archivoId}`)
+      await recargar()
+    } else {
+      log.warn('No se pudo generar/subir PDF a R2')
+    }
+
     setFirmaBase64('')
     setFirmaResetCounter(c => c + 1)
 
@@ -87,14 +112,20 @@ export const ConsentimientosSection = memo(({ paciente, userProfile }) => {
     })
   }
 
-  const handleDescargarPDF = async (consentimiento) => {
-    const actualizarConsentimiento = (id, cambios) => {
-      setHistorialConsentimientos(prev =>
-        prev.map(c => (c.id === id ? { ...c, ...cambios } : c))
-      )
+  const handleDescargarPDF = async (archivo) => {
+    const consentimiento = {
+      id: archivo.id,
+      titulo: archivo.metadata?.titulo || 'Consentimiento',
+      contenido: archivo.metadata?.contenido || '',
+      firma: archivo.metadata?.firma || '',
+      pacienteNombre: archivo.metadata?.pacienteNombre || '',
+      pacienteRut: archivo.metadata?.pacienteRut || '',
+      profesional: archivo.metadata?.profesional || '',
+      fecha: archivo.metadata?.fecha || '',
+      r2ArchivoId: archivo.id
     }
 
-    const ok = await descargarPDF(consentimiento, actualizarConsentimiento)
+    const ok = await descargarPDF(consentimiento)
     if (!ok) {
       await dialogAlert({
         title: 'Error al descargar',
@@ -103,6 +134,19 @@ export const ConsentimientosSection = memo(({ paciente, userProfile }) => {
         confirmText: 'Entendido'
       })
     }
+  }
+
+  const handleImprimir = (archivo) => {
+    const consentimiento = {
+      titulo: archivo.metadata?.titulo || 'Consentimiento',
+      contenido: archivo.metadata?.contenido || '',
+      firma: archivo.metadata?.firma || '',
+      pacienteNombre: archivo.metadata?.pacienteNombre || '',
+      pacienteRut: archivo.metadata?.pacienteRut || '',
+      profesional: archivo.metadata?.profesional || '',
+      fecha: archivo.metadata?.fecha || ''
+    }
+    imprimir(consentimiento)
   }
 
   return (
@@ -130,7 +174,6 @@ export const ConsentimientosSection = memo(({ paciente, userProfile }) => {
           <p className="text-[11px] text-gray-600">{plantillaActual.texto}</p>
         </div>
 
-        {/* Componente Firma Digital Canvas */}
         <div>
           <label className="block font-bold text-gray-800 mb-2">✍️ Firma Táctil / Digital del Paciente:</label>
           <FirmaDigitalCanvas alGuardarFirma={setFirmaBase64} resetSignal={firmaResetCounter} />
@@ -147,54 +190,44 @@ export const ConsentimientosSection = memo(({ paciente, userProfile }) => {
         </div>
       </div>
 
-      {/* Historial de Consentimientos Firmados */}
-      {historialConsentimientos.length > 0 && (
+      {/* M4b: Historial de Consentimientos desde R2 */}
+      {cargando ? (
+        <div className="bg-white border border-gray-200 rounded-2xl p-5 text-center text-gray-500">
+          Cargando consentimientos...
+        </div>
+      ) : error ? (
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-5 text-center text-red-700">
+          Error: {error}
+        </div>
+      ) : consentimientos.length > 0 ? (
         <div className="bg-white border border-gray-200 rounded-2xl p-5 space-y-3 print:hidden">
           <h4 className="font-bold text-xs text-gray-800 uppercase tracking-wider">
-            📜 Consentimientos Firmados del Paciente ({historialConsentimientos.length})
+            📜 Consentimientos Firmados del Paciente ({consentimientos.length})
           </h4>
           <div className="space-y-3">
-            {historialConsentimientos.map(c => (
-              <div key={c.id} className="p-4 bg-gray-50 rounded-xl border border-gray-200">
-                <div className="flex justify-between items-start flex-wrap gap-3 mb-3">
-                  <div className="flex-1 min-w-0">
-                    <span className="font-bold text-gray-900 block">{c.titulo}</span>
-                    <span className="text-[10px] text-gray-500">Firmado el: {c.fecha} — Profesional: {c.profesional}</span>
-                  </div>
-                  {c.firma && (
-                    <img src={c.firma} alt="Firma Paciente" className="h-12 border bg-white rounded p-1 flex-shrink-0" />
-                  )}
-                </div>
-
-                {/* M4a: Botones Descargar e Imprimir */}
-                <div className="flex gap-2 flex-wrap">
-                  <button
-                    onClick={() => handleDescargarPDF(c)}
-                    disabled={generandoPDF}
-                    className="bg-gray-100 text-gray-800 font-semibold px-3 py-1.5 rounded-lg hover:bg-gray-200 border border-gray-300 text-[10px] disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Descargar PDF del consentimiento"
-                  >
-                    📥 Descargar PDF
-                  </button>
-                  <button
-                    onClick={() => imprimir(c)}
-                    disabled={generandoPDF}
-                    className="bg-gray-100 text-gray-800 font-semibold px-3 py-1.5 rounded-lg hover:bg-gray-200 border border-gray-300 text-[10px] disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Imprimir consentimiento en formato Letter"
-                  >
-                    🖨️ Imprimir
-                  </button>
-                  {c.r2ArchivoId && (
-                    <span className="ml-auto flex items-center gap-1 text-[10px] text-green-700 bg-green-50 px-2 py-1 rounded border border-green-200">
-                      🔒 R2
-                    </span>
-                  )}
-                </div>
-              </div>
+            {consentimientos.map(archivo => (
+              <TarjetaConsentimiento
+                key={archivo.id}
+                archivo={archivo}
+                onDescargar={handleDescargarPDF}
+                onImprimir={handleImprimir}
+                onEliminar={eliminarArchivo}
+                disabled={generandoPDF}
+              />
             ))}
           </div>
         </div>
-      )}
+      ) : null}
+
+      {/* M4b: Papelera de archivos M2 */}
+      <PapeleraArchivos
+        archivosEliminados={archivosEliminados}
+        cargando={cargandoPapelera}
+        onRestaurar={restaurarArchivo}
+        onVaciar={vaciarPapelera}
+        puedeVaciar={puedeVaciar}
+        permisos={permisos}
+      />
 
       {/* M4a: Portal de impresión aislada */}
       {consentimientoParaImprimir && createPortal(
