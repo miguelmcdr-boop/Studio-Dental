@@ -57,7 +57,6 @@ export const ControlBiologicoSection = memo(({ biologicos, alAgregar, alActualiz
             <label className="block font-semibold text-gray-700 mb-1">Código de Lote Autoclave *</label>
             <input
               type="text"
-              required
               placeholder="Ej: LOTE-20260803-01"
               value={loteAsociado}
               onChange={(e) => setLoteAsociado(e.target.value)}
