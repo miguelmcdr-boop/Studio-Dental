@@ -1,4 +1,6 @@
 import React, { useState, memo } from 'react'
+import { FlaskConical } from 'lucide-react'
+import { Icon } from '../../components/Icon'
 import { useQuirurgico } from './hooks/useQuirurgico'
 import { FichaImplante } from './components/FichaImplante'
 import { FichaEndodoncia } from './components/FichaEndodoncia'
@@ -31,7 +33,10 @@ export const QuirurgicoModulo = memo(({ pacienteId }) => {
             tabSubSeccion === 'endodoncia' ? 'border-black text-black' : 'border-transparent text-gray-500 hover:text-gray-800'
           }`}
         >
-          🧪 Endodoncia & Conductometría
+          <span className="flex items-center gap-1.5">
+            <Icon icon={FlaskConical} size="sm" />
+            Endodoncia & Conductometría
+          </span>
         </button>
       </div>
 

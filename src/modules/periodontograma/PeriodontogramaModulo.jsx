@@ -1,4 +1,6 @@
 import React, { memo, useState, useEffect } from 'react'
+import { Droplet } from 'lucide-react'
+import { Icon } from '../../components/Icon'
 import { ArcadaSuperior } from './components/ArcadaSuperior'
 import { ArcadaInferior } from './components/ArcadaInferior'
 import { HeaderPeriodontal } from './components/HeaderPeriodontal'
@@ -86,7 +88,7 @@ export const PeriodontogramaModulo = memo(({ pacienteId }) => {
     const notaPeriodontal = {
       id: Date.now(),
       fecha: fechaHora,
-      texto: `🩸 EXAMEN PERIODONTAL (${modoComparativoReeval ? 'REEVALUACIÓN' : 'INICIAL'}): O'Leary: ${indices.indiceOLeary}% | BOP%: ${indices.porcentajeSangrado}% | Sondaje Máx: ${indices.maxSondaje}mm | ${indices.diagnosticoSugerido} (${indices.gradoAAP})`
+      texto: `EXAMEN PERIODONTAL (${modoComparativoReeval ? 'REEVALUACIÓN' : 'INICIAL'}): O'Leary: ${indices.indiceOLeary}% | BOP%: ${indices.porcentajeSangrado}% | Sondaje Máx: ${indices.maxSondaje}mm | ${indices.diagnosticoSugerido} (${indices.gradoAAP})`
     }
 
     const evolucionesActualizadas = [notaPeriodontal, ...evolucionesPrevias]
@@ -105,7 +107,10 @@ export const PeriodontogramaModulo = memo(({ pacienteId }) => {
       {/* Barra de Control */}
       <div className="flex justify-between items-center flex-wrap gap-3">
         <div>
-          <h3 className="text-base font-bold text-gray-900 uppercase tracking-wider">🩸 Periodontograma Clínico & Sondaje AAP</h3>
+          <h3 className="text-base font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+          <Icon icon={Droplet} size="md" />
+          Periodontograma Clínico & Sondaje AAP
+        </h3>
           <p className="text-xs text-gray-500">Evaluación de profundidades de bolsa, recesiones, CAL y sangrado al sondaje (BOP).</p>
         </div>
 

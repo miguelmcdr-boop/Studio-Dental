@@ -1,4 +1,6 @@
 import React, { memo, useState } from 'react'
+import { FlaskConical } from 'lucide-react'
+import { Icon } from '../../components/Icon'
 import { ETAPAS_LABORATORIO } from './constants/laboratorioConstants'
 import { useLaboratorio } from './hooks/useLaboratorio'
 import { LaboratorioSummaryCards } from './components/LaboratorioSummaryCards'
@@ -38,7 +40,10 @@ export const LaboratorioModulo = memo(() => {
     <div className="space-y-6">
       <div className="flex justify-between items-center flex-wrap gap-3 print:hidden">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider">🧪 Control de Trabajos de Laboratorio Dental</h2>
+          <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+            <Icon icon={FlaskConical} size="md" />
+            Control de Trabajos de Laboratorio Dental
+          </h2>
           <p className="text-xs text-gray-500">Gestión de etapas prótesicas, proveedores y tarifarios por laboratorio.</p>
         </div>
 

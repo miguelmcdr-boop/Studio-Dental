@@ -1,4 +1,6 @@
 import React, { memo, useState } from 'react'
+import { Icon } from '../../components/Icon'
+import { Tooth } from '../../components/icons/Tooth'
 import { ESPECIALIDADES_ODONTOLOGICAS } from './constants/prestacionesConstants'
 import { usePrestaciones } from './hooks/usePrestaciones'
 import { PrestacionesSummaryCards } from './components/PrestacionesSummaryCards'
@@ -47,7 +49,10 @@ export const PrestacionesModulo = memo(() => {
     <div className="space-y-6">
       <div className="flex justify-between items-center flex-wrap gap-3 print:hidden">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider">🦷 Arancel de Prestaciones & Paquetes Clínicos</h2>
+          <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+          <Icon icon={Tooth} size="md" />
+          Arancel de Prestaciones & Paquetes Clínicos
+        </h2>
           <p className="text-xs text-gray-500">Catálogo oficial de procedimientos, convenios y promociones de la clínica.</p>
         </div>
 

@@ -1,6 +1,6 @@
 import React, { memo, useState } from 'react'
 import { Icon } from '../../components/Icon'
-import { Wrench } from 'lucide-react'
+import { Wrench, Sparkles, Dna } from 'lucide-react'
 import { Input } from '../../components/ui/Input'
 import { Button } from '../../components/ui/Button'
 import { EQUIPOS_AUTOCLAVE } from './constants/esterilizacionConstants'
@@ -43,7 +43,10 @@ export const EsterilizacionModulo = memo(() => {
     <div className="space-y-6">
       <div className="flex justify-between items-center flex-wrap gap-3 print:hidden">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider">🧼 Central de Esterilización & Bioseguridad SEREMI</h2>
+          <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+          <Icon icon={Sparkles} size="md" />
+          Central de Esterilización & Bioseguridad SEREMI
+        </h2>
           <p className="text-xs text-gray-500">Control de cargas, trazabilidad, incubación de ampollas y Libro Folia Oficial.</p>
         </div>
 
@@ -76,7 +79,10 @@ export const EsterilizacionModulo = memo(() => {
           variant={tabActual === 'biologico' ? 'primary' : 'secondary'}
           size="sm"
         >
-          🧬 Control Biológico (Ampollas)
+          <span className="flex items-center gap-1.5">
+            <Icon icon={Dna} size="sm" />
+            Control Biológico (Ampollas)
+          </span>
         </Button>
 
         <Button

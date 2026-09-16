@@ -1,4 +1,7 @@
 import React, { memo } from 'react'
+import { Baby, Columns3, Eraser } from 'lucide-react'
+import { Icon } from '../../components/Icon'
+import { Tooth } from '../../components/icons/Tooth'
 import { Button } from '../../components/ui/Button'
 import { DienteSVG } from '../../components/DienteSVG'
 import {
@@ -49,7 +52,7 @@ export const OdontogramaModulo = memo(({
             size="sm"
             className={tipoDenticion === 'permanente' ? 'font-extrabold' : 'font-extrabold'}
           >
-            🦷 Permanente (11-48)
+            <span className="flex items-center gap-1.5"><Icon icon={Tooth} size="sm" />Permanente (11-48)</span>
           </Button>
 
           <Button
@@ -59,7 +62,7 @@ export const OdontogramaModulo = memo(({
             size="sm"
             className="font-extrabold"
           >
-            🧸 Temporal (51-85)
+            <span className="flex items-center gap-1.5"><Icon icon={Baby} size="sm" />Temporal (51-85)</span>
           </Button>
         </div>
 
@@ -73,13 +76,13 @@ export const OdontogramaModulo = memo(({
               ? 'bg-purple-700 text-white border-purple-800 hover:bg-purple-800 font-extrabold' 
               : 'bg-purple-50 text-purple-900 border-purple-300 hover:bg-purple-100 font-extrabold'}
           >
-            🪞 {modoComparativoSplit ? 'Cerrar Vista Comparativa Split' : 'Ver Antes vs. Después (Split)'}
+            <span className="flex items-center gap-1.5"><Icon icon={Columns3} size="sm" />{modoComparativoSplit ? 'Cerrar Vista Comparativa Split' : 'Ver Antes vs. Después (Split)'}</span>
           </Button>
         )}
 
         {esEvolucion && (
           <span className="bg-emerald-100 text-emerald-900 text-xs font-black px-3.5 py-1.5 rounded-xl border border-emerald-300 shadow-2xs">
-            🟢 Modo Evolución (Tratamientos Realizados)
+            Modo Evolución (Tratamientos Realizados)
           </span>
         )}
       </div>
@@ -219,7 +222,7 @@ export const OdontogramaModulo = memo(({
       <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-2xs print:hidden">
         <div className="flex justify-between items-center mb-2">
           <h4 className="text-xs font-extrabold text-gray-900">Observación Clínica — Pieza Dental {piezaActiva}</h4>
-          <Button type="button" onClick={handleLimpiarPieza} variant="ghost" size="sm" className="text-red-600 font-bold">🧹 Limpiar Pieza</Button>
+          <Button type="button" onClick={handleLimpiarPieza} variant="ghost" size="sm" className="text-red-600 font-bold"><span className="flex items-center gap-1.5"><Icon icon={Eraser} size="sm" />Limpiar Pieza</span></Button>
         </div>
         <textarea
           rows="2"

@@ -148,8 +148,8 @@ export const PagosModulo = memo(() => {
                 className="p-2 border rounded-xl bg-white font-semibold"
               >
                 <option value="Todos">Todos</option>
-                <option value="Emitido">🟢 Vigentes</option>
-                <option value="Anulado">🔴 Anulados</option>
+                <option value="Emitido">Vigentes</option>
+                <option value="Anulado">Anulados</option>
               </select>
             </div>
 

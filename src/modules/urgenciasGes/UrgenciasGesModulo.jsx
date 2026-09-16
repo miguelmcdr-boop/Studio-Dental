@@ -1,4 +1,6 @@
 import React, { memo } from 'react'
+import { Siren } from 'lucide-react'
+import { Icon } from '../../components/Icon'
 import { useUrgenciasGes } from './hooks/useUrgenciasGes'
 import { FormRegistroGes } from './components/FormRegistroUrgencia'
 import { DocumentoImpresoGes } from './components/DocumentoImpresoGes'
@@ -21,7 +23,10 @@ export const UrgenciasGesModulo = memo(() => {
   return (
     <div className="space-y-6">
       <div className="border-b pb-3 print:hidden">
-        <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider">🚨 Atenciones de Urgencia y Notificaciones GES / AUGE</h2>
+        <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+          <Icon icon={Siren} size="md" />
+          Atenciones de Urgencia y Notificaciones GES / AUGE
+        </h2>
         <p className="text-xs text-gray-500">Gestión de Urgencia Odontológica Ambulatoria y emisión de constancias normadas Ley 19.966.</p>
       </div>
 
