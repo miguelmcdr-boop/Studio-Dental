@@ -20,7 +20,7 @@ export const DashboardHeader = memo(({ userProfile }) => {
       </div>
 
       <div className="bg-gray-800/80 px-4 py-2 rounded-xl text-xs border border-gray-700">
-        <span className="text-emerald-400 font-bold">🟢 Estado Consulta:</span> Operativa Offline-First
+        <span className="text-emerald-400 font-bold">Estado Consulta:</span> Operativa Offline-First
       </div>
     </div>
   )

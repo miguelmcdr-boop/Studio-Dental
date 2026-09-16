@@ -1,4 +1,5 @@
 import React, { memo } from 'react'
+import { Armchair } from 'lucide-react'
 
 export const SalaEsperaWidget = memo(({ enEspera = [], enAtencion = [], pacientes = [], alSeleccionarPaciente }) => {
   return (
@@ -16,7 +17,10 @@ export const SalaEsperaWidget = memo(({ enEspera = [], enAtencion = [], paciente
       {/* Pacientes en Atención Actualmente */}
       {enAtencion.length > 0 && (
         <div className="space-y-2">
-          <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wider block">🪑 Atendiendo en Sillón / Box:</span>
+          <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wider block inline-flex items-center gap-1">
+            <Armchair size={12} />
+            Atendiendo en Sillón / Box:
+          </span>
           {enAtencion.map(c => {
             const pac = pacientes.find(p => String(p.id) === String(c.pacienteId))
             return (

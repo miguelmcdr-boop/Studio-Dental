@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { Eraser } from 'lucide-react'
 
 export const FirmaDigitalCanvas = ({ alGuardarFirma, alLimpiarFirma, resetSignal = 0 }) => {
   const canvasRef = useRef(null)
@@ -93,7 +94,10 @@ export const FirmaDigitalCanvas = ({ alGuardarFirma, alLimpiarFirma, resetSignal
           onClick={limpiarCanvas}
           className="text-[11px] font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-1 rounded-lg"
         >
-          🧹 Limpiar Firma
+          <span className="inline-flex items-center gap-1">
+            <Eraser size={12} />
+            Limpiar Firma
+          </span>
         </button>
       </div>
     </div>

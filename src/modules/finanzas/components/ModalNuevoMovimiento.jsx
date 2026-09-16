@@ -66,7 +66,7 @@ export const ModalNuevoMovimiento = memo(({ alGuardar, alCerrar }) => {
               className={tipo === 'ingreso' ? 'bg-emerald-600 hover:bg-emerald-700' : ''}
               fullWidth
             >
-              🟢 Ingreso
+              Ingreso
             </Button>
             <Button
               type="button"
@@ -75,7 +75,7 @@ export const ModalNuevoMovimiento = memo(({ alGuardar, alCerrar }) => {
               className={tipo === 'egreso' ? 'bg-red-600 hover:bg-red-700' : ''}
               fullWidth
             >
-              🔴 Egreso / Gasto
+              Egreso / Gasto
             </Button>
           </div>
 

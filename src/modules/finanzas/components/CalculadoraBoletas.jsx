@@ -1,4 +1,5 @@
 import React, { memo } from 'react'
+import { Receipt } from 'lucide-react'
 import { useCalculadoraBoletas } from '../hooks/useCalculadoraBoletas'
 
 export const CalculadoraBoletas = memo(({ alRegistrarGastoHonorario }) => {
@@ -23,8 +24,9 @@ export const CalculadoraBoletas = memo(({ alRegistrarGastoHonorario }) => {
     <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-6 text-xs">
       <div className="border-b pb-3 flex justify-between items-center flex-wrap gap-2">
         <div>
-          <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider">
-            🧾 Liquidador de Honorarios por Prestación / Comisión
+          <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider inline-flex items-center gap-1.5">
+            <Receipt size={16} />
+            Liquidador de Honorarios por Prestación / Comisión
           </h3>
           <p className="text-gray-500 text-[11px]">
             Calcula el porcentaje que le corresponde al especialista y su desglose de retención tributaria (SII).
