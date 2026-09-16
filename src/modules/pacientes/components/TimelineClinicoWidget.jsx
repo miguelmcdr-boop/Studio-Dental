@@ -1,5 +1,6 @@
 import React, { memo, useState, useMemo } from 'react'
 import { formatearCLP } from '../../../utils/formatoMoneda'
+import { FileText, Pill, File, CheckCircle, Clock, Calendar } from 'lucide-react'
 
 export const TimelineClinicoWidget = memo(({
   evolucionesNotas = [],
@@ -86,7 +87,7 @@ export const TimelineClinicoWidget = memo(({
       <div className="flex justify-between items-center border-b pb-3 flex-wrap gap-2">
         <div>
           <h3 className="font-bold text-gray-900 uppercase tracking-wider text-sm flex items-center gap-2">
-            <span>⏱️</span> Línea de Tiempo Cronológica del Expediente ({eventosFiltrados.length})
+            <Clock size={16} /> Línea de Tiempo Cronológica del Expediente ({eventosFiltrados.length})
           </h3>
           <p className="text-[11px] text-gray-500">Historial unificado de atenciones, notas, fármacos y certificados.</p>
         </div>
@@ -132,7 +133,7 @@ export const TimelineClinicoWidget = memo(({
                     <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${ev.badgeColor}`}>
                       {ev.tipo}
                     </span>
-                    <span className="text-[10px] font-bold text-gray-400">🗓️ {ev.fecha}</span>
+                    <span className="text-[10px] font-bold text-gray-400"><span className="inline-flex items-center gap-1"><Calendar size={10} />{ev.fecha}</span></span>
                   </div>
                 </div>
                 <p className="text-gray-700 text-[11px] whitespace-pre-wrap pt-1">{ev.detalle}</p>

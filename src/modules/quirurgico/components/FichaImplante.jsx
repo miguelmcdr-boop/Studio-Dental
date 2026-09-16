@@ -1,6 +1,8 @@
 import { sanitizarTorque, sanitizarISQ } from '../utils/quirurgicoValidation'
 import React, { useState } from 'react'
 import { MARCAS_IMPLANTES, TIPOS_PLATAFORMA, CONEXIONES_DIAMETRO } from '../constants/quirurgicoConstants'
+import { Icon } from '../../../components/Icon'
+import { Tooth } from '../../../components/icons/Tooth'
 
 export const FichaImplante = ({ implantes = [], onAgregarImplante, onEliminarImplante }) => {
   const [form, setForm] = useState({
@@ -172,7 +174,7 @@ export const FichaImplante = ({ implantes = [], onAgregarImplante, onEliminarImp
               </div>
 
               <button onClick={() => onEliminarImplante(imp.id)} className="text-red-500 hover:text-red-700 font-bold text-xs bg-red-50 px-2 py-1 rounded">
-                🗑️ Borrar
+                <span className="inline-flex items-center gap-1"><Trash2 size={12} />Borrar</span>
               </button>
             </div>
           ))}

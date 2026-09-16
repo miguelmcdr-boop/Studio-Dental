@@ -4,10 +4,11 @@
  * F4-03f-5c
  */
 import React from 'react'
+import { Icon } from '../../../components/Icon'
+import { Droplet, AlertTriangle, FileText } from 'lucide-react'
 
 export const TablaAnticoagulantes = ({ anticoagulantes, onEditar, onEliminar, onCrearNueva }) => {
   const datos = Array.isArray(anticoagulantes) ? anticoagulantes : []
-
   return (
     <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
       <div className="px-6 py-4 border-b border-gray-200 bg-rose-50">
@@ -31,10 +32,9 @@ export const TablaAnticoagulantes = ({ anticoagulantes, onEditar, onEliminar, on
 
       {/* Advertencia crítica */}
       <div className="px-6 py-3 border-b border-gray-200 bg-yellow-50 text-sm text-yellow-800">
-        <strong>⚠️ Nota importante:</strong> Esta tabla es orientativa y <strong>NO reemplaza la interconsulta con el médico tratante/cardiólogo</strong> cuando el procedimiento implica riesgo hemorrágico moderado-alto. La tendencia actual (AHA/ACC, guías europeas) favorece <strong>NO suspender</strong> la mayoría de estos fármacos para procedimientos dentales menores.
+        <strong className="inline-flex items-center gap-1"><AlertTriangle size={12} />Nota importante:</strong> Esta tabla es orientativa y <strong>NO reemplaza la interconsulta con el médico tratante/cardiólogo</strong> cuando el procedimiento implica riesgo hemorrágico moderado-alto. La tendencia actual (AHA/ACC, guías europeas) favorece <strong>NO suspender</strong> la mayoría de estos fármacos para procedimientos dentales menores.
       </div>
 
-      {/* Tabla */}
       {datos.length === 0 ? (
         <div className="p-8 text-center text-gray-500">
           No hay registros de manejo de anticoagulantes
@@ -93,7 +93,7 @@ export const TablaAnticoagulantes = ({ anticoagulantes, onEditar, onEliminar, on
 
       {/* Nota clínica al pie */}
       <div className="px-6 py-4 border-t border-gray-200 bg-rose-50 text-sm text-rose-800 space-y-2">
-        <p><strong>📝 Regla general (cirugía dental simple):</strong></p>
+        <p><strong className="inline-flex items-center gap-1"><FileText size={12} />Regla general (cirugía dental simple):</strong></p>
         <ul className="list-disc list-inside space-y-1 text-rose-700">
           <li>1-3 exodoncias no complejas, curetaje, cirugía de tejido blando limitado → <strong>rara vez amerita suspensión</strong> de antitrombóticos.</li>
           <li>Reservar la interrupción de terapia para: cirugías extensas, múltiples extracciones simultáneas, o antecedente personal de sangrado difícil de controlar.</li>

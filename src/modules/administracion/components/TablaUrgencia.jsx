@@ -4,10 +4,11 @@
  * F4-03f-2
  */
 import React from 'react'
+import { Icon } from '../../../components/Icon'
+import { Siren, AlertTriangle } from 'lucide-react'
 
 export const TablaUrgencia = ({ urgencia, onEditar, onDesactivar, onCrearNuevo }) => {
   const datos = Array.isArray(urgencia) ? urgencia : []
-
   return (
     <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
       <div className="px-6 py-4 border-b border-gray-200 bg-red-50">
@@ -49,10 +50,7 @@ export const TablaUrgencia = ({ urgencia, onEditar, onDesactivar, onCrearNuevo }
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {datos.map((farmaco) => (
-                <tr
-                  key={farmaco.id || farmaco.numero}
-                  className="hover:bg-gray-50"
-                >
+                <tr key={farmaco.id || farmaco.numero} className="hover:bg-gray-50">
                   <td className="px-4 py-3 text-sm text-gray-700 font-mono">
                     {farmaco.numero}
                   </td>
@@ -101,7 +99,7 @@ export const TablaUrgencia = ({ urgencia, onEditar, onDesactivar, onCrearNuevo }
       )}
 
       <div className="px-6 py-3 border-t border-gray-200 bg-yellow-50 text-xs text-yellow-800">
-        <strong>⚠️ Nota crítica:</strong> Todo box dental debe contar con estos fármacos accesibles, con verificación periódica de fechas de vencimiento, y el equipo debe estar entrenado en reanimación básica (BLS) y protocolo de manejo de anafilaxia.
+        <strong className="inline-flex items-center gap-1"><AlertTriangle size={12} />Nota crítica:</strong> Todo box dental debe contar con estos fármacos accesibles, con verificación periódica de fechas de vencimiento, y el equipo debe estar entrenado en reanimación básica (BLS) y protocolo de manejo de anafilaxia.
       </div>
     </div>
   )

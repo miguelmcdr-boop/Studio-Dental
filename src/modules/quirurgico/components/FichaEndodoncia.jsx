@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
 import { TECNICAS_OBTURACION, SELLADORES_ENDODONTICOS } from '../constants/quirurgicoConstants'
+import { Icon } from '../../../components/Icon'
+import { FlaskConical, Trash2 } from 'lucide-react'
 
 export const FichaEndodoncia = ({ endodoncias = [], onAgregarEndodoncia, onEliminarEndodoncia }) => {
   const [pieza, setPieza] = useState('1.6')
@@ -198,7 +200,7 @@ export const FichaEndodoncia = ({ endodoncias = [], onAgregarEndodoncia, onElimi
               </div>
 
               <button onClick={() => onEliminarEndodoncia(endo.id)} className="text-red-500 hover:text-red-700 font-bold text-xs bg-red-50 px-2 py-1 rounded">
-                🗑️ Borrar
+                <span className="inline-flex items-center gap-1"><Trash2 size={12} />Borrar</span>
               </button>
             </div>
           ))}

@@ -5,6 +5,8 @@
  */
 import React from 'react'
 import { FAMILIAS_ALERGIAS } from '../schemas/alergiaCruzadaSchema'
+import { Icon } from '../../../components/Icon'
+import { Dna, AlertTriangle, FileText } from 'lucide-react'
 
 /**
  * Convierte el array de reglas en un mapa para acceso rápido por celda.
@@ -13,12 +15,10 @@ import { FAMILIAS_ALERGIAS } from '../schemas/alergiaCruzadaSchema'
 const construirMapaReglas = (alergiasCruzadas) => {
   const mapa = new Map()
   if (!Array.isArray(alergiasCruzadas)) return mapa
-  
   alergiasCruzadas.forEach(regla => {
     const clave = `${regla.familia_alergia}|${regla.familia_farmaco}`
     mapa.set(clave, regla)
   })
-  
   return mapa
 }
 
@@ -41,8 +41,8 @@ const renderCelda = (regla) => {
   if (regla.severidad === 'advertencia') {
     const porcentaje = regla.porcentaje_cruzado ? ` (${regla.porcentaje_cruzado})` : ''
     return (
-      <span className="text-yellow-600 font-semibold" title={regla.nota_clinica || `Precaución${porcentaje}`}>
-        ⚠️
+      <span className="text-yellow-600 font-semibold inline-flex items-center gap-1" title={regla.nota_clinica || `Precaución${porcentaje}`}>
+        <AlertTriangle size={12} />
       </span>
     )
   }
@@ -88,7 +88,7 @@ export const TablaAlergiasCruzadas = ({ alergiasCruzadas, onEditarCelda, onCrear
           <span className="text-gray-600">Crítica (contraindicación absoluta)</span>
         </span>
         <span className="flex items-center gap-1">
-          <span className="text-yellow-600">⚠️</span>
+          <span className="text-yellow-600"><AlertTriangle size={12} /></span>
           <span className="text-gray-600">Advertencia (precaución con porcentaje)</span>
         </span>
         <span className="flex items-center gap-1">
@@ -151,7 +151,7 @@ export const TablaAlergiasCruzadas = ({ alergiasCruzadas, onEditarCelda, onCrear
 
       {/* Notas clínicas al pie */}
       <div className="px-6 py-4 border-t border-gray-200 bg-yellow-50 text-sm text-yellow-800 space-y-2">
-        <p><strong>📝 Notas clínicas importantes:</strong></p>
+        <p><strong className="inline-flex items-center gap-1"><FileText size={12} />Notas clínicas importantes:</strong></p>
         <ul className="list-disc list-inside space-y-1 text-yellow-700">
           <li><strong>Penicilinas y Cefalosporinas:</strong> La tasa real de reacción cruzada con cefalosporinas de 2ª, 3ª y 4ª generación es inferior al 2%. La reactividad histórica del 10% ocurría con cefalosporinas de 1ª generación.</li>
           <li><strong>AINEs y Paracetamol:</strong> El 95% de los pacientes con hipersensibilidad a AINEs toleran Paracetamol en dosis &lt;1.000 mg/día.</li>
