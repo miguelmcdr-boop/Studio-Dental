@@ -68,7 +68,6 @@ export const FormRegistroGes = memo(({ pacientes = [], alRegistrar }) => {
           <select
             value={pacienteId}
             onChange={(e) => setPacienteId(e.target.value)}
-            required
             className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-bold"
           >
             <option value="">-- Seleccionar paciente --</option>
