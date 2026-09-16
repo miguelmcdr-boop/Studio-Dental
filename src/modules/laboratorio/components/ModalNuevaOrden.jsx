@@ -90,7 +90,6 @@ export const ModalNuevaOrden = memo(({ pacientes = [], laboratorios = [], alGuar
             <select
               value={pacienteId}
               onChange={(e) => setPacienteId(e.target.value)}
-              required
               className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-bold text-sm"
             >
               <option value="">-- Seleccionar paciente --</option>
@@ -117,7 +116,6 @@ export const ModalNuevaOrden = memo(({ pacientes = [], laboratorios = [], alGuar
               <Input
                 type="text"
                 list="tipos-trabajo-sugeridos"
-                required
                 placeholder="Escribe o selecciona (Ej: Carilla Feldspática, Prótesis Valplast...)"
                 value={tipoTrabajo}
                 onChange={(e) => setTipoTrabajo(e.target.value)}
