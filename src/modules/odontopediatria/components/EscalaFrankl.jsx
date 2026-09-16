@@ -1,11 +1,13 @@
 import React, { memo } from 'react'
+import { Baby } from 'lucide-react'
+import { Icon } from '../../../components/Icon'
 import { ESCALA_FRANKL } from '../constants/pediatriaConstants'
 
 export const EscalaFrankl = memo(({ gradoSeleccionado, onCambiarGrado, observacion, onCambiarObservacion }) => {
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-4">
       <h3 className="font-bold text-sm text-gray-900 border-b pb-2 uppercase tracking-wider">
-        🧸 Escala de Conducta de Frankl (Evaluación Comportamental)
+        <span className="flex items-center gap-1.5"><Icon icon={Baby} size="sm" />Escala de Conducta de Frankl (Evaluación Comportamental)</span>
       </h3>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">

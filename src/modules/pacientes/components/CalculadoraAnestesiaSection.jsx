@@ -1,4 +1,5 @@
 import React, { memo, useState, useMemo } from 'react'
+import { Baby, Heart, AlertTriangle } from 'lucide-react'
 import { calcularDosisAnestesiaCompleta, listarAnestesicosDisponibles } from '../../../utils/anestesiaCalculations'
 import { esCardiopata, esPediatria, parseEdad } from '../utils/anestesiaHelpers'
 import { CONFIG_ESTADO } from '../constants/anestesiaConstants'
@@ -67,13 +68,13 @@ export const CalculadoraAnestesiaSection = memo(({ paciente }) => {
         <p className="text-xs text-gray-500 flex flex-wrap gap-x-2 gap-y-1 mt-1">
           <span>Cálculo de seguridad que considera edad, peso, cardiopatía y embarazo.</span>
           {esPediatriaPaciente && (
-            <span className="font-bold text-amber-700">👶 Dosis pediátrica</span>
+            <span className="font-bold text-amber-700"><span className="inline-flex items-center gap-1"><Baby size={14} />Dosis pediátrica</span></span>
           )}
           {esCardiopataPaciente && (
-            <span className="font-bold text-red-700">❤️ Cardiopatía detectada</span>
+            <span className="font-bold text-red-700"><span className="inline-flex items-center gap-1"><Heart size={14} />Cardiopatía detectada</span></span>
           )}
           {esEmbarazo && (
-            <span className="font-bold text-pink-700">🤰 Embarazo activo</span>
+            <span className="font-bold text-pink-700"><span className="inline-flex items-center gap-1"><Baby size={14} />Embarazo activo</span></span>
           )}
         </p>
       </div>
@@ -173,12 +174,12 @@ export const CalculadoraAnestesiaSection = memo(({ paciente }) => {
             </span>
             {resultadoAnestesia.calculos.dosisPorKgUsada === 'pediatrica' && (
               <span className="text-[11px] text-amber-700 mt-2 font-semibold">
-                ⚠️ Dosis pediátrica aplicada ({resultadoAnestesia.calculos.mgPorKg} mg/kg)
+                <span className="inline-flex items-center gap-1"><AlertTriangle size={14} />Dosis pediátrica aplicada</span> ({resultadoAnestesia.calculos.mgPorKg} mg/kg)
               </span>
             )}
             {resultadoAnestesia.calculos.dosisPorKgUsada === 'adulta_fallback' && (
               <span className="text-[11px] text-amber-700 mt-2 font-semibold">
-                ⚠️ Dosis adulta aplicada (pediátrica no disponible)
+                <span className="inline-flex items-center gap-1"><AlertTriangle size={14} />Dosis adulta aplicada</span> (pediátrica no disponible)
               </span>
             )}
           </div>

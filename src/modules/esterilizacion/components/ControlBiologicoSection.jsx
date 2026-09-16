@@ -1,4 +1,6 @@
 import React, { memo, useState } from 'react'
+import { Dna } from 'lucide-react'
+import { Icon } from '../../../components/Icon'
 import { EQUIPOS_AUTOCLAVE } from '../constants/esterilizacionConstants'
 import { useAppDialog } from '../../../hooks/useAppDialog'
 
@@ -45,7 +47,7 @@ export const ControlBiologicoSection = memo(({ biologicos, alAgregar, alActualiz
       <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-4">
         <div className="border-b pb-2">
           <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider">
-            🧬 Control e Incubación de Indicadores Biológicos (Geobacillus)
+            <span className="flex items-center gap-1.5"><Icon icon={Dna} size="sm" />Control e Incubación de Indicadores Biológicos (Geobacillus)</span>
           </h3>
           <p className="text-gray-500 text-[11px]">
             Seguimiento obligatorio de ampollas de esporas para liberación segura de instrumental.
@@ -136,7 +138,7 @@ export const ControlBiologicoSection = memo(({ biologicos, alAgregar, alActualiz
                     b.resultado === 'Aprobado' ? 'bg-emerald-100 text-emerald-900' :
                     b.resultado === 'Rechazado' ? 'bg-red-100 text-red-900' : 'bg-amber-100 text-amber-900'
                   }`}>
-                    {b.resultado === 'Pendiente' ? '⏳ INCUBANDO' : b.resultado === 'Aprobado' ? '🟢 NEGATIVO (ESTÉRIL)' : '🔴 POSITIVO (FALLO)'}
+                    {b.resultado === 'Pendiente' ? 'INCUBANDO' : b.resultado === 'Aprobado' ? 'NEGATIVO (ESTÉRIL)' : 'POSITIVO (FALLO)'}
                   </span>
                 </td>
                 <td className="p-3 text-right">

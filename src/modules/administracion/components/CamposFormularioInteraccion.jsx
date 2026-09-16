@@ -12,22 +12,19 @@ const SEVERIDAD_CONFIG = {
     descripcion: 'Riesgo grave — evitar combinación o monitorizar estrechamente',
     color: 'border-red-400 bg-red-50',
     badge: 'bg-red-100 text-red-800',
-    icono: '🔴'
-  },
+      },
   moderada: {
     label: 'Moderada',
     descripcion: 'Precaución — evaluar riesgo/beneficio y considerar alternativas',
     color: 'border-yellow-400 bg-yellow-50',
     badge: 'bg-yellow-100 text-yellow-800',
-    icono: '🟡'
-  },
+      },
   menor: {
     label: 'Menor',
     descripcion: 'Interacción leve — generalmente no requiere intervención',
     color: 'border-green-400 bg-green-50',
     badge: 'bg-green-100 text-green-800',
-    icono: '🟢'
-  }
+      }
 }
 
 const campoError = (errores, campo) => errores[campo] ? 'border-red-400 bg-red-50' : 'border-gray-300'
@@ -123,7 +120,7 @@ export const CamposFormularioInteraccion = ({ form, errores, handleChange }) => 
                 />
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-gray-900">{config.icono} {config.label}</span>
+                    <span className="font-semibold text-gray-900">{config.label}</span>
                     <span className={`px-2 py-0.5 text-xs font-semibold rounded ${config.badge}`}>
                       {nivel}
                     </span>

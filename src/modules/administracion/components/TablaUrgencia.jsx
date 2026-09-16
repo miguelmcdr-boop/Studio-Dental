@@ -13,7 +13,7 @@ export const TablaUrgencia = ({ urgencia, onEditar, onDesactivar, onCrearNuevo }
       <div className="px-6 py-4 border-b border-gray-200 bg-red-50">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-bold text-gray-900">
-            🚨 Fármacos de Urgencia / Carro de Reanimación
+            <span className="flex items-center gap-1.5"><Icon icon={Siren} size="sm" />Fármacos de Urgencia / Carro de Reanimación</span>
           </h3>
           {onCrearNuevo && (
             <button

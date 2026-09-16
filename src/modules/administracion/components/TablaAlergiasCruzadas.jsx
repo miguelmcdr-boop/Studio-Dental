@@ -65,7 +65,7 @@ export const TablaAlergiasCruzadas = ({ alergiasCruzadas, onEditarCelda, onCrear
       <div className="px-6 py-4 border-b border-gray-200 bg-blue-50">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-bold text-gray-900">
-            🧬 Matriz de Alergias Cruzadas
+            <span className="flex items-center gap-1.5"><Icon icon={Dna} size="sm" />Matriz de Alergias Cruzadas</span>
           </h3>
           {onCrearNueva && (
             <button

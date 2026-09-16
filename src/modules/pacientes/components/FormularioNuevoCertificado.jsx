@@ -1,4 +1,5 @@
 import React, { memo, useState } from 'react'
+import { Bed } from 'lucide-react'
 import { Input } from '../../../components/ui/Input'
 import { Button } from '../../../components/ui/Button'
 import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
@@ -78,7 +79,7 @@ export const FormularioNuevoCertificado = memo(({ userProfile, onGenerarCertific
             onChange={() => setTipoCertificado('reposo')}
             className="accent-black"
           />
-          <span className="font-bold">🛌 Certificado de Reposo / Licencia Médica</span>
+          <span className="font-bold"><span className="inline-flex items-center gap-1"><Bed size={14} />Certificado de Reposo / Licencia Médica</span></span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">

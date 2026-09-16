@@ -1,4 +1,5 @@
 import React, { memo } from 'react'
+import { Cigarette, Stethoscope } from 'lucide-react'
 
 export const ClasificacionAAPCard = memo(({ indices, factoresRiesgo, setFactoresRiesgo }) => {
   return (
@@ -18,7 +19,7 @@ export const ClasificacionAAPCard = memo(({ indices, factoresRiesgo, setFactores
               onChange={(e) => setFactoresRiesgo(prev => ({ ...prev, fumador: e.target.checked }))}
               className="rounded text-black focus:ring-0"
             />
-            🚬 Tabaquismo
+            <span className="inline-flex items-center gap-1"><Cigarette size={14} />Tabaquismo</span>
           </label>
           <label className="flex items-center gap-1 font-bold text-gray-800 cursor-pointer">
             <input
@@ -27,7 +28,7 @@ export const ClasificacionAAPCard = memo(({ indices, factoresRiesgo, setFactores
               onChange={(e) => setFactoresRiesgo(prev => ({ ...prev, diabetes: e.target.checked }))}
               className="rounded text-black focus:ring-0"
             />
-            🩺 Diabetes
+            <span className="inline-flex items-center gap-1"><Stethoscope size={14} />Diabetes</span>
           </label>
         </div>
       </div>

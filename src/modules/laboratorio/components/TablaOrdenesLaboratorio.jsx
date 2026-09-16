@@ -72,7 +72,7 @@ export const TablaOrdenesLaboratorio = memo(({ ordenes, onActualizarEtapa, onCam
                       estaPagado ? 'bg-emerald-100 text-emerald-900 border-emerald-300' : 'bg-amber-100 text-amber-900 border-amber-300'
                     }`}
                   >
-                    {estaPagado ? '🟢 PAGADO' : '🟡 PENDIENTE PAGO'}
+                    {estaPagado ? 'PAGADO' : 'PENDIENTE PAGO'}
                   </button>
                 </td>
 

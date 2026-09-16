@@ -32,12 +32,12 @@ const log = createLogger('AdminVademecumModulo')
 
 const TABS = [
   { id: 'vademecum', nombre: '🏥 Vademécum', descripcion: '94 fármacos regulares' },
-  { id: 'urgencia', nombre: '🚨 Urgencia', descripcion: 'Carro de reanimación' },
-  { id: 'antirresortivos', nombre: '🦴 Antirresortivos', descripcion: 'Riesgo MRONJ' },
-  { id: 'alergias', nombre: '🧬 Alergias Cruzadas', descripcion: 'Matriz de reactividad' },
+  { id: 'urgencia', nombre: 'Urgencia', descripcion: 'Carro de reanimación' },
+  { id: 'antirresortivos', nombre: 'Antirresortivos', descripcion: 'Riesgo MRONJ' },
+  { id: 'alergias', nombre: 'Alergias Cruzadas', descripcion: 'Matriz de reactividad' },
   { id: 'interacciones', nombre: '⚗️ Interacciones', descripcion: 'Farmacológicas' },
   { id: 'profilaxis', nombre: '💉 Profilaxis', descripcion: 'Endocarditis AHA' },
-  { id: 'anticoagulantes', nombre: '🩸 Anticoagulantes', descripcion: 'Manejo perioperatorio' },
+  { id: 'anticoagulantes', nombre: 'Anticoagulantes', descripcion: 'Manejo perioperatorio' },
   { id: 'metadata', nombre: 'ℹ️ Metadata', descripcion: 'Info de curación' }
 ]
 

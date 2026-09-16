@@ -39,7 +39,7 @@ export const FichaEndodoncia = ({ endodoncias = [], onAgregarEndodoncia, onElimi
     <div className="space-y-6 text-xs">
       <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs">
         <h3 className="font-bold text-sm text-gray-900 mb-4 border-b pb-2 uppercase tracking-wider">
-          🧪 Ficha de Endodoncia y Mapa de Conductometría
+          <span className="flex items-center gap-1.5"><Icon icon={FlaskConical} size="sm" />Ficha de Endodoncia y Mapa de Conductometría</span>
         </h3>
 
         <form onSubmit={handleSubmit} className="space-y-4">

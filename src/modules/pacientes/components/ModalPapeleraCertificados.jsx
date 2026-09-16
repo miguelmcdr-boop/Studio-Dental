@@ -138,7 +138,7 @@ export const ModalPapeleraCertificados = memo(({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <span className="font-bold text-gray-900">
-                          {cert.tipo === 'asistencia' ? '📋 Asistencia' : '🛌 Reposo'}
+                          {cert.tipo === 'asistencia' ? 'Asistencia' : 'Reposo'}
                         </span>
                         <span className="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full">
                           {dias !== null ? `${dias} días restantes` : 'Sin fecha'}

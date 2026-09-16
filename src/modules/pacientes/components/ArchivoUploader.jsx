@@ -27,7 +27,7 @@ export const ArchivoUploader = memo(({
       accept: 'image/*',
     },
     rx: {
-      label: '🩻 Subir Radiografías',
+      label: 'Subir Radiografías',
       accept: 'image/*,.pdf',
     },
   }

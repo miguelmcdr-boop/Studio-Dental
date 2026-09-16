@@ -19,7 +19,7 @@ export const TimelineClinicoWidget = memo(({
       lista.push({
         id: `ev_${ev.id}`,
         tipo: 'Evolución',
-        icono: '📝',
+        icono: 'FileText',
         badgeColor: 'bg-blue-100 text-blue-800 border-blue-200',
         fecha: ev.fecha,
         timestamp: ev.id,
@@ -33,7 +33,7 @@ export const TimelineClinicoWidget = memo(({
       lista.push({
         id: `tr_${tr.id}`,
         tipo: 'Tratamiento',
-        icono: '🟢',
+        icono: 'CheckCircle',
         badgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-200',
         fecha: new Date(tr.id).toLocaleDateString('es-CL'),
         timestamp: tr.id,
@@ -47,7 +47,7 @@ export const TimelineClinicoWidget = memo(({
       lista.push({
         id: `rec_${rec.id}`,
         tipo: 'Receta',
-        icono: '💊',
+        icono: 'Pill',
         badgeColor: 'bg-purple-100 text-purple-800 border-purple-200',
         fecha: rec.fecha || new Date(rec.id).toLocaleDateString('es-CL'),
         timestamp: rec.id,
@@ -63,7 +63,7 @@ export const TimelineClinicoWidget = memo(({
       lista.push({
         id: `cert_${cert.id}`,
         tipo: 'Certificado',
-        icono: '📄',
+        icono: 'File',
         badgeColor: 'bg-amber-100 text-amber-800 border-amber-200',
         fecha: cert.fechaEmision,
         timestamp: cert.id,
@@ -119,7 +119,10 @@ export const TimelineClinicoWidget = memo(({
             <div key={ev.id} className="relative group">
               {/* Punto en la línea del tiempo */}
               <div className="absolute -left-[31px] top-0 bg-white border-2 border-black rounded-full w-5 h-5 flex items-center justify-center text-[10px]">
-                {ev.icono}
+                {ev.icono === 'FileText' && <FileText size={16} />}
+                {ev.icono === 'CheckCircle' && <CheckCircle size={16} />}
+                {ev.icono === 'Pill' && <Pill size={16} />}
+                {ev.icono === 'File' && <File size={16} />}
               </div>
 
               <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 hover:border-gray-400 transition-all space-y-1">

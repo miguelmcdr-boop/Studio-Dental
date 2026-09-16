@@ -1,4 +1,5 @@
 import React, { memo } from 'react'
+import { Receipt, Ban } from 'lucide-react'
 
 export const TablaHistorialPagos = memo(({ pagos, onVerComprobante, onEditar, onAnular, onPurgar, puedePurgar }) => {
   if (pagos.length === 0) {
@@ -70,7 +71,7 @@ export const TablaHistorialPagos = memo(({ pagos, onVerComprobante, onEditar, on
                   <span className={`px-2 py-0.5 rounded-lg font-black text-[10px] border ${
                     esPurgado ? 'bg-gray-200 text-gray-600 border-gray-400' : esAnulado ? 'bg-red-100 text-red-900 border-red-300' : 'bg-emerald-100 text-emerald-900 border-emerald-300'
                   }`}>
-                    {esPurgado ? '⚫ Purgado' : esAnulado ? '🔴 Anulado' : '🟢 Vigente'}
+                    {esPurgado ? 'Purgado' : esAnulado ? 'Anulado' : 'Vigente'}
                   </span>
                 </td>
 
@@ -84,7 +85,7 @@ export const TablaHistorialPagos = memo(({ pagos, onVerComprobante, onEditar, on
                     className="p-1.5 bg-black text-white text-[10px] font-bold rounded-lg hover:bg-gray-800"
                     title="Ver / Imprimir Comprobante Oficial"
                   >
-                    🧾 Recibo
+                    <span className="inline-flex items-center gap-1"><Receipt size={14} />Recibo</span>
                   </button>
 
                   {!esAnulado && !esPurgado && (
@@ -102,7 +103,7 @@ export const TablaHistorialPagos = memo(({ pagos, onVerComprobante, onEditar, on
                         className="p-1.5 text-red-500 hover:text-red-700 font-semibold rounded-lg hover:bg-red-50"
                         title="Anular pago"
                       >
-                        🚫
+                        <Ban size={14} />
                       </button>
                     </>
                   )}

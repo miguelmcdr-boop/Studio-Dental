@@ -10,18 +10,15 @@ const SEVERIDAD_CONFIG = {
   mayor: {
     label: 'Mayor',
     color: 'bg-red-100 text-red-800 border-red-300',
-    icono: '🔴'
-  },
+      },
   moderada: {
     label: 'Moderada',
     color: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-    icono: '🟡'
-  },
+      },
   menor: {
     label: 'Menor',
     color: 'bg-green-100 text-green-800 border-green-300',
-    icono: '🟢'
-  }
+      }
 }
 
 export const TablaInteracciones = ({ interacciones, onEditar, onEliminar, onCrearNueva }) => {
@@ -92,7 +89,7 @@ export const TablaInteracciones = ({ interacciones, onEditar, onEliminar, onCrea
           <option value="">Todas las severidades</option>
           {NIVELES_SEVERIDAD_INTERACCION.map(s => (
             <option key={s} value={s}>
-              {SEVERIDAD_CONFIG[s].icono} {SEVERIDAD_CONFIG[s].label}
+              {SEVERIDAD_CONFIG[s].label}
             </option>
           ))}
         </select>
@@ -142,7 +139,7 @@ export const TablaInteracciones = ({ interacciones, onEditar, onEliminar, onCrea
                     </td>
                     <td className="px-4 py-3 text-sm">
                       <span className={`px-2 py-1 text-xs font-semibold rounded border ${config.color}`}>
-                        {config.icono} {config.label}
+                        {config.label}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm">

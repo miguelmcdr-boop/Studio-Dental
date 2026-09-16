@@ -178,7 +178,7 @@ export const CertificadosSection = memo(({
               >
                 <div>
                   <span className="font-bold uppercase tracking-wider mr-2">
-                    {c.tipo === 'asistencia' ? '📋 Asistencia' : '🛌 Reposo'}
+                    {c.tipo === 'asistencia' ? 'Asistencia' : 'Reposo'}
                   </span>
                   <span>({c.fechaEmision}) — {c.diagnosticoMotivo}</span>
                   {c.r2ArchivoId && <span className="ml-2" title="Respaldado en R2">🔒</span>}

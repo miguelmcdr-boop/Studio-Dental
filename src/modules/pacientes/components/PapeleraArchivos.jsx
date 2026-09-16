@@ -1,4 +1,5 @@
 import React, { memo, useState } from 'react'
+import { Scan, FileText, Paperclip, Trash2, Recycle, AlertTriangle } from 'lucide-react'
 import { Input } from '../../../components/ui/Input'
 import { Button } from '../../../components/ui/Button'
 import { useAppDialog } from '../../../hooks/useAppDialog'
@@ -85,10 +86,10 @@ export const PapeleraArchivos = memo(({
   }
 
   const tituloCategoria = (categoria) => {
-    if (categoria === 'foto_clinica' || categoria === 'foto_intraoral') return '️'
-    if (categoria === 'radiografia') return '🩻'
-    if (categoria === 'pdf') return '📄'
-    return '📎'
+    if (categoria === 'foto_clinica' || categoria === 'foto_intraoral') return null
+    if (categoria === 'radiografia') return <Scan size={16} />
+    if (categoria === 'pdf') return <FileText size={16} />
+    return <Paperclip size={16} />
   }
 
   return (
@@ -102,7 +103,7 @@ export const PapeleraArchivos = memo(({
         className="w-full flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer"
       >
         <div className="flex items-center gap-2">
-          <span className="text-lg">🗑️</span>
+          <span className="text-lg"><Trash2 size={20} /></span>
           <span className="font-semibold text-sm text-gray-800">
             Papelera de Reciclaje
           </span>
@@ -118,7 +119,7 @@ export const PapeleraArchivos = memo(({
               size="sm"
               variant="danger"
             >
-              🗑️ Vaciar papelera
+              <span className="inline-flex items-center gap-1"><Trash2 size={14} />Vaciar papelera</span>
             </Button>
           )}
         </div>
@@ -165,7 +166,7 @@ export const PapeleraArchivos = memo(({
                     variant="primary"
                     className="ml-3"
                   >
-                    {restaurandoId === archivo.id ? 'Restaurando...' : '♻️ Restaurar'}
+                    {restaurandoId === archivo.id ? 'Restaurando...' : '<span className="inline-flex items-center gap-1"><Recycle size={14} />Restaurar</span>'}
                   </Button>
                 </div>
               ))}
@@ -179,7 +180,7 @@ export const PapeleraArchivos = memo(({
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md border border-red-200 shadow-2xl">
             <h4 className="text-lg font-bold text-red-700 mb-3">
-              ⚠️ Vaciar papelera de archivos
+              <span className="inline-flex items-center gap-1"><AlertTriangle size={16} />Vaciar papelera de archivos</span>
             </h4>
             <div className="space-y-3 text-sm text-gray-700">
               <p>
@@ -187,7 +188,7 @@ export const PapeleraArchivos = memo(({
               </p>
               <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                 <p className="text-red-800 font-semibold mb-1">
-                  ⚠️ Esta acción es IRREVERSIBLE:
+                  <span className="inline-flex items-center gap-1"><AlertTriangle size={14} />Esta acción es IRREVERSIBLE:</span>
                 </p>
                 <ul className="text-xs text-red-700 space-y-1 list-disc list-inside">
                   <li>Se eliminarán los archivos de Cloudflare R2</li>

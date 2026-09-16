@@ -59,7 +59,7 @@ export const TablaCargasEsterilizacion = memo(({ cargas, onSeleccionarImprimir, 
                   <span className={`px-2.5 py-1 rounded-lg font-extrabold text-[10px] ${
                     esConforme ? 'bg-emerald-100 text-emerald-900' : 'bg-red-100 text-red-900'
                   }`}>
-                    {esConforme ? '🟢 CONFORME' : '🔴 RECHAZADO'}
+                    {esConforme ? 'CONFORME' : 'RECHAZADO'}
                   </span>
                 </td>
 

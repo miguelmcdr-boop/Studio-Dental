@@ -13,7 +13,7 @@ export const TablaAnticoagulantes = ({ anticoagulantes, onEditar, onEliminar, on
       <div className="px-6 py-4 border-b border-gray-200 bg-rose-50">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-bold text-gray-900">
-            🩸 Manejo Perioperatorio de Anticoagulantes y Antiagregantes
+            <span className="flex items-center gap-1.5"><Icon icon={Droplet} size="sm" />Manejo Perioperatorio de Anticoagulantes y Antiagregantes</span>
           </h3>
           {onCrearNueva && (
             <button

@@ -20,7 +20,7 @@ export const BitacoraSection = memo(({ pacienteId, evolucionesNotas = [], setEvo
 
     const fechaHora = new Date().toLocaleDateString('es-CL') + ' ' + new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })
     const textoConLote = loteAutoclave.trim()
-      ? `${textoNuevaEvolucion.trim()} — 🧼 [Lote Autoclave/Esterilización: ${loteAutoclave.trim()}]`
+      ? `${textoNuevaEvolucion.trim()} — [Lote Autoclave/Esterilización: ${loteAutoclave.trim()}]`
       : textoNuevaEvolucion.trim()
 
     const nuevaNota = {
@@ -113,7 +113,7 @@ export const BitacoraSection = memo(({ pacienteId, evolucionesNotas = [], setEvo
 
         <div className="flex justify-between items-center gap-3 flex-wrap">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-gray-600">🧼 Trazabilidad SEREMI (Opcional):</span>
+            <span className="font-bold text-gray-600">Trazabilidad SEREMI (Opcional):</span>
             <input
               type="text"
               placeholder="Ej: LOTE-2026-0804-01"

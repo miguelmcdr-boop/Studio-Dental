@@ -1,4 +1,6 @@
 import React, { memo } from 'react'
+import { Icon } from '../../../components/Icon'
+import { Tooth } from '../../../components/icons/Tooth'
 import { TEMPORAL_SUPERIOR, TEMPORAL_INFERIOR } from '../constants/pediatriaConstants'
 
 export const OdontogramaTemporal = memo(({ datosDentosana = {}, onToggleEstadoPieza }) => {
@@ -40,7 +42,7 @@ export const OdontogramaTemporal = memo(({ datosDentosana = {}, onToggleEstadoPi
     <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-6">
       <div className="border-b pb-2">
         <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider">
-          🦷 Odontograma Temporal / Deciduo (Dentosana)
+          <span className="flex items-center gap-1.5"><Icon icon={Tooth} size="sm" />Odontograma Temporal / Deciduo (Dentosana)</span>
         </h3>
         <p className="text-gray-500 text-[11px]">Registro rápido de estado clínico para piezas primarias (5.1 a 8.5).</p>
       </div>
