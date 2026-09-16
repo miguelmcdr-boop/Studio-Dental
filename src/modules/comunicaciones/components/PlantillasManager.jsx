@@ -33,7 +33,15 @@ export const PlantillasManager = memo(({ plantillas, alGuardarPlantilla, alElimi
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!nombre.trim() || !cuerpo.trim()) return
+    if (!nombre.trim() || !cuerpo.trim()) {
+      await dialogAlert({
+        title: 'Campos requeridos',
+        description: 'Debes ingresar el nombre identificador y el cuerpo del mensaje.',
+        variant: 'warning',
+        confirmText: 'Entendido'
+      })
+      return
+    }
 
     alGuardarPlantilla({
       id: plantillaEditar ? plantillaEditar.id : undefined,
@@ -69,7 +77,6 @@ export const PlantillasManager = memo(({ plantillas, alGuardarPlantilla, alElimi
         <Input
           label="Nombre Identificador"
           type="text"
-          required
           placeholder="Ej: 📅 Confirmación de Cita"
           value={nombre}
           onChange={(e) => setNombre(e.target.value)}
@@ -103,7 +110,6 @@ export const PlantillasManager = memo(({ plantillas, alGuardarPlantilla, alElimi
 
           <textarea
             rows="4"
-            required
             placeholder="Ej: Hola {paciente}, le recordamos su cita el {fecha} a las {hora} hrs..."
             value={cuerpo}
             onChange={(e) => setCuerpo(e.target.value)}
@@ -112,13 +118,16 @@ export const PlantillasManager = memo(({ plantillas, alGuardarPlantilla, alElimi
 
           {/* Chips de inserción rápida de variables */}
           <div className="pt-2 flex flex-wrap gap-1">
-            <span className="text-[10px] text-gray-500 w-full block">Variables dinámicas rápidas:</span>
+            <span className="text-[10px] text-gray-500 w-full block" title="Estas variables se reemplazan automáticamente con los datos del paciente al enviar el mensaje">
+              Variables dinámicas (se reemplazan al enviar):
+            </span>
             {['{paciente}', '{fecha}', '{hora}', '{doctor}', '{clinica}'].map(v => (
               <button
                 key={v}
                 type="button"
                 onClick={() => handleInsertarVariable(v)}
                 className="bg-gray-100 hover:bg-black hover:text-white px-2 py-0.5 rounded border text-[10px] font-mono font-bold"
+                title={`Insertar ${v} en el mensaje`}
               >
                 + {v}
               </button>
