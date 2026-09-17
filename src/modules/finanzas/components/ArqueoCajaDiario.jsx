@@ -1,4 +1,7 @@
 import React, { memo } from 'react'
+import { Printer, ClipboardList } from 'lucide-react'
+import { CreditCard } from 'lucide-react'
+import { Banknote, Building2 } from 'lucide-react'
 
 export const ArqueoCajaDiario = memo(({
   transaccionesDia = [],
@@ -49,7 +52,7 @@ export const ArqueoCajaDiario = memo(({
           onClick={() => window.print()}
           className="bg-black text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-gray-800 shadow-sm flex items-center gap-2"
         >
-          🖨️ Imprimir Cierre de Caja Letter
+          <span className="inline-flex items-center gap-1"><Printer size={14} />Imprimir Cierre de Caja Letter</span>
         </button>
       </div>
 
@@ -88,23 +91,23 @@ export const ArqueoCajaDiario = memo(({
         {/* Desglose por Medio de Pago */}
         <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl mb-6">
           <h4 className="text-xs font-bold text-gray-800 uppercase tracking-wider mb-3">
-            💳 Desglose de Ingresos por Medio de Pago
+            <span className="inline-flex items-center gap-1"><CreditCard size={12} />Desglose de Ingresos por Medio de Pago</span>
           </h4>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
             <div className="bg-white p-3 rounded-lg border">
-              <span className="text-gray-500 block text-[10px]">💵 Efectivo:</span>
+              <span className="text-gray-500 block text-[10px] inline-flex items-center gap-1"><Banknote size={10} />Efectivo:</span>
               <span className="font-bold text-gray-900">${efectivo.toLocaleString('es-CL')}</span>
             </div>
             <div className="bg-white p-3 rounded-lg border">
-              <span className="text-gray-500 block text-[10px]">🏦 Transferencia:</span>
+              <span className="text-gray-500 block text-[10px] inline-flex items-center gap-1"><Building2 size={10} />Transferencia:</span>
               <span className="font-bold text-gray-900">${transferencia.toLocaleString('es-CL')}</span>
             </div>
             <div className="bg-white p-3 rounded-lg border">
-              <span className="text-gray-500 block text-[10px]">💳 Débito:</span>
+              <span className="text-gray-500 block text-[10px]"><span className="inline-flex items-center gap-1"><CreditCard size={8} />Débito:</span></span>
               <span className="font-bold text-gray-900">${debito.toLocaleString('es-CL')}</span>
             </div>
             <div className="bg-white p-3 rounded-lg border">
-              <span className="text-gray-500 block text-[10px]">💳 Crédito:</span>
+              <span className="text-gray-500 block text-[10px]"><span className="inline-flex items-center gap-1"><CreditCard size={8} />Crédito:</span></span>
               <span className="font-bold text-gray-900">${credito.toLocaleString('es-CL')}</span>
             </div>
           </div>
@@ -112,7 +115,7 @@ export const ArqueoCajaDiario = memo(({
 
         {/* Tabla de Movimientos del Día */}
         <h4 className="text-xs font-bold text-gray-800 uppercase tracking-wider mb-3">
-          📋 Detalle de Transacciones del Día ({transaccionesDia.length})
+          <span className="inline-flex items-center gap-1"><ClipboardList size={12} />Detalle de Transacciones del Día ({transaccionesDia.length})</span>
         </h4>
 
         {transaccionesDia.length === 0 ? (

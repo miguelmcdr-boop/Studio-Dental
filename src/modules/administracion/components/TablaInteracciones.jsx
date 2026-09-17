@@ -5,6 +5,8 @@
  */
 import React, { useState, useMemo } from 'react'
 import { NIVELES_SEVERIDAD_INTERACCION } from '../schemas/interaccionSchema'
+import { FlaskConical } from 'lucide-react'
+import { FileText } from 'lucide-react'
 
 const SEVERIDAD_CONFIG = {
   mayor: {
@@ -55,7 +57,7 @@ export const TablaInteracciones = ({ interacciones, onEditar, onEliminar, onCrea
       <div className="px-6 py-4 border-b border-gray-200 bg-orange-50">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-bold text-gray-900">
-            ⚗️ Interacciones Farmacológicas Clínicamente Relevantes
+            <span className="inline-flex items-center gap-1"><FlaskConical size={14} />Interacciones Farmacológicas Clínicamente Relevantes</span>
           </h3>
           {onCrearNueva && (
             <button
@@ -77,7 +79,7 @@ export const TablaInteracciones = ({ interacciones, onEditar, onEliminar, onCrea
           type="text"
           value={textoBusqueda}
           onChange={(e) => setTextoBusqueda(e.target.value)}
-          placeholder="🔍 Buscar por fármaco A, B o efecto..."
+          placeholder="Buscar por fármaco A, B o efecto..."
           className="flex-1 min-w-[200px] px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
         />
         
@@ -172,7 +174,7 @@ export const TablaInteracciones = ({ interacciones, onEditar, onEliminar, onCrea
 
       {/* Nota clínica al pie */}
       <div className="px-6 py-4 border-t border-gray-200 bg-orange-50 text-sm text-orange-800 space-y-2">
-        <p><strong>📝 Notas clínicas importantes (Sección 2D del vademécum v1.1):</strong></p>
+        <p><strong className="inline-flex items-center gap-1"><FileText size={12} />Notas clínicas importantes (Sección 2D del vademécum v1.1):</strong></p>
         <ul className="list-disc list-inside space-y-1 text-orange-700">
           <li><strong>Macrólidos + Estatinas:</strong> Claritromicina y Eritromicina inhiben CYP3A4. Preferir Azitromicina que tiene menor interacción.</li>
           <li><strong>Metronidazol + Alcohol:</strong> Efecto disulfiram. Advertir al paciente evitar alcohol durante el tratamiento y 48 horas después.</li>

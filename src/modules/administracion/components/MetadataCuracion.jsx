@@ -101,7 +101,7 @@ export const MetadataCuracion = ({ metadata }) => {
 
       {(estaVencido || revisionCercana) && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-800">
-          ⚠️ <strong>Atención:</strong> {estaVencido ? 'La revisión del vademécum está vencida.' : 'La revisión del vademécum está próxima.'} Contacte al curador clínico para actualizar.
+          <span className="inline-flex items-center gap-1"><AlertTriangle size={12} /><strong>Atención:</strong></span> {estaVencido ? 'La revisión del vademécum está vencida.' : 'La revisión del vademécum está próxima.'} Contacte al curador clínico para actualizar.
         </div>
       )}
     </div>

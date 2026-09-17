@@ -1,6 +1,8 @@
 import React, { memo } from 'react'
 import { configuracionStorageService } from '../services/configuracionStorageService'
 import { useAppDialog } from '../../../hooks/useAppDialog'
+import { AlertTriangle, Trash2 } from 'lucide-react'
+import { Save, Upload, Download } from 'lucide-react'
 
 export const RespaldoDatosSection = memo(({ alExportarBackup, alImportarBackup }) => {
   const { confirm, alert: dialogAlert } = useAppDialog()
@@ -27,7 +29,7 @@ export const RespaldoDatosSection = memo(({ alExportarBackup, alImportarBackup }
 
   const handleLimpiarSistema = async () => {
     const confirmado = await confirm({
-      title: '⚠️ Advertencia de seguridad',
+      title: 'Advertencia de seguridad',
       description: '¿Estás completamente seguro de borrar TODA la información local? Se perderán pacientes, fichas y agenda.',
       variant: 'danger',
       confirmText: 'Borrar todo'
@@ -57,13 +59,13 @@ export const RespaldoDatosSection = memo(({ alExportarBackup, alImportarBackup }
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-4 text-xs">
       <div className="border-b pb-3">
-        <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider">💾 Respaldo & Restauración de la Base de Datos</h3>
+        <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider inline-flex items-center gap-2"><Save size={14} />Respaldo & Restauración de la Base de Datos</h3>
         <p className="text-gray-500 text-[11px]">Garantiza la seguridad de la información mediante copias de seguridad portátiles.</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-2">
-          <h4 className="font-bold text-emerald-900 text-sm">📤 Exportar Copia de Seguridad</h4>
+          <h4 className="font-bold text-emerald-900 text-sm inline-flex items-center gap-1"><Upload size={14} />Exportar Copia de Seguridad</h4>
           <p className="text-gray-600 text-[11px]">Descarga un archivo JSON cifrado localmente con todas las fichas clínicas, anamnesis y movimientos financieros.</p>
           <button
             type="button"
@@ -75,7 +77,7 @@ export const RespaldoDatosSection = memo(({ alExportarBackup, alImportarBackup }
         </div>
 
         <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl space-y-2">
-          <h4 className="font-bold text-blue-900 text-sm">📥 Restaurar Respaldo JSON</h4>
+          <h4 className="font-bold text-blue-900 text-sm inline-flex items-center gap-1"><Download size={14} />Restaurar Respaldo JSON</h4>
           <p className="text-gray-600 text-[11px]">Carga un archivo de respaldo previo para migrar o recuperar datos de la consulta.</p>
           <input
             type="file"
@@ -87,13 +89,13 @@ export const RespaldoDatosSection = memo(({ alExportarBackup, alImportarBackup }
       </div>
 
       <div className="pt-4 border-t flex justify-between items-center flex-wrap gap-2">
-        <span className="text-red-600 font-semibold text-[11px]">⚠️ Zona de Peligro Administrador:</span>
+        <span className="text-red-600 font-semibold text-[11px] inline-flex items-center gap-1"><AlertTriangle size={12} />Zona de Peligro Administrador:</span>
         <button
           type="button"
           onClick={handleLimpiarSistema}
           className="bg-red-50 text-red-700 border border-red-200 font-bold px-4 py-2 rounded-xl hover:bg-red-100 transition-colors"
         >
-          🗑️ Reiniciar / Borrar Datos Locales
+          <span className="inline-flex items-center gap-1"><Trash2 size={12} />Reiniciar / Borrar Datos Locales</span>
         </button>
       </div>
     </div>

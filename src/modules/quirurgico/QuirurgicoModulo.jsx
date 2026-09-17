@@ -4,6 +4,7 @@ import { Icon } from '../../components/Icon'
 import { useQuirurgico } from './hooks/useQuirurgico'
 import { FichaImplante } from './components/FichaImplante'
 import { FichaEndodoncia } from './components/FichaEndodoncia'
+import { Wrench } from 'lucide-react'
 
 export const QuirurgicoModulo = memo(({ pacienteId }) => {
   const [tabSubSeccion, setTabSubSeccion] = useState('implantes')
@@ -25,7 +26,7 @@ export const QuirurgicoModulo = memo(({ pacienteId }) => {
             tabSubSeccion === 'implantes' ? 'border-black text-black' : 'border-transparent text-gray-500 hover:text-gray-800'
           }`}
         >
-          🔩 Implantología y Cirugía
+          <span className="inline-flex items-center gap-1"><Wrench size={12} />Implantología y Cirugía</span>
         </button>
         <button
           onClick={() => setTabSubSeccion('endodoncia')}

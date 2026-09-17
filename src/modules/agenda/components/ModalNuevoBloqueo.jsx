@@ -23,16 +23,16 @@ import { detectarConflictoBloqueo } from '../utils/agendaConflictos'
 
 
 const MOTIVOS_BLOQUEO = [
-  { value: '🍱 Horario de Almuerzo', label: 'Horario de Almuerzo', icon: Utensils },
+  { value: 'Horario de Almuerzo', label: 'Horario de Almuerzo', icon: Utensils },
   { value: 'Mantenimiento Técnico', label: 'Mantenimiento Técnico de Box', icon: Wrench },
-  { value: '🎓 Capacitación / Evento', label: 'Capacitación / Evento Clínico', icon: GraduationCap },
+  { value: 'Capacitación / Evento', label: 'Capacitación / Evento Clínico', icon: GraduationCap },
   { value: 'Ausencia / Urgencia', label: 'Ausencia del Profesional', icon: AlertTriangle },
 ]
 
 export const ModalNuevoBloqueo = memo(({ fechaPredeterminada, alGuardar, alCerrar, citasExistentes = [] }) => {
   const { alert: dialogAlert } = useAppDialog()
   const [form, setForm] = useState({
-    motivoBloqueo: '🍱 Horario de Almuerzo',
+    motivoBloqueo: 'Horario de Almuerzo',
     fecha: fechaPredeterminada || obtenerFechaLocalISO(),
     horaInicio: '13:00',
     horaFin: '14:00',

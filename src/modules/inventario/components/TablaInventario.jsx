@@ -1,6 +1,7 @@
 import React, { memo } from 'react'
 import { Button } from '../../../components/ui/Button'
 import { evaluarEstadoStock, evaluarVencimiento } from '../utils/inventarioCalculations'
+import { Pencil, Trash2 } from 'lucide-react'
 
 export const TablaInventario = memo(({ items, onAjustarCantidad, onEditar, onEliminar }) => {
   if (items.length === 0) {
@@ -93,7 +94,7 @@ export const TablaInventario = memo(({ items, onAjustarCantidad, onEditar, onEli
                     className="p-1.5"
                     title="Editar insumo"
                   >
-                    ✏️
+                    <Pencil size={12} />
                   </Button>
                   <Button
                     onClick={() => onEliminar(item.id)}
@@ -102,7 +103,7 @@ export const TablaInventario = memo(({ items, onAjustarCantidad, onEditar, onEli
                     className="p-1.5"
                     title="Eliminar insumo"
                   >
-                    🗑️
+                    <Trash2 size={12} />
                   </Button>
                 </td>
               </tr>

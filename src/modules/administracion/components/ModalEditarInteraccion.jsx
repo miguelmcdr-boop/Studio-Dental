@@ -69,7 +69,7 @@ export const ModalEditarInteraccion = ({ interaccion, onGuardar, onClose, guarda
     <Modal
       isOpen={true}
       onClose={onClose}
-      title={esEdicion ? '⚗️ Editar Interacción Farmacológica' : '⚗️ Nueva Interacción Farmacológica'}
+      title={esEdicion ? 'Editar Interacción Farmacológica' : 'Nueva Interacción Farmacológica'}
       size="lg"
       closeOnOverlayClick={!guardando}
       closeOnEscape={!guardando}
@@ -77,7 +77,7 @@ export const ModalEditarInteraccion = ({ interaccion, onGuardar, onClose, guarda
       {/* Banner distintivo interacciones preservado */}
       <div className="bg-orange-50 dark:bg-orange-900/20 border-b border-orange-200 dark:border-orange-800 px-6 py-3 mb-4 rounded-t-lg">
         <p className="text-sm font-semibold text-orange-800 dark:text-orange-200">
-          ⚠️ Interacción farmacológica — validar severidad con evidencia clínica
+          <span className="inline-flex items-center gap-1"><AlertTriangle size={12} />Interacción farmacológica — validar severidad con evidencia clínica</span>
         </p>
       </div>
 

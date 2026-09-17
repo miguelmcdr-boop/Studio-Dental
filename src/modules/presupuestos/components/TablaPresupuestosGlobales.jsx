@@ -1,5 +1,7 @@
 import React, { memo } from 'react'
 import { ESTADOS_PRESUPUESTO } from '../constants/presupuestosConstants'
+import { FileText, Trash2 } from 'lucide-react'
+import { Users } from 'lucide-react'
 
 export const TablaPresupuestosGlobales = memo(({
   presupuestos,
@@ -84,7 +86,7 @@ export const TablaPresupuestosGlobales = memo(({
                     className="p-1.5 bg-black text-white text-[10px] font-bold rounded-lg hover:bg-gray-800"
                     title="Imprimir Documento Cotización"
                   >
-                    📄 Ver PDF
+                    <span className="inline-flex items-center gap-1"><FileText size={10} />Ver PDF</span>
                   </button>
 
                   <button
@@ -92,7 +94,7 @@ export const TablaPresupuestosGlobales = memo(({
                     className="p-1.5 bg-blue-50 text-blue-900 border border-blue-200 text-[10px] font-bold rounded-lg hover:bg-blue-100"
                     title="Ir a Ficha Clínica"
                   >
-                    👥 Ficha
+                    <span className="inline-flex items-center gap-1"><Users size={10} />Ficha</span>
                   </button>
 
                   <button
@@ -100,7 +102,7 @@ export const TablaPresupuestosGlobales = memo(({
                     className="p-1.5 text-red-500 hover:text-red-700 font-semibold rounded-lg hover:bg-red-50"
                     title="Eliminar presupuesto"
                   >
-                    🗑️
+                    <Trash2 size={12} />
                   </button>
                 </td>
               </tr>

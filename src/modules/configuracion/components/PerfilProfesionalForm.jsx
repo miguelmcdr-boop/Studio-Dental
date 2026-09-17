@@ -1,4 +1,5 @@
 import React, { memo, useState } from 'react'
+import { User } from 'lucide-react'
 
 export const PerfilProfesionalForm = memo(({ userProfile, alGuardar }) => {
   const [nombreCompleto, setNombreCompleto] = useState(userProfile?.nombreCompleto || '')
@@ -22,7 +23,7 @@ export const PerfilProfesionalForm = memo(({ userProfile, alGuardar }) => {
   return (
     <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-4 text-xs">
       <div className="border-b pb-3">
-        <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider">👤 Perfil del Odontólogo / Profesional</h3>
+        <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider inline-flex items-center gap-2"><User size={14} />Perfil del Odontólogo / Profesional</h3>
         <p className="text-gray-500 text-[11px]">Información personal que aparece en firmantes de recetas y licencias.</p>
       </div>
 

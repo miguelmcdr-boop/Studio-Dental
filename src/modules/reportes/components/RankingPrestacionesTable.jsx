@@ -1,5 +1,7 @@
 import React, { memo } from 'react'
 import { exportService } from '../services/exportService'
+import { FileSpreadsheet } from 'lucide-react'
+import { Trophy } from 'lucide-react'
 
 export const RankingPrestacionesTable = memo(({ topPrestaciones = [] }) => {
   if (topPrestaciones.length === 0) {
@@ -13,7 +15,7 @@ export const RankingPrestacionesTable = memo(({ topPrestaciones = [] }) => {
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xs text-xs space-y-3">
       <div className="flex justify-between items-center border-b pb-2">
-        <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider">🏆 Top Procedimientos más Rentables</h3>
+        <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider inline-flex items-center gap-2"><Trophy size={14} />Top Procedimientos más Rentables</h3>
         <div className="flex items-center gap-2">
           <span className="text-[10px] bg-gray-100 text-gray-700 px-2 py-0.5 rounded font-bold">Por Ingreso Generado</span>
           <button
@@ -22,7 +24,7 @@ export const RankingPrestacionesTable = memo(({ topPrestaciones = [] }) => {
             aria-label="Exportar ranking de prestaciones a Excel"
             title="Descargar Excel con ranking de prestaciones"
           >
-            📊 Excel
+            <span className="inline-flex items-center gap-1"><FileSpreadsheet size={14} />Excel</span>
           </button>
         </div>
       </div>

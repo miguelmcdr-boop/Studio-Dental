@@ -1,5 +1,6 @@
 import React, { memo } from 'react'
 import { TEMPORAL_SUPERIOR, TEMPORAL_INFERIOR, CARAS_OLEARY } from '../constants/pediatriaConstants'
+import { BarChart3 } from 'lucide-react'
 
 export const IndiceOLeary = memo(({ mapaOleary, porcentaje, piezasPresentes, onToggleCara, onCambiarPiezasPresentes }) => {
   const getSemaforoColor = (pct) => {
@@ -41,7 +42,7 @@ export const IndiceOLeary = memo(({ mapaOleary, porcentaje, piezasPresentes, onT
       <div className="flex justify-between items-center border-b pb-3 flex-wrap gap-2">
         <div>
           <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider">
-            📊 Control de Higiene e Índice de Placa de O'Leary
+            <span className="inline-flex items-center gap-1"><BarChart3 size={14} />Control de Higiene e Índice de Placa de O'Leary</span>
           </h3>
           <p className="text-gray-500 text-[11px]">Marca las caras teñidas con revelador de placa (Mesial, Vestibular, Distal, Palatino/Lingual).</p>
         </div>

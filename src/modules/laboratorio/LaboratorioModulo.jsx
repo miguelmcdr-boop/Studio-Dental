@@ -10,6 +10,8 @@ import { ModalNuevaOrden } from './components/ModalNuevaOrden'
 import { OrdenImprimible } from './components/OrdenImprimible'
 import { usePacientesStore } from '../../store/pacientesStore'
 import { useSesionStore } from '../../store/sesionStore'
+import { ClipboardList } from 'lucide-react'
+import { Folder } from 'lucide-react'
 
 export const LaboratorioModulo = memo(() => {
   // (F2-02) — pacientes y userProfile ya no llegan como prop desde App.jsx: se leen directo de los stores.
@@ -68,7 +70,7 @@ export const LaboratorioModulo = memo(() => {
             tabActual === 'ordenes' ? 'bg-black text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
-          📋 Órdenes de Trabajo Activas
+          <span className="inline-flex items-center gap-1"><ClipboardList size={12} />Órdenes de Trabajo Activas</span>
         </button>
 
         <button
@@ -77,7 +79,7 @@ export const LaboratorioModulo = memo(() => {
             tabActual === 'directorio' ? 'bg-black text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
-          📂 Directorio y Tarifarios de Labs
+          <span className="inline-flex items-center gap-1"><Folder size={12} />Directorio y Tarifarios de Labs</span>
         </button>
       </div>
 
@@ -105,7 +107,7 @@ export const LaboratorioModulo = memo(() => {
 
               <input
                 type="text"
-                placeholder="🔍 Buscar orden, paciente o trabajo..."
+                placeholder="Buscar orden, paciente o trabajo..."
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
                 className="p-2 border rounded-xl bg-white w-full sm:w-64"

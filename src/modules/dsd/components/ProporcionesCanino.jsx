@@ -1,11 +1,12 @@
 import React, { memo } from 'react'
+import { Ruler } from 'lucide-react'
 
 export const ProporcionesCanino = memo(({ visibilidadDorada }) => {
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-4 text-xs">
       <div className="border-b pb-2">
         <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider">
-          📐 Matriz de Proporción Dorada Avanzada (Central / Lateral / Canino)
+          <span className="inline-flex items-center gap-1"><Ruler size={14} />Matriz de Proporción Dorada Avanzada (Central / Lateral / Canino)</span>
         </h3>
         <p className="text-gray-500 text-[11px]">
           Análisis de simetría y visibilidad frontal teórica basada en la razón áurea (1.618 : 1.0 : 0.618).

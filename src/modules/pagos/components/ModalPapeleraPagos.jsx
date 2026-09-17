@@ -3,6 +3,7 @@ import { Modal } from '../../../components/ui/Modal'
 import { Button } from '../../../components/ui/Button'
 import { useAppDialog } from '../../../hooks/useAppDialog'
 import { diasRestantes, obtenerPagosPurgados, vaciarPapelera } from '../services/papeleraPagosService'
+import { Trash2 } from 'lucide-react'
 
 /**
  * Modal de Papelera de Pagos (Commit K)
@@ -56,7 +57,7 @@ export const ModalPapeleraPagos = memo(({ alCerrar, onRestaurar, onAccionComplet
     <Modal
       isOpen={true}
       onClose={alCerrar}
-      title="🗑️ Papelera de Pagos"
+      title="Papelera de Pagos"
       size="lg"
     >
       <div className="space-y-3">
@@ -71,7 +72,7 @@ export const ModalPapeleraPagos = memo(({ alCerrar, onRestaurar, onAccionComplet
               size="sm"
               className="shrink-0"
             >
-              🗑️ Vaciar papelera
+              <span className="inline-flex items-center gap-1"><Trash2 size={12} />Vaciar papelera</span>
             </Button>
           )}
         </div>

@@ -1,5 +1,7 @@
 import React, { memo } from 'react'
 import { exportService } from '../services/exportService'
+import { CreditCard } from 'lucide-react'
+import { FileSpreadsheet } from 'lucide-react'
 
 export const RendimientoProfesionales = memo(({ recaudacionPorMetodo = {} }) => {
   const entradasMetodos = Object.entries(recaudacionPorMetodo)
@@ -7,7 +9,7 @@ export const RendimientoProfesionales = memo(({ recaudacionPorMetodo = {} }) => 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xs text-xs space-y-3">
       <div className="flex justify-between items-center border-b pb-2">
-        <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider">💳 Desglose por Medio de Pago & DTE</h3>
+        <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider"><span className="inline-flex items-center gap-1"><CreditCard size={12} />Desglose por Medio de Pago & DTE</span></h3>
         <div className="flex items-center gap-2">
           <span className="text-[10px] text-gray-500 font-semibold">Caja & Canales</span>
           <button
@@ -16,7 +18,7 @@ export const RendimientoProfesionales = memo(({ recaudacionPorMetodo = {} }) => 
             aria-label="Exportar rendimiento por método de pago a Excel"
             title="Descargar Excel con desglose por método de pago"
           >
-            📊 Excel
+            <span className="inline-flex items-center gap-1"><FileSpreadsheet size={14} />Excel</span>
           </button>
         </div>
       </div>

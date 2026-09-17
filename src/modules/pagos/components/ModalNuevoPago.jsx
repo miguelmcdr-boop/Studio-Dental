@@ -89,7 +89,7 @@ export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, a
     <Modal
       isOpen={true}
       onClose={alCerrar}
-      title={pagoEditar ? '✏️ Editar Recibo / Transacción de Pago' : '💳 Registrar Cobro e Imputación de Pago'}
+      title={pagoEditar ? 'Editar Recibo / Transacción de Pago' : 'Registrar Cobro e Imputación de Pago'}
       size="lg"
     >
 

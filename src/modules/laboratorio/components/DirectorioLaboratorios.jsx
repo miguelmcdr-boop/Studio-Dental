@@ -2,6 +2,8 @@ import React, { memo, useState } from 'react'
 import { Input } from '../../../components/ui/Input'
 import { Button } from '../../../components/ui/Button'
 import { TIPOS_TRABAJO_SUGERIDOS } from '../constants/laboratorioConstants'
+import { Plus, Settings, Pencil, Trash2 } from 'lucide-react'
+import { Folder } from 'lucide-react'
 
 export const DirectorioLaboratorios = memo(({ laboratorios, alGuardarLab, alEliminarLab }) => {
   const [labEditar, setLabEditar] = useState(null)
@@ -79,7 +81,7 @@ export const DirectorioLaboratorios = memo(({ laboratorios, alGuardarLab, alElim
       <form onSubmit={handleGuardarSubmit} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-3">
         <div className="border-b pb-2 flex justify-between items-center">
           <h3 className="font-bold text-sm text-gray-900 uppercase">
-            {labEditar ? 'Editar Proveedor Lab' : '➕ Registrar Nuevo Lab'}
+            {labEditar ? 'Editar Proveedor Lab' : <span className='inline-flex items-center gap-1'><Plus size={12} />Registrar Nuevo Lab</span>}
           </h3>
           {labEditar && (
             <Button type="button" onClick={handleAbrirNuevo} variant="ghost" size="sm">✕ Cancelar</Button>
@@ -113,7 +115,7 @@ export const DirectorioLaboratorios = memo(({ laboratorios, alGuardarLab, alElim
         </div>
 
         <div className="border-t pt-3 space-y-2">
-          <label className="block font-bold text-gray-800 uppercase text-[10px]">⚙️ Tarifario Personalizado del Laboratorio</label>
+          <label className="block font-bold text-gray-800 uppercase text-[10px]"><span className="inline-flex items-center gap-1"><Settings size={12} />Tarifario Personalizado del Laboratorio</span></label>
           
           <div className="space-y-2 bg-gray-50 p-3 rounded-xl border">
             <input
@@ -170,7 +172,7 @@ export const DirectorioLaboratorios = memo(({ laboratorios, alGuardarLab, alElim
       {/* Directorio de Laboratorios Guardados */}
       <div className="md:col-span-2 space-y-4">
         <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider">
-          📂 Directorio de Laboratorios y Aranceles ({laboratorios.length})
+          <span className="inline-flex items-center gap-1"><Folder size={12} />Directorio de Laboratorios y Aranceles ({laboratorios.length})</span>
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -180,8 +182,8 @@ export const DirectorioLaboratorios = memo(({ laboratorios, alGuardarLab, alElim
                 <div className="flex justify-between items-start border-b pb-2">
                   <h4 className="font-black text-sm text-gray-900">{lab.nombre}</h4>
                   <div className="flex gap-1">
-                    <Button onClick={() => handleAbrirEditar(lab)} variant="ghost" size="sm" className="p-1" title="Editar" aria-label="Editar laboratorio">✏️</Button>
-                    <Button onClick={() => alEliminarLab(lab.id)} variant="danger" size="sm" className="p-1" title="Eliminar" aria-label="Eliminar laboratorio">🗑️</Button>
+                    <Button onClick={() => handleAbrirEditar(lab)} variant="ghost" size="sm" className="p-1" title="Editar" aria-label="Editar laboratorio"><Pencil size={12} /></Button>
+                    <Button onClick={() => alEliminarLab(lab.id)} variant="danger" size="sm" className="p-1" title="Eliminar" aria-label="Eliminar laboratorio"><Trash2 size={12} /></Button>
                   </div>
                 </div>
 

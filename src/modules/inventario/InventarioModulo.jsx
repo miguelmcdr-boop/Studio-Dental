@@ -5,6 +5,8 @@ import { StockSummaryCards } from './components/StockSummaryCards'
 import { TablaInventario } from './components/TablaInventario'
 import { ModalNuevoItemStock } from './components/ModalNuevoItemStock'
 import { AsociacionesInsumos } from './components/AsociacionesInsumos'
+import { Settings } from 'lucide-react'
+import { Package } from 'lucide-react'
 
 export const InventarioModulo = memo(() => {
   const [modalAbierto, setModalAbierto] = useState(false)
@@ -37,7 +39,7 @@ export const InventarioModulo = memo(() => {
     <div className="space-y-6">
       <div className="flex justify-between items-center flex-wrap gap-3">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider">📦 Control de Inventario e Insumos Clínicos</h2>
+          <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider inline-flex items-center gap-2"><Package size={20} />Control de Inventario e Insumos Clínicos</h2>
           <p className="text-xs text-gray-500">Monitoreo de existencias, fechas de caducidad y reabastecimiento.</p>
         </div>
 
@@ -50,7 +52,7 @@ export const InventarioModulo = memo(() => {
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             }`}
           >
-            ⚙️ {mostrarAsociaciones ? 'Ocultar' : 'Configurar'} Asociaciones Tratamiento-Material
+            <span className="inline-flex items-center gap-1"><Settings size={12} />{mostrarAsociaciones ? 'Ocultar' : 'Configurar'} Asociaciones Tratamiento-Material</span>
           </button>
 
           <button
@@ -79,7 +81,7 @@ export const InventarioModulo = memo(() => {
 
         <input
           type="text"
-          placeholder="🔍 Buscar insumo o proveedor..."
+          placeholder="Buscar insumo o proveedor..."
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           className="p-2 border rounded-xl bg-white w-full sm:w-64"

@@ -1,4 +1,5 @@
 import React, { memo, useState } from 'react'
+import { Printer, FileText } from 'lucide-react'
 
 export const ComprobantePagoImprimible = memo(({ pago, userProfile, alCerrar }) => {
   const [formato, setFormato] = useState('ticket') // 'ticket' | 'carta'
@@ -16,13 +17,13 @@ export const ComprobantePagoImprimible = memo(({ pago, userProfile, alCerrar }) 
             onClick={() => setFormato('ticket')}
             className={`px-3 py-1.5 rounded-xl font-bold ${formato === 'ticket' ? 'bg-black text-white' : 'bg-gray-200 text-gray-700'}`}
           >
-            🖨️ Ticket POS (80mm)
+            <span className="inline-flex items-center gap-1"><Printer size={12} />Ticket POS (80mm)</span>
           </button>
           <button
             onClick={() => setFormato('carta')}
             className={`px-3 py-1.5 rounded-xl font-bold ${formato === 'carta' ? 'bg-black text-white' : 'bg-gray-200 text-gray-700'}`}
           >
-            📄 Carta Letter Oficial
+            <span className="inline-flex items-center gap-1"><FileText size={12} />Carta Letter Oficial</span>
           </button>
         </div>
 
@@ -31,7 +32,7 @@ export const ComprobantePagoImprimible = memo(({ pago, userProfile, alCerrar }) 
             onClick={() => window.print()}
             className="bg-black text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-800"
           >
-            🖨️ Imprimir Comprobante
+            <span className="inline-flex items-center gap-1"><Printer size={14} />Imprimir Comprobante</span>
           </button>
           <button
             onClick={alCerrar}

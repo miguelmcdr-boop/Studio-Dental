@@ -13,6 +13,7 @@ import { useConsentimientosPDF } from '../hooks/useConsentimientosPDF.jsx'
 import { useConsentimientosInit } from '../hooks/useConsentimientosInit'
 import { PLANTILLAS_CONSENTIMIENTO } from '../constants/plantillasConsentimiento'
 import { createLogger } from '../../../services/logger'
+import { ScrollText } from 'lucide-react'
 
 const log = createLogger('ConsentimientosSection')
 
@@ -203,7 +204,7 @@ export const ConsentimientosSection = memo(({ paciente, userProfile }) => {
       ) : consentimientos.length > 0 ? (
         <div className="bg-white border border-gray-200 rounded-2xl p-5 space-y-3 print:hidden">
           <h4 className="font-bold text-xs text-gray-800 uppercase tracking-wider">
-            📜 Consentimientos Firmados del Paciente ({consentimientos.length})
+            <span className="inline-flex items-center gap-1"><ScrollText size={12} />Consentimientos Firmados del Paciente ({consentimientos.length})</span>
           </h4>
           <div className="space-y-3">
             {consentimientos.map(archivo => (

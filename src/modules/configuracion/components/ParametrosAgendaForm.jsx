@@ -1,5 +1,6 @@
 import React, { memo, useState } from 'react'
 import { TRAMOS_DURACION } from '../constants/configuracionConstants'
+import { Calendar } from 'lucide-react'
 
 export const ParametrosAgendaForm = memo(({ parametrosAgenda, alGuardar }) => {
   const [duracion, setDuracion] = useState(parametrosAgenda?.duracionBloqueMinutos || 30)
@@ -19,7 +20,7 @@ export const ParametrosAgendaForm = memo(({ parametrosAgenda, alGuardar }) => {
   return (
     <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-4 text-xs">
       <div className="border-b pb-3">
-        <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider">📅 Parámetros de Agenda & Tramos Horarios</h3>
+        <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider inline-flex items-center gap-2"><Calendar size={14} />Parámetros de Agenda & Tramos Horarios</h3>
         <p className="text-gray-500 text-[11px]">Duración predeterminada de los bloques de atención y ventana de horarios.</p>
       </div>
 

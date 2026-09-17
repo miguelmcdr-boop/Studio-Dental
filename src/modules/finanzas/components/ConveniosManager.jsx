@@ -1,4 +1,5 @@
 import React, { memo, useState, useEffect } from 'react'
+import { Settings } from 'lucide-react'
 
 export const ConveniosManager = memo(({ convenios, onActualizarDescuento }) => {
   const [convenioRecienGuardado, setConvenioRecienGuardado] = useState(null)
@@ -19,7 +20,7 @@ export const ConveniosManager = memo(({ convenios, onActualizarDescuento }) => {
     <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-4 text-xs">
       <div className="border-b pb-2">
         <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider">
-          ⚙️ Configuración Global de Convenios & Descuentos
+          <span className="inline-flex items-center gap-1"><Settings size={14} />Configuración Global de Convenios & Descuentos</span>
         </h3>
         <p className="text-gray-500 text-[11px]">
           Estos porcentajes se aplican automáticamente en el Plan de Tratamiento de la Ficha Clínica.

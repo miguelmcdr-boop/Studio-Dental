@@ -1,4 +1,5 @@
 import React, { memo } from 'react'
+import { BarChart3 } from 'lucide-react'
 
 export const CuentasPendientes = memo(({ pacientes = [] }) => {
   return (
@@ -6,7 +7,7 @@ export const CuentasPendientes = memo(({ pacientes = [] }) => {
       <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-4">
         <div className="border-b pb-2">
           <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider">
-            📊 Resumen de Saldos Pendientes de Cobro (Pacientes en Mora)
+            <span className="inline-flex items-center gap-1"><BarChart3 size={14} />Resumen de Saldos Pendientes de Cobro (Pacientes en Mora)</span>
           </h3>
           <p className="text-gray-500 text-[11px]">
             Pacientes con tratamientos iniciados que mantienen copagos o abonos pendientes.

@@ -1,4 +1,5 @@
 import React, { memo } from 'react'
+import { Printer, ClipboardList } from 'lucide-react'
 
 export const HeaderPeriodontal = memo(({ metricas, indices, resumenClinico }) => {
   // Unificar metricas e indices para compatibilidad total de llamadas
@@ -70,7 +71,7 @@ export const HeaderPeriodontal = memo(({ metricas, indices, resumenClinico }) =>
             onClick={() => window.print()} 
             className="bg-black text-white font-bold px-4 py-3 rounded-xl hover:bg-gray-800 shadow-xs cursor-pointer text-xs"
           >
-            🖨️ PDF
+            <span className="inline-flex items-center gap-1"><Printer size={12} />PDF</span>
           </button>
         </div>
       </div>
@@ -78,7 +79,7 @@ export const HeaderPeriodontal = memo(({ metricas, indices, resumenClinico }) =>
       {/* Resumen Clínico Descriptivo Objetivo */}
       <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
         <h4 className="font-bold text-xs text-gray-800 uppercase tracking-wider mb-1">
-          📋 Resumen de Hallazgos Clínicos Registrados:
+          <span className="inline-flex items-center gap-1"><ClipboardList size={12} />Resumen de Hallazgos Clínicos Registrados:</span>
         </h4>
         <p className="text-xs text-gray-700 leading-relaxed italic">
           "{resumenTexto}"

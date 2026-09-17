@@ -1,4 +1,5 @@
 import React, { memo } from 'react'
+import { Printer } from 'lucide-react'
 
 export const ReporteImprimibleLetter = memo(({ metricas, userProfile, alCerrar }) => {
   return (
@@ -10,7 +11,7 @@ export const ReporteImprimibleLetter = memo(({ metricas, userProfile, alCerrar }
             onClick={() => window.print()}
             className="bg-black text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-800"
           >
-            🖨️ Imprimir Informe Letter (PDF)
+            <span className="inline-flex items-center gap-1"><Printer size={14} />Imprimir Informe Letter (PDF)</span>
           </button>
           <button
             onClick={alCerrar}

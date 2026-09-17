@@ -3,6 +3,7 @@ import { Baby, Heart, AlertTriangle } from 'lucide-react'
 import { calcularDosisAnestesiaCompleta, listarAnestesicosDisponibles } from '../../../utils/anestesiaCalculations'
 import { esCardiopata, esPediatria, parseEdad } from '../utils/anestesiaHelpers'
 import { CONFIG_ESTADO } from '../constants/anestesiaConstants'
+import { Ban } from 'lucide-react'
 
 /**
  * Calculadora de Dosis Máxima de Anestesia Local (F7-01).
@@ -208,7 +209,7 @@ export const CalculadoraAnestesiaSection = memo(({ paciente }) => {
           className="bg-red-50 border-2 border-red-300 rounded-2xl p-4 space-y-2"
         >
           <div className="text-xs font-bold text-red-900 uppercase tracking-wider">
-            ⛔ Contraindicaciones detectadas
+            <span className="inline-flex items-center gap-1"><Ban size={14} />Contraindicaciones detectadas</span>
           </div>
           {advertencias.map((adv, idx) => (
             <div key={idx} className="text-sm text-red-800 font-semibold">

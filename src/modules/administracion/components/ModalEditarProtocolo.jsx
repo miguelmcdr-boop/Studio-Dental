@@ -84,7 +84,7 @@ export const ModalEditarProtocolo = ({ tipo, protocolo, onGuardar, onClose, guar
   }
 
   const titulo = esProfilaxis
-    ? (esEdicion ? '💉 Editar Protocolo de Profilaxis' : '💉 Nuevo Protocolo de Profilaxis')
+    ? (esEdicion ? 'Editar Protocolo de Profilaxis' : 'Nuevo Protocolo de Profilaxis')
     : (esEdicion ? 'Editar Manejo de Anticoagulante' : 'Nuevo Manejo de Anticoagulante')
 
   return (
@@ -106,8 +106,8 @@ export const ModalEditarProtocolo = ({ tipo, protocolo, onGuardar, onClose, guar
           esProfilaxis ? 'text-cyan-800 dark:text-cyan-200' : 'text-rose-800 dark:text-rose-200'
         }`}>
           {esProfilaxis
-            ? '⚠️ Protocolo de profilaxis de endocarditis — verificar alergias y vía oral'
-            : '⚠️ Manejo de anticoagulantes — verificar INR y riesgo de sangrado'}
+            ? <span className='inline-flex items-center gap-1'><AlertTriangle size={12} />Protocolo de profilaxis de endocarditis — verificar alergias y vía oral</span>
+            : <span className='inline-flex items-center gap-1'><AlertTriangle size={12} />Manejo de anticoagulantes — verificar INR y riesgo de sangrado</span>}
         </p>
       </div>
 

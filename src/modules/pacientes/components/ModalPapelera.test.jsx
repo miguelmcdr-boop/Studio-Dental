@@ -177,7 +177,7 @@ describe('ModalPapelera (F6-L)', () => {
       />
     )
     
-    const boton = screen.getByText(/Vaciar papelera/)
+    const boton = screen.getByRole('button', { name: /Vaciar papelera/ })
     expect(boton).toBeDisabled()
   })
 

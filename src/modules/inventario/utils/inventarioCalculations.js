@@ -24,7 +24,7 @@ export const evaluarVencimiento = (fechaVencimiento) => {
   const diasRestantes = Math.ceil(diferenciaTiempo / (1000 * 60 * 60 * 24))
 
   if (diasRestantes < 0) {
-    return { diasRestantes, estado: 'vencido', texto: '❌ Vencido' }
+    return { diasRestantes, estado: 'vencido', texto: 'Vencido' }
   }
   if (diasRestantes <= 30) {
     return { diasRestantes, estado: 'por_vencer', texto: `Vence en ${diasRestantes} días` }

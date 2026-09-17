@@ -12,7 +12,7 @@ export const DashboardHeader = memo(({ userProfile }) => {
     <div className="bg-black text-white p-6 rounded-2xl shadow-sm flex justify-between items-center flex-wrap gap-4">
       <div>
         <h1 className="text-xl font-bold">
-          ¡Bienvenido/a, {userProfile?.nombreCompleto || 'Dr. Profesional'}! 👋
+          ¡Bienvenido/a, {userProfile?.nombreCompleto || 'Dr. Profesional'}!
         </h1>
         <p className="text-xs text-gray-300 capitalize mt-1">
           {hoyTexto} | {userProfile?.especialidad || 'Cirujano Dentista'}

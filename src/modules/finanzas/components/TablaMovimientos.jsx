@@ -1,5 +1,6 @@
 import React, { memo } from 'react'
 import { formatearCLP } from '../utils/finanzasCalculations'
+import { Trash2 } from 'lucide-react'
 
 const esIngreso = (m) => (m.tipo || '').toLowerCase() === 'ingreso'
 
@@ -48,7 +49,7 @@ export const TablaMovimientos = memo(({ movimientos, onEliminar }) => {
                   onClick={() => onEliminar(m.id)}
                   className="text-red-500 hover:text-red-700 font-bold px-2 py-1 rounded hover:bg-red-50"
                 >
-                  🗑️
+                  <Trash2 size={12} />
                 </button>
               </td>
             </tr>

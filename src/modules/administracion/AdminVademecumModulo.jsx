@@ -27,18 +27,19 @@ import { ModalEditarUrgencia } from './components/ModalEditarUrgencia'
 import { ModalEditarAntirresortivo } from './components/ModalEditarAntirresortivo'
 import { AdminProtocolosContenido } from './components/AdminProtocolosContenido'
 import { createLogger } from '../../services/logger.js'
+import { FlaskConical, Info, Lock } from 'lucide-react'
+import { Pill, RefreshCw } from 'lucide-react'
 
 const log = createLogger('AdminVademecumModulo')
-
 const TABS = [
-  { id: 'vademecum', nombre: '🏥 Vademécum', descripcion: '94 fármacos regulares' },
+  { id: 'vademecum', nombre: 'Vademécum', descripcion: '94 fármacos regulares' },
   { id: 'urgencia', nombre: 'Urgencia', descripcion: 'Carro de reanimación' },
   { id: 'antirresortivos', nombre: 'Antirresortivos', descripcion: 'Riesgo MRONJ' },
   { id: 'alergias', nombre: 'Alergias Cruzadas', descripcion: 'Matriz de reactividad' },
-  { id: 'interacciones', nombre: '⚗️ Interacciones', descripcion: 'Farmacológicas' },
-  { id: 'profilaxis', nombre: '💉 Profilaxis', descripcion: 'Endocarditis AHA' },
+  { id: 'interacciones', nombre: 'Interacciones', descripcion: 'Farmacológicas' },
+  { id: 'profilaxis', nombre: 'Profilaxis', descripcion: 'Endocarditis AHA' },
   { id: 'anticoagulantes', nombre: 'Anticoagulantes', descripcion: 'Manejo perioperatorio' },
-  { id: 'metadata', nombre: 'ℹ️ Metadata', descripcion: 'Info de curación' }
+  { id: 'metadata', nombre: 'Metadata', descripcion: 'Info de curación' }
 ]
 
 export const AdminVademecumModulo = () => {
@@ -56,7 +57,7 @@ export const AdminVademecumModulo = () => {
     return (
       <div className="p-8 max-w-2xl mx-auto">
         <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center">
-          <div className="text-5xl mb-4">🔒</div>
+          <Lock size={48} className="mx-auto mb-4 text-graphite-300" />
           <h2 className="text-2xl font-bold text-red-900 mb-2">Acceso Denegado</h2>
           <p className="text-red-700">
             No tiene permisos para administrar el vademécum.
@@ -113,13 +114,13 @@ export const AdminVademecumModulo = () => {
       {/* Header del módulo */}
       <div className="bg-white border border-gray-200 rounded-xl p-6">
         <div className="flex items-center justify-between mb-2">
-          <h1 className="text-2xl font-bold text-gray-900">💊 Vademécum Odontológico</h1>
+          <h1 className="text-2xl font-bold text-gray-900 inline-flex items-center gap-2"><Pill size={24} />Vademécum Odontológico</h1>
           <button
             onClick={admin.refrescar}
             disabled={admin.cargando}
             className="px-3 py-1.5 text-sm font-semibold text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 disabled:opacity-50"
           >
-            🔄 Refrescar
+            <span className="inline-flex items-center gap-1"><RefreshCw size={14} />Refrescar</span>
           </button>
         </div>
         <p className="text-sm text-gray-600">

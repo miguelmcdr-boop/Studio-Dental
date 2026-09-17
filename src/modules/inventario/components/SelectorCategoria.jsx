@@ -1,6 +1,7 @@
 import React from 'react'
 import { Button } from '../../../components/ui/Button'
 import { Input } from '../../../components/ui/Input'
+import { Trash2 } from 'lucide-react'
 
 export function SelectorCategoria({
   categoriaActiva,
@@ -72,7 +73,7 @@ export function SelectorCategoria({
           size="sm"
           className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50"
         >
-          🗑️ Eliminar Categoría
+          <span className="inline-flex items-center gap-1"><Trash2 size={12} />Eliminar Categoría</span>
         </Button>
       )}
     </div>

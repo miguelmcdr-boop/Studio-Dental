@@ -78,7 +78,7 @@ export const ModalEditarAntirresortivo = ({ farmaco, onGuardar, onClose, guardan
       {/* Header distintivo MRONJ preservado como banner interno */}
       <div className="bg-purple-50 dark:bg-purple-900/20 border-b border-purple-200 dark:border-purple-800 px-6 py-3 mb-4 rounded-t-lg">
         <p className="text-sm font-semibold text-purple-800 dark:text-purple-200">
-          ⚠️ Fármaco de riesgo MRONJ (osteonecrosis maxilar)
+          <span className="inline-flex items-center gap-1"><AlertTriangle size={12} />Fármaco de riesgo MRONJ (osteonecrosis maxilar)</span>
         </p>
       </div>
 

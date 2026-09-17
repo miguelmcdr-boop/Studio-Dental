@@ -11,6 +11,7 @@
 import React, { memo } from 'react'
 import { Modal } from '../../../components/ui/Modal'
 import { FileText } from 'lucide-react'
+import { Lightbulb } from 'lucide-react'
 
 export const ArchivoModal = memo(({
   abierto,
@@ -65,7 +66,7 @@ export const ArchivoModal = memo(({
       {/* Footer con hint */}
       <div className="p-2 sm:p-3 border-t border-gray-200 dark:border-graphite-700 bg-gray-50 dark:bg-graphite-900 -mx-6 -mb-6 rounded-b-xl mt-4">
         <p className="text-[10px] sm:text-xs text-gray-500 dark:text-graphite-400 text-center">
-          💡 Tip: presiona <kbd className="px-1.5 py-0.5 bg-white dark:bg-graphite-800 border border-gray-300 dark:border-graphite-600 rounded text-[10px] font-mono">ESC</kbd> o haz click fuera para cerrar
+          <Lightbulb size={12} className="inline" /> Tip: presiona <kbd className="px-1.5 py-0.5 bg-white dark:bg-graphite-800 border border-gray-300 dark:border-graphite-600 rounded text-[10px] font-mono">ESC</kbd> o haz click fuera para cerrar
         </p>
       </div>
     </Modal>

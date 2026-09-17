@@ -4,6 +4,8 @@
  * F4-03f-5c
  */
 import React from 'react'
+import { ClipboardList } from 'lucide-react'
+import { Syringe, FileText } from 'lucide-react'
 
 export const TablaProfilaxis = ({ protocolos, onEditar, onEliminar, onCrearNueva }) => {
   const datos = Array.isArray(protocolos) ? protocolos : []
@@ -13,7 +15,7 @@ export const TablaProfilaxis = ({ protocolos, onEditar, onEliminar, onCrearNueva
       <div className="px-6 py-4 border-b border-gray-200 bg-cyan-50">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-bold text-gray-900">
-            💉 Profilaxis Antibiótica de Endocarditis Infecciosa
+            <span className="inline-flex items-center gap-1"><Syringe size={16} />Profilaxis Antibiótica de Endocarditis Infecciosa</span>
           </h3>
           {onCrearNueva && (
             <button
@@ -29,9 +31,8 @@ export const TablaProfilaxis = ({ protocolos, onEditar, onEliminar, onCrearNueva
         </p>
       </div>
 
-      {/* Nota clínica sobre indicaciones */}
       <div className="px-6 py-3 border-b border-gray-200 bg-blue-50 text-sm text-blue-800">
-        <strong>📋 Indicaciones:</strong> Solo para procedimientos que involucran manipulación de tejido gingival, región periapical o perforación de mucosa oral, en pacientes con:
+        <strong className="inline-flex items-center gap-1"><ClipboardList size={12} />Indicaciones:</strong> Solo para procedimientos que involucran manipulación de tejido gingival, región periapical o perforación de mucosa oral, en pacientes con:
         <ul className="list-disc list-inside mt-1 space-y-0.5 text-blue-700">
           <li>Válvula cardíaca protésica</li>
           <li>Antecedente de endocarditis infecciosa previa</li>
@@ -40,7 +41,6 @@ export const TablaProfilaxis = ({ protocolos, onEditar, onEliminar, onCrearNueva
         </ul>
       </div>
 
-      {/* Tabla */}
       {datos.length === 0 ? (
         <div className="p-8 text-center text-gray-500">
           No hay protocolos registrados
@@ -105,9 +105,8 @@ export const TablaProfilaxis = ({ protocolos, onEditar, onEliminar, onCrearNueva
         </div>
       )}
 
-      {/* Nota clínica al pie */}
       <div className="px-6 py-4 border-t border-gray-200 bg-cyan-50 text-sm text-cyan-800 space-y-2">
-        <p><strong>📝 Notas clínicas importantes (AHA 2021):</strong></p>
+        <p><strong className="inline-flex items-center gap-1"><FileText size={12} />Notas clínicas importantes (AHA 2021):</strong></p>
         <ul className="list-disc list-inside space-y-1 text-cyan-700">
           <li><strong>Cefalosporinas (*):</strong> NO usar si el antecedente alérgico a penicilina fue anafilaxia, angioedema o urticaria inmediata (riesgo de reactividad cruzada). Preferir Azitromicina/Claritromicina o Doxiciclina.</li>
           <li><strong>Clindamicina:</strong> La actualización AHA 2021 retiró la recomendación como primera línea por asociación con mayor riesgo de colitis por <em>C. difficile</em>. Solo como última opción si no hay disponibilidad de alternativas.</li>

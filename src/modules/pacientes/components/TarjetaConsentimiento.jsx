@@ -2,6 +2,7 @@ import React, { memo } from 'react'
 import { Printer, Trash2 } from 'lucide-react'
 import { Button } from '../../../components/ui/Button'
 import { useAppDialog } from '../../../hooks/useAppDialog'
+import { Download } from 'lucide-react'
 
 /**
  * M4b: Tarjeta individual de consentimiento con metadata desde archivos_clinicos.
@@ -76,7 +77,7 @@ export const TarjetaConsentimiento = memo(({
           size="xs"
           title="Descargar PDF del consentimiento"
         >
-          📥 Descargar PDF
+          <span className="inline-flex items-center gap-1"><Download size={12} />Descargar PDF</span>
         </Button>
         <Button
           onClick={() => onImprimir(archivo)}

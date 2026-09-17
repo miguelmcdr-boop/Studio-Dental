@@ -1,5 +1,6 @@
 import React, { memo } from 'react'
 import { ESPECIALIDADES_COLOR } from '../constants/reportesConstants'
+import { BarChart3 } from 'lucide-react'
 
 export const GraficoProductividad = memo(({ desgloseEspecialidad = {} }) => {
   const entradas = Object.entries(desgloseEspecialidad)
@@ -8,7 +9,7 @@ export const GraficoProductividad = memo(({ desgloseEspecialidad = {} }) => {
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xs text-xs space-y-4">
       <div className="flex justify-between items-center border-b pb-2">
-        <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider">📊 Distribución por Especialidad Odontológica</h3>
+        <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider inline-flex items-center gap-2"><BarChart3 size={16} />Distribución por Especialidad Odontológica</h3>
         <span className="text-[10px] text-gray-500 font-semibold">Proporción de Ingresos</span>
       </div>
       

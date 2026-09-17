@@ -1,5 +1,6 @@
 import React, { memo } from 'react'
 import { Armchair } from 'lucide-react'
+import { Clock } from 'lucide-react'
 
 export const SalaEsperaWidget = memo(({ enEspera = [], enAtencion = [], pacientes = [], alSeleccionarPaciente }) => {
   return (
@@ -45,7 +46,7 @@ export const SalaEsperaWidget = memo(({ enEspera = [], enAtencion = [], paciente
 
       {/* Pacientes en Sala de Espera */}
       <div className="space-y-2">
-        <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider block">⏳ Pacientes en Sala de Espera:</span>
+        <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider block"><span className="inline-flex items-center gap-1"><Clock size={10} />Pacientes en Sala de Espera:</span></span>
         {enEspera.length === 0 ? (
           <p className="text-gray-400 italic py-2 text-center bg-gray-50 rounded-xl border border-dashed text-[11px]">
             No hay pacientes esperando en recepción actualmente.

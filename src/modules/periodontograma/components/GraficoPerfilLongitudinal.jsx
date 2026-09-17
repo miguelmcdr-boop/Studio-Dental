@@ -1,4 +1,5 @@
 import React, { memo } from 'react'
+import { TrendingUp } from 'lucide-react'
 
 /**
  * Gráfico de Perfil Longitudinal de Sondaje Periodontal.
@@ -91,7 +92,7 @@ export const GraficoPerfilLongitudinal = memo(({ periodontoData = {} }) => {
     <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xs space-y-6 text-xs print:hidden">
       <div className="flex justify-between items-center border-b pb-2">
         <h4 className="font-extrabold text-gray-900 uppercase tracking-wider text-[11px] flex items-center gap-2">
-          <span>📈</span> Perfil Longitudinal de Sondaje Periodontal (Arcada Superior e Inferior)
+          <TrendingUp size={14} className="inline" /> Perfil Longitudinal de Sondaje Periodontal (Arcada Superior e Inferior)
         </h4>
         <div className="flex items-center gap-3 text-[10px] font-bold">
           <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Normal (≤ 3 mm)</span>

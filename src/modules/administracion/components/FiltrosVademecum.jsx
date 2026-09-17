@@ -40,7 +40,7 @@ export const FiltrosVademecum = ({
             onChange={(e) => {
               setTextoBusqueda(e.target.value)
             }}
-            placeholder="🔍 Buscar por nombre genérico, comercial o presentación..."
+            placeholder="Buscar por nombre genérico, comercial o presentación..."
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>

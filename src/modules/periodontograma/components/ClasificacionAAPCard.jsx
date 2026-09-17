@@ -1,12 +1,13 @@
 import React, { memo } from 'react'
 import { Cigarette, Stethoscope } from 'lucide-react'
+import { Trophy } from 'lucide-react'
 
 export const ClasificacionAAPCard = memo(({ indices, factoresRiesgo, setFactoresRiesgo }) => {
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xs space-y-4 text-xs mb-6 print:hidden">
       <div className="flex justify-between items-center border-b pb-2 flex-wrap gap-2">
         <h4 className="font-extrabold text-gray-900 uppercase tracking-wider text-[11px] flex items-center gap-2">
-          <span>🏆</span> Diagnóstico Periodontal Estándar AAP/EFP (Chicago 2017)
+          <Trophy size={14} className="inline" /> Diagnóstico Periodontal Estándar AAP/EFP (Chicago 2017)
         </h4>
 
         {/* Factores Moduladores de Riesgo */}

@@ -1,5 +1,6 @@
 import React, { memo } from 'react'
 import { ETAPAS_LABORATORIO } from '../constants/laboratorioConstants'
+import { FileText, Trash2 } from 'lucide-react'
 
 export const TablaOrdenesLaboratorio = memo(({ ordenes, onActualizarEtapa, onCambiarPago, onSeleccionarImprimir, onEliminar }) => {
   if (ordenes.length === 0) {
@@ -82,14 +83,14 @@ export const TablaOrdenesLaboratorio = memo(({ ordenes, onActualizarEtapa, onCam
                     className="p-1.5 bg-black text-white text-[10px] font-bold rounded-lg hover:bg-gray-800"
                     title="Imprimir Orden de Trabajo"
                   >
-                    📄 Orden
+                    <span className="inline-flex items-center gap-1"><FileText size={10} />Orden</span>
                   </button>
                   <button
                     onClick={() => onEliminar(o.id)}
                     className="p-1.5 text-red-500 hover:text-red-700 font-semibold rounded-lg hover:bg-red-50"
                     title="Eliminar trabajo"
                   >
-                    🗑️
+                    <Trash2 size={12} />
                   </button>
                 </td>
               </tr>

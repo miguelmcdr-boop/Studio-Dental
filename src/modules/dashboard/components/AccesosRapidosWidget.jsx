@@ -1,10 +1,11 @@
 import React, { memo } from 'react'
 import { ACCESOS_RAPIDOS } from '../constants/dashboardConstants'
+import { Zap } from 'lucide-react'
 
 export const AccesosRapidosWidget = memo(({ setActiveSection }) => {
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xs text-xs space-y-3">
-      <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider">⚡ Accesos Rápidos de Navegación</h3>
+      <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider inline-flex items-center gap-2"><Zap size={14} />Accesos Rápidos de Navegación</h3>
       
       <div className="grid grid-cols-2 gap-3">
         {ACCESOS_RAPIDOS.map(acc => (

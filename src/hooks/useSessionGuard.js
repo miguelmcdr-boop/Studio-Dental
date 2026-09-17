@@ -30,7 +30,7 @@ export const useSessionGuard = ({ userProfile, logout }) => {
   const handleTimeout = useCallback(async () => {
     notificationService.error(
       'Tu sesión ha expirado por inactividad. Por favor, inicia sesión nuevamente.',
-      { titulo: '🔒 Sesión expirada', duracion: 7000 }
+      { titulo: 'Sesión expirada', duracion: 7000 }
     )
     if (logout) await logout()
   }, [logout])
@@ -39,7 +39,7 @@ export const useSessionGuard = ({ userProfile, logout }) => {
   const handleLogoutFromOtherTab = useCallback(async () => {
     notificationService.warning(
       'Se ha cerrado sesión desde otra pestaña o tu cuenta fue desactivada por un administrador.',
-      { titulo: '🔒 Sesión cerrada', duracion: 5000 }
+      { titulo: 'Sesión cerrada', duracion: 5000 }
     )
     if (logout) await logout()
   }, [logout])
@@ -66,7 +66,7 @@ export const useSessionGuard = ({ userProfile, logout }) => {
       if (error?.status === 401 || error?.status === 403) {
         notificationService.error(
           'Error de autenticación. Cerrando sesión por seguridad.',
-          { titulo: '🔒 Error de sesión' }
+          { titulo: 'Error de sesión' }
         )
         if (logout) logout()
         return true

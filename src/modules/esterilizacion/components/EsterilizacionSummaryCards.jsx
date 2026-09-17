@@ -1,4 +1,5 @@
 import React, { memo } from 'react'
+import { CheckCircle2, AlertTriangle } from 'lucide-react'
 
 export const EsterilizacionSummaryCards = memo(({ resumen }) => {
   return (
@@ -21,7 +22,7 @@ export const EsterilizacionSummaryCards = memo(({ resumen }) => {
       <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl shadow-xs">
         <span className="text-[10px] font-bold text-blue-800 uppercase tracking-wider block">Test Bowie-Dick Hoy</span>
         <span className={`text-2xl font-black mt-1 block ${resumen.testBowieDickHoy ? 'text-emerald-700' : 'text-red-600'}`}>
-          {resumen.testBowieDickHoy ? '✅ Realizado' : '⚠️ Pendiente'}
+          {resumen.testBowieDickHoy ? <span className='inline-flex items-center gap-1'><CheckCircle2 size={12} className='text-green-600' />Realizado</span> : <span className='inline-flex items-center gap-1'><AlertTriangle size={12} className='text-amber-600' />Pendiente</span>}
         </span>
       </div>
     </div>

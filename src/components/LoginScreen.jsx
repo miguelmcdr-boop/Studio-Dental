@@ -18,6 +18,7 @@ import { obtenerRolPorDefecto } from '../services/rbacService'
 import { createLogger } from '../services/logger.js'
 import { Button } from './ui/Button'
 import { Input } from './ui/Input'
+import { Lock } from 'lucide-react'
 
 const log = createLogger('LoginScreen')
 
@@ -315,7 +316,7 @@ export const LoginScreen = ({ onLogin }) => {
           {/* F4-02b: Indicador del modo de autenticación activo */}
           {import.meta.env.VITE_USE_SUPABASE === 'true' && (
             <p className="text-[10px] text-gray-400 text-center mt-2">
-              🔒 Autenticación segura con Supabase
+              <span className="inline-flex items-center gap-1"><Lock size={12} />Autenticación segura con Supabase</span>
             </p>
           )}
         </form>

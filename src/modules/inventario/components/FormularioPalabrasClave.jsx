@@ -1,6 +1,7 @@
 import React from 'react'
 import { Button } from '../../../components/ui/Button'
 import { Input } from '../../../components/ui/Input'
+import { Key } from 'lucide-react'
 
 export function FormularioPalabrasClave({
   palabrasClaveCategoriaActiva,
@@ -12,7 +13,7 @@ export function FormularioPalabrasClave({
   return (
     <div className="bg-gray-50 dark:bg-graphite-800 p-4 rounded-xl border border-gray-200 dark:border-graphite-700 space-y-2">
       <span className="font-semibold text-graphite-700 dark:text-graphite-300 text-xs block">
-        🔑 Palabras clave para detectar automáticamente esta categoría:
+        <span className="inline-flex items-center gap-1"><Key size={12} />Palabras clave para detectar automáticamente esta categoría:</span>
       </span>
       <div className="flex flex-wrap gap-2 items-center">
         {palabrasClaveCategoriaActiva.map((palabra, index) => (

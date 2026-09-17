@@ -1,5 +1,6 @@
 import React, { memo } from 'react'
 import { Receipt, Ban } from 'lucide-react'
+import { Pencil, Trash2 } from 'lucide-react'
 
 export const TablaHistorialPagos = memo(({ pagos, onVerComprobante, onEditar, onAnular, onPurgar, puedePurgar }) => {
   if (pagos.length === 0) {
@@ -95,7 +96,7 @@ export const TablaHistorialPagos = memo(({ pagos, onVerComprobante, onEditar, on
                         className="p-1.5 text-gray-600 hover:text-black font-semibold rounded-lg hover:bg-gray-100"
                         title="Editar pago"
                       >
-                        ✏️
+                        <Pencil size={12} />
                       </button>
 
                       <button
@@ -113,7 +114,7 @@ export const TablaHistorialPagos = memo(({ pagos, onVerComprobante, onEditar, on
                       className="p-1.5 bg-red-900 text-white text-[10px] font-bold rounded-lg hover:bg-red-950"
                       title="Purgar definitivamente (solo admin)"
                     >
-                      🗑️ Purgar
+                      <span className="inline-flex items-center gap-1"><Trash2 size={12} />Purgar</span>
                     </button>
                   )}
                 </td>

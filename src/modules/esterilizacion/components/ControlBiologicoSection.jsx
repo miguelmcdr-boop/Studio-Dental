@@ -3,6 +3,7 @@ import { Dna, Plus } from 'lucide-react'
 import { Icon } from '../../../components/Icon'
 import { EQUIPOS_AUTOCLAVE } from '../constants/esterilizacionConstants'
 import { useAppDialog } from '../../../hooks/useAppDialog'
+import { Check, X } from 'lucide-react'
 
 export const ControlBiologicoSection = memo(({ biologicos, alAgregar, alActualizarResultado }) => {
   const [loteAsociado, setLoteAsociado] = useState('')
@@ -148,13 +149,13 @@ export const ControlBiologicoSection = memo(({ biologicos, alAgregar, alActualiz
                         onClick={() => alActualizarResultado(b.id, 'Aprobado')}
                         className="bg-emerald-600 text-white px-2 py-1 rounded font-bold hover:bg-emerald-700 text-[10px]"
                       >
-                        ✔ Aprobar (Negativo)
+                        <span className="inline-flex items-center gap-1"><Check size={12} />Aprobar (Negativo)</span>
                       </button>
                       <button
                         onClick={() => alActualizarResultado(b.id, 'Rechazado')}
                         className="bg-red-600 text-white px-2 py-1 rounded font-bold hover:bg-red-700 text-[10px]"
                       >
-                        ✖ Rechazar
+                        <span className="inline-flex items-center gap-1"><X size={12} />Rechazar</span>
                       </button>
                     </div>
                   ) : (

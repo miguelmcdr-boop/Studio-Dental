@@ -5,6 +5,7 @@ import { evolucionesStorageService } from '../services/evolucionesStorageService
 import { useDictadoVoz } from '../hooks/useDictadoVoz'
 import { createLogger } from '../../../services/logger.js'
 import { useAppDialog } from '../../../hooks/useAppDialog'
+import { PenSquare } from 'lucide-react'
 
 const log = createLogger('BitacoraSection')
 
@@ -67,7 +68,7 @@ export const BitacoraSection = memo(({ pacienteId, evolucionesNotas = [], setEvo
     <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-6">
       <div className="flex justify-between items-center border-b pb-3 flex-wrap gap-2">
         <h3 className="font-bold text-xs text-gray-800 uppercase tracking-wider">
-          📝 Bitácora de Evoluciones Clínicas & Historial
+          <span className="inline-flex items-center gap-1"><PenSquare size={12} />Bitácora de Evoluciones Clínicas & Historial</span>
         </h3>
 
         {soporteNativo && (

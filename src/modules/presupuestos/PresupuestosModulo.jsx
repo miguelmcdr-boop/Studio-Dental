@@ -9,6 +9,7 @@ import { usePacientesStore } from '../../store/pacientesStore'
 import { usePrestacionesStore } from '../../store/prestacionesStore'
 import { useSesionStore } from '../../store/sesionStore'
 import { useAppDialog } from '../../hooks/useAppDialog'
+import { ClipboardList } from 'lucide-react'
 
 export const PresupuestosModulo = memo(({ setPacienteSeleccionado, setActiveSection }) => {
   // (F2-02) — pacientes, prestacionesArancel y userProfile ya no llegan como prop
@@ -54,7 +55,7 @@ export const PresupuestosModulo = memo(({ setPacienteSeleccionado, setActiveSect
     <div className="space-y-6">
       <div className="flex justify-between items-center flex-wrap gap-3 print:hidden">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider">📋 Presupuestos Globales & Cotizaciones</h2>
+          <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider inline-flex items-center gap-2"><ClipboardList size={16} />Presupuestos Globales & Cotizaciones</h2>
           <p className="text-xs text-gray-500">Panel central de seguimiento de tratamientos y planes de financiamiento.</p>
         </div>
 
@@ -93,7 +94,7 @@ export const PresupuestosModulo = memo(({ setPacienteSeleccionado, setActiveSect
 
             <input
               type="text"
-              placeholder="🔍 Buscar por folio, paciente o RUT..."
+              placeholder="Buscar por folio, paciente o RUT..."
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
               className="p-2 border rounded-xl bg-white w-full sm:w-64"

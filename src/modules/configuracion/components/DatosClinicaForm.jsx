@@ -1,6 +1,8 @@
 import React, { memo, useState } from 'react'
 import { convertirImagenADataURL } from '../utils/configuracionCalculations'
 import { createLogger } from '../../../services/logger.js'
+import { Lock } from 'lucide-react'
+import { Building2 } from 'lucide-react'
 
 const log = createLogger('DatosClinicaForm')
 
@@ -33,12 +35,12 @@ export const DatosClinicaForm = memo(({ datosClinica, alGuardar, userProfile }) 
   return (
     <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-4 text-xs">
       <div className="border-b pb-3">
-        <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider">🏢 Información de la Clínica & Membrete</h3>
+        <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider inline-flex items-center gap-2"><Building2 size={14} />Información de la Clínica & Membrete</h3>
         <p className="text-gray-500 text-[11px]">
           Membrete impreso oficial para consentimientos, recetas y presupuestos.
           {esSoloLectura && (
             <span className="ml-2 inline-block px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded text-[10px] font-semibold">
-              🔒 Solo lectura - Contacta al administrador para cambios
+              <span className="inline-flex items-center gap-1"><Lock size={12} />Solo lectura - Contacta al administrador para cambios</span>
             </span>
           )}
         </p>
@@ -170,7 +172,7 @@ export const DatosClinicaForm = memo(({ datosClinica, alGuardar, userProfile }) 
               : 'bg-black text-white hover:bg-gray-800'
           }`}
         >
-          {esSoloLectura ? '🔒 Solo Lectura' : 'Guardar Membrete de Clínica'}
+          {esSoloLectura ? <span className='inline-flex items-center gap-1'><Lock size={14} />Solo Lectura</span> : 'Guardar Membrete de Clínica'}
         </button>
       </div>
     </form>

@@ -1,6 +1,8 @@
 import React, { memo } from 'react'
 import { Receipt } from 'lucide-react'
 import { useCalculadoraBoletas } from '../hooks/useCalculadoraBoletas'
+import { BarChart3 } from 'lucide-react'
+import { Banknote } from 'lucide-react'
 
 export const CalculadoraBoletas = memo(({ alRegistrarGastoHonorario }) => {
   const {
@@ -58,7 +60,7 @@ export const CalculadoraBoletas = memo(({ alRegistrarGastoHonorario }) => {
                   usarPorcentajePrestacion ? 'bg-black text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
-                📊 % sobre Prestación
+                <span className="inline-flex items-center gap-1"><BarChart3 size={12} />% sobre Prestación</span>
               </button>
               <button
                 type="button"
@@ -67,7 +69,7 @@ export const CalculadoraBoletas = memo(({ alRegistrarGastoHonorario }) => {
                   !usarPorcentajePrestacion ? 'bg-black text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
-                💵 Monto Fijo Directo
+                <span className="inline-flex items-center gap-1"><Banknote size={12} />Monto Fijo Directo</span>
               </button>
             </div>
           </div>

@@ -12,6 +12,9 @@ import { useRBAC } from '../../hooks/useRBAC'
 import { PERMISOS } from '../../constants/rbacConstants'
 import { restaurarPago, limpiarVencidos } from './services/papeleraPagosService'
 import { ModalPapeleraPagos } from './components/ModalPapeleraPagos'
+import { Trash2 } from 'lucide-react'
+import { CreditCard } from 'lucide-react'
+import { Download } from 'lucide-react'
 
 export const PagosModulo = memo(() => {
   const pacientes = usePacientesStore((state) => state.pacientes)
@@ -85,7 +88,7 @@ export const PagosModulo = memo(() => {
     <div className="space-y-6">
       <div className="flex justify-between items-center flex-wrap gap-3 print:hidden">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider">💳 Control de Pagos, Recaudación & DTE</h2>
+          <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider"><span className="inline-flex items-center gap-1"><CreditCard size={16} />Control de Pagos, Recaudación & DTE</span></h2>
           <p className="text-xs text-gray-500">Gestión de ingresos por caja, boletas de honorarios, bonos I-Med e imputación a tratamientos.</p>
         </div>
 
@@ -96,7 +99,7 @@ export const PagosModulo = memo(() => {
               className="bg-gray-100 text-gray-800 text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-gray-200 transition-colors border border-gray-300 cursor-pointer"
               title="Ver pagos purgados (papelera)"
             >
-              🗑️ Papelera
+              <span className="inline-flex items-center gap-1"><Trash2 size={12} />Papelera</span>
             </button>
           )}
           {puedeExportar && (
@@ -105,7 +108,7 @@ export const PagosModulo = memo(() => {
               className="bg-gray-100 text-gray-800 text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-gray-200 transition-colors border border-gray-300 cursor-pointer"
               title="Exportar todos los pagos (vigentes + anulados) a XLSX"
             >
-              📥 Exportar auditoría
+              <span className="inline-flex items-center gap-1"><Download size={14} />Exportar auditoría</span>
             </button>
           )}
           <button
@@ -165,7 +168,7 @@ export const PagosModulo = memo(() => {
 
             <input
               type="text"
-              placeholder="🔍 Buscar por recibo, DTE, paciente o RUT..."
+              placeholder="Buscar por recibo, DTE, paciente o RUT..."
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
               className="p-2 border rounded-xl bg-white w-full sm:w-64"

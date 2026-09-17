@@ -9,6 +9,7 @@ import { ConveniosManager } from './components/ConveniosManager'
 import { CalculadoraBoletas } from './components/CalculadoraBoletas'
 import { usePacientesStore } from '../../store/pacientesStore'
 import { useSesionStore } from '../../store/sesionStore'
+import { DollarSign } from 'lucide-react'
 
 export const FinanzasModulo = memo(() => {
   // (F2-02) — pacientes y userProfile ya no llegan como prop desde App.jsx: se leen directo de los stores.
@@ -42,7 +43,7 @@ export const FinanzasModulo = memo(() => {
     <div className="space-y-6">
       <div className="flex justify-between items-center flex-wrap gap-3 print:hidden">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider">💰 Control Financiero & Arqueo de Caja</h2>
+          <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider inline-flex items-center gap-2"><DollarSign size={20} />Control Financiero & Arqueo de Caja</h2>
           <p className="text-xs text-gray-500">Gestión de ingresos, egresos, arqueos diarios y balances contables de la clínica.</p>
         </div>
 

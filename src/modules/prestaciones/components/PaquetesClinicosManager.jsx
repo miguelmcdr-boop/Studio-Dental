@@ -14,7 +14,7 @@ export const PaquetesClinicosManager = memo(({ paquetes, alGuardarPaquete, alEli
   const handleAbrirEditar = (pk) => {
     setPackEditar(pk)
     // Limpiar el prefijo de emoji si existe para editar solo el texto
-    setNombre(pk.nombre ? pk.nombre.replace(/^🎁\s*/, '') : '')
+    setNombre(pk.nombre ? pk.nombre : '')
     setDescripcion(pk.descripcion || '')
     setPrecioCombo(pk.precioCombo || pk.precio || '')
     setAhorroEstimado(pk.ahorroEstimado || '15%')

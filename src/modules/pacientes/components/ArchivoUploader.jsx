@@ -1,4 +1,5 @@
 import React, { memo, useRef } from 'react'
+import { Paperclip } from 'lucide-react'
 
 /**
  * Botón/input de subida de archivos clínicos a R2.
@@ -23,7 +24,7 @@ export const ArchivoUploader = memo(({
 
   const config = {
     foto: {
-      label: '📸 Subir Fotos',
+      label: 'Subir Fotos',
       accept: 'image/*',
     },
     rx: {
@@ -33,7 +34,7 @@ export const ArchivoUploader = memo(({
   }
 
   const cfg = config[tipoArchivo] || {
-    label: '📎 Subir Archivo',
+    label: 'Subir Archivo',
     accept: 'image/*,.pdf',
   }
 

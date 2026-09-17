@@ -1,6 +1,7 @@
 import React, { memo, useState } from 'react'
 import { Modal } from '../../../components/ui/Modal'
 import { Button } from '../../../components/ui/Button'
+import { Trash2, AlertTriangle } from 'lucide-react'
 
 /**
  * ModalConfirmarPurga — Confirmación con textarea obligatoria (Decisión 1C).
@@ -24,10 +25,10 @@ export const ModalConfirmarPurga = memo(({ pago, onConfirmar, alCerrar }) => {
   }
 
   return (
-    <Modal isOpen={true} onClose={alCerrar} title="🗑️ Purgar pago definitivamente" size="md">
+    <Modal isOpen={true} onClose={alCerrar} title="Purgar pago definitivamente" size="md">
       <div className="space-y-4 text-xs">
         <div className="bg-red-50 border border-red-200 rounded-xl p-3">
-          <p className="font-bold text-red-900 text-sm">⚠️ Acción destructiva irreversible</p>
+          <p className="font-bold text-red-900 text-sm"><span className="inline-flex items-center gap-1"><AlertTriangle size={12} />Acción destructiva irreversible</span></p>
           <p className="text-red-800 mt-1">
             Vas a eliminar permanentemente este pago del sistema. Solo debe usarse
             cuando el registro fue un error administrativo y no debe quedar traza contable.
@@ -67,7 +68,7 @@ export const ModalConfirmarPurga = memo(({ pago, onConfirmar, alCerrar }) => {
               fullWidth
               className="bg-red-700 hover:bg-red-800 font-extrabold"
             >
-              🗑️ Purgar definitivamente
+              <span className="inline-flex items-center gap-1"><Trash2 size={12} />Purgar definitivamente</span>
             </Button>
           </div>
         </form>

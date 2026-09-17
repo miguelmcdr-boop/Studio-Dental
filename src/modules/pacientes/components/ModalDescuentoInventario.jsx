@@ -2,6 +2,8 @@ import React, { memo, useState } from 'react'
 import { AlertTriangle } from 'lucide-react'
 import { Modal } from '../../../components/ui/Modal'
 import { Button } from '../../../components/ui/Button'
+import { Package } from 'lucide-react'
+import { Lightbulb } from 'lucide-react'
 
 export const ModalDescuentoInventario = memo(({
   item,
@@ -64,7 +66,7 @@ export const ModalDescuentoInventario = memo(({
         ) : (
           <div className="space-y-3">
             <span className="font-bold text-gray-800 text-xs uppercase block">
-              📦 Selecciona los materiales utilizados en esta sesión:
+              <span className="inline-flex items-center gap-1"><Package size={14} />Selecciona los materiales utilizados en esta sesión:</span>
             </span>
 
             {seleccion.map((material, index) => {
@@ -95,7 +97,7 @@ export const ModalDescuentoInventario = memo(({
                       
                       {descuentoExcedeStock && material.seleccionado && (
                         <span className="block text-red-600 font-bold text-[10px] mt-1">
-                          ⚠️ La cantidad excede el stock disponible. Se descontará hasta 0.
+                          <span className="inline-flex items-center gap-1"><AlertTriangle size={14} />La cantidad excede el stock disponible. Se descontará hasta 0.</span>
                         </span>
                       )}
 
@@ -149,7 +151,7 @@ export const ModalDescuentoInventario = memo(({
         </div>
 
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-[11px] text-blue-900">
-          <strong>💡 Tip:</strong> "Cancelar Descuento" marca el tratamiento como Realizado pero no descuenta stock. 
+          <strong className="inline-flex items-center gap-1"><Lightbulb size={12} />Tip:</strong> "Cancelar Descuento" marca el tratamiento como Realizado pero no descuenta stock. 
           Úsalo si los materiales ya estaban descontados o si prefieres ajustar el inventario manualmente.
         </div>
     </Modal>

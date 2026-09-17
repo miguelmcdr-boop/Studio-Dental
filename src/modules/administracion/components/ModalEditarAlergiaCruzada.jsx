@@ -22,7 +22,7 @@ const SEVERIDAD_LABELS = {
     badge: 'bg-red-100 text-red-800'
   },
   advertencia: {
-    label: 'Advertencia (⚠️)',
+    label: 'Advertencia',
     descripcion: 'Precaución — evaluar riesgo/beneficio y considerar alternativas',
     color: 'border-yellow-400 bg-yellow-50',
     badge: 'bg-yellow-100 text-yellow-800'

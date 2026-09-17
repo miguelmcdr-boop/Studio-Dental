@@ -12,6 +12,7 @@ import { pacientesStorageService } from '../pacientes/services/pacientesStorageS
 import { periodontogramaStorageService } from './services/periodontogramaStorageService'
 import { createLogger } from '../../services/logger.js'
 import { useAppDialog } from '../../hooks/useAppDialog'
+import { RefreshCw, Save } from 'lucide-react'
 
 const log = createLogger('PeriodontogramaModulo')
 
@@ -122,7 +123,7 @@ export const PeriodontogramaModulo = memo(({ pacienteId }) => {
               modoComparativoReeval ? 'bg-purple-700 text-white border-purple-800' : 'bg-purple-50 text-purple-900 border-purple-300'
             }`}
           >
-            🔄 {modoComparativoReeval ? 'Modo: Reevaluación / Control (Activo)' : 'Cambiar a Reevaluación / Control'}
+            <span className='inline-flex items-center gap-1'><RefreshCw size={12} />{modoComparativoReeval ? 'Modo: Reevaluación / Control (Activo)' : 'Cambiar a Reevaluación / Control'}</span>
           </button>
 
           <button
@@ -130,7 +131,7 @@ export const PeriodontogramaModulo = memo(({ pacienteId }) => {
             onClick={handleGuardarPeriodontograma}
             className="bg-black text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-gray-800 transition-colors shadow-xs cursor-pointer"
           >
-            💾 Guardar Periodontograma
+            <span className="inline-flex items-center gap-1"><Save size={12} />Guardar Periodontograma</span>
           </button>
         </div>
       </div>

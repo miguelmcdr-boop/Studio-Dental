@@ -6,6 +6,7 @@ import { DatosClinicaForm } from './components/DatosClinicaForm'
 import { ParametrosAgendaForm } from './components/ParametrosAgendaForm'
 import { RespaldoDatosSection } from './components/RespaldoDatosSection'
 import { useSesionStore } from '../../store/sesionStore'
+import { Zap, User, Building2, Calendar, Save } from 'lucide-react'
 
 export const ConfiguracionModulo = memo(() => {
   // (F2-02) — userProfile/setUserProfile ya no llegan como prop desde App.jsx: se leen directo del store.
@@ -28,7 +29,7 @@ export const ConfiguracionModulo = memo(() => {
     <div className="space-y-6">
       <div className="flex justify-between items-center flex-wrap gap-3 print:hidden">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider">⚡ Configuración del Sistema & Respaldos</h2>
+          <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider inline-flex items-center gap-2"><Zap size={20} />Configuración del Sistema & Respaldos</h2>
           <p className="text-xs text-gray-500">Personalización de membrete, perfil profesional, firma digital y copias de seguridad.</p>
         </div>
       </div>
@@ -39,7 +40,7 @@ export const ConfiguracionModulo = memo(() => {
           variant={tabActual === 'perfil' ? 'primary' : 'secondary'}
           size="sm"
         >
-          👤 Perfil Profesional
+          <span className="inline-flex items-center gap-1"><User size={12} />Perfil Profesional</span>
         </Button>
 
         <Button
@@ -47,7 +48,7 @@ export const ConfiguracionModulo = memo(() => {
           variant={tabActual === 'clinica' ? 'primary' : 'secondary'}
           size="sm"
         >
-          🏢 Membrete Clínica
+          <span className="inline-flex items-center gap-1"><Building2 size={12} />Membrete Clínica</span>
         </Button>
 
         <Button
@@ -55,7 +56,7 @@ export const ConfiguracionModulo = memo(() => {
           variant={tabActual === 'agenda' ? 'primary' : 'secondary'}
           size="sm"
         >
-          📅 Parámetros Agenda
+          <span className="inline-flex items-center gap-1"><Calendar size={12} />Parámetros Agenda</span>
         </Button>
 
         <Button
@@ -63,7 +64,7 @@ export const ConfiguracionModulo = memo(() => {
           variant={tabActual === 'respaldo' ? 'primary' : 'secondary'}
           size="sm"
         >
-          💾 Respaldos JSON
+          <span className="inline-flex items-center gap-1"><Save size={12} />Respaldos JSON</span>
         </Button>
       </div>
 

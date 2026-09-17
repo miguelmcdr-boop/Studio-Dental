@@ -1,5 +1,5 @@
 import React, { memo } from 'react'
-import { Trash2 } from 'lucide-react'
+import { Trash2, Lock } from 'lucide-react'
 import { Modal } from '../../../components/ui/Modal'
 import { Button } from '../../../components/ui/Button'
 import { useAppDialog } from '../../../hooks/useAppDialog'
@@ -149,7 +149,7 @@ export const ModalPapeleraCertificados = memo(({
                             className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full"
                             title="Tiene PDF respaldado en R2 (se borrará al eliminar definitivamente)"
                           >
-                            🔒 R2
+                            <span className="inline-flex items-center gap-1"><Lock size={10} />R2</span>
                           </span>
                         )}
                       </div>

@@ -1,5 +1,6 @@
 import React, { memo } from 'react'
 import { GUIA_TONOS_VITA, FORMAS_DENTARIAS } from '../constants/dsdConstants'
+import { Ruler, Sparkles } from 'lucide-react'
 
 export const SimuladorCarillas = memo(({ dsdData, ratioAnchoAlto, esProporcionIdeal, visibilidadDorada, onActualizar }) => {
   return (
@@ -7,7 +8,7 @@ export const SimuladorCarillas = memo(({ dsdData, ratioAnchoAlto, esProporcionId
       <div className="border-b pb-2 flex justify-between items-center flex-wrap gap-2">
         <div>
           <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider">
-            📐 Planificación Digital de Sonrisa (DSD)
+            <span className="inline-flex items-center gap-1"><Ruler size={14} />Planificación Digital de Sonrisa (DSD)</span>
           </h3>
           <p className="text-gray-500 text-[11px]">Mediciones microestéticas e inspección de relación Ancho/Alto (Objetivo: 75% - 85%).</p>
         </div>
@@ -70,7 +71,7 @@ export const SimuladorCarillas = memo(({ dsdData, ratioAnchoAlto, esProporcionId
       {/* Matriz Visual de Proporción Dorada (1.618) */}
       <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl space-y-2">
         <h4 className="font-bold text-gray-800 text-[11px] uppercase tracking-wider">
-          ✨ Visibilidad Frontal Teórica (Proporción Dorada 1.618 : 1.0 : 0.618)
+          <span className="inline-flex items-center gap-1"><Sparkles size={14} />Visibilidad Frontal Teórica (Proporción Dorada 1.618 : 1.0 : 0.618)</span>
         </h4>
         <div className="grid grid-cols-3 gap-3 text-center">
           <div className="p-2 bg-white rounded-lg border">
