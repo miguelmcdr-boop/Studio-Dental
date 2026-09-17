@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react'
+import { UsersRound } from 'lucide-react'
 import { useGestionMiembros } from './useGestionMiembros'
 import { NOMBRES_ROLES } from '../../constants/rbacConstants'
 
@@ -34,7 +35,10 @@ export const GestionMiembrosModulo = () => {
   return (
     <div className="p-8 max-w-6xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestión de Miembros</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2 inline-flex items-center gap-3">
+          <UsersRound size={28} />
+          Gestión de Miembros
+        </h1>
         <p className="text-gray-600">Administra el personal de tu clínica. Invita nuevos miembros y gestiona los roles.</p>
       </div>
 

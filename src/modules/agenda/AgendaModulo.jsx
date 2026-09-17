@@ -15,7 +15,7 @@
  * Contratos: no hay data-testid en este archivo, preservación de API de props.
  */
 import React, { memo } from 'react'
-import { Ban, Plus, Armchair } from 'lucide-react'
+import { Ban, Plus, Armchair, Calendar } from 'lucide-react'
 import { Button } from '../../components/ui/Button'
 import { PageHeader } from '../../components/ui/PageHeader'
 import { EmptyState } from '../../components/ui/EmptyState'
@@ -61,6 +61,7 @@ export const AgendaModulo = memo(({ alSeleccionarPaciente, alVerFichaPaciente })
     <div className="space-y-6">
       {/* PageHeader con acciones */}
       <PageHeader
+        icon={Calendar}
         title="Agenda multi-box y control de sillones"
         description="Gestión inteligente de citas, ocupación de Boxes y confirmación omnicanal."
         actions={

@@ -14,7 +14,6 @@ import { useConsentimientosInit } from '../hooks/useConsentimientosInit'
 import { PLANTILLAS_CONSENTIMIENTO } from '../constants/plantillasConsentimiento'
 import { createLogger } from '../../../services/logger'
 import { ScrollText } from 'lucide-react'
-
 const log = createLogger('ConsentimientosSection')
 
 export const ConsentimientosSection = memo(({ paciente, userProfile }) => {

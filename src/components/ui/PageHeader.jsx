@@ -29,6 +29,7 @@ export const PageHeader = ({
   title,
   description,
   actions,
+  icon,
   className = '',
   ...rest
 }) => {
@@ -45,13 +46,7 @@ export const PageHeader = ({
               const isLast = idx === breadcrumb.length - 1
               return (
                 <li key={`${crumb.label}-${idx}`} className="flex items-center gap-1">
-                  {idx > 0 && (
-                    <Icon
-                      icon={ChevronRight}
-                      size="xs"
-                      className="text-graphite-400 dark:text-graphite-600"
-                    />
-                  )}
+                  {idx > 0 && <Icon icon={ChevronRight} size="xs" className="text-graphite-400 dark:text-graphite-600" />}
                   {isLast || !crumb.onClick ? (
                     <span
                       aria-current={isLast ? 'page' : undefined}
@@ -83,9 +78,10 @@ export const PageHeader = ({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="min-w-0">
           <h1
-            className="text-graphite-900 dark:text-graphite-50 tracking-tight"
+            className="text-graphite-900 dark:text-graphite-50 tracking-tight flex items-center gap-2"
             style={{ fontSize: 'var(--ds-text-2xl)', fontWeight: 'var(--ds-weight-semibold)' }}
           >
+            {icon && <Icon icon={icon} size="xl" className="text-graphite-700 dark:text-graphite-300" />}
             {title}
           </h1>
           {description && (

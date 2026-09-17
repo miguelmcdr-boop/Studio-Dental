@@ -68,6 +68,7 @@ export const DirectorioPacientes = memo(({ alSeleccionarPaciente, alEliminarPaci
     <div>
       {/* PageHeader con acciones */}
       <PageHeader
+        icon={Users}
         title="Directorio de Pacientes"
         description="Busca, administra, edita o elimina registros de pacientes."
         actions={

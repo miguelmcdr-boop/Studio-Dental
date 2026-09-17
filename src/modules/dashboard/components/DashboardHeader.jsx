@@ -1,4 +1,5 @@
 import React, { memo } from 'react'
+import { LayoutDashboard } from 'lucide-react'
 
 export const DashboardHeader = memo(({ userProfile }) => {
   const hoyTexto = new Date().toLocaleDateString('es-CL', {
@@ -11,7 +12,8 @@ export const DashboardHeader = memo(({ userProfile }) => {
   return (
     <div className="bg-black text-white p-6 rounded-2xl shadow-sm flex justify-between items-center flex-wrap gap-4">
       <div>
-        <h1 className="text-xl font-bold">
+        <h1 className="text-xl font-bold inline-flex items-center gap-2">
+          <LayoutDashboard size={20} />
           ¡Bienvenido/a, {userProfile?.nombreCompleto || 'Dr. Profesional'}!
         </h1>
         <p className="text-xs text-gray-300 capitalize mt-1">

@@ -84,10 +84,9 @@ export const ModalPapelera = ({
       size="xl"
       showCloseButton={false}
     >
-      {/* Header custom: preserva el botón ✕ visible para el test */}
       <div className="flex justify-between items-center mb-4 border-b dark:border-graphite-700 pb-3">
         <div>
-          <h3 className="text-lg font-bold text-graphite-900 dark:text-graphite-50"><span className="inline-flex items-center gap-1"><Trash2 size={16} />Papelera de Reciclaje</span></h3>
+          <h3 className="text-lg font-bold text-graphite-900 dark:text-graphite-50 inline-flex items-center gap-1"><Trash2 size={16} />Papelera de Reciclaje</h3>
           <p className="text-xs text-graphite-500 dark:text-graphite-400 mt-1">{conteoTexto}</p>
         </div>
         <button
@@ -183,7 +182,6 @@ export const ModalPapelera = ({
         </div>
       )}
 
-      {/* Modal de confirmación doble (anidado nativo, z-[60] sobre el principal) */}
       {mostrarConfirmacionVaciar && (
         <div className="fixed inset-0 bg-black/60 dark:bg-black/80 flex items-center justify-center p-4 z-[60]">
           <div className="bg-white dark:bg-graphite-800 rounded-2xl p-6 w-full max-w-md border border-red-200 dark:border-red-900 shadow-2xl">
