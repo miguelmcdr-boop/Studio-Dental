@@ -22,7 +22,7 @@ export const useSessionGuard = ({ userProfile, logout }) => {
   const handleWarning = useCallback(() => {
     notificationService.warning(
       'Tu sesión expirará en 2 minutos por inactividad. Mueve el mouse o presiona una tecla para mantenerla activa.',
-      { titulo: '⚠️ Sesión por expirar', duracion: 120000 }
+      { titulo: '⚠ Sesión por expirar', duracion: 120000 }
     )
   }, [])
 

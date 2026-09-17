@@ -165,12 +165,12 @@ export const generarAdvertencias = (anestesia, params) => {
 
   // 1. Embarazo + Felipresina
   if (esEmbarazo && nombreNorm.includes('felipresina')) {
-    advertencias.push('⚠️ Felipresina: evitar en embarazo por estructura análoga a oxitocina (riesgo controvertido)')
+    advertencias.push('⚠ Felipresina: evitar en embarazo por estructura análoga a oxitocina (riesgo controvertido)')
   }
 
   // 2. Embarazo + vasoconstrictor
   if (esEmbarazo && anestesia.tieneVasoconstrictor) {
-    advertencias.push('⚠️ Vasoconstrictor en embarazo: limitar a máximo 2 tubos por precaución')
+    advertencias.push('⚠ Vasoconstrictor en embarazo: limitar a máximo 2 tubos por precaución')
   }
 
   // 3. Cardiopata + vasoconstrictor
@@ -178,14 +178,14 @@ export const generarAdvertencias = (anestesia, params) => {
     const epiPorTubo = (anestesia.concentracionVasoconstrictor || 0) * anestesia.volumenPorTubo  // F7-03: volumenPorTubo ya validado arriba
     if (epiPorTubo > 0) {
       const tubosMaximoEpi = Math.floor(0.04 / epiPorTubo)
-      advertencias.push(`⚠️ Cardiopatía: limitar Epinefrina a 0.04 mg por sesión (≈ ${tubosMaximoEpi} tubos)`)
+      advertencias.push(`⚠ Cardiopatía: limitar Epinefrina a 0.04 mg por sesión (≈ ${tubosMaximoEpi} tubos)`)
     }
   }
 
   // 4. Cardiopata: sugerencia de alternativas
   if (esCardiopata && anestesia.tieneVasoconstrictor) {
     if (!nombreNorm.includes('mepivacaina') && !nombreNorm.includes('prilocaina')) {
-      advertencias.push('ℹ️ En cardiopatías descompensadas considerar Mepivacaína 3% sin vaso o Prilocaína + Felipresina')
+      advertencias.push('ℹ En cardiopatías descompensadas considerar Mepivacaína 3% sin vaso o Prilocaína + Felipresina')
     }
   }
 
@@ -196,19 +196,19 @@ export const generarAdvertencias = (anestesia, params) => {
 
   // 6. Pediátrica: Articaína contraindicada <4 años
   if (esPediatria && nombreNorm.includes('articaina')) {
-    advertencias.push('⚠️ Articaína contraindicada en niños <4 años')
+    advertencias.push('⚠ Articaína contraindicada en niños <4 años')
   }
 
   // 7. Paciente de bajo peso (<50 kg) con vasoconstrictor
   if (peso && peso < 50 && anestesia.tieneVasoconstrictor) {
-    advertencias.push('ℹ️ Paciente <50 kg: calcular SIEMPRE dosis antes del procedimiento y registrar en ficha')
+    advertencias.push('ℹ Paciente <50 kg: calcular SIEMPRE dosis antes del procedimiento y registrar en ficha')
   }
 
   // 8. Contraindicaciones específicas del fármaco
   if (anestesia.contraindicaciones) {
     const contra = normalizar(anestesia.contraindicaciones)
     if (contra.includes('metahemoglobinemia') && (contra.includes('sulfito') || contra.includes('sulf'))) {
-      advertencias.push('ℹ️ Precaución con pacientes que reciben sulfas (riesgo metahemoglobinemia)')
+      advertencias.push('ℹ Precaución con pacientes que reciben sulfas (riesgo metahemoglobinemia)')
     }
   }
 
@@ -390,7 +390,7 @@ export const calcularDosisAnestesiaCompleta = (params = {}) => {
           presentacion: anestesia.presentacion
         },
         calculos: null,
-        advertencias: ['⚠️ Dosis pediátrica faltante, cálculo bloqueado por seguridad']
+        advertencias: ['⚠ Dosis pediátrica faltante, cálculo bloqueado por seguridad']
       }
     }
   } else {
@@ -476,7 +476,7 @@ export const calcularDosisAnestesiaCompleta = (params = {}) => {
   })
 
   if (topeUsado !== null) {
-    advertencias.unshift(`ℹ️ Se aplicó tope absoluto de ${topeUsado} mg (cálculo por peso excedía el límite del fármaco)`)
+    advertencias.unshift(`ℹ Se aplicó tope absoluto de ${topeUsado} mg (cálculo por peso excedía el límite del fármaco)`)
   }
 
   return {

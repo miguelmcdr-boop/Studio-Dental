@@ -30,10 +30,10 @@ export const PATOLOGIAS_GES_ODONTO = [
 ]
 
 export const CATEGORIAS_TRIAGE_URGENCIA = [
-  { id: 'C1', nombre: '🔴 C1 - Urgencia Vital / Hemorragia Severa', color: 'bg-red-100 text-red-900 border-red-300' },
-  { id: 'C2', nombre: '🟠 C2 - Dolor Severo / Absceso / Traumatismo', color: 'bg-amber-100 text-amber-900 border-amber-300' },
-  { id: 'C3', nombre: '🟡 C3 - Dolor Moderado / Pulpitis / Fractura', color: 'bg-yellow-100 text-yellow-900 border-yellow-300' },
-  { id: 'C4', nombre: '🟢 C4 - Molestia Leve / Desprendimiento Tapón', color: 'bg-emerald-100 text-emerald-900 border-emerald-300' }
+  { id: 'C1', nombre: 'C1 - Urgencia Vital / Hemorragia Severa', color: 'bg-red-100 text-red-900 border-red-300' },
+  { id: 'C2', nombre: 'C2 - Dolor Severo / Absceso / Traumatismo', color: 'bg-amber-100 text-amber-900 border-amber-300' },
+  { id: 'C3', nombre: 'C3 - Dolor Moderado / Pulpitis / Fractura', color: 'bg-yellow-100 text-yellow-900 border-yellow-300' },
+  { id: 'C4', nombre: 'C4 - Molestia Leve / Desprendimiento Tapón', color: 'bg-emerald-100 text-emerald-900 border-emerald-300' }
 ]
 
 export const DIAGNOSTICOS_URGENCIA_COMMON = [

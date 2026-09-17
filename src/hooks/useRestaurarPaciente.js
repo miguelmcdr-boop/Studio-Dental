@@ -71,7 +71,7 @@ export const useRestaurarPaciente = (userProfile, pacienteSeleccionado, setPacie
         // Asegurar que estamos en la sección correcta
         setPacienteSeleccionadoState(pacienteRestaurado)
         setActiveSection('Pacientes')
-        log.info('✅ Ficha de paciente restaurada:', pacienteRestaurado.nombre)
+        log.info('Ficha de paciente restaurada:', pacienteRestaurado.nombre)
       } catch (e) {
         log.error('Error inesperado al restaurar paciente:', e)
       }

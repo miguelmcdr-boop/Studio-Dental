@@ -56,9 +56,9 @@ export const useCommandPalette = ({ onNavigate, onCreateCita, onCreatePaciente, 
   // Acciones rápidas (fijas)
   const accionesRapidas = useMemo(() => {
     const acciones = [
-      { id: 'nueva-cita', label: 'Nueva cita', icon: '📅', action: onCreateCita },
-      { id: 'nuevo-paciente', label: 'Nuevo paciente', icon: '👤', action: onCreatePaciente },
-      { id: 'nuevo-presupuesto', label: 'Nuevo presupuesto', icon: '💰', action: onCreatePresupuesto },
+      { id: 'nueva-cita', label: 'Nueva cita', icon: 'Calendar', action: onCreateCita },
+      { id: 'nuevo-paciente', label: 'Nuevo paciente', icon: 'User', action: onCreatePaciente },
+      { id: 'nuevo-presupuesto', label: 'Nuevo presupuesto', icon: 'DollarSign', action: onCreatePresupuesto },
     ]
     if (!query.trim()) return acciones
     return acciones.filter(a => fuzzyMatch(a.label, query))
