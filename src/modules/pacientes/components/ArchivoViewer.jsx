@@ -1,4 +1,5 @@
 import React, { memo, useState, useEffect } from 'react'
+import { Image, FileText, Paperclip } from 'lucide-react'
 import { useAppDialog } from '../../../hooks/useAppDialog'
 
 /**
@@ -33,9 +34,9 @@ export const ArchivoViewer = memo(({
   }
 
   const tituloIcono = (archivo) => {
-    if (archivo.mime_type?.startsWith('image/')) return '🖼️'
-    if (archivo.mime_type === 'application/pdf') return '📄'
-    return '📎'
+    if (archivo.mime_type?.startsWith('image/')) return <Image size={16} className='inline' />
+    if (archivo.mime_type === 'application/pdf') return <FileText size={16} className='inline' />
+    return <Paperclip size={16} className='inline' />
   }
 
   const formatearTamano = (bytes) => {

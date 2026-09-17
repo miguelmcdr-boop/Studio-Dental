@@ -1,5 +1,5 @@
 import React, { memo } from 'react'
-import { Siren } from 'lucide-react'
+import { Siren, FileText, Trash2 } from 'lucide-react'
 import { Icon } from '../../components/Icon'
 import { useUrgenciasGes } from './hooks/useUrgenciasGes'
 import { FormRegistroGes } from './components/FormRegistroUrgencia'
@@ -60,13 +60,13 @@ export const UrgenciasGesModulo = memo(() => {
                       onClick={() => setAtencionSeleccionada(item)}
                       className="bg-black text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-800"
                     >
-                      📄 Ver / Imprimir
+                      <span className="inline-flex items-center gap-1"><FileText size={12} />Ver / Imprimir</span>
                     </button>
                     <button
                       onClick={() => eliminarAtencion(item.id)}
                       className="bg-red-50 text-red-700 px-2 py-1.5 rounded-lg text-xs font-bold hover:bg-red-100"
                     >
-                      🗑️
+                      <Trash2 size={12} />
                     </button>
                   </div>
                 </div>

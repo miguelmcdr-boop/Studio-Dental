@@ -1,4 +1,5 @@
 import React, { memo, useState, useEffect } from 'react'
+import { MessageCircle, Monitor, Smartphone, Mail } from 'lucide-react'
 import { Modal } from '../../../components/ui/Modal'
 import { Button } from '../../../components/ui/Button'
 import { CANALES_COMUNICACION } from '../constants/comunicacionesConstants'
@@ -77,7 +78,7 @@ export const ModalEnviarMensaje = memo(({ pacientes = [], plantillas = [], userP
   }
 
   return (
-    <Modal isOpen={true} onClose={alCerrar} title="💬 Transmitir Mensaje / Notificación" size="md">
+    <Modal isOpen={true} onClose={alCerrar} title="Transmitir Mensaje / Notificación" size="md">
       <div className="space-y-3 text-xs">
 
         <div className="space-y-3">
@@ -150,7 +151,7 @@ export const ModalEnviarMensaje = memo(({ pacientes = [], plantillas = [], userP
                   className="bg-emerald-700 hover:bg-emerald-800"
                   title="Abrir en navegador de escritorio"
                 >
-                  💻 WhatsApp Web
+                  <span className="inline-flex items-center gap-1"><Monitor size={14} />WhatsApp Web</span>
                 </Button>
                 <Button
                   type="button"
@@ -159,7 +160,7 @@ export const ModalEnviarMensaje = memo(({ pacientes = [], plantillas = [], userP
                   fullWidth
                   title="Abrir App móvil wa.me"
                 >
-                  📱 App Móvil
+                  <span className="inline-flex items-center gap-1"><Smartphone size={14} />App Móvil</span>
                 </Button>
               </>
             ) : (
@@ -169,7 +170,7 @@ export const ModalEnviarMensaje = memo(({ pacientes = [], plantillas = [], userP
                 variant="primary"
                 fullWidth
               >
-                ✉️ Registrar Envío
+                <span className="inline-flex items-center gap-1"><Mail size={14} />Registrar Envío</span>
               </Button>
             )}
           </div>

@@ -1,5 +1,5 @@
 import React, { memo, useState } from 'react'
-import { Dna } from 'lucide-react'
+import { Dna, Plus } from 'lucide-react'
 import { Icon } from '../../../components/Icon'
 import { EQUIPOS_AUTOCLAVE } from '../constants/esterilizacionConstants'
 import { useAppDialog } from '../../../hooks/useAppDialog'
@@ -106,7 +106,7 @@ export const ControlBiologicoSection = memo(({ biologicos, alAgregar, alActualiz
           type="submit"
           className="bg-black text-white font-bold px-4 py-2.5 rounded-xl hover:bg-gray-800 transition-colors shadow-xs"
         >
-          ➕ Iniciar Incubación de Ampolla
+          <span className="inline-flex items-center gap-1"><Plus size={14} />Iniciar Incubación de Ampolla</span>
         </button>
       </form>
 

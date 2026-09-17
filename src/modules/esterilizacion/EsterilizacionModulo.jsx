@@ -1,6 +1,6 @@
 import React, { memo, useState } from 'react'
 import { Icon } from '../../components/Icon'
-import { Wrench, Sparkles, Dna } from 'lucide-react'
+import { Wrench, Sparkles, Dna, Tag, BookOpen } from 'lucide-react'
 import { Input } from '../../components/ui/Input'
 import { Button } from '../../components/ui/Button'
 import { EQUIPOS_AUTOCLAVE } from './constants/esterilizacionConstants'
@@ -71,7 +71,7 @@ export const EsterilizacionModulo = memo(() => {
           variant={tabActual === 'cargas' ? 'primary' : 'secondary'}
           size="sm"
         >
-          🏷️ Cargas y Trazabilidad
+          <span className="inline-flex items-center gap-1"><Tag size={12} />Cargas y Trazabilidad</span>
         </Button>
 
         <Button
@@ -101,7 +101,7 @@ export const EsterilizacionModulo = memo(() => {
           variant={tabActual === 'libro' ? 'primary' : 'secondary'}
           size="sm"
         >
-          📖 Libro Oficial SEREMI
+          <span className="inline-flex items-center gap-1"><BookOpen size={12} />Libro Oficial SEREMI</span>
         </Button>
       </div>
 
@@ -125,7 +125,7 @@ export const EsterilizacionModulo = memo(() => {
 
               <Input
                 type="text"
-                placeholder="🔍 Buscar lote, contenido u operador..."
+                placeholder="Buscar lote, contenido u operador..."
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
                 className="w-full sm:w-64"

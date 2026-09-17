@@ -1,4 +1,5 @@
 import React, { memo, useState } from 'react'
+import { TrendingUp, ClipboardList, Gift } from 'lucide-react'
 import { Icon } from '../../components/Icon'
 import { Tooth } from '../../components/icons/Tooth'
 import { ESPECIALIDADES_ODONTOLOGICAS } from './constants/prestacionesConstants'
@@ -63,7 +64,7 @@ export const PrestacionesModulo = memo(() => {
                 onClick={() => setModalReajusteAbierto(true)}
                 className="bg-gray-100 text-gray-800 text-xs font-bold px-3 py-2.5 rounded-xl hover:bg-gray-200 transition-colors border"
               >
-                📈 Reajuste %
+                <span className="inline-flex items-center gap-1"><TrendingUp size={12} />Reajuste %</span>
               </button>
               <button
                 onClick={handleAbrirNuevo}
@@ -87,7 +88,7 @@ export const PrestacionesModulo = memo(() => {
             tabActual === 'arancel' ? 'bg-black text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
-          📋 Arancel General (Particular / Fonasa)
+          <span className="inline-flex items-center gap-1"><ClipboardList size={12} />Arancel General (Particular / Fonasa)</span>
         </button>
 
         <button
@@ -96,7 +97,7 @@ export const PrestacionesModulo = memo(() => {
             tabActual === 'paquetes' ? 'bg-black text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
-          🎁 Packs y Promociones Clínicas
+          <span className="inline-flex items-center gap-1"><Gift size={12} />Packs y Promociones Clínicas</span>
         </button>
       </div>
 
@@ -117,7 +118,7 @@ export const PrestacionesModulo = memo(() => {
 
             <input
               type="text"
-              placeholder="🔍 Buscar por procedimiento o código Fonasa..."
+              placeholder="Buscar por procedimiento o código Fonasa..."
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
               className="p-2 border rounded-xl bg-white w-full sm:w-64"

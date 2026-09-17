@@ -1,4 +1,5 @@
 import React, { memo } from 'react'
+import { Printer } from 'lucide-react'
 // F6-D-4: usar recetasStorageService en lugar de pacientesStorageService.guardarItem
 import { recetasStorageService } from '../services/recetasStorageService'
 import { FormularioNuevaReceta } from './FormularioNuevaReceta'
@@ -42,7 +43,7 @@ export const RecetasSection = memo(({ paciente, userProfile, alergiasPaciente, r
 
       <div className="flex justify-end mb-4 print:hidden">
         <button onClick={() => window.print()} className="bg-black text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-gray-800 shadow-sm">
-          🖨️ Imprimir Receta
+          <span className="flex items-center gap-1"><Printer size={14} />Imprimir Receta</span>
         </button>
       </div>
 

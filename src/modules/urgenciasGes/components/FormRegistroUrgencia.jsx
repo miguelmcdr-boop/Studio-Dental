@@ -1,4 +1,5 @@
 import React, { memo, useState } from 'react'
+import { FileText } from 'lucide-react'
 import { PATOLOGIAS_GES_ODONTO, DIAGNOSTICOS_URGENCIA_COMMON, CATEGORIAS_TRIAGE_URGENCIA } from '../constants/urgenciasGesConstants'
 import { useAppDialog } from '../../../hooks/useAppDialog'
 
@@ -54,8 +55,8 @@ export const FormRegistroGes = memo(({ pacientes = [], alRegistrar }) => {
   return (
     <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-4 text-xs">
       <div className="border-b pb-2">
-        <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider">
-          📄 Registro de Atención de Urgencia & Constancia GES / AUGE
+        <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider inline-flex items-center gap-2">
+          <FileText size={16} />Registro de Atención de Urgencia & Constancia GES / AUGE
         </h3>
         <p className="text-gray-500 text-[11px]">
           Categorización Triage y notificación obligatoria de confirmación diagnóstica (Ley 19.966).
@@ -158,7 +159,7 @@ export const FormRegistroGes = memo(({ pacientes = [], alRegistrar }) => {
         type="submit"
         className="w-full bg-black text-white font-bold py-2.5 rounded-xl hover:bg-gray-800 transition-colors cursor-pointer shadow-xs"
       >
-        📄 Generar y Emitir Constancia GES
+        <span className="inline-flex items-center gap-1"><FileText size={14} />Generar y Emitir Constancia GES</span>
       </button>
     </form>
   )

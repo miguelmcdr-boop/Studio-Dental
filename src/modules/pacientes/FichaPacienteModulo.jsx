@@ -1,4 +1,5 @@
 import React, { memo, useState } from 'react'
+import { Trash2, Pencil, AlertTriangle } from 'lucide-react'
 import { TABS_FICHA_PACIENTE } from './constants/pacientesConstants'
 import { useFichaPaciente } from './hooks/useFichaPaciente'
 
@@ -37,7 +38,6 @@ export const FichaPacienteModulo = memo(({
   // (F2-02) — Ahora los stores sí están correctamente importados arriba
   const userProfile = useSesionStore((state) => state.userProfile)
   const prestacionesArancel = usePrestacionesStore((state) => state.prestacionesArancel)
-  
   const [mostrarEditarDatos, setMostrarEditarDatos] = useState(false)
 
   const {
@@ -76,7 +76,7 @@ export const FichaPacienteModulo = memo(({
           onClick={() => alEliminarPaciente(paciente.id)}
           className="text-xs font-semibold text-red-600 hover:text-red-800 bg-red-50 border border-red-200 px-3 py-1.5 rounded-lg cursor-pointer"
         >
-          🗑️ Eliminar Paciente
+          <span className="inline-flex items-center gap-1"><Trash2 size={12} />Eliminar Paciente</span>
         </button>
       </div>
 
@@ -89,7 +89,7 @@ export const FichaPacienteModulo = memo(({
               onClick={() => setMostrarEditarDatos(true)}
               className="text-xs bg-white border border-gray-300 font-semibold px-2.5 py-1 rounded-lg hover:bg-gray-100 cursor-pointer"
             >
-              ✏️ Editar Datos
+              <span className="inline-flex items-center gap-1"><Pencil size={12} />Editar Datos</span>
             </button>
           </div>
           
@@ -106,7 +106,7 @@ export const FichaPacienteModulo = memo(({
         </div>
 
         <div className="bg-red-50 text-red-700 border border-red-200 px-3 py-2 rounded-xl text-xs font-semibold">
-          ⚠️ Alertas: {fichaData.alergias || 'Sin alergias registradas'}
+          <span className="inline-flex items-center gap-1"><AlertTriangle size={12} />Alertas: {fichaData.alergias || 'Sin alergias registradas'}</span>
         </div>
       </div>
 

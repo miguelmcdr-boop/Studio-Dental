@@ -1,4 +1,5 @@
 import React, { memo } from 'react'
+import { MessageCircle, Mail, Pin, Pencil, Trash2 } from 'lucide-react'
 import { ESTADOS_CONFIRMACION_CITA } from '../constants/comunicacionesConstants'
 import { generarLinkWhatsAppWeb } from '../utils/comunicacionesCalculations'
 
@@ -44,7 +45,7 @@ export const TablaHistorialMensajes = memo(({
                   <span className={`px-2 py-0.5 rounded-lg border font-bold text-[10px] ${
                     m.canal === 'whatsapp' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-blue-50 text-blue-800 border-blue-200'
                   }`}>
-                    {m.canal === 'whatsapp' ? '💬 WhatsApp' : '✉️ Email'}
+                    {m.canal === 'whatsapp' ? <span className='inline-flex items-center gap-1'><MessageCircle size={10} />WhatsApp</span> : <span className='inline-flex items-center gap-1'><Mail size={10} />Email</span>}
                   </span>
                 </td>
 
@@ -55,7 +56,7 @@ export const TablaHistorialMensajes = memo(({
                   </span>
                   {m.notaBitacora && (
                     <span className="text-[10px] italic text-purple-900 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200 inline-block mt-0.5">
-                      📌 Nota: {m.notaBitacora}
+                      <span className="inline-flex items-center gap-1"><Pin size={8} />Nota: {m.notaBitacora}</span>
                     </span>
                   )}
                 </td>
@@ -85,7 +86,7 @@ export const TablaHistorialMensajes = memo(({
                       className="p-1.5 bg-emerald-600 text-white font-bold rounded-lg text-[10px] hover:bg-emerald-700 inline-block"
                       title="Reenviar por WhatsApp Web"
                     >
-                      💬 Reenviar
+                      <span className="inline-flex items-center gap-1"><MessageCircle size={10} />Reenviar</span>
                     </a>
                   )}
 
@@ -94,7 +95,7 @@ export const TablaHistorialMensajes = memo(({
                     className="p-1.5 text-gray-600 hover:text-black font-semibold rounded-lg hover:bg-gray-100"
                     title="Editar entrada en bitácora"
                   >
-                    ✏️
+                    <Pencil size={12} />
                   </button>
 
                   <button
@@ -102,7 +103,7 @@ export const TablaHistorialMensajes = memo(({
                     className="p-1.5 text-red-500 hover:text-red-700 font-semibold rounded-lg hover:bg-red-50"
                     title="Eliminar de bitácora"
                   >
-                    🗑️
+                    <Trash2 size={12} />
                   </button>
                 </td>
               </tr>

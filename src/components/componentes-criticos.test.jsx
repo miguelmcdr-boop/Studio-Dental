@@ -104,7 +104,10 @@ describe('ToastContainer', () => {
     ])
 
     render(<ToastContainer />)
-    expect(screen.getByText('✅')).toBeInTheDocument()
+    // Verificar que el toast se renderiza con las clases correctas para tipo 'success'
+    const toast = screen.getByRole('alert')
+    expect(toast).toHaveClass('bg-green-50')
+    expect(toast).toHaveClass('border-green-400')
   })
 
   it('debe llamar notificationService.ocultar al hacer click en botón cerrar', () => {
@@ -142,7 +145,12 @@ describe('ToastContainer', () => {
 
   it('debe soportar todos los tipos de toast', () => {
     const tipos = ['info', 'success', 'warning', 'error']
-    const iconos = { info: 'ℹ️', success: '✅', warning: '⚠️', error: '❌' }
+    const clasesEsperadas = {
+      info: { bg: 'bg-blue-50', border: 'border-blue-400' },
+      success: { bg: 'bg-green-50', border: 'border-green-400' },
+      warning: { bg: 'bg-yellow-50', border: 'border-yellow-400' },
+      error: { bg: 'bg-red-50', border: 'border-red-400' }
+    }
 
     tipos.forEach(tipo => {
       vi.mocked(useNotifications).mockReturnValue([
@@ -150,7 +158,10 @@ describe('ToastContainer', () => {
       ])
 
       const { unmount } = render(<ToastContainer />)
-      expect(screen.getByText(iconos[tipo])).toBeInTheDocument()
+      // Verificar que el toast se renderiza con las clases correctas para cada tipo
+      const toast = screen.getByRole('alert')
+      expect(toast).toHaveClass(clasesEsperadas[tipo].bg)
+      expect(toast).toHaveClass(clasesEsperadas[tipo].border)
       unmount()
     })
   })

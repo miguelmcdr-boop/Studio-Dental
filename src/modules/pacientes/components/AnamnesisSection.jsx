@@ -1,4 +1,5 @@
 import React, { memo } from 'react'
+import { ClipboardList, Mic, Square } from 'lucide-react'
 import { Input } from '../../../components/ui/Input'
 import { Button } from '../../../components/ui/Button'
 import { useDictadoVoz } from '../hooks/useDictadoVoz'
@@ -16,8 +17,8 @@ export const AnamnesisSection = memo(({ fichaData, handleFichaChange }) => {
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-6">
       <div className="flex justify-between items-center border-b pb-3 flex-wrap gap-2">
-        <h3 className="font-bold text-xs text-gray-800 uppercase tracking-wider">
-          📋 Anamnesis & Examen Físico Clínico
+        <h3 className="font-bold text-xs text-gray-800 uppercase tracking-wider inline-flex items-center gap-2">
+          <ClipboardList size={14} />Anamnesis & Examen Físico Clínico
         </h3>
 
         {soporteNativo && (
@@ -29,7 +30,7 @@ export const AnamnesisSection = memo(({ fichaData, handleFichaChange }) => {
               variant={escuchando ? 'danger' : 'secondary'}
               className={escuchando ? 'animate-pulse' : ''}
             >
-              {escuchando ? '🔴 Escuchando... (Clic para detener)' : '🎙️ Activar Dictado por Voz'}
+              {escuchando ? <span className='inline-flex items-center gap-1'><Square size={12} className='fill-red-500' />Escuchando... (Clic para detener)</span> : <span className='inline-flex items-center gap-1'><Mic size={12} />Activar Dictado por Voz</span>}
             </Button>
           </div>
         )}
@@ -37,7 +38,7 @@ export const AnamnesisSection = memo(({ fichaData, handleFichaChange }) => {
 
       {escuchando && (
         <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs space-y-2">
-          <span className="font-bold text-red-900 block">🎙️ Dictado en Curso:</span>
+          <span className="font-bold text-red-900 block inline-flex items-center gap-1"><Mic size={12} />Dictado en Curso:</span>
           <p className="italic text-gray-800 bg-white p-2 rounded border">"{textoDictado || 'Habla claro hacia el micrófono...'}"</p>
           <div className="flex gap-2">
             <Button
@@ -90,7 +91,7 @@ export const AnamnesisSection = memo(({ fichaData, handleFichaChange }) => {
         </div>
 
         <div>
-          <label className="block text-red-700 font-bold mb-1">⚠️ Alergias Conocidas (Fármacos / Látex)</label>
+          <label className="block text-red-700 font-bold mb-1 inline-flex items-center gap-1"><AlertTriangle size={12} />Alergias Conocidas (Fármacos / Látex)</label>
           <Input
             type="text"
             placeholder="Ej: Penicilina, AINEs, Latex, Ninguna..."

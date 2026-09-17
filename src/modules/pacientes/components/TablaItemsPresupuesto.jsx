@@ -57,9 +57,9 @@ export const TablaItemsPresupuesto = memo(({
                       : 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 border-amber-300 dark:border-amber-700'
                   }`}
                 >
-                  <option value="Pendiente">🟡 Pendiente</option>
-                  <option value="En Proceso">🔵 En Proceso</option>
-                  <option value="Realizado">🟢 Realizado</option>
+                  <option value="Pendiente">Pendiente</option>
+                  <option value="En Proceso">En Proceso</option>
+                  <option value="Realizado">Realizado</option>
                 </select>
               </td>
               <td className="p-3 text-right font-medium text-graphite-900 dark:text-graphite-100">

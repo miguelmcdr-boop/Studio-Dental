@@ -1,4 +1,5 @@
 import React, { memo, useState } from 'react'
+import { Mail, MessageCircle, ScrollText, Bell, ClipboardList } from 'lucide-react'
 import { CANALES_COMUNICACION, ESTADOS_CONFIRMACION_CITA } from './constants/comunicacionesConstants'
 import { useComunicaciones } from './hooks/useComunicaciones'
 import { ComunicacionesSummaryCards } from './components/ComunicacionesSummaryCards'
@@ -59,7 +60,7 @@ export const ComunicacionesModulo = memo(() => {
       <div className="flex justify-between items-center flex-wrap gap-3 print:hidden">
         <div>
           {/* 💡 Título actualizado sin "Gold Standard" */}
-          <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider">✉️ Comunicaciones & Fidelización</h2>
+          <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider inline-flex items-center gap-2"><Mail size={20} />Comunicaciones & Fidelización</h2>
           <p className="text-xs text-gray-500">Recordatorios de citas, confirmaciones bidireccionales, recalls de 6 meses y bitácora.</p>
         </div>
 
@@ -67,7 +68,7 @@ export const ComunicacionesModulo = memo(() => {
           onClick={() => setModalNuevoAbierto(true)}
           className="bg-black text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-gray-800 transition-colors shadow-xs cursor-pointer"
         >
-          💬 Transmitir Mensaje
+          <span className="inline-flex items-center gap-1"><MessageCircle size={12} />Transmitir Mensaje</span>
         </button>
       </div>
 
@@ -82,7 +83,7 @@ export const ComunicacionesModulo = memo(() => {
             tabActual === 'historial' ? 'bg-black text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
-          📜 Bitácora & Confirmaciones
+          <span className="inline-flex items-center gap-1"><ScrollText size={12} />Bitácora & Confirmaciones</span>
         </button>
 
         <button
@@ -91,7 +92,7 @@ export const ComunicacionesModulo = memo(() => {
             tabActual === 'recall' ? 'bg-black text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
-          🔔 Citación Recall (6 Meses)
+          <span className="inline-flex items-center gap-1"><Bell size={12} />Citación Recall (6 Meses)</span>
         </button>
 
         <button
@@ -100,7 +101,7 @@ export const ComunicacionesModulo = memo(() => {
             tabActual === 'plantillas' ? 'bg-black text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
-          📋 Gestor de Plantillas
+          <span className="inline-flex items-center gap-1"><ClipboardList size={12} />Gestor de Plantillas</span>
         </button>
       </div>
 
@@ -131,7 +132,7 @@ export const ComunicacionesModulo = memo(() => {
 
             <input
               type="text"
-              placeholder="🔍 Buscar por paciente o contenido..."
+              placeholder="Buscar por paciente o contenido..."
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
               className="p-2 border rounded-xl bg-white w-full sm:w-64"

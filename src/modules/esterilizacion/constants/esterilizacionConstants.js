@@ -24,7 +24,7 @@ export const INDICADORES_QUIMICOS = [
 export const INDICADORES_BIOLOGICOS = [
   'Biológico Negativo (Carga Conforme / Aprobado)',
   'Biológico Positivo (Carga Contaminada / RECHAZADO)',
-  '⏳ Pendiente de Lectura (En Incubación 24-48h)'
+  'Pendiente de Lectura (En Incubación 24-48h)'
 ]
 
 export const RESULTADOS_BOWIE_DICK = [

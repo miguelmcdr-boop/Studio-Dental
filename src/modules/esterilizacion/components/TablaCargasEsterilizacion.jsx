@@ -1,4 +1,5 @@
 import React, { memo } from 'react'
+import { Tag, Trash2 } from 'lucide-react'
 
 export const TablaCargasEsterilizacion = memo(({ cargas, onSeleccionarImprimir, onEliminar }) => {
   if (cargas.length === 0) {
@@ -69,14 +70,14 @@ export const TablaCargasEsterilizacion = memo(({ cargas, onSeleccionarImprimir, 
                     className="p-1.5 bg-black text-white text-[10px] font-bold rounded-lg hover:bg-gray-800"
                     title="Imprimir Tique de Trazabilidad"
                   >
-                    🏷️ Tique
+                    <span className="inline-flex items-center gap-1"><Tag size={10} />Tique</span>
                   </button>
                   <button
                     onClick={() => onEliminar(c.id)}
                     className="p-1.5 text-red-500 hover:text-red-700 font-semibold rounded-lg hover:bg-red-50"
                     title="Eliminar ciclo"
                   >
-                    🗑️
+                    <Trash2 size={12} />
                   </button>
                 </td>
               </tr>

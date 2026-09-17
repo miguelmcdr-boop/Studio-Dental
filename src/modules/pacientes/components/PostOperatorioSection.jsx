@@ -1,4 +1,5 @@
 import React, { memo, useState } from 'react'
+import { Printer, MessageCircle } from 'lucide-react'
 import { INDICACIONES_POST_OPERATORIAS } from '../../../data/plantillas'
 
 export const PostOperatorioSection = memo(({ paciente, userProfile }) => {
@@ -47,10 +48,10 @@ export const PostOperatorioSection = memo(({ paciente, userProfile }) => {
 
         <div className="flex gap-3">
           <button onClick={() => window.print()} className="bg-black text-white font-bold px-4 py-2.5 rounded-xl hover:bg-gray-800">
-            🖨️ Imprimir Hoja de Cuidados (PDF)
+            <span className="inline-flex items-center gap-1"><Printer size={14} />Imprimir Hoja de Cuidados (PDF)</span>
           </button>
           <button onClick={enviarWhatsApp} className="bg-emerald-600 text-white font-bold px-4 py-2.5 rounded-xl hover:bg-emerald-700">
-            💬 Enviar por WhatsApp
+            <span className="inline-flex items-center gap-1"><MessageCircle size={14} />Enviar por WhatsApp</span>
           </button>
         </div>
       </div>

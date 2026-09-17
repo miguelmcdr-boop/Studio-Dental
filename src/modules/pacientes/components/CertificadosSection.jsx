@@ -1,4 +1,5 @@
 import React, { memo, useState, useCallback, useMemo, useEffect } from 'react'
+import { Trash2, Loader2, XCircle, Download, Printer, Lock } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { certificadosStorageService } from '../services/certificadosStorageService'
 import { imprimirCertificadoAislado } from '../services/certificadosPrintService'
@@ -99,9 +100,7 @@ export const CertificadosSection = memo(({
 
   const handleGenerarCertificado = (nuevoCertificado) => {
     const actualizados = [nuevoCertificado, ...listaCertificados]
-    // CRÍTICO: usar setCertsLocal (estado local) en lugar de setCertificados (padre)
-    // para evitar que el useEffect de sincronización sobrescriba con datos viejos
-    setCertsLocal(actualizados)
+    setCertsLocal(actualizados) // Usar estado local, no el del padre
     certificadosStorageService.guardarCertificados(paciente.id, actualizados).catch(err => log.warn("Error al guardar:", err))
     setCertSeleccionadoVer(nuevoCertificado)
   }
@@ -109,7 +108,7 @@ export const CertificadosSection = memo(({
   const handleEliminarCertificado = async (id) => {
     const ok = await confirm({
       title: 'Mover a papelera',
-      description: 'El certificado se moverá a la papelera. Podrás restaurarlo o eliminarlo definitivamente después (se conservará 730 días).',
+      description: 'El certificado se moverá a la papelera (se conservará 730 días).',
       variant: 'danger',
       confirmText: 'Mover a papelera'
     })
@@ -160,7 +159,7 @@ export const CertificadosSection = memo(({
           className="text-xs bg-gray-100 text-gray-700 border border-gray-300 px-3 py-1.5 rounded-lg hover:bg-gray-200 flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
           title={hayEliminados ? 'Abrir papelera' : 'No hay certificados en papelera'}
         >
-          🗑️ Papelera
+          <span className="flex items-center gap-1"><Trash2 size={12} />Papelera</span>
         </button>
       </div>
 
@@ -181,9 +180,9 @@ export const CertificadosSection = memo(({
                     {c.tipo === 'asistencia' ? 'Asistencia' : 'Reposo'}
                   </span>
                   <span>({c.fechaEmision}) — {c.diagnosticoMotivo}</span>
-                  {c.r2ArchivoId && <span className="ml-2" title="Respaldado en R2">🔒</span>}
-                  {respaldandoIds.has(c.id) && <span className="ml-2" title="Respaldando...">⏳</span>}
-                  {idsConError.has(c.id) && <span className="ml-2" title="Error al respaldar">❌</span>}
+                  {c.r2ArchivoId && <Lock className="ml-2 text-green-600" size={12} title="Respaldado en R2" />}
+                  {respaldandoIds.has(c.id) && <Loader2 className="ml-2 animate-spin" size={12} title="Respaldando..." />}
+                  {idsConError.has(c.id) && <XCircle className="ml-2 text-red-500" size={12} title="Error al respaldar" />}
                 </div>
                 <div className="flex items-center gap-2">
                   <button
@@ -196,7 +195,7 @@ export const CertificadosSection = memo(({
                     onClick={(e) => { e.stopPropagation(); handleEliminarCertificado(c.id); }}
                     className="text-red-400 hover:text-red-200 font-bold ml-2"
                   >
-                    🗑️
+                    <Trash2 size={12} />
                   </button>
                 </div>
               </div>
@@ -211,12 +210,12 @@ export const CertificadosSection = memo(({
             <div className="flex items-center gap-2">
               {estadoRespaldo === 'respaldado' && (
                 <span className="text-xs bg-green-100 text-green-800 border border-green-200 px-3 py-1 rounded-full font-semibold flex items-center gap-1">
-                  🔒 Respaldado en R2
+                  <span className="flex items-center gap-1"><Lock size={12} />Respaldado en R2</span>
                 </span>
               )}
               {estadoRespaldo === 'respaldando' && (
                 <span className="text-xs bg-amber-100 text-amber-800 border border-amber-200 px-3 py-1 rounded-full font-semibold flex items-center gap-1 animate-pulse">
-                  ⏳ Respaldando en R2...
+                  <Loader2 className="animate-spin" size={12} />Respaldando en R2...
                 </span>
               )}
               {estadoRespaldo === 'error' && (
@@ -224,7 +223,7 @@ export const CertificadosSection = memo(({
                   onClick={() => reintentarRespaldo(certAMostrar.id)}
                   className="text-xs bg-red-100 text-red-800 border border-red-200 px-3 py-1 rounded-full font-semibold flex items-center gap-1 hover:bg-red-200"
                 >
-                  ❌ Sin respaldo — Click para reintentar
+                  <XCircle size={12} />Sin respaldo — Click para reintentar
                 </button>
               )}
               {estadoRespaldo === 'pendiente' && (
@@ -239,13 +238,13 @@ export const CertificadosSection = memo(({
                 disabled={generandoPDF || estadoRespaldo === 'respaldando'}
                 className="bg-gray-100 text-gray-800 text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-gray-200 border border-gray-300 shadow-sm flex items-center gap-2 disabled:opacity-50"
               >
-                {generandoPDF ? '⏳ Generando PDF...' : '📥 Descargar PDF'}
+                {generandoPDF ? <><Loader2 className="animate-spin" size={14} />Generando PDF...</> : <><Download size={14} />Descargar PDF</>}
               </button>
               <button
                 onClick={imprimirCertificadoAislado}
                 className="bg-black text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-gray-800 shadow-sm flex items-center gap-2"
               >
-                🖨️ Imprimir Certificado Oficial (Letter)
+                <span className="flex items-center gap-1"><Printer size={14} />Imprimir Certificado Oficial (Letter)</span>
               </button>
             </div>
           </div>

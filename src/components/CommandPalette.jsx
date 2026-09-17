@@ -14,7 +14,7 @@
  */
 import React, { useEffect, useRef } from 'react'
 import { Icon } from './Icon'
-import { X } from 'lucide-react'
+import { X, Search, User, Calendar, DollarSign } from 'lucide-react'
 
 export const CommandPalette = ({
   isOpen,
@@ -83,7 +83,7 @@ export const CommandPalette = ({
       >
         {/* Input de búsqueda */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-graphite-200 dark:border-graphite-700">
-          <span className="text-graphite-400 dark:text-graphite-500 text-lg">🔍</span>
+          <Search size={20} className="text-graphite-400 dark:text-graphite-500" />
           <input
             ref={inputRef}
             type="text"
@@ -130,7 +130,7 @@ export const CommandPalette = ({
                         : 'hover:bg-graphite-50 dark:hover:bg-graphite-900'
                     }`}
                   >
-                    <span className="text-2xl">👤</span>
+                    <User size={24} className="text-graphite-600 dark:text-graphite-400" />
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-semibold text-graphite-900 dark:text-graphite-50 truncate">
                         {paciente.nombre}
@@ -196,7 +196,11 @@ export const CommandPalette = ({
                         : 'hover:bg-graphite-50 dark:hover:bg-graphite-900'
                     }`}
                   >
-                    <span className="text-2xl">{accion.icon}</span>
+                    {(() => {
+                      const IconMap = { Calendar, User, DollarSign }
+                      const IconComponent = IconMap[accion.icon] || Search
+                      return <IconComponent size={24} className="text-graphite-600 dark:text-graphite-400" />
+                    })()}
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-semibold text-graphite-900 dark:text-graphite-50 truncate">
                         {accion.label}

@@ -1,4 +1,5 @@
 import React, { memo } from 'react'
+import { Pencil, Trash2 } from 'lucide-react'
 import { formatearCLP } from '../../../utils/formatoMoneda'
 
 export const TablaArancelPrestaciones = memo(({ prestaciones, onEditar, onEliminar }) => {
@@ -56,14 +57,14 @@ export const TablaArancelPrestaciones = memo(({ prestaciones, onEditar, onElimin
                   className="p-1.5 text-gray-600 hover:text-black font-semibold rounded-lg hover:bg-gray-100"
                   title="Editar prestación"
                 >
-                  ✏️
+                  <Pencil size={12} />
                 </button>
                 <button
                   onClick={() => onEliminar(p.id)}
                   className="p-1.5 text-red-500 hover:text-red-700 font-semibold rounded-lg hover:bg-red-50"
                   title="Eliminar prestación"
                 >
-                  🗑️
+                  <Trash2 size={12} />
                 </button>
               </td>
             </tr>

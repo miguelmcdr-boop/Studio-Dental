@@ -108,7 +108,7 @@ export const usePrestaciones = (prestacionesProp, setPrestacionesProp) => {
       : parseFloat(String(nuevoPack.precioCombo).replace(/[^0-9]/g, '')) || 0
 
     const packId = nuevoPack.id || Date.now()
-    const nombreLimpio = nuevoPack.nombre.startsWith('🎁') ? nuevoPack.nombre : `🎁 ${nuevoPack.nombre}`
+    const nombreLimpio = nuevoPack.nombre
 
     const packNormalizado = {
       id: packId,

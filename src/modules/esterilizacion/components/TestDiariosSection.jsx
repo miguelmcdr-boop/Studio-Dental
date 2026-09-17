@@ -1,6 +1,6 @@
 import React, { memo, useState } from 'react'
 import { Icon } from '../../../components/Icon'
-import { Wrench } from 'lucide-react'
+import { Wrench, PenSquare } from 'lucide-react'
 import { EQUIPOS_AUTOCLAVE, RESULTADOS_BOWIE_DICK } from '../constants/esterilizacionConstants'
 import { useAppDialog } from '../../../hooks/useAppDialog'
 
@@ -97,7 +97,7 @@ export const TestDiariosSection = memo(({ testDiarios, alAgregarTest }) => {
           type="submit"
           className="bg-black text-white font-bold px-4 py-2.5 rounded-xl hover:bg-gray-800 transition-colors shadow-xs"
         >
-          📝 Guardar Test de Bowie-Dick
+          <span className="inline-flex items-center gap-1"><PenSquare size={14} />Guardar Test de Bowie-Dick</span>
         </button>
       </form>
 

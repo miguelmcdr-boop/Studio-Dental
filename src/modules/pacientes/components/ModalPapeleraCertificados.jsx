@@ -1,4 +1,5 @@
 import React, { memo } from 'react'
+import { Trash2 } from 'lucide-react'
 import { Modal } from '../../../components/ui/Modal'
 import { Button } from '../../../components/ui/Button'
 import { useAppDialog } from '../../../hooks/useAppDialog'
@@ -100,7 +101,7 @@ export const ModalPapeleraCertificados = memo(({
     <Modal
       isOpen={true}
       onClose={alCerrar}
-      title="🗑️ Papelera de Certificados"
+      title="Papelera de Certificados"
       size="lg"
     >
       <div className="space-y-3">
@@ -116,7 +117,7 @@ export const ModalPapeleraCertificados = memo(({
               size="sm"
               className="shrink-0"
             >
-              🗑️ Vaciar papelera
+              <span className="inline-flex items-center gap-1"><Trash2 size={12} />Vaciar papelera</span>
             </Button>
           )}
         </div>

@@ -1,4 +1,5 @@
 import React, { memo, useState } from 'react'
+import { Bell, MessageCircle } from 'lucide-react'
 import { generarLinkWhatsAppWeb } from '../utils/comunicacionesCalculations'
 
 export const RecallPacientesSection = memo(({ pacientes = [], alEnviarRecall }) => {
@@ -12,13 +13,13 @@ export const RecallPacientesSection = memo(({ pacientes = [], alEnviarRecall }) 
     <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-4 text-xs">
       <div className="flex justify-between items-center border-b pb-3 flex-wrap gap-2">
         <div>
-          <h3 className="font-bold text-sm text-gray-900 uppercase">🔔 Recall & Citación Preventiva de Pacientes (6 Meses)</h3>
+          <h3 className="font-bold text-sm text-gray-900 uppercase inline-flex items-center gap-2"><Bell size={16} />Recall & Citación Preventiva de Pacientes (6 Meses)</h3>
           <p className="text-gray-500 text-[11px]">Directorio de llamadas y citaciones para controles periódicos o limpiezas.</p>
         </div>
 
         <input
           type="text"
-          placeholder="🔍 Buscar paciente para recall..."
+          placeholder="Buscar paciente para recall..."
           value={busquedaRecall}
           onChange={(e) => setBusquedaRecall(e.target.value)}
           className="p-2 border rounded-xl bg-white w-64"
@@ -45,7 +46,7 @@ export const RecallPacientesSection = memo(({ pacientes = [], alEnviarRecall }) 
                     onClick={() => alEnviarRecall(p, mensajeRecall)}
                     className="bg-emerald-600 text-white px-3 py-1.5 rounded-xl font-bold text-[11px] hover:bg-emerald-700 transition-colors"
                   >
-                    💬 Enviar Recall WhatsApp
+                    <span className="inline-flex items-center gap-1"><MessageCircle size={12} />Enviar Recall WhatsApp</span>
                   </a>
                 )}
               </div>

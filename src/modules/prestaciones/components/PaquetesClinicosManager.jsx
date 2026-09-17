@@ -1,4 +1,5 @@
 import React, { memo, useState } from 'react'
+import { Pencil, Plus, Gift, Trash2 } from 'lucide-react'
 import { formatearCLP } from '../../../utils/formatoMoneda'
 import { useAppDialog } from '../../../hooks/useAppDialog'
 
@@ -56,7 +57,7 @@ export const PaquetesClinicosManager = memo(({ paquetes, alGuardarPaquete, alEli
       <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-3">
         <div className="flex justify-between items-center border-b pb-2">
           <h3 className="font-bold text-sm text-gray-900 uppercase">
-            {packEditar ? '✏️ Editar Pack / Promoción' : '➕ Crear Pack / Promoción'}
+            {packEditar ? <span className='inline-flex items-center gap-1'><Pencil size={12} />Editar Pack / Promoción</span> : <span className='inline-flex items-center gap-1'><Plus size={12} />Crear Pack / Promoción</span>}
           </h3>
           {packEditar && (
             <button
@@ -129,8 +130,8 @@ export const PaquetesClinicosManager = memo(({ paquetes, alGuardarPaquete, alEli
       </form>
 
       <div className="md:col-span-2 space-y-4">
-        <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider">
-          🎁 Packs y Promociones Activas ({paquetes.length})
+        <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider inline-flex items-center gap-2">
+          <Gift size={16} />Packs y Promociones Activas ({paquetes.length})
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -148,14 +149,14 @@ export const PaquetesClinicosManager = memo(({ paquetes, alGuardarPaquete, alEli
                         className="text-gray-600 font-bold hover:text-black p-1 hover:bg-gray-100 rounded"
                         title="Editar Pack"
                       >
-                        ✏️
+                        <Pencil size={12} />
                       </button>
                       <button
                         onClick={() => alEliminarPaquete(pk.id)}
                         className="text-red-500 font-bold hover:text-red-700 p-1 hover:bg-red-50 rounded"
                         title="Eliminar Pack"
                       >
-                        🗑️
+                        <Trash2 size={12} />
                       </button>
                     </div>
                   </div>

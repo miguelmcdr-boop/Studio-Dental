@@ -1,4 +1,5 @@
 import React, { memo } from 'react'
+import { Tag, Printer } from 'lucide-react'
 
 export const TicketTrazabilidad = memo(({ carga, alCerrar }) => {
   if (!carga) return null
@@ -6,13 +7,13 @@ export const TicketTrazabilidad = memo(({ carga, alCerrar }) => {
   return (
     <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 space-y-4 text-xs">
       <div className="flex justify-between items-center print:hidden border-b pb-3">
-        <h4 className="font-bold text-sm text-gray-900">🏷️ Tique de Trazabilidad Estéril (Etiqueta Carga)</h4>
+        <h4 className="font-bold text-sm text-gray-900 inline-flex items-center gap-2"><Tag size={16} />Tique de Trazabilidad Estéril (Etiqueta Carga)</h4>
         <div className="flex gap-2">
           <button
             onClick={() => window.print()}
             className="bg-black text-white px-3 py-1.5 rounded-xl font-bold hover:bg-gray-800"
           >
-            🖨️ Imprimir Etiqueta
+            <span className="inline-flex items-center gap-1"><Printer size={12} />Imprimir Etiqueta</span>
           </button>
           <button
             onClick={alCerrar}

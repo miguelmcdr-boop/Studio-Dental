@@ -1,4 +1,5 @@
 import React, { memo } from 'react'
+import { BookOpen, Printer } from 'lucide-react'
 
 export const LibroSeremiSection = memo(({ cargas, biologicos, userProfile }) => {
   const hoyStr = new Date().toLocaleDateString('es-CL')
@@ -7,7 +8,7 @@ export const LibroSeremiSection = memo(({ cargas, biologicos, userProfile }) => 
     <div className="space-y-4 text-xs">
       <div className="flex justify-between items-center print:hidden bg-gray-50 p-4 border rounded-2xl">
         <div>
-          <h3 className="font-bold text-sm text-gray-900">📖 Libro Oficial Folia de Esterilización SEREMI</h3>
+          <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2"><BookOpen size={16} />Libro Oficial Folia de Esterilización SEREMI</h3>
           <p className="text-gray-500 text-[11px]">Vista de reporte diario oficial para inspección y auditoría de bioseguridad.</p>
         </div>
 
@@ -15,7 +16,7 @@ export const LibroSeremiSection = memo(({ cargas, biologicos, userProfile }) => 
           onClick={() => window.print()}
           className="bg-black text-white px-4 py-2 rounded-xl font-bold hover:bg-gray-800 text-xs shadow-xs cursor-pointer"
         >
-          🖨️ Imprimir Reporte Diario SEREMI
+          <span className="flex items-center gap-1"><Printer size={14} />Imprimir Reporte Diario SEREMI</span>
         </button>
       </div>
 

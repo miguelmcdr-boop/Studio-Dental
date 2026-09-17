@@ -1,4 +1,5 @@
 import React, { memo, useState } from 'react'
+import { Pencil, Plus, ClipboardList, Trash2, MessageCircle, Mail } from 'lucide-react'
 import { Input } from '../../../components/ui/Input'
 import { Button } from '../../../components/ui/Button'
 import { CANALES_COMUNICACION } from '../constants/comunicacionesConstants'
@@ -65,7 +66,7 @@ export const PlantillasManager = memo(({ plantillas, alGuardarPlantilla, alElimi
       <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-3">
         <div className="flex justify-between items-center border-b pb-2">
           <h3 className="font-bold text-sm text-gray-900 uppercase">
-            {plantillaEditar ? '✏️ Editar Plantilla' : '➕ Crear Plantilla'}
+            {plantillaEditar ? <span className='inline-flex items-center gap-1'><Pencil size={12} />Editar Plantilla</span> : <span className='inline-flex items-center gap-1'><Plus size={12} />Crear Plantilla</span>}
           </h3>
           {plantillaEditar && (
             <Button type="button" onClick={handleCancelarEdicion} variant="ghost" size="sm">
@@ -77,7 +78,7 @@ export const PlantillasManager = memo(({ plantillas, alGuardarPlantilla, alElimi
         <Input
           label="Nombre Identificador"
           type="text"
-          placeholder="Ej: 📅 Confirmación de Cita"
+          placeholder="Ej: Confirmación de Cita"
           value={nombre}
           onChange={(e) => setNombre(e.target.value)}
         />
@@ -145,8 +146,8 @@ export const PlantillasManager = memo(({ plantillas, alGuardarPlantilla, alElimi
       </form>
 
       <div className="md:col-span-2 space-y-4">
-        <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider">
-          📋 Plantillas Registradas ({plantillas.length})
+        <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider inline-flex items-center gap-2">
+          <ClipboardList size={16} />Plantillas Registradas ({plantillas.length})
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -156,8 +157,8 @@ export const PlantillasManager = memo(({ plantillas, alGuardarPlantilla, alElimi
                 <div className="flex justify-between items-start border-b pb-2">
                   <h4 className="font-black text-sm text-gray-900">{pl.nombre}</h4>
                   <div className="flex gap-1">
-                    <Button onClick={() => handleAbrirEditar(pl)} variant="ghost" size="sm" className="p-1" aria-label="Editar plantilla">✏️</Button>
-                    <Button onClick={() => alEliminarPlantilla(pl.id)} variant="danger" size="sm" className="p-1" aria-label="Eliminar plantilla">🗑️</Button>
+                    <Button onClick={() => handleAbrirEditar(pl)} variant="ghost" size="sm" className="p-1" aria-label="Editar plantilla"><Pencil size={12} /></Button>
+                    <Button onClick={() => alEliminarPlantilla(pl.id)} variant="danger" size="sm" className="p-1" aria-label="Eliminar plantilla"><Trash2 size={12} /></Button>
                   </div>
                 </div>
                 <p className="text-gray-600 mt-2 font-mono text-[10px] leading-relaxed">{pl.cuerpo}</p>
@@ -165,7 +166,7 @@ export const PlantillasManager = memo(({ plantillas, alGuardarPlantilla, alElimi
 
               <div className="pt-2 border-t text-right">
                 <span className="bg-gray-100 text-gray-800 px-2 py-0.5 rounded font-bold text-[10px]">
-                  {pl.canal === 'whatsapp' ? '💬 WhatsApp' : '✉️ Email'}
+                  {pl.canal === 'whatsapp' ? <span className='inline-flex items-center gap-1'><MessageCircle size={10} />WhatsApp</span> : <span className='inline-flex items-center gap-1'><Mail size={10} />Email</span>}
                 </span>
               </div>
             </div>
