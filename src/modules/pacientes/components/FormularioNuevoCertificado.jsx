@@ -1,4 +1,5 @@
 import React, { memo, useState } from 'react'
+import { ClipboardList, FileText } from 'lucide-react'
 import { Bed } from 'lucide-react'
 import { Input } from '../../../components/ui/Input'
 import { Button } from '../../../components/ui/Button'
@@ -70,7 +71,7 @@ export const FormularioNuevoCertificado = memo(({ userProfile, onGenerarCertific
             onChange={() => setTipoCertificado('asistencia')}
             className="accent-black"
           />
-          <span className="font-bold">📋 Certificado de Asistencia</span>
+          <span className="font-bold inline-flex items-center gap-1"><ClipboardList size={12} />Certificado de Asistencia</span>
           <Input
             type="radio"
             name="tipoCert"
@@ -149,7 +150,7 @@ export const FormularioNuevoCertificado = memo(({ userProfile, onGenerarCertific
 
         <div className="flex justify-end">
           <Button type="submit" variant="primary">
-            📄 Generar y Guardar Certificado
+            <span className="inline-flex items-center gap-1"><FileText size={14} />Generar y Guardar Certificado</span>
           </Button>
         </div>
       </form>

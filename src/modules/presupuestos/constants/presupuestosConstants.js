@@ -5,9 +5,9 @@
 export const ESTADOS_PRESUPUESTO = [
   { id: 'Borrador', nombre: '📝 Borrador', colorBg: 'bg-gray-100', colorText: 'text-gray-800', colorBorder: 'border-gray-300' },
   { id: 'Emitido', nombre: '📤 Emitido / Entregado', colorBg: 'bg-blue-50', colorText: 'text-blue-800', colorBorder: 'border-blue-300' },
-  { id: 'Aprobado', nombre: '🟢 Aprobado por Paciente', colorBg: 'bg-emerald-50', colorText: 'text-emerald-800', colorBorder: 'border-emerald-300' },
-  { id: 'EnTratamiento', nombre: '🦷 En Tratamiento', colorBg: 'bg-purple-50', colorText: 'text-purple-800', colorBorder: 'border-purple-300' },
-  { id: 'Rechazado', nombre: '🔴 Rechazado / Vencido', colorBg: 'bg-red-50', colorText: 'text-red-800', colorBorder: 'border-red-300' }
+  { id: 'Aprobado', nombre: 'Aprobado por Paciente', colorBg: 'bg-emerald-50', colorText: 'text-emerald-800', colorBorder: 'border-emerald-300' },
+  { id: 'EnTratamiento', nombre: 'En Tratamiento', colorBg: 'bg-purple-50', colorText: 'text-purple-800', colorBorder: 'border-purple-300' },
+  { id: 'Rechazado', nombre: 'Rechazado / Vencido', colorBg: 'bg-red-50', colorText: 'text-red-800', colorBorder: 'border-red-300' }
 ]
 
 export const OPCIONES_CUOTAS = [

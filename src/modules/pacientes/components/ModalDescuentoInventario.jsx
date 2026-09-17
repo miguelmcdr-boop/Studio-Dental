@@ -1,4 +1,5 @@
 import React, { memo, useState } from 'react'
+import { AlertTriangle } from 'lucide-react'
 import { Modal } from '../../../components/ui/Modal'
 import { Button } from '../../../components/ui/Button'
 
@@ -54,7 +55,7 @@ export const ModalDescuentoInventario = memo(({
         {materialesDisponibles.length === 0 ? (
           <div className="text-center py-8 bg-amber-50 rounded-xl border border-amber-200">
             <p className="text-amber-900 font-semibold">
-              ⚠️ No hay materiales configurados para la categoría "{categoria}".
+              <span className="inline-flex items-center gap-1"><AlertTriangle size={14} />No hay materiales configurados para la categoría "{categoria}".</span>
             </p>
             <p className="text-amber-700 mt-2">
               Puedes configurar las asociaciones en el módulo Inventario → "Configurar Asociaciones Tratamiento-Material".

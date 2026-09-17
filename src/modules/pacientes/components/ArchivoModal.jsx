@@ -10,6 +10,7 @@
  */
 import React, { memo } from 'react'
 import { Modal } from '../../../components/ui/Modal'
+import { FileText } from 'lucide-react'
 
 export const ArchivoModal = memo(({
   abierto,
@@ -51,7 +52,7 @@ export const ArchivoModal = memo(({
 
         {!esImagen && !esPDF && (
           <div className="text-center text-gray-300 dark:text-graphite-400 p-8">
-            <p className="text-5xl mb-4">📄</p>
+            <FileText size={48} className="mx-auto mb-4 text-graphite-400" />
             <p className="text-sm">
               Vista previa no disponible para este tipo de archivo.
               <br />

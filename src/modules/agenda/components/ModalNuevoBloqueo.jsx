@@ -24,9 +24,9 @@ import { detectarConflictoBloqueo } from '../utils/agendaConflictos'
 
 const MOTIVOS_BLOQUEO = [
   { value: '🍱 Horario de Almuerzo', label: 'Horario de Almuerzo', icon: Utensils },
-  { value: '🛠️ Mantenimiento Técnico', label: 'Mantenimiento Técnico de Box', icon: Wrench },
+  { value: 'Mantenimiento Técnico', label: 'Mantenimiento Técnico de Box', icon: Wrench },
   { value: '🎓 Capacitación / Evento', label: 'Capacitación / Evento Clínico', icon: GraduationCap },
-  { value: '🚨 Ausencia / Urgencia', label: 'Ausencia del Profesional', icon: AlertTriangle },
+  { value: 'Ausencia / Urgencia', label: 'Ausencia del Profesional', icon: AlertTriangle },
 ]
 
 export const ModalNuevoBloqueo = memo(({ fechaPredeterminada, alGuardar, alCerrar, citasExistentes = [] }) => {

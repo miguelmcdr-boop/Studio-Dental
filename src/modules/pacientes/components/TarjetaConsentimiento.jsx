@@ -1,4 +1,5 @@
 import React, { memo } from 'react'
+import { Printer, Trash2 } from 'lucide-react'
 import { Button } from '../../../components/ui/Button'
 import { useAppDialog } from '../../../hooks/useAppDialog'
 
@@ -84,7 +85,7 @@ export const TarjetaConsentimiento = memo(({
           size="xs"
           title="Imprimir consentimiento en formato Letter"
         >
-          🖨️ Imprimir
+          <span className="inline-flex items-center gap-1"><Printer size={12} />Imprimir</span>
         </Button>
         <Button
           onClick={handleEliminar}
@@ -93,7 +94,7 @@ export const TarjetaConsentimiento = memo(({
           size="xs"
           title="Mover a papelera"
         >
-          🗑️ Eliminar
+          <span className="inline-flex items-center gap-1"><Trash2 size={12} />Eliminar</span>
         </Button>
       </div>
     </div>

@@ -71,7 +71,7 @@ export const ModalEditarUrgencia = ({ farmaco, onGuardar, onClose, guardando }) 
     <Modal
       isOpen={true}
       onClose={onClose}
-      title={esEdicion ? `🚨 Editar Fármaco de Urgencia #${form.numero}` : '🚨 Nuevo Fármaco de Urgencia'}
+      title={esEdicion ? `Editar Fármaco de Urgencia #${form.numero}` : 'Nuevo Fármaco de Urgencia'}
       size="lg"
       closeOnOverlayClick={!guardando}
       closeOnEscape={!guardando}

@@ -5,7 +5,7 @@
 export const ETAPAS_LABORATORIO = [
   { id: 'Enviado', nombre: '📤 Enviado al Lab', colorBg: 'bg-blue-50', colorText: 'text-blue-800', colorBorder: 'border-blue-300' },
   { id: 'PruebaMetal', nombre: '⚙️ Prueba de Metal / Estructura', colorBg: 'bg-purple-50', colorText: 'text-purple-800', colorBorder: 'border-purple-300' },
-  { id: 'PruebaBizcocho', nombre: '🦷 Prueba de Bizcocho / Color', colorBg: 'bg-amber-50', colorText: 'text-amber-800', colorBorder: 'border-amber-300' },
+  { id: 'PruebaBizcocho', nombre: 'Prueba de Bizcocho / Color', colorBg: 'bg-amber-50', colorText: 'text-amber-800', colorBorder: 'border-amber-300' },
   { id: 'RecibidoListo', nombre: '📦 Recibido / Listo en Clínica', colorBg: 'bg-emerald-50', colorText: 'text-emerald-800', colorBorder: 'border-emerald-300' },
   { id: 'Instalado', nombre: '✅ Instalado al Paciente', colorBg: 'bg-gray-100', colorText: 'text-gray-800', colorBorder: 'border-gray-300' },
   { id: 'Repeticion', nombre: '🔄 Repetición / Ajuste Garantía', colorBg: 'bg-red-50', colorText: 'text-red-800', colorBorder: 'border-red-300' }

@@ -3,7 +3,7 @@
  */
 
 export const TIPOS_DOCUMENTO_TRIBUTARIO = [
-  { id: 'boleta_honorarios', nombre: '🧾 Boleta de Honorarios Electrónica (SII)', retencionPct: 13.75 },
+  { id: 'boleta_honorarios', nombre: 'Boleta de Honorarios Electrónica (SII)', retencionPct: 13.75 },
   { id: 'boleta_exenta', nombre: '📄 Boleta Electrónica Exenta (SII)', retencionPct: 0 },
   { id: 'bono_imed', nombre: '🏥 Bono I-Med / Fonasa / Isapre', retencionPct: 0 },
   { id: 'recibo_interno', nombre: '📝 Recibo de Dinero Interno (Sin DTE)', retencionPct: 0 }

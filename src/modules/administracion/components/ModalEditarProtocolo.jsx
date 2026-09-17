@@ -85,7 +85,7 @@ export const ModalEditarProtocolo = ({ tipo, protocolo, onGuardar, onClose, guar
 
   const titulo = esProfilaxis
     ? (esEdicion ? '💉 Editar Protocolo de Profilaxis' : '💉 Nuevo Protocolo de Profilaxis')
-    : (esEdicion ? '🩸 Editar Manejo de Anticoagulante' : '🩸 Nuevo Manejo de Anticoagulante')
+    : (esEdicion ? 'Editar Manejo de Anticoagulante' : 'Nuevo Manejo de Anticoagulante')
 
   return (
     <Modal

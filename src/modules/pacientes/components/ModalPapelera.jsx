@@ -4,6 +4,7 @@ import { Modal } from '../../../components/ui/Modal'
 import { Input } from '../../../components/ui/Input'
 import { Button } from '../../../components/ui/Button'
 import { useAppDialog } from '../../../hooks/useAppDialog'
+import { Trash2, Recycle } from 'lucide-react'
 
 /**
  * Modal de papelera de reciclaje (F6-L).
@@ -84,7 +85,7 @@ export const ModalPapelera = ({
       {/* Header custom: preserva el botón ✕ visible para el test */}
       <div className="flex justify-between items-center mb-4 border-b dark:border-graphite-700 pb-3">
         <div>
-          <h3 className="text-lg font-bold text-graphite-900 dark:text-graphite-50">🗑️ Papelera de Reciclaje</h3>
+          <h3 className="text-lg font-bold text-graphite-900 dark:text-graphite-50"><span className="inline-flex items-center gap-1"><Trash2 size={16} />Papelera de Reciclaje</span></h3>
           <p className="text-xs text-graphite-500 dark:text-graphite-400 mt-1">{conteoTexto}</p>
         </div>
         <button
@@ -113,7 +114,7 @@ export const ModalPapelera = ({
           </div>
         ) : pacientesFiltrados.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-6xl mb-4">🗑️</p>
+            <Trash2 size={48} className="mx-auto mb-4 text-graphite-300" />
             <p className="text-graphite-500 dark:text-graphite-400 text-sm">
               {busqueda
                 ? 'No se encontraron pacientes que coincidan con la búsqueda'
@@ -150,7 +151,7 @@ export const ModalPapelera = ({
                   disabled={restaurandoId === paciente.id}
                   className="px-4 py-2 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
                 >
-                  {restaurandoId === paciente.id ? 'Restaurando...' : '♻️ Restaurar'}
+                  {restaurandoId === paciente.id ? 'Restaurando...' : 'Restaurar'}
                 </button>
               </div>
             </div>

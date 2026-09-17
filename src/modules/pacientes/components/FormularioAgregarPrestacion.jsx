@@ -7,6 +7,7 @@ import React, { memo } from 'react'
 import { formatearCLP } from '../../../utils/formatoMoneda'
 import { Input } from '../../../components/ui/Input'
 import { Button } from '../../../components/ui/Button'
+import { Tag } from 'lucide-react'
 
 export const FormularioAgregarPrestacion = memo(({
   arancelActualizado,
@@ -102,7 +103,7 @@ export const FormularioAgregarPrestacion = memo(({
 
       {precioBaseOriginal > 0 && porcentajeDescuentoAplicado > 0 && (
         <div className="text-[11px] bg-emerald-50 dark:bg-emerald-900/20 text-emerald-800 dark:text-emerald-200 p-2 rounded-lg border border-emerald-200 dark:border-emerald-800 flex justify-between items-center">
-          <span>🏷️ Descuento aplicado por Convenio (<strong>{convenioAplicado}</strong>): -{porcentajeDescuentoAplicado}%</span>
+          <span><Tag size={12} className="inline" />Descuento aplicado por Convenio (<strong>{convenioAplicado}</strong>): -{porcentajeDescuentoAplicado}%</span>
           <span>Precio Base: <del>{formatearCLP(precioBaseOriginal)}</del> → Precio Final: <strong>{formatearCLP(valorPrestacion)}</strong></span>
         </div>
       )}

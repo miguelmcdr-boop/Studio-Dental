@@ -6,6 +6,7 @@ import React, { memo } from 'react'
 import { formatearCLP } from '../../../utils/formatoMoneda'
 import { Input } from '../../../components/ui/Input'
 import { Button } from '../../../components/ui/Button'
+import { Trash2 } from 'lucide-react'
 
 export const FormularioRegistrarAbono = memo(({
   abonos,
@@ -70,7 +71,7 @@ export const FormularioRegistrarAbono = memo(({
                   className="ml-2 p-1"
                   aria-label="Eliminar abono"
                 >
-                  🗑️ Borrar
+                  <span className="inline-flex items-center gap-1"><Trash2 size={12} />Borrar</span>
                 </Button>
               </div>
             ))}

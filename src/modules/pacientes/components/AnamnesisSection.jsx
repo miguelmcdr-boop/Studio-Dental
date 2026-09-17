@@ -1,5 +1,5 @@
 import React, { memo } from 'react'
-import { ClipboardList, Mic, Square } from 'lucide-react'
+import { ClipboardList, Mic, Square, AlertTriangle } from 'lucide-react'
 import { Input } from '../../../components/ui/Input'
 import { Button } from '../../../components/ui/Button'
 import { useDictadoVoz } from '../hooks/useDictadoVoz'

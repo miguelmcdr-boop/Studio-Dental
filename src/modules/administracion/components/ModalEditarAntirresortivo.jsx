@@ -7,6 +7,7 @@ import { Modal } from '../../../components/ui/Modal'
 import { Button } from '../../../components/ui/Button'
 import { CamposFormularioAntirresortivo } from './CamposFormularioAntirresortivo'
 import { validarAntirresortivo, FAMILIAS_ANTIRRESORTIVOS, NIVELES_RIESGO_MRONG } from '../schemas/vademecumSchema'
+import { Bone } from 'lucide-react'
 
 const VALOR_INICIAL = {
   numero: '',
@@ -69,7 +70,7 @@ export const ModalEditarAntirresortivo = ({ farmaco, onGuardar, onClose, guardan
     <Modal
       isOpen={true}
       onClose={onClose}
-      title={esEdicion ? `🦴 Editar Antirresortivo #${form.numero}` : '🦴 Nuevo Antirresortivo (MRONJ)'}
+      title={esEdicion ? `Editar Antirresortivo #${form.numero}` : 'Nuevo Antirresortivo (MRONJ)'}
       size="lg"
       closeOnOverlayClick={!guardando}
       closeOnEscape={!guardando}
@@ -90,7 +91,7 @@ export const ModalEditarAntirresortivo = ({ farmaco, onGuardar, onClose, guardan
           />
 
           <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-3 text-sm text-purple-800 dark:text-purple-200">
-            🦴 <strong>Relevancia clínica:</strong> Identificar estos fármacos en la anamnesis es crítico antes de exodoncias, cirugía periodontal o implantes para prevenir MRONJ (osteonecrosis maxilar relacionada a fármacos).
+            <Bone size={14} className='inline' /> <strong>Relevancia clínica:</strong> Identificar estos fármacos en la anamnesis es crítico antes de exodoncias, cirugía periodontal o implantes para prevenir MRONJ (osteonecrosis maxilar relacionada a fármacos).
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t">

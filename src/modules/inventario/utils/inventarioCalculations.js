@@ -7,12 +7,12 @@ export const evaluarEstadoStock = (item) => {
   const minimo = parseFloat(item.minimoCritico ?? item.stockMinimo) || 0
 
   if (cantidad === 0) {
-    return { id: 'agotado', texto: '🔴 Agotado', colorBg: 'bg-red-100', colorText: 'text-red-900' }
+    return { id: 'agotado', texto: 'Agotado', colorBg: 'bg-red-100', colorText: 'text-red-900' }
   }
   if (cantidad <= minimo) {
-    return { id: 'critico', texto: '⚠️ Stock Crítico', colorBg: 'bg-amber-100', colorText: 'text-amber-900' }
+    return { id: 'critico', texto: 'Stock Crítico', colorBg: 'bg-amber-100', colorText: 'text-amber-900' }
   }
-  return { id: 'normal', texto: '🟢 Normal', colorBg: 'bg-emerald-100', colorText: 'text-emerald-900' }
+  return { id: 'normal', texto: 'Normal', colorBg: 'bg-emerald-100', colorText: 'text-emerald-900' }
 }
 
 export const evaluarVencimiento = (fechaVencimiento) => {
@@ -27,7 +27,7 @@ export const evaluarVencimiento = (fechaVencimiento) => {
     return { diasRestantes, estado: 'vencido', texto: '❌ Vencido' }
   }
   if (diasRestantes <= 30) {
-    return { diasRestantes, estado: 'por_vencer', texto: `⚠️ Vence en ${diasRestantes} días` }
+    return { diasRestantes, estado: 'por_vencer', texto: `Vence en ${diasRestantes} días` }
   }
   return { diasRestantes, estado: 'ok', texto: 'Vigente' }
 }

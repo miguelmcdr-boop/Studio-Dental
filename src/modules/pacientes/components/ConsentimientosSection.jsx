@@ -1,4 +1,5 @@
 import React, { memo, useState } from 'react'
+import { FileText, PenLine, Loader2, Lock } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { FirmaDigitalCanvas } from '../../../components/FirmaDigitalCanvas'
 import { ConsentimientoImprimible } from './ConsentimientoImprimible'
@@ -153,7 +154,7 @@ export const ConsentimientosSection = memo(({ paciente, userProfile }) => {
     <div className="space-y-6 text-xs">
       <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5 space-y-4 print:hidden">
         <h4 className="font-bold text-xs text-gray-800 uppercase tracking-wider">
-          📄 Emitir Consentimiento Informado con Firma Digital en Pantalla
+          <span className="inline-flex items-center gap-1"><FileText size={14} />Emitir Consentimiento Informado con Firma Digital en Pantalla</span>
         </h4>
 
         <div>
@@ -175,7 +176,7 @@ export const ConsentimientosSection = memo(({ paciente, userProfile }) => {
         </div>
 
         <div>
-          <label className="block font-bold text-gray-800 mb-2">✍️ Firma Táctil / Digital del Paciente:</label>
+          <label className="block font-bold text-gray-800 mb-2"><span className="inline-flex items-center gap-1"><PenLine size={12} />Firma Táctil / Digital del Paciente:</span></label>
           <FirmaDigitalCanvas alGuardarFirma={setFirmaBase64} resetSignal={firmaResetCounter} />
         </div>
 
@@ -185,7 +186,7 @@ export const ConsentimientosSection = memo(({ paciente, userProfile }) => {
             disabled={generandoPDF}
             className="bg-black text-white font-bold px-5 py-2.5 rounded-xl hover:bg-gray-800 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {generandoPDF ? '⏳ Generando PDF...' : '🔒 Registrar Consentimiento Inmutable'}
+            {generandoPDF ? <span className='inline-flex items-center gap-1'><Loader2 size={14} className='animate-spin' />Generando PDF...</span> : <span className='inline-flex items-center gap-1'><Lock size={14} />Registrar Consentimiento Inmutable</span>}
           </button>
         </div>
       </div>

@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import { MARCAS_IMPLANTES, TIPOS_PLATAFORMA, CONEXIONES_DIAMETRO } from '../constants/quirurgicoConstants'
 import { Icon } from '../../../components/Icon'
 import { Tooth } from '../../../components/icons/Tooth'
+import { Trash2 } from 'lucide-react'
 
 export const FichaImplante = ({ implantes = [], onAgregarImplante, onEliminarImplante }) => {
   const [form, setForm] = useState({

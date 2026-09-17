@@ -1,4 +1,5 @@
 import React, { memo, useState } from 'react'
+import { Square, Mic, Calendar, Trash2 } from 'lucide-react'
 // F6-D-5: usar evolucionesStorageService en lugar de pacientesStorageService.guardarItem
 import { evolucionesStorageService } from '../services/evolucionesStorageService'
 import { useDictadoVoz } from '../hooks/useDictadoVoz'
@@ -79,7 +80,7 @@ export const BitacoraSection = memo(({ pacienteId, evolucionesNotas = [], setEvo
                 : 'bg-gray-100 text-gray-800 hover:bg-gray-200 border'
             }`}
           >
-            {escuchando ? '🔴 Escuchando... (Clic para detener)' : '🎙️ Dictado Hands-Free'}
+            {escuchando ? <span className='inline-flex items-center gap-1'><Square size={12} className='fill-red-500' />Escuchando... (Clic para detener)</span> : <span className='inline-flex items-center gap-1'><Mic size={12} />Dictado Hands-Free</span>}
           </button>
         )}
       </div>
@@ -87,7 +88,7 @@ export const BitacoraSection = memo(({ pacienteId, evolucionesNotas = [], setEvo
       {escuchando && (
         <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs space-y-2">
           <div className="flex justify-between items-center">
-            <span className="font-bold text-red-900">🎙️ Transcripción por Voz en Tiempo Real:</span>
+            <span className="font-bold text-red-900"><span className="inline-flex items-center gap-1"><Mic size={12} />Transcripción por Voz en Tiempo Real:</span></span>
             <button
               onClick={handleAplicarDictadoAForm}
               className="bg-red-700 text-white font-bold px-3 py-1 rounded-lg text-[10px]"
@@ -139,8 +140,8 @@ export const BitacoraSection = memo(({ pacienteId, evolucionesNotas = [], setEvo
           evolucionesNotas.map(nota => (
             <div key={nota.id} className="p-4 bg-gray-50 rounded-xl border border-gray-200 text-xs space-y-1">
               <div className="flex justify-between items-center text-[10px] text-gray-500 font-bold border-b pb-1">
-                <span>🗓️ {nota.fecha}</span>
-                <button onClick={() => handleEliminarNota(nota.id)} className="text-red-500 hover:text-red-700 cursor-pointer" aria-label="Eliminar nota">🗑️ Borrar</button>
+                <span className="inline-flex items-center gap-1"><Calendar size={10} />{nota.fecha}</span>
+                <button onClick={() => handleEliminarNota(nota.id)} className="text-red-500 hover:text-red-700 cursor-pointer" aria-label="Eliminar nota"><span className="inline-flex items-center gap-1"><Trash2 size={12} />Borrar</span></button>
               </div>
               <p className="text-gray-800 font-medium pt-1 whitespace-pre-wrap">{nota.texto}</p>
             </div>
