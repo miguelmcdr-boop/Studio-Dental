@@ -99,7 +99,12 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "User not associated with any clínica" }, 403);
     }
 
-    const clinicaId = clinicaResult[0].clinica_id;
+    // F7-34: Obtener clinica activa del user_metadata del JWT (establecida por setClinicaActiva)
+    const clinicaId = userData.user_metadata?.clinica_id;
+    
+    if (!clinicaId) {
+      return jsonResponse({ error: "No hay clinica activa. Seleccione una clinica." }, 403);
+    }
 
     // 4. Consultar archivos eliminados de la clínica del usuario
     let queryUrl = `${supabaseUrl}/rest/v1/archivos_clinicos?clinica_id=eq.${clinicaId}&estado=eq.eliminado&select=id,nombre_archivo,mime_type,tamano_bytes,categoria,deleted_at,uploaded_by,paciente_id&order=deleted_at.desc`;
@@ -132,7 +137,7 @@ Deno.serve(async (req) => {
       {
         error: "Internal server error",
         message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
+        // F7-34: Stack traces removidos de respuesta HTTP (solo logs internos)
       },
       500
     );

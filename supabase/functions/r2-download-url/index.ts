@@ -143,8 +143,28 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "User not associated with any clínica" }, 403);
     }
 
-    const clinicaId = clinicaResult[0].clinica_id;
-    const userRol = clinicaResult[0].rol;
+    // F7-34: Obtener clinica activa del user_metadata del JWT (establecida por setClinicaActiva)
+    const clinicaId = userData.user_metadata?.clinica_id;
+    
+    if (!clinicaId) {
+      return jsonResponse({ error: "No hay clinica activa. Seleccione una clinica." }, 403);
+    }
+    // F7-34: Validar membresia activa en la clinica activa
+    const membresiaResult = await fetch(
+      `${supabaseUrl}/rest/v1/miembros_clinica?user_id=eq.${userId}&clinica_id=eq.${clinicaId}&activo=eq.true&select=rol`,
+      {
+        headers: {
+          Authorization: `Bearer ${supabaseServiceKey}`,
+          apikey: supabaseServiceKey,
+        },
+      }
+    ).then((res) => res.json());
+    
+    if (!membresiaResult || membresiaResult.length === 0) {
+      return jsonResponse({ error: "Sin membresia activa en la clinica seleccionada" }, 403);
+    }
+    
+    const userRol = membresiaResult[0].rol;
 
     // 5. Validar rol del usuario (admin/dentista/asistente/recepcion pueden descargar)
     const allowedRoles = ["admin", "dentista", "asistente", "recepcion"];
@@ -188,9 +208,9 @@ Deno.serve(async (req) => {
         p_archivo_id: archivo_id,
         p_evento: "FILE_DOWNLOAD",
         p_detalle: {
-          nombre_archivo: archivo.nombre_archivo,
+          // F7-34: nombre_archivo removido (PHI potencial)
           mime_type: archivo.mime_type,
-          r2_object_key: r2ObjectKey,
+          // F7-34: r2_object_key removido (contiene clinica_id/paciente_id)
         },
       }),
     });
@@ -244,8 +264,8 @@ Deno.serve(async (req) => {
     // 9. Retornar respuesta
     return jsonResponse({
       archivo_id: archivo_id,
-      r2_object_key: r2ObjectKey,
-      nombre_archivo: archivo.nombre_archivo,
+      // F7-34: r2_object_key removido (contiene clinica_id/paciente_id)
+      // F7-34: nombre_archivo removido (PHI potencial)
       mime_type: archivo.mime_type,
       download_url: downloadUrl,
       download_headers: {
@@ -260,7 +280,7 @@ Deno.serve(async (req) => {
       {
         error: "Internal server error",
         message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
+        // F7-34: Stack traces removidos de respuesta HTTP (solo logs internos)
       },
       500
     );

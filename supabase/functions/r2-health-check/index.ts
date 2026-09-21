@@ -214,7 +214,7 @@ Deno.serve(async (req) => {
       {
         status: "error",
         error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
+        // F7-34: Stack traces removidos de respuesta HTTP (solo logs internos)
         hint: "Error interno de la Edge Function",
       },
       500
