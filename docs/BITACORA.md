@@ -5939,3 +5939,63 @@ Antes de marcar F7-34 como completamente verificada, se debe:
 **Aclaración importante:** La funcionalidad offline real (PWA + cache + sync) NO se ve afectada. El modo local PBKDF2 era un fallback de desarrollo que NO ofrecía offline real (sin sincronización, sin colaboración, sin backup).
 
 **Próximo paso:** Merge a main y continuar con F7-14 (Security headers CSP/HSTS).
+
+## 2026-09-22 - F7-14: Security headers HTTP - DONE (implementación conservadora)
+
+**Estado:** COMPLETADO. Rama feat/F7-14-security-headers lista para merge.
+
+**Contexto:** Auditoría reveló que vercel.json ya tenía 3 headers de seguridad (X-Content-Type-Options, X-Frame-Options, Referrer-Policy) pero faltaban 3 importantes. Se optó por implementación conservadora (Opción A) que agrega solo los headers de bajo riesgo, posponiendo CSP para F7-30.
+
+**Decisión de alcance:**
+- **Implementados ahora (6 headers):** X-Content-Type-Options, X-Frame-Options, Referrer-Policy, HSTS, Permissions-Policy, X-XSS-Protection
+- **Pospuesto a F7-30:** Content-Security-Policy (requiere validación en staging con datos reales)
+
+**Cambios aplicados:**
+
+1. **vercel.json (bloque de headers para /.*)**:
+   - **Preexistentes (preservados):**
+     - X-Content-Type-Options: nosniff
+     - X-Frame-Options: DENY
+     - Referrer-Policy: strict-origin-when-cross-origin
+   - **Agregados (F7-14):**
+     - Strict-Transport-Security: max-age=31536000; includeSubDomains (HSTS, 1 año, aplica a subdominios)
+     - Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=() (bloquea APIs sensibles)
+     - X-XSS-Protection: 0 (desactiva protección obsoleta, CSP es mejor)
+
+2. **index.html (meta tags de fallback para dev server):**
+   - meta http-equiv="X-Content-Type-Options" content="nosniff"
+   - meta name="referrer" content="strict-origin-when-cross-origin"
+   - **Bug corregido:** lang="en" → lang="es" (app en español)
+   - Nota: HSTS, X-Frame-Options y Permissions-Policy solo funcionan como headers HTTP reales (no como meta tags)
+
+**Justificación de cada header:**
+
+1. **HSTS (Strict-Transport-Security):** Fuerza HTTPS por 1 año, evita downgrade attacks y SSL stripping. includeSubDomains protege todos los subdominios. NO se incluyó preload porque requiere registro público y es difícil de revertir.
+
+2. **Permissions-Policy:** Bloquea cámara, micrófono, geolocalización y payment APIs por defecto. Si en el futuro se necesita alguna (ej: foto intraoral desde cámara web), se ajusta el header.
+
+3. **X-XSS-Protection: 0:** Desactiva el filtro XSS obsoleto de navegadores antiguos. La protección moderna es CSP (pospuesto a F7-30).
+
+**CSP pospuesto a F7-30 - Justificación:**
+- CSP mal configurado puede romper thumbnails de R2, PDFs embebidos, Supabase Realtime
+- Requiere validación en staging con datos reales y usuarios reales
+- F7-18 confirmó que React protege automáticamente contra XSS en la UI
+- F7-30 (Release Candidate) es el momento natural para validación exhaustiva
+
+**Validaciones:**
+- Tests: 1473/1473 passing
+- Build: OK (PWA 43 entries, 3406.17 KiB)
+- Lint: 0 errors (121 warnings preexistentes)
+- Validador arquitectónico: OK (no aplica a vercel.json/index.html)
+
+**Relación con otras tareas:**
+- F7-18 (XSS audit): CSP complementa la protección automática de React
+- F7-30 (Release Candidate): CSP se implementará en modo blocking después de validación en staging
+- F7-34 (Edge Functions): Headers HTTP complementan hardening de backend
+
+**Riesgo mitigado:**
+- HSTS: Evita downgrade attacks (usuario forzado a HTTP)
+- Permissions-Policy: Previene acceso no autorizado a APIs sensibles
+- X-XSS-Protection: 0: Evita comportamiento inconsistente en navegadores antiguos
+
+**Próximo paso:** Merge a main y continuar con F7-12 (Validador arquitectónico a src/services/).
