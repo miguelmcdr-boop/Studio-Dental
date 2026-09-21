@@ -156,11 +156,11 @@ Deno.serve(async (req) => {
       nombre_archivo
     );
     if (!validacionFormato.valido) {
-      console.log(`[F7-22b] Formato rechazado: ${validacionFormato.error}`, {
+      // F7-34: Log sanitizado (sin PHI)
+      console.log('[F7-22b] Formato rechazado', {
         categoria,
         mime_type,
-        nombre_archivo,
-        esperado: validacionFormato.esperado,
+        // nombre_archivo removido (PHI potencial)
       });
       return jsonResponse(
         {
@@ -187,7 +187,12 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "User not associated with any clínica" }, 403);
     }
 
-    const clinicaId = clinicaResult[0].clinica_id;
+    // F7-34: Obtener clinica activa del user_metadata del JWT (establecida por setClinicaActiva)
+    const clinicaId = userData.user_metadata?.clinica_id;
+    
+    if (!clinicaId) {
+      return jsonResponse({ error: "No hay clinica activa. Seleccione una clinica." }, 403);
+    }
 
     // 5. Validar que paciente pertenece a la clínica
     const pacienteResult = await fetch(
@@ -247,7 +252,7 @@ Deno.serve(async (req) => {
         id: archivoId,
         clinica_id: clinicaId,
         paciente_id,
-        r2_object_key: r2ObjectKey,
+        // F7-34: r2_object_key removido (contiene clinica_id/paciente_id)
         nombre_archivo,
         mime_type,
         tamano_bytes,
@@ -282,7 +287,7 @@ Deno.serve(async (req) => {
           categoria,
           nombre_archivo,
           tamano_bytes,
-          r2_object_key: r2ObjectKey,
+          // F7-34: r2_object_key removido (contiene clinica_id/paciente_id)
         },
       }),
     });
@@ -336,7 +341,7 @@ Deno.serve(async (req) => {
     // 11. Retornar respuesta
     return jsonResponse({
       archivo_id: archivoId,
-      r2_object_key: r2ObjectKey,
+      // F7-34: r2_object_key removido (contiene clinica_id/paciente_id)
       upload_url: uploadUrl,
       upload_headers: {
         "Content-Type": mime_type,
@@ -351,7 +356,7 @@ Deno.serve(async (req) => {
       {
         error: "Internal server error",
         message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
+        // F7-34: Stack traces removidos de respuesta HTTP (solo logs internos)
       },
       500
     );

@@ -162,7 +162,12 @@ Deno.serve(async (req) => {
         return jsonResponse({ error: "User not associated with any clínica" }, 403);
       }
 
-      const clinicaId = clinicaResult[0].clinica_id;
+      // F7-34: Obtener clinica activa del user_metadata del JWT (establecida por setClinicaActiva)
+    const clinicaId = userData.user_metadata?.clinica_id;
+    
+    if (!clinicaId) {
+      return jsonResponse({ error: "No hay clinica activa. Seleccione una clinica." }, 403);
+    }
 
       const rolResult = await fetch(
         `${supabaseUrl}/rest/v1/miembros_clinica?user_id=eq.${userId}&clinica_id=eq.${clinicaId}&select=rol`,
@@ -196,7 +201,12 @@ Deno.serve(async (req) => {
       if (!clinicaResult || clinicaResult.length === 0) {
         return jsonResponse({ error: "User not associated with any clínica" }, 403);
       }
-      clinicaId = clinicaResult[0].clinica_id;
+      // F7-34: clinica activa del user_metadata del JWT
+      clinicaId = userData.user_metadata?.clinica_id;
+      
+      if (!clinicaId) {
+        return jsonResponse({ error: "No hay clinica activa. Seleccione una clinica." }, 403);
+      }
     }
 
     // 4. Obtener archivos (con o sin filtro de clínica según el modo)
@@ -259,7 +269,7 @@ Deno.serve(async (req) => {
           p_evento: "ADMIN_PURGE_ARCHIVOS",
           p_detalle: {
             archivo_id: archivoId,
-            nombre_archivo: archivo.nombre_archivo,
+            // F7-34: nombre_archivo removido (PHI potencial)
           },
           p_user_id: userId,
         }),
