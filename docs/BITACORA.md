@@ -5863,3 +5863,30 @@ Antes de marcar F7-34 como completamente verificada, se debe:
 3. Realizar pen-test manual de escenario multi-clinica
 
 **Estado propuesto:** DONE (codigo) / PENDING VALIDATION (tests reales)
+
+## 2026-09-22 - F7-34: Limpieza de deuda tecnica - Errores TypeScript preexistentes corregidos
+
+**Contexto:** Durante la validacion con deno check se detectaron errores TypeScript en las Edge Functions. Investigacion confirmo que eran PREEXISTENTES de F7-22 (codigo original de implementacion AWS v4 Signature).
+
+**Decision:** Corregir la deuda tecnica como parte de F7-34 para tener base de codigo limpia.
+
+**Correcciones aplicadas:**
+
+1. hmacSha256 (TS2769): Uint8Array convertido a ArrayBuffer via buffer.slice()
+2. getSignatureKey (TS2345): casts explicitos en llamadas a hmacSha256
+3. archivos-purge: scope de variables corregido, eliminacion de bloque duplicado
+
+**Resultado de deno check:** Las 7 Edge Functions ahora pasan sin errores.
+
+**Estado actualizado de F7-34:**
+- Codigo: DONE
+- Limpieza de tipos: DONE
+- Tests creados: DONE (10 tests Deno)
+- **Validacion manual: PENDIENTE antes de F7-29**
+
+**Proximo paso:**
+- Desplegar Edge Functions a Supabase staging
+- Crear fixtures de test (2 clinicas, 1 usuario con ambas membresias)
+- Ejecutar tests Deno contra staging
+- Pen-test manual de escenario multi-clinica
+- Solo despues de validacion exitosa, continuar con F7-16
