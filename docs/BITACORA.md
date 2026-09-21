@@ -5700,3 +5700,53 @@ GitHub CI detectó 6 errores de oxlint: los 6 `useCallback` agregados en E4 qued
 - **Lint (oxlint):** 0 errors (96 warnings preexistentes, no bloqueantes)
 
 **F10 queda marcado como DONE total en MASTER_ROADMAP.md.**
+
+## 2026-09-22 - F7-34: Auditoria de Edge Functions R2 y hallazgo de inconsistencia multi-clinica - AUDITORIA / HALLAZGO
+
+**Estado:** Hallazgo confirmado, correccion pendiente de implementacion. Rama feat/F7-34-edge-functions-multi-clinic creada.
+
+**Que se audito:**
+- 6 Edge Functions R2: r2-upload-url, r2-download-url, r2-delete, r2-list-deleted, r2-restore, archivos-purge
+- Patron de obtencion de clinica_id en cada funcion
+- Manejo de errores y exposicion de stack traces
+- Registro de PHI en audit_log y logs tecnicos
+- Validacion de membresia y pertenencia del recurso
+
+**Hallazgos confirmados:**
+
+1. **Inconsistencia con clinica_actual() (F7-10):** Todas las Edge Functions usan clinicaResult[0].clinica_id (primera membresia encontrada) en lugar de clinica_actual() (clinica activa seleccionada por el usuario). Esto viola la arquitectura establecida en F7-10 y permite que un usuario con multiples clinicas opere sobre la clinica incorrecta.
+
+2. **Exposicion de stack traces:** Todas las Edge Functions devuelven stack: error.stack en respuestas HTTP 500, exponiendo informacion tecnica al cliente.
+
+3. **PHI en logs y audit_log:** nombre_archivo y r2_object_key (que contiene clinica_id/paciente_id) se registran en p_detalle de registrar_evento_archivo y en logs tecnicos.
+
+4. **Validacion de membresia insuficiente:** Las Edge Functions validan que el usuario tenga membresia, pero NO filtran por clinica activa ni validan permisos contextuales.
+
+**Escenario de vulnerabilidad confirmado:**
+
+Usuario X pertenece a Clinica A (admin) y Clinica B (dentista).
+Frontend: Usuario selecciona Clinica B como activa.
+Edge Function: Opera sobre Clinica A (primera membresia).
+Resultado: Usuario cree estar en Clinica B pero opera en Clinica A.
+
+**Relacion con tareas existentes:**
+- F7-10: clinica_actual() es la fuente autoritativa de clinica activa (DONE)
+- F7-20: Pen-test multi-tenant debe incluir escenario de clinica activa vs inactiva (DONE, pero no cubrio este caso)
+- F7-22: Arquitectura R2 debe alinearse con F7-10 (DONE, pero con esta inconsistencia)
+- F7-31, F7-32: Papelera y purga deben respetar clinica activa (DONE, pero con esta inconsistencia)
+
+**Correccion propuesta (en implementacion):**
+- Modificar las 6 Edge Functions para usar clinica_actual() en lugar de clinicaResult[0]
+- Eliminar stack traces de respuestas HTTP (solo logs internos)
+- Sanitizar PHI en audit_log y logs tecnicos
+- Escribir 45 tests (unit + integration + E2E) de escenario multi-clinica
+
+**Archivos auditados:**
+- supabase/functions/r2-upload-url/index.ts
+- supabase/functions/r2-download-url/index.ts
+- supabase/functions/r2-delete/index.ts
+- supabase/functions/r2-list-deleted/index.ts
+- supabase/functions/r2-restore/index.ts
+- supabase/functions/archivos-purge/index.ts
+
+**Proximo paso:** Implementar correcciones en las 6 Edge Functions + tests + documentacion.
