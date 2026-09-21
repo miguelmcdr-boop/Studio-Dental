@@ -5814,3 +5814,79 @@ membresia encontrada. Intentos de acceder a recursos de otra clinica retornan
 - F7-20: Pen-test multi-tenant debe actualizarse para incluir escenario de clinica activa vs inactiva
 
 **Proximo paso:** Merge a main y continuar con F7-16 (autenticacion local PBKDF2).
+
+## 2026-09-22 - F7-34: Nota de validacion - Errores TypeScript preexistentes confirmados
+
+**Contexto:** Ejecucion de deno check sobre las Edge Functions revelo errores de tipado TypeScript. Se investigo si fueron introducidos por F7-34.
+
+**Investigacion realizada:**
+1. Ejecucion de deno check sobre Edge Functions en rama feat/F7-34-edge-functions-multi-clinic
+2. Checkout a main (codigo original)
+3. Ejecucion de deno check sobre las mismas Edge Functions
+4. Comparacion de errores
+
+**Errores encontrados:**
+- TS2769 en r2-upload-url, r2-download-url, r2-delete, r2-health-check
+  - Error en crypto.subtle.importKey: sobrecarga de tipos con argumento "raw"
+- TS2345 en archivos-purge
+  - Uint8Array no asignable a ArrayBuffer
+
+**Resultado de la investigacion:**
+Los MISMOS errores aparecen en main (codigo original de F7-22/F7-31).
+
+**Conclusion:**
+Los errores de TypeScript son PREEXISTENTES. NO fueron introducidos por F7-34.
+
+**Impacto en runtime:**
+Ninguno. Deno ejecuta el codigo JavaScript aunque haya errores de tipos estrictos.
+Las Edge Functions se desplegaron exitosamente en F7-22 y F7-31.
+
+**Deuda tecnica identificada:**
+Los errores de tipos en la implementacion de AWS v4 Signature (hmacSha256, getSignatureKey) son deuda tecnica preexistente de F7-22.
+
+**Opciones para resolver:**
+1. Corregir los errores de tipos (limpieza de codigo)
+2. Dejar como esta (deuda tecnica documentada)
+3. Agregar // @ts-ignore o // deno-lint-ignore (no recomendado)
+
+**Estado actual de F7-34:**
+- Codigo corregido: SI (clinica activa, stack traces, PHI sanitizada)
+- Tests unitarios: CREADOS (10 tests Deno)
+- Tests ejecutados contra entorno real: NO (requiere fixtures o Supabase staging)
+- Validacion de sintaxis: PARCIAL (errores preexistentes de tipos, no afectan runtime)
+- Despliegue a staging/produccion: NO
+
+**Recomendacion:**
+Antes de marcar F7-34 como completamente verificada, se debe:
+1. Desplegar las Edge Functions a Supabase staging
+2. Ejecutar los tests Deno contra staging
+3. Realizar pen-test manual de escenario multi-clinica
+
+**Estado propuesto:** DONE (codigo) / PENDING VALIDATION (tests reales)
+
+## 2026-09-22 - F7-34: Limpieza de deuda tecnica - Errores TypeScript preexistentes corregidos
+
+**Contexto:** Durante la validacion con deno check se detectaron errores TypeScript en las Edge Functions. Investigacion confirmo que eran PREEXISTENTES de F7-22 (codigo original de implementacion AWS v4 Signature).
+
+**Decision:** Corregir la deuda tecnica como parte de F7-34 para tener base de codigo limpia.
+
+**Correcciones aplicadas:**
+
+1. hmacSha256 (TS2769): Uint8Array convertido a ArrayBuffer via buffer.slice()
+2. getSignatureKey (TS2345): casts explicitos en llamadas a hmacSha256
+3. archivos-purge: scope de variables corregido, eliminacion de bloque duplicado
+
+**Resultado de deno check:** Las 7 Edge Functions ahora pasan sin errores.
+
+**Estado actualizado de F7-34:**
+- Codigo: DONE
+- Limpieza de tipos: DONE
+- Tests creados: DONE (10 tests Deno)
+- **Validacion manual: PENDIENTE antes de F7-29**
+
+**Proximo paso:**
+- Desplegar Edge Functions a Supabase staging
+- Crear fixtures de test (2 clinicas, 1 usuario con ambas membresias)
+- Ejecutar tests Deno contra staging
+- Pen-test manual de escenario multi-clinica
+- Solo despues de validacion exitosa, continuar con F7-16

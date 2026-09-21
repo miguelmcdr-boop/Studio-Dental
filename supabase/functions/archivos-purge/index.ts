@@ -42,10 +42,11 @@ async function hmacSha256(key: ArrayBuffer, data: string): Promise<ArrayBuffer> 
 }
 
 async function getSignatureKey(secret: string, dateStamp: string, region: string, service: string): Promise<ArrayBuffer> {
-  let k = await hmacSha256(encoder.encode("AWS4" + secret), dateStamp);
-  k = await hmacSha256(k, region);
-  k = await hmacSha256(k, service);
-  k = await hmacSha256(k, "aws4_request");
+  // F7-34 FIX: encoder.encode retorna Uint8Array, cast a ArrayBuffer (TS2345)
+  let k = await hmacSha256(encoder.encode("AWS4" + secret) as unknown as ArrayBuffer, dateStamp);
+  k = await hmacSha256(k as ArrayBuffer, region);
+  k = await hmacSha256(k as ArrayBuffer, service);
+  k = await hmacSha256(k as ArrayBuffer, "aws4_request");
   return k;
 }
 
@@ -115,6 +116,8 @@ Deno.serve(async (req) => {
     const esLlamadaInterna = internalSecret && expectedInternalSecret && internalSecret === expectedInternalSecret;
 
     let userId: string | null;
+    let userData: any;
+    let clinicaId: string | null = null;
 
     if (esLlamadaInterna) {
       // Llamada interna del cron (desde pg_cron vía system_config secret)
@@ -129,7 +132,7 @@ Deno.serve(async (req) => {
       }
       const token = authHeader.split(" ")[1];
 
-      const { data: userData, error: authError } = await fetch(`${supabaseUrl}/auth/v1/user`, {
+      const { data: userDataFromAuth, error: authError } = await fetch(`${supabaseUrl}/auth/v1/user`, {
         headers: { Authorization: `Bearer ${token}`, apikey: supabaseServiceKey },
       }).then(async (res) => {
         if (!res.ok) return { data: null, error: await res.text() };
@@ -140,7 +143,8 @@ Deno.serve(async (req) => {
         return jsonResponse({ error: "Invalid JWT" }, 401);
       }
 
-      userId = userData.id;
+      userData = userDataFromAuth;
+        userId = userData.id;
     }
 
     // 2. Parsear body
@@ -163,11 +167,11 @@ Deno.serve(async (req) => {
       }
 
       // F7-34: Obtener clinica activa del user_metadata del JWT (establecida por setClinicaActiva)
-    const clinicaId = userData.user_metadata?.clinica_id;
-    
-    if (!clinicaId) {
-      return jsonResponse({ error: "No hay clinica activa. Seleccione una clinica." }, 403);
-    }
+      clinicaId = userData.user_metadata?.clinica_id;
+      
+      if (!clinicaId) {
+        return jsonResponse({ error: "No hay clinica activa. Seleccione una clinica." }, 403);
+      }
 
       const rolResult = await fetch(
         `${supabaseUrl}/rest/v1/miembros_clinica?user_id=eq.${userId}&clinica_id=eq.${clinicaId}&select=rol`,
@@ -187,26 +191,6 @@ Deno.serve(async (req) => {
 
     if (archivoIds.length === 0) {
       return jsonResponse({ error: "Missing required field: archivo_ids" }, 400);
-    }
-
-    // 3. Obtener clínica (solo para llamadas de usuario)
-    // En modo interno, la clínica se obtiene de los propios archivos
-    let clinicaId: string | null = null;
-    if (!esLlamadaInterna) {
-      const clinicaResult = await fetch(
-        `${supabaseUrl}/rest/v1/miembros_clinica?user_id=eq.${userId}&select=clinica_id`,
-        { headers: { Authorization: `Bearer ${supabaseServiceKey}`, apikey: supabaseServiceKey } }
-      ).then((res) => res.json());
-
-      if (!clinicaResult || clinicaResult.length === 0) {
-        return jsonResponse({ error: "User not associated with any clínica" }, 403);
-      }
-      // F7-34: clinica activa del user_metadata del JWT
-      clinicaId = userData.user_metadata?.clinica_id;
-      
-      if (!clinicaId) {
-        return jsonResponse({ error: "No hay clinica activa. Seleccione una clinica." }, 403);
-      }
     }
 
     // 4. Obtener archivos (con o sin filtro de clínica según el modo)
