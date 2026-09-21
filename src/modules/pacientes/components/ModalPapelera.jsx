@@ -3,6 +3,10 @@ import { tiempoRelativo } from '../../../utils/dateUtils'
 import { Modal } from '../../../components/ui/Modal'
 import { Input } from '../../../components/ui/Input'
 import { Button } from '../../../components/ui/Button'
+import { useAppDialog } from '../../../hooks/useAppDialog'
+import { Trash2, Recycle, Scale, AlertTriangle } from 'lucide-react'
+import { Calendar, User } from 'lucide-react'
+import { Lightbulb } from 'lucide-react'
 
 /**
  * Modal de papelera de reciclaje (F6-L).
@@ -28,6 +32,7 @@ export const ModalPapelera = ({
   onCerrar
 }) => {
   const [busqueda, setBusqueda] = useState('')
+  const { confirm } = useAppDialog()
   const [restaurandoId, setRestaurandoId] = useState(null)
   const [mostrarConfirmacionVaciar, setMostrarConfirmacionVaciar] = useState(false)
   const [textoConfirmacion, setTextoConfirmacion] = useState('')
@@ -55,10 +60,12 @@ export const ModalPapelera = ({
   }, [pacientesEliminados, busqueda])
 
   const handleRestaurar = async (pacienteId) => {
-    const confirmado = window.confirm(
-      '¿Estás seguro de restaurar este paciente?\n\n' +
-      'El paciente volverá al directorio activo con toda su ficha clínica.'
-    )
+    const confirmado = await confirm({
+      title: 'Restaurar paciente',
+      description: '¿Estás seguro de restaurar este paciente? El paciente volverá al directorio activo con toda su ficha clínica.',
+      variant: 'warning',
+      confirmText: 'Restaurar'
+    })
     if (!confirmado) return
     setRestaurandoId(pacienteId)
     try {
@@ -77,10 +84,9 @@ export const ModalPapelera = ({
       size="xl"
       showCloseButton={false}
     >
-      {/* Header custom: preserva el botón ✕ visible para el test */}
       <div className="flex justify-between items-center mb-4 border-b dark:border-graphite-700 pb-3">
         <div>
-          <h3 className="text-lg font-bold text-graphite-900 dark:text-graphite-50">🗑️ Papelera de Reciclaje</h3>
+          <h3 className="text-lg font-bold text-graphite-900 dark:text-graphite-50 inline-flex items-center gap-1"><Trash2 size={16} />Papelera de Reciclaje</h3>
           <p className="text-xs text-graphite-500 dark:text-graphite-400 mt-1">{conteoTexto}</p>
         </div>
         <button
@@ -97,7 +103,7 @@ export const ModalPapelera = ({
           type="text"
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
-          placeholder="🔍 Buscar por nombre o RUT..."
+          placeholder="Buscar por nombre o RUT..."
         />
       </div>
 
@@ -109,7 +115,7 @@ export const ModalPapelera = ({
           </div>
         ) : pacientesFiltrados.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-6xl mb-4">🗑️</p>
+            <Trash2 size={48} className="mx-auto mb-4 text-graphite-300" />
             <p className="text-graphite-500 dark:text-graphite-400 text-sm">
               {busqueda
                 ? 'No se encontraron pacientes que coincidan con la búsqueda'
@@ -136,8 +142,8 @@ export const ModalPapelera = ({
                     RUT: {paciente.rut || 'Sin RUT'}
                   </p>
                   <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-graphite-500 dark:text-graphite-400">
-                    <span>📅 Eliminado {tiempoRelativo(paciente.deleted_at)}</span>
-                    <span>👤 Por: {paciente.eliminadoPor || 'Usuario desconocido'}</span>
+                    <span className="inline-flex items-center gap-1"><Calendar size={10} />Eliminado {tiempoRelativo(paciente.deleted_at)}</span>
+                    <span className="inline-flex items-center gap-1"><User size={10} />Por: {paciente.eliminadoPor || 'Usuario desconocido'}</span>
                   </div>
                 </div>
 
@@ -146,7 +152,7 @@ export const ModalPapelera = ({
                   disabled={restaurandoId === paciente.id}
                   className="px-4 py-2 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
                 >
-                  {restaurandoId === paciente.id ? 'Restaurando...' : '♻️ Restaurar'}
+                  {restaurandoId === paciente.id ? 'Restaurando...' : 'Restaurar'}
                 </button>
               </div>
             </div>
@@ -159,7 +165,7 @@ export const ModalPapelera = ({
         <div className="mt-4 pt-3 border-t dark:border-graphite-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="text-xs text-graphite-500 dark:text-graphite-400 flex-1">
             <p className="mb-1">
-              <strong>⚖️ Ley 20.584:</strong> Solo puedes eliminar permanentemente
+              <strong className="inline-flex items-center gap-1"><Scale size={12} />Ley 20.584:</strong> Solo puedes eliminar permanentemente
               pacientes que fueron eliminados de la papelera hace {aniosRetencion}+ años.
             </p>
             <p>
@@ -171,23 +177,22 @@ export const ModalPapelera = ({
             disabled={contadorElegibles === 0 || vaciando}
             className="px-4 py-2 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex-shrink-0"
           >
-            🗑️ Vaciar papelera ({contadorElegibles})
+            <span className="inline-flex items-center gap-1"><Trash2 size={12} />Vaciar papelera ({contadorElegibles})</span>
           </button>
         </div>
       )}
 
-      {/* Modal de confirmación doble (anidado nativo, z-[60] sobre el principal) */}
       {mostrarConfirmacionVaciar && (
         <div className="fixed inset-0 bg-black/60 dark:bg-black/80 flex items-center justify-center p-4 z-[60]">
           <div className="bg-white dark:bg-graphite-800 rounded-2xl p-6 w-full max-w-md border border-red-200 dark:border-red-900 shadow-2xl">
-            <h4 className="text-lg font-bold text-red-700 dark:text-red-400 mb-3">⚠️ Eliminación permanente</h4>
+            <h4 className="text-lg font-bold text-red-700 dark:text-red-400 mb-3"><span className="inline-flex items-center gap-1"><AlertTriangle size={16} />Eliminación permanente</span></h4>
             <div className="space-y-3 text-sm text-graphite-700 dark:text-graphite-300">
               <p>
                 Vas a eliminar permanentemente <strong>{contadorElegibles} paciente(s)</strong> que
                 estuvieron en la papelera por más de {aniosRetencion} años.
               </p>
               <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-3">
-                <p className="text-red-800 dark:text-red-300 font-semibold mb-1">⚠️ Esta acción es IRREVERSIBLE:</p>
+                <p className="text-red-800 dark:text-red-300 font-semibold mb-1"><span className="inline-flex items-center gap-1"><AlertTriangle size={12} />Esta acción es IRREVERSIBLE:</span></p>
                 <ul className="text-xs text-red-700 dark:text-red-400 space-y-1 list-disc list-inside">
                   <li>Se eliminará toda la ficha clínica (citas, recetas, certificados, etc.)</li>
                   <li>Se eliminarán los archivos adjuntos en Cloudflare R2</li>
@@ -233,7 +238,7 @@ export const ModalPapelera = ({
       {/* Footer */}
       <div className="mt-4 pt-3 border-t dark:border-graphite-700 text-xs text-graphite-500 dark:text-graphite-400">
         <p>
-          💡 Los pacientes eliminados se conservan en la papelera. Solo pueden ser restaurados
+          <Lightbulb size={12} className="inline" /> Los pacientes eliminados se conservan en la papelera. Solo pueden ser restaurados
           o eliminados permanentemente por administradores según la Ley 20.584.
         </p>
       </div>

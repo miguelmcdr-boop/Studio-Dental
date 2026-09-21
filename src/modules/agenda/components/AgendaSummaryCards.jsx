@@ -19,9 +19,9 @@ export const AgendaSummaryCards = memo(({ resumen, citas = [] }) => {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs">
-      <div className="p-4 bg-white border border-gray-200 rounded-2xl shadow-xs">
-        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Citas Programadas Hoy</span>
-        <span className="text-2xl font-black text-gray-900 mt-1 block">{totalHoy} Atenciones</span>
+      <div className="p-4 bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl shadow-xs">
+        <span className="text-[10px] font-bold text-gray-500 dark:text-graphite-400 uppercase tracking-wider block">Citas Programadas Hoy</span>
+        <span className="text-2xl font-black text-gray-900 dark:text-graphite-50 mt-1 block">{totalHoy} Atenciones</span>
       </div>
 
       <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl shadow-xs">
@@ -38,9 +38,9 @@ export const AgendaSummaryCards = memo(({ resumen, citas = [] }) => {
         </span>
       </div>
 
-      <div className="p-4 bg-gray-50 border border-gray-200 rounded-2xl shadow-xs">
-        <span className="text-[10px] font-bold text-gray-600 uppercase tracking-wider block">Finalizados Hoy</span>
-        <span className="text-2xl font-black text-gray-800 mt-1 block">
+      <div className="p-4 bg-gray-50 dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl shadow-xs">
+        <span className="text-[10px] font-bold text-gray-600 dark:text-graphite-400 uppercase tracking-wider block">Finalizados Hoy</span>
+        <span className="text-2xl font-black text-gray-800 dark:text-graphite-100 mt-1 block">
           {finalizadosCount} Completados
         </span>
       </div>

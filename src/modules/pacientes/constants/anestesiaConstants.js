@@ -15,12 +15,12 @@ export const CONFIG_ESTADO = {
     bg: 'bg-amber-50',
     border: 'border-amber-400',
     text: 'text-amber-800',
-    label: '⚠ Verificación Manual Requerida'
+    label: 'Verificación Manual Requerida'
   },
   ANESTESICO_DESCONOCIDO: {
     bg: 'bg-amber-50',
     border: 'border-amber-400',
     text: 'text-amber-800',
-    label: '⚠ Anestésico No Reconocido'
+    label: 'Anestésico No Reconocido'
   }
 }

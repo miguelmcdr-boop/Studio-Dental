@@ -3,11 +3,11 @@
  */
 
 export const PERIODOS_REPORTES = [
-  { id: 'este_mes', nombre: '📅 Este Mes' },
-  { id: 'esta_semana', nombre: '🗓️ Esta Semana' },
-  { id: 'ultimo_trimestre', nombre: '📊 Último Trimestre' },
-  { id: 'anio_actual', nombre: '📈 Año Actual' },
-  { id: 'historico', nombre: '📂 Histórico Completo' }
+  { id: 'este_mes', nombre: 'Este Mes' },
+  { id: 'esta_semana', nombre: 'Esta Semana' },
+  { id: 'ultimo_trimestre', nombre: 'Último Trimestre' },
+  { id: 'anio_actual', nombre: 'Año Actual' },
+  { id: 'historico', nombre: 'Histórico Completo' }
 ]
 
 export const ESPECIALIDADES_COLOR = {

@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useEffect } from 'react'
 import { ARANCEL_DEFAULT, PAQUETES_CLINICOS_DEFAULT } from '../constants/prestacionesConstants'
 import { prestacionesStorageService } from '../services/prestacionesStorageService'
 import { calcularResumenArancel } from '../utils/prestacionesCalculations'
+import { useEliminarPrestaciones } from './useEliminarPrestaciones'
 
 export const usePrestaciones = (prestacionesProp, setPrestacionesProp) => {
   const [prestaciones, setPrestaciones] = useState(() => {
@@ -86,13 +87,6 @@ export const usePrestaciones = (prestacionesProp, setPrestacionesProp) => {
     guardarYSincronizarGlobal(actualizadas)
   }, [prestaciones, guardarYSincronizarGlobal])
 
-  const eliminarPrestacion = useCallback((id) => {
-    if (window.confirm('¿Estás seguro de eliminar este procedimiento del arancel?')) {
-      const actualizadas = prestaciones.filter(p => String(p.id) !== String(id))
-      guardarYSincronizarGlobal(actualizadas)
-    }
-  }, [prestaciones, guardarYSincronizarGlobal])
-
   const aplicarReajusteMasivo = useCallback((porcentaje) => {
     const factor = 1 + (parseFloat(porcentaje) || 0) / 100
     const actualizadas = prestaciones.map(p => {
@@ -114,7 +108,7 @@ export const usePrestaciones = (prestacionesProp, setPrestacionesProp) => {
       : parseFloat(String(nuevoPack.precioCombo).replace(/[^0-9]/g, '')) || 0
 
     const packId = nuevoPack.id || Date.now()
-    const nombreLimpio = nuevoPack.nombre.startsWith('🎁') ? nuevoPack.nombre : `🎁 ${nuevoPack.nombre}`
+    const nombreLimpio = nuevoPack.nombre
 
     const packNormalizado = {
       id: packId,
@@ -146,18 +140,11 @@ export const usePrestaciones = (prestacionesProp, setPrestacionesProp) => {
     guardarYSincronizarGlobal(actualizadasArancel)
   }, [prestaciones, guardarYSincronizarGlobal])
 
-  const eliminarPaquete = useCallback((id) => {
-    if (window.confirm('¿Estás seguro de eliminar este paquete o promoción?')) {
-      setPaquetes(prev => {
-        const actualizados = prev.filter(p => String(p.id) !== String(id))
-        prestacionesStorageService.guardarPaquetes(actualizados)
-        return actualizados
-      })
-
-      const actualizadasArancel = prestaciones.filter(p => String(p.id) !== String(id))
-      guardarYSincronizarGlobal(actualizadasArancel)
-    }
-  }, [prestaciones, guardarYSincronizarGlobal])
+  const { eliminarPrestacion, eliminarPaquete } = useEliminarPrestaciones({
+    prestaciones,
+    guardarYSincronizarGlobal,
+    setPaquetes,
+  })
 
   return {
     prestaciones: prestacionesFiltradas,

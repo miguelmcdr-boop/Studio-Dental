@@ -1,4 +1,5 @@
 import React, { memo } from 'react'
+import { TrendingUp } from 'lucide-react'
 
 /**
  * Gráfico de Perfil Longitudinal de Sondaje Periodontal.
@@ -43,7 +44,7 @@ export const GraficoPerfilLongitudinal = memo(({ periodontoData = {} }) => {
 
     return (
       <div className="space-y-1">
-        <span className="text-[10px] font-extrabold text-gray-500 uppercase block text-center">{titulo}</span>
+        <span className="text-[10px] font-extrabold text-gray-500 dark:text-graphite-400 uppercase block text-center">{titulo}</span>
         <div className="overflow-x-auto py-1">
           <svg width="680" height="100" className="mx-auto">
             <line x1="0" y1="28" x2="680" y2="28" stroke="#E5E7EB" strokeDasharray="3 3" />
@@ -88,10 +89,10 @@ export const GraficoPerfilLongitudinal = memo(({ periodontoData = {} }) => {
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xs space-y-6 text-xs print:hidden">
+    <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-5 shadow-xs space-y-6 text-xs print:hidden">
       <div className="flex justify-between items-center border-b pb-2">
-        <h4 className="font-extrabold text-gray-900 uppercase tracking-wider text-[11px] flex items-center gap-2">
-          <span>📈</span> Perfil Longitudinal de Sondaje Periodontal (Arcada Superior e Inferior)
+        <h4 className="font-extrabold text-gray-900 dark:text-graphite-50 uppercase tracking-wider text-[11px] flex items-center gap-2">
+          <TrendingUp size={14} className="inline" /> Perfil Longitudinal de Sondaje Periodontal (Arcada Superior e Inferior)
         </h4>
         <div className="flex items-center gap-3 text-[10px] font-bold">
           <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Normal (≤ 3 mm)</span>
@@ -101,7 +102,7 @@ export const GraficoPerfilLongitudinal = memo(({ periodontoData = {} }) => {
       </div>
 
       {renderSvgArcada(PIEZAS_SUPERIORES, 'Arcada Superior (Maxilar)')}
-      <div className="border-t border-gray-200 my-2"></div>
+      <div className="border-t border-gray-200 dark:border-graphite-700 my-2"></div>
       {renderSvgArcada(PIEZAS_INFERIORES, 'Arcada Inferior (Mandíbula)')}
     </div>
   )

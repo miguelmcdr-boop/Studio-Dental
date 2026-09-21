@@ -101,8 +101,8 @@ export const ClinicaSelector = ({ onCambioClinica }) => {
   // Estados de carga y error
   if (cargando) {
     return (
-      <div className="px-2 py-3 mb-4 border-b border-gray-200">
-        <div className="text-xs text-gray-500 animate-pulse">Cargando clínica...</div>
+      <div className="px-2 py-3 mb-4 border-b border-gray-200 dark:border-graphite-700">
+        <div className="text-xs text-gray-500 dark:text-graphite-400 animate-pulse">Cargando clínica...</div>
       </div>
     )
   }
@@ -128,10 +128,10 @@ export const ClinicaSelector = ({ onCambioClinica }) => {
   // Si solo hay 1 clínica, mostrar sin selector (solo informativo)
   if (clinicas.length === 1) {
     return (
-      <div className="px-2 py-3 mb-4 border-b border-gray-200" title="F7-10: Clínica activa">
-        <div className="text-xs text-gray-500 mb-1">Clínica</div>
+      <div className="px-2 py-3 mb-4 border-b border-gray-200 dark:border-graphite-700" title="F7-10: Clínica activa">
+        <div className="text-xs text-gray-500 dark:text-graphite-400 mb-1">Clínica</div>
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-800 truncate">
+          <span className="text-sm font-medium text-gray-800 dark:text-graphite-100 truncate">
             {clinicas[0].nombre}
           </span>
         </div>
@@ -141,13 +141,13 @@ export const ClinicaSelector = ({ onCambioClinica }) => {
 
   // Múltiples clínicas: mostrar selector
   return (
-    <div className="px-2 py-3 mb-4 border-b border-gray-200">
-      <label className="text-xs text-gray-500 block mb-1">Clínica activa</label>
+    <div className="px-2 py-3 mb-4 border-b border-gray-200 dark:border-graphite-700">
+      <label className="text-xs text-gray-500 dark:text-graphite-400 block mb-1">Clínica activa</label>
       <select
         value={clinicaActiva || ''}
         onChange={handleCambio}
         disabled={cambiando}
-        className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-graphite-600 rounded-md bg-white dark:bg-graphite-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {clinicas.map(c => (
           <option key={c.clinica_id} value={c.clinica_id}>

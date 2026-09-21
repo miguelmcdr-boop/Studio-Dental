@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { calcularResumenJornada } from '../utils/dashboardCalculations'
 import { agendaStorageService } from '../../agenda'
 import { pagosStorageService } from '../../pagos/services/pagosStorageService'
+import { obtenerAbonosPorPaciente } from '../../pagos/services/pagosAbonosLegacyService'
 import { presupuestosStorageService } from '../../presupuestos/services/presupuestosStorageService'
 import { createLogger } from '../../../services/logger.js'
 
@@ -22,7 +23,7 @@ export const useDashboard = (pacientes = []) => {
       // Recolectar abonos de presupuestos individuales para sumar a pagos (vía pagosStorageService, F2-07a)
       const abonosGlobales = []
       pacientes.forEach(p => {
-        const abonosPac = pagosStorageService.obtenerAbonosPorPaciente(p.id)
+        const abonosPac = obtenerAbonosPorPaciente(p.id)
         if (Array.isArray(abonosPac)) {
           abonosPac.forEach(a => abonosGlobales.push(a))
         }

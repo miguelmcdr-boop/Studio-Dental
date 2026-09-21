@@ -4,11 +4,12 @@
  */
 
 // Mapeo bidireccional entre tipo UI y categoría R2.
-// Nota: 'consentimiento' NO está aquí porque ConsentimientosSection
-// usa firma digital en canvas, no archivos R2.
+// M4b: 'consentimiento' usa categoría 'pdf' porque es la válida en el
+// Edge Function r2-upload-url. Se distingue de otros PDFs por metadata.
 export const TIPO_A_CATEGORIA = {
   foto: 'foto_clinica',
   rx: 'radiografia',
+  consentimiento: 'pdf',
 }
 
 export const CATEGORIA_A_TIPO = {
@@ -16,6 +17,13 @@ export const CATEGORIA_A_TIPO = {
   radiografia: 'rx',
   documento: 'documento',
   otro: 'otro',
+  // M4b: 'pdf' puede ser consentimiento u otro PDF.
+  // Se distingue por metadata.subcategoria en la respuesta.
+}
+
+// M4b: subcategorías para distinguir tipos dentro de categoría 'pdf'
+export const SUBCATEGORIAS = {
+  CONSENTIMIENTO: 'consentimiento',
 }
 
 // Límites de validación
@@ -70,4 +78,22 @@ export const calcularPermisos = (rol, ROLES) => {
   const puedeDescargar = puedeVer
 
   return { puedeSubir, puedeEliminar, puedeVer, puedeDescargar, rol }
+}
+
+/**
+ * M4b: Determina el tipo UI real de un archivo basado en categoría y metadata.
+ * Necesario porque 'pdf' puede ser consentimiento u otro PDF.
+ * @param {Object} archivo — archivo de archivos_clinicos
+ * @returns {string} tipo UI ('consentimiento', 'documento', 'otro', etc)
+ */
+export const determinarTipoDesdeArchivo = (archivo) => {
+  if (!archivo) return null
+
+  // Consentimiento: categoría 'pdf' + metadata.subcategoria === 'consentimiento'
+  if (archivo.categoria === 'pdf' && archivo.metadata?.subcategoria === SUBCATEGORIAS.CONSENTIMIENTO) {
+    return 'consentimiento'
+  }
+
+  // Otros archivos: usar mapeo directo
+  return CATEGORIA_A_TIPO[archivo.categoria] || archivo.categoria
 }

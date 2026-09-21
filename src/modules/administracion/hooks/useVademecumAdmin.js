@@ -15,6 +15,7 @@ import { vademecumService } from '../../../services/vademecumService'
 import { notificationService } from '../../../services/notificationService'
 import { REALTIME_EVENTS } from '../../../services/realtimeEvents'
 import { createLogger } from '../../../services/logger.js'
+import { useDesactivarFarmaco } from './useDesactivarFarmaco'
 
 const log = createLogger('useVademecumAdmin')
 
@@ -77,7 +78,7 @@ export const useVademecumAdmin = () => {
     return () => {
       window.removeEventListener(REALTIME_EVENTS.VADEMECUM_CHANGED, handleVademecumChanged)
     }
-  }, [cargarDatos])
+  }, [cargarDatos, confirm])
   
   // ─── Filtros ───
   const vademecumFiltrado = useMemo(() => {
@@ -121,17 +122,6 @@ export const useVademecumAdmin = () => {
     return resultado
   }, [cargarDatos])
   
-  const desactivar = useCallback(async (numero) => {
-    if (!window.confirm(`¿Desactivar fármaco #${numero}? (no se borra, solo se oculta)`)) {
-      return { exito: false, error: 'Cancelado por el usuario' }
-    }
-    
-    const resultado = await vademecumService.desactivarFarmaco(numero)
-    if (resultado.exito) {
-      await cargarDatos()
-    }
-    return resultado
-  }, [cargarDatos])
   
   const reactivar = useCallback(async (numero) => {
     const resultado = await vademecumService.reactivarFarmaco(numero)
@@ -159,6 +149,8 @@ export const useVademecumAdmin = () => {
   
   const refrescar = useCallback(() => cargarDatos(), [cargarDatos])
   
+  const { desactivar } = useDesactivarFarmaco({ cargarDatos, vademecumService })
+
   return {
     // Estado
     vademecum: vademecumFiltrado,

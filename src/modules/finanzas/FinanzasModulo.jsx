@@ -9,6 +9,7 @@ import { ConveniosManager } from './components/ConveniosManager'
 import { CalculadoraBoletas } from './components/CalculadoraBoletas'
 import { usePacientesStore } from '../../store/pacientesStore'
 import { useSesionStore } from '../../store/sesionStore'
+import { DollarSign } from 'lucide-react'
 
 export const FinanzasModulo = memo(() => {
   // (F2-02) — pacientes y userProfile ya no llegan como prop desde App.jsx: se leen directo de los stores.
@@ -42,8 +43,8 @@ export const FinanzasModulo = memo(() => {
     <div className="space-y-6">
       <div className="flex justify-between items-center flex-wrap gap-3 print:hidden">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider">💰 Control Financiero & Arqueo de Caja</h2>
-          <p className="text-xs text-gray-500">Gestión de ingresos, egresos, arqueos diarios y balances contables de la clínica.</p>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-graphite-50 uppercase tracking-wider inline-flex items-center gap-2"><DollarSign size={20} />Control Financiero & Arqueo de Caja</h2>
+          <p className="text-xs text-gray-500 dark:text-graphite-400">Gestión de ingresos, egresos, arqueos diarios y balances contables de la clínica.</p>
         </div>
 
         <button
@@ -59,13 +60,13 @@ export const FinanzasModulo = memo(() => {
       </div>
 
       {/* Navegación por Pestañas */}
-      <div className="flex gap-2 border-b border-gray-200 print:hidden flex-wrap">
+      <div className="flex gap-2 border-b border-gray-200 dark:border-graphite-700 print:hidden flex-wrap">
         {TABS.map(tab => (
           <button
             key={tab}
             onClick={() => setTabActiva(tab)}
             className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all ${
-              tabActiva === tab ? 'border-black text-black' : 'border-transparent text-gray-500 hover:text-gray-800'
+              tabActiva === tab ? 'border-black text-black dark:text-graphite-50' : 'border-transparent text-gray-500 hover:text-gray-800'
             }`}
           >
             {tab}

@@ -3,6 +3,7 @@
  * Refactorizado con hook usePresupuesto + 4 sub-componentes (F7-25)
  */
 import React, { memo } from 'react'
+import { Printer } from 'lucide-react'
 import { Button } from '../../../components/ui/Button'
 import { ModalDescuentoInventario } from './ModalDescuentoInventario'
 import { FormularioAgregarPrestacion } from './FormularioAgregarPrestacion'
@@ -86,7 +87,7 @@ export const PresupuestoSection = memo((props) => {
       {/* Botón de Impresión Letter */}
       <div className="flex justify-end mb-4 print:hidden">
         <Button onClick={() => window.print()} variant="primary" size="sm">
-          🖨️ Imprimir Presupuesto con Odontograma (Letter)
+          <span className="flex items-center gap-1"><Printer size={14} />Imprimir Presupuesto con Odontograma (Letter)</span>
         </Button>
       </div>
 

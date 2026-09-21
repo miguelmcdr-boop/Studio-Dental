@@ -2,6 +2,7 @@ import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { ModalPapelera } from './ModalPapelera'
+import { useDialogStore } from '../../../store/dialogStore'
 
 describe('ModalPapelera (F6-L)', () => {
   const mockPacientes = [
@@ -30,7 +31,7 @@ describe('ModalPapelera (F6-L)', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    useDialogStore.setState({ dialog: null })
   })
 
   it('renderiza lista de pacientes eliminados', () => {
@@ -75,22 +76,31 @@ describe('ModalPapelera (F6-L)', () => {
     const botonesRestaurar = screen.getAllByText(/Restaurar/)
     fireEvent.click(botonesRestaurar[0])
     
-    expect(window.confirm).toHaveBeenCalled()
+    // F10-C3.4: confirmar abre dialogStore, no window.confirm
+    expect(useDialogStore.getState().dialog).not.toBeNull()
+    expect(useDialogStore.getState().dialog.title).toBe('Restaurar paciente')
+    
+    // Resolver el diálogo con true
+    useDialogStore.getState().closeDialog(true)
     
     await waitFor(() => {
       expect(onRestaurar).toHaveBeenCalledWith('1')
     })
   })
 
-  it('no llama onRestaurar si usuario cancela confirmación', async () => {
-    window.confirm.mockReturnValue(false)
+    it('no llama onRestaurar si usuario cancela confirmación', async () => {
     const onRestaurar = vi.fn()
     render(<ModalPapelera {...defaultProps} onRestaurar={onRestaurar} />)
     
     const botonesRestaurar = screen.getAllByText(/Restaurar/)
     fireEvent.click(botonesRestaurar[0])
     
-    expect(onRestaurar).not.toHaveBeenCalled()
+    // F10-C3.4: resolver diálogo con false (cancelar)
+    useDialogStore.getState().closeDialog(false)
+    
+    await waitFor(() => {
+      expect(onRestaurar).not.toHaveBeenCalled()
+    })
   })
 
   it('muestra estado de carga', () => {
@@ -167,7 +177,7 @@ describe('ModalPapelera (F6-L)', () => {
       />
     )
     
-    const boton = screen.getByText(/Vaciar papelera/)
+    const boton = screen.getByRole('button', { name: /Vaciar papelera/ })
     expect(boton).toBeDisabled()
   })
 

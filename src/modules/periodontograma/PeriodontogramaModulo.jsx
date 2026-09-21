@@ -1,4 +1,6 @@
 import React, { memo, useState, useEffect } from 'react'
+import { Droplet } from 'lucide-react'
+import { Icon } from '../../components/Icon'
 import { ArcadaSuperior } from './components/ArcadaSuperior'
 import { ArcadaInferior } from './components/ArcadaInferior'
 import { HeaderPeriodontal } from './components/HeaderPeriodontal'
@@ -9,10 +11,14 @@ import { pacientesStorageService } from '../pacientes/services/pacientesStorageS
 // F2-07b: acceso centralizado vía servicio (antes localStorage directo)
 import { periodontogramaStorageService } from './services/periodontogramaStorageService'
 import { createLogger } from '../../services/logger.js'
+import { useAppDialog } from '../../hooks/useAppDialog'
+import { RefreshCw, Save } from 'lucide-react'
 
 const log = createLogger('PeriodontogramaModulo')
 
 export const PeriodontogramaModulo = memo(({ pacienteId }) => {
+  const { alert: dialogAlert } = useAppDialog()
+  
   const [periodontoData, setPeriodontoData] = useState(() => {
     const saved = periodontogramaStorageService.obtenerPeriodontogramaDePaciente(pacienteId, {})
     return saved
@@ -67,7 +73,7 @@ export const PeriodontogramaModulo = memo(({ pacienteId }) => {
     }
   }, [periodontoControl, pacienteId])
 
-  const handleGuardarPeriodontograma = () => {
+  const handleGuardarPeriodontograma = async () => {
     const dataToSave = modoComparativoReeval ? periodontoControl : periodontoData
 
     if (modoComparativoReeval) {
@@ -83,13 +89,18 @@ export const PeriodontogramaModulo = memo(({ pacienteId }) => {
     const notaPeriodontal = {
       id: Date.now(),
       fecha: fechaHora,
-      texto: `🩸 EXAMEN PERIODONTAL (${modoComparativoReeval ? 'REEVALUACIÓN' : 'INICIAL'}): O'Leary: ${indices.indiceOLeary}% | BOP%: ${indices.porcentajeSangrado}% | Sondaje Máx: ${indices.maxSondaje}mm | ${indices.diagnosticoSugerido} (${indices.gradoAAP})`
+      texto: `EXAMEN PERIODONTAL (${modoComparativoReeval ? 'REEVALUACIÓN' : 'INICIAL'}): O'Leary: ${indices.indiceOLeary}% | BOP%: ${indices.porcentajeSangrado}% | Sondaje Máx: ${indices.maxSondaje}mm | ${indices.diagnosticoSugerido} (${indices.gradoAAP})`
     }
 
     const evolucionesActualizadas = [notaPeriodontal, ...evolucionesPrevias]
     pacientesStorageService.guardarItem(`evoluciones_notas_${pacienteId}`, evolucionesActualizadas)
 
-    alert(`✅ Periodontograma (${modoComparativoReeval ? 'Reevaluación' : 'Inicial'}) guardado y evolucionado en la Bitácora.`)
+    await dialogAlert({
+      title: 'Periodontograma guardado',
+      description: `Periodontograma (${modoComparativoReeval ? 'Reevaluación' : 'Inicial'}) guardado y evolucionado en la Bitácora.`,
+      variant: 'success',
+      confirmText: 'Entendido'
+    })
   }
 
   return (
@@ -97,8 +108,11 @@ export const PeriodontogramaModulo = memo(({ pacienteId }) => {
       {/* Barra de Control */}
       <div className="flex justify-between items-center flex-wrap gap-3">
         <div>
-          <h3 className="text-base font-bold text-gray-900 uppercase tracking-wider">🩸 Periodontograma Clínico & Sondaje AAP</h3>
-          <p className="text-xs text-gray-500">Evaluación de profundidades de bolsa, recesiones, CAL y sangrado al sondaje (BOP).</p>
+          <h3 className="text-base font-bold text-gray-900 dark:text-graphite-50 uppercase tracking-wider flex items-center gap-2">
+          <Icon icon={Droplet} size="md" />
+          Periodontograma Clínico & Sondaje AAP
+        </h3>
+          <p className="text-xs text-gray-500 dark:text-graphite-400">Evaluación de profundidades de bolsa, recesiones, CAL y sangrado al sondaje (BOP).</p>
         </div>
 
         <div className="flex gap-2">
@@ -109,7 +123,7 @@ export const PeriodontogramaModulo = memo(({ pacienteId }) => {
               modoComparativoReeval ? 'bg-purple-700 text-white border-purple-800' : 'bg-purple-50 text-purple-900 border-purple-300'
             }`}
           >
-            🔄 {modoComparativoReeval ? 'Modo: Reevaluación / Control (Activo)' : 'Cambiar a Reevaluación / Control'}
+            <span className='inline-flex items-center gap-1'><RefreshCw size={12} />{modoComparativoReeval ? 'Modo: Reevaluación / Control (Activo)' : 'Cambiar a Reevaluación / Control'}</span>
           </button>
 
           <button
@@ -117,7 +131,7 @@ export const PeriodontogramaModulo = memo(({ pacienteId }) => {
             onClick={handleGuardarPeriodontograma}
             className="bg-black text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-gray-800 transition-colors shadow-xs cursor-pointer"
           >
-            💾 Guardar Periodontograma
+            <span className="inline-flex items-center gap-1"><Save size={12} />Guardar Periodontograma</span>
           </button>
         </div>
       </div>
@@ -135,19 +149,19 @@ export const PeriodontogramaModulo = memo(({ pacienteId }) => {
       />
 
       {/* Matriz de Piezas */}
-      <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 space-y-6 overflow-x-auto">
+      <div className="bg-gray-50 dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-6 space-y-6 overflow-x-auto">
         <div>
-          <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 text-center">Arcada Superior (Maxilar)</h4>
+          <h4 className="text-xs font-bold text-gray-500 dark:text-graphite-400 uppercase tracking-wider mb-4 text-center">Arcada Superior (Maxilar)</h4>
           <ArcadaSuperior
             periodontoData={modoComparativoReeval ? periodontoControl : periodontoData}
             setPeriodontoData={modoComparativoReeval ? setPeriodontoControl : setPeriodontoData}
           />
         </div>
 
-        <div className="border-t border-gray-300 my-4"></div>
+        <div className="border-t border-gray-300 dark:border-graphite-600 my-4"></div>
 
         <div>
-          <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 text-center">Arcada Inferior (Mandíbula)</h4>
+          <h4 className="text-xs font-bold text-gray-500 dark:text-graphite-400 uppercase tracking-wider mb-4 text-center">Arcada Inferior (Mandíbula)</h4>
           <ArcadaInferior
             periodontoData={modoComparativoReeval ? periodontoControl : periodontoData}
             setPeriodontoData={modoComparativoReeval ? setPeriodontoControl : setPeriodontoData}

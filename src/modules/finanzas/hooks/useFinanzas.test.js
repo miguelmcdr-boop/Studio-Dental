@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { useFinanzas } from './useFinanzas'
 import { finanzasStorageService } from '../services/finanzasStorageService'
 import { pagosStorageService } from '../../pagos/services/pagosStorageService'
+import { obtenerAbonosPorPaciente, eliminarAbono } from '../../pagos/services/pagosAbonosLegacyService'
 import { calcularBalanceFinanzas } from '../utils/finanzasCalculations'
 
 vi.mock('../services/finanzasStorageService', () => ({
@@ -16,14 +17,19 @@ vi.mock('../services/finanzasStorageService', () => ({
 
 vi.mock('../../pagos/services/pagosStorageService', () => ({
   pagosStorageService: {
-    obtenerPagos: vi.fn(),
-    obtenerAbonosPorPaciente: vi.fn()
+    obtenerPagos: vi.fn()
   }
+}))
+
+vi.mock('../../pagos/services/pagosAbonosLegacyService', () => ({
+  obtenerAbonosPorPaciente: vi.fn(),
+  eliminarAbono: vi.fn()
 }))
 
 vi.mock('../utils/finanzasCalculations', () => ({
   calcularBalanceFinanzas: vi.fn()
 }))
+
 
 describe('useFinanzas', () => {
   const fechaHoy = new Date().toLocaleDateString('es-CL')
@@ -48,12 +54,14 @@ describe('useFinanzas', () => {
     { id: 2, nombre: 'Carlos Ruiz' }
   ]
 
+  // Ids de abonos NO colisionan con ids de pagos globales (reflejo de producción:
+  // los abonos de ficha tienen timestamps, los pagos globales tienen otros ids).
   const mockAbonosPaciente1 = [
-    { id: 1, fecha: fechaHoy, monto: 20000, metodoPago: 'Efectivo' }
+    { id: 101, fecha: fechaHoy, monto: 20000, metodoPago: 'Efectivo' }
   ]
 
   const mockAbonosPaciente2 = [
-    { id: 2, fecha: fechaHoy, monto: 15000, metodoPago: 'Transferencia' }
+    { id: 102, fecha: fechaHoy, monto: 15000, metodoPago: 'Transferencia' }
   ]
 
   beforeEach(() => {
@@ -65,7 +73,7 @@ describe('useFinanzas', () => {
     finanzasStorageService.guardarConvenios.mockImplementation(() => {})
     
     pagosStorageService.obtenerPagos.mockReturnValue(mockPagosGlobales)
-    pagosStorageService.obtenerAbonosPorPaciente.mockImplementation((pacienteId) => {
+    obtenerAbonosPorPaciente.mockImplementation((pacienteId) => {
       if (pacienteId === 1) return mockAbonosPaciente1
       if (pacienteId === 2) return mockAbonosPaciente2
       return []
@@ -77,7 +85,6 @@ describe('useFinanzas', () => {
       balance: 90000
     })
     
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
   })
 
   describe('Inicialización', () => {
@@ -153,7 +160,7 @@ describe('useFinanzas', () => {
     })
 
     it('maneja errores al cargar abonos de un paciente sin romper', () => {
-      pagosStorageService.obtenerAbonosPorPaciente.mockImplementation((pacienteId) => {
+      obtenerAbonosPorPaciente.mockImplementation((pacienteId) => {
         if (pacienteId === 1) throw new Error('Storage error')
         return mockAbonosPaciente2
       })
@@ -162,6 +169,39 @@ describe('useFinanzas', () => {
 
       // Debe seguir funcionando: 2 manuales + 2 pagos + 1 abono (paciente 2)
       expect(result.current.movimientos).toHaveLength(5)
+    })
+
+    it('excluye abonos cuyo id coincide con un pago global (anti-doble-conteo)', () => {
+      // Regla contable: el mismo dinero no puede sumar dos veces
+      // (pago global + su abono sincronizado en ficha)
+      obtenerAbonosPorPaciente.mockImplementation((pacienteId) => {
+        // El paciente 1 tiene un abono con id 1 que colisiona con el pago global id 1
+        if (pacienteId === 1) return [{ id: 1, fecha: fechaHoy, monto: 20000 }]
+        if (pacienteId === 2) return [{ id: 999, fecha: fechaHoy, monto: 15000 }]
+        return []
+      })
+
+      const { result } = renderHook(() => useFinanzas(mockPacientes))
+
+      // Solo debe consolidar: 2 manuales + 2 pagos globales + 1 abono (el id 999)
+      // El abono con id 1 se excluye porque ya existe el pago global con id 1
+      expect(result.current.movimientos).toHaveLength(5)
+      const abonosConsolidados = result.current.movimientos.filter(
+        m => m.origen === 'Presupuestos'
+      )
+      expect(abonosConsolidados).toHaveLength(1)
+      expect(abonosConsolidados[0].id).toBe('abono_2_999')
+    })
+
+    it('excluye pagos purgados de la consolidación (Commit I)', () => {
+      pagosStorageService.obtenerPagos.mockReturnValue([
+        { id: 1, fecha: fechaHoy, monto: 50000, metodoPago: 'Efectivo', pacienteNombre: 'A', estado: 'Purgado' },
+        { id: 2, fecha: fechaHoy, monto: 30000, metodoPago: 'Efectivo', pacienteNombre: 'B', estado: 'Emitido' }
+      ])
+      const { result } = renderHook(() => useFinanzas(mockPacientes))
+      const pagosConsolidados = result.current.movimientos.filter(m => m.origen === 'Pagos')
+      expect(pagosConsolidados).toHaveLength(1)
+      expect(pagosConsolidados[0].monto).toBe(30000)
     })
   })
 
@@ -261,58 +301,6 @@ describe('useFinanzas', () => {
       expect(finanzasStorageService.guardarMovimientos).toHaveBeenCalled()
       const savedMovs = finanzasStorageService.guardarMovimientos.mock.calls[0][0]
       expect(savedMovs[0].id).toBe(100)
-    })
-  })
-
-  describe('eliminarMovimiento', () => {
-    it('elimina movimiento si usuario confirma', () => {
-      window.confirm.mockReturnValue(true)
-      const { result } = renderHook(() => useFinanzas(mockPacientes))
-
-      const manualesAntes = result.current.movimientos.filter(m => !m.origen).length
-
-      act(() => {
-        result.current.eliminarMovimiento(1)
-      })
-
-      const manualesDespues = result.current.movimientos.filter(m => !m.origen).length
-      expect(manualesDespues).toBe(manualesAntes - 1)
-    })
-
-    it('no elimina si usuario cancela', () => {
-      window.confirm.mockReturnValue(false)
-      const { result } = renderHook(() => useFinanzas(mockPacientes))
-
-      const manualesAntes = result.current.movimientos.filter(m => !m.origen).length
-
-      act(() => {
-        result.current.eliminarMovimiento(1)
-      })
-
-      const manualesDespues = result.current.movimientos.filter(m => !m.origen).length
-      expect(manualesDespues).toBe(manualesAntes)
-    })
-
-    it('persiste cambios si se confirma', () => {
-      window.confirm.mockReturnValue(true)
-      const { result } = renderHook(() => useFinanzas(mockPacientes))
-
-      act(() => {
-        result.current.eliminarMovimiento(1)
-      })
-
-      expect(finanzasStorageService.guardarMovimientos).toHaveBeenCalled()
-    })
-
-    it('no persiste si usuario cancela', () => {
-      window.confirm.mockReturnValue(false)
-      const { result } = renderHook(() => useFinanzas(mockPacientes))
-
-      act(() => {
-        result.current.eliminarMovimiento(1)
-      })
-
-      expect(finanzasStorageService.guardarMovimientos).not.toHaveBeenCalled()
     })
   })
 

@@ -8,6 +8,7 @@ import {
 } from '../../services/authService'
 import { ROLES, NOMBRES_ROLES, DESCRIPCIONES_ROLES } from '../../constants/rbacConstants'
 import { createLogger } from '../../services/logger'
+import { useAppDialog } from '../../hooks/useAppDialog'
 
 const log = createLogger('useGestionMiembros')
 
@@ -16,6 +17,7 @@ const log = createLogger('useGestionMiembros')
  * Extraído de GestionMiembrosModulo.jsx para cumplir con límite de 250 líneas JSX.
  */
 export const useGestionMiembros = () => {
+  const { confirm } = useAppDialog()
   const [miembros, setMiembros] = useState([])
   const [invitaciones, setInvitaciones] = useState([])
   const [loading, setLoading] = useState(true)
@@ -69,7 +71,13 @@ export const useGestionMiembros = () => {
   }
 
   const handleRevocar = async (invitacionId) => {
-    if (!confirm('¿Revocar esta invitación?')) return
+    const ok = await confirm({
+      title: 'Revocar invitación',
+      description: '¿Revocar esta invitación?',
+      variant: 'warning',
+      confirmText: 'Revocar'
+    })
+    if (!ok) return
     try {
       const result = await revocarInvitacion(invitacionId)
       if (result.success) {

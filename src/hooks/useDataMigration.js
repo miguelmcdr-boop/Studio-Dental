@@ -251,7 +251,7 @@ export const useDataMigration = (userProfile) => {
         const pacientesActualizados = pacientesStorageService.obtenerPacientes([])
         usePacientesStore.setState({ pacientes: pacientesActualizados })
 
-        log.info('✅ Migración completada y caché sincronizada')
+        log.info('Migración completada y caché sincronizada')
 
         migracionCompletada = true
       } catch (error) {

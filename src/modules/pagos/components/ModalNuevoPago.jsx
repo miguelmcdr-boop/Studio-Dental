@@ -1,16 +1,17 @@
 import React, { memo, useState, useEffect } from 'react'
+import { formatearCLP } from '../../../utils/formatoMoneda'
 import { Modal } from '../../../components/ui/Modal'
 import { Input } from '../../../components/ui/Input'
 import { Button } from '../../../components/ui/Button'
 import { METODOS_PAGO_GOLD, TIPOS_DOCUMENTO_TRIBUTARIO, CONCEPTOS_PAGO } from '../constants/pagosConstants'
 import { generarFolioRecibo } from '../utils/pagosCalculations'
-import { presupuestosStorageService } from '../../presupuestos/services/presupuestosStorageService'
-import { createLogger } from '../../../services/logger.js'
-
-const log = createLogger('ModalNuevoPago')
+import { useAppDialog } from '../../../hooks/useAppDialog'
+import { usePrestacionesPaciente } from '../hooks/usePrestacionesPaciente'
+import { SelectorPrestacionesImputadas } from './SelectorPrestacionesImputadas'
 
 export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, alGuardar, alCerrar }) => {
   const [pacienteId, setPacienteId] = useState('')
+  const { alert: dialogAlert } = useAppDialog()
   const [monto, setMonto] = useState('')
   const [metodoPago, setMetodoPago] = useState(METODOS_PAGO_GOLD[0].id)
   const [tipoDTE, setTipoDTE] = useState(TIPOS_DOCUMENTO_TRIBUTARIO[0].id)
@@ -18,8 +19,11 @@ export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, a
   const [concepto, setConcepto] = useState(CONCEPTOS_PAGO[0])
   const [observacion, setObservacion] = useState('')
 
-  const [prestacionesPaciente, setPrestacionesPaciente] = useState([])
-  const [prestacionesSeleccionadas, setPrestacionesSeleccionadas] = useState([])
+  const {
+    prestacionesPaciente,
+    prestacionesSeleccionadas,
+    handleTogglePrestacion
+  } = usePrestacionesPaciente(pacienteId, pagoEditar)
 
   // Carga inicial en modo edición
   useEffect(() => {
@@ -31,51 +35,27 @@ export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, a
       setFolioDTE(pagoEditar.folioDTE || '')
       setConcepto(pagoEditar.concepto || CONCEPTOS_PAGO[0])
       setObservacion(pagoEditar.observacion || '')
-      setPrestacionesSeleccionadas(pagoEditar.prestacionesImputadas || [])
     }
   }, [pagoEditar])
 
-  // Carga de prestaciones desde el plan de tratamiento del paciente (vía servicio, F2-07a)
-  useEffect(() => {
-    if (!pacienteId) {
-      setPrestacionesPaciente([])
-      return
-    }
-
-    try {
-      const items = presupuestosStorageService.obtenerItemsPorPaciente(pacienteId)
-      if (Array.isArray(items)) {
-        setPrestacionesPaciente(items)
-      } else {
-        setPrestacionesPaciente([])
-      }
-    } catch (e) {
-      log.error(e)
-      setPrestacionesPaciente([])
-    }
-  }, [pacienteId])
-
-  const handleTogglePrestacion = (nombreItem) => {
-    if (prestacionesSeleccionadas.includes(nombreItem)) {
-      setPrestacionesSeleccionadas(prestacionesSeleccionadas.filter(i => i !== nombreItem))
-    } else {
-      setPrestacionesSeleccionadas([...prestacionesSeleccionadas, nombreItem])
-    }
-  }
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const montoLimpio = parseFloat(String(monto).replace(/[^0-9]/g, '')) || 0
 
     if (!pacienteId || montoLimpio <= 0) {
-      alert('Selecciona un paciente e ingresa un monto mayor a $0.')
+      await dialogAlert({
+        title: 'Datos incompletos',
+        description: 'Selecciona un paciente e ingresa un monto mayor a $0.',
+        variant: 'warning',
+        confirmText: 'Entendido'
+      })
       return
     }
 
     const pac = pacientes.find(p => String(p.id) === String(pacienteId))
 
     const pagoFinal = {
-      id: pagoEditar ? pagoEditar.id : Date.now(),
+      id: pagoEditar ? pagoEditar.id : (crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`),
       folioComprobante: pagoEditar ? pagoEditar.folioComprobante : generarFolioRecibo(),
       tipoDTE,
       folioDTE: folioDTE.trim(),
@@ -94,6 +74,14 @@ export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, a
     }
 
     alGuardar(pagoFinal)
+    
+    await dialogAlert({
+      title: pagoEditar ? 'Pago actualizado' : 'Pago registrado',
+      description: `Comprobante ${pagoFinal.folioComprobante} ${pagoEditar ? 'actualizado' : 'registrado'} exitosamente por ${formatearCLP(montoLimpio)}.`,
+      variant: 'success',
+      confirmText: 'Entendido'
+    })
+    
     alCerrar()
   }
 
@@ -101,18 +89,17 @@ export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, a
     <Modal
       isOpen={true}
       onClose={alCerrar}
-      title={pagoEditar ? '✏️ Editar Recibo / Transacción de Pago' : '💳 Registrar Cobro e Imputación de Pago'}
+      title={pagoEditar ? 'Editar Recibo / Transacción de Pago' : 'Registrar Cobro e Imputación de Pago'}
       size="lg"
     >
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="block font-semibold text-gray-700 mb-1">Paciente *</label>
+            <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Paciente *</label>
             <select
               value={pacienteId}
               onChange={(e) => setPacienteId(e.target.value)}
-              required
-              className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-bold"
+              className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-bold"
             >
               <option value="">-- Seleccionar paciente --</option>
               {pacientes.map(p => (
@@ -133,11 +120,11 @@ export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, a
             />
 
             <div>
-              <label className="block font-semibold text-gray-700 mb-1">Método de Pago</label>
+              <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Método de Pago</label>
               <select
                 value={metodoPago}
                 onChange={(e) => setMetodoPago(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-bold"
+                className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-bold"
               >
                 {METODOS_PAGO_GOLD.map(m => (
                   <option key={m.id} value={m.id}>{m.nombre}</option>
@@ -148,11 +135,11 @@ export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, a
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-semibold text-gray-700 mb-1">Tipo de Documento Tributario</label>
+              <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Tipo de Documento Tributario</label>
               <select
                 value={tipoDTE}
                 onChange={(e) => setTipoDTE(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-semibold"
+                className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-semibold"
               >
                 {TIPOS_DOCUMENTO_TRIBUTARIO.map(d => (
                   <option key={d.id} value={d.id}>{d.nombre}</option>
@@ -170,42 +157,21 @@ export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, a
           </div>
 
           <div>
-            <label className="block font-semibold text-gray-700 mb-1">Concepto de Pago</label>
+            <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Concepto de Pago</label>
             <select
               value={concepto}
               onChange={(e) => setConcepto(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-medium"
+              className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-medium"
             >
               {CONCEPTOS_PAGO.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
 
-          {/* Imputación de dinero a prestaciones específicas */}
-          {prestacionesPaciente.length > 0 && (
-            <div className="bg-gray-50 p-3 rounded-xl border space-y-1.5">
-              <label className="block font-bold text-gray-800 uppercase text-[10px]">
-                Imputar Abono a Tratamientos Específicos del Paciente:
-              </label>
-              <div className="space-y-1 max-h-28 overflow-y-auto">
-                {prestacionesPaciente.map(p => {
-                  const labelItem = `${p.prestacion} (${p.pieza}) - $${(parseFloat(p.valor) || 0).toLocaleString('es-CL')}`
-                  const estaCheck = prestacionesSeleccionadas.includes(labelItem)
-
-                  return (
-                    <label key={p.id} className="flex items-center gap-2 p-1.5 bg-white border rounded-lg cursor-pointer hover:bg-gray-100">
-                      <input
-                        type="checkbox"
-                        checked={estaCheck}
-                        onChange={() => handleTogglePrestacion(labelItem)}
-                        className="rounded"
-                      />
-                      <span className="font-semibold text-gray-800">{labelItem}</span>
-                    </label>
-                  )
-                })}
-              </div>
-            </div>
-          )}
+          <SelectorPrestacionesImputadas
+            prestaciones={prestacionesPaciente}
+            seleccionadas={prestacionesSeleccionadas}
+            onToggle={handleTogglePrestacion}
+          />
 
           <Input
             label="Observaciones Internas / N° Operación"

@@ -44,5 +44,9 @@ export const PERMISOS = {
   VER_PAPELERA: 'ver_papelera',
 
   // Vaciar papelera (Feature 1: eliminación permanente)
-  VACIAR_PAPELERA: 'vaciar_papelera'
+  VACIAR_PAPELERA: 'vaciar_papelera',
+
+  // Auditoría financiera de pagos (Commit B)
+  PURGAR_PAGOS: 'purgar_pagos',
+  EXPORTAR_AUDITORIA_PAGOS: 'exportar_auditoria_pagos'
 }

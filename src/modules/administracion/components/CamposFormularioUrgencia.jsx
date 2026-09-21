@@ -6,7 +6,7 @@
 import React from 'react'
 import { VIAS_ADMINISTRACION } from '../schemas/vademecumSchema'
 
-const campoError = (errores, campo) => errores[campo] ? 'border-red-400 bg-red-50' : 'border-gray-300'
+const campoError = (errores, campo) => errores[campo] ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-graphite-600'
 const mensajeError = (errores, campo) => errores[campo] && (
   <p className="text-xs text-red-600 mt-1">{errores[campo]}</p>
 )
@@ -16,7 +16,7 @@ export const CamposFormularioUrgencia = ({ form, errores, esEdicion, handleChang
     <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">Número <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-semibold text-gray-700 dark:text-graphite-300 mb-1">Número <span className="text-red-500">*</span></label>
           <input
             type="number"
             value={form.numero}
@@ -27,7 +27,7 @@ export const CamposFormularioUrgencia = ({ form, errores, esEdicion, handleChang
           {mensajeError(errores, 'numero')}
         </div>
         <div className="md:col-span-2">
-          <label className="block text-sm font-semibold text-gray-700 mb-1">Nombre genérico <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-semibold text-gray-700 dark:text-graphite-300 mb-1">Nombre genérico <span className="text-red-500">*</span></label>
           <input
             type="text"
             value={form.nombre_generico}
@@ -41,17 +41,17 @@ export const CamposFormularioUrgencia = ({ form, errores, esEdicion, handleChang
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">Concentración</label>
+          <label className="block text-sm font-semibold text-gray-700 dark:text-graphite-300 mb-1">Concentración</label>
           <input
             type="text"
             value={form.concentracion}
             onChange={(e) => handleChange('concentracion', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg text-sm"
             placeholder="Ej: 1:1000 (1 mg/ml)"
           />
         </div>
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">Presentación <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-semibold text-gray-700 dark:text-graphite-300 mb-1">Presentación <span className="text-red-500">*</span></label>
           <input
             type="text"
             value={form.presentacion}
@@ -64,7 +64,7 @@ export const CamposFormularioUrgencia = ({ form, errores, esEdicion, handleChang
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-1">Indicación <span className="text-red-500">*</span></label>
+        <label className="block text-sm font-semibold text-gray-700 dark:text-graphite-300 mb-1">Indicación <span className="text-red-500">*</span></label>
         <input
           type="text"
           value={form.indicacion}
@@ -77,27 +77,27 @@ export const CamposFormularioUrgencia = ({ form, errores, esEdicion, handleChang
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">Posología adulto</label>
+          <label className="block text-sm font-semibold text-gray-700 dark:text-graphite-300 mb-1">Posología adulto</label>
           <textarea
             value={form.posologia_adulto}
             onChange={(e) => handleChange('posologia_adulto', e.target.value)}
             rows={2}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg text-sm"
           />
         </div>
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">Posología pediátrica</label>
+          <label className="block text-sm font-semibold text-gray-700 dark:text-graphite-300 mb-1">Posología pediátrica</label>
           <textarea
             value={form.posologia_pediatrica}
             onChange={(e) => handleChange('posologia_pediatrica', e.target.value)}
             rows={2}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg text-sm"
           />
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-1">Vía de administración <span className="text-red-500">*</span></label>
+        <label className="block text-sm font-semibold text-gray-700 dark:text-graphite-300 mb-1">Vía de administración <span className="text-red-500">*</span></label>
         <select
           value={form.via_administracion}
           onChange={(e) => handleChange('via_administracion', e.target.value)}
@@ -110,12 +110,12 @@ export const CamposFormularioUrgencia = ({ form, errores, esEdicion, handleChang
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-1">Advertencias</label>
+        <label className="block text-sm font-semibold text-gray-700 dark:text-graphite-300 mb-1">Advertencias</label>
         <textarea
           value={form.advertencias}
           onChange={(e) => handleChange('advertencias', e.target.value)}
           rows={2}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg text-sm"
           placeholder="Ej: Nunca IV directa a esta concentración"
         />
       </div>

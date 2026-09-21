@@ -1,11 +1,14 @@
 import React, { memo, useState, useEffect } from 'react'
+import { MessageCircle, Monitor, Smartphone, Mail } from 'lucide-react'
 import { Modal } from '../../../components/ui/Modal'
 import { Button } from '../../../components/ui/Button'
 import { CANALES_COMUNICACION } from '../constants/comunicacionesConstants'
 import { interpolarVariablesMensaje, generarLinkWhatsAppWeb, generarLinkWhatsAppApp } from '../utils/comunicacionesCalculations'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 export const ModalEnviarMensaje = memo(({ pacientes = [], plantillas = [], userProfile, alRegistrarEnvio, alCerrar }) => {
   const [pacienteId, setPacienteId] = useState('')
+  const { alert: dialogAlert } = useAppDialog()
   const [plantillaId, setPlantillaId] = useState('')
   const [canal, setCanal] = useState(CANALES_COMUNICACION[0].id)
   const [mensajeTexto, setMensajeTexto] = useState('')
@@ -26,9 +29,14 @@ export const ModalEnviarMensaje = memo(({ pacientes = [], plantillas = [], userP
     }
   }, [plantillaId, pacienteId, plantillas, pacientes, userProfile])
 
-  const handleEnviar = (tipoApertura = 'web') => {
+  const handleEnviar = async (tipoApertura = 'web') => {
     if (!pacienteId || !mensajeTexto) {
-      alert('Selecciona un paciente y redacta o carga un mensaje.')
+      await dialogAlert({
+        title: 'Datos incompletos',
+        description: 'Selecciona un paciente y redacta o carga un mensaje.',
+        variant: 'warning',
+        confirmText: 'Entendido'
+      })
       return
     }
 
@@ -58,23 +66,28 @@ export const ModalEnviarMensaje = memo(({ pacientes = [], plantillas = [], userP
         : generarLinkWhatsAppApp(pac.telefono, mensajeTexto)
       window.open(link, '_blank')
     } else {
-      alert('✅ Mensaje registrado exitosamente en la bitácora.')
+      await dialogAlert({
+        title: 'Mensaje registrado',
+        description: 'Mensaje registrado exitosamente en la bitácora.',
+        variant: 'success',
+        confirmText: 'Entendido'
+      })
     }
 
     alCerrar()
   }
 
   return (
-    <Modal isOpen={true} onClose={alCerrar} title="💬 Transmitir Mensaje / Notificación" size="md">
+    <Modal isOpen={true} onClose={alCerrar} title="Transmitir Mensaje / Notificación" size="md">
       <div className="space-y-3 text-xs">
 
         <div className="space-y-3">
           <div>
-            <label className="block font-semibold text-gray-700 mb-1">Paciente Destinatario *</label>
+            <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Paciente Destinatario *</label>
             <select
               value={pacienteId}
               onChange={(e) => setPacienteId(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-bold"
+              className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-bold"
             >
               <option value="">-- Seleccionar paciente --</option>
               {pacientes.map(p => (
@@ -85,11 +98,11 @@ export const ModalEnviarMensaje = memo(({ pacientes = [], plantillas = [], userP
 
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="block font-semibold text-gray-700 mb-1">Cargar Plantilla</label>
+              <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Cargar Plantilla</label>
               <select
                 value={plantillaId}
                 onChange={(e) => setPlantillaId(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-medium"
+                className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-medium"
               >
                 <option value="">-- Seleccionar --</option>
                 {plantillas.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
@@ -97,11 +110,11 @@ export const ModalEnviarMensaje = memo(({ pacientes = [], plantillas = [], userP
             </div>
 
             <div>
-              <label className="block font-semibold text-gray-700 mb-1">Canal de Envío</label>
+              <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Canal de Envío</label>
               <select
                 value={canal}
                 onChange={(e) => setCanal(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-bold"
+                className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-bold"
               >
                 {CANALES_COMUNICACION.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
               </select>
@@ -109,12 +122,12 @@ export const ModalEnviarMensaje = memo(({ pacientes = [], plantillas = [], userP
           </div>
 
           <div>
-            <label className="block font-semibold text-gray-700 mb-1">Mensaje (Editable / Previsualización en Vivo)</label>
+            <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Mensaje (Editable / Previsualización en Vivo)</label>
             <textarea
               rows="4"
               value={mensajeTexto}
               onChange={(e) => setMensajeTexto(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-gray-300 font-mono text-[11px]"
+              className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 font-mono text-[11px]"
             />
           </div>
 
@@ -135,10 +148,10 @@ export const ModalEnviarMensaje = memo(({ pacientes = [], plantillas = [], userP
                   onClick={() => handleEnviar('web')}
                   variant="primary"
                   fullWidth
-                  className="bg-emerald-700 hover:bg-emerald-800"
+                  className="bg-emerald-700 hover:bg-emerald-800 transition-colors duration-150"
                   title="Abrir en navegador de escritorio"
                 >
-                  💻 WhatsApp Web
+                  <span className="inline-flex items-center gap-1"><Monitor size={14} />WhatsApp Web</span>
                 </Button>
                 <Button
                   type="button"
@@ -147,7 +160,7 @@ export const ModalEnviarMensaje = memo(({ pacientes = [], plantillas = [], userP
                   fullWidth
                   title="Abrir App móvil wa.me"
                 >
-                  📱 App Móvil
+                  <span className="inline-flex items-center gap-1"><Smartphone size={14} />App Móvil</span>
                 </Button>
               </>
             ) : (
@@ -157,7 +170,7 @@ export const ModalEnviarMensaje = memo(({ pacientes = [], plantillas = [], userP
                 variant="primary"
                 fullWidth
               >
-                ✉️ Registrar Envío
+                <span className="inline-flex items-center gap-1"><Mail size={14} />Registrar Envío</span>
               </Button>
             )}
           </div>

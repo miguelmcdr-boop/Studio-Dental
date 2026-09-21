@@ -1,21 +1,35 @@
-import React, { memo, useState } from 'react'
+import React, { memo, useState, useEffect } from 'react'
 import { METODOS_PAGO_GOLD } from './constants/pagosConstants'
 import { usePagos } from './hooks/usePagos'
 import { PagosSummaryCards } from './components/PagosSummaryCards'
 import { TablaHistorialPagos } from './components/TablaHistorialPagos'
 import { ModalNuevoPago } from './components/ModalNuevoPago'
+import { ModalConfirmarPurga } from './components/ModalConfirmarPurga'
 import { ComprobantePagoImprimible } from './components/ComprobantePagoImprimible'
 import { usePacientesStore } from '../../store/pacientesStore'
 import { useSesionStore } from '../../store/sesionStore'
+import { useRBAC } from '../../hooks/useRBAC'
+import { PERMISOS } from '../../constants/rbacConstants'
+import { restaurarPago, limpiarVencidos } from './services/papeleraPagosService'
+import { ModalPapeleraPagos } from './components/ModalPapeleraPagos'
+import { Trash2 } from 'lucide-react'
+import { CreditCard } from 'lucide-react'
+import { Download } from 'lucide-react'
 
 export const PagosModulo = memo(() => {
-  // (F2-02) — pacientes y userProfile ya no llegan como prop desde App.jsx: se leen directo de los stores.
   const pacientes = usePacientesStore((state) => state.pacientes)
   const userProfile = useSesionStore((state) => state.userProfile)
+
+  const { puede } = useRBAC()
+  const puedeExportar = puede(PERMISOS.EXPORTAR_AUDITORIA_PAGOS)
+  const puedePurgar = puede(PERMISOS.PURGAR_PAGOS)
 
   const [modalAbierto, setModalAbierto] = useState(false)
   const [pagoEditar, setPagoEditar] = useState(null)
   const [comprobanteVer, setComprobanteVer] = useState(null)
+  const [pagoAPurgar, setPagoAPurgar] = useState(null)
+  const [modalPapeleraAbierto, setModalPapeleraAbierto] = useState(false)
+  const [tickTabla, setTickTabla] = useState(0)
 
   const {
     pagos,
@@ -26,9 +40,30 @@ export const PagosModulo = memo(() => {
     setMetodoFiltro,
     estadoFiltro,
     setEstadoFiltro,
+    mostrarPurgados,
+    setMostrarPurgados,
     agregarOActualizarPago,
-    anularPago
+    anularPago,
+    purgarPago,
+    exportarAuditoria,
+    refrescarPagos
   } = usePagos()
+
+
+  // Job de limpieza: eliminar pagos purgados con >730 días (Commit K)
+  useEffect(() => {
+    const ejecutarLimpieza = async () => {
+      const eliminados = await limpiarVencidos()
+      if (eliminados > 0) refrescarPagos()
+    }
+    ejecutarLimpieza()
+  }, [refrescarPagos])
+
+  const handlePurgarConfirmado = async (motivo) => {
+    if (!pagoAPurgar) return
+    const ok = await purgarPago(pagoAPurgar.id, motivo)
+    if (ok) setPagoAPurgar(null)
+  }
 
   const handleAbrirNuevo = () => {
     setPagoEditar(null)
@@ -40,20 +75,49 @@ export const PagosModulo = memo(() => {
     setModalAbierto(true)
   }
 
+  const handleAbrirPapelera = () => {
+    setModalPapeleraAbierto(true)
+  }
+
+  const handleRestaurarPago = async (pagoId) => {
+    const ok = await restaurarPago(pagoId)
+    if (ok) refrescarPagos()
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center flex-wrap gap-3 print:hidden">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider">💳 Control de Pagos, Recaudación & DTE</h2>
-          <p className="text-xs text-gray-500">Gestión de ingresos por caja, boletas de honorarios, bonos I-Med e imputación a tratamientos.</p>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-graphite-50 uppercase tracking-wider"><span className="inline-flex items-center gap-1"><CreditCard size={16} />Control de Pagos, Recaudación & DTE</span></h2>
+          <p className="text-xs text-gray-500 dark:text-graphite-400">Gestión de ingresos por caja, boletas de honorarios, bonos I-Med e imputación a tratamientos.</p>
         </div>
 
-        <button
-          onClick={handleAbrirNuevo}
-          className="bg-black text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-gray-800 transition-colors shadow-xs cursor-pointer"
-        >
-          + Registrar Pago / Recibo
-        </button>
+        <div className="flex gap-2 flex-wrap">
+          {puedePurgar && (
+            <button
+              onClick={handleAbrirPapelera}
+              className="bg-gray-100 dark:bg-graphite-800 text-gray-800 dark:text-graphite-100 text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-gray-200 transition-colors border border-gray-300 dark:border-graphite-600 cursor-pointer"
+              title="Ver pagos purgados (papelera)"
+            >
+              <span className="inline-flex items-center gap-1"><Trash2 size={12} />Papelera</span>
+            </button>
+          )}
+          {puedeExportar && (
+            <button
+              onClick={exportarAuditoria}
+              className="bg-gray-100 dark:bg-graphite-800 text-gray-800 dark:text-graphite-100 text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-gray-200 transition-colors border border-gray-300 dark:border-graphite-600 cursor-pointer"
+              title="Exportar todos los pagos (vigentes + anulados) a XLSX"
+            >
+              <span className="inline-flex items-center gap-1"><Download size={14} />Exportar auditoría</span>
+            </button>
+          )}
+          <button
+            onClick={handleAbrirNuevo}
+            className="bg-black text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-gray-800 transition-colors shadow-xs cursor-pointer"
+          >
+            + Registrar Pago / Recibo
+          </button>
+        </div>
       </div>
 
       <div className="print:hidden">
@@ -68,36 +132,46 @@ export const PagosModulo = memo(() => {
         />
       ) : (
         <>
-          <div className="bg-gray-50 p-4 border border-gray-200 rounded-2xl flex justify-between items-center flex-wrap gap-3 text-xs print:hidden">
+          <div className="bg-gray-50 dark:bg-graphite-800 p-4 border border-gray-200 dark:border-graphite-700 rounded-2xl flex justify-between items-center flex-wrap gap-3 text-xsprint:hidden">
             <div className="flex items-center gap-2 w-full sm:w-auto">
-              <span className="font-semibold text-gray-600">Medio:</span>
+              <span className="font-semibold text-gray-600 dark:text-graphite-400">Medio:</span>
               <select
                 value={metodoFiltro}
                 onChange={(e) => setMetodoFiltro(e.target.value)}
-                className="p-2 border rounded-xl bg-white font-semibold flex-1 sm:flex-initial"
+                className="p-2 border rounded-xl bg-white dark:bg-graphite-800 font-semibold flex-1 sm:flex-initial"
               >
                 <option value="Todos">Todos los métodos</option>
                 {METODOS_PAGO_GOLD.map(m => <option key={m.id} value={m.id}>{m.nombre}</option>)}
               </select>
 
-              <span className="font-semibold text-gray-600 ml-2">Estado:</span>
+              <span className="font-semibold text-gray-600 dark:text-graphite-400 ml-2">Estado:</span>
               <select
                 value={estadoFiltro}
                 onChange={(e) => setEstadoFiltro(e.target.value)}
-                className="p-2 border rounded-xl bg-white font-semibold"
+                className="p-2 border rounded-xl bg-white dark:bg-graphite-800 font-semibold"
               >
                 <option value="Todos">Todos</option>
-                <option value="Emitido">🟢 Vigentes</option>
-                <option value="Anulado">🔴 Anulados</option>
+                <option value="Emitido">Vigentes</option>
+                <option value="Anulado">Anulados</option>
               </select>
             </div>
 
+            <label className="flex items-center gap-1.5 font-semibold text-gray-600 dark:text-graphite-400 cursor-pointer ml-2">
+              <input
+                type="checkbox"
+                checked={mostrarPurgados}
+                onChange={(e) => setMostrarPurgados(e.target.checked)}
+                className="rounded"
+              />
+              Mostrar purgados
+            </label>
+
             <input
               type="text"
-              placeholder="🔍 Buscar por recibo, DTE, paciente o RUT..."
+              placeholder="Buscar por recibo, DTE, paciente o RUT..."
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
-              className="p-2 border rounded-xl bg-white w-full sm:w-64"
+              className="p-2 border rounded-xl bg-white dark:bg-graphite-800 w-full sm:w-64"
             />
           </div>
 
@@ -106,6 +180,8 @@ export const PagosModulo = memo(() => {
             onVerComprobante={setComprobanteVer}
             onEditar={handleAbrirEditar}
             onAnular={anularPago}
+            onPurgar={setPagoAPurgar}
+            puedePurgar={puedePurgar}
           />
         </>
       )}
@@ -117,6 +193,22 @@ export const PagosModulo = memo(() => {
           userProfile={userProfile}
           alGuardar={agregarOActualizarPago}
           alCerrar={() => setModalAbierto(false)}
+        />
+      )}
+
+      {pagoAPurgar && (
+        <ModalConfirmarPurga
+          pago={pagoAPurgar}
+          onConfirmar={handlePurgarConfirmado}
+          alCerrar={() => setPagoAPurgar(null)}
+        />
+      )}
+
+      {modalPapeleraAbierto && (
+        <ModalPapeleraPagos
+          alCerrar={() => setModalPapeleraAbierto(false)}
+          onRestaurar={handleRestaurarPago}
+          onAccionCompletada={refrescarPagos}
         />
       )}
     </div>

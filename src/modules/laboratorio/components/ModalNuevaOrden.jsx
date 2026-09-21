@@ -5,9 +5,11 @@ import { Button } from '../../../components/ui/Button'
 import { TIPOS_TRABAJO_SUGERIDOS } from '../constants/laboratorioConstants'
 import { generarCodigoOrdenLab, buscarTarifaSugerida } from '../utils/laboratorioCalculations'
 import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 export const ModalNuevaOrden = memo(({ pacientes = [], laboratorios = [], alGuardar, alCerrar }) => {
   const [pacienteId, setPacienteId] = useState('')
+  const { alert: dialogAlert } = useAppDialog()
   const [laboratorioId, setLaboratorioId] = useState(laboratorios[0]?.id || '')
   const [tipoTrabajo, setTipoTrabajo] = useState('')
   const [piezaDientaria, setPiezaDientaria] = useState('')
@@ -27,14 +29,24 @@ export const ModalNuevaOrden = memo(({ pacientes = [], laboratorios = [], alGuar
     }
   }, [laboratorioId, tipoTrabajo, laboratorios])
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!pacienteId) {
-      alert('Selecciona un paciente para la orden de trabajo.')
+      await dialogAlert({
+        title: 'Paciente requerido',
+        description: 'Selecciona un paciente para la orden de trabajo.',
+        variant: 'warning',
+        confirmText: 'Entendido'
+      })
       return
     }
     if (!tipoTrabajo.trim()) {
-      alert('Ingresa el tipo de trabajo o procedimiento de laboratorio.')
+      await dialogAlert({
+        title: 'Tipo de trabajo requerido',
+        description: 'Ingresa el tipo de trabajo o procedimiento de laboratorio.',
+        variant: 'warning',
+        confirmText: 'Entendido'
+      })
       return
     }
 
@@ -74,12 +86,11 @@ export const ModalNuevaOrden = memo(({ pacientes = [], laboratorios = [], alGuar
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="block font-semibold text-gray-700 mb-1">Seleccionar Paciente *</label>
+            <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Seleccionar Paciente *</label>
             <select
               value={pacienteId}
               onChange={(e) => setPacienteId(e.target.value)}
-              required
-              className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-bold text-sm"
+              className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-bold text-sm"
             >
               <option value="">-- Seleccionar paciente --</option>
               {pacientes.map(p => (
@@ -90,22 +101,21 @@ export const ModalNuevaOrden = memo(({ pacientes = [], laboratorios = [], alGuar
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-semibold text-gray-700 mb-1">Laboratorio Destino</label>
+              <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Laboratorio Destino</label>
               <select
                 value={laboratorioId}
                 onChange={(e) => setLaboratorioId(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-bold text-blue-900"
+                className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-bold text-blue-900"
               >
                 {laboratorios.map(l => <option key={l.id} value={l.id}>{l.nombre}</option>)}
               </select>
             </div>
 
             <div>
-              <label className="block font-semibold text-gray-700 mb-1">Tipo de Prótesis / Trabajo *</label>
+              <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Tipo de Prótesis / Trabajo *</label>
               <Input
                 type="text"
                 list="tipos-trabajo-sugeridos"
-                required
                 placeholder="Escribe o selecciona (Ej: Carilla Feldspática, Prótesis Valplast...)"
                 value={tipoTrabajo}
                 onChange={(e) => setTipoTrabajo(e.target.value)}
@@ -118,7 +128,7 @@ export const ModalNuevaOrden = memo(({ pacientes = [], laboratorios = [], alGuar
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-semibold text-gray-700 mb-1">Pieza Dientaria / Sector</label>
+              <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Pieza Dientaria / Sector</label>
               <Input
                 type="text"
                 placeholder="Ej: Pieza 1.1, Sector 2.1-2.3..."
@@ -128,7 +138,7 @@ export const ModalNuevaOrden = memo(({ pacientes = [], laboratorios = [], alGuar
             </div>
 
             <div>
-              <label className="block font-semibold text-gray-700 mb-1">Color / Guía (Vita)</label>
+              <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Color / Guía (Vita)</label>
               <Input
                 type="text"
                 placeholder="Ej: A2, Bleach 2, C2..."
@@ -140,7 +150,7 @@ export const ModalNuevaOrden = memo(({ pacientes = [], laboratorios = [], alGuar
 
           <div className="grid grid-cols-3 gap-2">
             <div>
-              <label className="block font-semibold text-gray-700 mb-1">Fecha Envío</label>
+              <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Fecha Envío</label>
               <Input
                 type="date"
                 value={fechaEnvio}
@@ -149,7 +159,7 @@ export const ModalNuevaOrden = memo(({ pacientes = [], laboratorios = [], alGuar
             </div>
 
             <div>
-              <label className="block font-semibold text-gray-700 mb-1">Promesa Entrega</label>
+              <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Promesa Entrega</label>
               <Input
                 type="date"
                 value={fechaEntregaPrometida}
@@ -158,7 +168,7 @@ export const ModalNuevaOrden = memo(({ pacientes = [], laboratorios = [], alGuar
             </div>
 
             <div>
-              <label className="block font-semibold text-gray-700 mb-1">Costo Lab ($ CLP)</label>
+              <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Costo Lab ($ CLP)</label>
               <Input
                 type="number"
                 placeholder="Ej: 45000"
@@ -170,13 +180,13 @@ export const ModalNuevaOrden = memo(({ pacientes = [], laboratorios = [], alGuar
           </div>
 
           <div>
-            <label className="block font-semibold text-gray-700 mb-1">Indicaciones Técnicas para el Ceramista</label>
+            <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Indicaciones Técnicas para el Ceramista</label>
             <textarea
               rows="3"
               placeholder="Ej: Chamfer subgingival, perfil de emergencia anatómico, translucidez incisal, enviar prueba de bizcocho..."
               value={indicacionesTecnicas}
               onChange={(e) => setIndicacionesTecnicas(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-gray-300"
+              className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600"
             />
           </div>
 

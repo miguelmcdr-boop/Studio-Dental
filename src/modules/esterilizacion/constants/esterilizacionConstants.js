@@ -18,18 +18,18 @@ export const INDICADORES_QUIMICOS = [
   'Clase 4 (Multivariable - Viraje Correcto)',
   'Clase 5 (Integrador - Viraje Correcto)',
   'Clase 6 (Emulador - Viraje Correcto)',
-  '❌ Fallo de Viraje (Carga No Conforme)'
+  'Fallo de Viraje (Carga No Conforme)'
 ]
 
 export const INDICADORES_BIOLOGICOS = [
-  '🟢 Biológico Negativo (Carga Conforme / Aprobado)',
-  '🔴 Biológico Positivo (Carga Contaminada / RECHAZADO)',
-  '⏳ Pendiente de Lectura (En Incubación 24-48h)'
+  'Biológico Negativo (Carga Conforme / Aprobado)',
+  'Biológico Positivo (Carga Contaminada / RECHAZADO)',
+  'Pendiente de Lectura (En Incubación 24-48h)'
 ]
 
 export const RESULTADOS_BOWIE_DICK = [
-  { id: 'aprobado', nombre: '🟢 Aprobado (Viraje Homogéneo - Pre-vacío OK)' },
-  { id: 'rechazado', nombre: '🔴 Rechazado (Fallo de penetración de vapor / Fuga de aire)' }
+  { id: 'aprobado', nombre: 'Aprobado (Viraje Homogéneo - Pre-vacío OK)' },
+  { id: 'rechazado', nombre: 'Rechazado (Fallo de penetración de vapor / Fuga de aire)' }
 ]
 
 export const CARGAS_DEFAULT = [
@@ -45,7 +45,7 @@ export const CARGAS_DEFAULT = [
     tiempoMinutos: 4,
     responsable: 'Dra. María Paz Silva',
     indicadorQuimico: 'Clase 5 (Integrador - Viraje Correcto)',
-    indicadorBiologico: '🟢 Biológico Negativo (Carga Conforme / Aprobado)',
+    indicadorBiologico: 'Biológico Negativo (Carga Conforme / Aprobado)',
     contenido: '3 Cajas Cirugía Implantes, 5 Kits Operatoria, 10 Mangos Bisturí',
     estado: 'Conforme'
   }
@@ -71,7 +71,7 @@ export const TEST_BOWIE_DICK_DEFAULT = [
     id: 201,
     fecha: '03/08/2026',
     equipo: 'Autoclave 1 - Cristófoli 21L (Box 1)',
-    resultado: '🟢 Aprobado (Viraje Homogéneo - Pre-vacío OK)',
+    resultado: 'Aprobado (Viraje Homogéneo - Pre-vacío OK)',
     operador: 'TENS Esterilización',
     observacion: 'Prueba de penetración de vapor matutina conforme.'
   }

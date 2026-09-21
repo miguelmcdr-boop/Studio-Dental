@@ -67,22 +67,22 @@ export const ModalNuevoItemStock = memo(({ itemEditar, alGuardar, alCerrar }) =>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-semibold text-gray-700 mb-1">Categoría</label>
+              <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Categoría</label>
               <select
                 value={categoria}
                 onChange={(e) => setCategoria(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-medium"
+                className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-medium"
               >
                 {CATEGORIAS_INSUMOS.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
 
             <div>
-              <label className="block font-semibold text-gray-700 mb-1">Unidad de Medida</label>
+              <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Unidad de Medida</label>
               <select
                 value={unidad}
                 onChange={(e) => setUnidad(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-medium"
+                className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-medium"
               >
                 {UNIDADES_MEDIDA.map(u => <option key={u} value={u}>{u}</option>)}
               </select>

@@ -1,4 +1,5 @@
 import React, { memo } from 'react'
+import { CheckCircle2, XCircle, Printer } from 'lucide-react'
 import { formatearFechaHoraChile } from '../utils/urgenciasGesCalculations'
 
 export const DocumentoImpresoGes = memo(({ atencion, userProfile, alCerrar }) => {
@@ -11,13 +12,13 @@ export const DocumentoImpresoGes = memo(({ atencion, userProfile, alCerrar }) =>
         <div className="flex gap-2">
           <button
             onClick={() => window.print()}
-            className="bg-black text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-800"
+            className="bg-black text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-800 transition-colors duration-150"
           >
-            🖨️ Imprimir Constancia GES (PDF)
+            <span className="inline-flex items-center gap-1"><Printer size={14} />Imprimir Constancia GES (PDF)</span>
           </button>
           <button
             onClick={alCerrar}
-            className="bg-gray-200 text-gray-800 px-3 py-2 rounded-xl text-xs font-bold hover:bg-gray-300"
+            className="bg-gray-200 text-gray-800 px-3 py-2 rounded-xl text-xs font-bold hover:bg-gray-300 transition-colors duration-150"
           >
             Cerrar
           </button>
@@ -52,7 +53,7 @@ export const DocumentoImpresoGes = memo(({ atencion, userProfile, alCerrar }) =>
           <h4 className="font-bold text-[11px] uppercase border-b pb-1">2. Confirmación Diagnóstica y Conducta</h4>
           <p><span className="font-bold">Diagnóstico Clínico:</span> {atencion.diagnostico}</p>
           <p><span className="font-bold">Indicaciones / Tratamiento Realizado:</span> {atencion.indicacionesTratamiento || 'Atención sintomática y alivio del dolor.'}</p>
-          <p><span className="font-bold">Estado de Decisión:</span> {atencion.aceptaAtencion ? '✅ Paciente acepta la atención del prestador designado.' : '❌ Paciente rechaza atención o solicita derivación.'}</p>
+          <p><span className="font-bold">Estado de Decisión:</span> {atencion.aceptaAtencion ? <span className='inline-flex items-center gap-1'><CheckCircle2 size={12} className='inline' />Paciente acepta la atención del prestador designado.</span> : <span className='inline-flex items-center gap-1'><XCircle size={12} className='inline' />Paciente rechaza atención o solicita derivación.</span>}</p>
         </div>
 
         <div className="p-4 bg-gray-50 border rounded-xl text-[10px] text-gray-600 text-justify leading-relaxed print:bg-white">

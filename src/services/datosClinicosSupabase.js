@@ -346,7 +346,12 @@ export const guardarCertificado = async (pacienteId, certificado) => {
       paciente_id: pacienteId,
       fecha_emision: normalizarFechaCertificado(certificado.fechaEmision),
       tipo: certificado.tipo || 'asistencia',
-      datos: certificado
+      datos: certificado,
+      // M3: columnas de papelera (incluir SIEMPRE con || null para que
+      // restaurar setee NULL explícitamente en UPDATE)
+      eliminado_at: certificado.eliminadoAt || null,
+      eliminado_por: certificado.eliminadoPor || null,
+      eliminado_motivo: certificado.eliminadoMotivo || null
     }
 
     if (certificado.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(certificado.id)) {

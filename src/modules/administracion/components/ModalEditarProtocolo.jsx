@@ -84,8 +84,8 @@ export const ModalEditarProtocolo = ({ tipo, protocolo, onGuardar, onClose, guar
   }
 
   const titulo = esProfilaxis
-    ? (esEdicion ? '💉 Editar Protocolo de Profilaxis' : '💉 Nuevo Protocolo de Profilaxis')
-    : (esEdicion ? '🩸 Editar Manejo de Anticoagulante' : '🩸 Nuevo Manejo de Anticoagulante')
+    ? (esEdicion ? 'Editar Protocolo de Profilaxis' : 'Nuevo Protocolo de Profilaxis')
+    : (esEdicion ? 'Editar Manejo de Anticoagulante' : 'Nuevo Manejo de Anticoagulante')
 
   return (
     <Modal
@@ -106,8 +106,8 @@ export const ModalEditarProtocolo = ({ tipo, protocolo, onGuardar, onClose, guar
           esProfilaxis ? 'text-cyan-800 dark:text-cyan-200' : 'text-rose-800 dark:text-rose-200'
         }`}>
           {esProfilaxis
-            ? '⚠️ Protocolo de profilaxis de endocarditis — verificar alergias y vía oral'
-            : '⚠️ Manejo de anticoagulantes — verificar INR y riesgo de sangrado'}
+            ? <span className='inline-flex items-center gap-1'><AlertTriangle size={12} />Protocolo de profilaxis de endocarditis — verificar alergias y vía oral</span>
+            : <span className='inline-flex items-center gap-1'><AlertTriangle size={12} />Manejo de anticoagulantes — verificar INR y riesgo de sangrado</span>}
         </p>
       </div>
 
@@ -134,8 +134,8 @@ export const ModalEditarProtocolo = ({ tipo, protocolo, onGuardar, onClose, guar
             type="submit"
             className={`px-6 py-2 text-sm font-semibold text-white rounded-lg disabled:opacity-50 ${
               esProfilaxis
-                ? 'bg-cyan-600 hover:bg-cyan-700'
-                : 'bg-rose-600 hover:bg-rose-700'
+                ? 'bg-cyan-600 hover:bg-cyan-700 transition-colors duration-150'
+                : 'bg-rose-600 hover:bg-rose-700 transition-colors duration-150'
             }`}
             disabled={guardando}
           >

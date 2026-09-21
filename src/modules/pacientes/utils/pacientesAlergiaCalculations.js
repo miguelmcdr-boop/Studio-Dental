@@ -96,8 +96,8 @@ export const generarMensajeDinamico = (familiaAlergia, familiaFarmaco, resultado
   const nota = resultado.nota_clinica ? ' ' + resultado.nota_clinica : ''
   
   const mensaje = resultado.severidad === 'critica'
-    ? '⚠️ ¡ALERTA GRAVE! Reactividad cruzada entre ' + familiaAlergia + ' y ' + familiaFarmaco + porcentaje + '.' + nota
-    : '⚠️ Precaución: posible reactividad cruzada entre ' + familiaAlergia + ' y ' + familiaFarmaco + porcentaje + '.' + nota
+    ? '⚠ ¡ALERTA GRAVE! Reactividad cruzada entre ' + familiaAlergia + ' y ' + familiaFarmaco + porcentaje + '.' + nota
+    : '⚠ Precaución: posible reactividad cruzada entre ' + familiaAlergia + ' y ' + familiaFarmaco + porcentaje + '.' + nota
   
   // Sugerencias por familia (las más comunes)
   const SUGERENCIAS = {
@@ -125,7 +125,7 @@ export const evaluarIncompatibilidadLegacy = (textoMedicamento, alergiasTexto) =
       (medLower.includes('amoxicilina') || medLower.includes('penicilina'))) {
     return {
       tipo: 'critica',
-      mensaje: '⚠️ ¡ALERTA GRAVE! Paciente registrado con alergia a Penicilinas / Betalactámicos.',
+      mensaje: '⚠ ¡ALERTA GRAVE! Paciente registrado con alergia a Penicilinas / Betalactámicos.',
       sugerencia: 'Alternativa segura: Clindamicina 300 mg o Azitromicina 500 mg.'
     }
   }
@@ -134,7 +134,7 @@ export const evaluarIncompatibilidadLegacy = (textoMedicamento, alergiasTexto) =
       (medLower.includes('ibuprofeno') || medLower.includes('ketoprofeno') || medLower.includes('ketorolaco') || medLower.includes('diclofenaco') || medLower.includes('naproxeno'))) {
     return {
       tipo: 'advertencia',
-      mensaje: '⚠️ ¡ALERTA DE ALERGIA! Paciente alérgico a AINEs.',
+      mensaje: '⚠ ¡ALERTA DE ALERGIA! Paciente alérgico a AINEs.',
       sugerencia: 'Alternativa segura: Paracetamol 500 mg / 1 g o Clonixinato de Lisina.'
     }
   }

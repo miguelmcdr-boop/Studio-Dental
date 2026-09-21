@@ -2,11 +2,15 @@
  * ModalNuevaCita — Modal para agendar cita médica
  * Migrado a <Modal> base + CamposFormularioCita (F7-25)
  */
+import { Plus } from 'lucide-react'
 import React, { memo, useState, useMemo } from 'react'
+import { Icon } from '../../../components/Icon'
+import { User, Zap } from 'lucide-react'
 import { SILLONES_DENTALES } from '../constants/agendaConstants'
 import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
 import { Modal } from '../../../components/ui/Modal'
 import { Button } from '../../../components/ui/Button'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 import { CamposFormularioCita } from './CamposFormularioCita'
 
 export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGuardar, alCerrar }) => {
@@ -24,6 +28,7 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
   const [horaInicio, setHoraInicio] = useState('09:00')
   const [duracionMinutos, setDuracionMinutos] = useState(30)
   const [observaciones, setObservaciones] = useState('')
+  const { alert: dialogAlert } = useAppDialog()
 
   const handleSelectPacienteChange = (e) => {
     const pId = e.target.value
@@ -55,11 +60,16 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
     return `${hFin}:${mFin}`
   }, [horaInicio, duracionMinutos])
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
     if (!pacienteNombre.trim()) {
-      alert('⚠️ Por favor selecciona o ingresa un paciente.')
+      await dialogAlert({
+        title: 'Paciente requerido',
+        description: 'Por favor selecciona o ingresa un paciente.',
+        variant: 'warning',
+        confirmText: 'Entendido'
+      })
       return
     }
 
@@ -87,7 +97,7 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
     <Modal
       isOpen={true}
       onClose={alCerrar}
-      title="📅 Agendar Cita Médica"
+      title="Agendar cita médica"
       size="lg"
     >
       <p className="text-[11px] text-graphite-500 dark:text-graphite-400 mb-4">
@@ -107,7 +117,7 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
             !esPacienteExpress ? 'bg-graphite-900 dark:bg-graphite-100 text-white dark:text-graphite-900 shadow-xs' : 'text-gray-600 dark:text-graphite-400 hover:text-graphite-900 dark:hover:text-graphite-100'
           }`}
         >
-          <span>👤</span> Paciente Registrado ({pacientes.length})
+          <Icon icon={User} size="xs" /> Paciente Registrado ({pacientes.length})
         </button>
         <button
           type="button"
@@ -121,7 +131,7 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
             esPacienteExpress ? 'bg-graphite-900 dark:bg-graphite-100 text-white dark:text-graphite-900 shadow-xs' : 'text-gray-600 dark:text-graphite-400 hover:text-graphite-900 dark:hover:text-graphite-100'
           }`}
         >
-          <span>⚡</span> Paciente Nuevo / Express
+          <Icon icon={Zap} size="xs" /> Paciente Nuevo / Express
         </button>
       </div>
 
@@ -166,11 +176,12 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
             Cancelar
           </Button>
           <Button
-            type="submit"
-            variant="primary"
-          >
-            <span>➕</span> Confirmar Cita
-          </Button>
+              type="submit"
+              variant="primary"
+              icon={Plus}
+            >
+              Confirmar cita
+            </Button>
         </div>
       </form>
     </Modal>

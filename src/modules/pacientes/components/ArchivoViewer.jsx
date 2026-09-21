@@ -1,4 +1,6 @@
 import React, { memo, useState, useEffect } from 'react'
+import { Image, FileText, Paperclip } from 'lucide-react'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 /**
  * Grid/lista de archivos clínicos almacenados en R2.
@@ -24,6 +26,7 @@ export const ArchivoViewer = memo(({
 }) => {
   // Estado de archivos con thumbnail en progreso
   const [cargandoThumbnails, setCargandoThumbnails] = useState({})
+  const { confirm } = useAppDialog()
   const textosVacios = {
     foto: 'No hay fotografías clínicas cargadas todavía.',
     rx: 'No hay radiografías cargadas todavía.',
@@ -31,9 +34,9 @@ export const ArchivoViewer = memo(({
   }
 
   const tituloIcono = (archivo) => {
-    if (archivo.mime_type?.startsWith('image/')) return '🖼️'
-    if (archivo.mime_type === 'application/pdf') return '📄'
-    return '📎'
+    if (archivo.mime_type?.startsWith('image/')) return <Image size={16} className='inline' />
+    if (archivo.mime_type === 'application/pdf') return <FileText size={16} className='inline' />
+    return <Paperclip size={16} className='inline' />
   }
 
   const formatearTamano = (bytes) => {
@@ -52,8 +55,13 @@ export const ArchivoViewer = memo(({
     }
   }
 
-  const confirmarEliminar = (archivo) => {
-    const ok = window.confirm(`¿Eliminar "${archivo.nombre_archivo}"? Esta acción no se puede deshacer.`)
+  const confirmarEliminar = async (archivo) => {
+    const ok = await confirm({
+      title: 'Eliminar archivo',
+      description: `¿Eliminar "${archivo.nombre_archivo}"? Esta acción no se puede deshacer.`,
+      variant: 'danger',
+      confirmText: 'Eliminar'
+    })
     if (ok) {
       onEliminar(archivo.id)
     }
@@ -78,7 +86,7 @@ export const ArchivoViewer = memo(({
 
   if (cargando) {
     return (
-      <p className="text-xs text-gray-400 text-center py-8">
+      <p className="text-xs text-gray-400 dark:text-graphite-500 text-center py-8">
         Cargando archivos clínicos…
       </p>
     )
@@ -86,7 +94,7 @@ export const ArchivoViewer = memo(({
 
   if (!archivos || archivos.length === 0) {
     return (
-      <p className="text-xs text-gray-400 text-center py-8">
+      <p className="text-xs text-gray-400 dark:text-graphite-500 text-center py-8">
         {textosVacios[tipoArchivo] || 'No hay archivos cargados todavía.'}
       </p>
     )
@@ -97,9 +105,9 @@ export const ArchivoViewer = memo(({
       {archivos.map((archivo) => (
         <div
           key={archivo.id}
-          className="border rounded-xl overflow-hidden bg-gray-50 hover:shadow-md transition-shadow"
+          className="border rounded-xl overflow-hidden bg-gray-50 dark:bg-graphite-800 hover:shadow-md transition-shadow"
         >
-          <div className="aspect-video bg-gray-100 flex items-center justify-center overflow-hidden">
+          <div className="aspect-video bg-gray-100 dark:bg-graphite-800 flex items-center justify-center overflow-hidden">
             {thumbnails[archivo.id] && archivo.mime_type?.startsWith('image/') ? (
               <img
                 src={thumbnails[archivo.id]}
@@ -117,10 +125,10 @@ export const ArchivoViewer = memo(({
 
           <div className="p-3 space-y-3">
             <div className="min-w-0">
-              <p className="text-xs font-bold text-gray-800 truncate" title={archivo.nombre_archivo}>
+              <p className="text-xs font-bold text-gray-800 dark:text-graphite-100 truncate" title={archivo.nombre_archivo}>
                 {archivo.nombre_archivo}
               </p>
-              <p className="text-[10px] text-gray-400">
+              <p className="text-[10px] text-gray-400 dark:text-graphite-500">
                 {formatearFecha(archivo.created_at)} · {formatearTamano(archivo.tamano_bytes)}
               </p>
             </div>
@@ -146,7 +154,7 @@ export const ArchivoViewer = memo(({
                   <button
                     type="button"
                     onClick={() => onDescargar(archivo.id, archivo.nombre_archivo)}
-                    className="text-xs font-semibold text-gray-700 hover:text-black"
+                    className="text-xs font-semibold text-gray-700 dark:text-graphite-300 hover:text-black"
                     title="Descargar archivo"
                   >
                     Descargar
@@ -157,7 +165,7 @@ export const ArchivoViewer = memo(({
                   <button
                     type="button"
                     onClick={() => confirmarEliminar(archivo)}
-                    className="text-xs font-bold text-gray-400 hover:text-red-600 px-1"
+                    className="text-xs font-bold text-gray-400 dark:text-graphite-500 hover:text-red-600 px-1"
                     title="Eliminar archivo"
                   >
                     ✕

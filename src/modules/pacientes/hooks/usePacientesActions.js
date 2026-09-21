@@ -3,8 +3,10 @@ import { pacientesStorageService } from '../services/pacientesStorageService'
 import { odontogramaStorageService } from '../../odontograma/services/odontogramaStorageService'
 import { presupuestosStorageService } from '../../presupuestos/services/presupuestosStorageService'
 import { pagosStorageService } from '../../pagos/services/pagosStorageService'
+import { eliminarAbonosDePaciente } from '../../pagos/services/pagosAbonosLegacyService'
 import { eliminarTodosPorPaciente as eliminarAdjuntosDelPaciente } from '../../../services/adjuntosStorageService'
 import { createLogger } from '../../../services/logger'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 const log = createLogger('usePacientesActions')
 
@@ -19,6 +21,7 @@ const log = createLogger('usePacientesActions')
  */
 export const usePacientesActions = (pacientes, setPacientes, pacienteSeleccionado, setPacienteSeleccionado) => {
   const [eliminando, setEliminando] = useState(false)
+  const { confirm, alert: dialogAlert } = useAppDialog()
 
   /**
    * F6-F: Soft delete de paciente.
@@ -28,10 +31,12 @@ export const usePacientesActions = (pacientes, setPacientes, pacienteSeleccionad
   const handleEliminarPaciente = async (idPaciente) => {
     if (eliminando) return false
 
-    const confirmado = window.confirm(
-      '¿Estás seguro de eliminar este paciente?\n\n' +
-      'El paciente se archivará y podrá ser restaurado por un administrador.'
-    )
+    const confirmado = await confirm({
+      title: 'Eliminar paciente',
+      description: '¿Estás seguro de eliminar este paciente? El paciente se archivará y podrá ser restaurado por un administrador.',
+      variant: 'danger',
+      confirmText: 'Eliminar'
+    })
 
     if (!confirmado) return false
 
@@ -56,7 +61,7 @@ export const usePacientesActions = (pacientes, setPacientes, pacienteSeleccionad
         odontogramaStorageService.eliminarOdontogramasDePaciente(idPaciente)
         pacientesStorageService.eliminarEvolucionesDePaciente(idPaciente)
         presupuestosStorageService.eliminarItemsDePaciente(idPaciente)
-        pagosStorageService.eliminarAbonosDePaciente(idPaciente)
+        eliminarAbonosDePaciente(idPaciente)
         pacientesStorageService.eliminarRecetasDePaciente(idPaciente)
 
         // Los adjuntos clínicos viven en Supabase Storage + IndexedDB (F6-E).
@@ -69,12 +74,22 @@ export const usePacientesActions = (pacientes, setPacientes, pacienteSeleccionad
         return true
       } else {
         log.error('[F6-F] Error al eliminar paciente (soft delete falló)')
-        alert('No se pudo eliminar el paciente. Intenta de nuevo.')
+        await dialogAlert({
+          title: 'Error al eliminar',
+          description: 'No se pudo eliminar el paciente. Intenta de nuevo.',
+          variant: 'error',
+          confirmText: 'Entendido'
+        })
         return false
       }
     } catch (e) {
       log.error('[F6-F] Excepción al eliminar paciente:', e)
-      alert('Error inesperado al eliminar paciente.')
+      await dialogAlert({
+        title: 'Error inesperado',
+        description: 'Error inesperado al eliminar paciente.',
+        variant: 'error',
+        confirmText: 'Entendido'
+      })
       return false
     } finally {
       setEliminando(false)

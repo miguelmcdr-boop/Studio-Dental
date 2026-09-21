@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { presupuestosStorageService } from '../services/presupuestosStorageService'
 import { calcularResumenPresupuestos } from '../utils/presupuestosCalculations'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 export const usePresupuestos = (pacientes = [], _prestaciones = []) => {
+  const { confirm } = useAppDialog()
   const [presupuestos, setPresupuestos] = useState([])
   const [modalNuevoAbierto, setModalNuevoAbierto] = useState(false)
   const [presupuestoImprimir, setPresupuestoImprimir] = useState(null)
@@ -10,15 +12,12 @@ export const usePresupuestos = (pacientes = [], _prestaciones = []) => {
   const [busqueda, setBusqueda] = useState('')
 
   const cargarPresupuestos = useCallback(() => {
+    // Solo presupuestos formales (creados manualmente desde PresupuestosModulo).
+    // Los consolidados virtuales (PRES-PAC-*) quedan solo en la Ficha Clínica
+    // del paciente, no aparecen en este módulo para evitar confusión
+    // (su estado se calcula desde items del plan, no desde presupuestos formales).
     const creadosDirectos = presupuestosStorageService.obtenerPresupuestos([])
-    const consolidadosPacientes = presupuestosStorageService.consolidarPresupuestosDesdePacientes(pacientes)
-
-    // Fusionar evitando duplicados por ID
-    const mapa = new Map()
-    consolidadosPacientes.forEach(p => mapa.set(String(p.id), p))
-    creadosDirectos.forEach(p => mapa.set(String(p.id), p))
-
-    setPresupuestos(Array.from(mapa.values()))
+    setPresupuestos(creadosDirectos)
   }, [pacientes])
 
   useEffect(() => {
@@ -43,8 +42,14 @@ export const usePresupuestos = (pacientes = [], _prestaciones = []) => {
     cargarPresupuestos()
   }, [cargarPresupuestos])
 
-  const eliminarPresupuesto = useCallback((presupuestoId, pacienteId, items = []) => {
-    if (confirm('¿Estás seguro de eliminar este presupuesto? Se eliminará también del plan de tratamiento del paciente.')) {
+  const eliminarPresupuesto = useCallback(async (presupuestoId, pacienteId, items = []) => {
+    const ok = await confirm({
+      title: 'Eliminar presupuesto',
+      description: '¿Estás seguro de eliminar este presupuesto? Se eliminará también del plan de tratamiento del paciente.',
+      variant: 'danger',
+      confirmText: 'Eliminar'
+    })
+    if (ok) {
       presupuestosStorageService.eliminarPresupuestoYFicha(presupuestoId, pacienteId, items)
       cargarPresupuestos()
     }

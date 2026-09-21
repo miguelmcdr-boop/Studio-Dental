@@ -2,8 +2,10 @@ import { useState, useMemo, useCallback } from 'react'
 import { PLANTILLAS_DEFAULT, MENSAJES_HISTORIAL_DEFAULT } from '../constants/comunicacionesConstants'
 import { comunicacionesStorageService } from '../services/comunicacionesStorageService'
 import { calcularResumenComunicaciones } from '../utils/comunicacionesCalculations'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 export const useComunicaciones = () => {
+  const { confirm } = useAppDialog()
   const [plantillas, setPlantillas] = useState(() => 
     comunicacionesStorageService.obtenerPlantillas(PLANTILLAS_DEFAULT)
   )
@@ -55,8 +57,14 @@ export const useComunicaciones = () => {
     })
   }, [])
 
-  const eliminarRegistroBitacora = useCallback((idRegistro) => {
-    if (window.confirm('¿Estás seguro de eliminar esta entrada de la bitácora?')) {
+  const eliminarRegistroBitacora = useCallback(async (idRegistro) => {
+    const ok = await confirm({
+      title: 'Eliminar entrada',
+      description: '¿Estás seguro de eliminar esta entrada de la bitácora?',
+      variant: 'danger',
+      confirmText: 'Eliminar'
+    })
+    if (ok) {
       setHistorial(prev => {
         const actualizados = prev.filter(m => String(m.id) !== String(idRegistro))
         comunicacionesStorageService.guardarHistorial(actualizados)
@@ -79,17 +87,23 @@ export const useComunicaciones = () => {
       comunicacionesStorageService.guardarPlantillas(actualizadas)
       return actualizadas
     })
-  }, [])
+  }, [confirm])
 
-  const eliminarPlantilla = useCallback((idPlantilla) => {
-    if (window.confirm('¿Deseas eliminar esta plantilla de mensajes?')) {
+  const eliminarPlantilla = useCallback(async (idPlantilla) => {
+    const ok = await confirm({
+      title: 'Eliminar plantilla',
+      description: '¿Deseas eliminar esta plantilla de mensajes?',
+      variant: 'danger',
+      confirmText: 'Eliminar'
+    })
+    if (ok) {
       setPlantillas(prev => {
         const actualizadas = prev.filter(p => String(p.id) !== String(idPlantilla))
         comunicacionesStorageService.guardarPlantillas(actualizadas)
         return actualizadas
       })
     }
-  }, [])
+  }, [confirm])
 
   return {
     plantillas,

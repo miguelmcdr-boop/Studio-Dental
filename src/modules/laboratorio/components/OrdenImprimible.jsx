@@ -1,4 +1,5 @@
 import React, { memo } from 'react'
+import { Printer } from 'lucide-react'
 
 export const OrdenImprimible = memo(({ orden, userProfile, alCerrar }) => {
   if (!orden) return null
@@ -10,13 +11,13 @@ export const OrdenImprimible = memo(({ orden, userProfile, alCerrar }) => {
         <div className="flex gap-2">
           <button
             onClick={() => window.print()}
-            className="bg-black text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-800"
+            className="bg-black text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-800 transition-colors duration-150"
           >
-            🖨️ Imprimir Orden Técnica (PDF)
+            <span className="inline-flex items-center gap-1"><Printer size={14} />Imprimir Orden Técnica (PDF)</span>
           </button>
           <button
             onClick={alCerrar}
-            className="bg-gray-200 text-gray-800 px-3 py-2 rounded-xl text-xs font-bold hover:bg-gray-300"
+            className="bg-gray-200 text-gray-800 px-3 py-2 rounded-xl text-xs font-bold hover:bg-gray-300 transition-colors duration-150"
           >
             Cerrar
           </button>

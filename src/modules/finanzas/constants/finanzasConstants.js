@@ -28,11 +28,11 @@ export const CATEGORIAS_INGRESO = [
 ]
 
 export const METODOS_PAGO_OPCIONES = [
-  { id: 'Efectivo', nombre: '💵 Efectivo', comisionPct: 0 },
-  { id: 'Débito', nombre: '💳 Tarjeta Débito (POS / Transbank)', comisionPct: 1.2 },
-  { id: 'Crédito', nombre: '💳 Tarjeta Crédito (POS / Transbank)', comisionPct: 2.1 },
-  { id: 'Transferencia', nombre: '🏦 Transferencia Bancaria', comisionPct: 0 },
-  { id: 'Cheque', nombre: '📄 Cheque', comisionPct: 0 }
+  { id: 'Efectivo', nombre: 'Efectivo', comisionPct: 0 },
+  { id: 'Débito', nombre: 'Tarjeta Débito (POS / Transbank)', comisionPct: 1.2 },
+  { id: 'Crédito', nombre: 'Tarjeta Crédito (POS / Transbank)', comisionPct: 2.1 },
+  { id: 'Transferencia', nombre: 'Transferencia Bancaria', comisionPct: 0 },
+  { id: 'Cheque', nombre: 'Cheque', comisionPct: 0 }
 ]
 
 export const PORCENTAJE_RETENCION_HONORARIOS_DEFAULT = 13.75

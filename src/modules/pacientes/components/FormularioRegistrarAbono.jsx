@@ -3,8 +3,10 @@
  * Extraído de PresupuestoSection.jsx para cumplir límites arquitectónicos (F7-25)
  */
 import React, { memo } from 'react'
+import { formatearCLP } from '../../../utils/formatoMoneda'
 import { Input } from '../../../components/ui/Input'
 import { Button } from '../../../components/ui/Button'
+import { Trash2 } from 'lucide-react'
 
 export const FormularioRegistrarAbono = memo(({
   abonos,
@@ -44,7 +46,7 @@ export const FormularioRegistrarAbono = memo(({
           </select>
         </div>
 
-        <Button type="submit" variant="primary" size="sm" className="bg-green-700 hover:bg-green-800">
+        <Button type="submit" variant="primary" size="sm" className="bg-green-700 hover:bg-green-800 transition-colors duration-150">
           + Registrar Abono
         </Button>
       </form>
@@ -59,7 +61,7 @@ export const FormularioRegistrarAbono = memo(({
               <div key={a.id} className="flex justify-between items-center bg-gray-50 dark:bg-graphite-900 px-3 py-1.5 rounded-lg border dark:border-graphite-700 text-xs">
                 <span>
                   <strong className="text-graphite-800 dark:text-graphite-100">
-                    ${a.monto.toLocaleString('es-CL')} CLP
+                    {formatearCLP(a.monto)}
                   </strong> — {a.metodoPago} ({a.fecha})
                 </span>
                 <Button
@@ -69,7 +71,7 @@ export const FormularioRegistrarAbono = memo(({
                   className="ml-2 p-1"
                   aria-label="Eliminar abono"
                 >
-                  🗑️ Borrar
+                  <span className="inline-flex items-center gap-1"><Trash2 size={12} />Borrar</span>
                 </Button>
               </div>
             ))}

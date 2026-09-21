@@ -36,7 +36,7 @@ export const ArcadaSuperior = memo(({ periodontoData = {}, setPeriodontoData = (
     <div className="space-y-6">
       {/* Cuadrante 1 */}
       <div>
-        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Cuadrante 1 (1.8 - 1.1)</span>
+        <span className="text-[10px] font-black text-gray-400 dark:text-graphite-500 uppercase tracking-widest block mb-2">Cuadrante 1 (1.8 - 1.1)</span>
         <div className="overflow-x-auto pb-3">
           <div className="flex gap-3 min-w-max">
             {CUADRANTE_1.map(num => (
@@ -54,7 +54,7 @@ export const ArcadaSuperior = memo(({ periodontoData = {}, setPeriodontoData = (
 
       {/* Cuadrante 2 */}
       <div>
-        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Cuadrante 2 (2.1 - 2.8)</span>
+        <span className="text-[10px] font-black text-gray-400 dark:text-graphite-500 uppercase tracking-widest block mb-2">Cuadrante 2 (2.1 - 2.8)</span>
         <div className="overflow-x-auto pb-3">
           <div className="flex gap-3 min-w-max">
             {CUADRANTE_2.map(num => (

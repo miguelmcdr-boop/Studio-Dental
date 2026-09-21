@@ -1,4 +1,7 @@
 import React, { memo, useState } from 'react'
+import { TrendingUp, ClipboardList, Gift } from 'lucide-react'
+import { Icon } from '../../components/Icon'
+import { Tooth } from '../../components/icons/Tooth'
 import { ESPECIALIDADES_ODONTOLOGICAS } from './constants/prestacionesConstants'
 import { usePrestaciones } from './hooks/usePrestaciones'
 import { PrestacionesSummaryCards } from './components/PrestacionesSummaryCards'
@@ -47,8 +50,11 @@ export const PrestacionesModulo = memo(() => {
     <div className="space-y-6">
       <div className="flex justify-between items-center flex-wrap gap-3 print:hidden">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider">🦷 Arancel de Prestaciones & Paquetes Clínicos</h2>
-          <p className="text-xs text-gray-500">Catálogo oficial de procedimientos, convenios y promociones de la clínica.</p>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-graphite-50 uppercase tracking-wider flex items-center gap-2">
+          <Icon icon={Tooth} size="md" />
+          Arancel de Prestaciones & Paquetes Clínicos
+        </h2>
+          <p className="text-xs text-gray-500 dark:text-graphite-400">Catálogo oficial de procedimientos, convenios y promociones de la clínica.</p>
         </div>
 
         <div className="flex gap-2">
@@ -56,9 +62,9 @@ export const PrestacionesModulo = memo(() => {
             <>
               <button
                 onClick={() => setModalReajusteAbierto(true)}
-                className="bg-gray-100 text-gray-800 text-xs font-bold px-3 py-2.5 rounded-xl hover:bg-gray-200 transition-colors border"
+                className="bg-gray-100 dark:bg-graphite-800 text-gray-800 dark:text-graphite-100 text-xs font-bold px-3 py-2.5 rounded-xl hover:bg-gray-200 transition-colors border"
               >
-                📈 Reajuste %
+                <span className="inline-flex items-center gap-1"><TrendingUp size={12} />Reajuste %</span>
               </button>
               <button
                 onClick={handleAbrirNuevo}
@@ -79,31 +85,31 @@ export const PrestacionesModulo = memo(() => {
         <button
           onClick={() => setTabActual('arancel')}
           className={`px-4 py-2 rounded-xl font-bold transition-all ${
-            tabActual === 'arancel' ? 'bg-black text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            tabActual === 'arancel' ? 'bg-black text-white shadow-xs' : 'bg-gray-100 dark:bg-graphite-800 text-gray-600 dark:text-graphite-400 hover:bg-gray-200'
           }`}
         >
-          📋 Arancel General (Particular / Fonasa)
+          <span className="inline-flex items-center gap-1"><ClipboardList size={12} />Arancel General (Particular / Fonasa)</span>
         </button>
 
         <button
           onClick={() => setTabActual('paquetes')}
           className={`px-4 py-2 rounded-xl font-bold transition-all ${
-            tabActual === 'paquetes' ? 'bg-black text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            tabActual === 'paquetes' ? 'bg-black text-white shadow-xs' : 'bg-gray-100 dark:bg-graphite-800 text-gray-600 dark:text-graphite-400 hover:bg-gray-200'
           }`}
         >
-          🎁 Packs y Promociones Clínicas
+          <span className="inline-flex items-center gap-1"><Gift size={12} />Packs y Promociones Clínicas</span>
         </button>
       </div>
 
       {tabActual === 'arancel' && (
         <>
-          <div className="bg-gray-50 p-4 border border-gray-200 rounded-2xl flex justify-between items-center flex-wrap gap-3 text-xs print:hidden">
+          <div className="bg-gray-50 dark:bg-graphite-800 p-4 border border-gray-200 dark:border-graphite-700 rounded-2xl flex justify-between items-center flex-wrap gap-3 text-xs print:hidden">
             <div className="flex items-center gap-2 w-full sm:w-auto">
-              <span className="font-semibold text-gray-600">Especialidad:</span>
+              <span className="font-semibold text-gray-600 dark:text-graphite-400">Especialidad:</span>
               <select
                 value={especialidadFiltro}
                 onChange={(e) => setEspecialidadFiltro(e.target.value)}
-                className="p-2 border rounded-xl bg-white font-semibold flex-1 sm:flex-initial"
+                className="p-2 border rounded-xl bg-white dark:bg-graphite-800 font-semibold flex-1 sm:flex-initial"
               >
                 <option value="Todas">Todas las especialidades</option>
                 {ESPECIALIDADES_ODONTOLOGICAS.map(e => <option key={e} value={e}>{e}</option>)}
@@ -112,10 +118,10 @@ export const PrestacionesModulo = memo(() => {
 
             <input
               type="text"
-              placeholder="🔍 Buscar por procedimiento o código Fonasa..."
+              placeholder="Buscar por procedimiento o código Fonasa..."
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
-              className="p-2 border rounded-xl bg-white w-full sm:w-64"
+              className="p-2 border rounded-xl bg-white dark:bg-graphite-800 w-full sm:w-64"
             />
           </div>
 

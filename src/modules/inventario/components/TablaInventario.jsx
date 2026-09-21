@@ -1,21 +1,22 @@
 import React, { memo } from 'react'
 import { Button } from '../../../components/ui/Button'
 import { evaluarEstadoStock, evaluarVencimiento } from '../utils/inventarioCalculations'
+import { Pencil, Trash2 } from 'lucide-react'
 
 export const TablaInventario = memo(({ items, onAjustarCantidad, onEditar, onEliminar }) => {
   if (items.length === 0) {
     return (
-      <div className="p-10 text-center text-xs text-gray-400 bg-white border border-gray-200 rounded-2xl">
+      <div className="p-10 text-center text-xs text-gray-400 dark:text-graphite-500 bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl">
         No se encontraron insumos de acuerdo a los criterios de búsqueda.
       </div>
     )
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-xs text-xs">
+    <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl overflow-hidden shadow-xs text-xs">
       <table className="w-full text-left border-collapse">
         <thead>
-          <tr className="bg-gray-100 border-b border-gray-200 text-gray-700 font-bold uppercase text-[10px]">
+          <tr className="bg-gray-100 dark:bg-graphite-800 border-b border-gray-200 dark:border-graphite-700 text-gray-700 dark:text-graphite-300 font-bold uppercase text-[10px]">
             <th className="p-3">Insumo / Producto</th>
             <th className="p-3">Categoría</th>
             <th className="p-3 text-center">Stock Actual</th>
@@ -25,24 +26,24 @@ export const TablaInventario = memo(({ items, onAjustarCantidad, onEditar, onEli
             <th className="p-3 text-right print:hidden">Acciones</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody className="divide-y divide-gray-100 dark:divide-graphite-800">
           {items.map((item) => {
             const estadoStock = evaluarEstadoStock(item)
             const estadoVenc = evaluarVencimiento(item.fechaVencimiento)
 
             return (
-              <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                <td className="p-3 font-bold text-gray-900">
+              <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-graphite-700 dark:hover:bg-graphite-700 transition-colors">
+                <td className="p-3 font-bold text-gray-900 dark:text-graphite-50">
                   {item.nombre}
-                  <span className="block text-[10px] font-normal text-gray-500">
+                  <span className="block text-[10px] font-normal text-gray-500 dark:text-graphite-400">
                     Mínimo deseado: {item.minimoCritico} {item.unidad}
                   </span>
                 </td>
 
-                <td className="p-3 font-medium text-gray-600">{item.categoria}</td>
+                <td className="p-3 font-medium text-gray-600 dark:text-graphite-400">{item.categoria}</td>
 
                 <td className="p-3 text-center font-bold">
-                  <div className="inline-flex items-center gap-1.5 bg-gray-50 px-2 py-1 rounded-xl border">
+                  <div className="inline-flex items-center gap-1.5 bg-gray-50 dark:bg-graphite-800 px-2 py-1 rounded-xl border">
                     <Button
                       onClick={() => onAjustarCantidad(item.id, -1)}
                       size="sm"
@@ -74,7 +75,7 @@ export const TablaInventario = memo(({ items, onAjustarCantidad, onEditar, onEli
                 <td className="p-3">
                   <span className={`font-semibold ${
                     estadoVenc.estado === 'vencido' ? 'text-red-600 font-bold' :
-                    estadoVenc.estado === 'por_vencer' ? 'text-amber-600 font-bold' : 'text-gray-600'
+                    estadoVenc.estado === 'por_vencer' ? 'text-amber-600 font-bold' : 'text-gray-600 dark:text-graphite-400'
                   }`}>
                     {item.fechaVencimiento || 'N/I'}
                   </span>
@@ -83,7 +84,7 @@ export const TablaInventario = memo(({ items, onAjustarCantidad, onEditar, onEli
                   )}
                 </td>
 
-                <td className="p-3 text-gray-600">{item.proveedor || 'N/I'}</td>
+                <td className="p-3 text-gray-600 dark:text-graphite-400">{item.proveedor || 'N/I'}</td>
 
                 <td className="p-3 text-right print:hidden space-x-1">
                   <Button
@@ -93,7 +94,7 @@ export const TablaInventario = memo(({ items, onAjustarCantidad, onEditar, onEli
                     className="p-1.5"
                     title="Editar insumo"
                   >
-                    ✏️
+                    <Pencil size={12} />
                   </Button>
                   <Button
                     onClick={() => onEliminar(item.id)}
@@ -102,7 +103,7 @@ export const TablaInventario = memo(({ items, onAjustarCantidad, onEditar, onEli
                     className="p-1.5"
                     title="Eliminar insumo"
                   >
-                    🗑️
+                    <Trash2 size={12} />
                   </Button>
                 </td>
               </tr>

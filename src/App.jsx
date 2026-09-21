@@ -4,6 +4,7 @@ import { Sidebar } from './components/Sidebar'
 import { CargandoModulo } from './components/CargandoModulo'
 import { ErrorBoundary } from './components/ErrorBoundary' // F6-01
 import { ToastContainer } from './components/ToastContainer'
+import { AppDialogProvider } from './components/AppDialogProvider'
 import { TopBar } from './components/TopBar'
 import { usePacientesStore } from './store/pacientesStore'
 import { usePrestacionesStore } from './store/prestacionesStore'
@@ -20,6 +21,9 @@ import { VerificandoCuenta } from './components/VerificandoCuenta'
 import { useInvitacionHash } from './hooks/useInvitacionHash'
 import { useDarkMode } from './hooks/useDarkMode'
 import { useRestaurarPaciente } from './hooks/useRestaurarPaciente'
+import { useSidebarCounters } from './hooks/useSidebarCounters'
+import { useCommandPalette } from './hooks/useCommandPalette'
+import { CommandPalette } from './components/CommandPalette'
 
 // Módulos de uso diario — carga eager (Public API, Constitución v3.0.0)
 import { Agenda as AgendaModulo } from './modules/agenda'
@@ -102,6 +106,29 @@ function App() {
 
   // F4-02e: Restaurar paciente seleccionado desde Supabase al recargar
   useRestaurarPaciente(userProfile, pacienteSeleccionado, setPacienteSeleccionadoState, setActiveSection)
+  // F10-B2.5: contadores para el Sidebar
+  const sidebarCounters = useSidebarCounters()
+  // F10-B4: CommandPalette con ⌘K
+  const commandPalette = useCommandPalette({
+    onNavigate: setActiveSection,
+    onCreateCita: () => setActiveSection('Agenda'),
+    onCreatePaciente: () => setActiveSection('Pacientes'),
+    onCreatePresupuesto: () => setActiveSection('Presupuestos'),
+  })
+
+  // F10-B4: Atajo ⌘K / Ctrl+K para abrir CommandPalette
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        commandPalette.toggle()
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [commandPalette])
+
+
   useDataMigration(userProfile)
 
   // F5-02: activar sincronización en tiempo real
@@ -205,6 +232,7 @@ function App() {
   return (
     <>
       <ToastContainer />
+      <AppDialogProvider />
       <div className="min-h-screen flex flex-col bg-graphite-50 dark:bg-graphite-900 font-sans">
         <TopBar
           userProfile={userProfile}
@@ -213,7 +241,7 @@ function App() {
           onToggleDarkMode={toggleDarkMode}
         />
         <div className="flex flex-1">
-          <Sidebar userProfile={userProfile} activeSection={activeSection} setActiveSection={setActiveSection} onLogout={handleLogout} />
+          <Sidebar userProfile={userProfile} activeSection={activeSection} setActiveSection={setActiveSection} onLogout={handleLogout} counters={sidebarCounters} />
 
           <main className="flex-1 p-8 print:p-0 overflow-x-hidden">
         <Suspense fallback={<CargandoModulo />}>

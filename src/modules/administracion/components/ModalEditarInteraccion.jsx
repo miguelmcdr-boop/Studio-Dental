@@ -60,7 +60,7 @@ export const ModalEditarInteraccion = ({ interaccion, onGuardar, onClose, guarda
     }
   }
 
-  const campoError = (campo) => errores[campo] ? 'border-red-400 bg-red-50' : 'border-gray-300'
+  const campoError = (campo) => errores[campo] ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-graphite-600'
   const mensajeError = (campo) => errores[campo] && (
     <p className="text-xs text-red-600 mt-1">{errores[campo]}</p>
   )
@@ -69,7 +69,7 @@ export const ModalEditarInteraccion = ({ interaccion, onGuardar, onClose, guarda
     <Modal
       isOpen={true}
       onClose={onClose}
-      title={esEdicion ? '⚗️ Editar Interacción Farmacológica' : '⚗️ Nueva Interacción Farmacológica'}
+      title={esEdicion ? 'Editar Interacción Farmacológica' : 'Nueva Interacción Farmacológica'}
       size="lg"
       closeOnOverlayClick={!guardando}
       closeOnEscape={!guardando}
@@ -77,7 +77,7 @@ export const ModalEditarInteraccion = ({ interaccion, onGuardar, onClose, guarda
       {/* Banner distintivo interacciones preservado */}
       <div className="bg-orange-50 dark:bg-orange-900/20 border-b border-orange-200 dark:border-orange-800 px-6 py-3 mb-4 rounded-t-lg">
         <p className="text-sm font-semibold text-orange-800 dark:text-orange-200">
-          ⚠️ Interacción farmacológica — validar severidad con evidencia clínica
+          <span className="inline-flex items-center gap-1"><AlertTriangle size={12} />Interacción farmacológica — validar severidad con evidencia clínica</span>
         </p>
       </div>
 
@@ -102,7 +102,7 @@ export const ModalEditarInteraccion = ({ interaccion, onGuardar, onClose, guarda
               type="submit"
               variant="primary"
               disabled={guardando}
-              className="bg-orange-600 hover:bg-orange-700"
+              className="bg-orange-600 hover:bg-orange-700 transition-colors duration-150"
             >
               {guardando ? 'Guardando...' : (esEdicion ? 'Actualizar' : 'Crear')}
             </Button>

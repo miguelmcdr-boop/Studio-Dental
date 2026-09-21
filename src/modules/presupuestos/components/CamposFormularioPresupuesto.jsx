@@ -3,6 +3,8 @@
  * Extraído de ModalNuevoPresupuesto.jsx para cumplir límites de allowlist (F7-25)
  */
 import React from 'react'
+import { Icon } from '../../../components/Icon'
+import { Tooth } from '../../../components/icons/Tooth'
 import { Input } from '../../../components/ui/Input'
 
 export const CamposFormularioPresupuesto = ({
@@ -38,7 +40,6 @@ export const CamposFormularioPresupuesto = ({
               const pac = pacientes.find(p => String(p.id) === String(e.target.value))
               if (pac?.prevision) setConvenio(pac.prevision)
             }}
-            required
             className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-900 font-bold cursor-pointer dark:text-graphite-100"
           >
             <option value="">-- Seleccionar Paciente --</option>
@@ -67,7 +68,7 @@ export const CamposFormularioPresupuesto = ({
       {hallazgosOdontograma.length > 0 && (
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-3 rounded-xl space-y-1.5">
           <span className="font-bold text-blue-900 dark:text-blue-200 text-[11px] block">
-            🦷 Hallazgos detectados en Odontograma ({hallazgosOdontograma.length}):
+            <span className="flex items-center gap-1.5"><Icon icon={Tooth} size="sm" />Hallazgos detectados en Odontograma</span> ({hallazgosOdontograma.length}):
           </span>
           <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pt-1">
             {hallazgosOdontograma.map((h, idx) => (

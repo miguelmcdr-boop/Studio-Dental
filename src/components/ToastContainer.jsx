@@ -1,4 +1,5 @@
 import React from 'react'
+import { Info, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react'
 import { useNotifications } from '../hooks/useNotifications'
 import { notificationService } from '../services/notificationService'
 
@@ -20,28 +21,28 @@ const CONFIG_POR_TIPO = {
     bg: 'bg-blue-50',
     border: 'border-blue-400',
     text: 'text-blue-900',
-    icon: 'ℹ️',
+    icon: Info,
     iconBg: 'bg-blue-500'
   },
   success: {
     bg: 'bg-green-50',
     border: 'border-green-400',
     text: 'text-green-900',
-    icon: '✅',
+    icon: CheckCircle2,
     iconBg: 'bg-green-500'
   },
   warning: {
     bg: 'bg-yellow-50',
     border: 'border-yellow-400',
     text: 'text-yellow-900',
-    icon: '⚠️',
+    icon: AlertTriangle,
     iconBg: 'bg-yellow-500'
   },
   error: {
     bg: 'bg-red-50',
     border: 'border-red-400',
     text: 'text-red-900',
-    icon: '❌',
+    icon: XCircle,
     iconBg: 'bg-red-500'
   }
 }
@@ -55,7 +56,7 @@ const ToastItem = ({ notificacion }) => {
       role="alert"
       aria-live="polite"
     >
-      <div className="flex-shrink-0 text-xl">{config.icon}</div>
+      <div className="flex-shrink-0">{React.createElement(config.icon, { size: 20, className: config.text })}</div>
       <div className="flex-1 min-w-0">
         {notificacion.titulo && (
           <div className={`font-semibold ${config.text} text-sm mb-1`}>
@@ -69,7 +70,7 @@ const ToastItem = ({ notificacion }) => {
       {notificacion.dismissable && (
         <button
           onClick={() => notificationService.ocultar(notificacion.id)}
-          className={`flex-shrink-0 ${config.text} hover:opacity-70 text-lg leading-none p-1`}
+          className={`flex-shrink-0 ${config.text} hover:opacity-70 text-lg leading-none p-1 transition-opacity duration-150`}
           aria-label="Cerrar notificación"
           title="Cerrar"
         >

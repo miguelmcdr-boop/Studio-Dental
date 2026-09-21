@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { inventarioStorageService } from '../services/inventarioStorageService'
 import { INSUMOS_POR_PRESTACION_DEFAULT, PALABRAS_CLAVE_POR_CATEGORIA_DEFAULT } from '../utils/inventarioCalculations'
 import { createLogger } from '../../../services/logger.js'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 const log = createLogger('useAsociaciones')
 const STORAGE_KEY_PALABRAS_CLAVE = 'studio_dental_inventario_palabras_clave'
@@ -82,8 +83,14 @@ export function useAsociaciones(items) {
     setMostrarInputNuevaCategoria(false)
   }
 
-  const handleEliminarCategoria = (categoria) => {
-    if (!window.confirm(`¿Eliminar la categoría "${categoria}" y todas sus asociaciones?`)) return
+  const handleEliminarCategoria = async (categoria) => {
+    const ok = await confirm({
+      title: 'Eliminar categoría',
+      description: `¿Eliminar la categoría "${categoria}" y todas sus asociaciones?`,
+      variant: 'warning',
+      confirmText: 'Eliminar categoría'
+    })
+    if (!ok) return
     const nuevasAsociaciones = { ...asociaciones }
     delete nuevasAsociaciones[categoria]
     guardarAsociaciones(nuevasAsociaciones)

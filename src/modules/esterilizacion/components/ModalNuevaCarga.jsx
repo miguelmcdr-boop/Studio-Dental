@@ -4,9 +4,11 @@ import { Input } from '../../../components/ui/Input'
 import { Button } from '../../../components/ui/Button'
 import { EQUIPOS_AUTOCLAVE, PROGRAMAS_ESTERILIZACION, INDICADORES_QUIMICOS, INDICADORES_BIOLOGICOS } from '../constants/esterilizacionConstants'
 import { generarCodigoLoteEsterilizacion } from '../utils/esterilizacionCalculations'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 export const ModalNuevaCarga = memo(({ userProfile, alGuardar, alCerrar }) => {
   const [equipo, setEquipo] = useState(EQUIPOS_AUTOCLAVE[0])
+  const { alert: dialogAlert } = useAppDialog()
   const [programaId, setProgramaId] = useState(PROGRAMAS_ESTERILIZACION[0].id)
   const [temperatura, setTemperatura] = useState(134)
   const [presion, setPresion] = useState(2.1)
@@ -26,10 +28,15 @@ export const ModalNuevaCarga = memo(({ userProfile, alGuardar, alCerrar }) => {
     }
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!contenido.trim()) {
-      alert('Ingresa el contenido o paquetes esterilizados en la carga.')
+      await dialogAlert({
+        title: 'Contenido requerido',
+        description: 'Ingresa el contenido o paquetes esterilizados en la carga.',
+        variant: 'warning',
+        confirmText: 'Entendido'
+      })
       return
     }
 
@@ -66,22 +73,22 @@ export const ModalNuevaCarga = memo(({ userProfile, alGuardar, alCerrar }) => {
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="block font-semibold text-gray-700 mb-1">Equipo Autoclave *</label>
+            <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Equipo Autoclave *</label>
             <select
               value={equipo}
               onChange={(e) => setEquipo(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-bold"
+              className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-bold"
             >
               {EQUIPOS_AUTOCLAVE.map(eq => <option key={eq} value={eq}>{eq}</option>)}
             </select>
           </div>
 
           <div>
-            <label className="block font-semibold text-gray-700 mb-1">Programa Seleccionado</label>
+            <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Programa Seleccionado</label>
             <select
               value={programaId}
               onChange={(e) => handleProgramaChange(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-semibold"
+              className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-semibold"
             >
               {PROGRAMAS_ESTERILIZACION.map(pr => <option key={pr.id} value={pr.id}>{pr.nombre}</option>)}
             </select>
@@ -110,34 +117,34 @@ export const ModalNuevaCarga = memo(({ userProfile, alGuardar, alCerrar }) => {
           </div>
 
           <div>
-            <label className="block font-semibold text-gray-700 mb-1">Contenido de la Carga / Instrumental *</label>
+            <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Contenido de la Carga / Instrumental *</label>
             <textarea
               rows="2"
               placeholder="Ej: 5 Cajas Cirugía, 8 Kits Exploración, 4 Mangos Bisturí..."
               value={contenido}
               onChange={(e) => setContenido(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-gray-300 font-medium"
+              className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 font-medium"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-semibold text-gray-700 mb-1">Indicador Químico</label>
+              <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Indicador Químico</label>
               <select
                 value={indicadorQuimico}
                 onChange={(e) => setIndicadorQuimico(e.target.value)}
-                className="w-full p-2 rounded-xl border border-gray-300 bg-white"
+                className="w-full p-2 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800"
               >
                 {INDICADORES_QUIMICOS.map(iq => <option key={iq} value={iq}>{iq}</option>)}
               </select>
             </div>
 
             <div>
-              <label className="block font-semibold text-gray-700 mb-1">Indicador Biológico</label>
+              <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Indicador Biológico</label>
               <select
                 value={indicadorBiologico}
                 onChange={(e) => setIndicadorBiologico(e.target.value)}
-                className="w-full p-2 rounded-xl border border-gray-300 bg-white"
+                className="w-full p-2 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800"
               >
                 {INDICADORES_BIOLOGICOS.map(ib => <option key={ib} value={ib}>{ib}</option>)}
               </select>

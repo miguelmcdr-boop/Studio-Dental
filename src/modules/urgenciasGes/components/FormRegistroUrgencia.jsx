@@ -1,18 +1,30 @@
 import React, { memo, useState } from 'react'
+import { FileText } from 'lucide-react'
+import { Button } from '../../../components/ui/Button'
 import { PATOLOGIAS_GES_ODONTO, DIAGNOSTICOS_URGENCIA_COMMON, CATEGORIAS_TRIAGE_URGENCIA } from '../constants/urgenciasGesConstants'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 export const FormRegistroGes = memo(({ pacientes = [], alRegistrar }) => {
   const [pacienteId, setPacienteId] = useState('')
+  const { alert: dialogAlert } = useAppDialog()
   const [triage, setTriage] = useState(CATEGORIAS_TRIAGE_URGENCIA[1].id)
   const [patologiaGes, setPatologiaGes] = useState(PATOLOGIAS_GES_ODONTO[0].id)
   const [diagnostico, setDiagnostico] = useState(DIAGNOSTICOS_URGENCIA_COMMON[0])
   const [indicacionesTratamiento, setIndicacionesTratamiento] = useState('')
+  const [enviando, setEnviando] = useState(false)
   const [aceptaAtencion, setAceptaAtencion] = useState(true)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    setEnviando(true)
+    try {
     if (!pacienteId) {
-      alert('Por favor selecciona un paciente de la lista.')
+      await dialogAlert({
+        title: 'Paciente requerido',
+        description: 'Por favor selecciona un paciente de la lista.',
+        variant: 'warning',
+        confirmText: 'Entendido'
+      })
       return
     }
 
@@ -36,28 +48,35 @@ export const FormRegistroGes = memo(({ pacientes = [], alRegistrar }) => {
     }
 
     alRegistrar(registro)
-    alert('✅ Registro de Urgencia y Constancia GES generado exitosamente.')
+    await dialogAlert({
+      title: 'Registro GES generado',
+      description: 'Registro de Urgencia y Constancia GES generado exitosamente.',
+      variant: 'success',
+      confirmText: 'Entendido'
+    })
+    } finally {
+      setEnviando(false)
+    }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-4 text-xs">
+    <form onSubmit={handleSubmit} className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-6 shadow-xs space-y-4 text-xs">
       <div className="border-b pb-2">
-        <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider">
-          📄 Registro de Atención de Urgencia & Constancia GES / AUGE
+        <h3 className="font-bold text-sm text-gray-900 dark:text-graphite-50 uppercase tracking-wider inline-flex items-center gap-2">
+          <FileText size={16} />Registro de Atención de Urgencia & Constancia GES / AUGE
         </h3>
-        <p className="text-gray-500 text-[11px]">
+        <p className="text-gray-500 dark:text-graphite-400 text-[11px]">
           Categorización Triage y notificación obligatoria de confirmación diagnóstica (Ley 19.966).
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <label className="block font-semibold text-gray-700 mb-1">Seleccionar Paciente *</label>
+          <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Seleccionar Paciente *</label>
           <select
             value={pacienteId}
             onChange={(e) => setPacienteId(e.target.value)}
-            required
-            className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-bold"
+            className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-bold"
           >
             <option value="">-- Seleccionar paciente --</option>
             {pacientes.map(p => (
@@ -67,11 +86,11 @@ export const FormRegistroGes = memo(({ pacientes = [], alRegistrar }) => {
         </div>
 
         <div>
-          <label className="block font-semibold text-gray-700 mb-1">Categorización Triage Urgencia</label>
+          <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Categorización Triage Urgencia</label>
           <select
             value={triage}
             onChange={(e) => setTriage(e.target.value)}
-            className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-bold text-gray-800"
+            className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-bold text-gray-800 dark:text-graphite-100"
           >
             {CATEGORIAS_TRIAGE_URGENCIA.map(t => (
               <option key={t.id} value={t.id}>{t.nombre}</option>
@@ -80,11 +99,11 @@ export const FormRegistroGes = memo(({ pacientes = [], alRegistrar }) => {
         </div>
 
         <div>
-          <label className="block font-semibold text-gray-700 mb-1">Problema de Salud GES / AUGE *</label>
+          <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Problema de Salud GES / AUGE *</label>
           <select
             value={patologiaGes}
             onChange={(e) => setPatologiaGes(e.target.value)}
-            className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-bold text-blue-900"
+            className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-bold text-blue-900"
           >
             {PATOLOGIAS_GES_ODONTO.map(p => (
               <option key={p.id} value={p.id}>[{p.codigo}] {p.nombre}</option>
@@ -95,11 +114,11 @@ export const FormRegistroGes = memo(({ pacientes = [], alRegistrar }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block font-semibold text-gray-700 mb-1">Diagnóstico Clínico (CIE-10)</label>
+          <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Diagnóstico Clínico (CIE-10)</label>
           <select
             value={diagnostico}
             onChange={(e) => setDiagnostico(e.target.value)}
-            className="w-full p-2.5 rounded-xl border border-gray-300 bg-white"
+            className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800"
           >
             {DIAGNOSTICOS_URGENCIA_COMMON.map(d => (
               <option key={d} value={d}>{d}</option>
@@ -108,7 +127,7 @@ export const FormRegistroGes = memo(({ pacientes = [], alRegistrar }) => {
         </div>
 
         <div>
-          <label className="block font-semibold text-gray-700 mb-1">Decisión del Paciente</label>
+          <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Decisión del Paciente</label>
           <div className="flex gap-4 pt-2">
             <label className="flex items-center gap-2 font-bold text-emerald-800 cursor-pointer">
               <input
@@ -133,22 +152,26 @@ export const FormRegistroGes = memo(({ pacientes = [], alRegistrar }) => {
       </div>
 
       <div>
-        <label className="block font-semibold text-gray-700 mb-1">Indicaciones Clínicas / Conducta Inmediata</label>
+        <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Indicaciones Clínicas / Conducta Inmediata</label>
         <textarea
           rows="2"
           placeholder="Ej: Se realiza trepanación y alivio de oclusión en pieza 1.6, indicación de farmacoterapia analgésica/antibiótica..."
           value={indicacionesTratamiento}
           onChange={(e) => setIndicacionesTratamiento(e.target.value)}
-          className="w-full p-2.5 rounded-xl border border-gray-300"
+          className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600"
         />
       </div>
 
-      <button
+      <Button
         type="submit"
-        className="w-full bg-black text-white font-bold py-2.5 rounded-xl hover:bg-gray-800 transition-colors cursor-pointer shadow-xs"
+        variant="primary"
+        fullWidth
+        icon={FileText}
+        loading={enviando}
+        disabled={enviando}
       >
-        📄 Generar y Emitir Constancia GES
-      </button>
+        {enviando ? 'Emitiendo Constancia...' : 'Generar y Emitir Constancia GES'}
+      </Button>
     </form>
   )
 })

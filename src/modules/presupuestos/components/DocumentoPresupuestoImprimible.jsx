@@ -2,6 +2,7 @@ import React, { memo, useEffect, useState } from 'react'
 import { DienteSVG } from '../../../components/DienteSVG'
 import { odontogramaStorageService } from '../../odontograma'
 import { createLogger } from '../../../services/logger.js'
+import { Printer } from 'lucide-react'
 
 const log = createLogger('DocumentoPresupuestoImprimible')
 
@@ -48,7 +49,7 @@ export const DocumentoPresupuestoImprimible = memo(({ presupuesto, userProfile, 
           onClick={() => window.print()}
           className="bg-black text-white text-xs font-bold px-5 py-2.5 rounded-xl hover:bg-gray-800 transition-colors shadow-xs cursor-pointer flex items-center gap-2"
         >
-          🖨️ Imprimir Presupuesto (Letter)
+          <span className="inline-flex items-center gap-1"><Printer size={14} />Imprimir Presupuesto (Letter)</span>
         </button>
       </div>
 

@@ -1,5 +1,6 @@
 import React, { memo } from 'react'
 import { TEMPORAL_SUPERIOR, TEMPORAL_INFERIOR, CARAS_OLEARY } from '../constants/pediatriaConstants'
+import { BarChart3 } from 'lucide-react'
 
 export const IndiceOLeary = memo(({ mapaOleary, porcentaje, piezasPresentes, onToggleCara, onCambiarPiezasPresentes }) => {
   const getSemaforoColor = (pct) => {
@@ -11,8 +12,8 @@ export const IndiceOLeary = memo(({ mapaOleary, porcentaje, piezasPresentes, onT
   const renderFilaPiezas = (piezas) => (
     <div className="flex flex-wrap gap-2 justify-center">
       {piezas.map(piezaId => (
-        <div key={piezaId} className="border rounded-xl p-2 bg-white text-center w-16 shadow-2xs">
-          <span className="font-bold text-[11px] block border-b pb-0.5 mb-1 text-gray-800">P.{piezaId}</span>
+        <div key={piezaId} className="border rounded-xl p-2 bg-white dark:bg-graphite-800 text-center w-16 shadow-2xs">
+          <span className="font-bold text-[11px] block border-b pb-0.5 mb-1 text-gray-800 dark:text-graphite-100">P.{piezaId}</span>
           <div className="grid grid-cols-2 gap-1 text-[8px]">
             {CARAS_OLEARY.map(cara => {
               const activa = !!mapaOleary?.[piezaId]?.[cara]
@@ -22,7 +23,7 @@ export const IndiceOLeary = memo(({ mapaOleary, porcentaje, piezasPresentes, onT
                   type="button"
                   onClick={() => onToggleCara(piezaId, cara)}
                   className={`h-4 rounded font-bold uppercase transition-colors cursor-pointer ${
-                    activa ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                    activa ? 'bg-red-600 text-white' : 'bg-gray-100 dark:bg-graphite-800 text-gray-400 dark:text-graphite-500 hover:bg-gray-200'
                   }`}
                   title={`${cara.toUpperCase()} (Pieza ${piezaId})`}
                 >
@@ -37,18 +38,18 @@ export const IndiceOLeary = memo(({ mapaOleary, porcentaje, piezasPresentes, onT
   )
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-6">
+    <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-6 shadow-xs space-y-6">
       <div className="flex justify-between items-center border-b pb-3 flex-wrap gap-2">
         <div>
-          <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider">
-            📊 Control de Higiene e Índice de Placa de O'Leary
+          <h3 className="font-bold text-sm text-gray-900 dark:text-graphite-50 uppercase tracking-wider">
+            <span className="inline-flex items-center gap-1"><BarChart3 size={14} />Control de Higiene e Índice de Placa de O'Leary</span>
           </h3>
-          <p className="text-gray-500 text-[11px]">Marca las caras teñidas con revelador de placa (Mesial, Vestibular, Distal, Palatino/Lingual).</p>
+          <p className="text-gray-500 dark:text-graphite-400 text-[11px]">Marca las caras teñidas con revelador de placa (Mesial, Vestibular, Distal, Palatino/Lingual).</p>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5">
-            <span className="text-xs font-bold text-gray-600">Piezas evaluadas:</span>
+            <span className="text-xs font-bold text-gray-600 dark:text-graphite-400">Piezas evaluadas:</span>
             <input
               type="number"
               min="1"
@@ -68,12 +69,12 @@ export const IndiceOLeary = memo(({ mapaOleary, porcentaje, piezasPresentes, onT
 
       <div className="space-y-4 overflow-x-auto">
         <div>
-          <h4 className="text-[10px] font-bold text-gray-500 uppercase mb-2 text-center">Arcada Temporal Superior</h4>
+          <h4 className="text-[10px] font-bold text-gray-500 dark:text-graphite-400 uppercase mb-2 text-center">Arcada Temporal Superior</h4>
           {renderFilaPiezas(TEMPORAL_SUPERIOR)}
         </div>
 
         <div>
-          <h4 className="text-[10px] font-bold text-gray-500 uppercase mb-2 text-center">Arcada Temporal Inferior</h4>
+          <h4 className="text-[10px] font-bold text-gray-500 dark:text-graphite-400 uppercase mb-2 text-center">Arcada Temporal Inferior</h4>
           {renderFilaPiezas(TEMPORAL_INFERIOR)}
         </div>
       </div>

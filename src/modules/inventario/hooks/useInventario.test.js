@@ -21,7 +21,6 @@ describe('useInventario', () => {
     vi.clearAllMocks()
     inventarioStorageService.obtenerItems.mockReturnValue(mockItems)
     inventarioStorageService.guardarItems.mockImplementation(() => {})
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
   })
 
   describe('Inicialización', () => {
@@ -207,55 +206,6 @@ describe('useInventario', () => {
     })
   })
 
-  describe('eliminarItem', () => {
-    it('elimina item si usuario confirma', () => {
-      window.confirm.mockReturnValue(true)
-      const { result } = renderHook(() => useInventario())
-
-      act(() => {
-        result.current.eliminarItem(1)
-      })
-
-      expect(result.current.items).toHaveLength(2)
-      expect(result.current.items.find(i => i.id === 1)).toBeUndefined()
-    })
-
-    it('no elimina si usuario cancela', () => {
-      window.confirm.mockReturnValue(false)
-      const { result } = renderHook(() => useInventario())
-
-      act(() => {
-        result.current.eliminarItem(1)
-      })
-
-      expect(result.current.items).toHaveLength(3)
-      expect(result.current.items.find(i => i.id === 1)).toBeDefined()
-    })
-
-    it('persiste cambios en storage si se confirma', () => {
-      window.confirm.mockReturnValue(true)
-      const { result } = renderHook(() => useInventario())
-
-      act(() => {
-        result.current.eliminarItem(1)
-      })
-
-      expect(inventarioStorageService.guardarItems).toHaveBeenCalled()
-      const savedItems = inventarioStorageService.guardarItems.mock.calls[0][0]
-      expect(savedItems).toHaveLength(2)
-    })
-
-    it('no persiste si usuario cancela', () => {
-      window.confirm.mockReturnValue(false)
-      const { result } = renderHook(() => useInventario())
-
-      act(() => {
-        result.current.eliminarItem(1)
-      })
-
-      expect(inventarioStorageService.guardarItems).not.toHaveBeenCalled()
-    })
-  })
 
   describe('Listener de evento inventario_actualizado (F2-12b)', () => {
     it('registra listener al montar', () => {

@@ -1,7 +1,10 @@
 import React, { memo, useState } from 'react'
+import { ClipboardList, FileText } from 'lucide-react'
+import { Bed } from 'lucide-react'
 import { Input } from '../../../components/ui/Input'
 import { Button } from '../../../components/ui/Button'
 import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 /**
  * Formulario para emitir nuevo certificado médico (F6-D-6 refactor)
@@ -14,6 +17,7 @@ import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
  */
 export const FormularioNuevoCertificado = memo(({ userProfile, onGenerarCertificado }) => {
   const [tipoCertificado, setTipoCertificado] = useState('asistencia')
+  const { alert: dialogAlert } = useAppDialog()
   const [fechaAtencion, setFechaAtencion] = useState(obtenerFechaLocalISO())
   const [horaInicio, setHoraInicio] = useState('10:00')
   const [horaFin, setHoraFin] = useState('11:00')
@@ -21,10 +25,15 @@ export const FormularioNuevoCertificado = memo(({ userProfile, onGenerarCertific
   const [diagnosticoMotivo, setDiagnosticoMotivo] = useState('')
   const [observaciones, setObservaciones] = useState('')
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!diagnosticoMotivo) {
-      alert('Por favor ingresa el motivo o diagnóstico de la atención.')
+      await dialogAlert({
+        title: 'Motivo requerido',
+        description: 'Por favor ingresa el motivo o diagnóstico de la atención.',
+        variant: 'warning',
+        confirmText: 'Entendido'
+      })
       return
     }
 
@@ -49,8 +58,8 @@ export const FormularioNuevoCertificado = memo(({ userProfile, onGenerarCertific
   }
 
   return (
-    <div className="bg-gray-50 p-5 border border-gray-200 rounded-2xl print:hidden">
-      <h4 className="font-bold text-xs text-gray-800 mb-4 uppercase tracking-wider">Emitir Nuevo Certificado / Constancia Médica</h4>
+    <div className="bg-gray-50 dark:bg-graphite-800 p-5 border border-gray-200 dark:border-graphite-700 rounded-2xl print:hidden">
+      <h4 className="font-bold text-xs text-gray-800 dark:text-graphite-100 mb-4 uppercase tracking-wider">Emitir Nuevo Certificado / Constancia Médica</h4>
       
       <form onSubmit={handleSubmit} className="space-y-4 text-xs">
         <div className="flex gap-4">
@@ -62,7 +71,7 @@ export const FormularioNuevoCertificado = memo(({ userProfile, onGenerarCertific
             onChange={() => setTipoCertificado('asistencia')}
             className="accent-black"
           />
-          <span className="font-bold">📋 Certificado de Asistencia</span>
+          <span className="font-bold inline-flex items-center gap-1"><ClipboardList size={12} />Certificado de Asistencia</span>
           <Input
             type="radio"
             name="tipoCert"
@@ -71,12 +80,12 @@ export const FormularioNuevoCertificado = memo(({ userProfile, onGenerarCertific
             onChange={() => setTipoCertificado('reposo')}
             className="accent-black"
           />
-          <span className="font-bold">🛌 Certificado de Reposo / Licencia Médica</span>
+          <span className="font-bold"><span className="inline-flex items-center gap-1"><Bed size={14} />Certificado de Reposo / Licencia Médica</span></span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div>
-            <label className="block text-gray-600 mb-1 font-semibold">Fecha de Atención</label>
+            <label className="block text-gray-600 dark:text-graphite-400 mb-1 font-semibold">Fecha de Atención</label>
             <Input
               type="date"
               value={fechaAtencion}
@@ -87,7 +96,7 @@ export const FormularioNuevoCertificado = memo(({ userProfile, onGenerarCertific
           {tipoCertificado === 'asistencia' ? (
             <>
               <div>
-                <label className="block text-gray-600 mb-1 font-semibold">Hora Inicio</label>
+                <label className="block text-gray-600 dark:text-graphite-400 mb-1 font-semibold">Hora Inicio</label>
                 <Input
                   type="time"
                   value={horaInicio}
@@ -95,7 +104,7 @@ export const FormularioNuevoCertificado = memo(({ userProfile, onGenerarCertific
                 />
               </div>
               <div>
-                <label className="block text-gray-600 mb-1 font-semibold">Hora Término</label>
+                <label className="block text-gray-600 dark:text-graphite-400 mb-1 font-semibold">Hora Término</label>
                 <Input
                   type="time"
                   value={horaFin}
@@ -105,7 +114,7 @@ export const FormularioNuevoCertificado = memo(({ userProfile, onGenerarCertific
             </>
           ) : (
             <div>
-              <label className="block text-gray-600 mb-1 font-semibold">Días de Reposo Indicados</label>
+              <label className="block text-gray-600 dark:text-graphite-400 mb-1 font-semibold">Días de Reposo Indicados</label>
               <Input
                 type="number"
                 min="1"
@@ -118,7 +127,7 @@ export const FormularioNuevoCertificado = memo(({ userProfile, onGenerarCertific
         </div>
 
         <div>
-          <label className="block text-gray-600 mb-1 font-semibold">
+          <label className="block text-gray-600 dark:text-graphite-400 mb-1 font-semibold">
             {tipoCertificado === 'asistencia' ? 'Procedimiento / Atención Realizada' : 'Diagnóstico Clínico / Causa del Reposo'}
           </label>
           <Input
@@ -130,7 +139,7 @@ export const FormularioNuevoCertificado = memo(({ userProfile, onGenerarCertific
         </div>
 
         <div>
-          <label className="block text-gray-600 mb-1 font-semibold">Observaciones o Indicaciones Adicionales (Opcional)</label>
+          <label className="block text-gray-600 dark:text-graphite-400 mb-1 font-semibold">Observaciones o Indicaciones Adicionales (Opcional)</label>
           <Input
             type="text"
             placeholder="Ej: Se sugiere no realizar actividad física intensa por 48 hrs."
@@ -141,7 +150,7 @@ export const FormularioNuevoCertificado = memo(({ userProfile, onGenerarCertific
 
         <div className="flex justify-end">
           <Button type="submit" variant="primary">
-            📄 Generar y Guardar Certificado
+            <span className="inline-flex items-center gap-1"><FileText size={14} />Generar y Guardar Certificado</span>
           </Button>
         </div>
       </form>

@@ -1,18 +1,19 @@
 import React, { memo } from 'react'
+import { BarChart3 } from 'lucide-react'
 
 export const CpodSummaryCard = memo(({ cpodStats }) => {
   if (!cpodStats) return null
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-xs mb-6 text-xs space-y-3 print:hidden">
+    <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-4 shadow-xs mb-6 text-xs space-y-3 print:hidden">
       <div className="flex justify-between items-center border-b pb-2 flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <span className="font-bold text-gray-900 uppercase tracking-wider">📊 Índice Epidemiológico OMS (CPO-D)</span>
+          <span className="font-bold text-gray-900 dark:text-graphite-50 uppercase tracking-wider inline-flex items-center gap-2"><BarChart3 size={14} />Índice Epidemiológico OMS (CPO-D)</span>
           <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${cpodStats.colorBadge}`}>
             Riesgo OMS: {cpodStats.nivelRiesgoOMS}
           </span>
         </div>
-        <span className="font-black text-gray-800 text-sm">CPO-D Total: {cpodStats.cpodTotal}</span>
+        <span className="font-black text-gray-800 dark:text-graphite-100 text-sm">CPO-D Total: {cpodStats.cpodTotal}</span>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
@@ -21,9 +22,9 @@ export const CpodSummaryCard = memo(({ cpodStats }) => {
           <span className="text-lg font-black text-red-900">{cpodStats.cariados}</span>
         </div>
 
-        <div className="bg-gray-100 border border-gray-300 p-2.5 rounded-xl">
-          <span className="text-[10px] text-gray-600 font-bold uppercase block">Perdidos (P)</span>
-          <span className="text-lg font-black text-gray-900">{cpodStats.perdidos}</span>
+        <div className="bg-gray-100 dark:bg-graphite-800 border border-gray-300 dark:border-graphite-600 p-2.5 rounded-xl">
+          <span className="text-[10px] text-gray-600 dark:text-graphite-400 font-bold uppercase block">Perdidos (P)</span>
+          <span className="text-lg font-black text-gray-900 dark:text-graphite-50">{cpodStats.perdidos}</span>
         </div>
 
         <div className="bg-blue-50 border border-blue-200 p-2.5 rounded-xl">

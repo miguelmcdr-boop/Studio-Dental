@@ -1,15 +1,16 @@
-import React from 'react'
+import React, { memo } from 'react'
 import { Button } from '../../../components/ui/Button'
 import { Input } from '../../../components/ui/Input'
+import { AlertTriangle, Trash2 } from 'lucide-react'
 
-export function TablaAsociaciones({
+export const TablaAsociaciones = memo(({
   items,
   categoriaActiva,
   asociacionesCategoriaActiva,
   handleAgregarAsociacion,
   handleActualizarAsociacion,
   handleEliminarAsociacion
-}) {
+}) => {
   if (asociacionesCategoriaActiva.length === 0) {
     return (
       <div className="text-center py-8 bg-gray-50 dark:bg-graphite-800 rounded-xl border border-dashed border-gray-300 dark:border-graphite-600">
@@ -45,7 +46,7 @@ export function TablaAsociaciones({
           >
             {sinVinculacion && (
               <div className="bg-amber-100 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-700 rounded-lg p-2 text-xs text-amber-900 dark:text-amber-200">
-                ⚠️ <strong>Asociación sin vinculación:</strong> Esta asociación fue migrada desde una versión anterior 
+                <span className="inline-flex items-center gap-1"><AlertTriangle size={12} /><strong>Asociación sin vinculación:</strong></span> Esta asociación fue migrada desde una versión anterior 
                 y necesita ser vinculada a un item real del inventario. Selecciona el item correcto abajo.
               </div>
             )}
@@ -102,9 +103,9 @@ export function TablaAsociaciones({
                   variant="danger"
                   size="sm"
                   title="Eliminar esta asociación"
-                  className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50"
+                  className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors duration-150"
                 >
-                  🗑️
+                  <Trash2 size={12} />
                 </Button>
               </div>
             </div>
@@ -130,4 +131,5 @@ export function TablaAsociaciones({
       </Button>
     </div>
   )
-}
+})
+TablaAsociaciones.displayName = 'TablaAsociaciones'

@@ -16,15 +16,15 @@ export const FiltrosVademecum = ({
   onCrearNuevo
 }) => {
   return (
-    <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 space-y-3">
+    <div className="px-6 py-4 border-b border-gray-200 dark:border-graphite-700 bg-gray-50 dark:bg-graphite-800 space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-bold text-gray-900">
+        <h3 className="text-lg font-bold text-gray-900 dark:text-graphite-50">
           Vademécum Odontológico Regular
         </h3>
         {onCrearNuevo && (
           <button
             onClick={onCrearNuevo}
-            className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700"
+            className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors duration-150"
           >
             + Nuevo fármaco
           </button>
@@ -40,8 +40,8 @@ export const FiltrosVademecum = ({
             onChange={(e) => {
               setTextoBusqueda(e.target.value)
             }}
-            placeholder="🔍 Buscar por nombre genérico, comercial o presentación..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Buscar por nombre genérico, comercial o presentación..."
+            className="w-full px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
 
@@ -49,7 +49,7 @@ export const FiltrosVademecum = ({
         <select
           value={familiaSeleccionada}
           onChange={(e) => setFamiliaSeleccionada(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg text-sm bg-white dark:bg-graphite-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         >
           <option value="">Todas las familias</option>
           {familiasDisponibles.map((familia) => (
@@ -60,12 +60,12 @@ export const FiltrosVademecum = ({
         </select>
 
         {/* Toggle activos */}
-        <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+        <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-graphite-300 cursor-pointer">
           <input
             type="checkbox"
             checked={soloActivos}
             onChange={() => setSoloActivos(!soloActivos)}
-            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            className="rounded border-gray-300 dark:border-graphite-600 text-blue-600 focus:ring-blue-500"
           />
           <span>Solo activos</span>
         </label>

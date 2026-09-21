@@ -1,11 +1,12 @@
 import React, { memo } from 'react'
+import { CheckCircle2, AlertTriangle } from 'lucide-react'
 
 export const EsterilizacionSummaryCards = memo(({ resumen }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-      <div className="p-4 bg-white border border-gray-200 rounded-2xl shadow-xs">
-        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Cargas Realizadas Hoy</span>
-        <span className="text-2xl font-black text-gray-900 mt-1 block">{resumen.cargasHoy} Ciclos</span>
+      <div className="p-4 bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl shadow-xs">
+        <span className="text-[10px] font-bold text-gray-500 dark:text-graphite-400 uppercase tracking-wider block">Cargas Realizadas Hoy</span>
+        <span className="text-2xl font-black text-gray-900 dark:text-graphite-50 mt-1 block">{resumen.cargasHoy} Ciclos</span>
       </div>
 
       <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl shadow-xs">
@@ -21,7 +22,7 @@ export const EsterilizacionSummaryCards = memo(({ resumen }) => {
       <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl shadow-xs">
         <span className="text-[10px] font-bold text-blue-800 uppercase tracking-wider block">Test Bowie-Dick Hoy</span>
         <span className={`text-2xl font-black mt-1 block ${resumen.testBowieDickHoy ? 'text-emerald-700' : 'text-red-600'}`}>
-          {resumen.testBowieDickHoy ? '✅ Realizado' : '⚠️ Pendiente'}
+          {resumen.testBowieDickHoy ? <span className='inline-flex items-center gap-1'><CheckCircle2 size={12} className='text-green-600' />Realizado</span> : <span className='inline-flex items-center gap-1'><AlertTriangle size={12} className='text-amber-600' />Pendiente</span>}
         </span>
       </div>
     </div>

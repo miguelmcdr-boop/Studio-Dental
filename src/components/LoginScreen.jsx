@@ -18,6 +18,7 @@ import { obtenerRolPorDefecto } from '../services/rbacService'
 import { createLogger } from '../services/logger.js'
 import { Button } from './ui/Button'
 import { Input } from './ui/Input'
+import { Lock } from 'lucide-react'
 
 const log = createLogger('LoginScreen')
 
@@ -193,17 +194,17 @@ export const LoginScreen = ({ onLogin }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 print:hidden">
-      <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 w-full max-w-md">
+    <div className="min-h-screen bg-gray-100 dark:bg-graphite-800 flex items-center justify-center p-4 print:hidden">
+      <div className="bg-white dark:bg-graphite-800 p-8 rounded-2xl shadow-sm border border-gray-200 dark:border-graphite-700 w-full max-w-md">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center font-bold text-lg">C</div>
-          <h1 className="text-xl font-bold text-gray-800">Consulta</h1>
+          <h1 className="text-xl font-bold text-gray-800 dark:text-graphite-100">Consulta</h1>
         </div>
 
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-graphite-50 mb-1">
           {isFirstTime ? 'Crear perfil profesional' : 'Iniciar sesión'}
         </h2>
-        <p className="text-sm text-gray-500 mb-6">
+        <p className="text-sm text-gray-500 dark:text-graphite-400 mb-6">
           {isFirstTime ? 'Ingresa tus datos para personalizar tu clínica.' : 'Ingresa tus credenciales para acceder a tu consulta.'}
         </p>
 
@@ -231,9 +232,9 @@ export const LoginScreen = ({ onLogin }) => {
           />
 
           {isFirstTime && (
-            <div className="space-y-4 pt-2 border-t border-gray-100">
+            <div className="space-y-4 pt-2 border-t border-gray-100 dark:border-graphite-800">
               <div>
-                <label htmlFor="login-nombre" className="block text-xs font-semibold text-gray-600 uppercase mb-1">Nombre Completo</label>
+                <label htmlFor="login-nombre" className="block text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase mb-1">Nombre Completo</label>
                 <input
                   type="text"
                   required
@@ -241,44 +242,44 @@ export const LoginScreen = ({ onLogin }) => {
                   id="login-nombre"
                   onChange={(e) => setNombreCompleto(e.target.value)}
                   placeholder="Dr. Miguel Díaz Rodríguez"
-                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:border-black text-sm text-gray-800"
+                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-graphite-600 focus:outline-none focus:border-black text-sm text-gray-800 dark:text-graphite-100"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label htmlFor="login-rut" className="block text-xs font-semibold text-gray-600 uppercase mb-1">RUT / Licencia</label>
+                  <label htmlFor="login-rut" className="block text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase mb-1">RUT / Licencia</label>
                   <input
                     type="text"
                     value={rut}
                     id="login-rut"
                     onChange={(e) => setRut(e.target.value)}
                     placeholder="12.345.678-9"
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:border-black text-sm text-gray-800"
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-graphite-600 focus:outline-none focus:border-black text-sm text-gray-800 dark:text-graphite-100"
                   />
                 </div>
                 <div>
-                  <label htmlFor="login-especialidad" className="block text-xs font-semibold text-gray-600 uppercase mb-1">Especialidad</label>
+                  <label htmlFor="login-especialidad" className="block text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase mb-1">Especialidad</label>
                   <input
                     type="text"
                     value={especialidad}
                     id="login-especialidad"
                     onChange={(e) => setEspecialidad(e.target.value)}
                     placeholder="Cirujano Dentista"
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:border-black text-sm text-gray-800"
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-graphite-600 focus:outline-none focus:border-black text-sm text-gray-800 dark:text-graphite-100"
                   />
                 </div>
               </div>
 
               {/* F3-05: Selector de rol para nuevos usuarios */}
               <div>
-                <label htmlFor="login-rol" className="block text-xs font-semibold text-gray-600 uppercase mb-1">Rol en el sistema</label>
+                <label htmlFor="login-rol" className="block text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase mb-1">Rol en el sistema</label>
                 <select
                   id="login-rol"
                   data-testid="login-rol"
                   value={rol}
                   onChange={(e) => setRol(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:border-black text-sm text-gray-800 bg-white"
+                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-graphite-600 focus:outline-none focus:border-black text-sm text-gray-800 dark:text-graphite-100 bg-white dark:bg-graphite-800"
                 >
                   {Object.entries(NOMBRES_ROLES).map(([rolValue, rolNombre]) => (
                     <option key={rolValue} value={rolValue}>
@@ -286,7 +287,7 @@ export const LoginScreen = ({ onLogin }) => {
                     </option>
                   ))}
                 </select>
-                <p className="text-[11px] text-gray-400 mt-1">
+                <p className="text-[11px] text-gray-400 dark:text-graphite-500 mt-1">
                   {DESCRIPCIONES_ROLES[rol] || 'Selecciona tu rol'}
                 </p>
               </div>
@@ -314,8 +315,8 @@ export const LoginScreen = ({ onLogin }) => {
 
           {/* F4-02b: Indicador del modo de autenticación activo */}
           {import.meta.env.VITE_USE_SUPABASE === 'true' && (
-            <p className="text-[10px] text-gray-400 text-center mt-2">
-              🔒 Autenticación segura con Supabase
+            <p className="text-[10px] text-gray-400 dark:text-graphite-500 text-center mt-2">
+              <span className="inline-flex items-center gap-1"><Lock size={12} />Autenticación segura con Supabase</span>
             </p>
           )}
         </form>

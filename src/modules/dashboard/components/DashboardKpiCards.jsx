@@ -4,15 +4,15 @@ export const DashboardKpiCards = memo(({ resumen }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
       {/* Citas Hoy & Ocupación */}
-      <div className="p-4 bg-white border border-gray-200 rounded-2xl shadow-xs space-y-1">
+      <div className="p-4 bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl shadow-xs space-y-1">
         <div className="flex justify-between items-center">
-          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Citas Agendadas Hoy</span>
-          <span className="text-[10px] bg-gray-100 font-bold px-2 py-0.5 rounded-full text-gray-700">
+          <span className="text-[10px] font-bold text-gray-500 dark:text-graphite-400 uppercase tracking-wider">Citas Agendadas Hoy</span>
+          <span className="text-[10px] bg-gray-100 dark:bg-graphite-800 font-bold px-2 py-0.5 rounded-full text-gray-700 dark:text-graphite-300">
             {resumen.tasaOcupacionAgenda}% Ocupación
           </span>
         </div>
-        <span className="text-2xl font-black text-gray-900 block">{resumen.citasHoyCount} Atenciones</span>
-        <div className="w-full bg-gray-100 rounded-full h-1.5 mt-2 overflow-hidden">
+        <span className="text-2xl font-black text-gray-900 dark:text-graphite-50 block">{resumen.citasHoyCount} Atenciones</span>
+        <div className="w-full bg-gray-100 dark:bg-graphite-800 rounded-full h-1.5 mt-2 overflow-hidden">
           <div className="bg-black h-1.5 rounded-full" style={{ width: `${resumen.tasaOcupacionAgenda}%` }}></div>
         </div>
       </div>

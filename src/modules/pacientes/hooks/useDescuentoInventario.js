@@ -49,7 +49,7 @@ export const useDescuentoInventario = ({
         const nuevaNotaEvolucion = {
           id: Date.now(),
           fecha: fechaHora,
-          texto: `✅ TRATAMIENTO REALIZADO: ${itemRealizado.prestacion} (Pieza: ${itemRealizado.pieza}) — Ejecutado por: ${profesional}`
+          texto: `TRATAMIENTO REALIZADO: ${itemRealizado.prestacion} (Pieza: ${itemRealizado.pieza}) — Ejecutado por: ${profesional}`
         }
 
         const notasActualizadas = [nuevaNotaEvolucion, ...evolucionesNotas]

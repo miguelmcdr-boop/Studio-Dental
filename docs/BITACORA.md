@@ -5535,3 +5535,136 @@ direccion, diagnostico, tratamiento, anamnesis, receta
 **Próximo paso:** Push + PR a main
 
 **Estado:** ✅ DONE (2026-09-09) — Iteración 9 de F7-25 — F7-25 COMPLETADO AL 100%
+
+---
+
+## 2026-09-09 — F10-B: Shell (Sidebar v2 + TopBar v2 + CommandPalette) — DONE
+
+**Contexto:** F10 (Rediseño "Clinical Precision v2"), Fase B — Shell.
+Transformación del chrome de la app al patrón Linear/Clerk: navegación agrupada, identidad única en avatar-menu, búsqueda omnicanal ⌘K.
+
+### B1: Icono custom Tooth (F10-B1)
+- **Archivo:** `src/components/icons/Tooth.jsx` (46 líneas)
+- **Tests:** `src/components/icons/Tooth.test.jsx` (5 tests nuevos, 43 líneas)
+- **Razón:** lucide-react no tiene icono de diente y 🦷 es central en el dominio clínico
+- **API:** replica la de lucide (size/color/strokeWidth/className + forwardRef) para ser intercambiable via `<Icon icon={Tooth} />`
+- **Diseño:** molar outline de trazo continuo (corona + 2 raíces), viewBox 24x24
+
+### B2: Sidebar v2 — navegación agrupada (F10-B2)
+- **Archivo:** `src/components/Sidebar.jsx` (119 líneas, dentro del límite congelado 142)
+- **Extracciones:**
+  - `src/constants/sidebarConstants.js` (50 líneas): `SECCIONES_SIDEBAR` con 4 secciones
+  - `src/components/SidebarUserFooter.jsx` (61 líneas): luego eliminado en B3
+- **4 secciones con labels (10px uppercase muted):**
+  - CLÍNICA: Agenda · Dashboard · Pacientes · Urgencias y GES · Comunicaciones
+  - OPERACIONES: Esterilización · Laboratorio · Inventario (con permisos RBAC preservados)
+  - FINANZAS: Presupuestos · Pagos · Prestaciones · Finanzas · Reportes
+  - ADMIN: Miembros · Vademécum · Configuración
+- **Item activo:** `bg-graphite-900` en claro / `dark:bg-graphite-100` (champagne reservado para marca)
+- **Contadores vía props API** (conectados a datos reales en B2.5)
+- **Contratos preservados:** `data-testid="sidebar-menu-*"`, `aria-current="page"`, RBAC
+
+### B2.5: Hook useSidebarCounters (F10-B2.5)
+- **Archivo:** `src/hooks/useSidebarCounters.js` (93 líneas)
+- **3 contadores reales:**
+  - `agenda`: filtra `agendaStorageService.obtenerCitas()` por fecha de hoy
+  - `inventario`: filtra por `item.cantidad ?? stockActual < item.minimoCritico ?? stockMinimo`
+  - `papelera`: async `listarPacientesEliminados()` con manejo de errores
+- **Refrescos automáticos:** storage event + citas_actualizadas + pacientes_actualizados
+- **Integración:** `<Sidebar counters={sidebarCounters}>` en App.jsx
+
+### B3: TopBar v2 con avatar-menu (F10-B3)
+- **Archivo:** `src/components/TopBar.jsx` (206 líneas)
+- **Cambios:**
+  - Avatar clickeable con dropdown accesible (role="menu", aria-haspopup)
+  - Header del menú: avatar grande + nombre + email + Badge con rol
+  - Toggle dark mode + "Cerrar sesión" duplicados (siempre visibles + en menú) por contrato con TopBar.test.jsx
+  - Cierre con ESC + click fuera (F6-04 simplificado)
+- **Eliminación:** `SidebarUserFooter.jsx` (identidad duplicada del Sidebar)
+- **TopBar.test.jsx:** 16/16 tests pasando (contrato aria-label preservado)
+
+### B4: CommandPalette ⌘K (F10-B4)
+- **Archivos:**
+  - `src/hooks/useCommandPalette.js` (136 líneas)
+  - `src/components/CommandPalette.jsx` (223 líneas)
+- **3 secciones de resultados:**
+  - Pacientes (top 5 por match nombre/RUT, fuzzy insensible a acentos)
+  - Módulos (filtrados por RBAC desde SECCIONES_SIDEBAR)
+  - Acciones rápidas (nueva cita, nuevo paciente, nuevo presupuesto)
+- **Navegación:** ↑↓ Enter Esc, atajo global ⌘K / Ctrl+K
+- **Accesibilidad F6-04:** role="dialog", trap de foco, autofocus en input
+
+### Lecciones aprendidas en F10-B
+1. **TDZ en App.jsx:** el `useEffect` del atajo ⌘K se inyectó antes de `const commandPalette = ...` → Runtime error. Fix: declaración antes del efecto. Tests unitarios no lo detectaron (no renderizan App.jsx completo).
+2. **Límites congelados de allowlist:** Sidebar estaba en 142 líneas congeladas. B2 requirió extracción a `sidebarConstants.js` + `SidebarUserFooter.jsx` para cumplir.
+3. **Test contracts:** TopBar.test.jsx espera botones siempre visibles. Solución: duplicar (accesos rápidos + menú), patrón Gmail/Notion.
+4. **Proceso reforzado:** commit SOLO con tests + validador VERDE. Detectado 2 veces (B2 initial + B3 initial) y corregido con amend.
+
+### Métricas F10-B
+- Commits: 5 (B1, B2, B2.5, B3, B4)
+- Tests: 1315/1315 (+5 del icono Tooth respecto al baseline)
+- Build: OK
+- Validador: VERDE
+- Archivos nuevos: 5
+- Archivos eliminados: 1 (SidebarUserFooter.jsx)
+
+### Estado: ✅ DONE (2026-09-09) — F10-B completada
+### Siguiente fase: F10-C (módulos core — Agenda, Directorio, Presupuestos con PageHeader + Badge + EmptyState)
+## 2026-09-21 — F10-C/D/E: Emoji Sweep + Dark Sweep + Performance — DONE
+
+**Qué se ganó:** Pulido profesional completo del Design System v2. El sistema pasó de MVP con emojis decorativos a una aplicación clínica seria con iconografía lucide-react consistente, dark mode funcional al 100% en todos los módulos de pantalla, y optimizaciones de performance que eliminan ~650 kB del bundle inicial.
+
+### F10-C Emoji Sweep (84+ archivos, 9 commits)
+
+Sustitución total de emojis pictográficos decorativos en UI/JSX por iconos profesionales de lucide-react.
+
+- **Auditoría exhaustiva con Python** (detección por codepoint unicode). El grep de macOS no soporta rangos unicode, por eso auditorías previas subestimaban el universo.
+- **~50 iconos lucide-react** integrados en módulos, formularios, modales y tablas
+- **PageHeader.jsx** recibió prop `icon` retrocompatible → 16 módulos principales con iconos consistentes en títulos (Agenda=Calendar, Pacientes=Users, Dashboard=LayoutDashboard, GestiónMiembros=UsersRound, etc.)
+- **Caracteres Unicode preservados**: ⚠ (U+26A0) y ⛔ (U+26D4) para alertas médicas (aprobados en Fase 4 Opción B como símbolos ISO 3864 para salud). ✓ ✕ ← → (tipográficos) preservados.
+- **Commits**: 1741210, 2b7ec17, 5456fb8, 8229372, 3c23248, df2e5fb, 40129d9, c6f527b, e78499a
+
+### F10-C+ Consistencia visual en títulos (46 archivos, 1 commit)
+
+- 16 módulos principales ahora tienen icono lucide-react junto al título (Mail, ClipboardList, Sparkles, Siren, DollarSign, CreditCard, Package, FlaskConical, BarChart3, Zap, Pill, Calendar, Users, LayoutDashboard, UsersRound)
+- **Commit**: a513c8d
+
+### F10-C5 Efectos visuales / dinámicos (46 archivos, 1 commit)
+
+- **Fase 1 (CSS)**: Agregados `@keyframes ds-fade-in/ds-zoom-in-95/ds-slide-in-right` + utilidades `animate-in/fade-in/zoom-in-95/animate-slide-in` en `index.css`. Antes Modal.jsx y ToastContainer.jsx usaban estas clases pero **NO existían** en ningún CSS → las animaciones nunca se ejecutaban.
+- **Accesibilidad**: `@media (prefers-reduced-motion: reduce)` global (WCAG 2.3.3). Usuarios con trastornos vestibulares activan "Reducir movimiento" en su OS y la app lo respeta.
+- **Fase 2 (transitions)**: 70 hovers sin transition en 40 archivos → `transition-colors/opacity duration-150` agregada a todos. Hovers suaves en vez de cambios bruscos de color.
+- **Fase 3 (loading feedback)**: 4 formularios críticos (ModalNuevoPaciente, ModalEditarPaciente, PerfilProfesionalForm, FormRegistroUrgencia) migrados a `<Button>` del DS con `loading={enviando}` + `disabled` + `try/finally`. Cero doble-clicks accidentales en "Crear Paciente" y "Emitir Constancia GES".
+- **Commit**: a513c8d
+
+### F10-D Dark Sweep (137 archivos, 2 commits)
+
+Dark mode funcional al 100% en todos los módulos de pantalla usando los tokens `graphite-*` del Design System.
+
+- **1372 líneas** modificadas con patrón automatizado: `bg-white → +dark:bg-graphite-800`, `text-gray-* → +dark:text-graphite-*`, `border-gray-* → +dark:border-graphite-*`, `hover:bg-gray-* → +dark:hover:bg-graphite-*`, etc.
+- **Exclusiones intencionales** (deben quedar blancos siempre): 8 componentes imprimibles (DocumentoPresupuestoImprimible, ComprobantePagoImprimible, OrdenImprimible, ReporteImprimibleLetter, DocumentoImpresoGes, ConsentimientoImprimible, CertificadoImprimible) — el dark mode rompería el formato Letter en papel. BootstrapClinica (onboarding) también excluida.
+- **Pulido final**: overlays semitransparentes (`bg-white/60`, `bg-white/70`) en AlertaAlergiaMejorada y DienteSVG agregados manualmente.
+- **Commits**: 4304759 (sweep masivo), 6549282 (pulido overlays)
+
+### F10-E Performance (13 archivos, 1 commit)
+
+Optimizaciones React para prevenir re-renders innecesarios y reducir el bundle inicial.
+
+- **E1 — useMemo**: `pacientesFiltrados` (DirectorioPacientes) y `citasDelDia` (Agenda) memoizadas con sus deps.
+- **E2 — Lazy load PDF libs (~650 kB)**: `certificadosPDFService` y `consentimientosPDFService` ahora cargan `html2canvas-pro` y `jspdf` vía `import()` dinámico con cache a nivel de módulo (`getHtml2canvas/getJsPDF`). Code splitting verificado en build: chunks separados `html2canvas-pro.esm` (249 kB) y `jspdf.es.min` (399 kB) que solo se descargan al primer uso real de PDF.
+- **E3 — memo() en 8 tablas**: TablaInteracciones, TablaUrgencia, TablaAlergiasCruzadas, TablaAnticoagulantes, TablaProfilaxis, TablaAntirresortivos, TablaVademecum (vademécum) + TablaAsociaciones (inventario). Previenen re-renders cuando el padre cambia estado sin cambiar las props de la tabla.
+- **E4 — useCallback en 6 handlers**: AdminVademecumModulo. 3 handlers de edición (deps `[]`) + 3 de guardado (deps `[admin, log]`). Complemento necesario para E3: sin handlers estables, `memo()` en las tablas no tiene efecto.
+- **Commit**: 50ef302
+
+### Validaciones finales
+
+- ✅ **1482/1482 tests pasando** (sin regresiones)
+- ✅ **Build exitoso** con PWA (40 entries precached, 3364 kB)
+- ✅ **Validador arquitectónico VERDE** (0 violaciones, 68 archivos en allowlist respetados)
+- ✅ **Git limpio** en rama `feat/F10-design-system-v2`, 125 commits por encima de `main`
+
+### Commits totales de esta sesión F10-C/D/E
+
+17 commits en `feat/F10-design-system-v2` (9 C4 + 1 C5 + 2 D + 1 E + 4 de pulido).
+
+**Pendiente**: F10-F (push a origin + PR a main).

@@ -1,4 +1,6 @@
 import React, { memo, useState } from 'react'
+import { Icon } from '../../components/Icon'
+import { Wrench, Sparkles, Dna, Tag, BookOpen } from 'lucide-react'
 import { Input } from '../../components/ui/Input'
 import { Button } from '../../components/ui/Button'
 import { EQUIPOS_AUTOCLAVE } from './constants/esterilizacionConstants'
@@ -41,8 +43,11 @@ export const EsterilizacionModulo = memo(() => {
     <div className="space-y-6">
       <div className="flex justify-between items-center flex-wrap gap-3 print:hidden">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider">🧼 Central de Esterilización & Bioseguridad SEREMI</h2>
-          <p className="text-xs text-gray-500">Control de cargas, trazabilidad, incubación de ampollas y Libro Folia Oficial.</p>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-graphite-50 uppercase tracking-wider flex items-center gap-2">
+          <Icon icon={Sparkles} size="md" />
+          Central de Esterilización & Bioseguridad SEREMI
+        </h2>
+          <p className="text-xs text-gray-500 dark:text-graphite-400">Control de cargas, trazabilidad, incubación de ampollas y Libro Folia Oficial.</p>
         </div>
 
         {tabActual === 'cargas' && (
@@ -66,7 +71,7 @@ export const EsterilizacionModulo = memo(() => {
           variant={tabActual === 'cargas' ? 'primary' : 'secondary'}
           size="sm"
         >
-          🏷️ Cargas y Trazabilidad
+          <span className="inline-flex items-center gap-1"><Tag size={12} />Cargas y Trazabilidad</span>
         </Button>
 
         <Button
@@ -74,7 +79,10 @@ export const EsterilizacionModulo = memo(() => {
           variant={tabActual === 'biologico' ? 'primary' : 'secondary'}
           size="sm"
         >
-          🧬 Control Biológico (Ampollas)
+          <span className="flex items-center gap-1.5">
+            <Icon icon={Dna} size="sm" />
+            Control Biológico (Ampollas)
+          </span>
         </Button>
 
         <Button
@@ -82,7 +90,10 @@ export const EsterilizacionModulo = memo(() => {
           variant={tabActual === 'test' ? 'primary' : 'secondary'}
           size="sm"
         >
-          🛠️ Test Bowie-Dick / Fugas
+          <span className="flex items-center gap-2">
+          <Icon icon={Wrench} size="sm" />
+          Test Bowie-Dick / Fugas
+        </span>
         </Button>
 
         <Button
@@ -90,7 +101,7 @@ export const EsterilizacionModulo = memo(() => {
           variant={tabActual === 'libro' ? 'primary' : 'secondary'}
           size="sm"
         >
-          📖 Libro Oficial SEREMI
+          <span className="inline-flex items-center gap-1"><BookOpen size={12} />Libro Oficial SEREMI</span>
         </Button>
       </div>
 
@@ -99,13 +110,13 @@ export const EsterilizacionModulo = memo(() => {
           <TicketTrazabilidad carga={cargaImprimir} alCerrar={() => setCargaImprimir(null)} />
         ) : (
           <>
-            <div className="bg-gray-50 p-4 border border-gray-200 rounded-2xl flex justify-between items-center flex-wrap gap-3 text-xs print:hidden">
+            <div className="bg-gray-50 dark:bg-graphite-800 p-4 border border-gray-200 dark:border-graphite-700 rounded-2xl flex justify-between items-center flex-wrap gap-3 text-xs print:hidden">
               <div className="flex items-center gap-2 w-full sm:w-auto">
-                <span className="font-semibold text-gray-600">Autoclave:</span>
+                <span className="font-semibold text-gray-600 dark:text-graphite-400">Autoclave:</span>
                 <select
                   value={equipoFiltro}
                   onChange={(e) => setEquipoFiltro(e.target.value)}
-                  className="p-2 border rounded-xl bg-white font-semibold flex-1 sm:flex-initial"
+                  className="p-2 border rounded-xl bg-white dark:bg-graphite-800 font-semibold flex-1 sm:flex-initial"
                 >
                   <option value="Todos">Todos los autoclaves</option>
                   {EQUIPOS_AUTOCLAVE.map(eq => <option key={eq} value={eq}>{eq}</option>)}
@@ -114,7 +125,7 @@ export const EsterilizacionModulo = memo(() => {
 
               <Input
                 type="text"
-                placeholder="🔍 Buscar lote, contenido u operador..."
+                placeholder="Buscar lote, contenido u operador..."
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
                 className="w-full sm:w-64"

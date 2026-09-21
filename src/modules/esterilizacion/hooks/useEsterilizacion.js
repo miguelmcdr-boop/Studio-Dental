@@ -2,8 +2,10 @@ import { useState, useMemo, useCallback } from 'react'
 import { CARGAS_DEFAULT, PRUEBAS_BIOLOGICAS_DEFAULT, TEST_BOWIE_DICK_DEFAULT } from '../constants/esterilizacionConstants'
 import { esterilizacionStorageService } from '../services/esterilizacionStorageService'
 import { calcularResumenEsterilizacion } from '../utils/esterilizacionCalculations'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 export const useEsterilizacion = () => {
+  const { confirm } = useAppDialog()
   const [cargas, setCargas] = useState(() => esterilizacionStorageService.obtenerCargas(CARGAS_DEFAULT))
   const [biologicos, setBiologicos] = useState(() => esterilizacionStorageService.obtenerBiologicos(PRUEBAS_BIOLOGICAS_DEFAULT))
   const [testDiarios, setTestDiarios] = useState(() => esterilizacionStorageService.obtenerTestDiarios(TEST_BOWIE_DICK_DEFAULT))
@@ -32,15 +34,21 @@ export const useEsterilizacion = () => {
     })
   }, [])
 
-  const eliminarCarga = useCallback((idCarga) => {
-    if (window.confirm('¿Estás seguro de eliminar este registro de carga de autoclave?')) {
+  const eliminarCarga = useCallback(async (idCarga) => {
+    const ok = await confirm({
+      title: 'Eliminar carga',
+      description: '¿Estás seguro de eliminar este registro de carga de autoclave?',
+      variant: 'danger',
+      confirmText: 'Eliminar'
+    })
+    if (ok) {
       setCargas(prev => {
         const actualizadas = prev.filter(c => c.id !== idCarga)
         esterilizacionStorageService.guardarCargas(actualizadas)
         return actualizadas
       })
     }
-  }, [])
+  }, [confirm])
 
   const agregarBiologico = useCallback((nuevoBio) => {
     setBiologicos(prev => {

@@ -7,6 +7,7 @@ import { Modal } from '../../../components/ui/Modal'
 import { Button } from '../../../components/ui/Button'
 import { CamposFormularioAntirresortivo } from './CamposFormularioAntirresortivo'
 import { validarAntirresortivo, FAMILIAS_ANTIRRESORTIVOS, NIVELES_RIESGO_MRONG } from '../schemas/vademecumSchema'
+import { Bone } from 'lucide-react'
 
 const VALOR_INICIAL = {
   numero: '',
@@ -60,7 +61,7 @@ export const ModalEditarAntirresortivo = ({ farmaco, onGuardar, onClose, guardan
     if (resultado.valido) onGuardar(resultado.datos)
   }
 
-  const campoError = (campo) => errores[campo] ? 'border-red-400 bg-red-50' : 'border-gray-300'
+  const campoError = (campo) => errores[campo] ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-graphite-600'
   const mensajeError = (campo) => errores[campo] && (
     <p className="text-xs text-red-600 mt-1">{errores[campo]}</p>
   )
@@ -69,7 +70,7 @@ export const ModalEditarAntirresortivo = ({ farmaco, onGuardar, onClose, guardan
     <Modal
       isOpen={true}
       onClose={onClose}
-      title={esEdicion ? `🦴 Editar Antirresortivo #${form.numero}` : '🦴 Nuevo Antirresortivo (MRONJ)'}
+      title={esEdicion ? `Editar Antirresortivo #${form.numero}` : 'Nuevo Antirresortivo (MRONJ)'}
       size="lg"
       closeOnOverlayClick={!guardando}
       closeOnEscape={!guardando}
@@ -77,7 +78,7 @@ export const ModalEditarAntirresortivo = ({ farmaco, onGuardar, onClose, guardan
       {/* Header distintivo MRONJ preservado como banner interno */}
       <div className="bg-purple-50 dark:bg-purple-900/20 border-b border-purple-200 dark:border-purple-800 px-6 py-3 mb-4 rounded-t-lg">
         <p className="text-sm font-semibold text-purple-800 dark:text-purple-200">
-          ⚠️ Fármaco de riesgo MRONJ (osteonecrosis maxilar)
+          <span className="inline-flex items-center gap-1"><AlertTriangle size={12} />Fármaco de riesgo MRONJ (osteonecrosis maxilar)</span>
         </p>
       </div>
 
@@ -90,7 +91,7 @@ export const ModalEditarAntirresortivo = ({ farmaco, onGuardar, onClose, guardan
           />
 
           <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-3 text-sm text-purple-800 dark:text-purple-200">
-            🦴 <strong>Relevancia clínica:</strong> Identificar estos fármacos en la anamnesis es crítico antes de exodoncias, cirugía periodontal o implantes para prevenir MRONJ (osteonecrosis maxilar relacionada a fármacos).
+            <Bone size={14} className='inline' /> <strong>Relevancia clínica:</strong> Identificar estos fármacos en la anamnesis es crítico antes de exodoncias, cirugía periodontal o implantes para prevenir MRONJ (osteonecrosis maxilar relacionada a fármacos).
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t">
@@ -106,7 +107,7 @@ export const ModalEditarAntirresortivo = ({ farmaco, onGuardar, onClose, guardan
               type="submit"
               variant="primary"
               disabled={guardando}
-              className="bg-purple-600 hover:bg-purple-700"
+              className="bg-purple-600 hover:bg-purple-700 transition-colors duration-150"
             >
               {guardando ? 'Guardando...' : (esEdicion ? 'Actualizar' : 'Crear')}
             </Button>

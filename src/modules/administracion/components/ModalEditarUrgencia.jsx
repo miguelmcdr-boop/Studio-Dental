@@ -62,7 +62,7 @@ export const ModalEditarUrgencia = ({ farmaco, onGuardar, onClose, guardando }) 
     if (resultado.valido) onGuardar(resultado.datos)
   }
 
-  const campoError = (campo) => errores[campo] ? 'border-red-400 bg-red-50' : 'border-gray-300'
+  const campoError = (campo) => errores[campo] ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-graphite-600'
   const mensajeError = (campo) => errores[campo] && (
     <p className="text-xs text-red-600 mt-1">{errores[campo]}</p>
   )
@@ -71,7 +71,7 @@ export const ModalEditarUrgencia = ({ farmaco, onGuardar, onClose, guardando }) 
     <Modal
       isOpen={true}
       onClose={onClose}
-      title={esEdicion ? `🚨 Editar Fármaco de Urgencia #${form.numero}` : '🚨 Nuevo Fármaco de Urgencia'}
+      title={esEdicion ? `Editar Fármaco de Urgencia #${form.numero}` : 'Nuevo Fármaco de Urgencia'}
       size="lg"
       closeOnOverlayClick={!guardando}
       closeOnEscape={!guardando}
@@ -79,7 +79,7 @@ export const ModalEditarUrgencia = ({ farmaco, onGuardar, onClose, guardando }) 
       {/* Header distintivo urgencia preservado como banner interno */}
       <div className="bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800 px-6 py-3 mb-4 rounded-t-lg">
         <p className="text-sm font-semibold text-red-800 dark:text-red-200">
-          ⚠️ Fármaco crítico del carro de reanimación
+          <span className="inline-flex items-center gap-1"><AlertTriangle size={12} />Fármaco crítico del carro de reanimación</span>
         </p>
       </div>
 
@@ -92,7 +92,7 @@ export const ModalEditarUrgencia = ({ farmaco, onGuardar, onClose, guardando }) 
           />
 
           <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 text-sm text-yellow-800 dark:text-yellow-200">
-            ⚠️ <strong>Recuerde:</strong> Todo box dental debe contar con estos fármacos accesibles y con verificación periódica de fechas de vencimiento.
+            <span className="inline-flex items-center gap-1"><AlertTriangle size={12} /><strong>Recuerde:</strong></span> Todo box dental debe contar con estos fármacos accesibles y con verificación periódica de fechas de vencimiento.
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t">

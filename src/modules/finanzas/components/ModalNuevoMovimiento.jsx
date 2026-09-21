@@ -3,8 +3,10 @@ import { Modal } from '../../../components/ui/Modal'
 import { Input } from '../../../components/ui/Input'
 import { Button } from '../../../components/ui/Button'
 import { CATEGORIAS_INGRESO, CATEGORIAS_EGRESO } from '../constants/finanzasConstants'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 export const ModalNuevoMovimiento = memo(({ alGuardar, alCerrar }) => {
+  const { alert: dialogAlert } = useAppDialog()
   const [tipo, setTipo] = useState('ingreso')
   const [monto, setMonto] = useState('')
   const [categoria, setCategoria] = useState(CATEGORIAS_INGRESO[0])
@@ -16,21 +18,39 @@ export const ModalNuevoMovimiento = memo(({ alGuardar, alCerrar }) => {
     setCategoria(nuevoTipo === 'ingreso' ? CATEGORIAS_INGRESO[0] : CATEGORIAS_EGRESO[0])
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!monto || parseInt(monto) <= 0) return
+    const montoLimpio = parseInt(monto) || 0
+    
+    if (!montoLimpio || montoLimpio <= 0) {
+      await dialogAlert({
+        title: 'Monto inválido',
+        description: 'Ingresa un monto mayor a $0.',
+        variant: 'warning',
+        confirmText: 'Entendido'
+      })
+      return
+    }
 
     const nuevoMov = {
       id: Date.now(),
       fecha: new Date().toLocaleDateString('es-CL'),
       tipo,
-      monto: parseInt(monto),
+      monto: montoLimpio,
       categoria,
       metodoPago,
       detalle
     }
 
     alGuardar(nuevoMov)
+    
+    await dialogAlert({
+      title: 'Movimiento registrado',
+      description: `${tipo === 'ingreso' ? 'Ingreso' : 'Egreso'} de ${formatearCLP(montoLimpio)} registrado exitosamente.`,
+      variant: 'success',
+      confirmText: 'Entendido'
+    })
+    
     alCerrar()
   }
 
@@ -43,19 +63,19 @@ export const ModalNuevoMovimiento = memo(({ alGuardar, alCerrar }) => {
               type="button"
               onClick={() => handleTipoChange('ingreso')}
               variant={tipo === 'ingreso' ? 'primary' : 'secondary'}
-              className={tipo === 'ingreso' ? 'bg-emerald-600 hover:bg-emerald-700' : ''}
+              className={tipo === 'ingreso' ? 'bg-emerald-600 hover:bg-emerald-700 transition-colors duration-150' : ''}
               fullWidth
             >
-              🟢 Ingreso
+              Ingreso
             </Button>
             <Button
               type="button"
               onClick={() => handleTipoChange('egreso')}
               variant={tipo === 'egreso' ? 'danger' : 'secondary'}
-              className={tipo === 'egreso' ? 'bg-red-600 hover:bg-red-700' : ''}
+              className={tipo === 'egreso' ? 'bg-red-600 hover:bg-red-700 transition-colors duration-150' : ''}
               fullWidth
             >
-              🔴 Egreso / Gasto
+              Egreso / Gasto
             </Button>
           </div>
 
@@ -69,11 +89,11 @@ export const ModalNuevoMovimiento = memo(({ alGuardar, alCerrar }) => {
           />
 
           <div>
-            <label className="block font-semibold text-gray-700 mb-1">Categoría</label>
+            <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Categoría</label>
             <select
               value={categoria}
               onChange={(e) => setCategoria(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-semibold"
+              className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-semibold"
             >
               {(tipo === 'ingreso' ? CATEGORIAS_INGRESO : CATEGORIAS_EGRESO).map(cat => (
                 <option key={cat} value={cat}>{cat}</option>
@@ -82,11 +102,11 @@ export const ModalNuevoMovimiento = memo(({ alGuardar, alCerrar }) => {
           </div>
 
           <div>
-            <label className="block font-semibold text-gray-700 mb-1">Método de Pago</label>
+            <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Método de Pago</label>
             <select
               value={metodoPago}
               onChange={(e) => setMetodoPago(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-gray-300 bg-white"
+              className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800"
             >
               <option value="Efectivo">Efectivo</option>
               <option value="Transferencia">Transferencia Bancaria</option>

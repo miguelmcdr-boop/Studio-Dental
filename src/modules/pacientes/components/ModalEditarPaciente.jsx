@@ -5,11 +5,17 @@ import { Button } from '../../../components/ui/Button'
 
 export const ModalEditarPaciente = memo(({ paciente, alGuardar, alCerrar }) => {
   const [datosEdit, setDatosEdit] = useState({ ...paciente })
+  const [enviando, setEnviando] = useState(false)
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    alGuardar(datosEdit)
-    alCerrar()
+    setEnviando(true)
+    try {
+      alGuardar(datosEdit)
+      alCerrar()
+    } finally {
+      setEnviando(false)
+    }
   }
 
   return (
@@ -68,11 +74,11 @@ export const ModalEditarPaciente = memo(({ paciente, alGuardar, alCerrar }) => {
               onChange={(e) => setDatosEdit({ ...datosEdit, direccion: e.target.value })}
             />
             <div>
-              <label className="block font-semibold text-gray-600 uppercase mb-1">Previsión</label>
+              <label className="block font-semibold text-gray-600 dark:text-graphite-400 uppercase mb-1">Previsión</label>
               <select
                 value={datosEdit.prevision || 'Fonasa'}
                 onChange={(e) => setDatosEdit({ ...datosEdit, prevision: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm bg-white"
+                className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-graphite-600 text-sm bg-white dark:bg-graphite-800"
               >
                 <option value="Fonasa">Fonasa</option>
                 <option value="Isapre">Isapre</option>
@@ -93,8 +99,8 @@ export const ModalEditarPaciente = memo(({ paciente, alGuardar, alCerrar }) => {
             <Button type="button" onClick={alCerrar} variant="ghost" fullWidth>
               Cancelar
             </Button>
-            <Button type="submit" variant="primary" fullWidth>
-              Guardar Cambios
+            <Button type="submit" variant="primary" fullWidth loading={enviando} disabled={enviando}>
+              {enviando ? 'Guardando...' : 'Guardar Cambios'}
             </Button>
           </div>
         </form>

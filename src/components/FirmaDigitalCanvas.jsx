@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { Eraser } from 'lucide-react'
 
-export const FirmaDigitalCanvas = ({ alGuardarFirma, alLimpiarFirma }) => {
+export const FirmaDigitalCanvas = ({ alGuardarFirma, alLimpiarFirma, resetSignal = 0 }) => {
   const canvasRef = useRef(null)
   const [dibujando, setDibujando] = useState(false)
 
@@ -14,6 +15,15 @@ export const FirmaDigitalCanvas = ({ alGuardarFirma, alLimpiarFirma }) => {
       ctx.strokeStyle = '#000000'
     }
   }, [])
+
+  // M1.5: auto-limpieza cuando el padre incrementa resetSignal
+  useEffect(() => {
+    if (resetSignal === 0) return
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height)
+  }, [resetSignal])
 
   const obtenerCoordenadas = (e) => {
     const canvas = canvasRef.current
@@ -63,7 +73,7 @@ export const FirmaDigitalCanvas = ({ alGuardarFirma, alLimpiarFirma }) => {
 
   return (
     <div className="space-y-2">
-      <div className="border-2 border-dashed border-gray-300 rounded-2xl p-1 bg-white inline-block">
+      <div className="border-2 border-dashed border-gray-300 dark:border-graphite-600 rounded-2xl p-1 bg-white dark:bg-graphite-800 inline-block">
         <canvas
           ref={canvasRef}
           width={380}
@@ -82,9 +92,12 @@ export const FirmaDigitalCanvas = ({ alGuardarFirma, alLimpiarFirma }) => {
         <button
           type="button"
           onClick={limpiarCanvas}
-          className="text-[11px] font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-1 rounded-lg"
+          className="text-[11px] font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-1 rounded-lg transition-colors duration-150"
         >
-          🧹 Limpiar Firma
+          <span className="inline-flex items-center gap-1">
+            <Eraser size={12} />
+            Limpiar Firma
+          </span>
         </button>
       </div>
     </div>

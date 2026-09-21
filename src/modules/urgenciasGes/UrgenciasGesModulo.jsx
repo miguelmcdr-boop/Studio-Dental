@@ -1,4 +1,6 @@
 import React, { memo } from 'react'
+import { Siren, FileText, Trash2 } from 'lucide-react'
+import { Icon } from '../../components/Icon'
 import { useUrgenciasGes } from './hooks/useUrgenciasGes'
 import { FormRegistroGes } from './components/FormRegistroUrgencia'
 import { DocumentoImpresoGes } from './components/DocumentoImpresoGes'
@@ -21,8 +23,11 @@ export const UrgenciasGesModulo = memo(() => {
   return (
     <div className="space-y-6">
       <div className="border-b pb-3 print:hidden">
-        <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider">🚨 Atenciones de Urgencia y Notificaciones GES / AUGE</h2>
-        <p className="text-xs text-gray-500">Gestión de Urgencia Odontológica Ambulatoria y emisión de constancias normadas Ley 19.966.</p>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-graphite-50 uppercase tracking-wider flex items-center gap-2">
+          <Icon icon={Siren} size="md" />
+          Atenciones de Urgencia y Notificaciones GES / AUGE
+        </h2>
+        <p className="text-xs text-gray-500 dark:text-graphite-400">Gestión de Urgencia Odontológica Ambulatoria y emisión de constancias normadas Ley 19.966.</p>
       </div>
 
       <div className="print:hidden">
@@ -36,32 +41,32 @@ export const UrgenciasGesModulo = memo(() => {
           alCerrar={() => setAtencionSeleccionada(null)}
         />
       ) : (
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-3 print:hidden text-xs">
-          <h4 className="font-bold text-xs text-gray-800 uppercase tracking-wider">Historial de Notificaciones GES Emitidas ({atenciones.length})</h4>
+        <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-6 shadow-xs space-y-3 print:hidden text-xs">
+          <h4 className="font-bold text-xs text-gray-800 dark:text-graphite-100 uppercase tracking-wider">Historial de Notificaciones GES Emitidas ({atenciones.length})</h4>
           
           {atenciones.length === 0 ? (
-            <p className="text-gray-400 py-4 text-center">No hay constancias GES emitidas aún.</p>
+            <p className="text-gray-400 dark:text-graphite-500 py-4 text-center">No hay constancias GES emitidas aún.</p>
           ) : (
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-gray-100 dark:divide-graphite-800">
               {atenciones.map((item) => (
-                <div key={item.id} className="py-3 flex justify-between items-center flex-wrap gap-2 hover:bg-gray-50 p-2 rounded-xl">
+                <div key={item.id} className="py-3 flex justify-between items-center flex-wrap gap-2 hover:bg-gray-50 dark:hover:bg-graphite-700 dark:hover:bg-graphite-700 p-2 rounded-xl transition-colors duration-150">
                   <div>
-                    <span className="font-bold text-gray-900 block">{item.pacienteNombre} ({item.pacienteRut})</span>
+                    <span className="font-bold text-gray-900 dark:text-graphite-50 block">{item.pacienteNombre} ({item.pacienteRut})</span>
                     <span className="text-[10px] font-semibold text-blue-900 block">[{item.patologiaCodigo}] {item.patologiaNombre} — Folio: {item.folio}</span>
                   </div>
 
                   <div className="flex gap-2">
                     <button
                       onClick={() => setAtencionSeleccionada(item)}
-                      className="bg-black text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-800"
+                      className="bg-black text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-800 transition-colors duration-150"
                     >
-                      📄 Ver / Imprimir
+                      <span className="inline-flex items-center gap-1"><FileText size={12} />Ver / Imprimir</span>
                     </button>
                     <button
                       onClick={() => eliminarAtencion(item.id)}
-                      className="bg-red-50 text-red-700 px-2 py-1.5 rounded-lg text-xs font-bold hover:bg-red-100"
+                      className="bg-red-50 text-red-700 px-2 py-1.5 rounded-lg text-xs font-bold hover:bg-red-100 transition-colors duration-150"
                     >
-                      🗑️
+                      <Trash2 size={12} />
                     </button>
                   </div>
                 </div>

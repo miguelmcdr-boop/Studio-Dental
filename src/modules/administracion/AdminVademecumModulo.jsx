@@ -14,7 +14,7 @@
  *
  * Acceso restringido a ADMIN y DENTISTA vía permiso ADMINISTRAR_VADEMECUM.
  */
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import { useRBAC } from '../../hooks/useRBAC'
 import { PERMISOS } from '../../constants/rbacConstants'
 import { useVademecumAdmin } from './hooks/useVademecumAdmin'
@@ -27,18 +27,18 @@ import { ModalEditarUrgencia } from './components/ModalEditarUrgencia'
 import { ModalEditarAntirresortivo } from './components/ModalEditarAntirresortivo'
 import { AdminProtocolosContenido } from './components/AdminProtocolosContenido'
 import { createLogger } from '../../services/logger.js'
+import { FlaskConical, Info, Lock, Pill, RefreshCw } from 'lucide-react'
 
 const log = createLogger('AdminVademecumModulo')
-
 const TABS = [
-  { id: 'vademecum', nombre: '🏥 Vademécum', descripcion: '94 fármacos regulares' },
-  { id: 'urgencia', nombre: '🚨 Urgencia', descripcion: 'Carro de reanimación' },
-  { id: 'antirresortivos', nombre: '🦴 Antirresortivos', descripcion: 'Riesgo MRONJ' },
-  { id: 'alergias', nombre: '🧬 Alergias Cruzadas', descripcion: 'Matriz de reactividad' },
-  { id: 'interacciones', nombre: '⚗️ Interacciones', descripcion: 'Farmacológicas' },
-  { id: 'profilaxis', nombre: '💉 Profilaxis', descripcion: 'Endocarditis AHA' },
-  { id: 'anticoagulantes', nombre: '🩸 Anticoagulantes', descripcion: 'Manejo perioperatorio' },
-  { id: 'metadata', nombre: 'ℹ️ Metadata', descripcion: 'Info de curación' }
+  { id: 'vademecum', nombre: 'Vademécum', descripcion: '94 fármacos regulares' },
+  { id: 'urgencia', nombre: 'Urgencia', descripcion: 'Carro de reanimación' },
+  { id: 'antirresortivos', nombre: 'Antirresortivos', descripcion: 'Riesgo MRONJ' },
+  { id: 'alergias', nombre: 'Alergias Cruzadas', descripcion: 'Matriz de reactividad' },
+  { id: 'interacciones', nombre: 'Interacciones', descripcion: 'Farmacológicas' },
+  { id: 'profilaxis', nombre: 'Profilaxis', descripcion: 'Endocarditis AHA' },
+  { id: 'anticoagulantes', nombre: 'Anticoagulantes', descripcion: 'Manejo perioperatorio' },
+  { id: 'metadata', nombre: 'Metadata', descripcion: 'Info de curación' }
 ]
 
 export const AdminVademecumModulo = () => {
@@ -51,12 +51,53 @@ export const AdminVademecumModulo = () => {
   const [modalAntirresortivo, setModalAntirresortivo] = useState({ abierto: false, farmaco: null })
   const [guardando, setGuardando] = useState(false)
 
+  // Handlers vademécum regular
+  const handleCrearFarmaco = () => setModalFarmaco({ abierto: true, farmaco: null })
+  const handleEditarFarmaco = useCallback((farmaco) => setModalFarmaco({ abierto: true, farmaco }), [])
+  const handleGuardarFarmaco = useCallback(async (datos) => {
+    setGuardando(true)
+    try {
+      await admin.crearOFarmacoActualizar(datos)
+      setModalFarmaco({ abierto: false, farmaco: null })
+    } finally {
+      setGuardando(false)
+    }
+  }, [admin, log])
+  const handleDesactivarFarmaco = async (farmaco) => { await admin.desactivar(farmaco.numero) }
+  const handleReactivarFarmaco = async (farmaco) => { await admin.reactivar(farmaco.numero) }
+
+  // Handlers urgencia
+  const handleCrearUrgencia = () => setModalUrgencia({ abierto: true, farmaco: null })
+  const handleEditarUrgencia = useCallback((farmaco) => setModalUrgencia({ abierto: true, farmaco }), [])
+  const handleGuardarUrgencia = useCallback(async (datos) => {
+    setGuardando(true)
+    try {
+      log.info('Guardar urgencia:', datos)
+      setModalUrgencia({ abierto: false, farmaco: null })
+    } finally {
+      setGuardando(false)
+    }
+  }, [admin, log])
+
+  // Handlers antirresortivos
+  const handleCrearAntirresortivo = () => setModalAntirresortivo({ abierto: true, farmaco: null })
+  const handleEditarAntirresortivo = useCallback((farmaco) => setModalAntirresortivo({ abierto: true, farmaco }), [])
+  const handleGuardarAntirresortivo = useCallback(async (datos) => {
+    setGuardando(true)
+    try {
+      log.info('Guardar antirresortivo:', datos)
+      setModalAntirresortivo({ abierto: false, farmaco: null })
+    } finally {
+      setGuardando(false)
+    }
+  }, [admin, log])
+
   // Validación de acceso
   if (!puede(PERMISOS.ADMINISTRAR_VADEMECUM)) {
     return (
       <div className="p-8 max-w-2xl mx-auto">
         <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center">
-          <div className="text-5xl mb-4">🔒</div>
+          <Lock size={48} className="mx-auto mb-4 text-graphite-300" />
           <h2 className="text-2xl font-bold text-red-900 mb-2">Acceso Denegado</h2>
           <p className="text-red-700">
             No tiene permisos para administrar el vademécum.
@@ -67,88 +108,47 @@ export const AdminVademecumModulo = () => {
     )
   }
 
-  // Handlers vademécum regular
-  const handleCrearFarmaco = () => setModalFarmaco({ abierto: true, farmaco: null })
-  const handleEditarFarmaco = (farmaco) => setModalFarmaco({ abierto: true, farmaco })
-  const handleGuardarFarmaco = async (datos) => {
-    setGuardando(true)
-    try {
-      await admin.crearOFarmacoActualizar(datos)
-      setModalFarmaco({ abierto: false, farmaco: null })
-    } finally {
-      setGuardando(false)
-    }
-  }
-  const handleDesactivarFarmaco = async (farmaco) => { await admin.desactivar(farmaco.numero) }
-  const handleReactivarFarmaco = async (farmaco) => { await admin.reactivar(farmaco.numero) }
-
-  // Handlers urgencia
-  const handleCrearUrgencia = () => setModalUrgencia({ abierto: true, farmaco: null })
-  const handleEditarUrgencia = (farmaco) => setModalUrgencia({ abierto: true, farmaco })
-  const handleGuardarUrgencia = async (datos) => {
-    setGuardando(true)
-    try {
-      log.info('Guardar urgencia:', datos)
-      setModalUrgencia({ abierto: false, farmaco: null })
-    } finally {
-      setGuardando(false)
-    }
-  }
-
-  // Handlers antirresortivos
-  const handleCrearAntirresortivo = () => setModalAntirresortivo({ abierto: true, farmaco: null })
-  const handleEditarAntirresortivo = (farmaco) => setModalAntirresortivo({ abierto: true, farmaco })
-  const handleGuardarAntirresortivo = async (datos) => {
-    setGuardando(true)
-    try {
-      log.info('Guardar antirresortivo:', datos)
-      setModalAntirresortivo({ abierto: false, farmaco: null })
-    } finally {
-      setGuardando(false)
-    }
-  }
-
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       {/* Header del módulo */}
-      <div className="bg-white border border-gray-200 rounded-xl p-6">
+      <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-xl p-6">
         <div className="flex items-center justify-between mb-2">
-          <h1 className="text-2xl font-bold text-gray-900">💊 Vademécum Odontológico</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-graphite-50 inline-flex items-center gap-2"><Pill size={24} />Vademécum Odontológico</h1>
           <button
             onClick={admin.refrescar}
             disabled={admin.cargando}
             className="px-3 py-1.5 text-sm font-semibold text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 disabled:opacity-50"
           >
-            🔄 Refrescar
+            <span className="inline-flex items-center gap-1"><RefreshCw size={14} />Refrescar</span>
           </button>
         </div>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-600 dark:text-graphite-400">
           Gestione los datos de referencia clínicos del vademécum odontológico curado (v1.1).
           Los cambios se sincronizan en tiempo real entre todos los dispositivos.
         </p>
       </div>
 
       {/* Tabs de navegación */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-        <div className="flex border-b border-gray-200 bg-gray-50 overflow-x-auto">
+      <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-xl overflow-hidden">
+        <div className="flex border-b border-gray-200 dark:border-graphite-700 bg-gray-50 dark:bg-graphite-800 overflow-x-auto">
           {TABS.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setTabActivo(tab.id)}
               className={`px-6 py-3 text-sm font-semibold transition-all border-b-2 whitespace-nowrap ${
                 tabActivo === tab.id
-                  ? 'border-blue-600 text-blue-700 bg-white'
-                  : 'border-transparent text-gray-600 hover:bg-gray-100'
+                  ? 'border-blue-600 text-blue-700 bg-white dark:bg-graphite-800'
+                  : 'border-transparent text-gray-600 dark:text-graphite-400 hover:bg-gray-100 dark:hover:bg-graphite-700'
               }`}
             >
               <div>{tab.nombre}</div>
-              <div className="text-xs text-gray-500 mt-0.5">{tab.descripcion}</div>
+              <div className="text-xs text-gray-500 dark:text-graphite-400 mt-0.5">{tab.descripcion}</div>
             </button>
           ))}
         </div>
 
         <div className="p-6">
-          {admin.cargando && <div className="text-center py-8 text-gray-500">Cargando datos...</div>}
+          {admin.cargando && <div className="text-center py-8 text-gray-500 dark:text-graphite-400">Cargando datos...</div>}
           {admin.error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 mb-4">
               Error: {admin.error}

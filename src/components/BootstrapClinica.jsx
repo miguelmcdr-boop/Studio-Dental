@@ -1,6 +1,8 @@
 import React from 'react'
+import { Building2 } from 'lucide-react'
 import { useBootstrapClinica } from '../hooks/useBootstrapClinica'
 import { supabaseSignOut } from '../services/authService'
+import { useAppDialog } from '../hooks/useAppDialog'
 
 /**
  * F7-11b: Wizard de creación de clínica nueva.
@@ -29,7 +31,7 @@ export const BootstrapClinica = ({ onComplete }) => {
       <div className="max-w-2xl w-full bg-white rounded-lg shadow-lg p-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="text-6xl mb-4">🏥</div>
+          <Building2 className="text-6xl mb-4 text-blue-500" size={64} />
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Crear tu Clínica</h1>
           <p className="text-gray-600">
             Configura tu nueva clínica dental. Este proceso toma menos de 1 minuto.
@@ -72,7 +74,14 @@ export const BootstrapClinica = ({ onComplete }) => {
           <button
             type="button"
             onClick={async () => {
-              if (confirm('¿Seguro que quieres salir? Puedes iniciar sesión más tarde.')) {
+              const ok = await confirm({
+                title: '¿Salir del asistente?',
+                description: 'Puedes iniciar sesión más tarde para completar la configuración.',
+                variant: 'warning',
+                confirmText: 'Salir',
+                cancelText: 'Continuar'
+              })
+              if (ok) {
                 await supabaseSignOut()
                 window.location.href = '/'
               }

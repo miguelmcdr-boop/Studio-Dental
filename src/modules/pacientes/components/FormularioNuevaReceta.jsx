@@ -109,33 +109,33 @@ export const FormularioNuevaReceta = memo(({ alergiasPaciente, onAgregarReceta }
   }
 
   return (
-    <div className="bg-gray-50 p-4 border border-gray-200 rounded-2xl mb-6 print:hidden">
-      <h4 className="font-bold text-xs text-gray-800 mb-3 uppercase tracking-wider">Emitir Nueva Receta Médica</h4>
+    <div className="bg-gray-50 dark:bg-graphite-800 p-4 border border-gray-200 dark:border-graphite-700 rounded-2xl mb-6 print:hidden">
+      <h4 className="font-bold text-xs text-gray-800 dark:text-graphite-100 mb-3 uppercase tracking-wider">Emitir Nueva Receta Médica</h4>
       
       {alertaFarmaco && <AlertaAlergiaMejorada alerta={alertaFarmaco} />}
 
       <form onSubmit={handleSubmit} className="space-y-3 text-xs relative">
         <div className="relative">
-          <label className="block text-gray-600 mb-1 font-semibold">Fármaco / Medicamento</label>
+          <label className="block text-gray-600 dark:text-graphite-400 mb-1 font-semibold">Fármaco / Medicamento</label>
           <input
             data-testid="receta-farmaco"
             type="text"
             placeholder="Empieza a escribir... Ej: Amoxicilina, Ibuprofeno, Lidocaína..."
             value={nuevaReceta.medicamento}
             onChange={(e) => handleMedicamentoInputChange(e.target.value)}
-            className="w-full px-3 py-2 border rounded-lg bg-white"
+            className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-graphite-800"
           />
 
           {sugerenciasVademecum.length > 0 && (
-            <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-300 rounded-xl shadow-lg z-30 max-h-48 overflow-y-auto">
+            <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-graphite-800 border border-gray-300 dark:border-graphite-600 rounded-xl shadow-lg z-30 max-h-48 overflow-y-auto">
               {sugerenciasVademecum.map((item, idx) => (
                 <div
                   key={idx}
                   onClick={() => handleSeleccionarSugerencia(item)}
-                  className="p-2.5 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-none"
+                  className="p-2.5 hover:bg-gray-100 dark:hover:bg-graphite-700 cursor-pointer border-b border-gray-100 dark:border-graphite-800 last:border-none transition-colors duration-150"
                 >
-                  <p className="font-bold text-gray-800">{item.medicamento}</p>
-                  <p className="text-[10px] text-gray-500">{item.posologia}</p>
+                  <p className="font-bold text-gray-800 dark:text-graphite-100">{item.medicamento}</p>
+                  <p className="text-[10px] text-gray-500 dark:text-graphite-400">{item.posologia}</p>
                 </div>
               ))}
             </div>
@@ -143,23 +143,23 @@ export const FormularioNuevaReceta = memo(({ alergiasPaciente, onAgregarReceta }
         </div>
 
         <div>
-          <label className="block text-gray-600 mb-1 font-semibold">Posología e Indicaciones</label>
+          <label className="block text-gray-600 dark:text-graphite-400 mb-1 font-semibold">Posología e Indicaciones</label>
           <textarea
             data-testid="receta-indicacion"
             rows="2"
             placeholder="Ej: Tomar 1 comprimido cada 8 horas por 7 días vía oral."
             value={nuevaReceta.indicacion}
             onChange={(e) => setNuevaReceta({ ...nuevaReceta, indicacion: e.target.value })}
-            className="w-full px-3 py-2 border rounded-lg bg-white"
+            className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-graphite-800"
           />
         </div>
 
-        <button data-testid="btn-emitir-receta" type="submit" className="bg-black text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800">
+        <button data-testid="btn-emitir-receta" type="submit" className="bg-black text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors duration-150">
           + Emitir Receta
         </button>
       </form>
 
-      <p className="text-[10px] text-gray-400 mt-3">
+      <p className="text-[10px] text-gray-400 dark:text-graphite-500 mt-3">
         La validación automática evalúa reactividad cruzada entre las 16 familias farmacológicas del vademécum v1.1.
         Si las alergias del paciente no están registradas, verifique manualmente los antecedentes antes de prescribir.
       </p>

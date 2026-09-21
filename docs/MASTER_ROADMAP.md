@@ -179,6 +179,7 @@
 | F7-23 | Auditoría de logs para garantizar ausencia de PHI | 7 | P1 | S (0.5-1 d) | — | DONE (2026-09-06) — 0 PHI en logs, 3 archivos migrados al logger, sanitizePHI utility con 5 tests, guía de logging seguro en BITACORA |
 | F7-24 | Security Regression Suite como gate de CI/staging | 7 | **P0** | M (2-3 d) | F7-08,F7-20,F7-21,F7-22 | DONE (2026-09-06) — 27 tests de regresión (multi-tenant, RBAC, logout/PHI, storage, audit-log), job security-regression en CI como gate obligatorio |
 | F7-25 | Design System Studio Dental + App Shell profesional | 7 | P1 | L (4-7 d) | — | **DONE (2026-09-09)** — MVP Fase 1+2 DONE + Iteración 1-9 DONE + Hotfix P0 DONE. Cobertura: **23/23 modales (100%)**, 31 componentes con Button, 24 con Input. Push + PR pendiente |
+| F10 | Rediseño Clinical Precision v2 (DS v2 + migración módulos) | 10 | P1 | L (6-8 d) | — | **PARCIAL (2026-09-21)** — F10-A DONE (Fundación) + F10-B DONE (Shell) + F10-C DONE (Emoji Sweep 84+ archivos, consistencia visual en 16 títulos) + F10-D DONE (dark-sweep 137 archivos, 1372 clases dark) + F10-E DONE (lazy load PDF libs, memo en 8 tablas, useMemo/useCallback). Pendiente: F10-F (push final) |
 | F7-26 | Ficha clínica premium y navegación clínica optimizada | 7 | P1 | L (4-7 d) | F7-25 | TODO |
 | F7-27 | Agenda + dashboard operacional de nivel comercial | 7 | P1 | M (3-5 d) | F7-25 | TODO |
 | F7-28 | Responsive + accesibilidad integral de flujos críticos | 7 | P1 | M (2-4 d) | F7-25 | TODO |

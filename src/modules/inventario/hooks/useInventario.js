@@ -2,8 +2,10 @@ import { useState, useMemo, useCallback, useEffect } from 'react'
 import { ITEMS_INVENTARIO_DEFAULT } from '../constants/inventarioConstants'
 import { inventarioStorageService } from '../services/inventarioStorageService'
 import { calcularResumenInventario } from '../utils/inventarioCalculations'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 export const useInventario = () => {
+  const { confirm } = useAppDialog()
   const [items, setItems] = useState(() => inventarioStorageService.obtenerItems(ITEMS_INVENTARIO_DEFAULT))
   const [busqueda, setBusqueda] = useState('')
   const [categoriaFiltro, setCategoriaFiltro] = useState('Todas')
@@ -64,15 +66,21 @@ export const useInventario = () => {
     })
   }, [])
 
-  const eliminarItem = useCallback((idItem) => {
-    if (window.confirm('¿Estás seguro de eliminar este insumo del inventario?')) {
+  const eliminarItem = useCallback(async (idItem) => {
+    const ok = await confirm({
+      title: 'Eliminar insumo',
+      description: '¿Estás seguro de eliminar este insumo del inventario?',
+      variant: 'danger',
+      confirmText: 'Eliminar'
+    })
+    if (ok) {
       setItems(prev => {
         const actualizados = prev.filter(i => i.id !== idItem)
         inventarioStorageService.guardarItems(actualizados)
         return actualizados
       })
     }
-  }, [])
+  }, [confirm])
 
   return {
     items: itemsFiltrados,

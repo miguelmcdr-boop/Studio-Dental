@@ -2,9 +2,9 @@
  * Utilidades puras de cálculo financiero, cierres de caja y comisiones
  */
 
-export const formatearCLP = (monto) => {
-  return `$${(parseInt(monto) || 0).toLocaleString('es-CL')} CLP`
-}
+// Commit G2: fuente única de verdad movida a src/utils/formatoMoneda.js
+// Se re-exporta para mantener retrocompatibilidad con imports existentes
+export { formatearCLP } from '../../../utils/formatoMoneda'
 
 export const calcularBalanceFinanzas = (movimientos = []) => {
   let totalIngresos = 0

@@ -1,4 +1,7 @@
 import React, { memo } from 'react'
+import { Printer, ClipboardList } from 'lucide-react'
+import { CreditCard } from 'lucide-react'
+import { Banknote, Building2 } from 'lucide-react'
 
 export const ArqueoCajaDiario = memo(({
   transaccionesDia = [],
@@ -33,37 +36,37 @@ export const ArqueoCajaDiario = memo(({
   return (
     <div className="space-y-6">
       {/* Selector de Fecha e Impresión */}
-      <div className="flex justify-between items-center bg-gray-50 p-4 rounded-2xl border border-gray-200 print:hidden flex-wrap gap-3">
+      <div className="flex justify-between items-center bg-gray-50 dark:bg-graphite-800 p-4 rounded-2xl border border-gray-200 dark:border-graphite-700 print:hidden flex-wrap gap-3">
         <div className="flex items-center gap-3 text-xs">
-          <label className="font-bold text-gray-700">Seleccionar Fecha de Arqueo:</label>
+          <label className="font-bold text-gray-700 dark:text-graphite-300">Seleccionar Fecha de Arqueo:</label>
           <input
             type="text"
             placeholder="DD/MM/AAAA"
             value={fechaArqueo}
             onChange={(e) => setFechaArqueo(e.target.value)}
-            className="px-3 py-1.5 border rounded-lg bg-white font-bold text-gray-900 w-32"
+            className="px-3 py-1.5 border rounded-lg bg-white dark:bg-graphite-800 font-bold text-gray-900 dark:text-graphite-50 w-32"
           />
         </div>
 
         <button
           onClick={() => window.print()}
-          className="bg-black text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-gray-800 shadow-sm flex items-center gap-2"
+          className="bg-black text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-gray-800 shadow-sm flex items-center gap-2 transition-colors duration-150"
         >
-          🖨️ Imprimir Cierre de Caja Letter
+          <span className="inline-flex items-center gap-1"><Printer size={14} />Imprimir Cierre de Caja Letter</span>
         </button>
       </div>
 
       {/* Documento de Cierre de Caja Imprimible */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-8 print:border-none print:p-0">
+      <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-8 print:border-none print:p-0">
         {/* Encabezado */}
         <div className="border-b-2 border-black pb-4 mb-6 flex justify-between items-start">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">{userProfile?.nombreCompleto || 'Studio Dental'}</h1>
-            <p className="text-xs text-gray-600">Arqueo y Cierre Diario de Caja Chica</p>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-graphite-50">{userProfile?.nombreCompleto || 'Studio Dental'}</h1>
+            <p className="text-xs text-gray-600 dark:text-graphite-400">Arqueo y Cierre Diario de Caja Chica</p>
           </div>
           <div className="text-right">
-            <h2 className="text-lg font-bold text-gray-800 uppercase">INFORME DE CAJA</h2>
-            <p className="text-xs text-gray-500">Fecha Arqueo: <strong>{fechaArqueo}</strong></p>
+            <h2 className="text-lg font-bold text-gray-800 dark:text-graphite-100 uppercase">INFORME DE CAJA</h2>
+            <p className="text-xs text-gray-500 dark:text-graphite-400">Fecha Arqueo: <strong>{fechaArqueo}</strong></p>
           </div>
         </div>
 
@@ -86,43 +89,43 @@ export const ArqueoCajaDiario = memo(({
         </div>
 
         {/* Desglose por Medio de Pago */}
-        <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl mb-6">
-          <h4 className="text-xs font-bold text-gray-800 uppercase tracking-wider mb-3">
-            💳 Desglose de Ingresos por Medio de Pago
+        <div className="bg-gray-50 dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 p-4 rounded-xl mb-6">
+          <h4 className="text-xs font-bold text-gray-800 dark:text-graphite-100 uppercase tracking-wider mb-3">
+            <span className="inline-flex items-center gap-1"><CreditCard size={12} />Desglose de Ingresos por Medio de Pago</span>
           </h4>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-            <div className="bg-white p-3 rounded-lg border">
-              <span className="text-gray-500 block text-[10px]">💵 Efectivo:</span>
-              <span className="font-bold text-gray-900">${efectivo.toLocaleString('es-CL')}</span>
+            <div className="bg-white dark:bg-graphite-800 p-3 rounded-lg border">
+              <span className="text-gray-500 dark:text-graphite-400 block text-[10px] inline-flex items-center gap-1"><Banknote size={10} />Efectivo:</span>
+              <span className="font-bold text-gray-900 dark:text-graphite-50">${efectivo.toLocaleString('es-CL')}</span>
             </div>
-            <div className="bg-white p-3 rounded-lg border">
-              <span className="text-gray-500 block text-[10px]">🏦 Transferencia:</span>
-              <span className="font-bold text-gray-900">${transferencia.toLocaleString('es-CL')}</span>
+            <div className="bg-white dark:bg-graphite-800 p-3 rounded-lg border">
+              <span className="text-gray-500 dark:text-graphite-400 block text-[10px] inline-flex items-center gap-1"><Building2 size={10} />Transferencia:</span>
+              <span className="font-bold text-gray-900 dark:text-graphite-50">${transferencia.toLocaleString('es-CL')}</span>
             </div>
-            <div className="bg-white p-3 rounded-lg border">
-              <span className="text-gray-500 block text-[10px]">💳 Débito:</span>
-              <span className="font-bold text-gray-900">${debito.toLocaleString('es-CL')}</span>
+            <div className="bg-white dark:bg-graphite-800 p-3 rounded-lg border">
+              <span className="text-gray-500 dark:text-graphite-400 block text-[10px]"><span className="inline-flex items-center gap-1"><CreditCard size={8} />Débito:</span></span>
+              <span className="font-bold text-gray-900 dark:text-graphite-50">${debito.toLocaleString('es-CL')}</span>
             </div>
-            <div className="bg-white p-3 rounded-lg border">
-              <span className="text-gray-500 block text-[10px]">💳 Crédito:</span>
-              <span className="font-bold text-gray-900">${credito.toLocaleString('es-CL')}</span>
+            <div className="bg-white dark:bg-graphite-800 p-3 rounded-lg border">
+              <span className="text-gray-500 dark:text-graphite-400 block text-[10px]"><span className="inline-flex items-center gap-1"><CreditCard size={8} />Crédito:</span></span>
+              <span className="font-bold text-gray-900 dark:text-graphite-50">${credito.toLocaleString('es-CL')}</span>
             </div>
           </div>
         </div>
 
         {/* Tabla de Movimientos del Día */}
-        <h4 className="text-xs font-bold text-gray-800 uppercase tracking-wider mb-3">
-          📋 Detalle de Transacciones del Día ({transaccionesDia.length})
+        <h4 className="text-xs font-bold text-gray-800 dark:text-graphite-100 uppercase tracking-wider mb-3">
+          <span className="inline-flex items-center gap-1"><ClipboardList size={12} />Detalle de Transacciones del Día ({transaccionesDia.length})</span>
         </h4>
 
         {transaccionesDia.length === 0 ? (
-          <p className="text-xs text-gray-400 py-6 text-center bg-gray-50 rounded-xl border border-dashed">
+          <p className="text-xs text-gray-400 dark:text-graphite-500 py-6 text-center bg-gray-50 dark:bg-graphite-800 rounded-xl border border-dashed">
             No existen transacciones ni cobros registrados para la fecha {fechaArqueo}.
           </p>
         ) : (
           <table className="w-full text-left text-xs mb-6 border-collapse">
             <thead>
-              <tr className="border-b-2 border-gray-300 bg-gray-100 text-gray-800">
+              <tr className="border-b-2 border-gray-300 dark:border-graphite-600 bg-gray-100 dark:bg-graphite-800 text-gray-800 dark:text-graphite-100">
                 <th className="p-2.5">Origen / Categoría</th>
                 <th className="p-2.5">Paciente / Detalle</th>
                 <th className="p-2.5">Medio de Pago</th>
@@ -132,10 +135,10 @@ export const ArqueoCajaDiario = memo(({
             </thead>
             <tbody>
               {transaccionesDia.map(t => (
-                <tr key={t.id} className="border-b border-gray-200">
-                  <td className="p-2.5 font-bold text-gray-900">{t.categoria || 'General'}</td>
-                  <td className="p-2.5 text-gray-700">{t.pacienteNombre || t.concepto || 'S/D'}</td>
-                  <td className="p-2.5 font-semibold text-gray-600">{t.metodoPago || 'Efectivo'}</td>
+                <tr key={t.id} className="border-b border-gray-200 dark:border-graphite-700">
+                  <td className="p-2.5 font-bold text-gray-900 dark:text-graphite-50">{t.categoria || 'General'}</td>
+                  <td className="p-2.5 text-gray-700 dark:text-graphite-300">{t.pacienteNombre || t.concepto || 'S/D'}</td>
+                  <td className="p-2.5 font-semibold text-gray-600 dark:text-graphite-400">{t.metodoPago || 'Efectivo'}</td>
                   <td className="p-2.5 text-center">
                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                       t.tipo === 'Ingreso' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
@@ -155,10 +158,10 @@ export const ArqueoCajaDiario = memo(({
         )}
 
         {/* Pie de Firma Contable */}
-        <div className="hidden print:block mt-16 pt-8 border-t border-gray-300 text-center text-xs">
+        <div className="hidden print:block mt-16 pt-8 border-t border-gray-300 dark:border-graphite-600 text-center text-xs">
           <div className="w-64 mx-auto border-t border-black pt-2">
             <p className="font-bold">{userProfile?.nombreCompleto || 'Firma Responsable de Caja'}</p>
-            <p className="text-gray-500 text-[10px]">Recepción & Arqueo de Caja</p>
+            <p className="text-gray-500 dark:text-graphite-400 text-[10px]">Recepción & Arqueo de Caja</p>
           </div>
         </div>
       </div>

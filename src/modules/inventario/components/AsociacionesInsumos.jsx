@@ -3,6 +3,8 @@ import { useAsociaciones } from '../hooks/useAsociaciones'
 import { SelectorCategoria } from './SelectorCategoria'
 import { FormularioPalabrasClave } from './FormularioPalabrasClave'
 import { TablaAsociaciones } from './TablaAsociaciones'
+import { Settings } from 'lucide-react'
+import { Lightbulb } from 'lucide-react'
 
 export const AsociacionesInsumos = memo(({ items }) => {
   const {
@@ -30,7 +32,7 @@ export const AsociacionesInsumos = memo(({ items }) => {
     <div className="bg-white dark:bg-graphite-900 border border-gray-200 dark:border-graphite-700 rounded-2xl p-6 shadow-xs space-y-4">
       <div className="border-b dark:border-graphite-700 pb-3">
         <h3 className="font-bold text-sm text-graphite-900 dark:text-graphite-100 uppercase tracking-wider">
-          ⚙️ Asociaciones Tratamiento → Material (Descuento Automático de Stock)
+          <span className="inline-flex items-center gap-1"><Settings size={12} />Asociaciones Tratamiento → Material (Descuento Automático de Stock)</span>
         </h3>
         <p className="text-graphite-500 dark:text-graphite-400 text-[11px] mt-1">
           Configura qué materiales se descuentan automáticamente cuando marcas un tratamiento como "Realizado".
@@ -68,7 +70,7 @@ export const AsociacionesInsumos = memo(({ items }) => {
       />
 
       <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-3 text-[11px] text-blue-900 dark:text-blue-200">
-        <strong>💡 Nota:</strong> Cada asociación está vinculada al ID específico del item en tu inventario.
+        <strong className="inline-flex items-center gap-1"><Lightbulb size={12} />Nota:</strong> Cada asociación está vinculada al ID específico del item en tu inventario.
         Esto significa que si cambias el nombre de un producto, la asociación no se rompe.
         Si eliminas un producto del inventario, la asociación quedará sin vinculación y deberás seleccionarla de nuevo.
       </div>

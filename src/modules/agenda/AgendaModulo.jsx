@@ -1,4 +1,24 @@
-import React, { memo } from 'react'
+/**
+ * AgendaModulo v2 — Parrilla multi-box de citas (F10-C2)
+ *
+ * Migración al Design System v2:
+ * - <PageHeader> con título sentence case (retira UPPERCASE + font-black)
+ * - <Button> variant="danger" + icono Ban para bloqueos
+ * - <Button> variant="primary" + icono Plus para nueva cita
+ * - <EmptyState> compact para boxes sin citas
+ * - Iconos lucide reemplazan emojis 📅 ⛔ ➕ 🪑
+ *
+ * Componentes auxiliares NO tocados (iteración posterior si se requiere):
+ * - AgendaViewSelector, AgendaSummaryCards, CitaCard
+ * - ModalNuevaCita, ModalNuevoBloqueo
+ *
+ * Contratos: no hay data-testid en este archivo, preservación de API de props.
+ */
+import React, { memo, useMemo } from 'react'
+import { Ban, Plus, Armchair, Calendar } from 'lucide-react'
+import { Button } from '../../components/ui/Button'
+import { PageHeader } from '../../components/ui/PageHeader'
+import { EmptyState } from '../../components/ui/EmptyState'
 import { useAgenda } from './hooks/useAgenda'
 import { AgendaSummaryCards } from './components/AgendaSummaryCards'
 import { AgendaViewSelector } from './components/AgendaViewSelector'
@@ -9,7 +29,6 @@ import { SILLONES_DENTALES } from './constants/agendaConstants'
 import { usePacientesStore } from '../../store/pacientesStore'
 
 export const AgendaModulo = memo(({ alSeleccionarPaciente, alVerFichaPaciente }) => {
-  // (F2-02) — pacientes ya no llega como prop desde App.jsx: se lee directo del store.
   const pacientesProp = usePacientesStore((state) => state.pacientes)
 
   const {
@@ -31,7 +50,7 @@ export const AgendaModulo = memo(({ alSeleccionarPaciente, alVerFichaPaciente })
     enviarWhatsAppConfirmacion
   } = useAgenda(pacientesProp)
 
-  const citasDelDia = citas.filter(c => c.fecha === fechaSeleccionada)
+  const citasDelDia = useMemo(() => citas.filter(c => c.fecha === fechaSeleccionada), [citas, fechaSeleccionada])
   const funcionVerFicha = alSeleccionarPaciente || alVerFichaPaciente
 
   const boxesAMostrar = boxFiltro === 'Todos'
@@ -40,35 +59,33 @@ export const AgendaModulo = memo(({ alSeleccionarPaciente, alVerFichaPaciente })
 
   return (
     <div className="space-y-6">
-      {/* Cabecera Principal */}
-      <div className="flex justify-between items-center flex-wrap gap-4">
-        <div>
-          <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight flex items-center gap-2">
-            <span>📅</span> AGENDA MULTI-BOX & CONTROL DE SILLONES
-          </h2>
-          <p className="text-xs text-gray-500">
-            Gestión inteligente de citas, ocupación de Boxes y confirmación omnicanal.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2.5 flex-wrap">
-          <button
-            type="button"
-            onClick={() => setModalNuevoBloqueoAbierto(true)}
-            className="px-3.5 py-2.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-800 text-xs font-bold border border-red-200 transition-all cursor-pointer flex items-center gap-1.5"
-          >
-            ⛔ Añadir Bloqueo
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setModalNuevaCitaAbierto(true)}
-            className="px-4 py-2.5 rounded-xl bg-black hover:bg-gray-800 text-white text-xs font-black transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
-          >
-            ➕ Agendar Nueva Cita
-          </button>
-        </div>
-      </div>
+      {/* PageHeader con acciones */}
+      <PageHeader
+        icon={Calendar}
+        title="Agenda multi-box y control de sillones"
+        description="Gestión inteligente de citas, ocupación de Boxes y confirmación omnicanal."
+        actions={
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <Button
+              type="button"
+              onClick={() => setModalNuevoBloqueoAbierto(true)}
+              variant="danger"
+              size="sm"
+              icon={Ban}
+            >
+              Añadir bloqueo
+            </Button>
+            <Button
+              type="button"
+              onClick={() => setModalNuevaCitaAbierto(true)}
+              variant="primary"
+              icon={Plus}
+            >
+              Agendar nueva cita
+            </Button>
+          </div>
+        }
+      />
 
       {/* Selector de Fecha + Filtro por Box/Doctor */}
       <AgendaViewSelector
@@ -85,7 +102,7 @@ export const AgendaModulo = memo(({ alSeleccionarPaciente, alVerFichaPaciente })
       <AgendaSummaryCards citas={citasDelDia} />
 
       {/* Parrilla Multi-Box */}
-      <div className="bg-gray-50 border border-gray-200 rounded-3xl p-6 overflow-x-auto shadow-2xs">
+      <div className="bg-graphite-50 dark:bg-graphite-900 border border-graphite-200 dark:border-graphite-700 rounded-xl p-6 overflow-x-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 min-w-[800px]">
           {boxesAMostrar.map(box => {
             const citasBox = citasDelDia.filter(
@@ -93,23 +110,31 @@ export const AgendaModulo = memo(({ alSeleccionarPaciente, alVerFichaPaciente })
             )
 
             return (
-              <div key={box.id} className="bg-white border border-gray-200 rounded-2xl p-4 shadow-2xs space-y-4 flex flex-col justify-between">
+              <div key={box.id} className="bg-white dark:bg-graphite-800 border border-graphite-200 dark:border-graphite-700 rounded-lg p-4 space-y-4 flex flex-col justify-between">
                 <div className="space-y-3">
-                  <div className="flex justify-between items-center border-b pb-2">
+                  <div className="flex justify-between items-center border-b border-graphite-200 dark:border-graphite-700 pb-2">
                     <div>
-                      <h3 className="font-extrabold text-xs text-gray-900 uppercase tracking-wider">{box.nombre}</h3>
-                      <span className="text-[10px] font-semibold text-gray-500">{box.especialidad}</span>
+                      <h3 className="font-semibold text-xs text-graphite-900 dark:text-graphite-50 uppercase tracking-wider">
+                        {box.nombre}
+                      </h3>
+                      <span className="text-[10px] font-medium text-graphite-500 dark:text-graphite-400">
+                        {box.especialidad}
+                      </span>
                     </div>
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" title="Sillón Operativo"></span>
+                    <span
+                      className="w-2.5 h-2.5 rounded-full bg-clinical-success animate-pulse"
+                      title="Sillón Operativo"
+                    />
                   </div>
 
                   <div className="space-y-3 min-h-[300px]">
                     {citasBox.length === 0 ? (
-                      <div className="h-full min-h-[250px] flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-xl p-4 text-center">
-                        <span className="text-2xl mb-1">🪑</span>
-                        <span className="text-xs font-bold text-gray-400">Sin citas agendadas en este Box</span>
-                        <span className="text-[10px] text-gray-400 mt-0.5">Disponible para reservas</span>
-                      </div>
+                      <EmptyState
+                        compact
+                        icon={Armchair}
+                        title="Sin citas agendadas en este Box"
+                        description="Disponible para reservas"
+                      />
                     ) : (
                       citasBox.map(cita => (
                         <CitaCard
@@ -145,6 +170,7 @@ export const AgendaModulo = memo(({ alSeleccionarPaciente, alVerFichaPaciente })
           fechaPredeterminada={fechaSeleccionada}
           alGuardar={guardarCita}
           alCerrar={() => setModalNuevoBloqueoAbierto(false)}
+          citasExistentes={citas}
         />
       )}
     </div>
