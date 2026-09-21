@@ -37,7 +37,7 @@ export const DienteSVG = ({
       <span className="text-[11px] font-extrabold text-gray-800 dark:text-graphite-100 mb-1">{numero}</span>
       <div className="relative">
         {(estadoGeneral === 'ausente' || estadoGeneral === 'indicacion_exodoncia') && (
-          <div className="absolute inset-0 flex items-center justify-center z-10 text-red-600 font-black text-xl select-none bg-white/60 rounded-lg">✕</div>
+          <div className="absolute inset-0 flex items-center justify-center z-10 text-red-600 font-black text-xl select-none bg-white/60 dark:bg-graphite-800/60 rounded-lg">✕</div>
         )}
         {estadoGeneral === 'implante' && (
           <div className="absolute inset-0 flex items-center justify-center z-10 text-gray-900 dark:text-graphite-50 font-extrabold text-[9px] bg-gray-200/90 rounded px-1 border border-gray-400">IMP</div>

@@ -57,7 +57,7 @@ export const AlertaAlergiaMejorada = ({ alerta }) => {
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
             {alerta.alternativas.map((alt, idx) => (
-              <div key={idx} data-testid={`alerta-alternativa-${idx}`} className="bg-white/70 rounded-lg p-2 border border-white shadow-sm">
+              <div key={idx} data-testid={`alerta-alternativa-${idx}`} className="bg-white/70 dark:bg-graphite-800/70 rounded-lg p-2 border border-white dark:border-graphite-700 shadow-sm">
                 <p className="text-xs font-bold text-gray-900 dark:text-graphite-50">{alt.nombre}</p>
                 <p className="text-[10px] text-gray-600 dark:text-graphite-400 mt-0.5">Familia: {alt.familia_legible}</p>
               </div>
@@ -77,7 +77,7 @@ export const AlertaAlergiaMejorada = ({ alerta }) => {
             {detallesExpandidos ? 'Ocultar' : 'Ver'} detalles de reactividad cruzada
           </button>
           {detallesExpandidos && (
-            <div className="mt-2 p-3 bg-white/60 rounded-lg border border-black/10 space-y-2 text-xs">
+            <div className="mt-2 p-3 bg-white/60 dark:bg-graphite-800/60 rounded-lg border border-black/10 dark:border-graphite-600 space-y-2 text-xs">
               {alerta.familiaAlergia && (
                 <div className="flex gap-2">
                   <span className="font-bold text-gray-700 dark:text-graphite-300 min-w-[130px]">Alergia del paciente:</span>
