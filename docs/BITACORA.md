@@ -5890,3 +5890,52 @@ Antes de marcar F7-34 como completamente verificada, se debe:
 - Ejecutar tests Deno contra staging
 - Pen-test manual de escenario multi-clinica
 - Solo despues de validacion exitosa, continuar con F7-16
+
+## 2026-09-22 - F7-16: Eliminación de modo local PBKDF2 - DONE
+
+**Estado:** COMPLETADO. Rama feat/F7-16-remove-local-auth lista para merge.
+
+**Contexto:** Auditoría reveló que authService.js contenía código legacy del sistema de autenticación local PBKDF2 (pre-F4-02, migración a Supabase completada 2026-08-13) que no se usaba en producción (VITE_USE_SUPABASE=true siempre).
+
+**Decisión:** Eliminar completamente el modo local PBKDF2. No es una funcionalidad offline real; la app ya funciona offline una vez logueada vía PWA (F6-J) + cache local (F7-07) + sincronización (F5-02).
+
+**Cambios aplicados:**
+
+1. **LoginScreen.jsx (325 → 245 líneas, -80 líneas):**
+   - Eliminados 6 imports legacy (crearCredencial, verificarPassword, estaBloqueado, registrarIntentoFallido, limpiarIntentosFallidos, MAX_INTENTOS_FALLIDOS)
+   - handleEmailChange simplificado (siempre isFirstTime=false en Supabase)
+   - Eliminada variable useSupabase y check de bloqueo (Supabase maneja rate limiting internamente)
+   - Eliminado bloque "MODO LOCAL" completo (~55 líneas)
+
+2. **authService.js (847 → 759 líneas, -88 líneas):**
+   - Eliminadas constantes PBKDF2 (PBKDF2_ITERATIONS, HASH_ALGORITHM, SALT_LENGTH_BYTES, DERIVED_KEY_LENGTH_BITS, MAX_INTENTOS_FALLIDOS, BLOQUEO_DURACION_MS)
+   - Eliminados helpers (toBase64, fromBase64, generarSalt, derivarHash)
+   - Eliminada función crearCredencial
+   - Eliminada función verificarPassword
+   - Eliminadas 3 funciones de bloqueo (estaBloqueado, registrarIntentoFallido, limpiarIntentosFallidos) + helpers (attemptsKey, obtenerEstadoIntentos)
+   - **Preservadas:** obtenerPerfil, guardarPerfil, existePerfil (gestión de preferencias del usuario profesional, usadas en Supabase mode)
+
+3. **authService.test.js eliminado (84 líneas):**
+   - 9 tests de funciones PBKDF2 removidos
+   - Preservados: authService.f7-10.test.js, authService.f7-10b.test.js, authService.f7-11.test.js, authService.f7-11b.test.js, authService.appMetadata.test.js
+
+**Validaciones:**
+- Tests: 1473/1473 passing (antes 1482, diferencia = 9 tests PBKDF2 eliminados)
+- Build: OK (PWA 43 entries, 3405.85 KiB)
+- Lint: 0 errors (121 warnings preexistentes)
+- Validador arquitectónico: OK
+- Sin referencias residuales a funciones eliminadas en codebase
+
+**Relación con tareas existentes:**
+- F7-05 (Purga al logout): Complementa F7-16. F7-05 limpia cache al logout; F7-16 elimina el modo que guardaba credenciales en localStorage.
+- F4-02 (Migración Supabase): F7-16 completa la transición iniciada en F4-02 (2026-08-13) eliminando el código legacy.
+- F7-34 (Edge Functions): F7-16 reduce superficie de ataque en frontend, complementando hardening de backend.
+
+**Riesgo mitigado:**
+- Reducción de superficie de ataque (código de hashing innecesario removido)
+- Simplificación de mantenimiento (un solo flujo de autenticación)
+- Prevención de confusiones futuras (sin código legacy que sugiera modo offline inexistente)
+
+**Aclaración importante:** La funcionalidad offline real (PWA + cache + sync) NO se ve afectada. El modo local PBKDF2 era un fallback de desarrollo que NO ofrecía offline real (sin sincronización, sin colaboración, sin backup).
+
+**Próximo paso:** Merge a main y continuar con F7-14 (Security headers CSP/HSTS).
