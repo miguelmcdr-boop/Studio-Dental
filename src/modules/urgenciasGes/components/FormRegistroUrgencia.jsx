@@ -1,5 +1,6 @@
 import React, { memo, useState } from 'react'
 import { FileText } from 'lucide-react'
+import { Button } from '../../../components/ui/Button'
 import { PATOLOGIAS_GES_ODONTO, DIAGNOSTICOS_URGENCIA_COMMON, CATEGORIAS_TRIAGE_URGENCIA } from '../constants/urgenciasGesConstants'
 import { useAppDialog } from '../../../hooks/useAppDialog'
 
@@ -10,10 +11,13 @@ export const FormRegistroGes = memo(({ pacientes = [], alRegistrar }) => {
   const [patologiaGes, setPatologiaGes] = useState(PATOLOGIAS_GES_ODONTO[0].id)
   const [diagnostico, setDiagnostico] = useState(DIAGNOSTICOS_URGENCIA_COMMON[0])
   const [indicacionesTratamiento, setIndicacionesTratamiento] = useState('')
+  const [enviando, setEnviando] = useState(false)
   const [aceptaAtencion, setAceptaAtencion] = useState(true)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setEnviando(true)
+    try {
     if (!pacienteId) {
       await dialogAlert({
         title: 'Paciente requerido',
@@ -50,6 +54,9 @@ export const FormRegistroGes = memo(({ pacientes = [], alRegistrar }) => {
       variant: 'success',
       confirmText: 'Entendido'
     })
+    } finally {
+      setEnviando(false)
+    }
   }
 
   return (
@@ -155,12 +162,16 @@ export const FormRegistroGes = memo(({ pacientes = [], alRegistrar }) => {
         />
       </div>
 
-      <button
+      <Button
         type="submit"
-        className="w-full bg-black text-white font-bold py-2.5 rounded-xl hover:bg-gray-800 transition-colors cursor-pointer shadow-xs"
+        variant="primary"
+        fullWidth
+        icon={FileText}
+        loading={enviando}
+        disabled={enviando}
       >
-        <span className="inline-flex items-center gap-1"><FileText size={14} />Generar y Emitir Constancia GES</span>
-      </button>
+        {enviando ? 'Emitiendo Constancia...' : 'Generar y Emitir Constancia GES'}
+      </Button>
     </form>
   )
 })

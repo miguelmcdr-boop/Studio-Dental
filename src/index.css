@@ -30,3 +30,49 @@
     display: block !important;
   }
 }
+
+/* ============================================================
+   C5: Animaciones del Design System (Studio Dental)
+   Clases consumidas por Modal.jsx (animate-in fade-in / zoom-in-95)
+   y ToastContainer.jsx (animate-slide-in). Antes NO existían:
+   las animaciones de modales y toasts no se ejecutaban.
+   ============================================================ */
+@keyframes ds-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes ds-zoom-in-95 {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes ds-slide-in-right {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.animate-in {
+  animation-duration: 200ms;
+  animation-fill-mode: both;
+  animation-timing-function: ease-out;
+}
+
+.fade-in { animation-name: ds-fade-in; }
+.zoom-in-95 { animation-name: ds-zoom-in-95; }
+
+.animate-slide-in {
+  animation: ds-slide-in-right 250ms ease-out both;
+}
+
+/* Accesibilidad (C5): respetar prefers-reduced-motion.
+   Desactiva animaciones y transiciones para usuarios con
+   trastornos vestibulares o sensibilidad al movimiento. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

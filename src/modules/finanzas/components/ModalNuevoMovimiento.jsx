@@ -63,7 +63,7 @@ export const ModalNuevoMovimiento = memo(({ alGuardar, alCerrar }) => {
               type="button"
               onClick={() => handleTipoChange('ingreso')}
               variant={tipo === 'ingreso' ? 'primary' : 'secondary'}
-              className={tipo === 'ingreso' ? 'bg-emerald-600 hover:bg-emerald-700' : ''}
+              className={tipo === 'ingreso' ? 'bg-emerald-600 hover:bg-emerald-700 transition-colors duration-150' : ''}
               fullWidth
             >
               Ingreso
@@ -72,7 +72,7 @@ export const ModalNuevoMovimiento = memo(({ alGuardar, alCerrar }) => {
               type="button"
               onClick={() => handleTipoChange('egreso')}
               variant={tipo === 'egreso' ? 'danger' : 'secondary'}
-              className={tipo === 'egreso' ? 'bg-red-600 hover:bg-red-700' : ''}
+              className={tipo === 'egreso' ? 'bg-red-600 hover:bg-red-700 transition-colors duration-150' : ''}
               fullWidth
             >
               Egreso / Gasto

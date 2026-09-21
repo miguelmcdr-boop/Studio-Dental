@@ -46,7 +46,7 @@ export const FormularioRegistrarAbono = memo(({
           </select>
         </div>
 
-        <Button type="submit" variant="primary" size="sm" className="bg-green-700 hover:bg-green-800">
+        <Button type="submit" variant="primary" size="sm" className="bg-green-700 hover:bg-green-800 transition-colors duration-150">
           + Registrar Abono
         </Button>
       </form>

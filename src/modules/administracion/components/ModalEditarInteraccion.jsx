@@ -102,7 +102,7 @@ export const ModalEditarInteraccion = ({ interaccion, onGuardar, onClose, guarda
               type="submit"
               variant="primary"
               disabled={guardando}
-              className="bg-orange-600 hover:bg-orange-700"
+              className="bg-orange-600 hover:bg-orange-700 transition-colors duration-150"
             >
               {guardando ? 'Guardando...' : (esEdicion ? 'Actualizar' : 'Crear')}
             </Button>

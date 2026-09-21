@@ -7,17 +7,23 @@ export const PerfilProfesionalForm = memo(({ userProfile, alGuardar }) => {
   const [especialidad, setEspecialidad] = useState(userProfile?.especialidad || 'Cirujano Dentista')
   const [registroSalud, setRegistroSalud] = useState(userProfile?.registroSalud || '')
   const [email, setEmail] = useState(userProfile?.email || '')
+  const [enviando, setEnviando] = useState(false)
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    alGuardar({
-      ...userProfile,
-      nombreCompleto,
-      rut,
-      especialidad,
-      registroSalud,
-      email
-    })
+    setEnviando(true)
+    try {
+      alGuardar({
+        ...userProfile,
+        nombreCompleto,
+        rut,
+        especialidad,
+        registroSalud,
+        email
+      })
+    } finally {
+      setEnviando(false)
+    }
   }
 
   return (
@@ -85,12 +91,14 @@ export const PerfilProfesionalForm = memo(({ userProfile, alGuardar }) => {
       </div>
 
       <div className="pt-2 text-right">
-        <button
+        <Button
           type="submit"
-          className="bg-black text-white font-bold px-5 py-2.5 rounded-xl hover:bg-gray-800 transition-colors shadow-xs"
+          variant="primary"
+          loading={enviando}
+          disabled={enviando}
         >
-          Guardar Perfil Profesional
-        </button>
+          {enviando ? 'Guardando...' : 'Guardar Perfil Profesional'}
+        </Button>
       </div>
     </form>
   )

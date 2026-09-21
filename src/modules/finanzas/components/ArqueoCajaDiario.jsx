@@ -50,7 +50,7 @@ export const ArqueoCajaDiario = memo(({
 
         <button
           onClick={() => window.print()}
-          className="bg-black text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-gray-800 shadow-sm flex items-center gap-2"
+          className="bg-black text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-gray-800 shadow-sm flex items-center gap-2 transition-colors duration-150"
         >
           <span className="inline-flex items-center gap-1"><Printer size={14} />Imprimir Cierre de Caja Letter</span>
         </button>

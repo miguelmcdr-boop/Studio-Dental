@@ -107,7 +107,7 @@ export const ModalEditarAntirresortivo = ({ farmaco, onGuardar, onClose, guardan
               type="submit"
               variant="primary"
               disabled={guardando}
-              className="bg-purple-600 hover:bg-purple-700"
+              className="bg-purple-600 hover:bg-purple-700 transition-colors duration-150"
             >
               {guardando ? 'Guardando...' : (esEdicion ? 'Actualizar' : 'Crear')}
             </Button>

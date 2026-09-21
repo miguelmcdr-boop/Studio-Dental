@@ -14,7 +14,7 @@ export const LibroSeremiSection = memo(({ cargas, biologicos, userProfile }) => 
 
         <button
           onClick={() => window.print()}
-          className="bg-black text-white px-4 py-2 rounded-xl font-bold hover:bg-gray-800 text-xs shadow-xs cursor-pointer"
+          className="bg-black text-white px-4 py-2 rounded-xl font-bold hover:bg-gray-800 text-xs shadow-xs cursor-pointer transition-colors duration-150"
         >
           <span className="flex items-center gap-1"><Printer size={14} />Imprimir Reporte Diario SEREMI</span>
         </button>

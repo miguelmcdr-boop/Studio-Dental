@@ -24,7 +24,7 @@ export const TablaAntirresortivos = ({ antirresortivos, onEditar, onDesactivar, 
           {onCrearNuevo && (
             <button
               onClick={onCrearNuevo}
-              className="px-4 py-2 bg-purple-600 text-white text-sm font-semibold rounded-lg hover:bg-purple-700"
+              className="px-4 py-2 bg-purple-600 text-white text-sm font-semibold rounded-lg hover:bg-purple-700 transition-colors duration-150"
             >
               + Nuevo antirresortivo
             </button>
@@ -57,7 +57,7 @@ export const TablaAntirresortivos = ({ antirresortivos, onEditar, onDesactivar, 
               {datos.map((farmaco) => (
                 <tr
                   key={farmaco.id || farmaco.numero}
-                  className="hover:bg-gray-50"
+                  className="hover:bg-gray-50 transition-colors duration-150"
                 >
                   <td className="px-4 py-3 text-sm text-gray-700 font-mono">
                     {farmaco.numero}
@@ -84,7 +84,7 @@ export const TablaAntirresortivos = ({ antirresortivos, onEditar, onDesactivar, 
                       {onEditar && (
                         <button
                           onClick={() => onEditar(farmaco)}
-                          className="px-3 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded text-xs font-medium hover:bg-blue-100"
+                          className="px-3 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded text-xs font-medium hover:bg-blue-100 transition-colors duration-150"
                         >
                           Editar
                         </button>
@@ -92,7 +92,7 @@ export const TablaAntirresortivos = ({ antirresortivos, onEditar, onDesactivar, 
                       {onDesactivar && farmaco.activo !== false && (
                         <button
                           onClick={() => onDesactivar(farmaco)}
-                          className="px-3 py-1 bg-yellow-50 text-yellow-700 border border-yellow-200 rounded text-xs font-medium hover:bg-yellow-100"
+                          className="px-3 py-1 bg-yellow-50 text-yellow-700 border border-yellow-200 rounded text-xs font-medium hover:bg-yellow-100 transition-colors duration-150"
                         >
                           Desactivar
                         </button>

@@ -116,7 +116,7 @@ export const ModalPapeleraPagos = memo(({ alCerrar, onRestaurar, onAccionComplet
                       onClick={() => handleRestaurar(pago.id)}
                       variant="ghost"
                       size="sm"
-                      className="text-blue-600 hover:bg-blue-50"
+                      className="text-blue-600 hover:bg-blue-50 transition-colors duration-150"
                     >
                       Restaurar
                     </Button>

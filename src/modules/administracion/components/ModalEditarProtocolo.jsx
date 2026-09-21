@@ -134,8 +134,8 @@ export const ModalEditarProtocolo = ({ tipo, protocolo, onGuardar, onClose, guar
             type="submit"
             className={`px-6 py-2 text-sm font-semibold text-white rounded-lg disabled:opacity-50 ${
               esProfilaxis
-                ? 'bg-cyan-600 hover:bg-cyan-700'
-                : 'bg-rose-600 hover:bg-rose-700'
+                ? 'bg-cyan-600 hover:bg-cyan-700 transition-colors duration-150'
+                : 'bg-rose-600 hover:bg-rose-700 transition-colors duration-150'
             }`}
             disabled={guardando}
           >

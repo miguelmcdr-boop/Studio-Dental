@@ -148,7 +148,7 @@ export const ModalEnviarMensaje = memo(({ pacientes = [], plantillas = [], userP
                   onClick={() => handleEnviar('web')}
                   variant="primary"
                   fullWidth
-                  className="bg-emerald-700 hover:bg-emerald-800"
+                  className="bg-emerald-700 hover:bg-emerald-800 transition-colors duration-150"
                   title="Abrir en navegador de escritorio"
                 >
                   <span className="inline-flex items-center gap-1"><Monitor size={14} />WhatsApp Web</span>

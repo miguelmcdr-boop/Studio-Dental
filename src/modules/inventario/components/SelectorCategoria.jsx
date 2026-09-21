@@ -41,7 +41,7 @@ export function SelectorCategoria({
             onClick={handleAgregarCategoria}
             variant="primary"
             size="sm"
-            className="bg-emerald-600 hover:bg-emerald-700"
+            className="bg-emerald-600 hover:bg-emerald-700 transition-colors duration-150"
           >
             ✓ Crear
           </Button>
@@ -71,7 +71,7 @@ export function SelectorCategoria({
           onClick={() => handleEliminarCategoria(categoriaActiva)}
           variant="danger"
           size="sm"
-          className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50"
+          className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors duration-150"
         >
           <span className="inline-flex items-center gap-1"><Trash2 size={12} />Eliminar Categoría</span>
         </Button>

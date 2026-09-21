@@ -184,7 +184,7 @@ export const ConsentimientosSection = memo(({ paciente, userProfile }) => {
           <button
             onClick={handleGuardarConsentimiento}
             disabled={generandoPDF}
-            className="bg-black text-white font-bold px-5 py-2.5 rounded-xl hover:bg-gray-800 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-black text-white font-bold px-5 py-2.5 rounded-xl hover:bg-gray-800 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
           >
             {generandoPDF ? <span className='inline-flex items-center gap-1'><Loader2 size={14} className='animate-spin' />Generando PDF...</span> : <span className='inline-flex items-center gap-1'><Lock size={14} />Registrar Consentimiento Inmutable</span>}
           </button>

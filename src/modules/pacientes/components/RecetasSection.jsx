@@ -42,7 +42,7 @@ export const RecetasSection = memo(({ paciente, userProfile, alergiasPaciente, r
       />
 
       <div className="flex justify-end mb-4 print:hidden">
-        <button onClick={() => window.print()} className="bg-black text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-gray-800 shadow-sm">
+        <button onClick={() => window.print()} className="bg-black text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-gray-800 shadow-sm transition-colors duration-150">
           <span className="flex items-center gap-1"><Printer size={14} />Imprimir Receta</span>
         </button>
       </div>

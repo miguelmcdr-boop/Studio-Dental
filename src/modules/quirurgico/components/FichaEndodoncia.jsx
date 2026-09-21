@@ -171,7 +171,7 @@ export const FichaEndodoncia = ({ endodoncias = [], onAgregarEndodoncia, onElimi
             </table>
           </div>
 
-          <button type="submit" className="bg-black text-white font-bold px-4 py-2.5 rounded-xl hover:bg-gray-800">
+          <button type="submit" className="bg-black text-white font-bold px-4 py-2.5 rounded-xl hover:bg-gray-800 transition-colors duration-150">
             + Guardar Registro de Endodoncia
           </button>
         </form>
@@ -199,7 +199,7 @@ export const FichaEndodoncia = ({ endodoncias = [], onAgregarEndodoncia, onElimi
                 </div>
               </div>
 
-              <button onClick={() => onEliminarEndodoncia(endo.id)} className="text-red-500 hover:text-red-700 font-bold text-xs bg-red-50 px-2 py-1 rounded">
+              <button onClick={() => onEliminarEndodoncia(endo.id)} className="text-red-500 hover:text-red-700 font-bold text-xs bg-red-50 px-2 py-1 rounded transition-colors duration-150">
                 <span className="inline-flex items-center gap-1"><Trash2 size={12} />Borrar</span>
               </button>
             </div>

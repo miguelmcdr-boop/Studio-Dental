@@ -16,14 +16,14 @@ export const PaginacionVademecum = ({ paginaActual, totalPaginas, setPaginaActua
         <button
           onClick={() => setPaginaActual(paginaActual - 1)}
           disabled={paginaActual === 1}
-          className="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
         >
           ← Anterior
         </button>
         <button
           onClick={() => setPaginaActual(paginaActual + 1)}
           disabled={paginaActual === totalPaginas}
-          className="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
         >
           Siguiente →
         </button>

@@ -62,7 +62,7 @@ export const TablaInteracciones = ({ interacciones, onEditar, onEliminar, onCrea
           {onCrearNueva && (
             <button
               onClick={onCrearNueva}
-              className="px-4 py-2 bg-orange-600 text-white text-sm font-semibold rounded-lg hover:bg-orange-700"
+              className="px-4 py-2 bg-orange-600 text-white text-sm font-semibold rounded-lg hover:bg-orange-700 transition-colors duration-150"
             >
               + Nueva interacción
             </button>
@@ -125,7 +125,7 @@ export const TablaInteracciones = ({ interacciones, onEditar, onEliminar, onCrea
               {datosFiltrados.map((interaccion, idx) => {
                 const config = SEVERIDAD_CONFIG[interaccion.severidad] || SEVERIDAD_CONFIG.menor
                 return (
-                  <tr key={interaccion.id || idx} className="hover:bg-gray-50">
+                  <tr key={interaccion.id || idx} className="hover:bg-gray-50 transition-colors duration-150">
                     <td className="px-4 py-3 text-sm text-gray-700 font-mono">{idx + 1}</td>
                     <td className="px-4 py-3 text-sm font-medium text-gray-900 max-w-[200px]">
                       {interaccion.farmaco_a}
@@ -149,7 +149,7 @@ export const TablaInteracciones = ({ interacciones, onEditar, onEliminar, onCrea
                         {onEditar && (
                           <button
                             onClick={() => onEditar(interaccion)}
-                            className="px-2 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded text-xs font-medium hover:bg-blue-100"
+                            className="px-2 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded text-xs font-medium hover:bg-blue-100 transition-colors duration-150"
                           >
                             Editar
                           </button>
@@ -157,7 +157,7 @@ export const TablaInteracciones = ({ interacciones, onEditar, onEliminar, onCrea
                         {onEliminar && interaccion.activo !== false && (
                           <button
                             onClick={() => onEliminar(interaccion)}
-                            className="px-2 py-1 bg-red-50 text-red-700 border border-red-200 rounded text-xs font-medium hover:bg-red-100"
+                            className="px-2 py-1 bg-red-50 text-red-700 border border-red-200 rounded text-xs font-medium hover:bg-red-100 transition-colors duration-150"
                           >
                             Eliminar
                           </button>

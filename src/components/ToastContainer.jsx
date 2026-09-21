@@ -70,7 +70,7 @@ const ToastItem = ({ notificacion }) => {
       {notificacion.dismissable && (
         <button
           onClick={() => notificationService.ocultar(notificacion.id)}
-          className={`flex-shrink-0 ${config.text} hover:opacity-70 text-lg leading-none p-1`}
+          className={`flex-shrink-0 ${config.text} hover:opacity-70 text-lg leading-none p-1 transition-opacity duration-150`}
           aria-label="Cerrar notificación"
           title="Cerrar"
         >

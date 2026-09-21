@@ -33,7 +33,7 @@ export const SalaEsperaWidget = memo(({ enEspera = [], enAtencion = [], paciente
                 {pac && alSeleccionarPaciente && (
                   <button
                     onClick={() => alSeleccionarPaciente(pac)}
-                    className="bg-blue-600 text-white font-bold px-3 py-1 rounded-lg text-[10px] hover:bg-blue-800"
+                    className="bg-blue-600 text-white font-bold px-3 py-1 rounded-lg text-[10px] hover:bg-blue-800 transition-colors duration-150"
                   >
                     Abrir Ficha →
                   </button>
@@ -63,7 +63,7 @@ export const SalaEsperaWidget = memo(({ enEspera = [], enAtencion = [], paciente
                 {pac && alSeleccionarPaciente && (
                   <button
                     onClick={() => alSeleccionarPaciente(pac)}
-                    className="bg-amber-700 text-white font-bold px-3 py-1 rounded-lg text-[10px] hover:bg-amber-900"
+                    className="bg-amber-700 text-white font-bold px-3 py-1 rounded-lg text-[10px] hover:bg-amber-900 transition-colors duration-150"
                   >
                     Atender Paciente →
                   </button>

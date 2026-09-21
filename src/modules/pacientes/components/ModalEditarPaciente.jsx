@@ -5,11 +5,17 @@ import { Button } from '../../../components/ui/Button'
 
 export const ModalEditarPaciente = memo(({ paciente, alGuardar, alCerrar }) => {
   const [datosEdit, setDatosEdit] = useState({ ...paciente })
+  const [enviando, setEnviando] = useState(false)
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    alGuardar(datosEdit)
-    alCerrar()
+    setEnviando(true)
+    try {
+      alGuardar(datosEdit)
+      alCerrar()
+    } finally {
+      setEnviando(false)
+    }
   }
 
   return (
@@ -93,8 +99,8 @@ export const ModalEditarPaciente = memo(({ paciente, alGuardar, alCerrar }) => {
             <Button type="button" onClick={alCerrar} variant="ghost" fullWidth>
               Cancelar
             </Button>
-            <Button type="submit" variant="primary" fullWidth>
-              Guardar Cambios
+            <Button type="submit" variant="primary" fullWidth loading={enviando} disabled={enviando}>
+              {enviando ? 'Guardando...' : 'Guardar Cambios'}
             </Button>
           </div>
         </form>

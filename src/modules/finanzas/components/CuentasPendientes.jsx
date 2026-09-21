@@ -16,7 +16,7 @@ export const CuentasPendientes = memo(({ pacientes = [] }) => {
 
         <div className="divide-y divide-gray-100">
           {pacientes.map(p => (
-            <div key={p.id} className="py-3 flex justify-between items-center flex-wrap gap-2 hover:bg-gray-50 p-2 rounded-xl">
+            <div key={p.id} className="py-3 flex justify-between items-center flex-wrap gap-2 hover:bg-gray-50 p-2 rounded-xl transition-colors duration-150">
               <div>
                 <span className="font-bold text-gray-900 block">{p.nombre} ({p.rut})</span>
                 <span className="text-[10px] text-gray-500">Tel: {p.telefono || 'Sin teléfono'} | Previsión: {p.prevision}</span>

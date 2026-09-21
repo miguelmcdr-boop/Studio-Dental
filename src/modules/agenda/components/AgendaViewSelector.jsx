@@ -28,7 +28,7 @@ export const AgendaViewSelector = memo(({
           />
           <button
             onClick={handleHoy}
-            className="px-3 py-2 bg-white border border-gray-300 rounded-xl font-bold hover:bg-gray-100 text-gray-800"
+            className="px-3 py-2 bg-white border border-gray-300 rounded-xl font-bold hover:bg-gray-100 text-gray-800 transition-colors duration-150"
           >
             Hoy
           </button>

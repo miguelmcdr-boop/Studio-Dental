@@ -49,7 +49,7 @@ export const UrgenciasGesModulo = memo(() => {
           ) : (
             <div className="divide-y divide-gray-100">
               {atenciones.map((item) => (
-                <div key={item.id} className="py-3 flex justify-between items-center flex-wrap gap-2 hover:bg-gray-50 p-2 rounded-xl">
+                <div key={item.id} className="py-3 flex justify-between items-center flex-wrap gap-2 hover:bg-gray-50 p-2 rounded-xl transition-colors duration-150">
                   <div>
                     <span className="font-bold text-gray-900 block">{item.pacienteNombre} ({item.pacienteRut})</span>
                     <span className="text-[10px] font-semibold text-blue-900 block">[{item.patologiaCodigo}] {item.patologiaNombre} — Folio: {item.folio}</span>
@@ -58,13 +58,13 @@ export const UrgenciasGesModulo = memo(() => {
                   <div className="flex gap-2">
                     <button
                       onClick={() => setAtencionSeleccionada(item)}
-                      className="bg-black text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-800"
+                      className="bg-black text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-800 transition-colors duration-150"
                     >
                       <span className="inline-flex items-center gap-1"><FileText size={12} />Ver / Imprimir</span>
                     </button>
                     <button
                       onClick={() => eliminarAtencion(item.id)}
-                      className="bg-red-50 text-red-700 px-2 py-1.5 rounded-lg text-xs font-bold hover:bg-red-100"
+                      className="bg-red-50 text-red-700 px-2 py-1.5 rounded-lg text-xs font-bold hover:bg-red-100 transition-colors duration-150"
                     >
                       <Trash2 size={12} />
                     </button>

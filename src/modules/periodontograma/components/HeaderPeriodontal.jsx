@@ -69,7 +69,7 @@ export const HeaderPeriodontal = memo(({ metricas, indices, resumenClinico }) =>
           <button 
             type="button"
             onClick={() => window.print()} 
-            className="bg-black text-white font-bold px-4 py-3 rounded-xl hover:bg-gray-800 shadow-xs cursor-pointer text-xs"
+            className="bg-black text-white font-bold px-4 py-3 rounded-xl hover:bg-gray-800 shadow-xs cursor-pointer text-xs transition-colors duration-150"
           >
             <span className="inline-flex items-center gap-1"><Printer size={12} />PDF</span>
           </button>

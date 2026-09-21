@@ -69,7 +69,7 @@ export const FilaVademecum = ({ farmaco, onEditar, onDesactivar, onReactivar }) 
           {onEditar && (
             <button
               onClick={() => onEditar(farmaco)}
-              className="px-2 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded text-xs font-medium hover:bg-blue-100"
+              className="px-2 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded text-xs font-medium hover:bg-blue-100 transition-colors duration-150"
             >
               Editar
             </button>
@@ -77,7 +77,7 @@ export const FilaVademecum = ({ farmaco, onEditar, onDesactivar, onReactivar }) 
           {farmaco.activo !== false && onDesactivar && (
             <button
               onClick={() => onDesactivar(farmaco)}
-              className="px-2 py-1 bg-yellow-50 text-yellow-700 border border-yellow-200 rounded text-xs font-medium hover:bg-yellow-100"
+              className="px-2 py-1 bg-yellow-50 text-yellow-700 border border-yellow-200 rounded text-xs font-medium hover:bg-yellow-100 transition-colors duration-150"
             >
               Desactivar
             </button>
@@ -85,7 +85,7 @@ export const FilaVademecum = ({ farmaco, onEditar, onDesactivar, onReactivar }) 
           {farmaco.activo === false && onReactivar && (
             <button
               onClick={() => onReactivar(farmaco)}
-              className="px-2 py-1 bg-green-50 text-green-700 border border-green-200 rounded text-xs font-medium hover:bg-green-100"
+              className="px-2 py-1 bg-green-50 text-green-700 border border-green-200 rounded text-xs font-medium hover:bg-green-100 transition-colors duration-150"
             >
               Reactivar
             </button>

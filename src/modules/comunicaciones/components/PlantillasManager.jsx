@@ -127,7 +127,7 @@ export const PlantillasManager = memo(({ plantillas, alGuardarPlantilla, alElimi
                 key={v}
                 type="button"
                 onClick={() => handleInsertarVariable(v)}
-                className="bg-gray-100 hover:bg-black hover:text-white px-2 py-0.5 rounded border text-[10px] font-mono font-bold"
+                className="bg-gray-100 hover:bg-black hover:text-white px-2 py-0.5 rounded border text-[10px] font-mono font-bold transition-colors duration-150"
                 title={`Insertar ${v} en el mensaje`}
               >
                 + {v}

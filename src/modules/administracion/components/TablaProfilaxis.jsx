@@ -20,7 +20,7 @@ export const TablaProfilaxis = ({ protocolos, onEditar, onEliminar, onCrearNueva
           {onCrearNueva && (
             <button
               onClick={onCrearNueva}
-              className="px-4 py-2 bg-cyan-600 text-white text-sm font-semibold rounded-lg hover:bg-cyan-700"
+              className="px-4 py-2 bg-cyan-600 text-white text-sm font-semibold rounded-lg hover:bg-cyan-700 transition-colors duration-150"
             >
               + Nuevo protocolo
             </button>
@@ -61,7 +61,7 @@ export const TablaProfilaxis = ({ protocolos, onEditar, onEliminar, onCrearNueva
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {datos.map((protocolo, idx) => (
-                <tr key={protocolo.id || idx} className="hover:bg-gray-50">
+                <tr key={protocolo.id || idx} className="hover:bg-gray-50 transition-colors duration-150">
                   <td className="px-4 py-3 text-sm text-gray-700 font-mono">{idx + 1}</td>
                   <td className="px-4 py-3 text-sm font-medium text-gray-900 max-w-[250px]">
                     {protocolo.situacion}
@@ -83,7 +83,7 @@ export const TablaProfilaxis = ({ protocolos, onEditar, onEliminar, onCrearNueva
                       {onEditar && (
                         <button
                           onClick={() => onEditar(protocolo)}
-                          className="px-2 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded text-xs font-medium hover:bg-blue-100"
+                          className="px-2 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded text-xs font-medium hover:bg-blue-100 transition-colors duration-150"
                         >
                           Editar
                         </button>
@@ -91,7 +91,7 @@ export const TablaProfilaxis = ({ protocolos, onEditar, onEliminar, onCrearNueva
                       {onEliminar && protocolo.activo !== false && (
                         <button
                           onClick={() => onEliminar(protocolo)}
-                          className="px-2 py-1 bg-red-50 text-red-700 border border-red-200 rounded text-xs font-medium hover:bg-red-100"
+                          className="px-2 py-1 bg-red-50 text-red-700 border border-red-200 rounded text-xs font-medium hover:bg-red-100 transition-colors duration-150"
                         >
                           Eliminar
                         </button>

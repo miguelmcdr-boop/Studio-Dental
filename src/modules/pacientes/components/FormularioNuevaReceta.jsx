@@ -132,7 +132,7 @@ export const FormularioNuevaReceta = memo(({ alergiasPaciente, onAgregarReceta }
                 <div
                   key={idx}
                   onClick={() => handleSeleccionarSugerencia(item)}
-                  className="p-2.5 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-none"
+                  className="p-2.5 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-none transition-colors duration-150"
                 >
                   <p className="font-bold text-gray-800">{item.medicamento}</p>
                   <p className="text-[10px] text-gray-500">{item.posologia}</p>
@@ -154,7 +154,7 @@ export const FormularioNuevaReceta = memo(({ alergiasPaciente, onAgregarReceta }
           />
         </div>
 
-        <button data-testid="btn-emitir-receta" type="submit" className="bg-black text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800">
+        <button data-testid="btn-emitir-receta" type="submit" className="bg-black text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors duration-150">
           + Emitir Receta
         </button>
       </form>

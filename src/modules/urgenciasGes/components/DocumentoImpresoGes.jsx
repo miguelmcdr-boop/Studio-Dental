@@ -12,13 +12,13 @@ export const DocumentoImpresoGes = memo(({ atencion, userProfile, alCerrar }) =>
         <div className="flex gap-2">
           <button
             onClick={() => window.print()}
-            className="bg-black text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-800"
+            className="bg-black text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-800 transition-colors duration-150"
           >
             <span className="inline-flex items-center gap-1"><Printer size={14} />Imprimir Constancia GES (PDF)</span>
           </button>
           <button
             onClick={alCerrar}
-            className="bg-gray-200 text-gray-800 px-3 py-2 rounded-xl text-xs font-bold hover:bg-gray-300"
+            className="bg-gray-200 text-gray-800 px-3 py-2 rounded-xl text-xs font-bold hover:bg-gray-300 transition-colors duration-150"
           >
             Cerrar
           </button>

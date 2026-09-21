@@ -103,7 +103,7 @@ export function TablaAsociaciones({
                   variant="danger"
                   size="sm"
                   title="Eliminar esta asociación"
-                  className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50"
+                  className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors duration-150"
                 >
                   <Trash2 size={12} />
                 </Button>

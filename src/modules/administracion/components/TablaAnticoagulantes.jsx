@@ -19,7 +19,7 @@ export const TablaAnticoagulantes = ({ anticoagulantes, onEditar, onEliminar, on
           {onCrearNueva && (
             <button
               onClick={onCrearNueva}
-              className="px-4 py-2 bg-rose-600 text-white text-sm font-semibold rounded-lg hover:bg-rose-700"
+              className="px-4 py-2 bg-rose-600 text-white text-sm font-semibold rounded-lg hover:bg-rose-700 transition-colors duration-150"
             >
               + Nuevo grupo
             </button>
@@ -53,7 +53,7 @@ export const TablaAnticoagulantes = ({ anticoagulantes, onEditar, onEliminar, on
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {datos.map((item, idx) => (
-                <tr key={item.id || idx} className="hover:bg-gray-50">
+                <tr key={item.id || idx} className="hover:bg-gray-50 transition-colors duration-150">
                   <td className="px-4 py-3 text-sm text-gray-700 font-mono">{idx + 1}</td>
                   <td className="px-4 py-3 text-sm font-medium text-gray-900 max-w-[250px]">
                     {item.farmaco_o_grupo}
@@ -69,7 +69,7 @@ export const TablaAnticoagulantes = ({ anticoagulantes, onEditar, onEliminar, on
                       {onEditar && (
                         <button
                           onClick={() => onEditar(item)}
-                          className="px-2 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded text-xs font-medium hover:bg-blue-100"
+                          className="px-2 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded text-xs font-medium hover:bg-blue-100 transition-colors duration-150"
                         >
                           Editar
                         </button>
@@ -77,7 +77,7 @@ export const TablaAnticoagulantes = ({ anticoagulantes, onEditar, onEliminar, on
                       {onEliminar && item.activo !== false && (
                         <button
                           onClick={() => onEliminar(item)}
-                          className="px-2 py-1 bg-red-50 text-red-700 border border-red-200 rounded text-xs font-medium hover:bg-red-100"
+                          className="px-2 py-1 bg-red-50 text-red-700 border border-red-200 rounded text-xs font-medium hover:bg-red-100 transition-colors duration-150"
                         >
                           Eliminar
                         </button>

@@ -20,7 +20,7 @@ export const SelectorPrestacionesImputadas = memo(({ prestaciones, seleccionadas
           const estaCheck = seleccionadas.includes(labelItem)
 
           return (
-            <label key={p.id} className="flex items-center gap-2 p-1.5 bg-white border rounded-lg cursor-pointer hover:bg-gray-100">
+            <label key={p.id} className="flex items-center gap-2 p-1.5 bg-white border rounded-lg cursor-pointer hover:bg-gray-100 transition-colors duration-150">
               <input
                 type="checkbox"
                 checked={estaCheck}

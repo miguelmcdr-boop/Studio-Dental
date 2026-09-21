@@ -175,7 +175,7 @@ export const ModalPapeleraCertificados = memo(({
                         onClick={() => handleRestaurar(cert.id)}
                         variant="ghost"
                         size="sm"
-                        className="text-blue-600 hover:bg-blue-50"
+                        className="text-blue-600 hover:bg-blue-50 transition-colors duration-150"
                       >
                         Restaurar
                       </Button>

@@ -23,7 +23,7 @@ export function FormularioPalabrasClave({
               onClick={() => handleEliminarPalabraClave(index)}
               variant="ghost"
               size="sm"
-              className="text-red-500 hover:text-red-700 p-0 w-4 h-4"
+              className="text-red-500 hover:text-red-700 p-0 w-4 h-4 transition-colors duration-150"
             >
               ✕
             </Button>

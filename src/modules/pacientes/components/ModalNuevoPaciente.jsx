@@ -19,6 +19,7 @@ export const ModalNuevoPaciente = memo(({ alGuardar, alCerrar, pacientes = [] })
   })
   const [errorRut, setErrorRut] = useState('')
   const [rutValido, setRutValido] = useState(false)
+  const [enviando, setEnviando] = useState(false)
 
   // Validación en tiempo real del RUT
   const handleRutChange = (e) => {
@@ -64,6 +65,8 @@ export const ModalNuevoPaciente = memo(({ alGuardar, alCerrar, pacientes = [] })
     if (!nuevoPaciente.nombre || !nuevoPaciente.rut) return
     if (!rutValido || errorRut) return
 
+    setEnviando(true)
+
     const nuevo = {
       ...nuevoPaciente,
       id: Date.now(),
@@ -71,6 +74,7 @@ export const ModalNuevoPaciente = memo(({ alGuardar, alCerrar, pacientes = [] })
     }
 
     alGuardar(nuevo)
+    setEnviando(false)
   }
 
   const puedeGuardar = nuevoPaciente.nombre && nuevoPaciente.rut && rutValido && !errorRut
@@ -191,11 +195,12 @@ export const ModalNuevoPaciente = memo(({ alGuardar, alCerrar, pacientes = [] })
             <Button
               data-testid="paciente-crear"
               type="submit"
-              disabled={!puedeGuardar}
+              disabled={!puedeGuardar || enviando}
+              loading={enviando}
               variant="primary"
               fullWidth
             >
-              Crear Paciente
+              {enviando ? 'Creando...' : 'Crear Paciente'}
             </Button>
           </div>
         </form>

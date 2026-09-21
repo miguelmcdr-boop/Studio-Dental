@@ -92,7 +92,7 @@ export const FirmaDigitalCanvas = ({ alGuardarFirma, alLimpiarFirma, resetSignal
         <button
           type="button"
           onClick={limpiarCanvas}
-          className="text-[11px] font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-1 rounded-lg"
+          className="text-[11px] font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-1 rounded-lg transition-colors duration-150"
         >
           <span className="inline-flex items-center gap-1">
             <Eraser size={12} />

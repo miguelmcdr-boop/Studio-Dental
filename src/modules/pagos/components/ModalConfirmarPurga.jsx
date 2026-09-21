@@ -66,7 +66,7 @@ export const ModalConfirmarPurga = memo(({ pago, onConfirmar, alCerrar }) => {
               type="submit"
               variant="danger"
               fullWidth
-              className="bg-red-700 hover:bg-red-800 font-extrabold"
+              className="bg-red-700 hover:bg-red-800 font-extrabold transition-colors duration-150"
             >
               <span className="inline-flex items-center gap-1"><Trash2 size={12} />Purgar definitivamente</span>
             </Button>
