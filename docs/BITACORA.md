@@ -5750,3 +5750,67 @@ Resultado: Usuario cree estar en Clinica B pero opera en Clinica A.
 - supabase/functions/archivos-purge/index.ts
 
 **Proximo paso:** Implementar correcciones en las 6 Edge Functions + tests + documentacion.
+
+## 2026-09-22 - F7-34: Implementacion completada - Edge Functions alineadas con clinica activa - DONE
+
+**Estado:** COMPLETADO. Rama feat/F7-34-edge-functions-multi-clinic lista para merge.
+
+**Correcciones implementadas:**
+
+1. **clinica_id desde user_metadata del JWT (F7-10):**
+   - ANTES: clinicaResult[0].clinica_id (primera membresia encontrada)
+   - DESPUES: userData.user_metadata?.clinica_id (clinica activa seleccionada)
+   - Validacion de membresia activa en la clinica seleccionada
+   - Error 403 si no hay clinica activa o sin membresia activa
+   - Aplicado a: r2-upload-url, r2-download-url, r2-delete, r2-list-deleted, r2-restore, archivos-purge
+
+2. **Stack traces removidos de respuestas HTTP:**
+   - ANTES: stack: error.stack en respuestas 500 (fuga de informacion tecnica)
+   - DESPUES: solo logs internos, respuesta generica "Internal server error"
+   - Aplicado a: 7 Edge Functions (incluye r2-health-check)
+
+3. **PHI sanitizada en audit_log:**
+   - nombre_archivo removido de p_detalle de registrar_evento_archivo
+   - r2_object_key removido de p_detalle (contiene clinica_id/paciente_id)
+   - Solo se registran IDs y metadatos no sensibles (categoria, mime_type, tamano_bytes)
+
+4. **console.log sanitizado en r2-upload-url:**
+   - nombre_archivo removido del log de formato rechazado
+   - Solo se registra categoria y mime_type
+
+**Tests implementados:**
+- Archivo: supabase/tests/r2-multi-clinic.test.ts (275 lineas)
+- 10 tests Deno de escenario multi-clinica
+- Valida aislamiento multi-tenant con clinica activa
+- Escenario obligatorio: Usuario con membresias A+B opera correctamente sobre clinica activa
+- Nota: Requiere fixtures de test o Supabase Admin API para setup multi-clinica
+
+**Archivos modificados (7 Edge Functions + 1 test):**
+- supabase/functions/r2-upload-url/index.ts (4 cambios)
+- supabase/functions/r2-download-url/index.ts (5 cambios)
+- supabase/functions/r2-delete/index.ts (5 cambios)
+- supabase/functions/r2-list-deleted/index.ts (2 cambios)
+- supabase/functions/r2-restore/index.ts (5 cambios)
+- supabase/functions/archivos-purge/index.ts (3 cambios)
+- supabase/functions/r2-health-check/index.ts (1 cambio)
+- supabase/tests/r2-multi-clinic.test.ts (nuevo)
+
+**Metricas de la implementacion:**
+- 10 archivos modificados
+- 438 inserciones, 32 eliminaciones
+- 3 commits: docs + fix + test
+- Rama: feat/F7-34-edge-functions-multi-clinic
+
+**Escenario de vulnerabilidad corregido:**
+Usuario X con membresias en Clinica A y Clinica B ahora opera correctamente
+sobre la clinica activa seleccionada via ClinicaSelector, no sobre la primera
+membresia encontrada. Intentos de acceder a recursos de otra clinica retornan
+403 con mensaje de error apropiado.
+
+**Relacion con tareas existentes:**
+- F7-10: clinica_actual() como fuente autoritativa de clinica activa (DONE)
+- F7-22: Arquitectura R2 alineada con F7-10 (ahora consistente)
+- F7-31/32: Papelera y purga respetan clinica activa (ahora consistente)
+- F7-20: Pen-test multi-tenant debe actualizarse para incluir escenario de clinica activa vs inactiva
+
+**Proximo paso:** Merge a main y continuar con F7-16 (autenticacion local PBKDF2).
