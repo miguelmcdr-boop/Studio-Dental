@@ -29,8 +29,8 @@ export const ConfiguracionModulo = memo(() => {
     <div className="space-y-6">
       <div className="flex justify-between items-center flex-wrap gap-3 print:hidden">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider inline-flex items-center gap-2"><Zap size={20} />Configuración del Sistema & Respaldos</h2>
-          <p className="text-xs text-gray-500">Personalización de membrete, perfil profesional, firma digital y copias de seguridad.</p>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-graphite-50 uppercase tracking-wider inline-flex items-center gap-2"><Zap size={20} />Configuración del Sistema & Respaldos</h2>
+          <p className="text-xs text-gray-500 dark:text-graphite-400">Personalización de membrete, perfil profesional, firma digital y copias de seguridad.</p>
         </div>
       </div>
 

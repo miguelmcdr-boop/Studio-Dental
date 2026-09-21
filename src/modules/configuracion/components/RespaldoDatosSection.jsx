@@ -57,16 +57,16 @@ export const RespaldoDatosSection = memo(({ alExportarBackup, alImportarBackup }
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-4 text-xs">
+    <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-6 shadow-xs space-y-4 text-xs">
       <div className="border-b pb-3">
-        <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider inline-flex items-center gap-2"><Save size={14} />Respaldo & Restauración de la Base de Datos</h3>
-        <p className="text-gray-500 text-[11px]">Garantiza la seguridad de la información mediante copias de seguridad portátiles.</p>
+        <h3 className="font-bold text-sm text-gray-900 dark:text-graphite-50 uppercase tracking-wider inline-flex items-center gap-2"><Save size={14} />Respaldo & Restauración de la Base de Datos</h3>
+        <p className="text-gray-500 dark:text-graphite-400 text-[11px]">Garantiza la seguridad de la información mediante copias de seguridad portátiles.</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-2">
           <h4 className="font-bold text-emerald-900 text-sm inline-flex items-center gap-1"><Upload size={14} />Exportar Copia de Seguridad</h4>
-          <p className="text-gray-600 text-[11px]">Descarga un archivo JSON cifrado localmente con todas las fichas clínicas, anamnesis y movimientos financieros.</p>
+          <p className="text-gray-600 dark:text-graphite-400 text-[11px]">Descarga un archivo JSON cifrado localmente con todas las fichas clínicas, anamnesis y movimientos financieros.</p>
           <button
             type="button"
             onClick={alExportarBackup}
@@ -78,12 +78,12 @@ export const RespaldoDatosSection = memo(({ alExportarBackup, alImportarBackup }
 
         <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl space-y-2">
           <h4 className="font-bold text-blue-900 text-sm inline-flex items-center gap-1"><Download size={14} />Restaurar Respaldo JSON</h4>
-          <p className="text-gray-600 text-[11px]">Carga un archivo de respaldo previo para migrar o recuperar datos de la consulta.</p>
+          <p className="text-gray-600 dark:text-graphite-400 text-[11px]">Carga un archivo de respaldo previo para migrar o recuperar datos de la consulta.</p>
           <input
             type="file"
             accept=".json"
             onChange={handleFileChange}
-            className="w-full p-2 border rounded-xl bg-white font-bold"
+            className="w-full p-2 border rounded-xl bg-white dark:bg-graphite-800 font-bold"
           />
         </div>
       </div>

@@ -106,7 +106,7 @@ export const ModalPapeleraCertificados = memo(({
     >
       <div className="space-y-3">
         <div className="flex justify-between items-start gap-3">
-          <p className="text-xs text-gray-600 flex-1">
+          <p className="text-xs text-gray-600 dark:text-graphite-400 flex-1">
             Certificados en papelera. Pueden restaurarse o serán eliminados
             automáticamente después de 730 días.
           </p>
@@ -123,7 +123,7 @@ export const ModalPapeleraCertificados = memo(({
         </div>
 
         {certificadosEliminados.length === 0 ? (
-          <div className="text-center py-8 text-gray-400">
+          <div className="text-center py-8 text-gray-400 dark:text-graphite-500">
             <p className="text-sm">No hay certificados en la papelera</p>
           </div>
         ) : (
@@ -133,15 +133,15 @@ export const ModalPapeleraCertificados = memo(({
               return (
                 <div
                   key={cert.id}
-                  className="bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-2"
+                  className="bg-gray-50 dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-xl p-3 space-y-2"
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <span className="font-bold text-gray-900">
+                        <span className="font-bold text-gray-900 dark:text-graphite-50">
                           {cert.tipo === 'asistencia' ? 'Asistencia' : 'Reposo'}
                         </span>
-                        <span className="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full">
+                        <span className="text-xs bg-gray-200 dark:bg-graphite-700 text-gray-700 dark:text-graphite-300 px-2 py-0.5 rounded-full">
                           {dias !== null ? `${dias} días restantes` : 'Sin fecha'}
                         </span>
                         {cert.r2ArchivoId && (
@@ -153,18 +153,18 @@ export const ModalPapeleraCertificados = memo(({
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-gray-700">
+                      <p className="text-xs text-gray-700 dark:text-graphite-300">
                         Emitido: <span className="font-semibold">{cert.fechaEmision || 'sin fecha'}</span>
                       </p>
-                      <p className="text-xs text-gray-600 truncate" title={cert.diagnosticoMotivo}>
+                      <p className="text-xs text-gray-600 dark:text-graphite-400 truncate" title={cert.diagnosticoMotivo}>
                         <span className="font-bold">Motivo:</span>{' '}
                         {cert.diagnosticoMotivo || 'sin diagnóstico'}
                       </p>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-gray-500 dark:text-graphite-400 mt-1">
                         Eliminado: {formatearFecha(cert.eliminadoAt)}
                       </p>
                       {cert.eliminadoMotivo && (
-                        <p className="text-xs text-gray-600 mt-1 italic truncate" title={cert.eliminadoMotivo}>
+                        <p className="text-xs text-gray-600 dark:text-graphite-400 mt-1 italic truncate" title={cert.eliminadoMotivo}>
                           Motivo eliminación: "{cert.eliminadoMotivo}"
                         </p>
                       )}

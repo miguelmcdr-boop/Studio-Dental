@@ -23,11 +23,11 @@ export const UrgenciasGesModulo = memo(() => {
   return (
     <div className="space-y-6">
       <div className="border-b pb-3 print:hidden">
-        <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-graphite-50 uppercase tracking-wider flex items-center gap-2">
           <Icon icon={Siren} size="md" />
           Atenciones de Urgencia y Notificaciones GES / AUGE
         </h2>
-        <p className="text-xs text-gray-500">Gestión de Urgencia Odontológica Ambulatoria y emisión de constancias normadas Ley 19.966.</p>
+        <p className="text-xs text-gray-500 dark:text-graphite-400">Gestión de Urgencia Odontológica Ambulatoria y emisión de constancias normadas Ley 19.966.</p>
       </div>
 
       <div className="print:hidden">
@@ -41,17 +41,17 @@ export const UrgenciasGesModulo = memo(() => {
           alCerrar={() => setAtencionSeleccionada(null)}
         />
       ) : (
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-3 print:hidden text-xs">
-          <h4 className="font-bold text-xs text-gray-800 uppercase tracking-wider">Historial de Notificaciones GES Emitidas ({atenciones.length})</h4>
+        <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-6 shadow-xs space-y-3 print:hidden text-xs">
+          <h4 className="font-bold text-xs text-gray-800 dark:text-graphite-100 uppercase tracking-wider">Historial de Notificaciones GES Emitidas ({atenciones.length})</h4>
           
           {atenciones.length === 0 ? (
-            <p className="text-gray-400 py-4 text-center">No hay constancias GES emitidas aún.</p>
+            <p className="text-gray-400 dark:text-graphite-500 py-4 text-center">No hay constancias GES emitidas aún.</p>
           ) : (
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-gray-100 dark:divide-graphite-800">
               {atenciones.map((item) => (
-                <div key={item.id} className="py-3 flex justify-between items-center flex-wrap gap-2 hover:bg-gray-50 p-2 rounded-xl transition-colors duration-150">
+                <div key={item.id} className="py-3 flex justify-between items-center flex-wrap gap-2 hover:bg-gray-50 dark:hover:bg-graphite-700 dark:hover:bg-graphite-700 p-2 rounded-xl transition-colors duration-150">
                   <div>
-                    <span className="font-bold text-gray-900 block">{item.pacienteNombre} ({item.pacienteRut})</span>
+                    <span className="font-bold text-gray-900 dark:text-graphite-50 block">{item.pacienteNombre} ({item.pacienteRut})</span>
                     <span className="text-[10px] font-semibold text-blue-900 block">[{item.patologiaCodigo}] {item.patologiaNombre} — Folio: {item.folio}</span>
                   </div>
 

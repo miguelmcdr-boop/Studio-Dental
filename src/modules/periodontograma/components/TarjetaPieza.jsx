@@ -33,12 +33,12 @@ export const TarjetaPieza = memo(({ numero, piezaData = {}, onChange }) => {
   ]
 
   return (
-    <div className={`p-2.5 border border-gray-300 rounded-2xl bg-white shadow-2xs text-xs space-y-2.5 w-full transition-all ${
-      ausente ? 'opacity-40 bg-gray-100' : 'hover:border-black'
+    <div className={`p-2.5 border border-gray-300 dark:border-graphite-600 rounded-2xl bg-white dark:bg-graphite-800 shadow-2xs text-xs space-y-2.5 w-full transition-all ${
+      ausente ? 'opacity-40 bg-gray-100 dark:bg-graphite-800' : 'hover:border-black'
     }`}>
       {/* Cabecera */}
       <div className="flex justify-between items-center border-b pb-1">
-        <span className="font-black text-xs text-gray-900">Pieza {numero}</span>
+        <span className="font-black text-xs text-gray-900 dark:text-graphite-50">Pieza {numero}</span>
         <Button
           type="button"
           onClick={() => onChange(numero, null, 'ausente', !ausente)}
@@ -54,7 +54,7 @@ export const TarjetaPieza = memo(({ numero, piezaData = {}, onChange }) => {
         <>
           {secciones.map(({ cara, titulo, sitios }) => (
             <div key={cara} className="space-y-1">
-              <span className="text-[9px] font-extrabold text-gray-500 tracking-wider block text-center uppercase">
+              <span className="text-[9px] font-extrabold text-gray-500 dark:text-graphite-400 tracking-wider block text-center uppercase">
                 {titulo}
               </span>
 
@@ -67,32 +67,32 @@ export const TarjetaPieza = memo(({ numero, piezaData = {}, onChange }) => {
                   const sup = piezaData[cara]?.supuracion?.[idx] || false
 
                   return (
-                    <div key={idx} className="bg-gray-50/80 p-1 rounded-lg border border-gray-200 space-y-1">
-                      <span className="text-[8px] font-black text-gray-400 block uppercase">{labelSitio}</span>
+                    <div key={idx} className="bg-gray-50/80 p-1 rounded-lg border border-gray-200 dark:border-graphite-700 space-y-1">
+                      <span className="text-[8px] font-black text-gray-400 dark:text-graphite-500 block uppercase">{labelSitio}</span>
 
                       {/* Input P */}
                       <div className="relative">
-                        <span className="absolute left-0.5 top-0.5 text-[7px] font-bold text-gray-400">P</span>
+                        <span className="absolute left-0.5 top-0.5 text-[7px] font-bold text-gray-400 dark:text-graphite-500">P</span>
                         <input
                           type="number"
                           min="0"
                           max="15"
                           value={valP}
                           onChange={(e) => handleSondajeChange(cara, 'sondaje', idx, e.target.value)}
-                          className="w-full text-center font-extrabold text-[11px] pl-2 pr-0.5 py-0.5 border rounded bg-white focus:border-black focus:outline-none"
+                          className="w-full text-center font-extrabold text-[11px] pl-2 pr-0.5 py-0.5 border rounded bg-white dark:bg-graphite-800 focus:border-black focus:outline-none"
                         />
                       </div>
 
                       {/* Input R */}
                       <div className="relative">
-                        <span className="absolute left-0.5 top-0.5 text-[7px] font-bold text-gray-400">R</span>
+                        <span className="absolute left-0.5 top-0.5 text-[7px] font-bold text-gray-400 dark:text-graphite-500">R</span>
                         <input
                           type="number"
                           min="0"
                           max="15"
                           value={valR}
                           onChange={(e) => handleSondajeChange(cara, 'recesion', idx, e.target.value)}
-                          className="w-full text-center font-extrabold text-[11px] pl-2 pr-0.5 py-0.5 border rounded bg-white focus:border-black focus:outline-none"
+                          className="w-full text-center font-extrabold text-[11px] pl-2 pr-0.5 py-0.5 border rounded bg-white dark:bg-graphite-800 focus:border-black focus:outline-none"
                         />
                       </div>
 
@@ -102,7 +102,7 @@ export const TarjetaPieza = memo(({ numero, piezaData = {}, onChange }) => {
                           type="button"
                           onClick={() => handleToggleFlag(cara, idx, 'sangrado')}
                           className={`w-3.5 h-3.5 rounded text-[8px] font-black cursor-pointer ${
-                            bop ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-500'
+                            bop ? 'bg-red-600 text-white' : 'bg-gray-200 dark:bg-graphite-700 text-gray-500 dark:text-graphite-400'
                           }`}
                         >
                           B
@@ -111,7 +111,7 @@ export const TarjetaPieza = memo(({ numero, piezaData = {}, onChange }) => {
                           type="button"
                           onClick={() => handleToggleFlag(cara, idx, 'placa')}
                           className={`w-3.5 h-3.5 rounded text-[8px] font-black cursor-pointer ${
-                            placa ? 'bg-amber-500 text-white' : 'bg-gray-200 text-gray-500'
+                            placa ? 'bg-amber-500 text-white' : 'bg-gray-200 dark:bg-graphite-700 text-gray-500 dark:text-graphite-400'
                           }`}
                         >
                           P
@@ -120,7 +120,7 @@ export const TarjetaPieza = memo(({ numero, piezaData = {}, onChange }) => {
                           type="button"
                           onClick={() => handleToggleFlag(cara, idx, 'supuracion')}
                           className={`w-3.5 h-3.5 rounded text-[8px] font-black cursor-pointer ${
-                            sup ? 'bg-yellow-500 text-white' : 'bg-gray-200 text-gray-500'
+                            sup ? 'bg-yellow-500 text-white' : 'bg-gray-200 dark:bg-graphite-700 text-gray-500 dark:text-graphite-400'
                           }`}
                         >
                           S
@@ -136,11 +136,11 @@ export const TarjetaPieza = memo(({ numero, piezaData = {}, onChange }) => {
           {/* Movilidad & Furca */}
           <div className="border-t pt-1.5 space-y-1 text-[9px]">
             <div className="flex justify-between items-center">
-              <span className="font-extrabold text-gray-600 uppercase">Movilidad:</span>
+              <span className="font-extrabold text-gray-600 dark:text-graphite-400 uppercase">Movilidad:</span>
               <select
                 value={piezaData.movilidad || 'Grado 0'}
                 onChange={(e) => handleSelectChange('movilidad', e.target.value)}
-                className="font-bold border rounded px-1 py-0.5 bg-white text-[9px]"
+                className="font-bold border rounded px-1 py-0.5 bg-white dark:bg-graphite-800 text-[9px]"
               >
                 <option value="Grado 0">Grado 0</option>
                 <option value="Grado I">Grado I</option>
@@ -150,11 +150,11 @@ export const TarjetaPieza = memo(({ numero, piezaData = {}, onChange }) => {
             </div>
 
             <div className="flex justify-between items-center">
-              <span className="font-extrabold text-gray-600 uppercase">Furca:</span>
+              <span className="font-extrabold text-gray-600 dark:text-graphite-400 uppercase">Furca:</span>
               <select
                 value={piezaData.furca || 'N/A'}
                 onChange={(e) => handleSelectChange('furca', e.target.value)}
-                className="font-bold border rounded px-1 py-0.5 bg-white text-[9px]"
+                className="font-bold border rounded px-1 py-0.5 bg-white dark:bg-graphite-800 text-[9px]"
               >
                 <option value="N/A">N/A</option>
                 <option value="Grado I">Grado I</option>

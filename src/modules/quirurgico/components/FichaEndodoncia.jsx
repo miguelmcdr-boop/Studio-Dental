@@ -39,42 +39,42 @@ export const FichaEndodoncia = ({ endodoncias = [], onAgregarEndodoncia, onElimi
 
   return (
     <div className="space-y-6 text-xs">
-      <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs">
-        <h3 className="font-bold text-sm text-gray-900 mb-4 border-b pb-2 uppercase tracking-wider">
+      <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-6 shadow-xs">
+        <h3 className="font-bold text-sm text-gray-900 dark:text-graphite-50 mb-4 border-b pb-2 uppercase tracking-wider">
           <span className="flex items-center gap-1.5"><Icon icon={FlaskConical} size="sm" />Ficha de Endodoncia y Mapa de Conductometría</span>
         </h3>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-gray-600 font-bold mb-1 uppercase">Pieza Tratada *</label>
+              <label className="block text-gray-600 dark:text-graphite-400 font-bold mb-1 uppercase">Pieza Tratada *</label>
               <input
                 type="text"
                 required
                 value={pieza}
                 onChange={(e) => setPieza(e.target.value)}
                 placeholder="Ej: 1.6 / 2.1"
-                className="w-full px-3 py-2 border rounded-xl bg-white font-bold"
+                className="w-full px-3 py-2 border rounded-xl bg-white dark:bg-graphite-800 font-bold"
               />
             </div>
 
             <div>
-              <label className="block text-gray-600 font-bold mb-1 uppercase">Técnica de Obturación</label>
+              <label className="block text-gray-600 dark:text-graphite-400 font-bold mb-1 uppercase">Técnica de Obturación</label>
               <select
                 value={tecnicaObturacion}
                 onChange={(e) => setTecnicaObturacion(e.target.value)}
-                className="w-full px-3 py-2 border rounded-xl bg-white"
+                className="w-full px-3 py-2 border rounded-xl bg-white dark:bg-graphite-800"
               >
                 {TECNICAS_OBTURACION.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
 
             <div>
-              <label className="block text-gray-600 font-bold mb-1 uppercase">Cementador / Sellador</label>
+              <label className="block text-gray-600 dark:text-graphite-400 font-bold mb-1 uppercase">Cementador / Sellador</label>
               <select
                 value={sellador}
                 onChange={(e) => setSellador(e.target.value)}
-                className="w-full px-3 py-2 border rounded-xl bg-white"
+                className="w-full px-3 py-2 border rounded-xl bg-white dark:bg-graphite-800"
               >
                 {SELLADORES_ENDODONTICOS.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
@@ -82,9 +82,9 @@ export const FichaEndodoncia = ({ endodoncias = [], onAgregarEndodoncia, onElimi
           </div>
 
           {/* Tabla de Conductometría */}
-          <div className="border rounded-xl overflow-x-auto bg-gray-50 p-3">
+          <div className="border rounded-xl overflow-x-auto bg-gray-50 dark:bg-graphite-800 p-3">
             <div className="flex justify-between items-center mb-2">
-              <span className="font-bold text-xs text-gray-800 uppercase">Tabla de Conductos y Mediciones (CAD / CRD / LTP)</span>
+              <span className="font-bold text-xs text-gray-800 dark:text-graphite-100 uppercase">Tabla de Conductos y Mediciones (CAD / CRD / LTP)</span>
               <button type="button" onClick={handleAgregarConducto} className="bg-black text-white px-2.5 py-1 rounded-lg text-[10px] font-bold">
                 + Agregar Conducto
               </button>
@@ -92,7 +92,7 @@ export const FichaEndodoncia = ({ endodoncias = [], onAgregarEndodoncia, onElimi
 
             <table className="w-full text-left text-[11px] border-collapse">
               <thead>
-                <tr className="border-b text-gray-600 font-bold uppercase">
+                <tr className="border-b text-gray-600 dark:text-graphite-400 font-bold uppercase">
                   <th className="p-2">Conducto</th>
                   <th className="p-2">CAD (Rx)</th>
                   <th className="p-2">CRD (Localizador)</th>
@@ -105,7 +105,7 @@ export const FichaEndodoncia = ({ endodoncias = [], onAgregarEndodoncia, onElimi
               </thead>
               <tbody>
                 {conductos.map((c, idx) => (
-                  <tr key={idx} className="border-b bg-white">
+                  <tr key={idx} className="border-b bg-white dark:bg-graphite-800">
                     <td className="p-1">
                       <input
                         type="text"
@@ -178,11 +178,11 @@ export const FichaEndodoncia = ({ endodoncias = [], onAgregarEndodoncia, onElimi
       </div>
 
       {/* Historial Endodóntico */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs">
-        <h4 className="font-bold text-sm text-gray-900 mb-4 border-b pb-2">Tratamientos de Endodoncia Realizados</h4>
+      <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-6 shadow-xs">
+        <h4 className="font-bold text-sm text-gray-900 dark:text-graphite-50 mb-4 border-b pb-2">Tratamientos de Endodoncia Realizados</h4>
         <div className="space-y-3">
           {endodoncias.map(endo => (
-            <div key={endo.id} className="p-4 bg-gray-50 border rounded-xl flex justify-between items-start">
+            <div key={endo.id} className="p-4 bg-gray-50 dark:bg-graphite-800 border rounded-xl flex justify-between items-start">
               <div>
                 <div className="flex items-center gap-2">
                   <span className="font-extrabold text-purple-900 text-sm">Pieza {endo.pieza}</span>
@@ -190,7 +190,7 @@ export const FichaEndodoncia = ({ endodoncias = [], onAgregarEndodoncia, onElimi
                   <span className="bg-purple-100 text-purple-800 text-[10px] font-bold px-2 py-0.5 rounded">{endo.sellador}</span>
                 </div>
                 
-                <div className="mt-2 text-[11px] font-mono bg-white p-2 border rounded">
+                <div className="mt-2 text-[11px] font-mono bg-white dark:bg-graphite-800 p-2 border rounded">
                   {endo.conductos.map((c, i) => (
                     <span key={i} className="inline-block mr-4">
                       <strong>{c.nombre}:</strong> LTP={c.ltp} | Lima={c.limaApical}
@@ -205,7 +205,7 @@ export const FichaEndodoncia = ({ endodoncias = [], onAgregarEndodoncia, onElimi
             </div>
           ))}
 
-          {endodoncias.length === 0 && <p className="text-gray-400 text-center py-6">No hay tratamientos de endodoncia registrados para este paciente.</p>}
+          {endodoncias.length === 0 && <p className="text-gray-400 dark:text-graphite-500 text-center py-6">No hay tratamientos de endodoncia registrados para este paciente.</p>}
         </div>
       </div>
     </div>

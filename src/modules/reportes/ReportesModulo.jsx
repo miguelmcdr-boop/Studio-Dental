@@ -33,16 +33,16 @@ export const ReportesModulo = memo(() => {
     <div className="space-y-6">
       <div className="flex justify-between items-center flex-wrap gap-3 print:hidden">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider inline-flex items-center gap-2"><BarChart3 size={20} />Reportes Gerenciales & Métricas Clínicas</h2>
-          <p className="text-xs text-gray-500">Inteligencia de negocios, rentabilidad de arancel y flujo de recaudación.</p>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-graphite-50 uppercase tracking-wider inline-flex items-center gap-2"><BarChart3 size={20} />Reportes Gerenciales & Métricas Clínicas</h2>
+          <p className="text-xs text-gray-500 dark:text-graphite-400">Inteligencia de negocios, rentabilidad de arancel y flujo de recaudación.</p>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-gray-600">Período:</span>
+          <span className="text-xs font-semibold text-gray-600 dark:text-graphite-400">Período:</span>
           <select
             value={periodoSeleccionado}
             onChange={(e) => setPeriodoSeleccionado(e.target.value)}
-            className="p-2 border rounded-xl bg-white font-bold text-xs"
+            className="p-2 border rounded-xl bg-white dark:bg-graphite-800 font-bold text-xs"
           >
             {PERIODOS_REPORTES.map(r => <option key={r.id} value={r.id}>{r.nombre}</option>)}
           </select>

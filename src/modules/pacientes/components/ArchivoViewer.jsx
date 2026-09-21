@@ -86,7 +86,7 @@ export const ArchivoViewer = memo(({
 
   if (cargando) {
     return (
-      <p className="text-xs text-gray-400 text-center py-8">
+      <p className="text-xs text-gray-400 dark:text-graphite-500 text-center py-8">
         Cargando archivos clínicos…
       </p>
     )
@@ -94,7 +94,7 @@ export const ArchivoViewer = memo(({
 
   if (!archivos || archivos.length === 0) {
     return (
-      <p className="text-xs text-gray-400 text-center py-8">
+      <p className="text-xs text-gray-400 dark:text-graphite-500 text-center py-8">
         {textosVacios[tipoArchivo] || 'No hay archivos cargados todavía.'}
       </p>
     )
@@ -105,9 +105,9 @@ export const ArchivoViewer = memo(({
       {archivos.map((archivo) => (
         <div
           key={archivo.id}
-          className="border rounded-xl overflow-hidden bg-gray-50 hover:shadow-md transition-shadow"
+          className="border rounded-xl overflow-hidden bg-gray-50 dark:bg-graphite-800 hover:shadow-md transition-shadow"
         >
-          <div className="aspect-video bg-gray-100 flex items-center justify-center overflow-hidden">
+          <div className="aspect-video bg-gray-100 dark:bg-graphite-800 flex items-center justify-center overflow-hidden">
             {thumbnails[archivo.id] && archivo.mime_type?.startsWith('image/') ? (
               <img
                 src={thumbnails[archivo.id]}
@@ -125,10 +125,10 @@ export const ArchivoViewer = memo(({
 
           <div className="p-3 space-y-3">
             <div className="min-w-0">
-              <p className="text-xs font-bold text-gray-800 truncate" title={archivo.nombre_archivo}>
+              <p className="text-xs font-bold text-gray-800 dark:text-graphite-100 truncate" title={archivo.nombre_archivo}>
                 {archivo.nombre_archivo}
               </p>
-              <p className="text-[10px] text-gray-400">
+              <p className="text-[10px] text-gray-400 dark:text-graphite-500">
                 {formatearFecha(archivo.created_at)} · {formatearTamano(archivo.tamano_bytes)}
               </p>
             </div>
@@ -154,7 +154,7 @@ export const ArchivoViewer = memo(({
                   <button
                     type="button"
                     onClick={() => onDescargar(archivo.id, archivo.nombre_archivo)}
-                    className="text-xs font-semibold text-gray-700 hover:text-black"
+                    className="text-xs font-semibold text-gray-700 dark:text-graphite-300 hover:text-black"
                     title="Descargar archivo"
                   >
                     Descargar
@@ -165,7 +165,7 @@ export const ArchivoViewer = memo(({
                   <button
                     type="button"
                     onClick={() => confirmarEliminar(archivo)}
-                    className="text-xs font-bold text-gray-400 hover:text-red-600 px-1"
+                    className="text-xs font-bold text-gray-400 dark:text-graphite-500 hover:text-red-600 px-1"
                     title="Eliminar archivo"
                   >
                     ✕

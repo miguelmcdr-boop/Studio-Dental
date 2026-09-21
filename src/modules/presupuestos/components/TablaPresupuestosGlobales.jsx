@@ -12,17 +12,17 @@ export const TablaPresupuestosGlobales = memo(({
 }) => {
   if (presupuestos.length === 0) {
     return (
-      <div className="p-10 text-center text-xs text-gray-400 bg-white border border-gray-200 rounded-2xl">
+      <div className="p-10 text-center text-xs text-gray-400 dark:text-graphite-500 bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl">
         No hay presupuestos o cotizaciones registradas para el criterio seleccionado.
       </div>
     )
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-xs text-xs">
+    <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl overflow-hidden shadow-xs text-xs">
       <table className="w-full text-left border-collapse">
         <thead>
-          <tr className="bg-gray-100 border-b border-gray-200 text-gray-700 font-bold uppercase text-[10px]">
+          <tr className="bg-gray-100 dark:bg-graphite-800 border-b border-gray-200 dark:border-graphite-700 text-gray-700 dark:text-graphite-300 font-bold uppercase text-[10px]">
             <th className="p-3">Folio / Paciente</th>
             <th className="p-3">Emisión / Convenio</th>
             <th className="p-3 text-center">Estado Comercial</th>
@@ -32,7 +32,7 @@ export const TablaPresupuestosGlobales = memo(({
             <th className="p-3 text-right print:hidden">Acciones</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody className="divide-y divide-gray-100 dark:divide-graphite-800">
           {presupuestos.map((p) => {
             const configEstado = ESTADOS_PRESUPUESTO.find(e => e.id === p.estado) || ESTADOS_PRESUPUESTO[0]
             const montoTotal = parseFloat(p.montoTotal) || 0
@@ -40,17 +40,17 @@ export const TablaPresupuestosGlobales = memo(({
             const saldo = Math.max(0, montoTotal - montoAbonado)
 
             return (
-              <tr key={p.id} className="hover:bg-gray-50 transition-colors">
+              <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-graphite-700 dark:hover:bg-graphite-700 transition-colors">
                 <td className="p-3">
-                  <span className="bg-gray-100 px-2 py-0.5 rounded border border-gray-300 font-mono text-[11px] font-bold block w-max">
+                  <span className="bg-gray-100 dark:bg-graphite-800 px-2 py-0.5 rounded border border-gray-300 dark:border-graphite-600 font-mono text-[11px] font-bold block w-max">
                     {p.folio}
                   </span>
-                  <span className="font-extrabold text-gray-900 block mt-1">{p.pacienteNombre}</span>
-                  <span className="text-[10px] text-gray-500">RUT: {p.pacienteRut}</span>
+                  <span className="font-extrabold text-gray-900 dark:text-graphite-50 block mt-1">{p.pacienteNombre}</span>
+                  <span className="text-[10px] text-gray-500 dark:text-graphite-400">RUT: {p.pacienteRut}</span>
                 </td>
 
                 <td className="p-3">
-                  <span className="font-semibold text-gray-800 block">{p.fechaEmision}</span>
+                  <span className="font-semibold text-gray-800 dark:text-graphite-100 block">{p.fechaEmision}</span>
                   <span className="bg-emerald-50 text-emerald-900 px-2 py-0.5 rounded-lg border border-emerald-200 font-bold text-[10px] inline-block mt-0.5">
                     {p.convenio || 'Particular'}
                   </span>
@@ -60,7 +60,7 @@ export const TablaPresupuestosGlobales = memo(({
                   <select
                     value={p.estado}
                     onChange={(e) => onCambiarEstado(p.id, e.target.value)}
-                    className={`px-2 py-1 rounded-xl font-extrabold text-[10px] border bg-white cursor-pointer ${configEstado.colorText} ${configEstado.colorBorder}`}
+                    className={`px-2 py-1 rounded-xl font-extrabold text-[10px] border bg-white dark:bg-graphite-800 cursor-pointer ${configEstado.colorText} ${configEstado.colorBorder}`}
                   >
                     {ESTADOS_PRESUPUESTO.map(e => (
                       <option key={e.id} value={e.id}>{e.nombre}</option>
@@ -68,7 +68,7 @@ export const TablaPresupuestosGlobales = memo(({
                   </select>
                 </td>
 
-                <td className="p-3 text-right font-black text-gray-900">
+                <td className="p-3 text-right font-black text-gray-900 dark:text-graphite-50">
                   ${montoTotal.toLocaleString('es-CL')} CLP
                 </td>
 

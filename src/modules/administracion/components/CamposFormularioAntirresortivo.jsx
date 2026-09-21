@@ -6,7 +6,7 @@
 import React from 'react'
 import { FAMILIAS_ANTIRRESORTIVOS, NIVELES_RIESGO_MRONG } from '../schemas/vademecumSchema'
 
-const campoError = (errores, campo) => errores[campo] ? 'border-red-400 bg-red-50' : 'border-gray-300'
+const campoError = (errores, campo) => errores[campo] ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-graphite-600'
 const mensajeError = (errores, campo) => errores[campo] && (
   <p className="text-xs text-red-600 mt-1">{errores[campo]}</p>
 )
@@ -16,7 +16,7 @@ export const CamposFormularioAntirresortivo = ({ form, errores, esEdicion, handl
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">Número <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-semibold text-gray-700 dark:text-graphite-300 mb-1">Número <span className="text-red-500">*</span></label>
           <input
             type="number"
             value={form.numero}
@@ -27,7 +27,7 @@ export const CamposFormularioAntirresortivo = ({ form, errores, esEdicion, handl
           {mensajeError(errores, 'numero')}
         </div>
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">Familia <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-semibold text-gray-700 dark:text-graphite-300 mb-1">Familia <span className="text-red-500">*</span></label>
           <select
             value={form.familia}
             onChange={(e) => handleChange('familia', e.target.value)}
@@ -41,7 +41,7 @@ export const CamposFormularioAntirresortivo = ({ form, errores, esEdicion, handl
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-1">Nombre genérico <span className="text-red-500">*</span></label>
+        <label className="block text-sm font-semibold text-gray-700 dark:text-graphite-300 mb-1">Nombre genérico <span className="text-red-500">*</span></label>
         <input
           type="text"
           value={form.nombre_generico}
@@ -54,17 +54,17 @@ export const CamposFormularioAntirresortivo = ({ form, errores, esEdicion, handl
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">Vía / Dosis habitual</label>
+          <label className="block text-sm font-semibold text-gray-700 dark:text-graphite-300 mb-1">Vía / Dosis habitual</label>
           <input
             type="text"
             value={form.via_administracion}
             onChange={(e) => handleChange('via_administracion', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg text-sm"
             placeholder="Ej: VO, 1 vez/semana"
           />
         </div>
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">Indicación <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-semibold text-gray-700 dark:text-graphite-300 mb-1">Indicación <span className="text-red-500">*</span></label>
           <input
             type="text"
             value={form.indicacion}
@@ -77,7 +77,7 @@ export const CamposFormularioAntirresortivo = ({ form, errores, esEdicion, handl
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-1">Riesgo de MRONJ <span className="text-red-500">*</span></label>
+        <label className="block text-sm font-semibold text-gray-700 dark:text-graphite-300 mb-1">Riesgo de MRONJ <span className="text-red-500">*</span></label>
         <select
           value={form.riesgo_mronj}
           onChange={(e) => handleChange('riesgo_mronj', e.target.value)}
@@ -90,7 +90,7 @@ export const CamposFormularioAntirresortivo = ({ form, errores, esEdicion, handl
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-1">Manejo odontológico <span className="text-red-500">*</span></label>
+        <label className="block text-sm font-semibold text-gray-700 dark:text-graphite-300 mb-1">Manejo odontológico <span className="text-red-500">*</span></label>
         <textarea
           value={form.manejo_odontologico}
           onChange={(e) => handleChange('manejo_odontologico', e.target.value)}

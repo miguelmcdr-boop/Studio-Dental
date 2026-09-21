@@ -83,11 +83,11 @@ export const ModalEnviarMensaje = memo(({ pacientes = [], plantillas = [], userP
 
         <div className="space-y-3">
           <div>
-            <label className="block font-semibold text-gray-700 mb-1">Paciente Destinatario *</label>
+            <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Paciente Destinatario *</label>
             <select
               value={pacienteId}
               onChange={(e) => setPacienteId(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-bold"
+              className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-bold"
             >
               <option value="">-- Seleccionar paciente --</option>
               {pacientes.map(p => (
@@ -98,11 +98,11 @@ export const ModalEnviarMensaje = memo(({ pacientes = [], plantillas = [], userP
 
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="block font-semibold text-gray-700 mb-1">Cargar Plantilla</label>
+              <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Cargar Plantilla</label>
               <select
                 value={plantillaId}
                 onChange={(e) => setPlantillaId(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-medium"
+                className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-medium"
               >
                 <option value="">-- Seleccionar --</option>
                 {plantillas.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
@@ -110,11 +110,11 @@ export const ModalEnviarMensaje = memo(({ pacientes = [], plantillas = [], userP
             </div>
 
             <div>
-              <label className="block font-semibold text-gray-700 mb-1">Canal de Envío</label>
+              <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Canal de Envío</label>
               <select
                 value={canal}
                 onChange={(e) => setCanal(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-bold"
+                className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-bold"
               >
                 {CANALES_COMUNICACION.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
               </select>
@@ -122,12 +122,12 @@ export const ModalEnviarMensaje = memo(({ pacientes = [], plantillas = [], userP
           </div>
 
           <div>
-            <label className="block font-semibold text-gray-700 mb-1">Mensaje (Editable / Previsualización en Vivo)</label>
+            <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Mensaje (Editable / Previsualización en Vivo)</label>
             <textarea
               rows="4"
               value={mensajeTexto}
               onChange={(e) => setMensajeTexto(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-gray-300 font-mono text-[11px]"
+              className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 font-mono text-[11px]"
             />
           </div>
 

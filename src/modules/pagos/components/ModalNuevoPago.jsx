@@ -95,11 +95,11 @@ export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, a
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="block font-semibold text-gray-700 mb-1">Paciente *</label>
+            <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Paciente *</label>
             <select
               value={pacienteId}
               onChange={(e) => setPacienteId(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-bold"
+              className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-bold"
             >
               <option value="">-- Seleccionar paciente --</option>
               {pacientes.map(p => (
@@ -120,11 +120,11 @@ export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, a
             />
 
             <div>
-              <label className="block font-semibold text-gray-700 mb-1">Método de Pago</label>
+              <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Método de Pago</label>
               <select
                 value={metodoPago}
                 onChange={(e) => setMetodoPago(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-bold"
+                className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-bold"
               >
                 {METODOS_PAGO_GOLD.map(m => (
                   <option key={m.id} value={m.id}>{m.nombre}</option>
@@ -135,11 +135,11 @@ export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, a
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-semibold text-gray-700 mb-1">Tipo de Documento Tributario</label>
+              <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Tipo de Documento Tributario</label>
               <select
                 value={tipoDTE}
                 onChange={(e) => setTipoDTE(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-semibold"
+                className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-semibold"
               >
                 {TIPOS_DOCUMENTO_TRIBUTARIO.map(d => (
                   <option key={d.id} value={d.id}>{d.nombre}</option>
@@ -157,11 +157,11 @@ export const ModalNuevoPago = memo(({ pagoEditar, pacientes = [], userProfile, a
           </div>
 
           <div>
-            <label className="block font-semibold text-gray-700 mb-1">Concepto de Pago</label>
+            <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Concepto de Pago</label>
             <select
               value={concepto}
               onChange={(e) => setConcepto(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-medium"
+              className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-medium"
             >
               {CONCEPTOS_PAGO.map(c => <option key={c} value={c}>{c}</option>)}
             </select>

@@ -10,11 +10,11 @@ export const RecallPacientesSection = memo(({ pacientes = [], alEnviarRecall }) 
   )
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-4 text-xs">
+    <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-6 shadow-xs space-y-4 text-xs">
       <div className="flex justify-between items-center border-b pb-3 flex-wrap gap-2">
         <div>
-          <h3 className="font-bold text-sm text-gray-900 uppercase inline-flex items-center gap-2"><Bell size={16} />Recall & Citación Preventiva de Pacientes (6 Meses)</h3>
-          <p className="text-gray-500 text-[11px]">Directorio de llamadas y citaciones para controles periódicos o limpiezas.</p>
+          <h3 className="font-bold text-sm text-gray-900 dark:text-graphite-50 uppercase inline-flex items-center gap-2"><Bell size={16} />Recall & Citación Preventiva de Pacientes (6 Meses)</h3>
+          <p className="text-gray-500 dark:text-graphite-400 text-[11px]">Directorio de llamadas y citaciones para controles periódicos o limpiezas.</p>
         </div>
 
         <input
@@ -22,19 +22,19 @@ export const RecallPacientesSection = memo(({ pacientes = [], alEnviarRecall }) 
           placeholder="Buscar paciente para recall..."
           value={busquedaRecall}
           onChange={(e) => setBusquedaRecall(e.target.value)}
-          className="p-2 border rounded-xl bg-white w-64"
+          className="p-2 border rounded-xl bg-white dark:bg-graphite-800 w-64"
         />
       </div>
 
-      <div className="divide-y divide-gray-100">
+      <div className="divide-y divide-gray-100 dark:divide-graphite-800">
         {pacientesFiltrados.map(p => {
           const mensajeRecall = `Hola ${p.nombre}, han pasado 6 meses desde su último control preventivo en Studio Dental. Le invitamos a agendar su cita de limpieza y revisión bucal.`
 
           return (
-            <div key={p.id} className="py-3 flex justify-between items-center flex-wrap gap-2 hover:bg-gray-50 p-2 rounded-xl">
+            <div key={p.id} className="py-3 flex justify-between items-center flex-wrap gap-2 hover:bg-gray-50 dark:hover:bg-graphite-700 dark:hover:bg-graphite-700 p-2 rounded-xl">
               <div>
-                <span className="font-extrabold text-gray-900 block text-xs">{p.nombre} ({p.rut})</span>
-                <span className="text-[10px] text-gray-500">Tel: {p.telefono || 'Sin teléfono'} | Previsión: {p.prevision || 'Particular'}</span>
+                <span className="font-extrabold text-gray-900 dark:text-graphite-50 block text-xs">{p.nombre} ({p.rut})</span>
+                <span className="text-[10px] text-gray-500 dark:text-graphite-400">Tel: {p.telefono || 'Sin teléfono'} | Previsión: {p.prevision || 'Particular'}</span>
               </div>
 
               <div className="flex items-center gap-2">

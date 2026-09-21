@@ -33,10 +33,10 @@ export const DatosClinicaForm = memo(({ datosClinica, alGuardar, userProfile }) 
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-4 text-xs">
+    <form onSubmit={handleSubmit} className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-6 shadow-xs space-y-4 text-xs">
       <div className="border-b pb-3">
-        <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider inline-flex items-center gap-2"><Building2 size={14} />Información de la Clínica & Membrete</h3>
-        <p className="text-gray-500 text-[11px]">
+        <h3 className="font-bold text-sm text-gray-900 dark:text-graphite-50 uppercase tracking-wider inline-flex items-center gap-2"><Building2 size={14} />Información de la Clínica & Membrete</h3>
+        <p className="text-gray-500 dark:text-graphite-400 text-[11px]">
           Membrete impreso oficial para consentimientos, recetas y presupuestos.
           {esSoloLectura && (
             <span className="ml-2 inline-block px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded text-[10px] font-semibold">
@@ -48,28 +48,28 @@ export const DatosClinicaForm = memo(({ datosClinica, alGuardar, userProfile }) 
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label className="block font-semibold text-gray-700 mb-1">Nombre Fantasía Clínica *</label>
+          <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Nombre Fantasía Clínica *</label>
           <input
             type="text"
             required
             value={form.nombreClinica}
             onChange={(e) => setForm({ ...form, nombreClinica: e.target.value })}
             disabled={esSoloLectura}
-            className={`w-full p-2.5 rounded-xl border border-gray-300 font-extrabold text-gray-900 ${
-              esSoloLectura ? 'bg-gray-50 cursor-not-allowed' : ''
+            className={`w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 font-extrabold text-gray-900 dark:text-graphite-50 ${
+              esSoloLectura ? 'bg-gray-50 dark:bg-graphite-800 cursor-not-allowed' : ''
             }`}
           />
         </div>
 
         <div>
-          <label className="block font-semibold text-gray-700 mb-1">Razón Social</label>
+          <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Razón Social</label>
           <input
             type="text"
             value={form.razonSocial}
             onChange={(e) => setForm({ ...form, razonSocial: e.target.value })}
             disabled={esSoloLectura}
-            className={`w-full p-2.5 rounded-xl border border-gray-300 font-semibold ${
-              esSoloLectura ? 'bg-gray-50 cursor-not-allowed' : ''
+            className={`w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 font-semibold ${
+              esSoloLectura ? 'bg-gray-50 dark:bg-graphite-800 cursor-not-allowed' : ''
             }`}
           />
         </div>
@@ -77,40 +77,40 @@ export const DatosClinicaForm = memo(({ datosClinica, alGuardar, userProfile }) 
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div>
-          <label className="block font-semibold text-gray-700 mb-1">RUT Empresa / Clínica</label>
+          <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">RUT Empresa / Clínica</label>
           <input
             type="text"
             value={form.rutClinica}
             onChange={(e) => setForm({ ...form, rutClinica: e.target.value })}
             disabled={esSoloLectura}
-            className={`w-full p-2.5 rounded-xl border border-gray-300 font-bold ${
-              esSoloLectura ? 'bg-gray-50 cursor-not-allowed' : ''
+            className={`w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 font-bold ${
+              esSoloLectura ? 'bg-gray-50 dark:bg-graphite-800 cursor-not-allowed' : ''
             }`}
           />
         </div>
 
         <div>
-          <label className="block font-semibold text-gray-700 mb-1">Teléfono Fijo / Móvil</label>
+          <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Teléfono Fijo / Móvil</label>
           <input
             type="text"
             value={form.telefono}
             onChange={(e) => setForm({ ...form, telefono: e.target.value })}
             disabled={esSoloLectura}
-            className={`w-full p-2.5 rounded-xl border border-gray-300 ${
-              esSoloLectura ? 'bg-gray-50 cursor-not-allowed' : ''
+            className={`w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 ${
+              esSoloLectura ? 'bg-gray-50 dark:bg-graphite-800 cursor-not-allowed' : ''
             }`}
           />
         </div>
 
         <div>
-          <label className="block font-semibold text-gray-700 mb-1">Correo de Contacto</label>
+          <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Correo de Contacto</label>
           <input
             type="email"
             value={form.emailContacto}
             onChange={(e) => setForm({ ...form, emailContacto: e.target.value })}
             disabled={esSoloLectura}
-            className={`w-full p-2.5 rounded-xl border border-gray-300 ${
-              esSoloLectura ? 'bg-gray-50 cursor-not-allowed' : ''
+            className={`w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 ${
+              esSoloLectura ? 'bg-gray-50 dark:bg-graphite-800 cursor-not-allowed' : ''
             }`}
           />
         </div>
@@ -118,41 +118,41 @@ export const DatosClinicaForm = memo(({ datosClinica, alGuardar, userProfile }) 
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label className="block font-semibold text-gray-700 mb-1">Dirección & Oficina</label>
+          <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Dirección & Oficina</label>
           <input
             type="text"
             value={form.direccion}
             onChange={(e) => setForm({ ...form, direccion: e.target.value })}
             disabled={esSoloLectura}
-            className={`w-full p-2.5 rounded-xl border border-gray-300 ${
-              esSoloLectura ? 'bg-gray-50 cursor-not-allowed' : ''
+            className={`w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 ${
+              esSoloLectura ? 'bg-gray-50 dark:bg-graphite-800 cursor-not-allowed' : ''
             }`}
           />
         </div>
 
         <div>
-          <label className="block font-semibold text-gray-700 mb-1">Ciudad & Región</label>
+          <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Ciudad & Región</label>
           <input
             type="text"
             value={form.ciudad}
             onChange={(e) => setForm({ ...form, ciudad: e.target.value })}
             disabled={esSoloLectura}
-            className={`w-full p-2.5 rounded-xl border border-gray-300 ${
-              esSoloLectura ? 'bg-gray-50 cursor-not-allowed' : ''
+            className={`w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 ${
+              esSoloLectura ? 'bg-gray-50 dark:bg-graphite-800 cursor-not-allowed' : ''
             }`}
           />
         </div>
       </div>
 
       <div>
-        <label className="block font-semibold text-gray-700 mb-1">Cargar Logo Oficial (PNG/JPG)</label>
+        <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Cargar Logo Oficial (PNG/JPG)</label>
         <div className="flex items-center gap-4">
           <input
             type="file"
             accept="image/*"
             onChange={handleLogoUpload}
             disabled={esSoloLectura}
-            className={`p-2 border rounded-xl bg-gray-50 flex-1 text-xs ${
+            className={`p-2 border rounded-xl bg-gray-50 dark:bg-graphite-800 flex-1 text-xs ${
               esSoloLectura ? 'cursor-not-allowed' : ''
             }`}
           />
@@ -168,7 +168,7 @@ export const DatosClinicaForm = memo(({ datosClinica, alGuardar, userProfile }) 
           disabled={esSoloLectura}
           className={`font-bold px-5 py-2.5 rounded-xl transition-colors shadow-xs ${
             esSoloLectura
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              ? 'bg-gray-300 text-gray-500 dark:text-graphite-400 cursor-not-allowed'
               : 'bg-black text-white hover:bg-gray-800'
           }`}
         >

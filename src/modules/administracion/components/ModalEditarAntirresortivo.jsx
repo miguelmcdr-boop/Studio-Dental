@@ -61,7 +61,7 @@ export const ModalEditarAntirresortivo = ({ farmaco, onGuardar, onClose, guardan
     if (resultado.valido) onGuardar(resultado.datos)
   }
 
-  const campoError = (campo) => errores[campo] ? 'border-red-400 bg-red-50' : 'border-gray-300'
+  const campoError = (campo) => errores[campo] ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-graphite-600'
   const mensajeError = (campo) => errores[campo] && (
     <p className="text-xs text-red-600 mt-1">{errores[campo]}</p>
   )

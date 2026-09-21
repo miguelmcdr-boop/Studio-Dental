@@ -11,10 +11,10 @@ export const TablaProfilaxis = ({ protocolos, onEditar, onEliminar, onCrearNueva
   const datos = Array.isArray(protocolos) ? protocolos : []
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200 bg-cyan-50">
+    <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-lg overflow-hidden">
+      <div className="px-6 py-4 border-b border-gray-200 dark:border-graphite-700 bg-cyan-50">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold text-gray-900">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-graphite-50">
             <span className="inline-flex items-center gap-1"><Syringe size={16} />Profilaxis Antibiótica de Endocarditis Infecciosa</span>
           </h3>
           {onCrearNueva && (
@@ -26,12 +26,12 @@ export const TablaProfilaxis = ({ protocolos, onEditar, onEliminar, onCrearNueva
             </button>
           )}
         </div>
-        <p className="text-sm text-gray-600 mt-1">
+        <p className="text-sm text-gray-600 dark:text-graphite-400 mt-1">
           {datos.length} protocolos AHA 2021 — Solo para pacientes con condiciones cardíacas de alto riesgo
         </p>
       </div>
 
-      <div className="px-6 py-3 border-b border-gray-200 bg-blue-50 text-sm text-blue-800">
+      <div className="px-6 py-3 border-b border-gray-200 dark:border-graphite-700 bg-blue-50 text-sm text-blue-800">
         <strong className="inline-flex items-center gap-1"><ClipboardList size={12} />Indicaciones:</strong> Solo para procedimientos que involucran manipulación de tejido gingival, región periapical o perforación de mucosa oral, en pacientes con:
         <ul className="list-disc list-inside mt-1 space-y-0.5 text-blue-700">
           <li>Válvula cardíaca protésica</li>
@@ -42,40 +42,40 @@ export const TablaProfilaxis = ({ protocolos, onEditar, onEliminar, onCrearNueva
       </div>
 
       {datos.length === 0 ? (
-        <div className="p-8 text-center text-gray-500">
+        <div className="p-8 text-center text-gray-500 dark:text-graphite-400">
           No hay protocolos registrados
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-graphite-700">
+            <thead className="bg-gray-50 dark:bg-graphite-800">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">#</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Situación clínica</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Fármaco</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Dosis adulto</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Dosis pediátrica</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Nota</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Acciones</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">#</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">Situación clínica</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">Fármaco</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">Dosis adulto</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">Dosis pediátrica</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">Nota</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">Acciones</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-graphite-800 divide-y divide-gray-200 dark:divide-graphite-700">
               {datos.map((protocolo, idx) => (
-                <tr key={protocolo.id || idx} className="hover:bg-gray-50 transition-colors duration-150">
-                  <td className="px-4 py-3 text-sm text-gray-700 font-mono">{idx + 1}</td>
-                  <td className="px-4 py-3 text-sm font-medium text-gray-900 max-w-[250px]">
+                <tr key={protocolo.id || idx} className="hover:bg-gray-50 dark:hover:bg-graphite-700 dark:hover:bg-graphite-700 transition-colors duration-150">
+                  <td className="px-4 py-3 text-sm text-gray-700 dark:text-graphite-300 font-mono">{idx + 1}</td>
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-graphite-50 max-w-[250px]">
                     {protocolo.situacion}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-700 font-semibold">
+                  <td className="px-4 py-3 text-sm text-gray-700 dark:text-graphite-300 font-semibold">
                     {protocolo.farmaco}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-700">
+                  <td className="px-4 py-3 text-sm text-gray-700 dark:text-graphite-300">
                     {protocolo.dosis_adulto}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-700">
+                  <td className="px-4 py-3 text-sm text-gray-700 dark:text-graphite-300">
                     {protocolo.dosis_pediatrica || '-'}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-600 max-w-[300px]" title={protocolo.nota}>
+                  <td className="px-4 py-3 text-sm text-gray-600 dark:text-graphite-400 max-w-[300px]" title={protocolo.nota}>
                     {protocolo.nota || '-'}
                   </td>
                   <td className="px-4 py-3 text-sm">
@@ -105,7 +105,7 @@ export const TablaProfilaxis = ({ protocolos, onEditar, onEliminar, onCrearNueva
         </div>
       )}
 
-      <div className="px-6 py-4 border-t border-gray-200 bg-cyan-50 text-sm text-cyan-800 space-y-2">
+      <div className="px-6 py-4 border-t border-gray-200 dark:border-graphite-700 bg-cyan-50 text-sm text-cyan-800 space-y-2">
         <p><strong className="inline-flex items-center gap-1"><FileText size={12} />Notas clínicas importantes (AHA 2021):</strong></p>
         <ul className="list-disc list-inside space-y-1 text-cyan-700">
           <li><strong>Cefalosporinas (*):</strong> NO usar si el antecedente alérgico a penicilina fue anafilaxia, angioedema o urticaria inmediata (riesgo de reactividad cruzada). Preferir Azitromicina/Claritromicina o Doxiciclina.</li>

@@ -53,10 +53,10 @@ export const TablaInteracciones = ({ interacciones, onEditar, onEliminar, onCrea
   }, [datos, textoBusqueda, filtroSeveridad])
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200 bg-orange-50">
+    <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-lg overflow-hidden">
+      <div className="px-6 py-4 border-b border-gray-200 dark:border-graphite-700 bg-orange-50">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold text-gray-900">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-graphite-50">
             <span className="inline-flex items-center gap-1"><FlaskConical size={14} />Interacciones Farmacológicas Clínicamente Relevantes</span>
           </h3>
           {onCrearNueva && (
@@ -68,25 +68,25 @@ export const TablaInteracciones = ({ interacciones, onEditar, onEliminar, onCrea
             </button>
           )}
         </div>
-        <p className="text-sm text-gray-600 mt-1">
+        <p className="text-sm text-gray-600 dark:text-graphite-400 mt-1">
           {datos.length} interacciones registradas — Basado en Sección 2D del vademécum v1.1
         </p>
       </div>
 
       {/* Barra de filtros */}
-      <div className="px-6 py-3 border-b border-gray-200 bg-gray-50 flex flex-wrap gap-3 items-center">
+      <div className="px-6 py-3 border-b border-gray-200 dark:border-graphite-700 bg-gray-50 dark:bg-graphite-800 flex flex-wrap gap-3 items-center">
         <input
           type="text"
           value={textoBusqueda}
           onChange={(e) => setTextoBusqueda(e.target.value)}
           placeholder="Buscar por fármaco A, B o efecto..."
-          className="flex-1 min-w-[200px] px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+          className="flex-1 min-w-[200px] px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
         />
         
         <select
           value={filtroSeveridad}
           onChange={(e) => setFiltroSeveridad(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-orange-500"
+          className="px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg text-sm bg-white dark:bg-graphite-800 focus:ring-2 focus:ring-orange-500"
         >
           <option value="">Todas las severidades</option>
           {NIVELES_SEVERIDAD_INTERACCION.map(s => (
@@ -96,7 +96,7 @@ export const TablaInteracciones = ({ interacciones, onEditar, onEliminar, onCrea
           ))}
         </select>
         
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-gray-600 dark:text-graphite-400">
           <span className="font-semibold">{datosFiltrados.length}</span> de{' '}
           <span className="font-semibold">{datos.length}</span>
         </div>
@@ -104,39 +104,39 @@ export const TablaInteracciones = ({ interacciones, onEditar, onEliminar, onCrea
 
       {/* Tabla */}
       {datosFiltrados.length === 0 ? (
-        <div className="p-8 text-center text-gray-500">
+        <div className="p-8 text-center text-gray-500 dark:text-graphite-400">
           No hay interacciones que coincidan con los filtros aplicados
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-graphite-700">
+            <thead className="bg-gray-50 dark:bg-graphite-800">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">#</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Fármaco A</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Fármaco B / Grupo</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Efecto de la interacción</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Manejo sugerido</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Severidad</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Acciones</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">#</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">Fármaco A</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">Fármaco B / Grupo</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">Efecto de la interacción</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">Manejo sugerido</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">Severidad</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">Acciones</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-graphite-800 divide-y divide-gray-200 dark:divide-graphite-700">
               {datosFiltrados.map((interaccion, idx) => {
                 const config = SEVERIDAD_CONFIG[interaccion.severidad] || SEVERIDAD_CONFIG.menor
                 return (
-                  <tr key={interaccion.id || idx} className="hover:bg-gray-50 transition-colors duration-150">
-                    <td className="px-4 py-3 text-sm text-gray-700 font-mono">{idx + 1}</td>
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900 max-w-[200px]">
+                  <tr key={interaccion.id || idx} className="hover:bg-gray-50 dark:hover:bg-graphite-700 dark:hover:bg-graphite-700 transition-colors duration-150">
+                    <td className="px-4 py-3 text-sm text-gray-700 dark:text-graphite-300 font-mono">{idx + 1}</td>
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-graphite-50 max-w-[200px]">
                       {interaccion.farmaco_a}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-700 max-w-[200px]">
+                    <td className="px-4 py-3 text-sm text-gray-700 dark:text-graphite-300 max-w-[200px]">
                       {interaccion.farmaco_b}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-700 max-w-[300px]" title={interaccion.efecto}>
+                    <td className="px-4 py-3 text-sm text-gray-700 dark:text-graphite-300 max-w-[300px]" title={interaccion.efecto}>
                       {interaccion.efecto}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-600 max-w-[250px]" title={interaccion.manejo}>
+                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-graphite-400 max-w-[250px]" title={interaccion.manejo}>
                       {interaccion.manejo || '-'}
                     </td>
                     <td className="px-4 py-3 text-sm">
@@ -173,7 +173,7 @@ export const TablaInteracciones = ({ interacciones, onEditar, onEliminar, onCrea
       )}
 
       {/* Nota clínica al pie */}
-      <div className="px-6 py-4 border-t border-gray-200 bg-orange-50 text-sm text-orange-800 space-y-2">
+      <div className="px-6 py-4 border-t border-gray-200 dark:border-graphite-700 bg-orange-50 text-sm text-orange-800 space-y-2">
         <p><strong className="inline-flex items-center gap-1"><FileText size={12} />Notas clínicas importantes (Sección 2D del vademécum v1.1):</strong></p>
         <ul className="list-disc list-inside space-y-1 text-orange-700">
           <li><strong>Macrólidos + Estatinas:</strong> Claritromicina y Eritromicina inhiben CYP3A4. Preferir Azitromicina que tiene menor interacción.</li>

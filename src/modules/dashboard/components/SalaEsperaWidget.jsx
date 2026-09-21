@@ -4,11 +4,11 @@ import { Clock } from 'lucide-react'
 
 export const SalaEsperaWidget = memo(({ enEspera = [], enAtencion = [], pacientes = [], alSeleccionarPaciente }) => {
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xs space-y-4 text-xs">
+    <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-5 shadow-xs space-y-4 text-xs">
       <div className="flex justify-between items-center border-b pb-2">
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></span>
-          <h3 className="font-bold text-gray-900 uppercase tracking-wider">Monitor de Recepción & Box Dental</h3>
+          <h3 className="font-bold text-gray-900 dark:text-graphite-50 uppercase tracking-wider">Monitor de Recepción & Box Dental</h3>
         </div>
         <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full">
           {enEspera.length} Esperando | {enAtencion.length} En Sillón
@@ -48,7 +48,7 @@ export const SalaEsperaWidget = memo(({ enEspera = [], enAtencion = [], paciente
       <div className="space-y-2">
         <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider block"><span className="inline-flex items-center gap-1"><Clock size={10} />Pacientes en Sala de Espera:</span></span>
         {enEspera.length === 0 ? (
-          <p className="text-gray-400 italic py-2 text-center bg-gray-50 rounded-xl border border-dashed text-[11px]">
+          <p className="text-gray-400 dark:text-graphite-500 italic py-2 text-center bg-gray-50 dark:bg-graphite-800 rounded-xl border border-dashed text-[11px]">
             No hay pacientes esperando en recepción actualmente.
           </p>
         ) : (

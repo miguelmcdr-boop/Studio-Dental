@@ -96,7 +96,7 @@ export const TablaItemsPresupuesto = memo(({
         </p>
       </div>
 
-      <div className="hidden print:block mt-20 pt-10 border-t border-gray-300 text-center">
+      <div className="hidden print:block mt-20 pt-10 border-t border-gray-300 dark:border-graphite-600 text-center">
         <div className="w-64 mx-auto border-t border-black pt-2">
           <p className="font-bold text-xs">{userProfile?.nombreCompleto || 'Dr. Miguel Díaz Rodríguez'}</p>
           <p className="text-[10px] text-graphite-600">{userProfile?.especialidad || 'Cirujano Dentista'}</p>

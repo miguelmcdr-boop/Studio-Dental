@@ -58,8 +58,8 @@ export const FormularioNuevoCertificado = memo(({ userProfile, onGenerarCertific
   }
 
   return (
-    <div className="bg-gray-50 p-5 border border-gray-200 rounded-2xl print:hidden">
-      <h4 className="font-bold text-xs text-gray-800 mb-4 uppercase tracking-wider">Emitir Nuevo Certificado / Constancia Médica</h4>
+    <div className="bg-gray-50 dark:bg-graphite-800 p-5 border border-gray-200 dark:border-graphite-700 rounded-2xl print:hidden">
+      <h4 className="font-bold text-xs text-gray-800 dark:text-graphite-100 mb-4 uppercase tracking-wider">Emitir Nuevo Certificado / Constancia Médica</h4>
       
       <form onSubmit={handleSubmit} className="space-y-4 text-xs">
         <div className="flex gap-4">
@@ -85,7 +85,7 @@ export const FormularioNuevoCertificado = memo(({ userProfile, onGenerarCertific
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div>
-            <label className="block text-gray-600 mb-1 font-semibold">Fecha de Atención</label>
+            <label className="block text-gray-600 dark:text-graphite-400 mb-1 font-semibold">Fecha de Atención</label>
             <Input
               type="date"
               value={fechaAtencion}
@@ -96,7 +96,7 @@ export const FormularioNuevoCertificado = memo(({ userProfile, onGenerarCertific
           {tipoCertificado === 'asistencia' ? (
             <>
               <div>
-                <label className="block text-gray-600 mb-1 font-semibold">Hora Inicio</label>
+                <label className="block text-gray-600 dark:text-graphite-400 mb-1 font-semibold">Hora Inicio</label>
                 <Input
                   type="time"
                   value={horaInicio}
@@ -104,7 +104,7 @@ export const FormularioNuevoCertificado = memo(({ userProfile, onGenerarCertific
                 />
               </div>
               <div>
-                <label className="block text-gray-600 mb-1 font-semibold">Hora Término</label>
+                <label className="block text-gray-600 dark:text-graphite-400 mb-1 font-semibold">Hora Término</label>
                 <Input
                   type="time"
                   value={horaFin}
@@ -114,7 +114,7 @@ export const FormularioNuevoCertificado = memo(({ userProfile, onGenerarCertific
             </>
           ) : (
             <div>
-              <label className="block text-gray-600 mb-1 font-semibold">Días de Reposo Indicados</label>
+              <label className="block text-gray-600 dark:text-graphite-400 mb-1 font-semibold">Días de Reposo Indicados</label>
               <Input
                 type="number"
                 min="1"
@@ -127,7 +127,7 @@ export const FormularioNuevoCertificado = memo(({ userProfile, onGenerarCertific
         </div>
 
         <div>
-          <label className="block text-gray-600 mb-1 font-semibold">
+          <label className="block text-gray-600 dark:text-graphite-400 mb-1 font-semibold">
             {tipoCertificado === 'asistencia' ? 'Procedimiento / Atención Realizada' : 'Diagnóstico Clínico / Causa del Reposo'}
           </label>
           <Input
@@ -139,7 +139,7 @@ export const FormularioNuevoCertificado = memo(({ userProfile, onGenerarCertific
         </div>
 
         <div>
-          <label className="block text-gray-600 mb-1 font-semibold">Observaciones o Indicaciones Adicionales (Opcional)</label>
+          <label className="block text-gray-600 dark:text-graphite-400 mb-1 font-semibold">Observaciones o Indicaciones Adicionales (Opcional)</label>
           <Input
             type="text"
             placeholder="Ej: Se sugiere no realizar actividad física intensa por 48 hrs."

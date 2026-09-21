@@ -100,7 +100,7 @@ export const ModalNuevoPaciente = memo(({ alGuardar, alCerrar, pacientes = [] })
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-semibold text-gray-600 uppercase mb-1">RUT *</label>
+              <label className="block font-semibold text-gray-600 dark:text-graphite-400 uppercase mb-1">RUT *</label>
               <input
                 data-testid="paciente-rut"
                 type="text"
@@ -112,7 +112,7 @@ export const ModalNuevoPaciente = memo(({ alGuardar, alCerrar, pacientes = [] })
                 className={`w-full px-3 py-2 rounded-lg border text-sm ${
                   errorRut ? 'border-red-500 bg-red-50' :
                   rutValido ? 'border-green-500 bg-green-50' :
-                  'border-gray-300'
+                  'border-gray-300 dark:border-graphite-600'
                 }`}
               />
               {errorRut && (
@@ -157,11 +157,11 @@ export const ModalNuevoPaciente = memo(({ alGuardar, alCerrar, pacientes = [] })
               />
             </div>
             <div>
-              <label className="block font-semibold text-gray-600 uppercase mb-1">Previsión</label>
+              <label className="block font-semibold text-gray-600 dark:text-graphite-400 uppercase mb-1">Previsión</label>
               <select
                 value={nuevoPaciente.prevision}
                 onChange={(e) => setNuevoPaciente({ ...nuevoPaciente, prevision: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm bg-white"
+                className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-graphite-600 text-sm bg-white dark:bg-graphite-800"
               >
                 <option value="Fonasa">Fonasa</option>
                 <option value="Isapre">Isapre</option>

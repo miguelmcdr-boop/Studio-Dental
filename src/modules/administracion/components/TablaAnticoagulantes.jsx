@@ -10,10 +10,10 @@ import { Droplet, AlertTriangle, FileText } from 'lucide-react'
 export const TablaAnticoagulantes = ({ anticoagulantes, onEditar, onEliminar, onCrearNueva }) => {
   const datos = Array.isArray(anticoagulantes) ? anticoagulantes : []
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200 bg-rose-50">
+    <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-lg overflow-hidden">
+      <div className="px-6 py-4 border-b border-gray-200 dark:border-graphite-700 bg-rose-50">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold text-gray-900">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-graphite-50">
             <span className="flex items-center gap-1.5"><Icon icon={Droplet} size="sm" />Manejo Perioperatorio de Anticoagulantes y Antiagregantes</span>
           </h3>
           {onCrearNueva && (
@@ -25,43 +25,43 @@ export const TablaAnticoagulantes = ({ anticoagulantes, onEditar, onEliminar, on
             </button>
           )}
         </div>
-        <p className="text-sm text-gray-600 mt-1">
+        <p className="text-sm text-gray-600 dark:text-graphite-400 mt-1">
           {datos.length} grupos farmacológicos — Tendencia actual: NO suspender para cirugía menor
         </p>
       </div>
 
       {/* Advertencia crítica */}
-      <div className="px-6 py-3 border-b border-gray-200 bg-yellow-50 text-sm text-yellow-800">
+      <div className="px-6 py-3 border-b border-gray-200 dark:border-graphite-700 bg-yellow-50 text-sm text-yellow-800">
         <strong className="inline-flex items-center gap-1"><AlertTriangle size={12} />Nota importante:</strong> Esta tabla es orientativa y <strong>NO reemplaza la interconsulta con el médico tratante/cardiólogo</strong> cuando el procedimiento implica riesgo hemorrágico moderado-alto. La tendencia actual (AHA/ACC, guías europeas) favorece <strong>NO suspender</strong> la mayoría de estos fármacos para procedimientos dentales menores.
       </div>
 
       {datos.length === 0 ? (
-        <div className="p-8 text-center text-gray-500">
+        <div className="p-8 text-center text-gray-500 dark:text-graphite-400">
           No hay registros de manejo de anticoagulantes
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-graphite-700">
+            <thead className="bg-gray-50 dark:bg-graphite-800">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">#</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Fármaco / grupo</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Recomendación</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Medidas de hemostasia</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Acciones</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">#</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">Fármaco / grupo</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">Recomendación</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">Medidas de hemostasia</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">Acciones</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-graphite-800 divide-y divide-gray-200 dark:divide-graphite-700">
               {datos.map((item, idx) => (
-                <tr key={item.id || idx} className="hover:bg-gray-50 transition-colors duration-150">
-                  <td className="px-4 py-3 text-sm text-gray-700 font-mono">{idx + 1}</td>
-                  <td className="px-4 py-3 text-sm font-medium text-gray-900 max-w-[250px]">
+                <tr key={item.id || idx} className="hover:bg-gray-50 dark:hover:bg-graphite-700 dark:hover:bg-graphite-700 transition-colors duration-150">
+                  <td className="px-4 py-3 text-sm text-gray-700 dark:text-graphite-300 font-mono">{idx + 1}</td>
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-graphite-50 max-w-[250px]">
                     {item.farmaco_o_grupo}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-700 max-w-[400px]">
+                  <td className="px-4 py-3 text-sm text-gray-700 dark:text-graphite-300 max-w-[400px]">
                     {item.recomendacion}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-600 max-w-[350px]" title={item.medidas_hemostasia}>
+                  <td className="px-4 py-3 text-sm text-gray-600 dark:text-graphite-400 max-w-[350px]" title={item.medidas_hemostasia}>
                     {item.medidas_hemostasia || '-'}
                   </td>
                   <td className="px-4 py-3 text-sm">
@@ -92,7 +92,7 @@ export const TablaAnticoagulantes = ({ anticoagulantes, onEditar, onEliminar, on
       )}
 
       {/* Nota clínica al pie */}
-      <div className="px-6 py-4 border-t border-gray-200 bg-rose-50 text-sm text-rose-800 space-y-2">
+      <div className="px-6 py-4 border-t border-gray-200 dark:border-graphite-700 bg-rose-50 text-sm text-rose-800 space-y-2">
         <p><strong className="inline-flex items-center gap-1"><FileText size={12} />Regla general (cirugía dental simple):</strong></p>
         <ul className="list-disc list-inside space-y-1 text-rose-700">
           <li>1-3 exodoncias no complejas, curetaje, cirugía de tejido blando limitado → <strong>rara vez amerita suspensión</strong> de antitrombóticos.</li>

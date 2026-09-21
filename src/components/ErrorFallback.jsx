@@ -27,7 +27,7 @@ export function ErrorFallback({ error, onReset, modulo }) {
       role="alert"
       aria-live="assertive"
     >
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 border border-red-200">
+      <div className="max-w-md w-full bg-white dark:bg-graphite-800 rounded-2xl shadow-lg p-8 border border-red-200">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
             <svg
@@ -46,12 +46,12 @@ export function ErrorFallback({ error, onReset, modulo }) {
             </svg>
           </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-900">{titulo}</h2>
-            <p className="text-sm text-gray-600">Este contenido no pudo cargarse</p>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-graphite-50">{titulo}</h2>
+            <p className="text-sm text-gray-600 dark:text-graphite-400">Este contenido no pudo cargarse</p>
           </div>
         </div>
 
-        <p className="text-gray-700 mb-6 leading-relaxed">
+        <p className="text-gray-700 dark:text-graphite-300 mb-6 leading-relaxed">
           {descripcion}
         </p>
 
@@ -70,7 +70,7 @@ export function ErrorFallback({ error, onReset, modulo }) {
             <button
               onClick={() => window.location.reload()}
               type="button"
-              className="w-full bg-gray-100 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
+              className="w-full bg-gray-100 dark:bg-graphite-800 text-gray-700 dark:text-graphite-300 font-semibold py-3 px-6 rounded-xl hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
             >
               Recargar la página
             </button>
@@ -79,11 +79,11 @@ export function ErrorFallback({ error, onReset, modulo }) {
 
         {/* Detalles técnicos SOLO en desarrollo — cumple criterio 3 del roadmap */}
         {import.meta.env.DEV && error && (
-          <details className="mt-6 text-xs border-t border-gray-200 pt-4">
-            <summary className="cursor-pointer text-gray-500 hover:text-gray-700 font-medium">
+          <details className="mt-6 text-xs border-t border-gray-200 dark:border-graphite-700 pt-4">
+            <summary className="cursor-pointer text-gray-500 dark:text-graphite-400 hover:text-gray-700 dark:hover:text-graphite-300 font-medium">
               Detalles técnicos (solo desarrollo)
             </summary>
-            <pre className="mt-2 p-3 bg-gray-50 rounded text-gray-700 overflow-auto max-h-40 text-[10px] leading-relaxed">
+            <pre className="mt-2 p-3 bg-gray-50 dark:bg-graphite-800 rounded text-gray-700 dark:text-graphite-300 overflow-auto max-h-40 text-[10px] leading-relaxed">
               {error.message}
               {error.stack && `\n\n${error.stack}`}
             </pre>

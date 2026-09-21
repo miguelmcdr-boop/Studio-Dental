@@ -43,11 +43,11 @@ export const EsterilizacionModulo = memo(() => {
     <div className="space-y-6">
       <div className="flex justify-between items-center flex-wrap gap-3 print:hidden">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-graphite-50 uppercase tracking-wider flex items-center gap-2">
           <Icon icon={Sparkles} size="md" />
           Central de Esterilización & Bioseguridad SEREMI
         </h2>
-          <p className="text-xs text-gray-500">Control de cargas, trazabilidad, incubación de ampollas y Libro Folia Oficial.</p>
+          <p className="text-xs text-gray-500 dark:text-graphite-400">Control de cargas, trazabilidad, incubación de ampollas y Libro Folia Oficial.</p>
         </div>
 
         {tabActual === 'cargas' && (
@@ -110,13 +110,13 @@ export const EsterilizacionModulo = memo(() => {
           <TicketTrazabilidad carga={cargaImprimir} alCerrar={() => setCargaImprimir(null)} />
         ) : (
           <>
-            <div className="bg-gray-50 p-4 border border-gray-200 rounded-2xl flex justify-between items-center flex-wrap gap-3 text-xs print:hidden">
+            <div className="bg-gray-50 dark:bg-graphite-800 p-4 border border-gray-200 dark:border-graphite-700 rounded-2xl flex justify-between items-center flex-wrap gap-3 text-xs print:hidden">
               <div className="flex items-center gap-2 w-full sm:w-auto">
-                <span className="font-semibold text-gray-600">Autoclave:</span>
+                <span className="font-semibold text-gray-600 dark:text-graphite-400">Autoclave:</span>
                 <select
                   value={equipoFiltro}
                   onChange={(e) => setEquipoFiltro(e.target.value)}
-                  className="p-2 border rounded-xl bg-white font-semibold flex-1 sm:flex-initial"
+                  className="p-2 border rounded-xl bg-white dark:bg-graphite-800 font-semibold flex-1 sm:flex-initial"
                 >
                   <option value="Todos">Todos los autoclaves</option>
                   {EQUIPOS_AUTOCLAVE.map(eq => <option key={eq} value={eq}>{eq}</option>)}

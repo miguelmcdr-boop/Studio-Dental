@@ -4,9 +4,9 @@ import { formatearCLP } from '../../../utils/formatoMoneda'
 export const PrestacionesSummaryCards = memo(({ resumen }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs">
-      <div className="p-4 bg-white border border-gray-200 rounded-2xl shadow-xs">
-        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Total Procedimientos</span>
-        <span className="text-2xl font-black text-gray-900 mt-1 block">{resumen.totalProcedimientos} Ítems</span>
+      <div className="p-4 bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl shadow-xs">
+        <span className="text-[10px] font-bold text-gray-500 dark:text-graphite-400 uppercase tracking-wider block">Total Procedimientos</span>
+        <span className="text-2xl font-black text-gray-900 dark:text-graphite-50 mt-1 block">{resumen.totalProcedimientos} Ítems</span>
       </div>
 
       <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl shadow-xs">

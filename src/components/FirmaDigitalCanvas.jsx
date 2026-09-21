@@ -73,7 +73,7 @@ export const FirmaDigitalCanvas = ({ alGuardarFirma, alLimpiarFirma, resetSignal
 
   return (
     <div className="space-y-2">
-      <div className="border-2 border-dashed border-gray-300 rounded-2xl p-1 bg-white inline-block">
+      <div className="border-2 border-dashed border-gray-300 dark:border-graphite-600 rounded-2xl p-1 bg-white dark:bg-graphite-800 inline-block">
         <canvas
           ref={canvasRef}
           width={380}

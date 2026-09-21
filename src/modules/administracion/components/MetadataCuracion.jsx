@@ -16,7 +16,7 @@ const diasHasta = (fechaStr) => {
 export const MetadataCuracion = ({ metadata }) => {
   if (!metadata) {
     return (
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center text-gray-500 text-sm">
+      <div className="bg-gray-50 dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-lg p-4 text-center text-gray-500 dark:text-graphite-400 text-sm">
         Metadata no disponible
       </div>
     )
@@ -38,9 +38,9 @@ export const MetadataCuracion = ({ metadata }) => {
   const fuentes = Array.isArray(metadata.fuentes) ? metadata.fuentes : []
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
+    <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-lg p-6 space-y-4">
       <div className="flex items-center justify-between border-b pb-3">
-        <h3 className="text-lg font-bold text-gray-900">Información de Curación Clínica</h3>
+        <h3 className="text-lg font-bold text-gray-900 dark:text-graphite-50">Información de Curación Clínica</h3>
         <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-semibold rounded-full border border-blue-300">
           {metadata.version || 'v1.0'}
         </span>
@@ -48,21 +48,21 @@ export const MetadataCuracion = ({ metadata }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
         <div>
-          <p className="text-gray-500 text-xs uppercase font-semibold">Curado por</p>
-          <p className="text-gray-900 font-medium">{metadata.curado_por || 'No especificado'}</p>
+          <p className="text-gray-500 dark:text-graphite-400 text-xs uppercase font-semibold">Curado por</p>
+          <p className="text-gray-900 dark:text-graphite-50 font-medium">{metadata.curado_por || 'No especificado'}</p>
         </div>
         <div>
-          <p className="text-gray-500 text-xs uppercase font-semibold">Fecha de curación</p>
-          <p className="text-gray-900 font-medium">{metadata.fecha_curacion || 'No especificada'}</p>
+          <p className="text-gray-500 dark:text-graphite-400 text-xs uppercase font-semibold">Fecha de curación</p>
+          <p className="text-gray-900 dark:text-graphite-50 font-medium">{metadata.fecha_curacion || 'No especificada'}</p>
         </div>
         <div>
-          <p className="text-gray-500 text-xs uppercase font-semibold">Total de fármacos</p>
-          <p className="text-gray-900 font-medium">{metadata.total_farmacos || 0}</p>
+          <p className="text-gray-500 dark:text-graphite-400 text-xs uppercase font-semibold">Total de fármacos</p>
+          <p className="text-gray-900 dark:text-graphite-50 font-medium">{metadata.total_farmacos || 0}</p>
         </div>
         <div>
-          <p className="text-gray-500 text-xs uppercase font-semibold">Próxima revisión</p>
+          <p className="text-gray-500 dark:text-graphite-400 text-xs uppercase font-semibold">Próxima revisión</p>
           <div className="flex items-center gap-2">
-            <p className="text-gray-900 font-medium">{metadata.fecha_proxima_revision || 'No programada'}</p>
+            <p className="text-gray-900 dark:text-graphite-50 font-medium">{metadata.fecha_proxima_revision || 'No programada'}</p>
             {diasParaRevision !== null && (
               <span className={`px-2 py-0.5 text-xs font-semibold rounded border ${badgeColor}`}>
                 {estaVencido
@@ -78,12 +78,12 @@ export const MetadataCuracion = ({ metadata }) => {
 
       {fuentes.length > 0 && (
         <div>
-          <p className="text-gray-500 text-xs uppercase font-semibold mb-2">Fuentes de referencia</p>
+          <p className="text-gray-500 dark:text-graphite-400 text-xs uppercase font-semibold mb-2">Fuentes de referencia</p>
           <div className="flex flex-wrap gap-2">
             {fuentes.map((fuente, idx) => (
               <span
                 key={idx}
-                className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded border border-gray-200"
+                className="px-2 py-1 bg-gray-100 dark:bg-graphite-800 text-gray-700 dark:text-graphite-300 text-xs rounded border border-gray-200 dark:border-graphite-700"
               >
                 {fuente}
               </span>
@@ -94,8 +94,8 @@ export const MetadataCuracion = ({ metadata }) => {
 
       {metadata.notas && (
         <div className="pt-3 border-t">
-          <p className="text-gray-500 text-xs uppercase font-semibold mb-1">Notas</p>
-          <p className="text-gray-700 text-sm">{metadata.notas}</p>
+          <p className="text-gray-500 dark:text-graphite-400 text-xs uppercase font-semibold mb-1">Notas</p>
+          <p className="text-gray-700 dark:text-graphite-300 text-sm">{metadata.notas}</p>
         </div>
       )}
 

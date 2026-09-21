@@ -43,11 +43,11 @@ export const ModalEditarBitacora = memo(({ registroEditar, alGuardar, alCerrar }
           />
 
           <div>
-            <label className="block font-semibold text-gray-700 mb-1">Estado de Confirmación de Cita</label>
+            <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Estado de Confirmación de Cita</label>
             <select
               value={estado}
               onChange={(e) => setEstado(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-black text-xs"
+              className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-black text-xs"
             >
               {ESTADOS_CONFIRMACION_CITA.map(e => (
                 <option key={e.id} value={e.id}>{e.nombre}</option>
@@ -56,12 +56,12 @@ export const ModalEditarBitacora = memo(({ registroEditar, alGuardar, alCerrar }
           </div>
 
           <div>
-            <label className="block font-semibold text-gray-700 mb-1">Mensaje Registrado</label>
+            <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Mensaje Registrado</label>
             <textarea
               rows="3"
               value={mensajeEnviado}
               onChange={(e) => setMensajeEnviado(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-gray-300 font-mono text-[11px]"
+              className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 font-mono text-[11px]"
             />
           </div>
 

@@ -33,7 +33,7 @@ export const ReajusteMasivoModal = memo(({ alAplicarReajuste, alCerrar }) => {
     <Modal isOpen={true} onClose={alCerrar} title="Reajuste Masivo de Arancel" size="sm">
 
         <form onSubmit={handleSubmit} className="space-y-3">
-          <p className="text-gray-600 text-[11px] leading-relaxed">
+          <p className="text-gray-600 dark:text-graphite-400 text-[11px] leading-relaxed">
             Aplica un incremento o descuento porcentual global a todos los ítems del arancel de la clínica (Ej: IPC anual del 4.5%).
           </p>
 

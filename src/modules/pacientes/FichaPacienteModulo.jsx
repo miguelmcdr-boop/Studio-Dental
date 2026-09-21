@@ -68,7 +68,7 @@ export const FichaPacienteModulo = memo(({
     <div>
       {/* Botones Volver / Eliminar */}
       <div className="flex justify-between items-center mb-4 print:hidden">
-        <button onClick={alVolver} className="text-xs font-semibold text-gray-500 hover:text-black flex items-center gap-1 cursor-pointer">
+        <button onClick={alVolver} className="text-xs font-semibold text-gray-500 dark:text-graphite-400 hover:text-black flex items-center gap-1 cursor-pointer">
           ← Volver a la lista de pacientes
         </button>
 
@@ -81,27 +81,27 @@ export const FichaPacienteModulo = memo(({
       </div>
 
       {/* Banner de Datos Principales del Paciente */}
-      <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 mb-6 flex justify-between items-start print:hidden">
+      <div className="bg-gray-50 dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-6 mb-6 flex justify-between items-start print:hidden">
         <div>
           <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-bold text-gray-900">{paciente.nombre}</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-graphite-50">{paciente.nombre}</h2>
             <button
               onClick={() => setMostrarEditarDatos(true)}
-              className="text-xs bg-white border border-gray-300 font-semibold px-2.5 py-1 rounded-lg hover:bg-gray-100 cursor-pointer"
+              className="text-xs bg-white dark:bg-graphite-800 border border-gray-300 dark:border-graphite-600 font-semibold px-2.5 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-graphite-700 cursor-pointer"
             >
               <span className="inline-flex items-center gap-1"><Pencil size={12} />Editar Datos</span>
             </button>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-1 text-xs text-gray-600 mt-3">
-            <p><span className="font-semibold text-gray-800">RUT:</span> {paciente.rut}</p>
-            <p><span className="font-semibold text-gray-800">Edad:</span> {paciente.edad} años</p>
-            <p><span className="font-semibold text-gray-800">Teléfono:</span> {paciente.telefono || 'N/I'}</p>
-            <p><span className="font-semibold text-gray-800">Correo:</span> {paciente.email || 'N/I'}</p>
-            <p><span className="font-semibold text-gray-800">Ocupación:</span> {paciente.ocupacion || 'N/I'}</p>
-            <p><span className="font-semibold text-gray-800">Previsión:</span> {paciente.prevision || 'Particular'}</p>
-            <p><span className="font-semibold text-gray-800">Presión Arterial:</span> {fichaData.presionArterial || 'No registrada'}</p>
-            <p><span className="font-semibold text-gray-800">Contacto Emergencia:</span> {paciente.contactoEmergencia || 'N/I'}</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-1 text-xs text-gray-600 dark:text-graphite-400 mt-3">
+            <p><span className="font-semibold text-gray-800 dark:text-graphite-100">RUT:</span> {paciente.rut}</p>
+            <p><span className="font-semibold text-gray-800 dark:text-graphite-100">Edad:</span> {paciente.edad} años</p>
+            <p><span className="font-semibold text-gray-800 dark:text-graphite-100">Teléfono:</span> {paciente.telefono || 'N/I'}</p>
+            <p><span className="font-semibold text-gray-800 dark:text-graphite-100">Correo:</span> {paciente.email || 'N/I'}</p>
+            <p><span className="font-semibold text-gray-800 dark:text-graphite-100">Ocupación:</span> {paciente.ocupacion || 'N/I'}</p>
+            <p><span className="font-semibold text-gray-800 dark:text-graphite-100">Previsión:</span> {paciente.prevision || 'Particular'}</p>
+            <p><span className="font-semibold text-gray-800 dark:text-graphite-100">Presión Arterial:</span> {fichaData.presionArterial || 'No registrada'}</p>
+            <p><span className="font-semibold text-gray-800 dark:text-graphite-100">Contacto Emergencia:</span> {paciente.contactoEmergencia || 'N/I'}</p>
           </div>
         </div>
 
@@ -111,13 +111,13 @@ export const FichaPacienteModulo = memo(({
       </div>
 
       {/* Navegación por Pestañas */}
-      <div className="flex gap-2 border-b border-gray-200 mb-6 overflow-x-auto print:hidden">
+      <div className="flex gap-2 border-b border-gray-200 dark:border-graphite-700 mb-6 overflow-x-auto print:hidden">
         {TABS_FICHA_PACIENTE.map(tab => (
           <button
             key={tab}
             onClick={() => setTabActiva(tab)}
             className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
-              tabActiva === tab ? 'border-black text-black' : 'border-transparent text-gray-500 hover:text-gray-800'
+              tabActiva === tab ? 'border-black text-black dark:text-graphite-50' : 'border-transparent text-gray-500 hover:text-gray-800'
             }`}
           >
             {tab}

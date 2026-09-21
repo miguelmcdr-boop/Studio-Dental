@@ -100,14 +100,14 @@ export const PapeleraArchivos = memo(({
         tabIndex={0}
         onClick={() => setAbierto(!abierto)}
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setAbierto(!abierto) }}
-        className="w-full flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer"
+        className="w-full flex items-center justify-between p-3 bg-gray-50 dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-xl hover:bg-gray-100 dark:hover:bg-graphite-700 transition-colors cursor-pointer"
       >
         <div className="flex items-center gap-2">
           <span className="text-lg"><Trash2 size={20} /></span>
-          <span className="font-semibold text-sm text-gray-800">
+          <span className="font-semibold text-sm text-gray-800 dark:text-graphite-100">
             Papelera de Reciclaje
           </span>
-          <span className="text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
+          <span className="text-xs text-gray-500 dark:text-graphite-400 bg-gray-200 dark:bg-graphite-700 px-2 py-0.5 rounded-full">
             {archivosEliminados.length} archivo{archivosEliminados.length !== 1 ? 's' : ''}
           </span>
           {puedeVaciar && archivosEliminados.length > 0 && (
@@ -123,20 +123,20 @@ export const PapeleraArchivos = memo(({
             </Button>
           )}
         </div>
-        <span className="text-gray-500 text-sm">
+        <span className="text-gray-500 dark:text-graphite-400 text-sm">
           {abierto ? '▲ Ocultar' : '▼ Mostrar'}
         </span>
       </div>
 
       {/* Contenido colapsable */}
       {abierto && (
-        <div className="mt-3 bg-white border border-gray-200 rounded-xl p-4 space-y-3">
+        <div className="mt-3 bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-xl p-4 space-y-3">
           {cargando ? (
-            <div className="text-center py-8 text-gray-500 text-sm">
+            <div className="text-center py-8 text-gray-500 dark:text-graphite-400 text-sm">
               Cargando papelera...
             </div>
           ) : archivosEliminados.length === 0 ? (
-            <div className="text-center py-8 text-gray-500 text-sm">
+            <div className="text-center py-8 text-gray-500 dark:text-graphite-400 text-sm">
               La papelera está vacía.
             </div>
           ) : (
@@ -144,17 +144,17 @@ export const PapeleraArchivos = memo(({
               {archivosEliminados.map((archivo) => (
                 <div
                   key={archivo.id}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
+                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-graphite-800 rounded-lg border border-gray-200 dark:border-graphite-700"
                 >
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <span className="text-2xl flex-shrink-0">
                       {tituloCategoria(archivo.categoria)}
                     </span>
                     <div className="min-w-0">
-                      <p className="font-semibold text-sm text-gray-900 truncate">
+                      <p className="font-semibold text-sm text-gray-900 dark:text-graphite-50 truncate">
                         {archivo.nombre_archivo}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-500 dark:text-graphite-400">
                         Eliminado el {formatearFecha(archivo.deleted_at)} · {formatearTamano(archivo.tamano_bytes)}
                       </p>
                     </div>
@@ -178,11 +178,11 @@ export const PapeleraArchivos = memo(({
       {/* Modal de confirmación para vaciar papelera */}
       {mostrarConfirmacionVaciar && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md border border-red-200 shadow-2xl">
+          <div className="bg-white dark:bg-graphite-800 rounded-2xl p-6 w-full max-w-md border border-red-200 shadow-2xl">
             <h4 className="text-lg font-bold text-red-700 mb-3">
               <span className="inline-flex items-center gap-1"><AlertTriangle size={16} />Vaciar papelera de archivos</span>
             </h4>
-            <div className="space-y-3 text-sm text-gray-700">
+            <div className="space-y-3 text-sm text-gray-700 dark:text-graphite-300">
               <p>
                 Vas a eliminar permanentemente <strong>{archivosEliminados.length} archivo(s)</strong> de la papelera.
               </p>
@@ -197,7 +197,7 @@ export const PapeleraArchivos = memo(({
                 </ul>
               </div>
               <p className="font-semibold">
-                Para confirmar, escribe <code className="bg-gray-100 px-2 py-0.5 rounded font-mono">VACIAR</code>:
+                Para confirmar, escribe <code className="bg-gray-100 dark:bg-graphite-800 px-2 py-0.5 rounded font-mono">VACIAR</code>:
               </p>
               <Input
                 type="text"

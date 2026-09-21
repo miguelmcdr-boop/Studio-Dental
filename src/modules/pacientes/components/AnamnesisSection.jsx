@@ -15,9 +15,9 @@ export const AnamnesisSection = memo(({ fichaData, handleFichaChange }) => {
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-6">
+    <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-6 space-y-6">
       <div className="flex justify-between items-center border-b pb-3 flex-wrap gap-2">
-        <h3 className="font-bold text-xs text-gray-800 uppercase tracking-wider inline-flex items-center gap-2">
+        <h3 className="font-bold text-xs text-gray-800 dark:text-graphite-100 uppercase tracking-wider inline-flex items-center gap-2">
           <ClipboardList size={14} />Anamnesis & Examen Físico Clínico
         </h3>
 
@@ -39,7 +39,7 @@ export const AnamnesisSection = memo(({ fichaData, handleFichaChange }) => {
       {escuchando && (
         <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs space-y-2">
           <span className="font-bold text-red-900 block inline-flex items-center gap-1"><Mic size={12} />Dictado en Curso:</span>
-          <p className="italic text-gray-800 bg-white p-2 rounded border">"{textoDictado || 'Habla claro hacia el micrófono...'}"</p>
+          <p className="italic text-gray-800 dark:text-graphite-100 bg-white dark:bg-graphite-800 p-2 rounded border">"{textoDictado || 'Habla claro hacia el micrófono...'}"</p>
           <div className="flex gap-2">
             <Button
               onClick={() => handleAplicarDictado('anamnesisProxima')}
@@ -71,7 +71,7 @@ export const AnamnesisSection = memo(({ fichaData, handleFichaChange }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
         <div>
-          <label className="block text-gray-700 font-bold mb-1">Motivo de Consulta Principal</label>
+          <label className="block text-gray-700 dark:text-graphite-300 font-bold mb-1">Motivo de Consulta Principal</label>
           <Input
             type="text"
             placeholder="Ej: Dolor agudo en molar inferior derecho al masticar..."
@@ -81,7 +81,7 @@ export const AnamnesisSection = memo(({ fichaData, handleFichaChange }) => {
         </div>
 
         <div>
-          <label className="block text-gray-700 font-bold mb-1">Anamnesis Próxima / Historia</label>
+          <label className="block text-gray-700 dark:text-graphite-300 font-bold mb-1">Anamnesis Próxima / Historia</label>
           <Input
             type="text"
             placeholder="Ej: Comienza hace 3 días, aumenta con frío/calor..."
@@ -102,7 +102,7 @@ export const AnamnesisSection = memo(({ fichaData, handleFichaChange }) => {
         </div>
 
         <div>
-          <label className="block text-gray-700 font-bold mb-1">Enfermedades Sistémicas (Mórbidos)</label>
+          <label className="block text-gray-700 dark:text-graphite-300 font-bold mb-1">Enfermedades Sistémicas (Mórbidos)</label>
           <Input
             type="text"
             placeholder="Ej: Hipertensión Arterial, Diabetes Tipo II..."
@@ -112,7 +112,7 @@ export const AnamnesisSection = memo(({ fichaData, handleFichaChange }) => {
         </div>
 
         <div>
-          <label className="block text-gray-700 font-bold mb-1">Medicamentos de Uso Habitual</label>
+          <label className="block text-gray-700 dark:text-graphite-300 font-bold mb-1">Medicamentos de Uso Habitual</label>
           <Input
             type="text"
             placeholder="Ej: Losartán 50mg/día, Metformina 850mg..."
@@ -122,7 +122,7 @@ export const AnamnesisSection = memo(({ fichaData, handleFichaChange }) => {
         </div>
 
         <div>
-          <label className="block text-gray-700 font-bold mb-1">Hábitos (Tabaco / Alcohol / Bruxismo)</label>
+          <label className="block text-gray-700 dark:text-graphite-300 font-bold mb-1">Hábitos (Tabaco / Alcohol / Bruxismo)</label>
           <Input
             type="text"
             placeholder="Ej: Fumador 5 cig/día, Bruxismo nocturno..."
@@ -132,7 +132,7 @@ export const AnamnesisSection = memo(({ fichaData, handleFichaChange }) => {
         </div>
 
         <div>
-          <label className="block text-gray-700 font-bold mb-1">Examen Extraoral (ATM, Ganglios, Asimetría)</label>
+          <label className="block text-gray-700 dark:text-graphite-300 font-bold mb-1">Examen Extraoral (ATM, Ganglios, Asimetría)</label>
           <Input
             type="text"
             placeholder="Ej: ATM palpación indolora, sin chasquidos..."
@@ -142,7 +142,7 @@ export const AnamnesisSection = memo(({ fichaData, handleFichaChange }) => {
         </div>
 
         <div>
-          <label className="block text-gray-700 font-bold mb-1">Examen Intraoral (Mucosas, Lengua, Periodonto)</label>
+          <label className="block text-gray-700 dark:text-graphite-300 font-bold mb-1">Examen Intraoral (Mucosas, Lengua, Periodonto)</label>
           <Input
             type="text"
             placeholder="Ej: Mucosas normocoloreadas, gingivitis marginal..."

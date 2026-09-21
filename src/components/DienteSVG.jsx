@@ -31,16 +31,16 @@ export const DienteSVG = ({
     <div 
       onClick={() => alSeleccionarPieza?.(numero)}
       className={`flex flex-col items-center cursor-pointer p-1.5 rounded-xl transition-all ${
-        esActivo ? 'bg-blue-50 border-2 border-blue-500 shadow-md scale-105' : 'hover:bg-gray-100 border border-transparent'
+        esActivo ? 'bg-blue-50 border-2 border-blue-500 shadow-md scale-105' : 'hover:bg-gray-100 dark:hover:bg-graphite-700 border border-transparent'
       }`}
     >
-      <span className="text-[11px] font-extrabold text-gray-800 mb-1">{numero}</span>
+      <span className="text-[11px] font-extrabold text-gray-800 dark:text-graphite-100 mb-1">{numero}</span>
       <div className="relative">
         {(estadoGeneral === 'ausente' || estadoGeneral === 'indicacion_exodoncia') && (
           <div className="absolute inset-0 flex items-center justify-center z-10 text-red-600 font-black text-xl select-none bg-white/60 rounded-lg">✕</div>
         )}
         {estadoGeneral === 'implante' && (
-          <div className="absolute inset-0 flex items-center justify-center z-10 text-gray-900 font-extrabold text-[9px] bg-gray-200/90 rounded px-1 border border-gray-400">IMP</div>
+          <div className="absolute inset-0 flex items-center justify-center z-10 text-gray-900 dark:text-graphite-50 font-extrabold text-[9px] bg-gray-200/90 rounded px-1 border border-gray-400">IMP</div>
         )}
 
         {/* 💡 SVG Ampliado de 30px a 44px x 44px para máxima comodidad al hacer clic */}

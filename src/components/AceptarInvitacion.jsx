@@ -22,10 +22,10 @@ export const AceptarInvitacion = ({ onAceptarExitoso }) => {
   // Early return DESPUÉS del hook si no hay token
   if (!token) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-graphite-800">
+        <div className="max-w-md w-full bg-white dark:bg-graphite-800 rounded-lg shadow-lg p-8 text-center">
           <XCircle size={64} className="mx-auto mb-4 text-red-500" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Error</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-graphite-50 mb-2">Error</h1>
           <p className="text-red-600 mb-4">Token de invitación no encontrado en la URL</p>
           <button onClick={() => window.location.href = '/'} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
             Volver al Inicio
@@ -37,12 +37,12 @@ export const AceptarInvitacion = ({ onAceptarExitoso }) => {
 
   if (estado === 'exito') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-graphite-800">
+        <div className="max-w-md w-full bg-white dark:bg-graphite-800 rounded-lg shadow-lg p-8 text-center">
           <CheckCircle2 size={64} className="mx-auto mb-4 text-green-500" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">¡Invitación Aceptada!</h1>
-          <p className="text-gray-600 mb-4">{exito}</p>
-          <p className="text-sm text-gray-500">Redirigiendo a la aplicación...</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-graphite-50 mb-2">¡Invitación Aceptada!</h1>
+          <p className="text-gray-600 dark:text-graphite-400 mb-4">{exito}</p>
+          <p className="text-sm text-gray-500 dark:text-graphite-400">Redirigiendo a la aplicación...</p>
         </div>
       </div>
     )
@@ -50,10 +50,10 @@ export const AceptarInvitacion = ({ onAceptarExitoso }) => {
 
   if (estado === 'error') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-graphite-800">
+        <div className="max-w-md w-full bg-white dark:bg-graphite-800 rounded-lg shadow-lg p-8 text-center">
           <XCircle size={64} className="mx-auto mb-4 text-red-500" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Error</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-graphite-50 mb-2">Error</h1>
           <p className="text-red-600 mb-4">{error}</p>
           <button onClick={() => window.location.href = '/'} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
             Volver al Inicio
@@ -65,22 +65,22 @@ export const AceptarInvitacion = ({ onAceptarExitoso }) => {
 
   if (estado === 'aceptando') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-graphite-800">
         <div className="text-center">
           <Loader2 size={64} className="animate-spin mx-auto mb-4 text-blue-500" />
-          <p className="text-gray-600">Aceptando invitación...</p>
+          <p className="text-gray-600 dark:text-graphite-400">Aceptando invitación...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-graphite-800">
+      <div className="max-w-md w-full bg-white dark:bg-graphite-800 rounded-lg shadow-lg p-8">
         <div className="text-center mb-6">
           <Mail size={64} className="mx-auto mb-4 text-blue-500" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Aceptar Invitación</h1>
-          <p className="text-gray-600">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-graphite-50 mb-2">Aceptar Invitación</h1>
+          <p className="text-gray-600 dark:text-graphite-400">
             Has sido invitado a unirte a una clínica. {modoRegistro ? 'Crea tu cuenta' : 'Inicia sesión'} para aceptar.
           </p>
         </div>
@@ -94,22 +94,22 @@ export const AceptarInvitacion = ({ onAceptarExitoso }) => {
         <form onSubmit={handleSubmitAuth} className="space-y-4">
           {modoRegistro && (
             <div>
-              <label htmlFor="nombre" className="block text-sm font-medium text-gray-700 mb-1">Nombre Completo</label>
+              <label htmlFor="nombre" className="block text-sm font-medium text-gray-700 dark:text-graphite-300 mb-1">Nombre Completo</label>
               <input type="text" id="nombre" value={nombreCompleto} onChange={(e) => setNombreCompleto(e.target.value)} required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" disabled={procesando} />
+                className="w-full px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" disabled={procesando} />
             </div>
           )}
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-graphite-300 mb-1">Email</label>
             <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" disabled={procesando} />
+              className="w-full px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" disabled={procesando} />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-graphite-300 mb-1">Contraseña</label>
             <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" disabled={procesando} />
+              className="w-full px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" disabled={procesando} />
           </div>
 
           <button type="submit" disabled={procesando || !email || !password}

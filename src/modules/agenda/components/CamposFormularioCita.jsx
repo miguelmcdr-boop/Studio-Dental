@@ -109,7 +109,7 @@ export const CamposFormularioCita = ({
               id="autoCrear"
               checked={autoCrearFicha}
               onChange={(e) => setAutoCrearFicha(e.target.checked)}
-              className="w-4 h-4 rounded text-black focus:ring-black cursor-pointer"
+              className="w-4 h-4 rounded text-black dark:text-graphite-50 focus:ring-black cursor-pointer"
             />
             <label htmlFor="autoCrear" className="font-bold text-gray-800 dark:text-graphite-100 text-[11px] cursor-pointer flex items-center gap-1">
               <Icon icon={Folder} size="xs" />

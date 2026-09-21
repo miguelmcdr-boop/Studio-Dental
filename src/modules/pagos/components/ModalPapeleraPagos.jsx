@@ -62,7 +62,7 @@ export const ModalPapeleraPagos = memo(({ alCerrar, onRestaurar, onAccionComplet
     >
       <div className="space-y-3">
         <div className="flex justify-between items-start gap-3">
-          <p className="text-xs text-gray-600 flex-1">
+          <p className="text-xs text-gray-600 dark:text-graphite-400 flex-1">
             Pagos purgados. Pueden restaurarse (volver a estado "Anulado") o serán eliminados automáticamente después de 730 días.
           </p>
           {pagos.length > 0 && (
@@ -78,7 +78,7 @@ export const ModalPapeleraPagos = memo(({ alCerrar, onRestaurar, onAccionComplet
         </div>
 
         {pagos.length === 0 ? (
-          <div className="text-center py-8 text-gray-400">
+          <div className="text-center py-8 text-gray-400 dark:text-graphite-500">
             <p className="text-sm">No hay pagos en la papelera</p>
           </div>
         ) : (
@@ -88,25 +88,25 @@ export const ModalPapeleraPagos = memo(({ alCerrar, onRestaurar, onAccionComplet
               return (
                 <div
                   key={pago.id}
-                  className="bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-2"
+                  className="bg-gray-50 dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-xl p-3 space-y-2"
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-bold text-gray-900">{pago.folioComprobante}</span>
-                        <span className="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full">
+                        <span className="font-bold text-gray-900 dark:text-graphite-50">{pago.folioComprobante}</span>
+                        <span className="text-xs bg-gray-200 dark:bg-graphite-700 text-gray-700 dark:text-graphite-300 px-2 py-0.5 rounded-full">
                           {dias !== null ? `${dias} días restantes` : 'Sin fecha registrada (no se auto-elimina)'}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-700 font-semibold">{pago.pacienteNombre || 'Paciente sin nombre'}</p>
-                      <p className="text-xs text-gray-600">
+                      <p className="text-sm text-gray-700 dark:text-graphite-300 font-semibold">{pago.pacienteNombre || 'Paciente sin nombre'}</p>
+                      <p className="text-xs text-gray-600 dark:text-graphite-400">
                         <span className="font-bold">${(pago.monto || 0).toLocaleString('es-CL')} CLP</span> · {pago.metodoPago}
                       </p>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-gray-500 dark:text-graphite-400 mt-1">
                         Purgado: {pago.fechaPurga || 'sin fecha'} por {pago.purgadoPor || 'sin registro'}
                       </p>
                       {pago.motivoPurga && (
-                        <p className="text-xs text-gray-600 mt-1 italic">
+                        <p className="text-xs text-gray-600 dark:text-graphite-400 mt-1 italic">
                           Motivo: "{pago.motivoPurga}"
                         </p>
                       )}

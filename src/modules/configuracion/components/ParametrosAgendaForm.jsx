@@ -18,19 +18,19 @@ export const ParametrosAgendaForm = memo(({ parametrosAgenda, alGuardar }) => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-4 text-xs">
+    <form onSubmit={handleSubmit} className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-6 shadow-xs space-y-4 text-xs">
       <div className="border-b pb-3">
-        <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider inline-flex items-center gap-2"><Calendar size={14} />Parámetros de Agenda & Tramos Horarios</h3>
-        <p className="text-gray-500 text-[11px]">Duración predeterminada de los bloques de atención y ventana de horarios.</p>
+        <h3 className="font-bold text-sm text-gray-900 dark:text-graphite-50 uppercase tracking-wider inline-flex items-center gap-2"><Calendar size={14} />Parámetros de Agenda & Tramos Horarios</h3>
+        <p className="text-gray-500 dark:text-graphite-400 text-[11px]">Duración predeterminada de los bloques de atención y ventana de horarios.</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div>
-          <label className="block font-semibold text-gray-700 mb-1">Duración Bloque Cita</label>
+          <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Duración Bloque Cita</label>
           <select
             value={duracion}
             onChange={(e) => setDuracion(e.target.value)}
-            className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-bold"
+            className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-bold"
           >
             {TRAMOS_DURACION.map(d => (
               <option key={d} value={d}>{d} Minutos por atención</option>
@@ -39,22 +39,22 @@ export const ParametrosAgendaForm = memo(({ parametrosAgenda, alGuardar }) => {
         </div>
 
         <div>
-          <label className="block font-semibold text-gray-700 mb-1">Hora Inicio Jornada</label>
+          <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Hora Inicio Jornada</label>
           <input
             type="time"
             value={horaInicio}
             onChange={(e) => setHoraInicio(e.target.value)}
-            className="w-full p-2.5 rounded-xl border border-gray-300 font-bold"
+            className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 font-bold"
           />
         </div>
 
         <div>
-          <label className="block font-semibold text-gray-700 mb-1">Hora Término Jornada</label>
+          <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Hora Término Jornada</label>
           <input
             type="time"
             value={horaFin}
             onChange={(e) => setHoraFin(e.target.value)}
-            className="w-full p-2.5 rounded-xl border border-gray-300 font-bold"
+            className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 font-bold"
           />
         </div>
       </div>

@@ -42,11 +42,11 @@ export const LaboratorioModulo = memo(() => {
     <div className="space-y-6">
       <div className="flex justify-between items-center flex-wrap gap-3 print:hidden">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-graphite-50 uppercase tracking-wider flex items-center gap-2">
             <Icon icon={FlaskConical} size="md" />
             Control de Trabajos de Laboratorio Dental
           </h2>
-          <p className="text-xs text-gray-500">Gestión de etapas prótesicas, proveedores y tarifarios por laboratorio.</p>
+          <p className="text-xs text-gray-500 dark:text-graphite-400">Gestión de etapas prótesicas, proveedores y tarifarios por laboratorio.</p>
         </div>
 
         {tabActual === 'ordenes' && (
@@ -67,7 +67,7 @@ export const LaboratorioModulo = memo(() => {
         <button
           onClick={() => setTabActual('ordenes')}
           className={`px-4 py-2 rounded-xl font-bold transition-all ${
-            tabActual === 'ordenes' ? 'bg-black text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            tabActual === 'ordenes' ? 'bg-black text-white shadow-xs' : 'bg-gray-100 dark:bg-graphite-800 text-gray-600 dark:text-graphite-400 hover:bg-gray-200'
           }`}
         >
           <span className="inline-flex items-center gap-1"><ClipboardList size={12} />Órdenes de Trabajo Activas</span>
@@ -76,7 +76,7 @@ export const LaboratorioModulo = memo(() => {
         <button
           onClick={() => setTabActual('directorio')}
           className={`px-4 py-2 rounded-xl font-bold transition-all ${
-            tabActual === 'directorio' ? 'bg-black text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            tabActual === 'directorio' ? 'bg-black text-white shadow-xs' : 'bg-gray-100 dark:bg-graphite-800 text-gray-600 dark:text-graphite-400 hover:bg-gray-200'
           }`}
         >
           <span className="inline-flex items-center gap-1"><Folder size={12} />Directorio y Tarifarios de Labs</span>
@@ -92,13 +92,13 @@ export const LaboratorioModulo = memo(() => {
           />
         ) : (
           <>
-            <div className="bg-gray-50 p-4 border border-gray-200 rounded-2xl flex justify-between items-center flex-wrap gap-3 text-xs print:hidden">
+            <div className="bg-gray-50 dark:bg-graphite-800 p-4 border border-gray-200 dark:border-graphite-700 rounded-2xl flex justify-between items-center flex-wrap gap-3 text-xs print:hidden">
               <div className="flex items-center gap-2 w-full sm:w-auto">
-                <span className="font-semibold text-gray-600">Etapa:</span>
+                <span className="font-semibold text-gray-600 dark:text-graphite-400">Etapa:</span>
                 <select
                   value={etapaFiltro}
                   onChange={(e) => setEtapaFiltro(e.target.value)}
-                  className="p-2 border rounded-xl bg-white font-semibold flex-1 sm:flex-initial"
+                  className="p-2 border rounded-xl bg-white dark:bg-graphite-800 font-semibold flex-1 sm:flex-initial"
                 >
                   <option value="Todas">Todas las etapas</option>
                   {ETAPAS_LABORATORIO.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
@@ -110,7 +110,7 @@ export const LaboratorioModulo = memo(() => {
                 placeholder="Buscar orden, paciente o trabajo..."
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
-                className="p-2 border rounded-xl bg-white w-full sm:w-64"
+                className="p-2 border rounded-xl bg-white dark:bg-graphite-800 w-full sm:w-64"
               />
             </div>
 

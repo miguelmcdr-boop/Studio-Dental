@@ -85,7 +85,7 @@ export const ConnectionIndicator = () => {
 
   return (
     <div
-      className={`flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 ${c.text} text-xs`}
+      className={`flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 dark:bg-graphite-800 ${c.text} text-xs`}
       title={c.title}
     >
       <div className="relative flex items-center">

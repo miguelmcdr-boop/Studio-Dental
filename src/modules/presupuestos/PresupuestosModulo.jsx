@@ -55,8 +55,8 @@ export const PresupuestosModulo = memo(({ setPacienteSeleccionado, setActiveSect
     <div className="space-y-6">
       <div className="flex justify-between items-center flex-wrap gap-3 print:hidden">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider inline-flex items-center gap-2"><ClipboardList size={16} />Presupuestos Globales & Cotizaciones</h2>
-          <p className="text-xs text-gray-500">Panel central de seguimiento de tratamientos y planes de financiamiento.</p>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-graphite-50 uppercase tracking-wider inline-flex items-center gap-2"><ClipboardList size={16} />Presupuestos Globales & Cotizaciones</h2>
+          <p className="text-xs text-gray-500 dark:text-graphite-400">Panel central de seguimiento de tratamientos y planes de financiamiento.</p>
         </div>
 
         <button
@@ -79,13 +79,13 @@ export const PresupuestosModulo = memo(({ setPacienteSeleccionado, setActiveSect
         />
       ) : (
         <>
-          <div className="bg-gray-50 p-4 border border-gray-200 rounded-2xl flex justify-between items-center flex-wrap gap-3 text-xs print:hidden">
+          <div className="bg-gray-50 dark:bg-graphite-800 p-4 border border-gray-200 dark:border-graphite-700 rounded-2xl flex justify-between items-center flex-wrap gap-3 text-xs print:hidden">
             <div className="flex items-center gap-2 w-full sm:w-auto">
-              <span className="font-semibold text-gray-600">Estado:</span>
+              <span className="font-semibold text-gray-600 dark:text-graphite-400">Estado:</span>
               <select
                 value={estadoFiltro}
                 onChange={(e) => setEstadoFiltro(e.target.value)}
-                className="p-2 border rounded-xl bg-white font-semibold flex-1 sm:flex-initial"
+                className="p-2 border rounded-xl bg-white dark:bg-graphite-800 font-semibold flex-1 sm:flex-initial"
               >
                 <option value="Todos">Todos los estados</option>
                 {ESTADOS_PRESUPUESTO.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
@@ -97,7 +97,7 @@ export const PresupuestosModulo = memo(({ setPacienteSeleccionado, setActiveSect
               placeholder="Buscar por folio, paciente o RUT..."
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
-              className="p-2 border rounded-xl bg-white w-full sm:w-64"
+              className="p-2 border rounded-xl bg-white dark:bg-graphite-800 w-full sm:w-64"
             />
           </div>
 

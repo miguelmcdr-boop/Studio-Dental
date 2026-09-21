@@ -32,30 +32,30 @@ const FAMILIA_COLORS = {
 
 export const FilaVademecum = ({ farmaco, onEditar, onDesactivar, onReactivar }) => {
   return (
-    <tr className={`hover:bg-gray-50 ${farmaco.activo === false ? 'opacity-50' : ''}`}>
-      <td className="px-3 py-3 text-sm text-gray-700 font-mono">
+    <tr className={`hover:bg-gray-50 dark:hover:bg-graphite-700 dark:hover:bg-graphite-700 ${farmaco.activo === false ? 'opacity-50' : ''}`}>
+      <td className="px-3 py-3 text-sm text-gray-700 dark:text-graphite-300 font-mono">
         {farmaco.numero}
       </td>
       <td className="px-3 py-3 text-sm">
-        <span className={`px-2 py-1 text-xs font-semibold rounded border ${FAMILIA_COLORS[farmaco.familia] || 'bg-gray-100 text-gray-700 border-gray-300'}`}>
+        <span className={`px-2 py-1 text-xs font-semibold rounded border ${FAMILIA_COLORS[farmaco.familia] || 'bg-gray-100 dark:bg-graphite-800 text-gray-700 dark:text-graphite-300 border-gray-300 dark:border-graphite-600'}`}>
           {farmaco.familia?.replace(/_/g, ' ') || 'N/D'}
         </span>
       </td>
-      <td className="px-3 py-3 text-sm font-medium text-gray-900 max-w-xs truncate" title={farmaco.nombre_generico}>
+      <td className="px-3 py-3 text-sm font-medium text-gray-900 dark:text-graphite-50 max-w-xs truncate" title={farmaco.nombre_generico}>
         {farmaco.nombre_generico}
       </td>
-      <td className="px-3 py-3 text-sm text-gray-700 max-w-[150px] truncate" title={farmaco.presentacion}>
+      <td className="px-3 py-3 text-sm text-gray-700 dark:text-graphite-300 max-w-[150px] truncate" title={farmaco.presentacion}>
         {farmaco.presentacion}
       </td>
-      <td className="px-3 py-3 text-sm text-gray-700 max-w-[180px] truncate" title={farmaco.posologia_adulto}>
+      <td className="px-3 py-3 text-sm text-gray-700 dark:text-graphite-300 max-w-[180px] truncate" title={farmaco.posologia_adulto}>
         {farmaco.posologia_adulto || '-'}
       </td>
-      <td className="px-3 py-3 text-sm text-gray-700 max-w-[180px] truncate" title={farmaco.posologia_pediatrica}>
+      <td className="px-3 py-3 text-sm text-gray-700 dark:text-graphite-300 max-w-[180px] truncate" title={farmaco.posologia_pediatrica}>
         {farmaco.posologia_pediatrica || '-'}
       </td>
       <td className="px-3 py-3 text-sm">
         {farmaco.activo === false ? (
-          <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-semibold rounded border border-gray-300">
+          <span className="px-2 py-1 bg-gray-100 dark:bg-graphite-800 text-gray-600 dark:text-graphite-400 text-xs font-semibold rounded border border-gray-300 dark:border-graphite-600">
             Inactivo
           </span>
         ) : (

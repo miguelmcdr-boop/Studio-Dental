@@ -5,7 +5,7 @@
  */
 import React from 'react'
 
-const campoError = (errores, campo) => errores[campo] ? 'border-red-400 bg-red-50' : 'border-gray-300'
+const campoError = (errores, campo) => errores[campo] ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-graphite-600'
 const mensajeError = (errores, campo) => errores[campo] && (
   <p className="text-xs text-red-600 mt-1">{errores[campo]}</p>
 )
@@ -15,7 +15,7 @@ export const CamposFormularioProtocolo = ({ form, errores, handleChange, esProfi
     return (
       <>
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">
+          <label className="block text-sm font-semibold text-gray-700 dark:text-graphite-300 mb-1">
             Situación clínica <span className="text-red-500">*</span>
           </label>
           <input
@@ -29,7 +29,7 @@ export const CamposFormularioProtocolo = ({ form, errores, handleChange, esProfi
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">
+          <label className="block text-sm font-semibold text-gray-700 dark:text-graphite-300 mb-1">
             Fármaco <span className="text-red-500">*</span>
           </label>
           <input
@@ -44,7 +44,7 @@ export const CamposFormularioProtocolo = ({ form, errores, handleChange, esProfi
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
+            <label className="block text-sm font-semibold text-gray-700 dark:text-graphite-300 mb-1">
               Dosis adulto <span className="text-red-500">*</span>
             </label>
             <input
@@ -57,28 +57,28 @@ export const CamposFormularioProtocolo = ({ form, errores, handleChange, esProfi
             {mensajeError(errores, 'dosis_adulto')}
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
+            <label className="block text-sm font-semibold text-gray-700 dark:text-graphite-300 mb-1">
               Dosis pediátrica
             </label>
             <input
               type="text"
               value={form.dosis_pediatrica}
               onChange={(e) => handleChange('dosis_pediatrica', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg text-sm"
               placeholder="Ej: 50 mg/kg VO (máx 2 g)"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">
+          <label className="block text-sm font-semibold text-gray-700 dark:text-graphite-300 mb-1">
             Nota clínica
           </label>
           <textarea
             value={form.nota}
             onChange={(e) => handleChange('nota', e.target.value)}
             rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg text-sm"
             placeholder="Ej: No usar si antecedente de anafilaxia a penicilina"
           />
         </div>
@@ -89,7 +89,7 @@ export const CamposFormularioProtocolo = ({ form, errores, handleChange, esProfi
   return (
     <>
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-1">
+        <label className="block text-sm font-semibold text-gray-700 dark:text-graphite-300 mb-1">
           Fármaco / grupo <span className="text-red-500">*</span>
         </label>
         <input
@@ -103,7 +103,7 @@ export const CamposFormularioProtocolo = ({ form, errores, handleChange, esProfi
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-1">
+        <label className="block text-sm font-semibold text-gray-700 dark:text-graphite-300 mb-1">
           Recomendación <span className="text-red-500">*</span>
         </label>
         <textarea
@@ -117,14 +117,14 @@ export const CamposFormularioProtocolo = ({ form, errores, handleChange, esProfi
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-1">
+        <label className="block text-sm font-semibold text-gray-700 dark:text-graphite-300 mb-1">
           Medidas de hemostasia local
         </label>
         <textarea
           value={form.medidas_hemostasia}
           onChange={(e) => handleChange('medidas_hemostasia', e.target.value)}
           rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg text-sm"
           placeholder="Ej: Ácido tranexámico local, sutura hermética, compresión 20 min"
         />
       </div>

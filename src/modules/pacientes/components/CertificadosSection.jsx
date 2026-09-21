@@ -147,8 +147,8 @@ export const CertificadosSection = memo(({
       />
 
       {/* Sección Papelera - siempre visible */}
-      <div className="bg-white p-3 border border-gray-200 rounded-2xl print:hidden flex justify-between items-center">
-        <span className="text-xs text-gray-600">
+      <div className="bg-white dark:bg-graphite-800 p-3 border border-gray-200 dark:border-graphite-700 rounded-2xl print:hidden flex justify-between items-center">
+        <span className="text-xs text-gray-600 dark:text-graphite-400">
           {hayEliminados
             ? 'Hay certificados en papelera'
             : 'Papelera vacía'}
@@ -156,7 +156,7 @@ export const CertificadosSection = memo(({
         <button
           onClick={abrirPapelera}
           disabled={!hayEliminados}
-          className="text-xs bg-gray-100 text-gray-700 border border-gray-300 px-3 py-1.5 rounded-lg hover:bg-gray-200 flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="text-xs bg-gray-100 dark:bg-graphite-800 text-gray-700 dark:text-graphite-300 border border-gray-300 dark:border-graphite-600 px-3 py-1.5 rounded-lg hover:bg-gray-200 flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
           title={hayEliminados ? 'Abrir papelera' : 'No hay certificados en papelera'}
         >
           <span className="flex items-center gap-1"><Trash2 size={12} />Papelera</span>
@@ -164,15 +164,15 @@ export const CertificadosSection = memo(({
       </div>
 
       {certificadosActivos.length > 0 && (
-        <div className="bg-white p-4 border border-gray-200 rounded-2xl print:hidden">
-          <h4 className="font-bold text-xs text-gray-800 mb-3 uppercase tracking-wider">Historial de Certificados Emitidos ({certificadosActivos.length})</h4>
+        <div className="bg-white dark:bg-graphite-800 p-4 border border-gray-200 dark:border-graphite-700 rounded-2xl print:hidden">
+          <h4 className="font-bold text-xs text-gray-800 dark:text-graphite-100 mb-3 uppercase tracking-wider">Historial de Certificados Emitidos ({certificadosActivos.length})</h4>
           <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
             {certificadosActivos.map(c => (
               <div
                 key={c.id}
                 onClick={() => handleVerCertificado(c)}
                 className={`p-3 rounded-xl border text-xs flex justify-between items-center cursor-pointer transition-all ${
-                  certAMostrar?.id === c.id ? 'bg-black text-white border-black' : 'bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-800'
+                  certAMostrar?.id === c.id ? 'bg-black text-white border-black' : 'bg-gray-50 dark:bg-graphite-800 hover:bg-gray-100 dark:hover:bg-graphite-700 border-gray-200 dark:border-graphite-700 text-gray-800 dark:text-graphite-100'
                 }`}
               >
                 <div>
@@ -227,7 +227,7 @@ export const CertificadosSection = memo(({
                 </button>
               )}
               {estadoRespaldo === 'pendiente' && (
-                <span className="text-xs bg-gray-100 text-gray-600 border border-gray-200 px-3 py-1 rounded-full font-semibold">
+                <span className="text-xs bg-gray-100 dark:bg-graphite-800 text-gray-600 dark:text-graphite-400 border border-gray-200 dark:border-graphite-700 px-3 py-1 rounded-full font-semibold">
                   Pendiente de respaldo
                 </span>
               )}
@@ -236,7 +236,7 @@ export const CertificadosSection = memo(({
               <button
                 onClick={handleDescargarPDF}
                 disabled={generandoPDF || estadoRespaldo === 'respaldando'}
-                className="bg-gray-100 text-gray-800 text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-gray-200 border border-gray-300 shadow-sm flex items-center gap-2 disabled:opacity-50"
+                className="bg-gray-100 dark:bg-graphite-800 text-gray-800 dark:text-graphite-100 text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-gray-200 border border-gray-300 dark:border-graphite-600 shadow-sm flex items-center gap-2 disabled:opacity-50"
               >
                 {generandoPDF ? <><Loader2 className="animate-spin" size={14} />Generando PDF...</> : <><Download size={14} />Descargar PDF</>}
               </button>
@@ -254,7 +254,7 @@ export const CertificadosSection = memo(({
           </div>
         </div>
       ) : (
-        <div className="text-center py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-300 text-xs text-gray-500 print:hidden">
+        <div className="text-center py-12 bg-gray-50 dark:bg-graphite-800 rounded-2xl border border-dashed border-gray-300 dark:border-graphite-600 text-xs text-gray-500 dark:text-graphite-400 print:hidden">
           No hay certificados emitidos para este paciente. Completa el formulario superior para generar uno.
         </div>
       )}

@@ -4,30 +4,30 @@ import { Trophy } from 'lucide-react'
 
 export const ClasificacionAAPCard = memo(({ indices, factoresRiesgo, setFactoresRiesgo }) => {
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xs space-y-4 text-xs mb-6 print:hidden">
+    <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-5 shadow-xs space-y-4 text-xs mb-6 print:hidden">
       <div className="flex justify-between items-center border-b pb-2 flex-wrap gap-2">
-        <h4 className="font-extrabold text-gray-900 uppercase tracking-wider text-[11px] flex items-center gap-2">
+        <h4 className="font-extrabold text-gray-900 dark:text-graphite-50 uppercase tracking-wider text-[11px] flex items-center gap-2">
           <Trophy size={14} className="inline" /> Diagnóstico Periodontal Estándar AAP/EFP (Chicago 2017)
         </h4>
 
         {/* Factores Moduladores de Riesgo */}
-        <div className="flex items-center gap-3 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-200">
-          <span className="font-bold text-gray-600 text-[10px]">Factores Moduladores de Riesgo:</span>
-          <label className="flex items-center gap-1 font-bold text-gray-800 cursor-pointer">
+        <div className="flex items-center gap-3 bg-gray-50 dark:bg-graphite-800 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-graphite-700">
+          <span className="font-bold text-gray-600 dark:text-graphite-400 text-[10px]">Factores Moduladores de Riesgo:</span>
+          <label className="flex items-center gap-1 font-bold text-gray-800 dark:text-graphite-100 cursor-pointer">
             <input
               type="checkbox"
               checked={factoresRiesgo.fumador}
               onChange={(e) => setFactoresRiesgo(prev => ({ ...prev, fumador: e.target.checked }))}
-              className="rounded text-black focus:ring-0"
+              className="rounded text-black dark:text-graphite-50 focus:ring-0"
             />
             <span className="inline-flex items-center gap-1"><Cigarette size={14} />Tabaquismo</span>
           </label>
-          <label className="flex items-center gap-1 font-bold text-gray-800 cursor-pointer">
+          <label className="flex items-center gap-1 font-bold text-gray-800 dark:text-graphite-100 cursor-pointer">
             <input
               type="checkbox"
               checked={factoresRiesgo.diabetes}
               onChange={(e) => setFactoresRiesgo(prev => ({ ...prev, diabetes: e.target.checked }))}
-              className="rounded text-black focus:ring-0"
+              className="rounded text-black dark:text-graphite-50 focus:ring-0"
             />
             <span className="inline-flex items-center gap-1"><Stethoscope size={14} />Diabetes</span>
           </label>

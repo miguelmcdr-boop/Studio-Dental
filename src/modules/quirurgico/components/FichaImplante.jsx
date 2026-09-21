@@ -34,53 +34,53 @@ export const FichaImplante = ({ implantes = [], onAgregarImplante, onEliminarImp
 
   return (
     <div className="space-y-6 text-xs">
-      <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs">
-        <h3 className="font-bold text-sm text-gray-900 mb-4 border-b pb-2 uppercase tracking-wider">
+      <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-6 shadow-xs">
+        <h3 className="font-bold text-sm text-gray-900 dark:text-graphite-50 mb-4 border-b pb-2 uppercase tracking-wider">
           <span className="flex items-center gap-1.5"><Icon icon={Tooth} size="sm" />Registrar Colocación de Implante Óseointegrado</span>
         </h3>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
-              <label className="block text-gray-600 font-bold mb-1 uppercase">Pieza Dental *</label>
+              <label className="block text-gray-600 dark:text-graphite-400 font-bold mb-1 uppercase">Pieza Dental *</label>
               <input
                 type="text"
                 required
                 value={form.pieza}
                 onChange={(e) => setForm({ ...form, pieza: e.target.value })}
                 placeholder="Ej: 1.6"
-                className="w-full px-3 py-2 border rounded-xl bg-white text-xs font-bold"
+                className="w-full px-3 py-2 border rounded-xl bg-white dark:bg-graphite-800 text-xs font-bold"
               />
             </div>
 
             <div>
-              <label className="block text-gray-600 font-bold mb-1 uppercase">Marca del Implante</label>
+              <label className="block text-gray-600 dark:text-graphite-400 font-bold mb-1 uppercase">Marca del Implante</label>
               <select
                 value={form.marca}
                 onChange={(e) => setForm({ ...form, marca: e.target.value })}
-                className="w-full px-3 py-2 border rounded-xl bg-white text-xs"
+                className="w-full px-3 py-2 border rounded-xl bg-white dark:bg-graphite-800 text-xs"
               >
                 {MARCAS_IMPLANTES.map(m => <option key={m} value={m}>{m}</option>)}
               </select>
             </div>
 
             <div>
-              <label className="block text-gray-600 font-bold mb-1 uppercase">Plataforma / Conexión</label>
+              <label className="block text-gray-600 dark:text-graphite-400 font-bold mb-1 uppercase">Plataforma / Conexión</label>
               <select
                 value={form.plataforma}
                 onChange={(e) => setForm({ ...form, plataforma: e.target.value })}
-                className="w-full px-3 py-2 border rounded-xl bg-white text-xs"
+                className="w-full px-3 py-2 border rounded-xl bg-white dark:bg-graphite-800 text-xs"
               >
                 {TIPOS_PLATAFORMA.map(p => <option key={p} value={p}>{p}</option>)}
               </select>
             </div>
 
             <div>
-              <label className="block text-gray-600 font-bold mb-1 uppercase">Diámetro / Conexión</label>
+              <label className="block text-gray-600 dark:text-graphite-400 font-bold mb-1 uppercase">Diámetro / Conexión</label>
               <select
                 value={form.diametro}
                 onChange={(e) => setForm({ ...form, diametro: e.target.value })}
-                className="w-full px-3 py-2 border rounded-xl bg-white text-xs"
+                className="w-full px-3 py-2 border rounded-xl bg-white dark:bg-graphite-800 text-xs"
               >
                 {CONEXIONES_DIAMETRO.map(d => <option key={d} value={d}>{d}</option>)}
               </select>
@@ -89,13 +89,13 @@ export const FichaImplante = ({ implantes = [], onAgregarImplante, onEliminarImp
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
-              <label className="block text-gray-600 font-bold mb-1 uppercase">Longitud (mm)</label>
+              <label className="block text-gray-600 dark:text-graphite-400 font-bold mb-1 uppercase">Longitud (mm)</label>
               <input
                 type="text"
                 value={form.longitud}
                 onChange={(e) => setForm({ ...form, longitud: e.target.value })}
                 placeholder="Ej: 10 mm"
-                className="w-full px-3 py-2 border rounded-xl bg-white text-xs"
+                className="w-full px-3 py-2 border rounded-xl bg-white dark:bg-graphite-800 text-xs"
               />
             </div>
 
@@ -122,24 +122,24 @@ export const FichaImplante = ({ implantes = [], onAgregarImplante, onEliminarImp
             </div>
 
             <div>
-              <label className="block text-gray-600 font-bold mb-1 uppercase">N° Lote / Trazabilidad</label>
+              <label className="block text-gray-600 dark:text-graphite-400 font-bold mb-1 uppercase">N° Lote / Trazabilidad</label>
               <input
                 type="text"
                 value={form.lote}
                 onChange={(e) => setForm({ ...form, lote: e.target.value })}
                 placeholder="Ej: LOT-98212"
-                className="w-full px-3 py-2 border rounded-xl bg-white text-xs"
+                className="w-full px-3 py-2 border rounded-xl bg-white dark:bg-graphite-800 text-xs"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-gray-600 font-bold mb-1 uppercase">Observaciones Cirugía</label>
+            <label className="block text-gray-600 dark:text-graphite-400 font-bold mb-1 uppercase">Observaciones Cirugía</label>
             <textarea
               rows="2"
               value={form.observacion}
               onChange={(e) => setForm({ ...form, observacion: e.target.value })}
-              className="w-full p-2.5 border rounded-xl bg-white text-xs"
+              className="w-full p-2.5 border rounded-xl bg-white dark:bg-graphite-800 text-xs"
             />
           </div>
 
@@ -150,18 +150,18 @@ export const FichaImplante = ({ implantes = [], onAgregarImplante, onEliminarImp
       </div>
 
       {/* Historial de Implantes */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs">
-        <h4 className="font-bold text-sm text-gray-900 mb-4 border-b pb-2">Implantes Colocados en el Paciente</h4>
+      <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-6 shadow-xs">
+        <h4 className="font-bold text-sm text-gray-900 dark:text-graphite-50 mb-4 border-b pb-2">Implantes Colocados en el Paciente</h4>
         <div className="space-y-3">
           {implantes.map(imp => (
-            <div key={imp.id} className="p-4 bg-gray-50 border rounded-xl flex justify-between items-start">
+            <div key={imp.id} className="p-4 bg-gray-50 dark:bg-graphite-800 border rounded-xl flex justify-between items-start">
               <div>
                 <div className="flex items-center gap-2">
                   <span className="font-extrabold text-blue-900 text-sm">Pieza {imp.pieza}</span>
                   <span className="bg-black text-white text-[10px] font-bold px-2 py-0.5 rounded">{imp.marca}</span>
-                  <span className="bg-gray-200 text-gray-800 text-[10px] font-semibold px-2 py-0.5 rounded">{imp.plataforma}</span>
+                  <span className="bg-gray-200 dark:bg-graphite-700 text-gray-800 dark:text-graphite-100 text-[10px] font-semibold px-2 py-0.5 rounded">{imp.plataforma}</span>
                 </div>
-                <p className="text-gray-600 mt-1">
+                <p className="text-gray-600 dark:text-graphite-400 mt-1">
                   Diámetro: <strong>{imp.diametro}</strong> | Longitud: <strong>{imp.longitud}</strong> | Torque:{' '}
                   <strong className={imp.torqueInsercion === null || imp.torqueInsercion === undefined ? 'text-amber-600' : 'text-blue-700'}>
                     {imp.torqueInsercion === null || imp.torqueInsercion === undefined ? 'No registrado' : `${imp.torqueInsercion} Ncm`}
@@ -170,8 +170,8 @@ export const FichaImplante = ({ implantes = [], onAgregarImplante, onEliminarImp
                     {imp.isqInicial === null || imp.isqInicial === undefined ? 'No registrado' : imp.isqInicial}
                   </strong>
                 </p>
-                {imp.lote && <p className="text-[10px] text-gray-400">Lote Seremi: {imp.lote}</p>}
-                <p className="text-gray-700 italic mt-1">{imp.observacion}</p>
+                {imp.lote && <p className="text-[10px] text-gray-400 dark:text-graphite-500">Lote Seremi: {imp.lote}</p>}
+                <p className="text-gray-700 dark:text-graphite-300 italic mt-1">{imp.observacion}</p>
               </div>
 
               <button onClick={() => onEliminarImplante(imp.id)} className="text-red-500 hover:text-red-700 font-bold text-xs bg-red-50 px-2 py-1 rounded transition-colors duration-150">
@@ -180,7 +180,7 @@ export const FichaImplante = ({ implantes = [], onAgregarImplante, onEliminarImp
             </div>
           ))}
 
-          {implantes.length === 0 && <p className="text-gray-400 text-center py-6">No hay implantes registrados para este paciente.</p>}
+          {implantes.length === 0 && <p className="text-gray-400 dark:text-graphite-500 text-center py-6">No hay implantes registrados para este paciente.</p>}
         </div>
       </div>
     </div>

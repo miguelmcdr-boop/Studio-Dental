@@ -108,11 +108,11 @@ export const PeriodontogramaModulo = memo(({ pacienteId }) => {
       {/* Barra de Control */}
       <div className="flex justify-between items-center flex-wrap gap-3">
         <div>
-          <h3 className="text-base font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+          <h3 className="text-base font-bold text-gray-900 dark:text-graphite-50 uppercase tracking-wider flex items-center gap-2">
           <Icon icon={Droplet} size="md" />
           Periodontograma Clínico & Sondaje AAP
         </h3>
-          <p className="text-xs text-gray-500">Evaluación de profundidades de bolsa, recesiones, CAL y sangrado al sondaje (BOP).</p>
+          <p className="text-xs text-gray-500 dark:text-graphite-400">Evaluación de profundidades de bolsa, recesiones, CAL y sangrado al sondaje (BOP).</p>
         </div>
 
         <div className="flex gap-2">
@@ -149,19 +149,19 @@ export const PeriodontogramaModulo = memo(({ pacienteId }) => {
       />
 
       {/* Matriz de Piezas */}
-      <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 space-y-6 overflow-x-auto">
+      <div className="bg-gray-50 dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-6 space-y-6 overflow-x-auto">
         <div>
-          <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 text-center">Arcada Superior (Maxilar)</h4>
+          <h4 className="text-xs font-bold text-gray-500 dark:text-graphite-400 uppercase tracking-wider mb-4 text-center">Arcada Superior (Maxilar)</h4>
           <ArcadaSuperior
             periodontoData={modoComparativoReeval ? periodontoControl : periodontoData}
             setPeriodontoData={modoComparativoReeval ? setPeriodontoControl : setPeriodontoData}
           />
         </div>
 
-        <div className="border-t border-gray-300 my-4"></div>
+        <div className="border-t border-gray-300 dark:border-graphite-600 my-4"></div>
 
         <div>
-          <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 text-center">Arcada Inferior (Mandíbula)</h4>
+          <h4 className="text-xs font-bold text-gray-500 dark:text-graphite-400 uppercase tracking-wider mb-4 text-center">Arcada Inferior (Mandíbula)</h4>
           <ArcadaInferior
             periodontoData={modoComparativoReeval ? periodontoControl : periodontoData}
             setPeriodontoData={modoComparativoReeval ? setPeriodontoControl : setPeriodontoData}

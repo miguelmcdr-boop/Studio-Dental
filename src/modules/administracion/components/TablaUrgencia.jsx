@@ -10,10 +10,10 @@ import { Siren, AlertTriangle } from 'lucide-react'
 export const TablaUrgencia = ({ urgencia, onEditar, onDesactivar, onCrearNuevo }) => {
   const datos = Array.isArray(urgencia) ? urgencia : []
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200 bg-red-50">
+    <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-lg overflow-hidden">
+      <div className="px-6 py-4 border-b border-gray-200 dark:border-graphite-700 bg-red-50">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold text-gray-900">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-graphite-50">
             <span className="flex items-center gap-1.5"><Icon icon={Siren} size="sm" />Fármacos de Urgencia / Carro de Reanimación</span>
           </h3>
           {onCrearNuevo && (
@@ -25,45 +25,45 @@ export const TablaUrgencia = ({ urgencia, onEditar, onDesactivar, onCrearNuevo }
             </button>
           )}
         </div>
-        <p className="text-sm text-gray-700 mt-1">
+        <p className="text-sm text-gray-700 dark:text-graphite-300 mt-1">
           {datos.length} fármacos críticos — Verificar fechas de vencimiento periódicamente
         </p>
       </div>
 
       {datos.length === 0 ? (
-        <div className="p-8 text-center text-gray-500">
+        <div className="p-8 text-center text-gray-500 dark:text-graphite-400">
           No hay fármacos de urgencia registrados
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-graphite-700">
+            <thead className="bg-gray-50 dark:bg-graphite-800">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">#</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Medicamento</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Concentración</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Presentación</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Indicación</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Vía</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Acciones</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">#</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">Medicamento</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">Concentración</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">Presentación</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">Indicación</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">Vía</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">Acciones</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-graphite-800 divide-y divide-gray-200 dark:divide-graphite-700">
               {datos.map((farmaco) => (
-                <tr key={farmaco.id || farmaco.numero} className="hover:bg-gray-50 transition-colors duration-150">
-                  <td className="px-4 py-3 text-sm text-gray-700 font-mono">
+                <tr key={farmaco.id || farmaco.numero} className="hover:bg-gray-50 dark:hover:bg-graphite-700 dark:hover:bg-graphite-700 transition-colors duration-150">
+                  <td className="px-4 py-3 text-sm text-gray-700 dark:text-graphite-300 font-mono">
                     {farmaco.numero}
                   </td>
-                  <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-graphite-50">
                     {farmaco.nombre_generico}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-700">
+                  <td className="px-4 py-3 text-sm text-gray-700 dark:text-graphite-300">
                     {farmaco.concentracion}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-700">
+                  <td className="px-4 py-3 text-sm text-gray-700 dark:text-graphite-300">
                     {farmaco.presentacion}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-700 max-w-xs truncate" title={farmaco.indicacion}>
+                  <td className="px-4 py-3 text-sm text-gray-700 dark:text-graphite-300 max-w-xs truncate" title={farmaco.indicacion}>
                     {farmaco.indicacion}
                   </td>
                   <td className="px-4 py-3 text-sm">
@@ -98,7 +98,7 @@ export const TablaUrgencia = ({ urgencia, onEditar, onDesactivar, onCrearNuevo }
         </div>
       )}
 
-      <div className="px-6 py-3 border-t border-gray-200 bg-yellow-50 text-xs text-yellow-800">
+      <div className="px-6 py-3 border-t border-gray-200 dark:border-graphite-700 bg-yellow-50 text-xs text-yellow-800">
         <strong className="inline-flex items-center gap-1"><AlertTriangle size={12} />Nota crítica:</strong> Todo box dental debe contar con estos fármacos accesibles, con verificación periódica de fechas de vencimiento, y el equipo debe estar entrenado en reanimación básica (BLS) y protocolo de manejo de anafilaxia.
       </div>
     </div>

@@ -45,26 +45,26 @@ export const TarjetaConsentimiento = memo(({
   }
 
   return (
-    <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+    <div className="p-4 bg-gray-50 dark:bg-graphite-800 rounded-xl border border-gray-200 dark:border-graphite-700">
       <div className="flex justify-between items-start flex-wrap gap-3 mb-3">
         <div className="flex-1 min-w-0">
-          <span className="font-bold text-gray-900 block">{titulo}</span>
-          <span className="text-[10px] text-gray-500">
+          <span className="font-bold text-gray-900 dark:text-graphite-50 block">{titulo}</span>
+          <span className="text-[10px] text-gray-500 dark:text-graphite-400">
             Firmado el: {fechaCreacion} — Profesional: {profesional}
           </span>
           {pacienteNombre && pacienteRut && (
-            <span className="text-[10px] text-gray-500 block mt-1">
+            <span className="text-[10px] text-gray-500 dark:text-graphite-400 block mt-1">
               Paciente: {pacienteNombre} ({pacienteRut})
             </span>
           )}
         </div>
         {firma && (
-          <img src={firma} alt="Firma Paciente" className="h-12 border bg-white rounded p-1 flex-shrink-0" />
+          <img src={firma} alt="Firma Paciente" className="h-12 border bg-white dark:bg-graphite-800 rounded p-1 flex-shrink-0" />
         )}
       </div>
 
       {contenido && (
-        <p className="text-[10px] text-gray-600 mb-3 line-clamp-2">
+        <p className="text-[10px] text-gray-600 dark:text-graphite-400 mb-3 line-clamp-2">
           {contenido}
         </p>
       )}

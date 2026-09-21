@@ -89,11 +89,11 @@ export const ModalNuevoMovimiento = memo(({ alGuardar, alCerrar }) => {
           />
 
           <div>
-            <label className="block font-semibold text-gray-700 mb-1">Categoría</label>
+            <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Categoría</label>
             <select
               value={categoria}
               onChange={(e) => setCategoria(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-semibold"
+              className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-semibold"
             >
               {(tipo === 'ingreso' ? CATEGORIAS_INGRESO : CATEGORIAS_EGRESO).map(cat => (
                 <option key={cat} value={cat}>{cat}</option>
@@ -102,11 +102,11 @@ export const ModalNuevoMovimiento = memo(({ alGuardar, alCerrar }) => {
           </div>
 
           <div>
-            <label className="block font-semibold text-gray-700 mb-1">Método de Pago</label>
+            <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Método de Pago</label>
             <select
               value={metodoPago}
               onChange={(e) => setMetodoPago(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-gray-300 bg-white"
+              className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800"
             >
               <option value="Efectivo">Efectivo</option>
               <option value="Transferencia">Transferencia Bancaria</option>

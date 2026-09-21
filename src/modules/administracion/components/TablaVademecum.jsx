@@ -55,7 +55,7 @@ export const TablaVademecum = ({
   }, [vademecum, paginaActual])
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+    <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-lg overflow-hidden">
       {/* Filtros */}
       <FiltrosVademecum
         familiasDisponibles={familiasDisponibles}
@@ -69,35 +69,35 @@ export const TablaVademecum = ({
       />
 
       {/* Contador */}
-      <div className="px-6 py-2 text-sm text-gray-600 border-b border-gray-200">
+      <div className="px-6 py-2 text-sm text-gray-600 dark:text-graphite-400 border-b border-gray-200 dark:border-graphite-700">
         Mostrando <span className="font-semibold">{datosPaginados.length}</span> de{' '}
         <span className="font-semibold">{vademecum?.length || 0}</span> fármacos
         {vademecumCompleto && vademecumCompleto.length !== vademecum?.length && (
-          <span className="text-gray-500"> ({vademecumCompleto.length} en total)</span>
+          <span className="text-gray-500 dark:text-graphite-400"> ({vademecumCompleto.length} en total)</span>
         )}
       </div>
 
       {/* Tabla */}
       {datosPaginados.length === 0 ? (
-        <div className="p-8 text-center text-gray-500">
+        <div className="p-8 text-center text-gray-500 dark:text-graphite-400">
           No hay fármacos que coincidan con los filtros aplicados
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-graphite-700">
+            <thead className="bg-gray-50 dark:bg-graphite-800">
               <tr>
-                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase">#</th>
-                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Familia</th>
-                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Nombre Genérico</th>
-                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Presentación</th>
-                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Posología Adulto</th>
-                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Posología Pediátrica</th>
-                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Estado</th>
-                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Acciones</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">#</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">Familia</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">Nombre Genérico</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">Presentación</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">Posología Adulto</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">Posología Pediátrica</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">Estado</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">Acciones</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-graphite-800 divide-y divide-gray-200 dark:divide-graphite-700">
               {datosPaginados.map((farmaco) => (
                 <FilaVademecum
                   key={farmaco.id || farmaco.numero}

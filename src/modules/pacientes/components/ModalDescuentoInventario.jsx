@@ -43,13 +43,13 @@ export const ModalDescuentoInventario = memo(({
   return (
     <Modal isOpen={true} onClose={alCancelar} title="Marcar Tratamiento como Realizado" size="xl">
       <div className="space-y-1 mb-4 text-xs">
-        <p className="text-gray-700">
+        <p className="text-gray-700 dark:text-graphite-300">
           <strong>Tratamiento:</strong> {item.prestacion}
         </p>
-        <p className="text-gray-700">
+        <p className="text-gray-700 dark:text-graphite-300">
           <strong>Pieza:</strong> {item.pieza}
         </p>
-        <p className="text-gray-700">
+        <p className="text-gray-700 dark:text-graphite-300">
           <strong>Categoría detectada:</strong> {categoria}
         </p>
       </div>
@@ -65,7 +65,7 @@ export const ModalDescuentoInventario = memo(({
           </div>
         ) : (
           <div className="space-y-3">
-            <span className="font-bold text-gray-800 text-xs uppercase block">
+            <span className="font-bold text-gray-800 dark:text-graphite-100 text-xs uppercase block">
               <span className="inline-flex items-center gap-1"><Package size={14} />Selecciona los materiales utilizados en esta sesión:</span>
             </span>
 
@@ -79,7 +79,7 @@ export const ModalDescuentoInventario = memo(({
                   className={`p-3 border rounded-xl transition-all ${
                     material.seleccionado 
                       ? 'bg-emerald-50 border-emerald-300' 
-                      : 'bg-gray-50 border-gray-200'
+                      : 'bg-gray-50 dark:bg-graphite-800 border-gray-200 dark:border-graphite-700'
                   }`}
                 >
                   <div className="flex items-start gap-3">
@@ -90,8 +90,8 @@ export const ModalDescuentoInventario = memo(({
                       className="mt-1 w-4 h-4 cursor-pointer"
                     />
                     <div className="flex-1">
-                      <span className="font-bold text-gray-900 block">{material.nombreInsumo}</span>
-                      <span className="text-gray-600 text-[10px]">
+                      <span className="font-bold text-gray-900 dark:text-graphite-50 block">{material.nombreInsumo}</span>
+                      <span className="text-gray-600 dark:text-graphite-400 text-[10px]">
                         Stock actual: {material.stockActual} {material.unidad} → Después: {stockDespues} {material.unidad}
                       </span>
                       
@@ -102,7 +102,7 @@ export const ModalDescuentoInventario = memo(({
                       )}
 
                       <div className="flex items-center gap-2 mt-2">
-                        <span className="text-gray-600 font-semibold">Cantidad:</span>
+                        <span className="text-gray-600 dark:text-graphite-400 font-semibold">Cantidad:</span>
                         <input
                           type="number"
                           step="0.01"
@@ -112,11 +112,11 @@ export const ModalDescuentoInventario = memo(({
                           disabled={!material.seleccionado}
                           className={`p-1.5 border rounded-lg w-24 font-bold ${
                             material.seleccionado 
-                              ? 'bg-white border-gray-300' 
-                              : 'bg-gray-100 border-gray-200 text-gray-400'
+                              ? 'bg-white dark:bg-graphite-800 border-gray-300 dark:border-graphite-600' 
+                              : 'bg-gray-100 dark:bg-graphite-800 border-gray-200 dark:border-graphite-700 text-gray-400 dark:text-graphite-500'
                           }`}
                         />
-                        <span className="text-gray-500">{material.unidad}</span>
+                        <span className="text-gray-500 dark:text-graphite-400">{material.unidad}</span>
                       </div>
                     </div>
                   </div>
@@ -124,8 +124,8 @@ export const ModalDescuentoInventario = memo(({
               )
             })}
 
-            <div className="bg-gray-100 p-3 rounded-xl border">
-              <span className="font-bold text-gray-800 text-xs">
+            <div className="bg-gray-100 dark:bg-graphite-800 p-3 rounded-xl border">
+              <span className="font-bold text-gray-800 dark:text-graphite-100 text-xs">
                 Resumen: {materialesSeleccionados.length} material(es) seleccionado(s)
               </span>
             </div>

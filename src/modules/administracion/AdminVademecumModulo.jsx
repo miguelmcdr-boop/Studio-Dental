@@ -111,9 +111,9 @@ export const AdminVademecumModulo = () => {
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       {/* Header del módulo */}
-      <div className="bg-white border border-gray-200 rounded-xl p-6">
+      <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-xl p-6">
         <div className="flex items-center justify-between mb-2">
-          <h1 className="text-2xl font-bold text-gray-900 inline-flex items-center gap-2"><Pill size={24} />Vademécum Odontológico</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-graphite-50 inline-flex items-center gap-2"><Pill size={24} />Vademécum Odontológico</h1>
           <button
             onClick={admin.refrescar}
             disabled={admin.cargando}
@@ -122,33 +122,33 @@ export const AdminVademecumModulo = () => {
             <span className="inline-flex items-center gap-1"><RefreshCw size={14} />Refrescar</span>
           </button>
         </div>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-600 dark:text-graphite-400">
           Gestione los datos de referencia clínicos del vademécum odontológico curado (v1.1).
           Los cambios se sincronizan en tiempo real entre todos los dispositivos.
         </p>
       </div>
 
       {/* Tabs de navegación */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-        <div className="flex border-b border-gray-200 bg-gray-50 overflow-x-auto">
+      <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-xl overflow-hidden">
+        <div className="flex border-b border-gray-200 dark:border-graphite-700 bg-gray-50 dark:bg-graphite-800 overflow-x-auto">
           {TABS.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setTabActivo(tab.id)}
               className={`px-6 py-3 text-sm font-semibold transition-all border-b-2 whitespace-nowrap ${
                 tabActivo === tab.id
-                  ? 'border-blue-600 text-blue-700 bg-white'
-                  : 'border-transparent text-gray-600 hover:bg-gray-100'
+                  ? 'border-blue-600 text-blue-700 bg-white dark:bg-graphite-800'
+                  : 'border-transparent text-gray-600 dark:text-graphite-400 hover:bg-gray-100 dark:hover:bg-graphite-700'
               }`}
             >
               <div>{tab.nombre}</div>
-              <div className="text-xs text-gray-500 mt-0.5">{tab.descripcion}</div>
+              <div className="text-xs text-gray-500 dark:text-graphite-400 mt-0.5">{tab.descripcion}</div>
             </button>
           ))}
         </div>
 
         <div className="p-6">
-          {admin.cargando && <div className="text-center py-8 text-gray-500">Cargando datos...</div>}
+          {admin.cargando && <div className="text-center py-8 text-gray-500 dark:text-graphite-400">Cargando datos...</div>}
           {admin.error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 mb-4">
               Error: {admin.error}

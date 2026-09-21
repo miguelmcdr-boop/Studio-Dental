@@ -83,13 +83,13 @@ export const TimelineClinicoWidget = memo(({
   }, [eventosConsolidados, filtroTipo])
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4 text-xs">
+    <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-6 space-y-4 text-xs">
       <div className="flex justify-between items-center border-b pb-3 flex-wrap gap-2">
         <div>
-          <h3 className="font-bold text-gray-900 uppercase tracking-wider text-sm flex items-center gap-2">
+          <h3 className="font-bold text-gray-900 dark:text-graphite-50 uppercase tracking-wider text-sm flex items-center gap-2">
             <Clock size={16} /> Línea de Tiempo Cronológica del Expediente ({eventosFiltrados.length})
           </h3>
-          <p className="text-[11px] text-gray-500">Historial unificado de atenciones, notas, fármacos y certificados.</p>
+          <p className="text-[11px] text-gray-500 dark:text-graphite-400">Historial unificado de atenciones, notas, fármacos y certificados.</p>
         </div>
 
         {/* Filtros de Eventos */}
@@ -101,7 +101,7 @@ export const TimelineClinicoWidget = memo(({
               className={`px-2.5 py-1 rounded-lg font-bold text-[11px] capitalize transition-all cursor-pointer ${
                 filtroTipo === cat
                   ? 'bg-black text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-gray-100 dark:bg-graphite-800 text-gray-600 dark:text-graphite-400 hover:bg-gray-200'
               }`}
             >
               {cat}
@@ -111,32 +111,32 @@ export const TimelineClinicoWidget = memo(({
       </div>
 
       {eventosFiltrados.length === 0 ? (
-        <div className="text-center py-10 bg-gray-50 rounded-xl border border-dashed text-gray-400">
+        <div className="text-center py-10 bg-gray-50 dark:bg-graphite-800 rounded-xl border border-dashed text-gray-400 dark:text-graphite-500">
           No existen registros clínicos asociados al filtro seleccionado.
         </div>
       ) : (
-        <div className="relative border-l-2 border-gray-200 ml-4 pl-6 space-y-6 py-2">
+        <div className="relative border-l-2 border-gray-200 dark:border-graphite-700 ml-4 pl-6 space-y-6 py-2">
           {eventosFiltrados.map(ev => (
             <div key={ev.id} className="relative group">
               {/* Punto en la línea del tiempo */}
-              <div className="absolute -left-[31px] top-0 bg-white border-2 border-black rounded-full w-5 h-5 flex items-center justify-center text-[10px]">
+              <div className="absolute -left-[31px] top-0 bg-white dark:bg-graphite-800 border-2 border-black rounded-full w-5 h-5 flex items-center justify-center text-[10px]">
                 {ev.icono === 'FileText' && <FileText size={16} />}
                 {ev.icono === 'CheckCircle' && <CheckCircle size={16} />}
                 {ev.icono === 'Pill' && <Pill size={16} />}
                 {ev.icono === 'File' && <File size={16} />}
               </div>
 
-              <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 hover:border-gray-400 transition-all space-y-1">
+              <div className="bg-gray-50 dark:bg-graphite-800 p-4 rounded-xl border border-gray-200 dark:border-graphite-700 hover:border-gray-400 transition-all space-y-1">
                 <div className="flex justify-between items-center flex-wrap gap-1">
-                  <span className="font-bold text-gray-900 text-xs">{ev.titulo}</span>
+                  <span className="font-bold text-gray-900 dark:text-graphite-50 text-xs">{ev.titulo}</span>
                   <div className="flex items-center gap-2">
                     <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${ev.badgeColor}`}>
                       {ev.tipo}
                     </span>
-                    <span className="text-[10px] font-bold text-gray-400"><span className="inline-flex items-center gap-1"><Calendar size={10} />{ev.fecha}</span></span>
+                    <span className="text-[10px] font-bold text-gray-400 dark:text-graphite-500"><span className="inline-flex items-center gap-1"><Calendar size={10} />{ev.fecha}</span></span>
                   </div>
                 </div>
-                <p className="text-gray-700 text-[11px] whitespace-pre-wrap pt-1">{ev.detalle}</p>
+                <p className="text-gray-700 dark:text-graphite-300 text-[11px] whitespace-pre-wrap pt-1">{ev.detalle}</p>
               </div>
             </div>
           ))}

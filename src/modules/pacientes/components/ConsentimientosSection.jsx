@@ -152,17 +152,17 @@ export const ConsentimientosSection = memo(({ paciente, userProfile }) => {
 
   return (
     <div className="space-y-6 text-xs">
-      <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5 space-y-4 print:hidden">
-        <h4 className="font-bold text-xs text-gray-800 uppercase tracking-wider">
+      <div className="bg-gray-50 dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-5 space-y-4 print:hidden">
+        <h4 className="font-bold text-xs text-gray-800 dark:text-graphite-100 uppercase tracking-wider">
           <span className="inline-flex items-center gap-1"><FileText size={14} />Emitir Consentimiento Informado con Firma Digital en Pantalla</span>
         </h4>
 
         <div>
-          <label className="block font-bold text-gray-700 mb-1">Seleccionar Tipo de Procedimiento</label>
+          <label className="block font-bold text-gray-700 dark:text-graphite-300 mb-1">Seleccionar Tipo de Procedimiento</label>
           <select
             value={plantillaId}
             onChange={(e) => setPlantillaId(e.target.value)}
-            className="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-bold"
+            className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-bold"
           >
             {PLANTILLAS_CONSENTIMIENTO.map(p => (
               <option key={p.id} value={p.id}>{p.nombre}</option>
@@ -170,13 +170,13 @@ export const ConsentimientosSection = memo(({ paciente, userProfile }) => {
           </select>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-gray-300 leading-relaxed text-gray-800">
+        <div className="bg-white dark:bg-graphite-800 p-4 rounded-xl border border-gray-300 dark:border-graphite-600 leading-relaxed text-gray-800 dark:text-graphite-100">
           <p className="font-semibold mb-2">{plantillaActual.nombre}</p>
-          <p className="text-[11px] text-gray-600">{plantillaActual.texto}</p>
+          <p className="text-[11px] text-gray-600 dark:text-graphite-400">{plantillaActual.texto}</p>
         </div>
 
         <div>
-          <label className="block font-bold text-gray-800 mb-2"><span className="inline-flex items-center gap-1"><PenLine size={12} />Firma Táctil / Digital del Paciente:</span></label>
+          <label className="block font-bold text-gray-800 dark:text-graphite-100 mb-2"><span className="inline-flex items-center gap-1"><PenLine size={12} />Firma Táctil / Digital del Paciente:</span></label>
           <FirmaDigitalCanvas alGuardarFirma={setFirmaBase64} resetSignal={firmaResetCounter} />
         </div>
 
@@ -193,7 +193,7 @@ export const ConsentimientosSection = memo(({ paciente, userProfile }) => {
 
       {/* M4b: Historial de Consentimientos desde R2 */}
       {cargando ? (
-        <div className="bg-white border border-gray-200 rounded-2xl p-5 text-center text-gray-500">
+        <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-5 text-center text-gray-500 dark:text-graphite-400">
           Cargando consentimientos...
         </div>
       ) : error ? (
@@ -201,8 +201,8 @@ export const ConsentimientosSection = memo(({ paciente, userProfile }) => {
           Error: {error}
         </div>
       ) : consentimientos.length > 0 ? (
-        <div className="bg-white border border-gray-200 rounded-2xl p-5 space-y-3 print:hidden">
-          <h4 className="font-bold text-xs text-gray-800 uppercase tracking-wider">
+        <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-5 space-y-3 print:hidden">
+          <h4 className="font-bold text-xs text-gray-800 dark:text-graphite-100 uppercase tracking-wider">
             <span className="inline-flex items-center gap-1"><ScrollText size={12} />Consentimientos Firmados del Paciente ({consentimientos.length})</span>
           </h4>
           <div className="space-y-3">

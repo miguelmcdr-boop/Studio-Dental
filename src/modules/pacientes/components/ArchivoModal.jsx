@@ -47,7 +47,7 @@ export const ArchivoModal = memo(({
           <iframe
             src={blobUrl}
             title={nombreArchivo}
-            className="w-full h-[70vh] rounded-lg shadow-lg bg-white"
+            className="w-full h-[70vh] rounded-lg shadow-lg bg-white dark:bg-graphite-800"
           />
         )}
 

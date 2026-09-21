@@ -7,14 +7,14 @@ export const GraficoProductividad = memo(({ desgloseEspecialidad = {} }) => {
   const montoMaximo = Math.max(...entradas.map(([, v]) => v), 1)
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xs text-xs space-y-4">
+    <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-5 shadow-xs text-xs space-y-4">
       <div className="flex justify-between items-center border-b pb-2">
-        <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider inline-flex items-center gap-2"><BarChart3 size={16} />Distribución por Especialidad Odontológica</h3>
-        <span className="text-[10px] text-gray-500 font-semibold">Proporción de Ingresos</span>
+        <h3 className="font-bold text-sm text-gray-900 dark:text-graphite-50 uppercase tracking-wider inline-flex items-center gap-2"><BarChart3 size={16} />Distribución por Especialidad Odontológica</h3>
+        <span className="text-[10px] text-gray-500 dark:text-graphite-400 font-semibold">Proporción de Ingresos</span>
       </div>
       
       {entradas.length === 0 ? (
-        <p className="text-gray-400 text-center py-8">No hay registros de especialidades asignadas.</p>
+        <p className="text-gray-400 dark:text-graphite-500 text-center py-8">No hay registros de especialidades asignadas.</p>
       ) : (
         <div className="space-y-3">
           {entradas.map(([esp, monto]) => {
@@ -23,11 +23,11 @@ export const GraficoProductividad = memo(({ desgloseEspecialidad = {} }) => {
 
             return (
               <div key={esp} className="space-y-1">
-                <div className="flex justify-between font-semibold text-gray-800 text-[11px]">
+                <div className="flex justify-between font-semibold text-gray-800 dark:text-graphite-100 text-[11px]">
                   <span>{esp}</span>
                   <span className="font-extrabold text-emerald-900">${monto.toLocaleString('es-CL')} CLP</span>
                 </div>
-                <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+                <div className="w-full bg-gray-100 dark:bg-graphite-800 rounded-full h-3 overflow-hidden">
                   <div
                     className={`${colorBarra} h-3 rounded-full transition-all duration-500`}
                     style={{ width: `${porcentaje}%` }}

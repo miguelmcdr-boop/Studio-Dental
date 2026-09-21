@@ -4,26 +4,26 @@ import { BarChart3 } from 'lucide-react'
 export const CuentasPendientes = memo(({ pacientes = [] }) => {
   return (
     <div className="space-y-6 text-xs">
-      <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-4">
+      <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-6 shadow-xs space-y-4">
         <div className="border-b pb-2">
-          <h3 className="font-bold text-sm text-gray-900 uppercase tracking-wider">
+          <h3 className="font-bold text-sm text-gray-900 dark:text-graphite-50 uppercase tracking-wider">
             <span className="inline-flex items-center gap-1"><BarChart3 size={14} />Resumen de Saldos Pendientes de Cobro (Pacientes en Mora)</span>
           </h3>
-          <p className="text-gray-500 text-[11px]">
+          <p className="text-gray-500 dark:text-graphite-400 text-[11px]">
             Pacientes con tratamientos iniciados que mantienen copagos o abonos pendientes.
           </p>
         </div>
 
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-gray-100 dark:divide-graphite-800">
           {pacientes.map(p => (
-            <div key={p.id} className="py-3 flex justify-between items-center flex-wrap gap-2 hover:bg-gray-50 p-2 rounded-xl transition-colors duration-150">
+            <div key={p.id} className="py-3 flex justify-between items-center flex-wrap gap-2 hover:bg-gray-50 dark:hover:bg-graphite-700 dark:hover:bg-graphite-700 p-2 rounded-xl transition-colors duration-150">
               <div>
-                <span className="font-bold text-gray-900 block">{p.nombre} ({p.rut})</span>
-                <span className="text-[10px] text-gray-500">Tel: {p.telefono || 'Sin teléfono'} | Previsión: {p.prevision}</span>
+                <span className="font-bold text-gray-900 dark:text-graphite-50 block">{p.nombre} ({p.rut})</span>
+                <span className="text-[10px] text-gray-500 dark:text-graphite-400">Tel: {p.telefono || 'Sin teléfono'} | Previsión: {p.prevision}</span>
               </div>
 
               <div className="text-right">
-                <span className="font-semibold text-gray-600 block text-[10px]">Previsión: {p.prevision}</span>
+                <span className="font-semibold text-gray-600 dark:text-graphite-400 block text-[10px]">Previsión: {p.prevision}</span>
                 <span className="font-extrabold text-blue-900 text-xs">Ficha Activa</span>
               </div>
             </div>

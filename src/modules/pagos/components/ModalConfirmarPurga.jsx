@@ -35,27 +35,27 @@ export const ModalConfirmarPurga = memo(({ pago, onConfirmar, alCerrar }) => {
           </p>
         </div>
 
-        <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-1">
-          <p><span className="font-bold text-gray-700">Folio:</span> {pago?.folioComprobante}</p>
-          <p><span className="font-bold text-gray-700">Paciente:</span> {pago?.pacienteNombre} ({pago?.pacienteRut})</p>
-          <p><span className="font-bold text-gray-700">Monto:</span> ${Number(pago?.monto || 0).toLocaleString('es-CL')} CLP</p>
-          <p><span className="font-bold text-gray-700">Fecha:</span> {pago?.fecha}</p>
+        <div className="bg-gray-50 dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-xl p-3 space-y-1">
+          <p><span className="font-bold text-gray-700 dark:text-graphite-300">Folio:</span> {pago?.folioComprobante}</p>
+          <p><span className="font-bold text-gray-700 dark:text-graphite-300">Paciente:</span> {pago?.pacienteNombre} ({pago?.pacienteRut})</p>
+          <p><span className="font-bold text-gray-700 dark:text-graphite-300">Monto:</span> ${Number(pago?.monto || 0).toLocaleString('es-CL')} CLP</p>
+          <p><span className="font-bold text-gray-700 dark:text-graphite-300">Fecha:</span> {pago?.fecha}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="block font-semibold text-gray-700 mb-1">
-              Motivo de la purga * <span className="text-gray-400">(mínimo 10 caracteres)</span>
+            <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">
+              Motivo de la purga * <span className="text-gray-400 dark:text-graphite-500">(mínimo 10 caracteres)</span>
             </label>
             <textarea
               value={motivo}
               onChange={(e) => { setMotivo(e.target.value); setError('') }}
               placeholder="Ej: Pago duplicado por error del cajero, anulado previamente pero requiere purga definitiva..."
-              className="w-full p-2.5 rounded-xl border border-gray-300 bg-white text-xs font-medium min-h-[80px] resize-none"
+              className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 text-xs font-medium min-h-[80px] resize-none"
               autoFocus
             />
             {error && <p className="text-red-600 text-[10px] font-semibold mt-1">{error}</p>}
-            <p className="text-gray-400 text-[10px] mt-1">{motivo.trim().length}/10 caracteres mínimo</p>
+            <p className="text-gray-400 dark:text-graphite-500 text-[10px] mt-1">{motivo.trim().length}/10 caracteres mínimo</p>
           </div>
 
           <div className="flex gap-2 pt-2">
