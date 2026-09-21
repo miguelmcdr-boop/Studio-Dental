@@ -3,7 +3,7 @@
  * Click en celda abre modal de edición.
  * F4-03f-5a
  */
-import React from 'react'
+import React, { memo } from 'react'
 import { FAMILIAS_ALERGIAS } from '../schemas/alergiaCruzadaSchema'
 import { Icon } from '../../../components/Icon'
 import { Dna, AlertTriangle, FileText } from 'lucide-react'
@@ -57,7 +57,7 @@ const formatearFamilia = (familia) => {
   return familia.replace(/_/g, ' ')
 }
 
-export const TablaAlergiasCruzadas = ({ alergiasCruzadas, onEditarCelda, onCrearNueva }) => {
+export const TablaAlergiasCruzadas = memo(({ alergiasCruzadas, onEditarCelda, onCrearNueva }) => {
   const mapaReglas = construirMapaReglas(alergiasCruzadas)
 
   return (
@@ -161,4 +161,4 @@ export const TablaAlergiasCruzadas = ({ alergiasCruzadas, onEditarCelda, onCrear
       </div>
     </div>
   )
-}
+})

@@ -3,7 +3,7 @@
  * Incluye búsqueda por fármaco A o B, badges de severidad y CRUD.
  * F4-03f-5b
  */
-import React, { useState, useMemo } from 'react'
+import React, { memo, useState, useMemo } from 'react'
 import { NIVELES_SEVERIDAD_INTERACCION } from '../schemas/interaccionSchema'
 import { FlaskConical } from 'lucide-react'
 import { FileText } from 'lucide-react'
@@ -23,7 +23,7 @@ const SEVERIDAD_CONFIG = {
       }
 }
 
-export const TablaInteracciones = ({ interacciones, onEditar, onEliminar, onCrearNueva }) => {
+export const TablaInteracciones = memo(({ interacciones, onEditar, onEliminar, onCrearNueva }) => {
   const [textoBusqueda, setTextoBusqueda] = useState('')
   const [filtroSeveridad, setFiltroSeveridad] = useState('')
 
@@ -185,4 +185,5 @@ export const TablaInteracciones = ({ interacciones, onEditar, onEliminar, onCrea
       </div>
     </div>
   )
-}
+})
+TablaInteracciones.displayName = 'TablaInteracciones'

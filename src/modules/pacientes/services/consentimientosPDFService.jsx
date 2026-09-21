@@ -1,11 +1,22 @@
-import html2canvas from 'html2canvas-pro'
-import { jsPDF } from 'jspdf'
 import { solicitaUrlUpload, subeArchivoAR2, solicitaUrlDownload, descargaArchivoDeR2, actualizarMetadataArchivo } from '../../../services/r2ArchivosService'
 import { createLogger } from '../../../services/logger'
 
 const log = createLogger('consentimientosPDFService')
 
 // Letter: 8.5in x 11in = 215.9mm x 279.4mm
+// E2: lazy load de dependencias pesadas (~300 kB)
+// html2canvas-pro y jspdf solo se cargan al primer uso, no en el bundle inicial
+let _html2canvas = null
+let _jsPDF = null
+const getHtml2canvas = async () => {
+  if (!_html2canvas) _html2canvas = (await import('html2canvas-pro')).default
+  return _html2canvas
+}
+const getJsPDF = async () => {
+  if (!_jsPDF) ({ jsPDF: _jsPDF } = await import('jspdf'))
+  return _jsPDF
+}
+
 export const LETTER_MM = { ancho: 215.9, alto: 279.4 }
 
 /**
@@ -21,13 +32,13 @@ export const generarPDFConsentimiento = async (nodoDOM) => {
   }
 
   try {
-    const canvas = await html2canvas(nodoDOM, {
+    const canvas = await (await getHtml2canvas())(nodoDOM, {
       scale: 2,
       backgroundColor: '#ffffff',
       useCORS: true
     })
 
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' })
+    const pdf = new (await getJsPDF())({ orientation: 'portrait', unit: 'mm', format: 'letter' })
     const img = canvas.toDataURL('image/png')
 
     const proporcion = canvas.height / canvas.width

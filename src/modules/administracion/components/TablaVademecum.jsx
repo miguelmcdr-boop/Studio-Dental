@@ -6,14 +6,14 @@
  * - PaginacionVademecum: navegación entre páginas
  * F4-03f-2 (refactorización)
  */
-import React, { useState, useMemo } from 'react'
+import React, { memo, useState, useMemo } from 'react'
 import { FiltrosVademecum } from './FiltrosVademecum'
 import { FilaVademecum } from './FilaVademecum'
 import { PaginacionVademecum } from './PaginacionVademecum'
 
 const ITEMS_POR_PAGINA = 20
 
-export const TablaVademecum = ({
+export const TablaVademecum = memo(({
   vademecum,
   vademecumCompleto,
   familiasDisponibles,
@@ -120,4 +120,4 @@ export const TablaVademecum = ({
       />
     </div>
   )
-}
+})

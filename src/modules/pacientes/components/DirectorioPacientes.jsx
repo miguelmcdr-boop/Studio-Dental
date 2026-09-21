@@ -15,7 +15,7 @@
  * - Filtros por nombre/RUT
  * - RBAC para papelera
  */
-import React, { memo, useState } from 'react'
+import React, { memo, useState, useMemo } from 'react'
 import { Trash2, Plus, Search, Users, FileText } from 'lucide-react'
 import { Button } from '../../../components/ui/Button'
 import { Input } from '../../../components/ui/Input'
@@ -53,10 +53,10 @@ export const DirectorioPacientes = memo(({ alSeleccionarPaciente, alEliminarPaci
 
   const puedeVaciar = puede(PERMISOS.VACIAR_PAPELERA)
 
-  const pacientesFiltrados = pacientes.filter(p =>
+  const pacientesFiltrados = useMemo(() => pacientes.filter(p =>
     p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
     p.rut.includes(busqueda)
-  )
+  ), [pacientes, busqueda])
 
   const handleCrearPaciente = (nuevoPaciente) => {
     setPacientes([nuevoPaciente, ...pacientes])

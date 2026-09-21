@@ -3,11 +3,11 @@
  * Basado en AHA 2021 / ADA (Sección 2C del vademécum v1.1).
  * F4-03f-5c
  */
-import React from 'react'
+import React, { memo } from 'react'
 import { ClipboardList } from 'lucide-react'
 import { Syringe, FileText } from 'lucide-react'
 
-export const TablaProfilaxis = ({ protocolos, onEditar, onEliminar, onCrearNueva }) => {
+export const TablaProfilaxis = memo(({ protocolos, onEditar, onEliminar, onCrearNueva }) => {
   const datos = Array.isArray(protocolos) ? protocolos : []
 
   return (
@@ -116,4 +116,5 @@ export const TablaProfilaxis = ({ protocolos, onEditar, onEliminar, onCrearNueva
       </div>
     </div>
   )
-}
+})
+TablaProfilaxis.displayName = 'TablaProfilaxis'

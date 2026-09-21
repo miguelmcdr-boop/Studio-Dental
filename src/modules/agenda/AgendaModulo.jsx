@@ -14,7 +14,7 @@
  *
  * Contratos: no hay data-testid en este archivo, preservación de API de props.
  */
-import React, { memo } from 'react'
+import React, { memo, useMemo } from 'react'
 import { Ban, Plus, Armchair, Calendar } from 'lucide-react'
 import { Button } from '../../components/ui/Button'
 import { PageHeader } from '../../components/ui/PageHeader'
@@ -50,7 +50,7 @@ export const AgendaModulo = memo(({ alSeleccionarPaciente, alVerFichaPaciente })
     enviarWhatsAppConfirmacion
   } = useAgenda(pacientesProp)
 
-  const citasDelDia = citas.filter(c => c.fecha === fechaSeleccionada)
+  const citasDelDia = useMemo(() => citas.filter(c => c.fecha === fechaSeleccionada), [citas, fechaSeleccionada])
   const funcionVerFicha = alSeleccionarPaciente || alVerFichaPaciente
 
   const boxesAMostrar = boxFiltro === 'Todos'

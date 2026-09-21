@@ -3,7 +3,7 @@
  * Muestra 6 fármacos con badges de color según riesgo.
  * F4-03f-2
  */
-import React from 'react'
+import React, { memo } from 'react'
 
 const RIESGO_COLORS = {
   bajo: 'bg-green-100 text-green-800 border-green-300',
@@ -11,7 +11,7 @@ const RIESGO_COLORS = {
   alto: 'bg-red-100 text-red-800 border-red-300'
 }
 
-export const TablaAntirresortivos = ({ antirresortivos, onEditar, onDesactivar, onCrearNuevo }) => {
+export const TablaAntirresortivos = memo(({ antirresortivos, onEditar, onDesactivar, onCrearNuevo }) => {
   const datos = Array.isArray(antirresortivos) ? antirresortivos : []
 
   return (
@@ -107,4 +107,4 @@ export const TablaAntirresortivos = ({ antirresortivos, onEditar, onDesactivar, 
       )}
     </div>
   )
-}
+})

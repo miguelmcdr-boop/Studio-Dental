@@ -3,11 +3,11 @@
  * Muestra 11 fármacos críticos con vía de administración e indicación.
  * F4-03f-2
  */
-import React from 'react'
+import React, { memo } from 'react'
 import { Icon } from '../../../components/Icon'
 import { Siren, AlertTriangle } from 'lucide-react'
 
-export const TablaUrgencia = ({ urgencia, onEditar, onDesactivar, onCrearNuevo }) => {
+export const TablaUrgencia = memo(({ urgencia, onEditar, onDesactivar, onCrearNuevo }) => {
   const datos = Array.isArray(urgencia) ? urgencia : []
   return (
     <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-lg overflow-hidden">
@@ -103,4 +103,5 @@ export const TablaUrgencia = ({ urgencia, onEditar, onDesactivar, onCrearNuevo }
       </div>
     </div>
   )
-}
+})
+TablaUrgencia.displayName = 'TablaUrgencia'

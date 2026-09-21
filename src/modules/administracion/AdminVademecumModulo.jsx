@@ -14,7 +14,7 @@
  *
  * Acceso restringido a ADMIN y DENTISTA vía permiso ADMINISTRAR_VADEMECUM.
  */
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import { useRBAC } from '../../hooks/useRBAC'
 import { PERMISOS } from '../../constants/rbacConstants'
 import { useVademecumAdmin } from './hooks/useVademecumAdmin'
@@ -69,8 +69,8 @@ export const AdminVademecumModulo = () => {
 
   // Handlers vademécum regular
   const handleCrearFarmaco = () => setModalFarmaco({ abierto: true, farmaco: null })
-  const handleEditarFarmaco = (farmaco) => setModalFarmaco({ abierto: true, farmaco })
-  const handleGuardarFarmaco = async (datos) => {
+  const handleEditarFarmaco = useCallback((farmaco) => setModalFarmaco({ abierto: true, farmaco }), [])
+  const handleGuardarFarmaco = useCallback(async (datos) => {
     setGuardando(true)
     try {
       await admin.crearOFarmacoActualizar(datos)
@@ -78,14 +78,14 @@ export const AdminVademecumModulo = () => {
     } finally {
       setGuardando(false)
     }
-  }
+  }, [admin, log])
   const handleDesactivarFarmaco = async (farmaco) => { await admin.desactivar(farmaco.numero) }
   const handleReactivarFarmaco = async (farmaco) => { await admin.reactivar(farmaco.numero) }
 
   // Handlers urgencia
   const handleCrearUrgencia = () => setModalUrgencia({ abierto: true, farmaco: null })
-  const handleEditarUrgencia = (farmaco) => setModalUrgencia({ abierto: true, farmaco })
-  const handleGuardarUrgencia = async (datos) => {
+  const handleEditarUrgencia = useCallback((farmaco) => setModalUrgencia({ abierto: true, farmaco }), [])
+  const handleGuardarUrgencia = useCallback(async (datos) => {
     setGuardando(true)
     try {
       log.info('Guardar urgencia:', datos)
@@ -93,12 +93,12 @@ export const AdminVademecumModulo = () => {
     } finally {
       setGuardando(false)
     }
-  }
+  }, [admin, log])
 
   // Handlers antirresortivos
   const handleCrearAntirresortivo = () => setModalAntirresortivo({ abierto: true, farmaco: null })
-  const handleEditarAntirresortivo = (farmaco) => setModalAntirresortivo({ abierto: true, farmaco })
-  const handleGuardarAntirresortivo = async (datos) => {
+  const handleEditarAntirresortivo = useCallback((farmaco) => setModalAntirresortivo({ abierto: true, farmaco }), [])
+  const handleGuardarAntirresortivo = useCallback(async (datos) => {
     setGuardando(true)
     try {
       log.info('Guardar antirresortivo:', datos)
@@ -106,7 +106,7 @@ export const AdminVademecumModulo = () => {
     } finally {
       setGuardando(false)
     }
-  }
+  }, [admin, log])
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">

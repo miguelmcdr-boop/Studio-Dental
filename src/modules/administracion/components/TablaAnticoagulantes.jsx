@@ -3,11 +3,11 @@
  * Basado en Sección 2B del vademécum v1.1 (tendencia actual AHA/ACC).
  * F4-03f-5c
  */
-import React from 'react'
+import React, { memo } from 'react'
 import { Icon } from '../../../components/Icon'
 import { Droplet, AlertTriangle, FileText } from 'lucide-react'
 
-export const TablaAnticoagulantes = ({ anticoagulantes, onEditar, onEliminar, onCrearNueva }) => {
+export const TablaAnticoagulantes = memo(({ anticoagulantes, onEditar, onEliminar, onCrearNueva }) => {
   const datos = Array.isArray(anticoagulantes) ? anticoagulantes : []
   return (
     <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-lg overflow-hidden">
@@ -104,4 +104,4 @@ export const TablaAnticoagulantes = ({ anticoagulantes, onEditar, onEliminar, on
       </div>
     </div>
   )
-}
+})

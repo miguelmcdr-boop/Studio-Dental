@@ -1,16 +1,16 @@
-import React from 'react'
+import React, { memo } from 'react'
 import { Button } from '../../../components/ui/Button'
 import { Input } from '../../../components/ui/Input'
 import { AlertTriangle, Trash2 } from 'lucide-react'
 
-export function TablaAsociaciones({
+export const TablaAsociaciones = memo(({
   items,
   categoriaActiva,
   asociacionesCategoriaActiva,
   handleAgregarAsociacion,
   handleActualizarAsociacion,
   handleEliminarAsociacion
-}) {
+}) => {
   if (asociacionesCategoriaActiva.length === 0) {
     return (
       <div className="text-center py-8 bg-gray-50 dark:bg-graphite-800 rounded-xl border border-dashed border-gray-300 dark:border-graphite-600">
@@ -131,4 +131,5 @@ export function TablaAsociaciones({
       </Button>
     </div>
   )
-}
+})
+TablaAsociaciones.displayName = 'TablaAsociaciones'
