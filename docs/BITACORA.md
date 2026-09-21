@@ -5668,3 +5668,35 @@ Optimizaciones React para prevenir re-renders innecesarios y reducir el bundle i
 17 commits en `feat/F10-design-system-v2` (9 C4 + 1 C5 + 2 D + 1 E + 4 de pulido).
 
 **Pendiente**: F10-F (push a origin + PR a main).
+
+## 2026-09-21 — F10 MERGEADO A MAIN: rama feat/F10-design-system-v2 completada
+
+**Estado final:** Rama mergeada a `main` y eliminada de origin. 127 commits totales sobre main integrados.
+
+### Resumen de la sesión F10-C/D/E/F
+
+**F10-C (Emoji Sweep + consistencia):** 84+ archivos, 0 emojis decorativos en UI, iconografía lucide-react profesional, consistencia visual en 16 títulos de módulo (PageHeader con prop `icon`).
+
+**F10-C5 (Efectos visuales):** Animaciones reales de Modal/Toast (keyframes CSS que antes no existían), 70 transitions en hovers, feedback de loading en 4 formularios críticos.
+
+**F10-D (Dark sweep):** 137 archivos, 1372 clases dark con tokens graphite del DS, dark mode 100% funcional. Excepción: 8 componentes imprimibles (deben quedar blancos).
+
+**F10-E (Performance):** `useMemo` en listas críticas, `memo()` en 8 tablas, `useCallback` en 6 handlers, lazy load de html2canvas-pro + jspdf (~650 kB fuera del bundle inicial).
+
+**F10-F (Cierre):** Docs actualizadas (MASTER_ROADMAP línea 182 + BITACORA), push a origin, merge a main vía GitHub.
+
+### Fix post-push (hotfix CI)
+
+GitHub CI detectó 6 errores de oxlint: los 6 `useCallback` agregados en E4 quedaron después del early return RBAC de `AdminVademecumModulo`, violando Rules of Hooks. Fix estructural: bloque de handlers movido antes del early return. Sin cambio de comportamiento. 0 errors de lint, CI pasa.
+
+### Métricas finales acumuladas
+
+- **Commits mergeados:** 127 sobre `main`
+- **Archivos modificados:** ~292 únicos
+- **Líneas netas:** +12,447 / -3,274
+- **Tests:** 1482/1482 pasando
+- **Build:** exitoso (PWA 40 entries precached, 3364 kB)
+- **Validador arquitectónico:** VERDE (0 violaciones, 68 archivos en allowlist respetados)
+- **Lint (oxlint):** 0 errors (96 warnings preexistentes, no bloqueantes)
+
+**F10 queda marcado como DONE total en MASTER_ROADMAP.md.**
