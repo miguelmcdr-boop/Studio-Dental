@@ -1,14 +1,7 @@
 import React, { useState } from 'react'
 import {
-  crearCredencial,
-  verificarPassword,
-  estaBloqueado,
-  registrarIntentoFallido,
-  limpiarIntentosFallidos,
   obtenerPerfil,
   guardarPerfil,
-  existePerfil,
-  MAX_INTENTOS_FALLIDOS,
   supabaseSignIn,
   supabaseSignUp,
 } from '../services/authService'
@@ -39,24 +32,14 @@ export const LoginScreen = ({ onLogin }) => {
     setEmail(value)
     setError('')
     
-    // F4-02b FIX: En modo Supabase, NO verificar localStorage (el usuario
-    // está en Supabase Auth, no en localStorage). Asumimos que el usuario
-    // puede existir y mostramos el formulario de login por defecto.
-    const useSupabase = import.meta.env.VITE_USE_SUPABASE === 'true'
-    
-    if (useSupabase) {
-      // En modo Supabase, mostramos login por defecto
-      setIsFirstTime(false)
-    } else {
-      // F2-07c: vía authService (existePerfil), no acceso directo a localStorage
-      const yaExiste = existePerfil(value.trim())
-      setIsFirstTime(!yaExiste)
-    }
+    // F7-16: Modo Supabase únicamente. El usuario puede existir en Supabase Auth.
+    // Mostramos login por defecto; si el email no existe, Supabase retorna error.
+    setIsFirstTime(false)
   }
 
   /**
-   * F4-02b: handleSubmit dual. Usa Supabase Auth cuando VITE_USE_SUPABASE=true,
-   * con fallback al sistema local PBKDF2 cuando está desactivado.
+   * F7-16: handleSubmit con Supabase Auth únicamente.
+   * Modo local PBKDF2 eliminado (código legacy no usado en producción).
    */
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -64,18 +47,6 @@ export const LoginScreen = ({ onLogin }) => {
     if (email.trim() === '' || password === '') return
 
     const formattedEmail = email.trim().toLowerCase()
-    const useSupabase = import.meta.env.VITE_USE_SUPABASE === 'true'
-
-    // F4-02b: el bloqueo por intentos fallidos solo aplica al sistema local.
-    // Supabase Auth maneja rate limiting internamente.
-    if (!useSupabase) {
-      const estadoBloqueo = estaBloqueado(formattedEmail)
-      if (estadoBloqueo.bloqueado) {
-        const minutos = Math.ceil(estadoBloqueo.restanteMs / 60000)
-        setError(`Demasiados intentos fallidos. Intenta nuevamente en ${minutos} minuto(s).`)
-        return
-      }
-    }
 
     setCargando(true)
     try {
@@ -131,58 +102,6 @@ export const LoginScreen = ({ onLogin }) => {
         // (evita race condition con getUser() después del signIn).
         const userMetadata = metadata._supabaseUserMetadata || {}
         const userProfile = await construirUserProfile(formattedEmail, userMetadata, metadata)
-        onLogin(userProfile)
-      } else {
-        // ═══════════════════════════════════════════════════
-        // MODO LOCAL (PBKDF2 + localStorage) - Fallback
-        // ═══════════════════════════════════════════════════
-        // F2-07c: vía authService (obtenerPerfil), no acceso directo a localStorage
-        let userProfile = obtenerPerfil(formattedEmail)
-
-        if (!userProfile) {
-          // Perfil nuevo: se crea con una credencial real hasheada.
-          const credencial = await crearCredencial(password)
-          userProfile = {
-            email: formattedEmail,
-            nombreCompleto: metadata.nombreCompleto,
-            rut: metadata.rut,
-            especialidad: metadata.especialidad,
-            rol: metadata.rol,
-            credencial,
-          }
-          // F2-07c: vía authService (guardarPerfil)
-          guardarPerfil(formattedEmail, userProfile)
-          limpiarIntentosFallidos(formattedEmail)
-          onLogin(userProfile)
-          return
-        }
-
-        if (!userProfile.credencial) {
-          // Perfil creado antes de esta corrección (F1-01): nunca tuvo una
-          // contraseña real verificable. Se establece ahora con la contraseña
-          // ingresada, como migración de una sola vez.
-          const credencial = await crearCredencial(password)
-          userProfile = { ...userProfile, credencial }
-          // F2-07c: vía authService (guardarPerfil)
-          guardarPerfil(formattedEmail, userProfile)
-          limpiarIntentosFallidos(formattedEmail)
-          onLogin(userProfile)
-          return
-        }
-
-        const esValida = await verificarPassword(password, userProfile.credencial)
-        if (!esValida) {
-          const estado = registrarIntentoFallido(formattedEmail)
-          const intentosRestantes = MAX_INTENTOS_FALLIDOS - estado.count
-          setError(
-            intentosRestantes > 0
-              ? `Contraseña incorrecta. Te quedan ${intentosRestantes} intento(s) antes del bloqueo temporal.`
-              : 'Demasiados intentos fallidos. Cuenta bloqueada temporalmente.'
-          )
-          return
-        }
-
-        limpiarIntentosFallidos(formattedEmail)
         onLogin(userProfile)
       }
     } catch (err) {
