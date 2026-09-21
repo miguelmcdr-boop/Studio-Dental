@@ -43,9 +43,11 @@ async function hmacSha256(
   key: ArrayBuffer | Uint8Array,
   data: string
 ): Promise<ArrayBuffer> {
+  // F7-34 FIX: Cast explicito para resolver TS2769 (deuda tecnica F7-22)
+  const keyData = key instanceof Uint8Array ? key.buffer.slice(key.byteOffset, key.byteOffset + key.byteLength) : key;
   const cryptoKey = await crypto.subtle.importKey(
     "raw",
-    key instanceof Uint8Array ? key : key,
+    keyData as ArrayBuffer,
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign"]
@@ -59,10 +61,11 @@ async function getSignatureKey(
   region: string,
   service: string
 ): Promise<ArrayBuffer> {
-  let k = await hmacSha256(encoder.encode("AWS4" + secret), dateStamp);
-  k = await hmacSha256(k, region);
-  k = await hmacSha256(k, service);
-  k = await hmacSha256(k, "aws4_request");
+  // F7-34 FIX: encoder.encode retorna Uint8Array, cast a ArrayBuffer (TS2345)
+  let k = await hmacSha256(encoder.encode("AWS4" + secret) as unknown as ArrayBuffer, dateStamp);
+  k = await hmacSha256(k as ArrayBuffer, region);
+  k = await hmacSha256(k as ArrayBuffer, service);
+  k = await hmacSha256(k as ArrayBuffer, "aws4_request");
   return k;
 }
 
