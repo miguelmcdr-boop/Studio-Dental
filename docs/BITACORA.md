@@ -5610,3 +5610,61 @@ Transformación del chrome de la app al patrón Linear/Clerk: navegación agrupa
 
 ### Estado: ✅ DONE (2026-09-09) — F10-B completada
 ### Siguiente fase: F10-C (módulos core — Agenda, Directorio, Presupuestos con PageHeader + Badge + EmptyState)
+## 2026-09-21 — F10-C/D/E: Emoji Sweep + Dark Sweep + Performance — DONE
+
+**Qué se ganó:** Pulido profesional completo del Design System v2. El sistema pasó de MVP con emojis decorativos a una aplicación clínica seria con iconografía lucide-react consistente, dark mode funcional al 100% en todos los módulos de pantalla, y optimizaciones de performance que eliminan ~650 kB del bundle inicial.
+
+### F10-C Emoji Sweep (84+ archivos, 9 commits)
+
+Sustitución total de emojis pictográficos decorativos en UI/JSX por iconos profesionales de lucide-react.
+
+- **Auditoría exhaustiva con Python** (detección por codepoint unicode). El grep de macOS no soporta rangos unicode, por eso auditorías previas subestimaban el universo.
+- **~50 iconos lucide-react** integrados en módulos, formularios, modales y tablas
+- **PageHeader.jsx** recibió prop `icon` retrocompatible → 16 módulos principales con iconos consistentes en títulos (Agenda=Calendar, Pacientes=Users, Dashboard=LayoutDashboard, GestiónMiembros=UsersRound, etc.)
+- **Caracteres Unicode preservados**: ⚠ (U+26A0) y ⛔ (U+26D4) para alertas médicas (aprobados en Fase 4 Opción B como símbolos ISO 3864 para salud). ✓ ✕ ← → (tipográficos) preservados.
+- **Commits**: 1741210, 2b7ec17, 5456fb8, 8229372, 3c23248, df2e5fb, 40129d9, c6f527b, e78499a
+
+### F10-C+ Consistencia visual en títulos (46 archivos, 1 commit)
+
+- 16 módulos principales ahora tienen icono lucide-react junto al título (Mail, ClipboardList, Sparkles, Siren, DollarSign, CreditCard, Package, FlaskConical, BarChart3, Zap, Pill, Calendar, Users, LayoutDashboard, UsersRound)
+- **Commit**: a513c8d
+
+### F10-C5 Efectos visuales / dinámicos (46 archivos, 1 commit)
+
+- **Fase 1 (CSS)**: Agregados `@keyframes ds-fade-in/ds-zoom-in-95/ds-slide-in-right` + utilidades `animate-in/fade-in/zoom-in-95/animate-slide-in` en `index.css`. Antes Modal.jsx y ToastContainer.jsx usaban estas clases pero **NO existían** en ningún CSS → las animaciones nunca se ejecutaban.
+- **Accesibilidad**: `@media (prefers-reduced-motion: reduce)` global (WCAG 2.3.3). Usuarios con trastornos vestibulares activan "Reducir movimiento" en su OS y la app lo respeta.
+- **Fase 2 (transitions)**: 70 hovers sin transition en 40 archivos → `transition-colors/opacity duration-150` agregada a todos. Hovers suaves en vez de cambios bruscos de color.
+- **Fase 3 (loading feedback)**: 4 formularios críticos (ModalNuevoPaciente, ModalEditarPaciente, PerfilProfesionalForm, FormRegistroUrgencia) migrados a `<Button>` del DS con `loading={enviando}` + `disabled` + `try/finally`. Cero doble-clicks accidentales en "Crear Paciente" y "Emitir Constancia GES".
+- **Commit**: a513c8d
+
+### F10-D Dark Sweep (137 archivos, 2 commits)
+
+Dark mode funcional al 100% en todos los módulos de pantalla usando los tokens `graphite-*` del Design System.
+
+- **1372 líneas** modificadas con patrón automatizado: `bg-white → +dark:bg-graphite-800`, `text-gray-* → +dark:text-graphite-*`, `border-gray-* → +dark:border-graphite-*`, `hover:bg-gray-* → +dark:hover:bg-graphite-*`, etc.
+- **Exclusiones intencionales** (deben quedar blancos siempre): 8 componentes imprimibles (DocumentoPresupuestoImprimible, ComprobantePagoImprimible, OrdenImprimible, ReporteImprimibleLetter, DocumentoImpresoGes, ConsentimientoImprimible, CertificadoImprimible) — el dark mode rompería el formato Letter en papel. BootstrapClinica (onboarding) también excluida.
+- **Pulido final**: overlays semitransparentes (`bg-white/60`, `bg-white/70`) en AlertaAlergiaMejorada y DienteSVG agregados manualmente.
+- **Commits**: 4304759 (sweep masivo), 6549282 (pulido overlays)
+
+### F10-E Performance (13 archivos, 1 commit)
+
+Optimizaciones React para prevenir re-renders innecesarios y reducir el bundle inicial.
+
+- **E1 — useMemo**: `pacientesFiltrados` (DirectorioPacientes) y `citasDelDia` (Agenda) memoizadas con sus deps.
+- **E2 — Lazy load PDF libs (~650 kB)**: `certificadosPDFService` y `consentimientosPDFService` ahora cargan `html2canvas-pro` y `jspdf` vía `import()` dinámico con cache a nivel de módulo (`getHtml2canvas/getJsPDF`). Code splitting verificado en build: chunks separados `html2canvas-pro.esm` (249 kB) y `jspdf.es.min` (399 kB) que solo se descargan al primer uso real de PDF.
+- **E3 — memo() en 8 tablas**: TablaInteracciones, TablaUrgencia, TablaAlergiasCruzadas, TablaAnticoagulantes, TablaProfilaxis, TablaAntirresortivos, TablaVademecum (vademécum) + TablaAsociaciones (inventario). Previenen re-renders cuando el padre cambia estado sin cambiar las props de la tabla.
+- **E4 — useCallback en 6 handlers**: AdminVademecumModulo. 3 handlers de edición (deps `[]`) + 3 de guardado (deps `[admin, log]`). Complemento necesario para E3: sin handlers estables, `memo()` en las tablas no tiene efecto.
+- **Commit**: 50ef302
+
+### Validaciones finales
+
+- ✅ **1482/1482 tests pasando** (sin regresiones)
+- ✅ **Build exitoso** con PWA (40 entries precached, 3364 kB)
+- ✅ **Validador arquitectónico VERDE** (0 violaciones, 68 archivos en allowlist respetados)
+- ✅ **Git limpio** en rama `feat/F10-design-system-v2`, 125 commits por encima de `main`
+
+### Commits totales de esta sesión F10-C/D/E
+
+17 commits en `feat/F10-design-system-v2` (9 C4 + 1 C5 + 2 D + 1 E + 4 de pulido).
+
+**Pendiente**: F10-F (push a origin + PR a main).
