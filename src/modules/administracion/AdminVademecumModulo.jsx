@@ -51,22 +51,6 @@ export const AdminVademecumModulo = () => {
   const [modalAntirresortivo, setModalAntirresortivo] = useState({ abierto: false, farmaco: null })
   const [guardando, setGuardando] = useState(false)
 
-  // Validación de acceso
-  if (!puede(PERMISOS.ADMINISTRAR_VADEMECUM)) {
-    return (
-      <div className="p-8 max-w-2xl mx-auto">
-        <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center">
-          <Lock size={48} className="mx-auto mb-4 text-graphite-300" />
-          <h2 className="text-2xl font-bold text-red-900 mb-2">Acceso Denegado</h2>
-          <p className="text-red-700">
-            No tiene permisos para administrar el vademécum.
-            Contacte al administrador del sistema si necesita acceso.
-          </p>
-        </div>
-      </div>
-    )
-  }
-
   // Handlers vademécum regular
   const handleCrearFarmaco = () => setModalFarmaco({ abierto: true, farmaco: null })
   const handleEditarFarmaco = useCallback((farmaco) => setModalFarmaco({ abierto: true, farmaco }), [])
@@ -107,6 +91,22 @@ export const AdminVademecumModulo = () => {
       setGuardando(false)
     }
   }, [admin, log])
+
+  // Validación de acceso
+  if (!puede(PERMISOS.ADMINISTRAR_VADEMECUM)) {
+    return (
+      <div className="p-8 max-w-2xl mx-auto">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center">
+          <Lock size={48} className="mx-auto mb-4 text-graphite-300" />
+          <h2 className="text-2xl font-bold text-red-900 mb-2">Acceso Denegado</h2>
+          <p className="text-red-700">
+            No tiene permisos para administrar el vademécum.
+            Contacte al administrador del sistema si necesita acceso.
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
