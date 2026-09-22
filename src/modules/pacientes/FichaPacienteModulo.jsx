@@ -15,6 +15,7 @@ import { ConsentimientosSection } from './components/ConsentimientosSection'
 import { CalculadoraAnestesiaSection } from './components/CalculadoraAnestesiaSection'
 import { AdjuntosSection } from './components/AdjuntosSection'
 import { ModalEditarPaciente } from './components/ModalEditarPaciente'
+import { PacienteNavigator } from './components/PacienteNavigator' // F7-26
 
 // Especialidades Externas (Módulos Encapsulados)
 import { OdontogramaModulo } from '../odontograma'
@@ -33,7 +34,8 @@ export const FichaPacienteModulo = memo(({
   paciente,
   alActualizarPaciente,
   alEliminarPaciente,
-  alVolver
+  alVolver,
+  navegacionClinica, // F7-26: navegación entre pacientes
 }) => {
   // (F2-02) — Ahora los stores sí están correctamente importados arriba
   const userProfile = useSesionStore((state) => state.userProfile)
@@ -66,6 +68,18 @@ export const FichaPacienteModulo = memo(({
 
   return (
     <div role="main" aria-label={`Ficha clínica de ${paciente.nombre}`}>
+      {/* F7-26: Navegador de pacientes (si hay datos de navegación) */}
+      {navegacionClinica && navegacionClinica.total > 0 && (
+        <PacienteNavigator
+          indiceActual={navegacionClinica.indiceActual}
+          total={navegacionClinica.total}
+          hayAnterior={navegacionClinica.hayAnterior}
+          haySiguiente={navegacionClinica.haySiguiente}
+          anterior={navegacionClinica.anterior}
+          siguiente={navegacionClinica.siguiente}
+        />
+      )}
+
       {/* Botones Volver / Eliminar */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 print:hidden">
         <button onClick={alVolver} className="text-xs font-semibold text-gray-500 dark:text-graphite-400 hover:text-black flex items-center gap-1 cursor-pointer">
