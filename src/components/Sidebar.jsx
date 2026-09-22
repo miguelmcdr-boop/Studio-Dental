@@ -20,8 +20,24 @@ import { Badge } from './ui/Badge'
 import { SECCIONES_SIDEBAR } from '../constants/sidebarConstants'
 
 export const Sidebar = ({ userProfile, activeSection, setActiveSection, onLogout, counters = {} }) => {
-  const [colapsado, setColapsado] = useState(false)
+  // F7-28: Auto-colapsar sidebar en mobile (< 768px) al montar
+  const [colapsado, setColapsado] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return window.innerWidth < 768
+  })
   const { puede, rol } = useRBAC()
+
+  // F7-28: Listener para cambios de tamaño de pantalla
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return
+    const mql = window.matchMedia('(max-width: 767px)')
+    const handleChange = (e) => {
+      // Solo auto-colapsar al cruzar el breakpoint (no sobreescribir toggle manual)
+      if (e.matches) setColapsado(true)
+    }
+    mql.addEventListener('change', handleChange)
+    return () => mql.removeEventListener('change', handleChange)
+  }, [])
 
   // Filtrar items por permiso y ocultar secciones que queden vacías
   const seccionesVisibles = useMemo(() => (
@@ -65,7 +81,7 @@ export const Sidebar = ({ userProfile, activeSection, setActiveSection, onLogout
   }
 
   return (
-    <aside className={`${colapsado ? 'w-20' : 'w-64'} bg-graphite-50 dark:bg-graphite-900 p-4 border-r border-graphite-200 dark:border-graphite-700 min-h-screen flex flex-col justify-between transition-all duration-300 print:hidden relative`}>
+    <aside className={`${colapsado ? 'w-20' : 'w-64'} bg-graphite-50 dark:bg-graphite-900 p-4 border-r border-graphite-200 dark:border-graphite-700 min-h-screen flex-col justify-between transition-all duration-300 print:hidden relative hidden sm:flex`} role="navigation" aria-label="Menú principal">
       <div>
         {/* Logo + toggle de colapso */}
         <div className="flex items-center justify-between mb-6 px-2">

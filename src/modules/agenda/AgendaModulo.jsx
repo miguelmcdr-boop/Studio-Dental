@@ -58,14 +58,14 @@ export const AgendaModulo = memo(({ alSeleccionarPaciente, alVerFichaPaciente })
     : SILLONES_DENTALES.filter(b => b.nombre === boxFiltro)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" role="main" aria-label="Agenda de citas">
       {/* PageHeader con acciones */}
       <PageHeader
         icon={Calendar}
         title="Agenda multi-box y control de sillones"
         description="Gestión inteligente de citas, ocupación de Boxes y confirmación omnicanal."
         actions={
-          <div className="flex items-center gap-2.5 flex-wrap">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
             <Button
               type="button"
               onClick={() => setModalNuevoBloqueoAbierto(true)}
@@ -102,8 +102,8 @@ export const AgendaModulo = memo(({ alSeleccionarPaciente, alVerFichaPaciente })
       <AgendaSummaryCards citas={citasDelDia} />
 
       {/* Parrilla Multi-Box */}
-      <div className="bg-graphite-50 dark:bg-graphite-900 border border-graphite-200 dark:border-graphite-700 rounded-xl p-6 overflow-x-auto">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 min-w-[800px]">
+      <div className="bg-graphite-50 dark:bg-graphite-900 border border-graphite-200 dark:border-graphite-700 rounded-xl p-4 md:p-6" role="region" aria-label="Parrilla de sillones dentales">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {boxesAMostrar.map(box => {
             const citasBox = citasDelDia.filter(
               c => c.boxAsignado === box.nombre || c.boxAsignado === 'Todos los Boxes' || (!c.boxAsignado && box.id === 'sillon_1')
@@ -134,6 +134,7 @@ export const AgendaModulo = memo(({ alSeleccionarPaciente, alVerFichaPaciente })
                         icon={Armchair}
                         title="Sin citas agendadas en este Box"
                         description="Disponible para reservas"
+                        aria-live="polite"
                       />
                     ) : (
                       citasBox.map(cita => (

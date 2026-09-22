@@ -182,7 +182,7 @@
 | F10 | Rediseño Clinical Precision v2 (DS v2 + migración módulos) | 10 | P1 | L (6-8 d) | — | **DONE (2026-09-21)** — F10-A (Fundación) + F10-B (Shell) + F10-C (Emoji Sweep + consistencia) + F10-D (dark-sweep) + F10-E (performance) + F10-F (push). Rama feat/F10-design-system-v2 mergeada a main (127 commits). |
 | F7-26 | Ficha clínica premium y navegación clínica optimizada | 7 | P1 | L (4-7 d) | F7-25 | TODO |
 | F7-27 | Agenda + dashboard operacional de nivel comercial | 7 | P1 | M (3-5 d) | F7-25 | TODO |
-| F7-28 | Responsive + accesibilidad integral de flujos críticos | 7 | P1 | M (2-4 d) | F7-25 | TODO |
+| F7-28 | Responsive + accesibilidad integral de flujos críticos | 7 | P1 | M (2-4 d) | F7-25 | DONE (2026-09-22) — LoginScreen fix crítico (bug useSupabase de F7-16). FichaPaciente responsive + 7 mejoras a11y. Agenda responsive + 5 mejoras a11y. Sidebar auto-colapsa en mobile. EmptyState con 6 tests a11y. Tests 1479/1479 OK. |
 | F7-29 | Manual de usuario por rol + capacitación | 7 | P2 | L (1-2 sem) | F7-25,F7-26,F7-27 | TODO |
 | F7-30 | Release Candidate + checklist GO/NO-GO para piloto | 7 | **P0** | M (2-3 d) | F7-04,F7-06,F7-08,F7-13,F7-20,F7-21,F7-22,F7-24,F7-28,F7-29,**F7-34** | TODO — Etapa final. Debe verificar seguridad, datos, testing, producto y operación. No marcar GO automáticamente. |
 | F7-31 | Papelera de archivos clínicos (restaurar archivos eliminados de R2) | 7 | P2 | S (1-2 d) | F7-22 | DONE (2026-09-04) — r2-delete modificado (soft delete), r2-list-deleted + r2-restore creados, PapeleraArchivos.jsx integrado, tests E2E 3/3 pasados, migración 14 (FILE_RESTORE en constraint) |
