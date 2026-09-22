@@ -116,12 +116,13 @@ function App() {
     setPacienteSeleccionado
   )
 
-  // F10-B4: CommandPalette con ⌘K
+  // F10-B4: CommandPalette con ⌘K (F7-26: + onSelectPaciente)
   const commandPalette = useCommandPalette({
     onNavigate: setActiveSection,
     onCreateCita: () => setActiveSection('Agenda'),
     onCreatePaciente: () => setActiveSection('Pacientes'),
     onCreatePresupuesto: () => setActiveSection('Presupuestos'),
+    onSelectPaciente: setPacienteSeleccionado, // F7-26: seleccionar paciente desde CommandPalette
   })
 
   // F10-B4: Atajo ⌘K / Ctrl+K para abrir CommandPalette

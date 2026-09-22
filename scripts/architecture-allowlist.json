@@ -76,6 +76,7 @@
     "src/utils/anestesiaDatos.js": {
       "reason": "Datos de respaldo v1.0 hardcodeados (4 anestésicos con 15 campos cada uno) - no es lógica, son datos clínicos de referencia. Extraído de anestesiaCalculations.js en F7-02 para cumplir límites.",
       "frozenAt": 74
-    }
+    },
+    "src/hooks/useCommandPalette.js": 156
   }
 }

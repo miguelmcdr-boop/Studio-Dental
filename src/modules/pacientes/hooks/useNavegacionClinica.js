@@ -8,13 +8,15 @@
  * - Usa SIEMPRE la lista completa de pacientes del store (no la filtrada
  *   del DirectorioPacientes) para que navegación ← → recorra todos los
  *   pacientes disponibles.
- * - El orden de navegación es el orden del store (típicamente orden de
- *   creación o alfabético según la implementación del service).
+ * - El orden de navegación es alfabético por nombre (predecible).
  * - El hook es idempotente: si el paciente actual no está en la lista
  *   (ej: paciente recién eliminado), retorna estado "fuera de rango".
+ * - F7-26: Cada vez que pacienteActual cambia, se agrega al historial
+ *   de pacientes recientes (sesionStore) para acceso rápido desde
+ *   CommandPalette.
  *
  * Uso:
- *   const nav = useNavegacionClinica(pacienteSeleccionado)
+ *   const nav = useNavegacionClinica(pacienteSeleccionado, setPacienteSeleccionado)
  *   // nav.siguiente() → actualiza el paciente en el store
  *   // nav.anterior() → actualiza el paciente en el store
  *   // nav.indiceActual, nav.total → indicador "X de Y"
@@ -23,8 +25,9 @@
  *   El hook se instancia en App.jsx (donde vive pacienteSeleccionado)
  *   y se pasan las props de navegación a FichaPacienteModulo.
  */
-import { useMemo, useCallback } from 'react'
+import React, { useMemo, useCallback, useEffect } from 'react'
 import { usePacientesStore } from '../../../store/pacientesStore'
+import { useSesionStore } from '../../../store/sesionStore'
 
 export const useNavegacionClinica = (pacienteActual, alCambiarPaciente) => {
   const pacientes = usePacientesStore((state) => state.pacientes)
@@ -62,6 +65,15 @@ export const useNavegacionClinica = (pacienteActual, alCambiarPaciente) => {
   const siguiente = useCallback(() => {
     if (haySiguiente) irA(indiceActual + 1)
   }, [haySiguiente, irA, indiceActual])
+
+  // F7-26: Cuando el paciente actual cambia, agregarlo al historial de recientes.
+  // Esto cubre tanto navegación manual (← →) como selección desde Directorio/CommandPalette.
+  // El método agregarPacienteReciente es idempotente (no duplica).
+  useEffect(() => {
+    if (pacienteActual?.id) {
+      useSesionStore.getState().agregarPacienteReciente(pacienteActual)
+    }
+  }, [pacienteActual?.id])
 
   return {
     indiceActual,
