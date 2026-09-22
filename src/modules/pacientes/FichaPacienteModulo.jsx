@@ -16,6 +16,8 @@ import { CalculadoraAnestesiaSection } from './components/CalculadoraAnestesiaSe
 import { AdjuntosSection } from './components/AdjuntosSection'
 import { ModalEditarPaciente } from './components/ModalEditarPaciente'
 import { PacienteNavigator } from './components/PacienteNavigator' // F7-26
+import { ResumenClinicoHeader } from './components/ResumenClinicoHeader' // F7-26
+import { useMetricasClinicas } from './hooks/useMetricasClinicas' // F7-26
 
 // Especialidades Externas (Módulos Encapsulados)
 import { OdontogramaModulo } from '../odontograma'
@@ -66,6 +68,14 @@ export const FichaPacienteModulo = memo(({
     saldoPendiente
   } = useFichaPaciente(paciente, alActualizarPaciente)
 
+  // F7-26: KPIs del paciente para ResumenClinicoHeader
+  const metricasClinicas = useMetricasClinicas({
+    paciente,
+    evolucionesNotas,
+    itemsPresupuesto,
+    abonos,
+  })
+
   return (
     <div role="main" aria-label={`Ficha clínica de ${paciente.nombre}`}>
       {/* F7-26: Navegador de pacientes (si hay datos de navegación) */}
@@ -93,6 +103,9 @@ export const FichaPacienteModulo = memo(({
           <span className="inline-flex items-center gap-1"><Trash2 size={12} />Eliminar Paciente</span>
         </button>
       </div>
+
+      {/* F7-26: Resumen clínico con KPIs */}
+      <ResumenClinicoHeader metricas={metricasClinicas} />
 
       {/* Banner de Datos Principales del Paciente */}
       <div className="bg-gray-50 dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-4 sm:p-6 mb-6 flex flex-col lg:flex-row justify-between items-start gap-4 print:hidden">
