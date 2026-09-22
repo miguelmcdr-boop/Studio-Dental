@@ -6058,3 +6058,69 @@ Las 8 "violaciones" detectadas son en realidad **excepciones legítimas** de arq
 - Documentación de excepciones legítimas para futuros desarrolladores
 
 **Próximo paso:** Merge a main y continuar con F7-28 (Responsive + accesibilidad).
+
+## 2026-09-22 - F7-28: Responsive + accesibilidad integral - DONE
+
+**Estado:** COMPLETADO. Rama feat/F7-28-responsive-a11y lista para merge.
+
+**Contexto:** Auditoría reveló gaps de responsive y accesibilidad en flujos críticos (LoginScreen, FichaPaciente, Agenda, Sidebar). Además se detectó bug crítico en LoginScreen (uso de variable `useSupabase` no definida, residual de F7-16) que rompía el login en producción.
+
+**Cambios aplicados:**
+
+1. **LoginScreen.jsx (Fase 0+1 - CRÍTICO):**
+   - **FIX CRÍTICO:** Eliminado wrapper `if (useSupabase)` que referenciaba variable inexistente (bug de F7-16)
+   - Responsive: `max-w-md` con padding adaptativo (p-6 sm:p-8)
+   - Título responsive (text-xl sm:text-2xl)
+   - Grid de RUT/Especialidad adaptable (grid-cols-1 sm:grid-cols-2)
+   - Accesibilidad: role="main", aria-label en contenedor principal
+   - Accesibilidad: role="alert" + aria-live="assertive" en mensajes de error
+   - Typo corregido: `w-fullmax-w-md` → `w-full max-w-md`
+
+2. **FichaPacienteModulo.jsx (Fase 2):**
+   - role="main" + aria-label dinámico (`Ficha clínica de {nombre}`)
+   - Botones Volver/Eliminar responsive (stack vertical en mobile)
+   - Banner de datos responsive (stack en tablet, horizontal en desktop)
+   - Título responsive (text-xl sm:text-2xl)
+   - Grid de datos responsive (1 col mobile, 2 tablet, 4 desktop)
+   - Alerta de alergias: role="alert" + aria-live="polite" + width responsive
+   - Tabs: role="tablist" + role="tab" + aria-selected + aria-controls
+   - Allowlist actualizada: 263 → 266 líneas (mejoras de a11y)
+
+3. **AgendaModulo.jsx (Fase 3):**
+   - role="main" + aria-label="Agenda de citas"
+   - Actions responsive (stack vertical en mobile)
+   - Parrilla responsive (1 col mobile, 2 tablet, 3 desktop)
+   - Parrilla: role="region" + aria-label + padding responsive (p-4 md:p-6)
+   - EmptyState con aria-live="polite" para screen readers
+
+4. **Sidebar.jsx (Fase 4):**
+   - Auto-colapsa en mobile (< 768px) con matchMedia
+   - Listener para cambios de tamaño de pantalla
+   - Oculto en pantallas muy pequeñas (< 640px) con `hidden sm:flex`
+   - role="navigation" + aria-label="Menú principal"
+
+5. **EmptyState.test.jsx (Fase 5 - NUEVO):**
+   - 6 tests de accesibilidad
+   - Verifica renderizado de título, descripción, CTA
+   - Verifica aria-hidden en contenedor del icono
+   - Verifica variante compact
+   - Verifica propagación de props rest (role, aria-live, data-testid)
+
+**Validaciones:**
+- Tests: 1479/1479 passing (+6 nuevos tests de EmptyState)
+- Build: OK (PWA 43 entries, 3407.54 KiB)
+- Lint: 0 errors (121 warnings preexistentes)
+- Validador arquitectónico: OK (FichaPacienteModulo actualizado a 266 líneas)
+
+**Relación con otras tareas:**
+- F7-16: Bug de `useSupabase` era residual del refactor de F7-16
+- F7-25: Design System v2 base para componentes responsive
+- F7-30: UI responsive y accesible es requisito para Release Candidate
+
+**Riesgo mitigado:**
+- Bug crítico de login corregido (nadie podía iniciar sesión)
+- UI funcional en mobile/tablet/desktop
+- Accesibilidad mejorada para usuarios con discapacidades
+- Screen readers pueden navegar flujos críticos
+
+**Próximo paso:** Merge a main y continuar con F7-26 (Ficha clínica premium) o F7-27 (Agenda + dashboard).

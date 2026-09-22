@@ -58,52 +58,49 @@ export const LoginScreen = ({ onLogin }) => {
         rol: rol, // F3-05: incluir el rol seleccionado
       }
 
-      if (useSupabase) {
-        // ═══════════════════════════════════════════════════
-        // MODO SUPABASE AUTH
-        // ═══════════════════════════════════════════════════
-        if (isFirstTime) {
-          // Registro de nuevo usuario
-          const result = await supabaseSignUp(formattedEmail, password, metadata)
+      // F7-28 FIX: useSupabase eliminado (legacy de F7-16).
+      // Solo existe flujo Supabase Auth (no hay modo local).
+      if (isFirstTime) {
+        // Registro de nuevo usuario
+        const result = await supabaseSignUp(formattedEmail, password, metadata)
 
-          if (!result.success) {
-            let mensajeError = result.error || 'Error al registrar usuario'
-            if (mensajeError.includes('already registered') || mensajeError.includes('already')) {
-              mensajeError = 'Este email ya está registrado. Intenta iniciar sesión.'
-              setIsFirstTime(false)
-            } else if (mensajeError.includes('Password') || mensajeError.includes('password')) {
-              mensajeError = 'La contraseña debe tener al menos 6 caracteres.'
-            } else if (mensajeError.includes('Invalid email')) {
-              mensajeError = 'El formato del email no es válido.'
-            }
-            setError(mensajeError)
-            return
+        if (!result.success) {
+          let mensajeError = result.error || 'Error al registrar usuario'
+          if (mensajeError.includes('already registered') || mensajeError.includes('already')) {
+            mensajeError = 'Este email ya está registrado. Intenta iniciar sesión.'
+            setIsFirstTime(false)
+          } else if (mensajeError.includes('Password') || mensajeError.includes('password')) {
+            mensajeError = 'La contraseña debe tener al menos 6 caracteres.'
+          } else if (mensajeError.includes('Invalid email')) {
+            mensajeError = 'El formato del email no es válido.'
           }
-        } else {
-          // Login de usuario existente
-          const result = await supabaseSignIn(formattedEmail, password)
+          setError(mensajeError)
+          return
+        }
+      } else {
+        // Login de usuario existente
+        const result = await supabaseSignIn(formattedEmail, password)
 
-          if (!result.success) {
-            let mensajeError = result.error || 'Credenciales inválidas'
-            if (mensajeError.includes('Invalid login credentials') || mensajeError.includes('Invalid')) {
-              mensajeError = 'Email o contraseña incorrectos.'
-            } else if (mensajeError.includes('Email not confirmed')) {
-              mensajeError = 'Debes confirmar tu email antes de iniciar sesión.'
-            }
-            setError(mensajeError)
-            return
+        if (!result.success) {
+          let mensajeError = result.error || 'Credenciales inválidas'
+          if (mensajeError.includes('Invalid login credentials') || mensajeError.includes('Invalid')) {
+            mensajeError = 'Email o contraseña incorrectos.'
+          } else if (mensajeError.includes('Email not confirmed')) {
+            mensajeError = 'Debes confirmar tu email antes de iniciar sesión.'
           }
-
-          // F4-02b FIX: guardar userMetadata retornado para usar al construir perfil
-          metadata._supabaseUserMetadata = result.userMetadata || {}
+          setError(mensajeError)
+          return
         }
 
-        // F4-02b FIX: Usar los user_metadata retornados por supabaseSignIn/SignUp
-        // (evita race condition con getUser() después del signIn).
-        const userMetadata = metadata._supabaseUserMetadata || {}
-        const userProfile = await construirUserProfile(formattedEmail, userMetadata, metadata)
-        onLogin(userProfile)
+        // F4-02b FIX: guardar userMetadata retornado para usar al construir perfil
+        metadata._supabaseUserMetadata = result.userMetadata || {}
       }
+
+      // F4-02b FIX: Usar los user_metadata retornados por supabaseSignIn/SignUp
+      // (evita race condition con getUser() después del signIn).
+      const userMetadata = metadata._supabaseUserMetadata || {}
+      const userProfile = await construirUserProfile(formattedEmail, userMetadata, metadata)
+      onLogin(userProfile)
     } catch (err) {
       log.error('Error inesperado en login:', err)
       setError('Error inesperado. Intenta nuevamente.')
@@ -113,14 +110,14 @@ export const LoginScreen = ({ onLogin }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-graphite-800 flex items-center justify-center p-4 print:hidden">
+    <div className="min-h-screen bg-gray-100 dark:bg-graphite-800 flex items-center justify-center p-4 print:hidden" role="main" aria-label="Pantalla de autenticación">
       <div className="bg-white dark:bg-graphite-800 p-8 rounded-2xl shadow-sm border border-gray-200 dark:border-graphite-700 w-full max-w-md">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center font-bold text-lg">C</div>
           <h1 className="text-xl font-bold text-gray-800 dark:text-graphite-100">Consulta</h1>
         </div>
 
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-graphite-50 mb-1">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-graphite-50 mb-1">
           {isFirstTime ? 'Crear perfil profesional' : 'Iniciar sesión'}
         </h2>
         <p className="text-sm text-gray-500 dark:text-graphite-400 mb-6">
@@ -165,7 +162,7 @@ export const LoginScreen = ({ onLogin }) => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label htmlFor="login-rut" className="block text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase mb-1">RUT / Licencia</label>
                   <input
@@ -227,7 +224,12 @@ export const LoginScreen = ({ onLogin }) => {
           )}
 
           {error && (
-            <p data-testid="login-error" className="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mt-2">
+            <p
+              data-testid="login-error"
+              role="alert"
+              aria-live="assertive"
+              className="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mt-2"
+            >
               {error}
             </p>
           )}
