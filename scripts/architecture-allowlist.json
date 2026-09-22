@@ -1,5 +1,5 @@
 {
-    "description": "Archivos que actualmente exceden los límites constitucionales (Cap. IV). F3-02 los 'congela' en su tamaño actual para que no crezcan más. Cada archivo debe ser refactorizado (F3-08+) y removido de esta lista al cumplir el límite.",
+    "description": "Archivos que actualmente exceden los límites constitucionales (Cap. IV). F3-02 los \"congela\" en su tamaño actual para que no crezcan más. Cada archivo debe ser refactorizado (F3-08+) y removido de esta lista al cumplir el límite. F7-12: Agrega reglas de capas (services no importa components/hooks, components no importa Supabase directo). Las excepciones de capas están documentadas en validate-architecture.js como código (no en este JSON).",
     "limits": {
         "jsx": 250,
         "hooks": 150,
