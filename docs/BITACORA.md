@@ -6336,3 +6336,70 @@ Las 8 "violaciones" detectadas son en realidad **excepciones legítimas** de arq
   → eliminado con script de balance de divs
 
 **Próximo paso:** PR + merge, luego F7-29 (Manual de usuario por rol).
+
+
+## 2026-09-24 - F7-34: Validacion manual completada en produccion - DONE COMPLETO
+
+**Estado:** COMPLETADO. Validacion manual ejecutada con exito en produccion.
+
+### Bloqueantes resueltos durante la fase
+
+1. **Staging INACTIVE**: el proyecto de staging (`bjuqqtkiqnfyejitmowc`) estaba en
+   estado INACTIVE y Supabase Auth rechazaba creacion de usuarios.
+   **Solucion:** decision de equipo de eliminar staging y validar en produccion
+   con datos sinteticos controlados (Opcion B).
+
+2. **Bugs detectados y corregidos (2 commits):**
+   - `r2-upload-url`: no validaba membresia activa (`activo=eq.true`) → PR #152
+   - `archivos-purge`: check `!userData` sobre variable no asignada → PR #152
+   - `r2-upload-url`: `r2_object_key` removido del INSERT (era NOT NULL) → PR #155
+
+3. **user_metadata.clinica_id requerido**: los tests iniciales fallaron porque
+   el flujo real requiere que el usuario haya seteado su clinica activa via
+   `setClinicaActiva()`. Los scripts se ajustaron para hacer PUT `/auth/v1/user`
+   + refresh de token antes de cada llamada.
+
+### Ejecucion en produccion
+
+**Fixtures:** paciente fantasma `99999999-9999-9999-9999-999999999999` creado
+en Clinica E2E Secundaria (aislada de datos reales). Todo el ciclo destructivo
+(upload/delete/restore/purge) ocurrio sobre este paciente sintetico.
+
+**Despliegue:** las 7 Edge Functions fueron redeployadas a produccion
+(nagduvivilmzupdpoayo) con flag `--no-verify-jwt` (compatible con cron F7-32
+que llama via `X-Internal-Secret`).
+
+### Resultados: 11/11 tests pasaron
+
+| Test | Proposito | Resultado |
+|------|-----------|-----------|
+| T1 upload-url A | Crear metadata | 200 + archivo_id |
+| T2 download-url A | URL firmada GET | 200 |
+| T3 download-url B (otra clinica) | Tenant isolation | **404** |
+| T4 upload-url B sobre fantasma A | Tenant isolation | **403** |
+| T5 delete A | Soft delete | 200 |
+| T6 list-deleted A | Ver papelera propia | 200 + contiene archivo |
+| T7 list-deleted B | Tenant isolation | 200 + NO contiene archivo |
+| T8 restore A | Restaurar | 200 |
+| T9 delete A otra vez | Preparar purge | 200 |
+| T10 archivos-purge A | Purga permanente | 200 + purgados |
+| T11 health-check | Conexion R2 | 200 + status ok |
+
+### Decisiones arquitectonicas
+
+- **`r2_object_key` en BD vs respuesta HTTP:** la columna `archivos_clinicos.r2_object_key`
+  es NOT NULL porque las Edge Functions lo necesitan para operar con R2. La
+  sanitizacion de PHI se aplica correctamente en respuestas HTTP (no se expone
+  al cliente) y en audit_log, no en la BD.
+
+- **`user_metadata.clinica_id` como fuente de clinica activa:** los 4 endpoints
+  que acceden a datos (upload, delete, download, list-deleted, restore, purge)
+  usan `userData.user_metadata.clinica_id` del JWT, que el frontend setea via
+  `setClinicaActiva()`. No hay ambiguedad.
+
+### Cleanup pendiente
+
+- Paciente fantasma: DELETE en SQL Editor produccion (pendiente ejecucion manual)
+- Credenciales temporales: eliminadas de /tmp localmente
+
+**Proximo paso:** F7-29 (Manual de usuario por rol + capacitacion).
