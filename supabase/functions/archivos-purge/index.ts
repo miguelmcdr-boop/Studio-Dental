@@ -93,7 +93,7 @@ async function eliminarDeR2(r2ObjectKey: string): Promise<boolean> {
   }
 }
 
-Deno.serve(async (req) => {
+export async function handler(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") {
     return new Response("ok", {
       headers: {
@@ -174,7 +174,7 @@ Deno.serve(async (req) => {
       }
 
       const rolResult = await fetch(
-        `${supabaseUrl}/rest/v1/miembros_clinica?user_id=eq.${userId}&clinica_id=eq.${clinicaId}&select=rol`,
+        `${supabaseUrl}/rest/v1/miembros_clinica?user_id=eq.${userId}&clinica_id=eq.${clinicaId}&activo=eq.true&select=rol`,
         { headers: { Authorization: `Bearer ${supabaseServiceKey}`, apikey: supabaseServiceKey } }
       ).then((res) => res.json());
 
@@ -302,12 +302,18 @@ Deno.serve(async (req) => {
       message: `${purgados.length} archivo(s) purgados, ${rechazados.length} rechazados`,
     });
   } catch (error) {
+    // F7-34b: No exponer detalles internos al cliente
+    console.error("[archivos-purge] Error no manejado:", error);
     return jsonResponse({
       error: "Internal server error",
-      message: error instanceof Error ? error.message : String(error),
+      message: "Ocurrió un error procesando la solicitud",
     }, 500);
   }
-});
+}
+
+if (import.meta.main) {
+  Deno.serve(handler);
+}
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body, null, 2), {

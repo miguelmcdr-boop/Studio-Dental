@@ -43,7 +43,7 @@ async function hmacSha256(key: ArrayBuffer, data: string): Promise<ArrayBuffer> 
 }
 
 async function getSignatureKey(secret: string, dateStamp: string, region: string, service: string): Promise<ArrayBuffer> {
-  let k = await hmacSha256(encoder.encode("AWS4" + secret), dateStamp);
+  let k = await hmacSha256(encoder.encode("AWS4" + secret) as unknown as ArrayBuffer, dateStamp);
   k = await hmacSha256(k, region);
   k = await hmacSha256(k, service);
   k = await hmacSha256(k, "aws4_request");
@@ -97,7 +97,7 @@ async function eliminarDeR2(r2ObjectKey: string): Promise<boolean> {
 // Retención legal: 10 años desde eliminación (Ley 20.584)
 const ANIOS_RETENCION = 10;
 
-Deno.serve(async (req) => {
+export async function handler(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") {
     return new Response("ok", {
       headers: {
@@ -137,24 +137,30 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "Missing required field: paciente_ids" }, 400);
     }
 
-    // 3. Obtener clínica y rol
-    const clinicaResult = await fetch(
-      `${supabaseUrl}/rest/v1/miembros_clinica?user_id=eq.${userId}&select=clinica_id,rol`,
+    // 3. F7-34b: Obtener clínica activa del JWT user_metadata (no primera membresía)
+    const clinicaId = userData.user_metadata?.clinica_id;
+    
+    if (!clinicaId) {
+      return jsonResponse({ error: "No hay clinica activa. Seleccione una clinica." }, 403);
+    }
+
+    // 4. F7-34b: Validar server-side que el usuario tiene membresía ACTIVA en esa clínica
+    const membershipResult = await fetch(
+      `${supabaseUrl}/rest/v1/miembros_clinica?user_id=eq.${userId}&clinica_id=eq.${clinicaId}&activo=eq.true&select=rol`,
       { headers: { Authorization: `Bearer ${supabaseServiceKey}`, apikey: supabaseServiceKey } }
     ).then((res) => res.json());
 
-    if (!clinicaResult || clinicaResult.length === 0) {
-      return jsonResponse({ error: "User not associated with any clínica" }, 403);
+    if (!Array.isArray(membershipResult) || membershipResult.length === 0) {
+      return jsonResponse({ error: "Membresía no válida para esta clínica" }, 403);
     }
-    const clinicaId = clinicaResult[0].clinica_id;
-    const userRol = clinicaResult[0].rol;
+    const userRol = membershipResult[0].rol;
 
-    // 4. Solo admin puede purgar
+    // 5. Solo admin puede purgar
     if (userRol !== "admin") {
       return jsonResponse({ error: `Insufficient permissions. Required: admin. Current: ${userRol}` }, 403);
     }
 
-    // 5. Obtener pacientes de la papelera de esta clínica
+    // 6. Obtener pacientes de la papelera de esta clínica
     const idsParam = pacienteIds.join(",");
     const pacientesResult = await fetch(
       `${supabaseUrl}/rest/v1/pacientes?id=in.(${idsParam})&clinica_id=eq.${clinicaId}&select=id,nombre,rut,deleted_at`,
@@ -228,8 +234,7 @@ Deno.serve(async (req) => {
           p_evento: "ADMIN_PURGE_PACIENTES",
           p_detalle: {
             paciente_id: pacienteId,
-            nombre: paciente.nombre,
-            rut: paciente.rut,
+            // F7-34b: nombre y rut removidos (PHI innecesaria)
             deleted_at_original: paciente.deleted_at,
             archivos_r2_purgados: archivosPurgados,
           },
@@ -247,12 +252,18 @@ Deno.serve(async (req) => {
       message: `${purgados.length} paciente(s) purgados, ${rechazados.length} rechazados`,
     });
   } catch (error) {
+    // F7-34b: No exponer detalles internos al cliente
+    console.error("[pacientes-purge] Error no manejado:", error);
     return jsonResponse({
       error: "Internal server error",
-      message: error instanceof Error ? error.message : String(error),
+      message: "Ocurrió un error procesando la solicitud",
     }, 500);
   }
-});
+}
+
+if (import.meta.main) {
+  Deno.serve(handler);
+}
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body, null, 2), {

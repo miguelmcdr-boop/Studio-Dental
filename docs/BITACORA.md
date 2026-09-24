@@ -6403,3 +6403,102 @@ que llama via `X-Internal-Secret`).
 - Credenciales temporales: eliminadas de /tmp localmente
 
 **Proximo paso:** F7-29 (Manual de usuario por rol + capacitacion).
+
+
+---
+
+## F7-34b: Cierre definitivo de contexto multi-clínica en funciones destructivas y purge
+
+**Fecha:** 2026-09-24
+**Estado:** DONE
+**Rama:** main (commit pendiente)
+**Dependencia:** F7-34 (reclasificada a IN_PROGRESS)
+
+### Contexto
+
+F7-34 fue marcada DONE tras validación manual en producción (11/11 tests pasando). Sin embargo, una auditoría posterior detectó que pacientes-purge (operación destructiva permanente) todavía usaba el patron peligroso clinicaResult[0] para determinar la clínica activa, lo que permitia potencialmente purgar pacientes de una clínica diferente si el orden de filas en miembros_clinica era desfavorable.
+
+### Problema encontrado
+
+Vulnerabilidad critica en pacientes-purge: la consulta a miembros_clinica no filtraba por clinica_id ni por activo, y tomaba la primera fila del resultado (clinicaResult[0]) como la clinica activa. Esto permitia que un usuario con membresias en multiples clinicas purgara pacientes de una clinica diferente a la activa.
+
+Problemas adicionales detectados:
+1. archivos-purge validaba membresia sin filtro de activo (linea 177)
+2. pacientes-purge exponia PHI en audit log (nombre, rut)
+3. Ambas funciones exponian error.message en respuestas 500 (stack traces, SQL errors)
+
+### Archivos modificados
+
+Correcciones aplicadas:
+
+1. pacientes-purge/index.ts (4 cambios):
+   - Reemplazado clinicaResult[0] por validacion server-side con filtro activo=eq.true sobre clinicaId del JWT
+   - Removidos nombre y rut del audit log (PHI innecesaria)
+   - Sanitizado error.message en respuesta 500 (ahora devuelve mensaje generico)
+   - Arreglado TS2345 (casts as ArrayBuffer en getSignatureKey)
+
+2. archivos-purge/index.ts (2 cambios):
+   - Agregado filtro activo=eq.true a consulta de membresia (linea 177)
+   - Sanitizado error.message en respuesta 500
+
+3. Refactor para testabilidad:
+   - Extraido handler a funcion exportada en ambas funciones
+   - Agregado import.meta.main para permitir tests Deno sin abrir puerto
+
+Archivos creados (tests):
+
+4. supabase/functions/_shared/testUtils.ts (helper de mocks)
+5. supabase/functions/pacientes-purge/index.test.ts (10 tests)
+6. supabase/functions/archivos-purge/index.test.ts (6 tests)
+
+### Pruebas realizadas
+
+Tests Deno de aislamiento multi-clinica: 16/16 pasando
+
+pacientes-purge (10 tests):
+- T1-T4: Aislamiento multi-clinica (A activa permite A / deniega B, B activa permite B / deniega A)
+- T5: Sin clinica activa en JWT retorna 403
+- T6: Membresia revocada (activo=false) retorna 403
+- T7: Rol no-admin retorna 403
+- T8: Sin JWT retorna 401
+- T9: Error 500 NO expone error.message
+- T10: Retencion legal (paciente eliminado hace menos de 10 anios) es rechazado
+
+archivos-purge (6 tests):
+- T1-T2: Aislamiento multi-clinica
+- T3: Membresia revocada retorna 403
+- T4: Modo cron interno con X-Internal-Secret es permitido
+- T5: X-Internal-Secret incorrecto retorna 401
+- T6: Error 500 NO expone error.message
+
+### Caso multi-clinica
+
+Escenario critico validado: usuario con membresias en Clinica A y Clinica B. Con A activa, purge de paciente A es PERMITIDO y purge de paciente B es DENEGADO. Con B activa, purge de paciente B es PERMITIDO y purge de paciente A es DENEGADO. El aislamiento multi-clinica queda garantizado sin importar el orden de filas en miembros_clinica.
+
+### Paciente fantasma
+
+ID: 99999999-9999-9999-9999-999999999999
+Estado: Purgado de produccion (confirmado via SQL en pacientes y archivos_clinicos)
+Audit log: Registros historicos conservados (no contienen PHI gracias a correccion de F7-34b)
+Blobs R2: Eliminados
+
+### Resultado CI/E2E
+
+Estado actual: el job E2E en .github/workflows/ci.yml (linea 182) tiene continue-on-error: true. Decision: dejarlo asi para F7-30 (fuera de alcance de F7-34b). Justificacion: el job depende de staging que puede no estar estable; quitarlo ahora sin verificar infraestructura implicaria riesgo de bloquear desarrollo por razones ajenas al codigo.
+
+Accion para F7-30: evaluar si E2E esta estable para quitar continue-on-error (gate real); si depende de infraestructura externa, documentar que valida cada test; si esta roto, arreglarlo o eliminarlo.
+
+### Limitaciones restantes
+
+1. Validacion manual en produccion: pendiente post-deploy de las funciones corregidas
+2. Tests E2E reales: los tests Deno son unitarios con mocks; validacion E2E contra Supabase produccion requiere deploy y ejecucion manual
+3. r2-health-check: sin autenticacion (endpoint de diagnostico); documentado como limitacion aceptable
+
+### Proximos pasos
+
+1. Commit atomico con todas las correcciones y tests
+2. Deploy de pacientes-purge y archivos-purge corregidas a produccion
+3. Validacion manual multi-clinica en produccion (usuario con 2 clinicas, alternar clinica activa)
+4. Marcar F7-34 como DONE (despues de validacion manual)
+5. Continuar con F7-29 (Manual de usuario por rol y capacitacion)
+6. F7-30 (Release Candidate) debe resolver CI E2E continue-on-error
