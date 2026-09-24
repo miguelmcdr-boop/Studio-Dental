@@ -41,6 +41,14 @@ export const citaSchema = z.object({
   trataMiento: z.string().optional(),
   boxAsignado: z.string().optional(),
   horaInicioAtencion: z.string().optional(),
+
+  // Campos de recurrencia (F7-27)
+  recurrencia: z.enum(['ninguna', 'semanal', 'mensual', 'anual']).optional(),
+  frecuencia: z.number().int().positive().optional(), // cada X semanas/meses/años
+  diaSemana: z.number().int().min(0).max(6).optional(), // 0-6 para recurrencia semanal
+  diaMes: z.number().int().min(1).max(31).optional(), // 1-31 para recurrencia mensual
+  fechaFin: z.string().optional(), // hasta cuándo repetir (YYYY-MM-DD)
+  citaPadreId: z.union([z.number(), z.string()]).optional(), // ID de la cita original (para citas recurrentes)
 }).passthrough()
 
 export const listaCitasSchema = z.array(citaSchema)

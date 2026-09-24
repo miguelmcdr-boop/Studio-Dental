@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import { calcularResumenJornada } from '../utils/dashboardCalculations'
+import { calcularResumenJornada, calcularMetricasAvanzadas } from '../utils/dashboardCalculations'
 import { agendaStorageService } from '../../agenda'
 import { pagosStorageService } from '../../pagos/services/pagosStorageService'
 import { obtenerAbonosPorPaciente } from '../../pagos/services/pagosAbonosLegacyService'
@@ -12,6 +12,9 @@ export const useDashboard = (pacientes = []) => {
   const [citas, setCitas] = useState([])
   const [pagos, setPagos] = useState([])
   const [presupuestos, setPresupuestos] = useState([])
+  const [evoluciones, setEvoluciones] = useState([])
+  const [recetas, setRecetas] = useState([])
+  const [certificados, setCertificados] = useState([])
 
   const cargarDatos = useCallback(() => {
     try {
@@ -52,8 +55,13 @@ export const useDashboard = (pacientes = []) => {
     return calcularResumenJornada(pacientes, citas, pagos, presupuestos)
   }, [pacientes, citas, pagos, presupuestos])
 
+  const metricasAvanzadas = useMemo(() => {
+    return calcularMetricasAvanzadas(citas, pagos, presupuestos, evoluciones, recetas, certificados)
+  }, [citas, pagos, presupuestos, evoluciones, recetas, certificados])
+
   return {
     resumen,
+    metricasAvanzadas,
     refrescar: cargarDatos
   }
 }

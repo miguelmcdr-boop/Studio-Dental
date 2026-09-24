@@ -12,6 +12,9 @@ import { Modal } from '../../../components/ui/Modal'
 import { Button } from '../../../components/ui/Button'
 import { useAppDialog } from '../../../hooks/useAppDialog'
 import { CamposFormularioCita } from './CamposFormularioCita'
+import { RecurrenciaForm } from './RecurrenciaForm'
+import { generarCitasRecurrencia, validarConflictosRecurrencia } from '../../../utils/recurrenciaUtils'
+import { RefreshCw } from 'lucide-react'
 
 export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGuardar, alCerrar }) => {
   const [esPacienteExpress, setEsPacienteExpress] = useState(false)
@@ -28,6 +31,15 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
   const [horaInicio, setHoraInicio] = useState('09:00')
   const [duracionMinutos, setDuracionMinutos] = useState(30)
   const [observaciones, setObservaciones] = useState('')
+
+  // F7-27: Estados de recurrencia
+  const [recurrencia, setRecurrencia] = useState('ninguna')
+  const [frecuencia, setFrecuencia] = useState(1)
+  const [diaSemana, setDiaSemana] = useState(1) // 0=Dom, 1=Lun, ..., 6=Sáb
+  const [diaMes, setDiaMes] = useState(1) // 1-31
+  const [fechaFin, setFechaFin] = useState('')
+  const [numInstancias, setNumInstancias] = useState(4)
+
   const { alert: dialogAlert } = useAppDialog()
 
   const handleSelectPacienteChange = (e) => {
@@ -60,6 +72,24 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
     return `${hFin}:${mFin}`
   }, [horaInicio, duracionMinutos])
 
+  // F7-27: Calcular próximas citas de recurrencia (preview)
+  const proximasCitas = useMemo(() => {
+    if (recurrencia === 'ninguna') return []
+
+    const citaBase = {
+      id: 'preview',
+      fecha,
+      horaInicio,
+      recurrencia,
+      frecuencia,
+      diaSemana,
+      diaMes,
+      fechaFin: fechaFin || undefined,
+    }
+
+    return generarCitasRecurrencia(citaBase, numInstancias)
+  }, [recurrencia, fecha, horaInicio, frecuencia, diaSemana, diaMes, fechaFin, numInstancias])
+
   const handleSubmit = async (e) => {
     e.preventDefault()
 
@@ -73,9 +103,14 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
       return
     }
 
-    alGuardar(
-      {
-        id: Date.now(),
+    // F7-27: Si hay recurrencia, generar citas futuras
+    if (recurrencia !== 'ninguna' && proximasCitas.length > 0) {
+      const citaPadreId = Date.now()
+      const citasAGuardar = []
+
+      // Cita original (la primera)
+      citasAGuardar.push({
+        id: citaPadreId,
         pacienteId: pacienteSeleccionadoId || `express_${Date.now()}`,
         pacienteNombre,
         pacienteTelefono,
@@ -87,10 +122,68 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
         horaFin: horaFinCalculada,
         duracionMinutos: parseInt(duracionMinutos, 10),
         observaciones,
-        estado: 'Agendado'
-      },
-      esPacienteExpress ? autoCrearFicha : false
-    )
+        estado: 'Agendado',
+        recurrencia,
+        frecuencia,
+        diaSemana,
+        diaMes,
+        fechaFin: fechaFin || undefined,
+        citaPadreId: null, // Es la cita original
+      })
+
+      // Citas recurrentes generadas
+      proximasCitas.forEach((citaRec) => {
+        citasAGuardar.push({
+          id: Date.now() + Math.random() * 1000,
+          pacienteId: pacienteSeleccionadoId || `express_${Date.now()}`,
+          pacienteNombre,
+          pacienteTelefono,
+          pacienteRut,
+          trataMiento: tratamiento,
+          boxAsignado,
+          fecha: citaRec.fecha,
+          horaInicio,
+          horaFin: horaFinCalculada,
+          duracionMinutos: parseInt(duracionMinutos, 10),
+          observaciones,
+          estado: 'Agendado',
+          recurrencia: 'ninguna', // Las instancias generadas no son recurrentes
+          citaPadreId: citaPadreId,
+        })
+      })
+
+      // Guardar todas las citas (el hook useAgenda debe manejar arrays)
+      citasAGuardar.forEach((cita, index) => {
+        alGuardar(cita, index === 0 && esPacienteExpress ? autoCrearFicha : false)
+      })
+
+      dialogAlert({
+        title: 'Citas recurrentes agendadas',
+        description: `Se agendaron ${citasAGuardar.length} citas (${recurrencia}). La primera es el ${fecha}.`,
+        variant: 'success',
+        confirmText: 'Entendido'
+      })
+    } else {
+      // Cita única (sin recurrencia)
+      alGuardar(
+        {
+          id: Date.now(),
+          pacienteId: pacienteSeleccionadoId || `express_${Date.now()}`,
+          pacienteNombre,
+          pacienteTelefono,
+          pacienteRut,
+          trataMiento: tratamiento,
+          boxAsignado,
+          fecha,
+          horaInicio,
+          horaFin: horaFinCalculada,
+          duracionMinutos: parseInt(duracionMinutos, 10),
+          observaciones,
+          estado: 'Agendado'
+        },
+        esPacienteExpress ? autoCrearFicha : false
+      )
+    }
   }
 
   return (
@@ -164,6 +257,24 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
           setDuracionMinutos={setDuracionMinutos}
           setObservaciones={setObservaciones}
           handleSelectPacienteChange={handleSelectPacienteChange}
+        />
+
+        {/* F7-27: Formulario de recurrencia */}
+        <RecurrenciaForm
+          recurrencia={recurrencia}
+          setRecurrencia={setRecurrencia}
+          frecuencia={frecuencia}
+          setFrecuencia={setFrecuencia}
+          diaSemana={diaSemana}
+          setDiaSemana={setDiaSemana}
+          diaMes={diaMes}
+          setDiaMes={setDiaMes}
+          fechaFin={fechaFin}
+          setFechaFin={setFechaFin}
+          numInstancias={numInstancias}
+          setNumInstancias={setNumInstancias}
+          proximasCitas={proximasCitas}
+          fechaMinima={fecha}
         />
 
         {/* Botones */}

@@ -210,13 +210,14 @@ export const ResumenClinicoHeader = ({ metricas, onNavegarTab }) => {
         />
       </div>
 
-      {/* Contador de visitas totales (inline, sutil) */}
+      {/* Contador de evoluciones registradas (inline, sutil) — F7-26 fix:
+          la métrica cuenta evoluciones clínicas, no aperturas de ficha */}
       <div className="mt-2 flex items-center justify-end gap-3 text-[10px] text-graphite-500 dark:text-graphite-400">
         <span>
           <strong className="font-semibold text-graphite-700 dark:text-graphite-300">
             {totalVisitas}
           </strong>{' '}
-          visita{totalVisitas === 1 ? '' : 's'} registrada{totalVisitas === 1 ? '' : 's'}
+          {totalVisitas === 1 ? 'evolución registrada' : 'evoluciones registradas'}
         </span>
       </div>
     </div>
