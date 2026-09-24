@@ -178,9 +178,9 @@
 | F7-22 | **REDEFINIDA 2x** (Drive descartado por analisis de viabilidad) — Cloudflare R2 External Clinical Storage con Supabase como fuente de verdad | 7 | **P0** | XL (1-2 sem) | F7-05,F7-06,F7-07,F7-08,F7-21 | DONE (2026-09-03) — Fase 5 DONE (R2), Fase 6 DONE (tabla), Fase 7 DONE (Edge Functions + tests 7/7), Fase 8 DONE (frontend + modal + thumbnails), Fase 9 DONE (pen-test 5/6), Fase 10 DONE (cleanup cache). Tareas derivadas: F7-31 (papelera), F7-22a/b (mime_type) |
 | F7-23 | Auditoría de logs para garantizar ausencia de PHI | 7 | P1 | S (0.5-1 d) | — | DONE (2026-09-06) — 0 PHI en logs, 3 archivos migrados al logger, sanitizePHI utility con 5 tests, guía de logging seguro en BITACORA |
 | F7-24 | Security Regression Suite como gate de CI/staging | 7 | **P0** | M (2-3 d) | F7-08,F7-20,F7-21,F7-22 | DONE (2026-09-06) — 27 tests de regresión (multi-tenant, RBAC, logout/PHI, storage, audit-log), job security-regression en CI como gate obligatorio |
-| F7-25 | Design System Studio Dental + App Shell profesional | 7 | P1 | L (4-7 d) | — | **DONE (2026-09-09)** — MVP Fase 1+2 DONE + Iteración 1-9 DONE + Hotfix P0 DONE. Cobertura: **23/23 modales (100%)**, 31 componentes con Button, 24 con Input. Push + PR pendiente |
+| F7-25 | Design System Studio Dental + App Shell profesional | 7 | P1 | L (4-7 d) | — | **DONE (2026-09-09, mergeado PR #141)** — MVP Fase 1+2 DONE + Iteración 1-9 DONE + Hotfix P0 DONE. Cobertura: **23/23 modales (100%)**, 31 componentes con Button, 24 con Input. |
 | F10 | Rediseño Clinical Precision v2 (DS v2 + migración módulos) | 10 | P1 | L (6-8 d) | — | **DONE (2026-09-21)** — F10-A (Fundación) + F10-B (Shell) + F10-C (Emoji Sweep + consistencia) + F10-D (dark-sweep) + F10-E (performance) + F10-F (push). Rama feat/F10-design-system-v2 mergeada a main (127 commits). |
-| F7-26 | Ficha clínica premium y navegación clínica optimizada | 7 | P1 | L (4-7 d) | F7-25 | TODO |
+| F7-26 | Ficha clínica premium y navegación clínica optimizada | 7 | P1 | L (4-7 d) | F7-25 | **IN_PROGRESS (2026-09-22)** — Fases A-D implementadas en rama `feat/F7-26-premium-clinical-record` (5 commits, +798/-31). Faltan fases E+ (odontograma, periodoncia, recetas, evoluciones integradas en ficha). Validaciones locales OK. Rama sin mergear. |
 | F7-27 | Agenda + dashboard operacional de nivel comercial | 7 | P1 | M (3-5 d) | F7-25 | TODO |
 | F7-28 | Responsive + accesibilidad integral de flujos críticos | 7 | P1 | M (2-4 d) | F7-25 | DONE (2026-09-22) — LoginScreen fix crítico (bug useSupabase de F7-16). FichaPaciente responsive + 7 mejoras a11y. Agenda responsive + 5 mejoras a11y. Sidebar auto-colapsa en mobile. EmptyState con 6 tests a11y. Tests 1479/1479 OK. |
 | F7-29 | Manual de usuario por rol + capacitación | 7 | P2 | L (1-2 sem) | F7-25,F7-26,F7-27 | TODO |
@@ -2363,6 +2363,30 @@ Unificar tipografía, jerarquía, espaciado, componentes, estados, iconografía 
 
 #### F7-26 — Ficha clínica premium
 Convertir la ficha clínica en el centro del producto: resumen, anamnesis, odontograma, periodoncia, tratamientos, evoluciones, recetas e imágenes, con navegación de pocos pasos y jerarquía clínica clara.
+
+**Estado parcial (2026-09-22) — Rama `feat/F7-26-premium-clinical-record`:**
+
+| Fase | Descripción | Estado | Commit |
+|------|-------------|--------|--------|
+| **A (A1-A5)** | Navegación clínica entre pacientes + búsqueda rápida + historial reciente | ✅ Implementado | `d96e213`, `ea60a12` |
+| **B (B1-B4)** | Resumen clínico con 5 KPIs + Timeline mejorado con estadísticas y eventos hito | ✅ Implementado | `2254ee4`, `d8043dd` |
+| **C** | Odontograma integrado en ficha clínica | ⬜ Pendiente | — |
+| **D** | Periodoncia integrada en ficha clínica | ⬜ Pendiente | — |
+| **E** | Tratamientos / evoluciones clínicas en ficha | ⬜ Pendiente | — |
+| **F** | Recetas + imágenes con jerarquía clínica | ⬜ Pendiente | — |
+| **G** | Anamnesis estructurada en ficha | ⬜ Pendiente | — |
+
+**Archivos clave implementados (Fases A-B):**
+- `src/modules/pacientes/components/PacienteNavigator.jsx` (nuevo)
+- `src/modules/pacientes/components/ResumenClinicoHeader.jsx` (nuevo)
+- `src/modules/pacientes/hooks/useNavegacionClinica.js` (nuevo)
+- `src/modules/pacientes/hooks/useMetricasClinicas.js` (nuevo)
+- `src/modules/pacientes/components/TimelineClinicoWidget.jsx` (ampliado)
+- `src/store/sesionStore.js` (extensión para navegación clínica)
+
+**Validaciones locales en la rama:** Tests ✅ | Build ✅ | Validador ✅ | Lint ✅
+
+**Próximo paso:** Definir alcance y prioridad de fases C-G (odontograma/periodoncia/recetas/anamnesis). Decisión pendiente antes de merge.
 
 #### F7-27 — Agenda + dashboard
 Priorizar operación diaria: citas, pendientes, alertas y tareas clínicas. Evitar métricas decorativas sin valor operacional.

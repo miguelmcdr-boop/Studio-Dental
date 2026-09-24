@@ -6124,3 +6124,67 @@ Las 8 "violaciones" detectadas son en realidad **excepciones legítimas** de arq
 - Screen readers pueden navegar flujos críticos
 
 **Próximo paso:** Merge a main y continuar con F7-26 (Ficha clínica premium) o F7-27 (Agenda + dashboard).
+
+## 2026-09-22 - F7-26: Fases A-D implementadas (IN_PROGRESS) - Ficha clínica premium
+
+**Estado:** PARCIAL. Rama `feat/F7-26-premium-clinical-record` sin mergear a main. Tarea F7-26 marcada como IN_PROGRESS en roadmap.
+
+**Contexto:** Se implementaron las fases A y B del alcance original de F7-26. Las fases restantes (C-G: odontograma, periodoncia, tratamientos, recetas, anamnesis) están pendientes de definición de alcance y prioridad.
+
+**Fases implementadas:**
+
+### Fase A: Navegación clínica (commits d96e213, ea60a12)
+- Navegación entre pacientes sin salir de la ficha clínica
+- Búsqueda rápida de pacientes (fuzzy search)
+- Historial de pacientes recientes del profesional activo
+- Persistencia de contexto clínico en sesionStore
+
+**Archivos nuevos:**
+- `src/modules/pacientes/components/PacienteNavigator.jsx` (114 líneas)
+- `src/modules/pacientes/hooks/useNavegacionClinica.js` (89 líneas)
+
+### Fase B: Resumen clínico y timeline (commits 2254ee4, d8043dd)
+- Resumen con 5 KPIs clínicos (citas, tratamientos activos, alertas, etc.)
+- Timeline mejorado con estadísticas agregadas
+- Eventos clínicos marcados como "hito" (diagnóstico, tratamiento completado, etc.)
+- Widget de timeline ampliado con estadísticas
+
+**Archivos nuevos:**
+- `src/modules/pacientes/components/ResumenClinicoHeader.jsx` (206 líneas)
+- `src/modules/pacientes/hooks/useMetricasClinicas.js` (133 líneas)
+- `src/modules/pacientes/components/TimelineClinicoWidget.jsx` (ampliado)
+
+**Fix posterior:**
+- Commit f795519: corrección de allowlist de TimelineClinicoWidget (259 → 260 líneas)
+
+**Métricas de la rama:**
+- 5 commits sobre main
+- 11 archivos modificados
+- 4 archivos nuevos
+- +798 líneas / -31 líneas
+
+**Validaciones locales (todas OK en la rama):**
+- Tests: 1479/1479 passing
+- Build: OK (PWA 43 entries)
+- Lint: 0 errors
+- Validador arquitectónico: OK (70 archivos en allowlist)
+
+**Fases pendientes (C-G) — requieren decisión de alcance:**
+- C: Odontograma integrado en ficha clínica
+- D: Periodoncia integrada
+- E: Tratamientos / evoluciones
+- F: Recetas + imágenes con jerarquía clínica
+- G: Anamnesis estructurada
+
+**Relación con otras tareas:**
+- F7-25 (DONE): Base de Design System sobre la que se construyó
+- F7-28 (DONE): Responsive aplicado a la ficha premium en futuras fases
+- F7-29 (TODO): Manual de usuario requerirá documentar las nuevas capacidades clínicas
+- F7-30 (TODO): Release Candidate no debe iniciarse hasta decidir alcance de F7-26
+
+**Decisiones pendientes antes del merge:**
+1. ¿Las fases A-D son suficientes para marcar F7-26 como DONE (MVP)?
+2. ¿O se priorizan fases C-G antes del merge?
+3. Si se postergan C-G, ¿se documentan como deuda técnica para después de F7-30?
+
+**Próximo paso:** Decisión del usuario sobre el alcance final de F7-26.
