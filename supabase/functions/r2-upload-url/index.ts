@@ -255,7 +255,10 @@ Deno.serve(async (req) => {
         id: archivoId,
         clinica_id: clinicaId,
         paciente_id,
-        // F7-34: r2_object_key removido (contiene clinica_id/paciente_id)
+        // F7-34 FIX: r2_object_key DEBE guardarse en BD (NOT NULL), la Edge Function
+        // lo necesita para operar con R2. La sanitizacion PHI se aplica en la respuesta
+        // HTTP (ya no se expone al cliente) y en audit_log, no en la BD.
+        r2_object_key: r2ObjectKey,
         nombre_archivo,
         mime_type,
         tamano_bytes,
