@@ -214,7 +214,7 @@ Deno.serve(async (req) => {
 
     // 6. Validar rol del usuario (admin/dentista pueden subir)
     const rolResult = await fetch(
-      `${supabaseUrl}/rest/v1/miembros_clinica?user_id=eq.${userId}&clinica_id=eq.${clinicaId}&select=rol`,
+      `${supabaseUrl}/rest/v1/miembros_clinica?user_id=eq.${userId}&clinica_id=eq.${clinicaId}&activo=eq.true&select=rol`,
       {
         headers: {
           Authorization: `Bearer ${supabaseServiceKey}`,
@@ -224,7 +224,7 @@ Deno.serve(async (req) => {
     ).then((res) => res.json());
 
     if (!rolResult || rolResult.length === 0) {
-      return jsonResponse({ error: "User role not found" }, 403);
+      return jsonResponse({ error: "Sin membresia activa en la clinica seleccionada" }, 403);
     }
 
     const userRol = rolResult[0].rol;
