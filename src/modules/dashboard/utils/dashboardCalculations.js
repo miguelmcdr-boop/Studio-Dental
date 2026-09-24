@@ -1,4 +1,6 @@
 import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
+import { obtenerAlertasOperativas } from '../../../utils/alertasOperativas'
+import { obtenerTareasClinicas } from '../../../utils/tareasClinicas'
 
 /**
  * Analítica avanzada y cálculos para el Dashboard World-Class
@@ -65,5 +67,45 @@ export const calcularResumenJornada = (pacientes = [], citas = [], pagos = [], p
     montoTotalAceptado,
     tasaConversionPresupuestos,
     proyeccionMensual
+  }
+}
+
+/**
+ * Calcula métricas avanzadas para el Dashboard F7-27.
+ * Incluye: tendencias históricas, alertas operativas, tareas clínicas.
+ */
+export const calcularMetricasAvanzadas = (citas = [], pagos = [], presupuestos = [], evoluciones = [], recetas = [], certificados = []) => {
+  // Tendencias históricas (últimos 7 días)
+  const tendenciaCitas7Dias = []
+  const hoy = new Date()
+  for (let i = 6; i >= 0; i--) {
+    const fecha = new Date(hoy)
+    fecha.setDate(fecha.getDate() - i)
+    const fechaIso = fecha.toISOString().split('T')[0]
+    const count = citas.filter((c) => c.fecha === fechaIso).length
+    tendenciaCitas7Dias.push({ fecha: fechaIso, citas: count })
+  }
+
+  // Tendencias históricas (últimos 30 días)
+  const tendenciaCitas30Dias = []
+  for (let i = 29; i >= 0; i--) {
+    const fecha = new Date(hoy)
+    fecha.setDate(fecha.getDate() - i)
+    const fechaIso = fecha.toISOString().split('T')[0]
+    const count = citas.filter((c) => c.fecha === fechaIso).length
+    tendenciaCitas30Dias.push({ fecha: fechaIso, citas: count })
+  }
+
+  // Alertas operativas
+  const alertas = obtenerAlertasOperativas(citas, pagos, presupuestos)
+
+  // Tareas clínicas
+  const tareas = obtenerTareasClinicas(citas, evoluciones, recetas, certificados)
+
+  return {
+    tendenciaCitas7Dias,
+    tendenciaCitas30Dias,
+    alertas,
+    tareas,
   }
 }

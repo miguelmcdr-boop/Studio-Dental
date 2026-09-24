@@ -6281,3 +6281,58 @@ Las 8 "violaciones" detectadas son en realidad **excepciones legítimas** de arq
 - F7-30 (TODO): Release Candidate puede proceder (F7-26 completa)
 
 **Próximo paso:** Merge a main y continuar con F7-27 (Agenda + dashboard).
+
+
+## 2026-09-23 - F7-27: Agenda + dashboard operacional de nivel comercial - DONE
+
+**Estado:** COMPLETADO. Rama `feat/F7-27-agenda-dashboard` lista para PR.
+
+**Alcance implementado (5 fases):**
+
+### Fase 1: Infraestructura base
+- `recharts` instalado para gráficos
+- `citaSchema` extendido con 6 campos de recurrencia (recurrencia, frecuencia, diaSemana, diaMes, fechaFin, citaPadreId)
+- 4 utils nuevos: `recurrenciaUtils.js`, `csvExport.js`, `alertasOperativas.js`, `tareasClinicas.js`
+- 22 tests nuevos de utils
+
+### Fase 2: Alertas y tareas operativas (Dashboard)
+- `AlertasOperativasWidget.jsx`: citas sin confirmar, deuda > $50.000, post-operatorios pendientes
+- `TareasClinicasWidget.jsx`: recetas/certificados/evoluciones pendientes con checkbox
+- `dashboardCalculations.js` extendida con `calcularMetricasAvanzadas`
+- Click en alerta/tarea navega al contexto del paciente
+
+### Fase 3: Vistas de agenda
+- `AgendaListView.jsx`: tabla con ordenamiento por columna y paginación (20/página)
+- `AgendaProfesionalView.jsx`: citas agrupadas por doctor
+- Selector de vista (box/lista/profesional) en `AgendaViewSelector`
+- Exportación CSV con UTF-8 BOM para Excel
+
+### Fase 4: Tendencias, recurrencia y búsqueda
+- `TendenciasWidget.jsx`: gráfico de líneas (7 días) y barras (30 días) con recharts
+- `NoShowWidget.jsx`: tasas de no-show y cancelaciones + top 5 pacientes
+- Búsqueda avanzada en agenda (nombre, RUT, tratamiento, teléfono) con indicador de resultados
+- Recurrencia en `ModalNuevaCita` (semanal/mensual/anual con frecuencia y fecha fin)
+- `useAgenda` genera citas recurrentes al guardar
+
+### Fase 5: Cierre y fix de etiqueta
+- Fix F7-26: etiqueta "visitas registradas" corregida a "evoluciones registradas"
+  (la métrica `totalVisitas` cuenta evoluciones clínicas, no aperturas de ficha)
+- Documentación y commit
+
+**Métricas:**
+- 12 archivos nuevos (4 utils + 4 tests + 4 widgets/vistas)
+- 8 archivos modificados
+- 22 tests nuevos (1518/1518 totales)
+- Allowlist: 4 utils agregados + dashboardCalculations actualizado (69 → 101)
+
+**Validaciones:**
+- Tests: 1518/1518 passing
+- Build: OK (PWA 43 entries)
+- Lint: 0 errores
+- Validador arquitectónico: OK
+
+**Bug corregido durante la fase:**
+- Grid de Tendencias/NoShow duplicado en DashboardModulo (doble aplicación de un patch)
+  → eliminado con script de balance de divs
+
+**Próximo paso:** PR + merge, luego F7-29 (Manual de usuario por rol).

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { agendaStorageService } from '../services/agendaStorageService'
+import { generarCitasRecurrencia } from '../../../utils/recurrenciaUtils'
 import { pacientesStorageService } from '../../pacientes/services/pacientesStorageService'
 import { usePacientesStore } from '../../../store/pacientesStore'
 import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
@@ -79,9 +80,14 @@ export const useAgenda = (pacientesProp = null) => {
 
     setCitas(prev => {
       const existe = prev.some(c => c.id === citaAjustada.id)
-      const actualizadas = existe
+      // F7-27: Generar citas recurrentes si aplica
+    const citasRecurrencia = (!existe && citaAjustada.recurrencia && citaAjustada.recurrencia !== 'ninguna')
+      ? generarCitasRecurrencia(citaAjustada, 10)
+      : []
+
+    const actualizadas = existe
         ? prev.map(c => c.id === citaAjustada.id ? citaAjustada : c)
-        : [...prev, citaAjustada]
+        : [...prev, citaAjustada, ...citasRecurrencia]
       
       if (agendaStorageService?.guardarCitas) {
         agendaStorageService.guardarCitas(actualizadas)

@@ -21,7 +21,7 @@
     "src/modules/pacientes/utils/pacientesCalculations.js": 136,
     "src/modules/finanzas/utils/finanzasCalculations.js": 71,
     "src/modules/odontograma/utils/odontogramaCalculations.js": 70,
-    "src/modules/dashboard/utils/dashboardCalculations.js": 69,
+    "src/modules/dashboard/utils/dashboardCalculations.js": 112,
     "src/utils/anestesiaCalc.js": 22,
     "src/modules/comunicaciones/utils/comunicacionesCalculations.js": 53,
     "src/modules/presupuestos/utils/presupuestosCalculations.js": 53,
@@ -78,6 +78,10 @@
       "frozenAt": 74
     },
     "src/hooks/useCommandPalette.js": 156,
-    "src/modules/pacientes/components/TimelineClinicoWidget.jsx": 334
+    "src/modules/pacientes/components/TimelineClinicoWidget.jsx": 334,
+    "src/utils/recurrenciaUtils.js": 117,
+    "src/utils/csvExport.js": 96,
+    "src/utils/alertasOperativas.js": 133,
+    "src/utils/tareasClinicas.js": 125
   }
 }
