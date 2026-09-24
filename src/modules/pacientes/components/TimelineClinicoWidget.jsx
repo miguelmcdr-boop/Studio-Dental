@@ -1,6 +1,6 @@
 import React, { memo, useState, useMemo } from 'react'
 import { formatearCLP } from '../../../utils/formatoMoneda'
-import { FileText, Pill, File, CheckCircle, Clock, Calendar, Sparkles, Star } from 'lucide-react'
+import { FileText, Pill, File, CheckCircle, Clock, Calendar, Sparkles, Star, ExternalLink } from 'lucide-react'
 
 // F7-26: Configuración visual por tipo de evento (colores + iconos)
 const CONFIG_TIPO_EVENTO = {
@@ -34,12 +34,14 @@ const CONFIG_TIPO_EVENTO = {
   },
 }
 
+// F7-26 Pulido P2/P4: onNavegarTab para click-to-navigate y estado vacío con CTAs
 export const TimelineClinicoWidget = memo(({
   evolucionesNotas = [],
   itemsPresupuesto = [],
   recetas = [],
   certificados = [],
-  _adjuntos = []
+  _adjuntos = [],
+  onNavegarTab,
 }) => {
   const [filtroTipo, setFiltroTipo] = useState('todos')
 
@@ -208,12 +210,69 @@ export const TimelineClinicoWidget = memo(({
       </div>
 
       {eventosFiltrados.length === 0 ? (
-        <div className="text-center py-10 bg-gray-50 dark:bg-graphite-800 rounded-xl border border-dashed text-gray-400 dark:text-graphite-500">
-          No existen registros clínicos asociados al filtro seleccionado.
+        <div className="text-center py-10 bg-gray-50 dark:bg-graphite-800 rounded-xl border border-dashed border-gray-300 dark:border-graphite-600 px-6">
+          {/* F7-26 P4: Estado vacío mejorado con CTAs */}
+          {filtroTipo === 'todos' && eventosConsolidados.length === 0 ? (
+            <>
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-graphite-100 dark:bg-graphite-700 text-graphite-400 dark:text-graphite-300 mb-3">
+                <FileText size={28} />
+              </div>
+              <h4 className="text-sm font-bold text-graphite-800 dark:text-graphite-100 mb-1">
+                Sin historial clínico aún
+              </h4>
+              <p className="text-[11px] text-graphite-500 dark:text-graphite-400 mb-5 max-w-sm mx-auto">
+                Comienza registrando la primera atención de este paciente para construir su expediente clínico.
+              </p>
+              {typeof onNavegarTab === 'function' && (
+                <div className="flex gap-2 justify-center flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => onNavegarTab('Ficha Clínica')}
+                    className="inline-flex items-center gap-1.5 text-[11px] font-semibold bg-graphite-900 text-white dark:bg-graphite-50 dark:text-graphite-900 px-3 py-1.5 rounded-lg hover:opacity-90 cursor-pointer"
+                  >
+                    <FileText size={12} /> Agregar nota clínica
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onNavegarTab('Plan de Tratamiento')}
+                    className="inline-flex items-center gap-1.5 text-[11px] font-semibold bg-white dark:bg-graphite-800 text-graphite-800 dark:text-graphite-100 border border-graphite-300 dark:border-graphite-600 px-3 py-1.5 rounded-lg hover:bg-graphite-50 dark:hover:bg-graphite-700 cursor-pointer"
+                  >
+                    <CheckCircle size={12} /> Crear plan de tratamiento
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="text-gray-400 dark:text-graphite-500 text-xs">
+              No existen registros clínicos asociados al filtro seleccionado.
+            </p>
+          )}
         </div>
       ) : (
         <div className="relative border-l-2 border-gray-200 dark:border-graphite-700 ml-4 pl-6 space-y-6 py-2">
-          {eventosFiltrados.map(ev => (
+          {eventosFiltrados.map(ev => {
+            // F7-26 P2: Mapeo de tipo de evento a tab de destino
+            const MAPA_EVENTO_TAB = {
+              'Evolución': 'Ficha Clínica',
+              'Tratamiento': 'Plan de Tratamiento',
+              'Receta': 'Recetas Médicas',
+              'Certificado': 'Certificados',
+            }
+            const tabDestino = !ev.esHito ? MAPA_EVENTO_TAB[ev.tipo] : null
+            const esClickeable = !ev.esHito && tabDestino && typeof onNavegarTab === 'function'
+
+            const handleClickEvento = () => {
+              if (esClickeable) onNavegarTab(tabDestino)
+            }
+
+            const handleKeyDownEvento = (e) => {
+              if (esClickeable && (e.key === 'Enter' || e.key === ' ')) {
+                e.preventDefault()
+                onNavegarTab(tabDestino)
+              }
+            }
+
+            return (
             <div key={ev.id} className="relative group">
               {/* Punto en la línea del tiempo */}
               <div className={`absolute -left-[31px] top-0 bg-white dark:bg-graphite-800 border-2 rounded-full w-5 h-5 flex items-center justify-center text-[10px] ${
@@ -226,11 +285,19 @@ export const TimelineClinicoWidget = memo(({
                 {ev.icono === 'Sparkles' && <Sparkles size={16} className="text-slate-500 dark:text-slate-300" />}
               </div>
 
-              <div className={`p-4 rounded-xl border transition-all space-y-1 ${
-              ev.esHito
-                ? 'bg-gradient-to-br from-slate-50 to-blue-50/50 dark:from-slate-800/30 dark:to-blue-900/20 border-slate-300 dark:border-slate-600'
-                : 'bg-gray-50 dark:bg-graphite-800 border-gray-200 dark:border-graphite-700 hover:border-gray-400'
-            }`}>
+              <div
+                role={esClickeable ? 'button' : undefined}
+                tabIndex={esClickeable ? 0 : undefined}
+                onClick={esClickeable ? handleClickEvento : undefined}
+                onKeyDown={esClickeable ? handleKeyDownEvento : undefined}
+                className={`p-4 rounded-xl border transition-all space-y-1 ${
+                  ev.esHito
+                    ? 'bg-gradient-to-br from-slate-50 to-blue-50/50 dark:from-slate-800/30 dark:to-blue-900/20 border-slate-300 dark:border-slate-600'
+                    : esClickeable
+                    ? 'bg-gray-50 dark:bg-graphite-800 border-gray-200 dark:border-graphite-700 hover:border-gray-400 dark:hover:border-graphite-500 cursor-pointer hover:shadow-sm'
+                    : 'bg-gray-50 dark:bg-graphite-800 border-gray-200 dark:border-graphite-700 hover:border-gray-400'
+                }`}
+              >
                 <div className="flex justify-between items-center flex-wrap gap-1">
                   <div className="flex items-center gap-1.5">
                     {ev.esHito && (
@@ -248,9 +315,16 @@ export const TimelineClinicoWidget = memo(({
                   </div>
                 </div>
                 <p className="text-gray-700 dark:text-graphite-300 text-[11px] whitespace-pre-wrap pt-1">{ev.detalle}</p>
+                {esClickeable && (
+                  <div className="pt-1 flex items-center gap-1 text-[10px] font-semibold text-graphite-500 dark:text-graphite-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <ExternalLink size={10} />
+                    <span>Ir a {tabDestino}</span>
+                  </div>
+                )}
               </div>
             </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>

@@ -29,7 +29,8 @@ import {
 } from 'lucide-react'
 import { Icon } from '../../../components/Icon'
 
-const TarjetaMetrica = ({ icono, label, valor, sublabel, color = 'graphite', ariaLabel }) => {
+// F7-26 Pulido P1: Tarjeta clickeable para navegar al tab correspondiente
+const TarjetaMetrica = ({ icono, label, valor, sublabel, color = 'graphite', ariaLabel, onClick }) => {
   const colorClasses = {
     graphite: 'text-graphite-700 dark:text-graphite-300 bg-graphite-100 dark:bg-graphite-800',
     azul: 'text-clinical-info dark:text-sky-300 bg-clinical-info/10 dark:bg-sky-400/15',
@@ -38,11 +39,25 @@ const TarjetaMetrica = ({ icono, label, valor, sublabel, color = 'graphite', ari
     rojo: 'text-clinical-error dark:text-red-300 bg-clinical-error/10 dark:bg-red-400/15',
   }
 
+  const esClickeable = typeof onClick === 'function'
+
+  const handleKeyDown = (e) => {
+    if (esClickeable && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault()
+      onClick()
+    }
+  }
+
   return (
     <div
-      role="region"
+      role={esClickeable ? 'button' : 'region'}
+      tabIndex={esClickeable ? 0 : undefined}
       aria-label={ariaLabel || label}
-      className="bg-white dark:bg-graphite-800 border border-graphite-200 dark:border-graphite-700 rounded-xl p-3 flex items-start gap-3 hover:border-graphite-300 dark:hover:border-graphite-600 transition-colors"
+      onClick={esClickeable ? onClick : undefined}
+      onKeyDown={esClickeable ? handleKeyDown : undefined}
+      className={`bg-white dark:bg-graphite-800 border border-graphite-200 dark:border-graphite-700 rounded-xl p-3 flex items-start gap-3 hover:border-graphite-300 dark:hover:border-graphite-600 transition-all ${
+        esClickeable ? 'cursor-pointer hover:shadow-md hover:scale-[1.02] active:scale-[0.98]' : ''
+      }`}
     >
       <div className={`flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center ${colorClasses[color]}`}>
         <Icon icon={icono} size="sm" />
@@ -64,7 +79,8 @@ const TarjetaMetrica = ({ icono, label, valor, sublabel, color = 'graphite', ari
   )
 }
 
-export const ResumenClinicoHeader = ({ metricas }) => {
+// F7-26 Pulido P1: onNavegarTab para click-to-navigate desde KPIs
+export const ResumenClinicoHeader = ({ metricas, onNavegarTab }) => {
   if (!metricas) return null
 
   const {
@@ -123,17 +139,18 @@ export const ResumenClinicoHeader = ({ metricas }) => {
       aria-label="Resumen clínico del paciente"
     >
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-        {/* 1. Última visita */}
+        {/* 1. Última visita → Línea de Tiempo (F7-26 P1) */}
         <TarjetaMetrica
           icono={Clock}
           label="Última visita"
           valor={textoUltimaVisita}
           sublabel={formatoFecha(ultimaVisita)}
           color={colorUltimaVisita}
-          ariaLabel={`Última visita: ${textoUltimaVisita}`}
+          ariaLabel={`Última visita: ${textoUltimaVisita}. Click para ver línea de tiempo`}
+          onClick={onNavegarTab ? () => onNavegarTab('Línea de Tiempo') : undefined}
         />
 
-        {/* 2. Próxima cita */}
+        {/* 2. Próxima cita (NO clickeable - módulo Agenda externo) */}
         <TarjetaMetrica
           icono={Calendar}
           label="Próxima cita"
@@ -151,27 +168,29 @@ export const ResumenClinicoHeader = ({ metricas }) => {
           }
         />
 
-        {/* 3. Presupuesto pendiente */}
+        {/* 3. Presupuesto pendiente → Plan de Tratamiento (F7-26 P1) */}
         <TarjetaMetrica
           icono={DollarSign}
           label="Pendiente"
           valor={presupuestoPendienteFormateado}
           sublabel={`${progresoTratamiento}% pagado`}
           color={colorPresupuesto}
-          ariaLabel={`Presupuesto pendiente: ${presupuestoPendienteFormateado}`}
+          ariaLabel={`Presupuesto pendiente: ${presupuestoPendienteFormateado}. Click para ver plan de tratamiento`}
+          onClick={onNavegarTab ? () => onNavegarTab('Plan de Tratamiento') : undefined}
         />
 
-        {/* 4. Progreso de tratamiento */}
+        {/* 4. Tratamiento → Plan de Tratamiento (F7-26 P1) */}
         <TarjetaMetrica
           icono={CheckCircle2}
           label="Tratamiento"
           valor={`${itemsRealizados} / ${totalItems}`}
           sublabel={totalItems > 0 ? `${progresoTratamiento}% completado` : 'Sin plan'}
           color={progresoTratamiento === 100 ? 'verde' : 'graphite'}
-          ariaLabel={`Progreso de tratamiento: ${itemsRealizados} de ${totalItems} realizados`}
+          ariaLabel={`Progreso de tratamiento: ${itemsRealizados} de ${totalItems} realizados. Click para ver plan`}
+          onClick={onNavegarTab ? () => onNavegarTab('Plan de Tratamiento') : undefined}
         />
 
-        {/* 5. Alertas activas */}
+        {/* 5. Alertas clínicas → Ficha Clínica (F7-26 P1) */}
         <TarjetaMetrica
           icono={alertasActivas.length > 0 ? AlertTriangle : Activity}
           label="Alertas clínicas"
@@ -184,9 +203,10 @@ export const ResumenClinicoHeader = ({ metricas }) => {
           color={alertasActivas.length > 0 ? 'rojo' : 'verde'}
           ariaLabel={
             alertasActivas.length > 0
-              ? `${alertasActivas.length} alertas clínicas activas`
+              ? `${alertasActivas.length} alertas clínicas activas. Click para ver ficha clínica`
               : 'Sin alertas clínicas'
           }
+          onClick={onNavegarTab ? () => onNavegarTab('Ficha Clínica') : undefined}
         />
       </div>
 

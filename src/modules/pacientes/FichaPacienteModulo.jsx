@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react'
+import React, { memo, useState, useEffect } from 'react'
 import { Trash2, Pencil, AlertTriangle } from 'lucide-react'
 import { TABS_FICHA_PACIENTE } from './constants/pacientesConstants'
 import { useFichaPaciente } from './hooks/useFichaPaciente'
@@ -76,6 +76,18 @@ export const FichaPacienteModulo = memo(({
     abonos,
   })
 
+  // F7-26 Pulido P1/P2: handler de click-to-navigate desde KPIs y Timeline
+  const handleNavegarTab = (tab) => {
+    setTabActiva(tab)
+  }
+
+  // F7-26 Pulido P3: reset de tabActiva al cambiar de paciente vía PacienteNavigator
+  useEffect(() => {
+    if (navegacionClinica && navegacionClinica.indiceActual !== undefined && paciente?.id) {
+      setTabActiva('Ficha Clínica')
+    }
+  }, [paciente?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div role="main" aria-label={`Ficha clínica de ${paciente.nombre}`}>
       {/* F7-26: Navegador de pacientes (si hay datos de navegación) */}
@@ -105,7 +117,7 @@ export const FichaPacienteModulo = memo(({
       </div>
 
       {/* F7-26: Resumen clínico con KPIs */}
-      <ResumenClinicoHeader metricas={metricasClinicas} />
+      <ResumenClinicoHeader metricas={metricasClinicas} onNavegarTab={handleNavegarTab} />
 
       {/* Banner de Datos Principales del Paciente */}
       <div className="bg-gray-50 dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-4 sm:p-6 mb-6 flex flex-col lg:flex-row justify-between items-start gap-4 print:hidden">
@@ -162,6 +174,7 @@ export const FichaPacienteModulo = memo(({
           itemsPresupuesto={itemsPresupuesto}
           recetas={recetas}
           certificados={certificados}
+          onNavegarTab={handleNavegarTab}
         />
       )}
 

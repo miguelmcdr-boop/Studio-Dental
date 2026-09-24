@@ -6188,3 +6188,96 @@ Las 8 "violaciones" detectadas son en realidad **excepciones legítimas** de arq
 3. Si se postergan C-G, ¿se documentan como deuda técnica para después de F7-30?
 
 **Próximo paso:** Decisión del usuario sobre el alcance final de F7-26.
+
+## 2026-09-24 - F7-26: Pulido UX completo - DONE
+
+**Estado:** COMPLETADO. Rama `feat/F7-26-premium-clinical-record` lista para merge.
+
+**Contexto:** Después de implementar las fases A-D (navegación, búsqueda, resumen clínico, timeline mejorado), se identificó la necesidad de pulido UX adicional para mejorar la usabilidad de la ficha clínica premium.
+
+**Pulido UX implementado (Fases P1-P5):**
+
+### Fase P1: Click KPIs → tabs (30 min)
+**Archivos modificados:**
+- `src/modules/pacientes/components/ResumenClinicoHeader.jsx`
+- `src/modules/pacientes/FichaPacienteModulo.jsx`
+
+**Cambios:**
+- Tarjetas de KPIs clickeables para navegar al tab correspondiente
+- Mapeo: Última visita → Línea de Tiempo, Presupuesto → Plan de Tratamiento, Tratamiento → Plan de Tratamiento, Alertas → Ficha Clínica
+- Próxima cita NO es clickeable (módulo Agenda externo)
+- Accesibilidad: role="button", tabIndex, navegación por teclado (Enter/Space)
+- Hover effect: shadow + scale para feedback visual
+
+**Tests:** 8 tests nuevos en `ResumenClinicoHeader.test.jsx`
+
+### Fase P2: Click Timeline → tabs (30 min)
+**Archivos modificados:**
+- `src/modules/pacientes/components/TimelineClinicoWidget.jsx`
+- `src/modules/pacientes/FichaPacienteModulo.jsx`
+
+**Cambios:**
+- Eventos del timeline clickeables para navegar al tab correspondiente
+- Mapeo: Evolución → Ficha Clínica, Tratamiento → Plan de Tratamiento, Receta → Recetas Médicas, Certificado → Certificados
+- Hitos (Primera visita) NO son clickeables (decorativos)
+- Indicador visual "Ir a {tab}" en hover con icono ExternalLink
+- Accesibilidad: role="button", tabIndex, navegación por teclado
+
+**Tests:** 5 tests nuevos en `TimelineClinicoWidget.test.jsx`
+
+### Fase P3: Reset tab al cambiar paciente (15 min)
+**Archivos modificados:**
+- `src/modules/pacientes/FichaPacienteModulo.jsx`
+
+**Cambios:**
+- useEffect que detecta cambio de paciente.id vía PacienteNavigator
+- Reset de tabActiva a 'Ficha Clínica' cuando hay navegación activa
+- No resetea en carga inicial (respeta estado previo)
+- Solo resetea si navegacionClinica.indiceActual está definido
+
+**Tests:** 2 tests nuevos en `FichaPacienteModulo.resetTab.test.jsx`
+
+### Fase P4: Estado vacío mejorado (30 min)
+**Archivos modificados:**
+- `src/modules/pacientes/components/TimelineClinicoWidget.jsx`
+
+**Cambios:**
+- Mensaje amigable cuando paciente no tiene historia clínica
+- CTAs: "Agregar nota clínica" → Ficha Clínica, "Crear plan de tratamiento" → Plan de Tratamiento
+- Diseño: icono FileText + texto + botones estilizados
+- Solo aparece cuando filtroTipo === 'todos' y eventosConsolidados.length === 0
+- Si hay filtro activo con cero resultados, muestra mensaje estándar
+
+**Tests:** 2 tests nuevos (incluidos en TimelineClinicoWidget.test.jsx)
+
+### Fase P5: Tests + validaciones (30 min)
+**Archivos creados:**
+- `src/modules/pacientes/components/ResumenClinicoHeader.test.jsx` (8 tests)
+- `src/modules/pacientes/components/TimelineClinicoWidget.test.jsx` (7 tests)
+- `src/modules/pacientes/FichaPacienteModulo.resetTab.test.jsx` (2 tests)
+
+**Total:** 17 tests nuevos
+
+**Validaciones finales:**
+- Tests: 1496/1496 passing (baseline 1479 + 17 nuevos)
+- Build: OK (PWA 43 entries, 3430.94 KiB)
+- Lint: 0 errors (126 warnings preexistentes)
+- Validador arquitectónico: OK (allowlist actualizada)
+
+**Actualización de allowlist:**
+- `FichaPacienteModulo.jsx`: 295 → 306 (+11 líneas: handleNavegarTab + useEffect)
+- `TimelineClinicoWidget.jsx`: 260 → 334 (+74 líneas: click eventos + mapeo tabs + estado vacío)
+
+**Métricas totales de F7-26:**
+- 10 commits sobre main (5 fases A-D + 5 commits de pulido P1-P5 + fixes)
+- 14 archivos modificados/creados
+- 5 archivos nuevos (PacienteNavigator, ResumenClinicoHeader, useNavegacionClinica, useMetricasClinicas, 3 archivos de tests)
+- +950 líneas / -50 líneas (neto)
+
+**Relación con otras tareas:**
+- F7-25 (DONE): Base de Design System sobre la que se construyó
+- F7-28 (DONE): Responsive aplicado a la ficha premium
+- F7-29 (TODO): Manual de usuario debe documentar click-to-navigate y estado vacío
+- F7-30 (TODO): Release Candidate puede proceder (F7-26 completa)
+
+**Próximo paso:** Merge a main y continuar con F7-27 (Agenda + dashboard).
