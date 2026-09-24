@@ -139,7 +139,7 @@ Deno.serve(async (req) => {
         return { data: await res.json(), error: null };
       });
 
-      if (authError || !userData) {
+      if (authError || !userDataFromAuth) {
         return jsonResponse({ error: "Invalid JWT" }, 401);
       }
 
