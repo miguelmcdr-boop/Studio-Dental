@@ -6410,7 +6410,7 @@ que llama via `X-Internal-Secret`).
 ## F7-34b: Cierre definitivo de contexto multi-clínica en funciones destructivas y purge
 
 **Fecha:** 2026-09-24
-**Estado:** IN PROGRESS
+**Estado:** DONE (2026-09-24)
 **Rama:** main (commit pendiente)
 **Dependencia:** F7-34 (reclasificada a IN_PROGRESS)
 
@@ -6506,3 +6506,77 @@ Accion para F7-30: evaluar si E2E esta estable para quitar continue-on-error (ga
 ### Nota de estado (correccion de trazabilidad)
 
 Se reclasifica F7-34b a IN PROGRESS: los 16 tests Deno son unitarios con mocks de red. Segun el criterio de aceptacion (PASO 7 del encargo), DONE exige validacion manual multi-clinica contra produccion despues del deploy de las funciones corregidas. Esta entrada conserva el detalle de codigo y tests; el cierre a DONE se registrara con evidencia de deploy y de la matriz manual T1-T11.
+
+### Validacion manual en produccion (2026-09-24 05:41 UTC)
+
+Deploy completado a produccion (nagduvivilmzupdpoayo):
+- pacientes-purge: ACTIVE, deploy 2026-09-24 05:41:14
+- archivos-purge: ACTIVE, deploy 2026-09-24 05:41:17
+
+**Usuario dual para pruebas:** admin 28800b1d-cffa-499c-bf3c-6687b9808f1a con membresia temporal en Clinica A (00000000-...-001) y Clinica B (00000000-...-002).
+
+**Fixtures sinteticos usados (todos eliminados al final):**
+- pacientes: 88888888-1111...-1111 (A), 88888888-2222...-2222 (A), 88888888-3333...-3333 (B), 88888888-4444...-4444 (B), todos con deleted_at=2010-01-01
+- archivos: 77777777-1111...-1111 (A), 77777777-2222...-2222 (A), 77777777-3333...-3333 (B), 77777777-4444...-4444 (B), r2_object_key apuntando a blobs inexistentes
+
+**Matriz de 12 casos ejecutados contra produccion:**
+
+| # | Funcion | Clinica activa | Recurso | Resultado | Evidencia |
+|---|---------|----------------|---------|-----------|-----------|
+| D1 | pacientes-purge | A | paciente B-2 | DENEGADO (no_pertenece_clinica) | response body |
+| M1 | pacientes-purge | A + body clinica_id=B | paciente B-2 | DENEGADO (body ignorado) | response body identico a D1 |
+| D2 | pacientes-purge | A | paciente A-1 | PERMITIDO (destructivo real) | fila eliminada verificada via SQL |
+| C1 | pacientes-purge | sin metadata (canario) | paciente B-2 | 403 'No hay clinica activa' | response body; B-2 intacto |
+| D3 | pacientes-purge | B | paciente A-2 | DENEGADO (no_pertenece_clinica) | response body |
+| D4 | pacientes-purge | B | paciente B-1 | PERMITIDO (destructivo real) | fila eliminada verificada via SQL |
+| F1 | archivos-purge | A | archivo B-2 | DENEGADO (no_pertenece_clinica) | response body |
+| FM1 | archivos-purge | A + body clinica_id=B | archivo B-2 | DENEGADO (body ignorado) | response body identico a F1 |
+| F2 | archivos-purge | A | archivo A-1 | PERMITIDO (destructivo real) | fila eliminada verificada via SQL |
+| FC1 | archivos-purge | sin metadata (canario) | archivo B-2 | 403 'No hay clinica activa' | response body; B-2 intacto |
+| F3 | archivos-purge | B | archivo A-2 | DENEGADO (no_pertenece_clinica) | response body |
+| F4 | archivos-purge | B | archivo B-1 | PERMITIDO (destructivo real) | fila eliminada verificada via SQL |
+
+**Canarios inversos (C1, FC1):** con codigo VIEJO (clinicaResult[0]) estos usuarios sin clinica_id en metadata habrian ejecutado purges sobre la primera membresia encontrada. Con codigo NUEVO retornan 403 antes de cualquier operacion destructiva. Prueba de regresion perfecta.
+
+**Audit log verificado post-F7-34b (2026-09-24):**
+- ADMIN_PURGE_PACIENTES: solo paciente_id, deleted_at_original, archivos_r2_purgados. SIN nombre ni rut.
+- ADMIN_PURGE_ARCHIVOS: solo archivo_id. SIN nombre_archivo ni r2_object_key.
+
+**PHI historica (pre-F7-34b):** 62 registros entre 2026-09-05 y 2026-09-15 en audit_log contienen campos PHI (nombre, rut, nombre_archivo). NO se borran: son trazabilidad historica. Saneamiento opcional queda documentado como pendiente para tarea futura si se requiere.
+
+**Cleanup verificado:**
+- 0 fixtures de pacientes remanentes (88888888-%)
+- 0 fixtures de archivos remanentes (77777777-%)
+- Membresia temporal del admin dual eliminada
+- Metadata del admin dual restaurada a estado original (Clinica A)
+
+### Pruebas de manipulacion del cliente (PASO 8)
+
+M1 y FM1 demuestran que inyectar clinica_id en el body es ignorado: la funcion toma clinic_id exclusivamente del JWT user_metadata. No hay forma de que un cliente cambie el contexto sin re-autenticarse con un JWT diferente (que requiere setClinicaActiva, que valida membresia activa).
+
+### Criterios de aceptacion de F7-34b (todos cumplidos)
+
+- [x] No existe uso de miembros_clinica[0] para determinar clinica activa
+- [x] Todas las funciones usan el mecanismo oficial de clinica activa (JWT user_metadata + validacion server-side)
+- [x] Existe validacion server-side de membresia (filtro activo=eq.true)
+- [x] clinica_id enviado por cliente no permite cambiar de contexto
+- [x] Usuario con dos clinicas puede operar correctamente sobre la clinica activa
+- [x] Usuario con dos clinicas no puede operar sobre la otra clinica
+- [x] pacientes-purge esta aislado por clinica
+- [x] archivos-purge esta aislado por clinica
+- [x] R2 upload/download/delete/list/restore estan aislados por clinica (verificado en F7-34)
+- [x] Los tests cross-clinic pasan (16 Deno + 12 produccion)
+- [x] Los tests de manipulacion de clinica_id pasan
+- [x] No se expone PHI innecesaria en audit logs nuevos
+- [x] No se exponen stack traces ni detalles internos al cliente
+- [x] El paciente fantasma esta resuelto (purgado en F7-34)
+- [x] Tests de seguridad pasan (16 Deno + 1518 Vitest)
+- [x] Build pasa
+- [x] Lint pasa (134 warnings preexistentes)
+- [x] Architecture validator pasa
+
+### Limitaciones documentadas
+
+1. **CI E2E continue-on-error:** se mantiene en .github/workflows/ci.yml linea 182. F7-30 debe decidir: si E2E es estable quitar el flag (gate real); si depende de staging documentar que valida; si esta roto arreglarlo o eliminarlo.
+2. **62 registros historicos con PHI:** no se borraron (trazabilidad). Saneamiento opcional pendiente para tarea futura si hay requerimiento de GDPR/Ley 19.628 especifico.
+3. **r2-health-check sin autenticacion:** aceptado y documentado; endpoint de diagnostico sin exposicion de PHI ni datos de clinica.
