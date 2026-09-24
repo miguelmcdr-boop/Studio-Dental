@@ -6403,3 +6403,180 @@ que llama via `X-Internal-Secret`).
 - Credenciales temporales: eliminadas de /tmp localmente
 
 **Proximo paso:** F7-29 (Manual de usuario por rol + capacitacion).
+
+
+---
+
+## F7-34b: Cierre definitivo de contexto multi-clínica en funciones destructivas y purge
+
+**Fecha:** 2026-09-24
+**Estado:** DONE (2026-09-24)
+**Rama:** main (commit pendiente)
+**Dependencia:** F7-34 (reclasificada a IN_PROGRESS)
+
+### Contexto
+
+F7-34 fue marcada DONE tras validación manual en producción (11/11 tests pasando). Sin embargo, una auditoría posterior detectó que pacientes-purge (operación destructiva permanente) todavía usaba el patron peligroso clinicaResult[0] para determinar la clínica activa, lo que permitia potencialmente purgar pacientes de una clínica diferente si el orden de filas en miembros_clinica era desfavorable.
+
+### Problema encontrado
+
+Vulnerabilidad critica en pacientes-purge: la consulta a miembros_clinica no filtraba por clinica_id ni por activo, y tomaba la primera fila del resultado (clinicaResult[0]) como la clinica activa. Esto permitia que un usuario con membresias en multiples clinicas purgara pacientes de una clinica diferente a la activa.
+
+Problemas adicionales detectados:
+1. archivos-purge validaba membresia sin filtro de activo (linea 177)
+2. pacientes-purge exponia PHI en audit log (nombre, rut)
+3. Ambas funciones exponian error.message en respuestas 500 (stack traces, SQL errors)
+
+### Archivos modificados
+
+Correcciones aplicadas:
+
+1. pacientes-purge/index.ts (4 cambios):
+   - Reemplazado clinicaResult[0] por validacion server-side con filtro activo=eq.true sobre clinicaId del JWT
+   - Removidos nombre y rut del audit log (PHI innecesaria)
+   - Sanitizado error.message en respuesta 500 (ahora devuelve mensaje generico)
+   - Arreglado TS2345 (casts as ArrayBuffer en getSignatureKey)
+
+2. archivos-purge/index.ts (2 cambios):
+   - Agregado filtro activo=eq.true a consulta de membresia (linea 177)
+   - Sanitizado error.message en respuesta 500
+
+3. Refactor para testabilidad:
+   - Extraido handler a funcion exportada en ambas funciones
+   - Agregado import.meta.main para permitir tests Deno sin abrir puerto
+
+Archivos creados (tests):
+
+4. supabase/functions/_shared/testUtils.ts (helper de mocks)
+5. supabase/functions/pacientes-purge/index.test.ts (10 tests)
+6. supabase/functions/archivos-purge/index.test.ts (6 tests)
+
+### Pruebas realizadas
+
+Tests Deno de aislamiento multi-clinica: 16/16 pasando
+
+pacientes-purge (10 tests):
+- T1-T4: Aislamiento multi-clinica (A activa permite A / deniega B, B activa permite B / deniega A)
+- T5: Sin clinica activa en JWT retorna 403
+- T6: Membresia revocada (activo=false) retorna 403
+- T7: Rol no-admin retorna 403
+- T8: Sin JWT retorna 401
+- T9: Error 500 NO expone error.message
+- T10: Retencion legal (paciente eliminado hace menos de 10 anios) es rechazado
+
+archivos-purge (6 tests):
+- T1-T2: Aislamiento multi-clinica
+- T3: Membresia revocada retorna 403
+- T4: Modo cron interno con X-Internal-Secret es permitido
+- T5: X-Internal-Secret incorrecto retorna 401
+- T6: Error 500 NO expone error.message
+
+### Caso multi-clinica
+
+Escenario critico validado: usuario con membresias en Clinica A y Clinica B. Con A activa, purge de paciente A es PERMITIDO y purge de paciente B es DENEGADO. Con B activa, purge de paciente B es PERMITIDO y purge de paciente A es DENEGADO. El aislamiento multi-clinica queda garantizado sin importar el orden de filas en miembros_clinica.
+
+### Paciente fantasma
+
+ID: 99999999-9999-9999-9999-999999999999
+Estado: Purgado de produccion (confirmado via SQL en pacientes y archivos_clinicos)
+Audit log: Registros historicos conservados (no contienen PHI gracias a correccion de F7-34b)
+Blobs R2: Eliminados
+
+### Resultado CI/E2E
+
+Estado actual: el job E2E en .github/workflows/ci.yml (linea 182) tiene continue-on-error: true. Decision: dejarlo asi para F7-30 (fuera de alcance de F7-34b). Justificacion: el job depende de staging que puede no estar estable; quitarlo ahora sin verificar infraestructura implicaria riesgo de bloquear desarrollo por razones ajenas al codigo.
+
+Accion para F7-30: evaluar si E2E esta estable para quitar continue-on-error (gate real); si depende de infraestructura externa, documentar que valida cada test; si esta roto, arreglarlo o eliminarlo.
+
+### Limitaciones restantes
+
+1. Validacion manual en produccion: pendiente post-deploy de las funciones corregidas
+2. Tests E2E reales: los tests Deno son unitarios con mocks; validacion E2E contra Supabase produccion requiere deploy y ejecucion manual
+3. r2-health-check: sin autenticacion (endpoint de diagnostico); documentado como limitacion aceptable
+
+### Proximos pasos
+
+1. Commit atomico con todas las correcciones y tests
+2. Deploy de pacientes-purge y archivos-purge corregidas a produccion
+3. Validacion manual multi-clinica en produccion (usuario con 2 clinicas, alternar clinica activa)
+4. Marcar F7-34 como DONE (despues de validacion manual)
+5. Continuar con F7-29 (Manual de usuario por rol y capacitacion)
+6. F7-30 (Release Candidate) debe resolver CI E2E continue-on-error
+
+### Nota de estado (correccion de trazabilidad)
+
+Se reclasifica F7-34b a IN PROGRESS: los 16 tests Deno son unitarios con mocks de red. Segun el criterio de aceptacion (PASO 7 del encargo), DONE exige validacion manual multi-clinica contra produccion despues del deploy de las funciones corregidas. Esta entrada conserva el detalle de codigo y tests; el cierre a DONE se registrara con evidencia de deploy y de la matriz manual T1-T11.
+
+### Validacion manual en produccion (2026-09-24 05:41 UTC)
+
+Deploy completado a produccion (nagduvivilmzupdpoayo):
+- pacientes-purge: ACTIVE, deploy 2026-09-24 05:41:14
+- archivos-purge: ACTIVE, deploy 2026-09-24 05:41:17
+
+**Usuario dual para pruebas:** admin 28800b1d-cffa-499c-bf3c-6687b9808f1a con membresia temporal en Clinica A (00000000-...-001) y Clinica B (00000000-...-002).
+
+**Fixtures sinteticos usados (todos eliminados al final):**
+- pacientes: 88888888-1111...-1111 (A), 88888888-2222...-2222 (A), 88888888-3333...-3333 (B), 88888888-4444...-4444 (B), todos con deleted_at=2010-01-01
+- archivos: 77777777-1111...-1111 (A), 77777777-2222...-2222 (A), 77777777-3333...-3333 (B), 77777777-4444...-4444 (B), r2_object_key apuntando a blobs inexistentes
+
+**Matriz de 12 casos ejecutados contra produccion:**
+
+| # | Funcion | Clinica activa | Recurso | Resultado | Evidencia |
+|---|---------|----------------|---------|-----------|-----------|
+| D1 | pacientes-purge | A | paciente B-2 | DENEGADO (no_pertenece_clinica) | response body |
+| M1 | pacientes-purge | A + body clinica_id=B | paciente B-2 | DENEGADO (body ignorado) | response body identico a D1 |
+| D2 | pacientes-purge | A | paciente A-1 | PERMITIDO (destructivo real) | fila eliminada verificada via SQL |
+| C1 | pacientes-purge | sin metadata (canario) | paciente B-2 | 403 'No hay clinica activa' | response body; B-2 intacto |
+| D3 | pacientes-purge | B | paciente A-2 | DENEGADO (no_pertenece_clinica) | response body |
+| D4 | pacientes-purge | B | paciente B-1 | PERMITIDO (destructivo real) | fila eliminada verificada via SQL |
+| F1 | archivos-purge | A | archivo B-2 | DENEGADO (no_pertenece_clinica) | response body |
+| FM1 | archivos-purge | A + body clinica_id=B | archivo B-2 | DENEGADO (body ignorado) | response body identico a F1 |
+| F2 | archivos-purge | A | archivo A-1 | PERMITIDO (destructivo real) | fila eliminada verificada via SQL |
+| FC1 | archivos-purge | sin metadata (canario) | archivo B-2 | 403 'No hay clinica activa' | response body; B-2 intacto |
+| F3 | archivos-purge | B | archivo A-2 | DENEGADO (no_pertenece_clinica) | response body |
+| F4 | archivos-purge | B | archivo B-1 | PERMITIDO (destructivo real) | fila eliminada verificada via SQL |
+
+**Canarios inversos (C1, FC1):** con codigo VIEJO (clinicaResult[0]) estos usuarios sin clinica_id en metadata habrian ejecutado purges sobre la primera membresia encontrada. Con codigo NUEVO retornan 403 antes de cualquier operacion destructiva. Prueba de regresion perfecta.
+
+**Audit log verificado post-F7-34b (2026-09-24):**
+- ADMIN_PURGE_PACIENTES: solo paciente_id, deleted_at_original, archivos_r2_purgados. SIN nombre ni rut.
+- ADMIN_PURGE_ARCHIVOS: solo archivo_id. SIN nombre_archivo ni r2_object_key.
+
+**PHI historica (pre-F7-34b):** 62 registros entre 2026-09-05 y 2026-09-15 en audit_log contienen campos PHI (nombre, rut, nombre_archivo). NO se borran: son trazabilidad historica. Saneamiento opcional queda documentado como pendiente para tarea futura si se requiere.
+
+**Cleanup verificado:**
+- 0 fixtures de pacientes remanentes (88888888-%)
+- 0 fixtures de archivos remanentes (77777777-%)
+- Membresia temporal del admin dual eliminada
+- Metadata del admin dual restaurada a estado original (Clinica A)
+
+### Pruebas de manipulacion del cliente (PASO 8)
+
+M1 y FM1 demuestran que inyectar clinica_id en el body es ignorado: la funcion toma clinic_id exclusivamente del JWT user_metadata. No hay forma de que un cliente cambie el contexto sin re-autenticarse con un JWT diferente (que requiere setClinicaActiva, que valida membresia activa).
+
+### Criterios de aceptacion de F7-34b (todos cumplidos)
+
+- [x] No existe uso de miembros_clinica[0] para determinar clinica activa
+- [x] Todas las funciones usan el mecanismo oficial de clinica activa (JWT user_metadata + validacion server-side)
+- [x] Existe validacion server-side de membresia (filtro activo=eq.true)
+- [x] clinica_id enviado por cliente no permite cambiar de contexto
+- [x] Usuario con dos clinicas puede operar correctamente sobre la clinica activa
+- [x] Usuario con dos clinicas no puede operar sobre la otra clinica
+- [x] pacientes-purge esta aislado por clinica
+- [x] archivos-purge esta aislado por clinica
+- [x] R2 upload/download/delete/list/restore estan aislados por clinica (verificado en F7-34)
+- [x] Los tests cross-clinic pasan (16 Deno + 12 produccion)
+- [x] Los tests de manipulacion de clinica_id pasan
+- [x] No se expone PHI innecesaria en audit logs nuevos
+- [x] No se exponen stack traces ni detalles internos al cliente
+- [x] El paciente fantasma esta resuelto (purgado en F7-34)
+- [x] Tests de seguridad pasan (16 Deno + 1518 Vitest)
+- [x] Build pasa
+- [x] Lint pasa (134 warnings preexistentes)
+- [x] Architecture validator pasa
+
+### Limitaciones documentadas
+
+1. **CI E2E continue-on-error:** se mantiene en .github/workflows/ci.yml linea 182. F7-30 debe decidir: si E2E es estable quitar el flag (gate real); si depende de staging documentar que valida; si esta roto arreglarlo o eliminarlo.
+2. **62 registros historicos con PHI:** no se borraron (trazabilidad). Saneamiento opcional pendiente para tarea futura si hay requerimiento de GDPR/Ley 19.628 especifico.
+3. **r2-health-check sin autenticacion:** aceptado y documentado; endpoint de diagnostico sin exposicion de PHI ni datos de clinica.
