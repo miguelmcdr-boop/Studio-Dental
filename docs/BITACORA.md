@@ -6410,7 +6410,7 @@ que llama via `X-Internal-Secret`).
 ## F7-34b: Cierre definitivo de contexto multi-clínica en funciones destructivas y purge
 
 **Fecha:** 2026-09-24
-**Estado:** DONE
+**Estado:** IN PROGRESS
 **Rama:** main (commit pendiente)
 **Dependencia:** F7-34 (reclasificada a IN_PROGRESS)
 
@@ -6502,3 +6502,7 @@ Accion para F7-30: evaluar si E2E esta estable para quitar continue-on-error (ga
 4. Marcar F7-34 como DONE (despues de validacion manual)
 5. Continuar con F7-29 (Manual de usuario por rol y capacitacion)
 6. F7-30 (Release Candidate) debe resolver CI E2E continue-on-error
+
+### Nota de estado (correccion de trazabilidad)
+
+Se reclasifica F7-34b a IN PROGRESS: los 16 tests Deno son unitarios con mocks de red. Segun el criterio de aceptacion (PASO 7 del encargo), DONE exige validacion manual multi-clinica contra produccion despues del deploy de las funciones corregidas. Esta entrada conserva el detalle de codigo y tests; el cierre a DONE se registrara con evidencia de deploy y de la matriz manual T1-T11.
