@@ -7,6 +7,7 @@ import { purgarDatosLocales } from '../services/purgarDatosLocales'
 const log = createLogger('sesionStore')
 
 const ACTIVE_USER_KEY = 'clinica_active_user'
+const MAX_PACIENTES_RECIENTES = 5 // F7-26: historial de navegación clínica
 
 // F7-05 FIX: flag para prevenir recursión de logout.
 // Cuando logout() llama a supabase.auth.signOut(), Supabase dispara el evento
@@ -144,5 +145,44 @@ export const useSesionStore = create((set) => ({
         : obtenerRolPorDefecto()
     }
     set({ userProfile: perfilNormalizado })
+  },
+
+  // F7-26: Agrega un paciente al historial de recientes (últimos 5).
+  // Persiste en localStorage por usuario activo para aislamiento entre clínicas.
+  // No expone el historial en el store (se lee directamente desde localStorage
+  // en useCommandPalette para evitar re-renders globales).
+  agregarPacienteReciente: (paciente) => {
+    try {
+      const activeEmail = localStorage.getItem(ACTIVE_USER_KEY)
+      if (!activeEmail || !paciente?.id) return
+      
+      const key = `clinica_pacientes_recientes_${activeEmail}`
+      const existentes = JSON.parse(localStorage.getItem(key) || '[]')
+      
+      // Remover si ya existe (para moverlo al frente)
+      const filtrados = existentes.filter(p => p.id !== paciente.id)
+      
+      // Agregar al frente con timestamp
+      const actualizado = [
+        { id: paciente.id, nombre: paciente.nombre, rut: paciente.rut, timestamp: Date.now() },
+        ...filtrados,
+      ].slice(0, MAX_PACIENTES_RECIENTES)
+      
+      localStorage.setItem(key, JSON.stringify(actualizado))
+    } catch (e) {
+      log.error('Error al guardar paciente reciente:', e)
+    }
+  },
+
+  // F7-26: Obtiene el historial de pacientes recientes (lectura directa).
+  obtenerPacientesRecientes: () => {
+    try {
+      const activeEmail = localStorage.getItem(ACTIVE_USER_KEY)
+      if (!activeEmail) return []
+      const key = `clinica_pacientes_recientes_${activeEmail}`
+      return JSON.parse(localStorage.getItem(key) || '[]')
+    } catch (e) {
+      return []
+    }
   }
 }))

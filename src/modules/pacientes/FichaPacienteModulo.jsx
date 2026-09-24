@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react'
+import React, { memo, useState, useEffect } from 'react'
 import { Trash2, Pencil, AlertTriangle } from 'lucide-react'
 import { TABS_FICHA_PACIENTE } from './constants/pacientesConstants'
 import { useFichaPaciente } from './hooks/useFichaPaciente'
@@ -15,6 +15,9 @@ import { ConsentimientosSection } from './components/ConsentimientosSection'
 import { CalculadoraAnestesiaSection } from './components/CalculadoraAnestesiaSection'
 import { AdjuntosSection } from './components/AdjuntosSection'
 import { ModalEditarPaciente } from './components/ModalEditarPaciente'
+import { PacienteNavigator } from './components/PacienteNavigator' // F7-26
+import { ResumenClinicoHeader } from './components/ResumenClinicoHeader' // F7-26
+import { useMetricasClinicas } from './hooks/useMetricasClinicas' // F7-26
 
 // Especialidades Externas (Módulos Encapsulados)
 import { OdontogramaModulo } from '../odontograma'
@@ -33,7 +36,8 @@ export const FichaPacienteModulo = memo(({
   paciente,
   alActualizarPaciente,
   alEliminarPaciente,
-  alVolver
+  alVolver,
+  navegacionClinica, // F7-26: navegación entre pacientes
 }) => {
   // (F2-02) — Ahora los stores sí están correctamente importados arriba
   const userProfile = useSesionStore((state) => state.userProfile)
@@ -64,8 +68,40 @@ export const FichaPacienteModulo = memo(({
     saldoPendiente
   } = useFichaPaciente(paciente, alActualizarPaciente)
 
+  // F7-26: KPIs del paciente para ResumenClinicoHeader
+  const metricasClinicas = useMetricasClinicas({
+    paciente,
+    evolucionesNotas,
+    itemsPresupuesto,
+    abonos,
+  })
+
+  // F7-26 Pulido P1/P2: handler de click-to-navigate desde KPIs y Timeline
+  const handleNavegarTab = (tab) => {
+    setTabActiva(tab)
+  }
+
+  // F7-26 Pulido P3: reset de tabActiva al cambiar de paciente vía PacienteNavigator
+  useEffect(() => {
+    if (navegacionClinica && navegacionClinica.indiceActual !== undefined && paciente?.id) {
+      setTabActiva('Ficha Clínica')
+    }
+  }, [paciente?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div role="main" aria-label={`Ficha clínica de ${paciente.nombre}`}>
+      {/* F7-26: Navegador de pacientes (si hay datos de navegación) */}
+      {navegacionClinica && navegacionClinica.total > 0 && (
+        <PacienteNavigator
+          indiceActual={navegacionClinica.indiceActual}
+          total={navegacionClinica.total}
+          hayAnterior={navegacionClinica.hayAnterior}
+          haySiguiente={navegacionClinica.haySiguiente}
+          anterior={navegacionClinica.anterior}
+          siguiente={navegacionClinica.siguiente}
+        />
+      )}
+
       {/* Botones Volver / Eliminar */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 print:hidden">
         <button onClick={alVolver} className="text-xs font-semibold text-gray-500 dark:text-graphite-400 hover:text-black flex items-center gap-1 cursor-pointer">
@@ -79,6 +115,9 @@ export const FichaPacienteModulo = memo(({
           <span className="inline-flex items-center gap-1"><Trash2 size={12} />Eliminar Paciente</span>
         </button>
       </div>
+
+      {/* F7-26: Resumen clínico con KPIs */}
+      <ResumenClinicoHeader metricas={metricasClinicas} onNavegarTab={handleNavegarTab} />
 
       {/* Banner de Datos Principales del Paciente */}
       <div className="bg-gray-50 dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-4 sm:p-6 mb-6 flex flex-col lg:flex-row justify-between items-start gap-4 print:hidden">
@@ -135,6 +174,7 @@ export const FichaPacienteModulo = memo(({
           itemsPresupuesto={itemsPresupuesto}
           recetas={recetas}
           certificados={certificados}
+          onNavegarTab={handleNavegarTab}
         />
       )}
 

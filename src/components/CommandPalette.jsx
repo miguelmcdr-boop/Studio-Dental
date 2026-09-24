@@ -63,6 +63,17 @@ export const CommandPalette = ({
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, onClose, onSelect, onMoveUp, onMoveDown])
 
+  // F7-26: Set de IDs de pacientes recientes para mostrar badge visual
+  const recientesIds = useMemo(() => {
+    try {
+      return new Set(
+        useSesionStore.getState().obtenerPacientesRecientes().map(r => r.id)
+      )
+    } catch {
+      return new Set()
+    }
+  }, [isOpen]) // Re-computar al abrir CommandPalette
+
   if (!isOpen) return null
 
   const hasResults = pacientesFiltrados.length > 0 || modulosFiltrados.length > 0 || accionesRapidas.length > 0
@@ -135,8 +146,13 @@ export const CommandPalette = ({
                       <div className="text-sm font-semibold text-graphite-900 dark:text-graphite-50 truncate">
                         {paciente.nombre}
                       </div>
-                      <div className="text-xs text-graphite-500 dark:text-graphite-400 truncate">
-                        {paciente.rut}
+                      <div className="text-xs text-graphite-500 dark:text-graphite-400 truncate flex items-center gap-2">
+                        <span>{paciente.rut}</span>
+                        {recientesIds.has(paciente.id) && (
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-clinical-info/15 text-clinical-info dark:bg-sky-400/20 dark:text-sky-300 uppercase tracking-wider">
+                            Reciente
+                          </span>
+                        )}
                       </div>
                     </div>
                   </button>

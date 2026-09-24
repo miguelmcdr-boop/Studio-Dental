@@ -11,6 +11,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { usePacientesStore } from '../store/pacientesStore'
 import { useRBAC } from './useRBAC'
+import { useSesionStore } from '../store/sesionStore' // F7-26: historial de pacientes recientes
 import { SECCIONES_SIDEBAR } from '../constants/sidebarConstants'
 import { createLogger } from '../services/logger'
 
@@ -29,16 +30,32 @@ const fuzzyMatch = (text, query) => {
   return normalizedText.includes(normalizedQuery)
 }
 
-export const useCommandPalette = ({ onNavigate, onCreateCita, onCreatePaciente, onCreatePresupuesto }) => {
+export const useCommandPalette = ({ onNavigate, onCreateCita, onCreatePaciente, onCreatePresupuesto, onSelectPaciente }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(0)
   const pacientes = usePacientesStore((state) => state.pacientes)
   const { puede } = useRBAC()
 
-  // Búsqueda de pacientes (top 5)
+  // F7-26: Búsqueda de pacientes (top 5)
+  // Cuando no hay query, mostrar pacientes recientes (últimos 5 visitados)
+  // Cuando hay query, hacer búsqueda fuzzy por nombre/RUT
   const pacientesFiltrados = useMemo(() => {
-    if (!query.trim()) return pacientes.slice(0, 5)
+    if (!query.trim()) {
+      // Mostrar recientes si existen, sino primeros 5 del store
+      const recientesIds = new Set(
+        useSesionStore.getState().obtenerPacientesRecientes().map(r => r.id)
+      )
+      if (recientesIds.size > 0) {
+        // Pacientes que están en recientes, en el orden de recientes
+        const recientesData = useSesionStore.getState().obtenerPacientesRecientes()
+        const recientesConDatos = recientesData
+          .map(r => pacientes.find(p => p.id === r.id))
+          .filter(Boolean)
+        if (recientesConDatos.length > 0) return recientesConDatos.slice(0, 5)
+      }
+      return pacientes.slice(0, 5)
+    }
     return pacientes
       .filter(p => fuzzyMatch(p.nombre, query) || fuzzyMatch(p.rut, query))
       .slice(0, 5)
@@ -98,7 +115,9 @@ export const useCommandPalette = ({ onNavigate, onCreateCita, onCreatePaciente, 
     try {
       if (result.type === 'paciente') {
         onNavigate?.('Pacientes')
-        // TODO: seleccionar paciente específico (requiere API en pacientesStore)
+        // F7-26: seleccionar paciente específico y guardar en recientes
+        onSelectPaciente?.(result.data)
+        useSesionStore.getState().agregarPacienteReciente(result.data)
       } else if (result.type === 'modulo') {
         onNavigate?.(result.data.name)
       } else if (result.type === 'accion') {

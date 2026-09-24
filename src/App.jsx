@@ -10,6 +10,7 @@ import { usePacientesStore } from './store/pacientesStore'
 import { usePrestacionesStore } from './store/prestacionesStore'
 import { useSesionStore } from './store/sesionStore'
 import { useDataMigration } from './hooks/useDataMigration'
+import { useNavegacionClinica } from './modules/pacientes/hooks/useNavegacionClinica' // F7-26
 import { useRealtimeSync } from './hooks/useRealtimeSync'
 import { useOfflineQueue } from './hooks/useOfflineQueue'
 import { supabase, USE_SUPABASE } from './services/supabaseClient'
@@ -108,12 +109,20 @@ function App() {
   useRestaurarPaciente(userProfile, pacienteSeleccionado, setPacienteSeleccionadoState, setActiveSection)
   // F10-B2.5: contadores para el Sidebar
   const sidebarCounters = useSidebarCounters()
-  // F10-B4: CommandPalette con ⌘K
+
+  // F7-26: Navegación clínica entre pacientes (← → en ficha)
+  const navegacionClinica = useNavegacionClinica(
+    pacienteSeleccionado,
+    setPacienteSeleccionado
+  )
+
+  // F10-B4: CommandPalette con ⌘K (F7-26: + onSelectPaciente)
   const commandPalette = useCommandPalette({
     onNavigate: setActiveSection,
     onCreateCita: () => setActiveSection('Agenda'),
     onCreatePaciente: () => setActiveSection('Pacientes'),
     onCreatePresupuesto: () => setActiveSection('Presupuestos'),
+    onSelectPaciente: setPacienteSeleccionado, // F7-26: seleccionar paciente desde CommandPalette
   })
 
   // F10-B4: Atajo ⌘K / Ctrl+K para abrir CommandPalette
@@ -323,7 +332,8 @@ function App() {
                   paciente={pacienteSeleccionado} 
                   alActualizarPaciente={handleActualizarPaciente}
                   alEliminarPaciente={handleEliminarPaciente}
-                  alVolver={() => setPacienteSeleccionado(null)} 
+                  alVolver={() => setPacienteSeleccionado(null)}
+                  navegacionClinica={navegacionClinica} /* F7-26 */
                 />
               ) : (
                 <DirectorioPacientes
