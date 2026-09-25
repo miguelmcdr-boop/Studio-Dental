@@ -6709,3 +6709,82 @@ Adicionalmente:
 **F7-29** — Manual de usuario por rol + capacitación (P2, prerequisito de F7-30).
 
 ---
+
+---
+
+## 🔧 F7-35 — Post-audit hardening (2026-09-25)
+
+**Tarea:** Correcciones post-auditoría de F7-35  
+**Estado:** ✅ DONE  
+**Fecha:** 2026-09-25  
+**PR:** #159
+
+### Contexto
+
+Auditoría independiente del estado de main post-F7-35 detectó dos problemas:
+
+1. **5 de 6 funciones R2 no usaban safeInternalError() correctamente**  
+   Tenían catch blocks manuales que devolvían error genérico directamente, sin aprovechar el mecanismo centralizado de logging seguro.
+
+2. **Mensaje incorrecto en r2-delete**  
+   Decía "File deleted from R2 but failed to update metadata" pero la función hace soft delete (marca deleted_at), no elimina físicamente el objeto R2.
+
+### Cambios implementados
+
+**1. Integración de safeInternalError() en 5 funciones R2:**
+- r2-upload-url/index.ts
+- r2-download-url/index.ts
+- r2-delete/index.ts
+- r2-list-deleted/index.ts
+- r2-restore/index.ts
+
+**Beneficio:** El helper centralizado garantiza:
+- Cliente nunca recibe stack traces, SQL, PostgREST internals
+- Detalles técnicos van a console.error (logs de Supabase)
+- HTTP 500 real (no 200 con body 500)
+- Logging consistente en todas las funciones
+
+**2. Mensaje de r2-delete corregido:**
+
+Antes: "File deleted from R2 but failed to update metadata"  
+Después: "Soft delete en DB falló pero archivo R2 intacto"
+
+**Razón:** La función hace soft delete (marca deleted_at en DB), no elimina físicamente el objeto R2.
+
+**3. Tests de regresión agregados (3 nuevos):**
+- Verifica que safeInternalError retorna HTTP 500 real (no 200 con body 500)
+- Verifica que error.message nunca se expone al cliente
+- Verifica que stack trace nunca se expone al cliente
+
+### Deploy a producción
+
+Las 5 funciones R2 corregidas fueron desplegadas a producción (2026-09-25 03:32:08 - 03:32:20 UTC):
+- r2-upload-url v11
+- r2-download-url v9
+- r2-delete v11
+- r2-list-deleted v11
+- r2-restore v8
+
+### Validaciones
+
+- Lint: 138 warnings, 0 errores
+- Build: OK
+- Architecture validator: OK
+- Vitest: 1518/1518 tests pasando
+- Deno tests: 10/10 tests pasando (7 originales + 3 nuevos)
+- Búsquedas de regresión: cero jsonResponse(N) ambiguos, cero fugas de detalles
+
+### Commits
+
+1. 9918dfc — fix(F7-35): integrar safeInternalError en 5 funciones R2 + corregir mensaje de soft delete
+2. 36d4b97 — fix(F7-35): completar integración de safeInternalError en r2-restore
+
+### Impacto
+
+- No hay regresión en los 22 tests manuales multi-clínica de F7-35
+- No se modifica clinica_actual(), RLS, ni lógica de multi-clínica
+- Mejora la consistencia del logging de errores en todas las funciones R2
+- Corrige mensaje engañoso en r2-delete
+
+---
+
