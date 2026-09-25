@@ -7,36 +7,21 @@
  * @param {Object} citaUnica - Cita a validar
  * @param {Array} citasExistentes - Citas ya existentes
  * @param {Function} validarFn - Función de validación
+ * @param {Function|null} confirmFn - Función confirm de useAppDialog (opcional)
  * @returns {Promise<boolean>} - true si se puede continuar, false si el usuario canceló
  */
+import { confirmarConDialogo } from './confirmarConDialogo'
+
 export const validarConflictoCitaUnica = async (
-  citaUnica,
-  citasExistentes,
-  validarFn,
-  confirmFn = null
+  citaUnica, citasExistentes, validarFn, confirmFn = null
 ) => {
   const resultado = validarFn(citaUnica, citasExistentes)
-  
-  if (resultado.valido) {
-    return true
-  }
+  if (resultado.valido) return true
 
   const conflictos = resultado.conflictos
   const mensaje = `Conflicto de horario detectado:\n\n` +
-    conflictos.map(c => 
-      `• ${c.fecha} a las ${c.horaInicio} - ${c.pacienteNombre} (${c.boxAsignado})`
-    ).join('\n') +
+    conflictos.map(c => `• ${c.fecha} a las ${c.horaInicio} - ${c.pacienteNombre} (${c.boxAsignado})`).join('\n') +
     '\n\n¿Deseas continuar de todos modos?'
-  
-  // Usar confirmFn (useAppDialog) si está disponible, sino fallback a window.confirm
-  if (confirmFn) {
-    return await confirmFn({
-      title: 'Conflicto de horario',
-      description: mensaje,
-      variant: 'warning',
-      confirmText: 'Continuar de todos modos',
-      cancelText: 'Revisar cita'
-    })
-  }
-  return window.confirm(mensaje)
+
+  return await confirmarConDialogo(mensaje, confirmFn)
 }

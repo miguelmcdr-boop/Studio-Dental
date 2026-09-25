@@ -154,7 +154,6 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
         })
       })
 
-      // F7-27 fix: validar conflictos antes de guardar citas recurrentes
       const puedeContinuar = await confirmarConflictosRecurrencia(
         citasAGuardar,
         citasExistentes,
