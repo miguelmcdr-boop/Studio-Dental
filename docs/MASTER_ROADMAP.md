@@ -2476,35 +2476,51 @@ Convertir los escenarios críticos en pruebas automatizadas de staging y gates d
 #### F7-25 — Design System + App Shell profesional
 Unificar tipografía, jerarquía, espaciado, componentes, estados, iconografía y navegación. Sustituir progresivamente emojis como sistema principal de navegación por iconografía consistente.
 
-#### F7-26 — Ficha clínica premium
-Convertir la ficha clínica en el centro del producto: resumen, anamnesis, odontograma, periodoncia, tratamientos, evoluciones, recetas e imágenes, con navegación de pocos pasos y jerarquía clínica clara.
+### F7-26 — Ficha clínica premium y navegación clínica optimizada
 
-**Estado parcial (2026-09-22) — Rama `feat/F7-26-premium-clinical-record`:**
+**Estado:** DONE (2026-09-24, PR #150 mergeado)
 
-| Fase | Descripción | Estado | Commit |
-|------|-------------|--------|--------|
-| **A (A1-A5)** | Navegación clínica entre pacientes + búsqueda rápida + historial reciente | ✅ Implementado | `d96e213`, `ea60a12` |
-| **B (B1-B4)** | Resumen clínico con 5 KPIs + Timeline mejorado con estadísticas y eventos hito | ✅ Implementado | `2254ee4`, `d8043dd` |
-| **C** | Odontograma integrado en ficha clínica | ⬜ Pendiente | — |
-| **D** | Periodoncia integrada en ficha clínica | ⬜ Pendiente | — |
-| **E** | Tratamientos / evoluciones clínicas en ficha | ⬜ Pendiente | — |
-| **F** | Recetas + imágenes con jerarquía clínica | ⬜ Pendiente | — |
-| **G** | Anamnesis estructurada en ficha | ⬜ Pendiente | — |
+**Fases completadas:**
+- **Fase A — Navegación clínica:** Breadcrumb de paciente + botón volver + persistencia de tab activa al navegar entre fichas
+- **Fase B — Búsqueda omnicanal:** CommandPalette (⌘K/Ctrl+K) con 3 secciones: Pacientes / Módulos / Acciones rápidas, filtradas por RBAC (fix post-auditoría: `useMemo` import faltante corregido, componente montado en `App.jsx`)
+- **Fase C — Resumen clínico:** KPIs de ficha (evoluciones, recetas, archivos, citas) clickeables que navegan a la tab correspondiente
+- **Fase D — Timeline clínico:** Timeline unificado con filtros por tipo de evento (evolución, receta, archivo, cita)
 
-**Archivos clave implementados (Fases A-B):**
-- `src/modules/pacientes/components/PacienteNavigator.jsx` (nuevo)
-- `src/modules/pacientes/components/ResumenClinicoHeader.jsx` (nuevo)
-- `src/modules/pacientes/hooks/useNavegacionClinica.js` (nuevo)
-- `src/modules/pacientes/hooks/useMetricasClinicas.js` (nuevo)
-- `src/modules/pacientes/components/TimelineClinicoWidget.jsx` (ampliado)
-- `src/store/sesionStore.js` (extensión para navegación clínica)
+**Pulido UX P1-P5:**
+- P1: Click en KPIs del resumen navega a la tab
+- P2: Click en timeline navega a la tab del evento
+- P3: Reset de tab activa al cambiar de paciente
+- P4: Estado vacío para pacientes sin evoluciones/recetas/archivos
+- P5: Navegación clínica accesible desde CommandPalette
 
-**Validaciones locales en la rama:** Tests ✅ | Build ✅ | Validador ✅ | Lint ✅
+**Tests:** 17 nuevos (1496 total al momento del merge)
 
-**Próximo paso:** Definir alcance y prioridad de fases C-G (odontograma/periodoncia/recetas/anamnesis). Decisión pendiente antes de merge.
+**Allowlist:** actualizada para incluir nuevos archivos de Fase A-D
 
-#### F7-27 — Agenda + dashboard
-Priorizar operación diaria: citas, pendientes, alertas y tareas clínicas. Evitar métricas decorativas sin valor operacional.
+---
+
+### F7-27 — Agenda + dashboard operacional de nivel comercial
+
+**Estado:** DONE (2026-09-23, PR #151 mergeado)
+
+**Dashboard operacional (4 widgets):**
+1. **AlertasOperativasWidget:** alertas de no-shows recientes, citas sin evolución, pacientes sin cita de control
+2. **TareasClinicasWidget:** tareas pendientes del equipo clínico (evoluciones por firmar, recetas por renovar)
+3. **TendenciasWidget:** gráficos recharts de 7/30 días (citas, no-shows, evoluciones, nuevos pacientes)
+4. **NoShowWidget:** análisis de inasistencias por profesional/día/hora
+
+**Vistas de agenda:**
+- Vista lista (tabla con filtros)
+- Vista por profesional (columnas por profesional)
+- Búsqueda avanzada (paciente, profesional, box, estado)
+- Exportación CSV de citas filtradas
+- Recurrencia semanal/mensual/anual con `generarCitasRecurrencia` (fix post-auditoría: `validarConflictosRecurrencia` conectado a `handleSubmit` para prevenir doble-booking)
+
+**Fix F7-26:** etiqueta "visitas registradas" corregida a "evoluciones registradas" en Timeline
+
+**Tests:** 1518 total al momento del merge
+
+---
 
 #### F7-28 — Responsive + accesibilidad
 Validar 1440/1280/1024/768/430/390/375 px, teclado, foco, labels, contraste y flujos críticos con tecnologías asistivas.
