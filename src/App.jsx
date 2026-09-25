@@ -242,6 +242,7 @@ function App() {
     <>
       <ToastContainer />
       <AppDialogProvider />
+      <CommandPalette {...commandPalette} />
       <div className="min-h-screen flex flex-col bg-graphite-50 dark:bg-graphite-900 font-sans">
         <TopBar
           userProfile={userProfile}
