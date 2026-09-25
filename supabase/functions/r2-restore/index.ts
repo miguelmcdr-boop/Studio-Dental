@@ -209,14 +209,7 @@ Deno.serve(async (req) => {
       message: "Archivo restaurado correctamente",
     });
   } catch (error) {
-    return jsonResponse(
-      {
-        error: "Internal server error",
-        // F7-35: error.message removido; ver safeInternalError en catch
-        // F7-34: Stack traces removidos de respuesta HTTP (solo logs internos)
-      },
-      500
-    );
+    return safeInternalError(req, error, "[r2-restore]");
   }
 });
 
