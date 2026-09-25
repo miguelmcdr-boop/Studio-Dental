@@ -359,14 +359,7 @@ Deno.serve(async (req) => {
       expires_in: expiresIn,
     });
   } catch (error) {
-    return jsonResponse(
-      {
-        error: "Internal server error",
-        // F7-35: error.message removido
-        // F7-34: Stack traces removidos de respuesta HTTP (solo logs internos)
-      },
-      500
-    );
+    return safeInternalError(req, error, "[r2-upload-url]");
   }
 });
 
