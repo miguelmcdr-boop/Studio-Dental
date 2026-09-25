@@ -16,7 +16,7 @@ import { RecurrenciaForm } from './RecurrenciaForm'
 import { generarCitasRecurrencia, validarConflictosRecurrencia } from '../../../utils/recurrenciaUtils'
 import { RefreshCw } from 'lucide-react'
 
-export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGuardar, alCerrar }) => {
+export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGuardar, alCerrar, citasExistentes = [] }) => {
   const [esPacienteExpress, setEsPacienteExpress] = useState(false)
   const [pacienteSeleccionadoId, setPacienteSeleccionadoId] = useState('')
   
@@ -152,6 +152,35 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
         })
       })
 
+      // F7-27 fix: validar conflictos antes de guardar citas recurrentes
+      const todosLosConflictos = []
+      citasAGuardar.forEach((cita) => {
+        const resultado = validarConflictosRecurrencia(cita, citasExistentes)
+        if (!resultado.valido) {
+          resultado.conflictos.forEach((conflicto) => {
+            todosLosConflictos.push({
+              fecha: conflicto.fecha,
+              hora: conflicto.horaInicio,
+              paciente: conflicto.pacienteNombre,
+              box: conflicto.boxAsignado
+            })
+          })
+        }
+      })
+
+      if (todosLosConflictos.length > 0) {
+        const mensaje = `Se detectaron ${todosLosConflictos.length} conflicto(s) de horario:\n\n` +
+          todosLosConflictos.slice(0, 5).map(c => 
+            `• ${c.fecha} a las ${c.hora} - ${c.paciente} (${c.box})`
+          ).join('\n') +
+          (todosLosConflictos.length > 5 ? `\n...y ${todosLosConflictos.length - 5} más` : '') +
+          '\n\n¿Deseas continuar de todos modos?'
+        
+        if (!window.confirm(mensaje)) {
+          return
+        }
+      }
+
       // Guardar todas las citas (el hook useAgenda debe manejar arrays)
       citasAGuardar.forEach((cita, index) => {
         alGuardar(cita, index === 0 && esPacienteExpress ? autoCrearFicha : false)
@@ -165,24 +194,38 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
       })
     } else {
       // Cita única (sin recurrencia)
-      alGuardar(
-        {
-          id: Date.now(),
-          pacienteId: pacienteSeleccionadoId || `express_${Date.now()}`,
-          pacienteNombre,
-          pacienteTelefono,
-          pacienteRut,
-          trataMiento: tratamiento,
-          boxAsignado,
-          fecha,
-          horaInicio,
-          horaFin: horaFinCalculada,
-          duracionMinutos: parseInt(duracionMinutos, 10),
-          observaciones,
-          estado: 'Agendado'
-        },
-        esPacienteExpress ? autoCrearFicha : false
-      )
+      const citaUnica = {
+        id: Date.now(),
+        pacienteId: pacienteSeleccionadoId || `express_${Date.now()}`,
+        pacienteNombre,
+        pacienteTelefono,
+        pacienteRut,
+        trataMiento: tratamiento,
+        boxAsignado,
+        fecha,
+        horaInicio,
+        horaFin: horaFinCalculada,
+        duracionMinutos: parseInt(duracionMinutos, 10),
+        observaciones,
+        estado: 'Agendado'
+      }
+
+      // F7-27 fix: validar conflictos antes de guardar cita única
+      const resultado = validarConflictosRecurrencia(citaUnica, citasExistentes)
+      if (!resultado.valido) {
+        const conflictos = resultado.conflictos
+        const mensaje = `Conflicto de horario detectado:\n\n` +
+          conflictos.map(c => 
+            `• ${c.fecha} a las ${c.horaInicio} - ${c.pacienteNombre} (${c.boxAsignado})`
+          ).join('\n') +
+          '\n\n¿Deseas continuar de todos modos?'
+        
+        if (!window.confirm(mensaje)) {
+          return
+        }
+      }
+
+      alGuardar(citaUnica, esPacienteExpress ? autoCrearFicha : false)
     }
   }
 
