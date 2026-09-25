@@ -128,3 +128,80 @@ Deno.test("safeError: no rompe con objetos no serializables", async () => {
     console.error = original;
   }
 });
+
+
+// ============================================================
+// TESTS DE REGRESIÓN F7-35 POST-AUDIT
+// ============================================================
+
+Deno.test("safeInternalError: retorna HTTP 500 real (no 200 con body 500)", async () => {
+  const logs: string[] = [];
+  const original = console.error;
+  console.error = (msg: string) => logs.push(msg);
+
+  try {
+    const res = safeInternalError(undefined, new Error("test error"), "[test]");
+    const body = await res.json();
+
+    // CRÍTICO: status debe ser 500, no 200
+    if (res.status !== 500) {
+      throw new Error(`FATAL: status es ${res.status}, debería ser 500`);
+    }
+    assertEquals(body.error, "INTERNAL_SERVER_ERROR");
+    // El log debe contener el detalle técnico
+    assertEquals(logs.length, 1);
+    if (!logs[0].includes("test error")) {
+      throw new Error("Log interno no contiene el detalle del error");
+    }
+  } finally {
+    console.error = original;
+  }
+});
+
+Deno.test("safeInternalError: nunca expone error.message al cliente", async () => {
+  const logs: string[] = [];
+  const original = console.error;
+  console.error = (msg: string) => logs.push(msg);
+
+  try {
+    const sensitiveError = new Error("SELECT * FROM auth.users WHERE password='leaked'");
+    const res = safeInternalError(undefined, sensitiveError, "[test]");
+    const body = await res.json();
+
+    assertEquals(res.status, 500);
+    assertEquals(body.error, "INTERNAL_SERVER_ERROR");
+    // CRÍTICO: el body NO debe contener el mensaje sensible
+    const bodyStr = JSON.stringify(body);
+    if (bodyStr.includes("SELECT") || bodyStr.includes("leaked")) {
+      throw new Error("FUGA CRÍTICA: mensaje de error expuesto al cliente");
+    }
+    // Pero el log interno SÍ debe tenerlo
+    if (!logs[0].includes("SELECT")) {
+      throw new Error("Log interno no contiene el detalle (debería estar ahí)");
+    }
+  } finally {
+    console.error = original;
+  }
+});
+
+Deno.test("safeInternalError: no expone stack trace al cliente", async () => {
+  const logs: string[] = [];
+  const original = console.error;
+  console.error = (msg: string) => logs.push(msg);
+
+  try {
+    const error = new Error("test");
+    const res = safeInternalError(undefined, error, "[test]");
+    const body = await res.json();
+
+    assertEquals(res.status, 500);
+    // CRÍTICO: el body NO debe contener stack trace
+    const bodyStr = JSON.stringify(body);
+    if (bodyStr.includes("at ") || bodyStr.includes("stack")) {
+      throw new Error("FUGA CRÍTICA: stack trace expuesto al cliente");
+    }
+    // El log puede contener stack, pero no el body
+  } finally {
+    console.error = original;
+  }
+});

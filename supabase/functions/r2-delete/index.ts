@@ -228,7 +228,7 @@ Deno.serve(async (req) => {
       const errorText = await updateResult.text();
       return jsonResponse(
         {
-          error: "File deleted from R2 but failed to update metadata",
+          error: "Soft delete en DB falló pero archivo R2 intacto",
           // F7-35: detalle técnico no expuesto
         },
         500
@@ -260,14 +260,7 @@ Deno.serve(async (req) => {
       message: "Archivo eliminado correctamente",
     });
   } catch (error) {
-    return jsonResponse(
-      {
-        error: "Internal server error",
-        // F7-35: error.message removido
-        // F7-34: Stack traces removidos de respuesta HTTP (solo logs internos)
-      },
-      500
-    );
+    return safeInternalError(req, error, "[r2-delete]");
   }
 });
 
