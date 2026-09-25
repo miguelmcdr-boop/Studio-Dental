@@ -2233,7 +2233,6 @@ Este archivo responde a *qué falta y en qué orden*. La bitácora responde a *q
 **Estado general:** 🟢 **IN PROGRESS → CIERRE** — Tareas P0 completadas (F7-01..F7-24, F7-31..F7-35). Pendientes: F7-29 (manual de usuario por rol + capacitación, P2, prerequisito de F7-30) y F7-30 (pre-producción final). Gate final de producción: completar F7-30.
 
 **Fecha de incorporación:** 2026-08-26  
-**Estado:** 🔴 **TODO — FASE OBLIGATORIA ANTES DE DECLARAR PRODUCCIÓN CON DATOS CLÍNICOS REALES**
 
 **Origen:** auditoría profunda del repositorio `main` realizada el 2026-08-26, con revisión de seguridad clínica, RLS/RBAC, multi-tenant, almacenamiento local, PWA/Cache Storage, Storage, audit log, supply chain, arquitectura y UX.
 
