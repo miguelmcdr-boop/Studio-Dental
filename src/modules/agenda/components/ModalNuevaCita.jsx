@@ -15,8 +15,10 @@ import { CamposFormularioCita } from './CamposFormularioCita'
 import { RecurrenciaForm } from './RecurrenciaForm'
 import { generarCitasRecurrencia, validarConflictosRecurrencia } from '../../../utils/recurrenciaUtils'
 import { RefreshCw } from 'lucide-react'
+import { confirmarConflictosRecurrencia } from '../utils/validarConflictosRecurrencia'
+import { validarConflictoCitaUnica } from '../utils/validarConflictoCitaUnica'
 
-export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGuardar, alCerrar }) => {
+export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGuardar, alCerrar, citasExistentes = [] }) => {
   const [esPacienteExpress, setEsPacienteExpress] = useState(false)
   const [pacienteSeleccionadoId, setPacienteSeleccionadoId] = useState('')
   
@@ -152,6 +154,16 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
         })
       })
 
+      // F7-27 fix: validar conflictos antes de guardar citas recurrentes
+      const puedeContinuar = await confirmarConflictosRecurrencia(
+        citasAGuardar,
+        citasExistentes,
+        validarConflictosRecurrencia
+      )
+      if (!puedeContinuar) {
+        return
+      }
+
       // Guardar todas las citas (el hook useAgenda debe manejar arrays)
       citasAGuardar.forEach((cita, index) => {
         alGuardar(cita, index === 0 && esPacienteExpress ? autoCrearFicha : false)
@@ -165,24 +177,33 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
       })
     } else {
       // Cita única (sin recurrencia)
-      alGuardar(
-        {
-          id: Date.now(),
-          pacienteId: pacienteSeleccionadoId || `express_${Date.now()}`,
-          pacienteNombre,
-          pacienteTelefono,
-          pacienteRut,
-          trataMiento: tratamiento,
-          boxAsignado,
-          fecha,
-          horaInicio,
-          horaFin: horaFinCalculada,
-          duracionMinutos: parseInt(duracionMinutos, 10),
-          observaciones,
-          estado: 'Agendado'
-        },
-        esPacienteExpress ? autoCrearFicha : false
+      const citaUnica = {
+        id: Date.now(),
+        pacienteId: pacienteSeleccionadoId || `express_${Date.now()}`,
+        pacienteNombre,
+        pacienteTelefono,
+        pacienteRut,
+        trataMiento: tratamiento,
+        boxAsignado,
+        fecha,
+        horaInicio,
+        horaFin: horaFinCalculada,
+        duracionMinutos: parseInt(duracionMinutos, 10),
+        observaciones,
+        estado: 'Agendado'
+      }
+
+      // F7-27 fix: validar conflictos antes de guardar cita única
+      const puedeContinuar = await validarConflictoCitaUnica(
+        citaUnica,
+        citasExistentes,
+        validarConflictosRecurrencia
       )
+      if (!puedeContinuar) {
+        return
+      }
+
+      alGuardar(citaUnica, esPacienteExpress ? autoCrearFicha : false)
     }
   }
 

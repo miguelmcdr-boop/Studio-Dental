@@ -180,8 +180,8 @@
 | F7-24 | Security Regression Suite como gate de CI/staging | 7 | **P0** | M (2-3 d) | F7-08,F7-20,F7-21,F7-22 | DONE (2026-09-06) — 27 tests de regresión (multi-tenant, RBAC, logout/PHI, storage, audit-log), job security-regression en CI como gate obligatorio |
 | F7-25 | Design System Studio Dental + App Shell profesional | 7 | P1 | L (4-7 d) | — | **DONE (2026-09-09, mergeado PR #141)** — MVP Fase 1+2 DONE + Iteración 1-9 DONE + Hotfix P0 DONE. Cobertura: **23/23 modales (100%)**, 31 componentes con Button, 24 con Input. |
 | F10 | Rediseño Clinical Precision v2 (DS v2 + migración módulos) | 10 | P1 | L (6-8 d) | — | **DONE (2026-09-21)** — F10-A (Fundación) + F10-B (Shell) + F10-C (Emoji Sweep + consistencia) + F10-D (dark-sweep) + F10-E (performance) + F10-F (push). Rama feat/F10-design-system-v2 mergeada a main (127 commits). |
-| F7-26 | Ficha clínica premium y navegación clínica optimizada | 7 | P1 | L (4-7 d) | F7-25 | **DONE (2026-09-24)** — Fases A-D (navegación, búsqueda, resumen, timeline) + Pulido UX P1-P5 (click KPIs/timeline, reset tab, estado vacío). 17 tests nuevos. Allowlist actualizada. Tests 1496/1496 OK. Rama lista para merge. |
-| F7-27 | Agenda + dashboard operacional de nivel comercial | 7 | P1 | M (3-5 d) | F7-25 | **DONE (2026-09-23)** — Dashboard: AlertasOperativasWidget + TareasClinicasWidget + TendenciasWidget (recharts 7/30 días) + NoShowWidget. Agenda: vista lista + vista por profesional + búsqueda avanzada + exportación CSV + recurrencia semanal/mensual/anual. Fix F7-26: etiqueta "visitas registradas" corregida a "evoluciones registradas". Tests 1518/1518 OK. Rama lista para PR. |
+| F7-26 | Ficha clínica premium y navegación clínica optimizada | 7 | P1 | L (4-7 d) | F7-25 | **DONE (2026-09-24)** — Fases A-D (navegación, búsqueda, resumen, timeline) + Pulido UX P1-P5 (click KPIs/timeline, reset tab, estado vacío). 17 tests nuevos. Allowlist actualizada. Tests 1496/1496 OK. DONE (PR #150 mergeado). Fases A-D (navegación, búsqueda, resumen, timeline) + Pulido UX P1-P5 (click KPIs/timeline, reset tab, estado vacío). 17 tests nuevos. Allowlist actualizada. |
+| F7-27 | Agenda + dashboard operacional de nivel comercial | 7 | P1 | M (3-5 d) | F7-25 | **DONE (2026-09-23)** — Dashboard: AlertasOperativasWidget + TareasClinicasWidget + TendenciasWidget (recharts 7/30 días) + NoShowWidget. Agenda: vista lista + vista por profesional + búsqueda avanzada + exportación CSV + recurrencia semanal/mensual/anual. Fix F7-26: etiqueta "visitas registradas" corregida a "evoluciones registradas". Tests 1518/1518 OK. DONE (PR #151 mergeado) |
 | F7-28 | Responsive + accesibilidad integral de flujos críticos | 7 | P1 | M (2-4 d) | F7-25 | DONE (2026-09-22) — LoginScreen fix crítico (bug useSupabase de F7-16). FichaPaciente responsive + 7 mejoras a11y. Agenda responsive + 5 mejoras a11y. Sidebar auto-colapsa en mobile. EmptyState con 6 tests a11y. Tests 1479/1479 OK. |
 | F7-29 | Manual de usuario por rol + capacitación | 7 | P2 | L (1-2 sem) | F7-25,F7-26,F7-27 | TODO |
 | F7-30 | Release Candidate + checklist GO/NO-GO para piloto | 7 | **P0** | M (2-3 d) | F7-04,F7-06,F7-08,F7-13,F7-20,F7-21,F7-22,F7-24,F7-28,F7-29,**F7-34** | TODO — Etapa final. Debe verificar seguridad, datos, testing, producto y operación. No marcar GO automáticamente. |
@@ -1989,6 +1989,117 @@ quirurgico_implantes, quirurgico_endodoncia
 
 ---
 
+
+### F7-31 — Papelera de archivos clínicos (restaurar archivos eliminados de R2)
+
+**Estado:** DONE (2026-09-04)
+
+- `r2-delete` modificado para soft delete (marca `deleted_at` en `archivos_clinicos`, no elimina objeto R2)
+- `r2-list-deleted` creado (lista archivos con `estado=eliminado` de la clínica activa)
+- `r2-restore` creado (restaura archivo eliminado: `estado=activo`, `deleted_at=null`)
+- `PapeleraArchivos.jsx` integrado en FichaPaciente
+- Migración 14: agrega `FILE_RESTORE` al constraint `audit_event_type`
+- Tests E2E: 3/3 pasados
+
+**Ver BITACORA.md** para detalles completos.
+
+---
+
+### F7-32 — Purga automática de archivos en papelera después de 30 días
+
+**Estado:** DONE (2026-09-06)
+
+- `pg_cron` + `pg_net` configurados para ejecutar `archivos-purge` diariamente
+- `system_config` con retención configurable (default 30 días)
+- `archivos-purge` dual mode: manual (trigger HTTP) + automático (cron)
+- 2 migraciones SQL versionadas
+- E2E end-to-end con verificación de `audit_log`
+
+**Ver BITACORA.md** para detalles completos.
+
+---
+
+### F7-33 — Vaciar papeleras: eliminación permanente de pacientes (10 años) y archivos clínicos (R2)
+
+**Estado:** DONE (2026-09-04)
+
+- Edge Functions `pacientes-purge` + `archivos-purge` para purga definitiva
+- Retención legal 10 años para pacientes (configurable en `system_config`)
+- Confirmación doble en UI (escribir "ELIMINAR" para confirmar)
+- 46 tests unitarios + E2E
+- RBAC: permiso `VACIAR_PAPELERA` requerido (solo admin)
+
+**Ver BITACORA.md** para detalles completos.
+
+---
+
+### F7-34 — Alinear Edge Functions con contexto multi-clínica activo
+
+**Estado:** DONE (2026-09-24)
+
+- Validación manual completa en producción (commit `e5c9f59`)
+- Deploy: 2026-09-24 05:41 UTC
+- 12 casos reales ejecutados con usuario dual (admin `28800b1d` en Clínicas A+B alternando activa):
+  - 4 cross-clinic DENEGADOS en ambas direcciones (D1/D3/F1/F3)
+  - 4 purges permitidos sobre clínica activa (D2/D4/F2/F4)
+  - 2 manipulaciones de `clinica_id` en body ignoradas (M1/FM1)
+  - 2 canarios inversos sin metadata bloqueados con 403 (C1/FC1)
+- Audit log verificado sin PHI (nombre/rut removidos)
+- Cleanup completo de fixtures
+
+**Ver F7-34b** para cierre definitivo.
+
+---
+
+### F7-34b — Cierre definitivo de contexto multi-clínica en funciones destructivas y purge
+
+**Estado:** DONE (2026-09-24)
+
+- Validación manual completa en producción con usuario dual:
+  - 12 casos: 4 cross-clinic DENEGADOS, 4 purges permitidos destructivos, 2 body manipulados ignorados, 2 canarios sin metadata bloqueados 403
+- Audit log verificado sin PHI
+- Cleanup de fixtures verificado
+- 16 tests Deno + 1518 Vitest pasando
+- CI E2E `continue-on-error` documentado para F7-30
+- 62 registros históricos con PHI pre-F7-34b documentados como saneamiento opcional
+
+**Ver BITACORA.md** para detalles completos.
+
+---
+
+### F7-35 — Unificación fail-closed del contexto de clínica + hardening R2
+
+**Estado:** DONE (2026-09-25, PRs #158, #159, #161, #162 mergeados)
+
+**Cambios principales:**
+- `clinica_actual()` fail-closed sin fallback silencioso + regex-guard UUID
+- Backfill one-time de metadata para 5/7 usuarios (migración `2026_09_24_0002`)
+- `ClinicaSelector` auto-persistente
+- Hardening R2: 10 vectores de `details`/`error.message` reemplazados con `safeResponse.ts`
+- `r2-health-check`: 3 niveles de detalle (público/usuario/admin)
+- 22 tests manuales multi-clínica (casos A-F + C/D/E)
+
+**Post-audit hardening (PR #159):**
+- 5 funciones R2 integradas con `safeInternalError()` correctamente
+- Mensaje de `r2-delete` corregido (soft delete, no eliminación física)
+- 3 tests de regresión agregados
+
+**Corrección final (PR #161):**
+- 4 casos de `jsonResponse(500)` ambiguos corregidos:
+  - `r2-upload-url` metadata insert failure → `safeError`
+  - `r2-list-deleted` query result invalid → `safeError`
+  - `r2-delete` soft delete failure → `safeError`
+  - `r2-restore` restore failure → `safeError`
+- 6 tests de regresión adicionales (total 16 Deno tests)
+
+**Fix post-auditoría independiente (rama `fix/post-audit-findings`):**
+- Export de handler en `r2-upload-url` para habilitar tests (TS2305 resuelto)
+- 48 tests Deno ahora pasan completo
+
+**Ver BITACORA.md** para detalles completos de cada iteración.
+
+---
+
 ## FASE 8 — MIGRACIÓN A APP NATIVA (DESKTOP + MOBILE)
 
 **Objetivo:** Convertir Studio Dental de PWA a aplicaciones nativas instalables en Mac, iPhone y iPad, manteniendo la arquitectura multi-tenant, seguridad y cumplimiento existentes.
@@ -2118,6 +2229,8 @@ Este archivo responde a *qué falta y en qué orden*. La bitácora responde a *q
 ---
 
 ## FASE 7 — SEGURIDAD, PRIVACIDAD, PRODUCTIZACIÓN Y PRE-PRODUCCIÓN
+
+**Estado general:** 🟢 **IN PROGRESS → CIERRE** — Tareas P0 completadas (F7-01..F7-24, F7-31..F7-35). Pendientes: F7-29 (manual de usuario por rol + capacitación, P2, prerequisito de F7-30) y F7-30 (pre-producción final). Gate final de producción: completar F7-30.
 
 **Fecha de incorporación:** 2026-08-26  
 **Estado:** 🔴 **TODO — FASE OBLIGATORIA ANTES DE DECLARAR PRODUCCIÓN CON DATOS CLÍNICOS REALES**
@@ -2363,35 +2476,51 @@ Convertir los escenarios críticos en pruebas automatizadas de staging y gates d
 #### F7-25 — Design System + App Shell profesional
 Unificar tipografía, jerarquía, espaciado, componentes, estados, iconografía y navegación. Sustituir progresivamente emojis como sistema principal de navegación por iconografía consistente.
 
-#### F7-26 — Ficha clínica premium
-Convertir la ficha clínica en el centro del producto: resumen, anamnesis, odontograma, periodoncia, tratamientos, evoluciones, recetas e imágenes, con navegación de pocos pasos y jerarquía clínica clara.
+### F7-26 — Ficha clínica premium y navegación clínica optimizada
 
-**Estado parcial (2026-09-22) — Rama `feat/F7-26-premium-clinical-record`:**
+**Estado:** DONE (2026-09-24, PR #150 mergeado)
 
-| Fase | Descripción | Estado | Commit |
-|------|-------------|--------|--------|
-| **A (A1-A5)** | Navegación clínica entre pacientes + búsqueda rápida + historial reciente | ✅ Implementado | `d96e213`, `ea60a12` |
-| **B (B1-B4)** | Resumen clínico con 5 KPIs + Timeline mejorado con estadísticas y eventos hito | ✅ Implementado | `2254ee4`, `d8043dd` |
-| **C** | Odontograma integrado en ficha clínica | ⬜ Pendiente | — |
-| **D** | Periodoncia integrada en ficha clínica | ⬜ Pendiente | — |
-| **E** | Tratamientos / evoluciones clínicas en ficha | ⬜ Pendiente | — |
-| **F** | Recetas + imágenes con jerarquía clínica | ⬜ Pendiente | — |
-| **G** | Anamnesis estructurada en ficha | ⬜ Pendiente | — |
+**Fases completadas:**
+- **Fase A — Navegación clínica:** Breadcrumb de paciente + botón volver + persistencia de tab activa al navegar entre fichas
+- **Fase B — Búsqueda omnicanal:** CommandPalette (⌘K/Ctrl+K) con 3 secciones: Pacientes / Módulos / Acciones rápidas, filtradas por RBAC (fix post-auditoría: `useMemo` import faltante corregido, componente montado en `App.jsx`)
+- **Fase C — Resumen clínico:** KPIs de ficha (evoluciones, recetas, archivos, citas) clickeables que navegan a la tab correspondiente
+- **Fase D — Timeline clínico:** Timeline unificado con filtros por tipo de evento (evolución, receta, archivo, cita)
 
-**Archivos clave implementados (Fases A-B):**
-- `src/modules/pacientes/components/PacienteNavigator.jsx` (nuevo)
-- `src/modules/pacientes/components/ResumenClinicoHeader.jsx` (nuevo)
-- `src/modules/pacientes/hooks/useNavegacionClinica.js` (nuevo)
-- `src/modules/pacientes/hooks/useMetricasClinicas.js` (nuevo)
-- `src/modules/pacientes/components/TimelineClinicoWidget.jsx` (ampliado)
-- `src/store/sesionStore.js` (extensión para navegación clínica)
+**Pulido UX P1-P5:**
+- P1: Click en KPIs del resumen navega a la tab
+- P2: Click en timeline navega a la tab del evento
+- P3: Reset de tab activa al cambiar de paciente
+- P4: Estado vacío para pacientes sin evoluciones/recetas/archivos
+- P5: Navegación clínica accesible desde CommandPalette
 
-**Validaciones locales en la rama:** Tests ✅ | Build ✅ | Validador ✅ | Lint ✅
+**Tests:** 17 nuevos (1496 total al momento del merge)
 
-**Próximo paso:** Definir alcance y prioridad de fases C-G (odontograma/periodoncia/recetas/anamnesis). Decisión pendiente antes de merge.
+**Allowlist:** actualizada para incluir nuevos archivos de Fase A-D
 
-#### F7-27 — Agenda + dashboard
-Priorizar operación diaria: citas, pendientes, alertas y tareas clínicas. Evitar métricas decorativas sin valor operacional.
+---
+
+### F7-27 — Agenda + dashboard operacional de nivel comercial
+
+**Estado:** DONE (2026-09-23, PR #151 mergeado)
+
+**Dashboard operacional (4 widgets):**
+1. **AlertasOperativasWidget:** alertas de no-shows recientes, citas sin evolución, pacientes sin cita de control
+2. **TareasClinicasWidget:** tareas pendientes del equipo clínico (evoluciones por firmar, recetas por renovar)
+3. **TendenciasWidget:** gráficos recharts de 7/30 días (citas, no-shows, evoluciones, nuevos pacientes)
+4. **NoShowWidget:** análisis de inasistencias por profesional/día/hora
+
+**Vistas de agenda:**
+- Vista lista (tabla con filtros)
+- Vista por profesional (columnas por profesional)
+- Búsqueda avanzada (paciente, profesional, box, estado)
+- Exportación CSV de citas filtradas
+- Recurrencia semanal/mensual/anual con `generarCitasRecurrencia` (fix post-auditoría: `validarConflictosRecurrencia` conectado a `handleSubmit` para prevenir doble-booking)
+
+**Fix F7-26:** etiqueta "visitas registradas" corregida a "evoluciones registradas" en Timeline
+
+**Tests:** 1518 total al momento del merge
+
+---
 
 #### F7-28 — Responsive + accesibilidad
 Validar 1440/1280/1024/768/430/390/375 px, teclado, foco, labels, contraste y flujos críticos con tecnologías asistivas.

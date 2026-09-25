@@ -86,7 +86,8 @@ function getAmzDate(): { amzDate: string; dateStamp: string } {
 // HANDLER PRINCIPAL
 // ============================================================
 
-Deno.serve(async (req) => {
+// F7-35 post-audit fix: exportar handler para permitir tests unitarios (TS2305)
+export async function handler(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") {
     return new Response("ok", {
       headers: {
@@ -359,7 +360,13 @@ Deno.serve(async (req) => {
   } catch (error) {
     return safeInternalError(req, error, "[r2-upload-url]");
   }
-});
+}
+
+// F7-35 post-audit: arranque condicional (solo ejecuta si es el módulo principal)
+// Esto permite importar handler desde tests sin iniciar el servidor
+if (import.meta.main) {
+  Deno.serve(handler);
+}
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body, null, 2), {

@@ -25,6 +25,9 @@ let estaCerrandoSesion = false
  * para que el hook useRBAC tenga un rol válido garantizado.
  */
 const cargarPerfilActivo = () => {
+  // F10-B4 fix: guardia para contextos sin DOM (SSR/SSG/testing)
+  if (typeof localStorage === 'undefined') return null
+
   try {
     const activeEmail = localStorage.getItem(ACTIVE_USER_KEY)
     if (!activeEmail) return null

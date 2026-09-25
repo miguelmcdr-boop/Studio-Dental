@@ -87,6 +87,35 @@ jobs:
           echo "   RBAC, logout/PHI, Storage o audit log (F7-24)."
           exit 1
 
+
+  deno:
+    name: 🦕 Deno (Edge Functions type-check + tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+
+      - name: Type-check de Edge Functions
+        run: deno check supabase/functions/**/*.ts
+
+      - name: Ejecutar tests de Edge Functions
+        run: deno test -A supabase/functions/
+
+      - name: Verificar resultado (gate obligatorio)
+        if: failure()
+        run: |
+          echo "❌ Deno tests fallaron — PR bloqueado"
+          echo "   Un PR no puede mergearse a main si las Edge Functions"
+          echo "   no compilan o sus tests unitarios fallan."
+          exit 1
+
   build:
     name: 🏗️ Build (Vite production)
     runs-on: ubuntu-latest

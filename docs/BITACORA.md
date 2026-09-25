@@ -6862,3 +6862,90 @@ Las 4 funciones R2 modificadas fueron desplegadas (2026-09-25 04:10:32 - 04:10:4
 - **No hay regresión** en los 22 tests manuales multi-clínica de F7-35
 
 ---
+
+
+---
+
+## 🔍 Sesión de resolución de hallazgos post-auditoría independiente (2026-09-25)
+
+**Tarea:** Resolución de hallazgos de auditoría integral del proyecto  
+**Estado:** ✅ DONE  
+**Fecha:** 2026-09-25  
+**Rama:** `fix/post-audit-findings`  
+**PR:** pendiente de merge
+
+### Contexto
+
+Auditoría independiente identificó defectos, inconsistencias de documentación y gaps de CI. Esta sesión resolvió los hallazgos de forma atómica con un commit por tarea, manteniendo intactas las pruebas existentes y respetando la Constitución de Arquitectura (`scripts/validate-architecture.js`).
+
+### Commits aplicados (en orden)
+
+**1. `e875482` — Guardia localStorage en sesionStore (T1.4)**
+- `cargarPerfilActivo()` ahora verifica `typeof localStorage === 'undefined'` antes de acceder
+- Evita `ReferenceError` en contextos sin DOM (SSR/SSG/testing)
+- No cambia comportamiento en browser
+
+**2. `5dbb1da` + `ba0c700` — Montar CommandPalette en App.jsx (T1.1 / F10-B4)**
+- El componente estaba importado y configurado pero nunca se renderizaba
+- Se agregó `<CommandPalette {...commandPalette} />` junto a `ToastContainer` y `AppDialogProvider`
+- Bug preexistente revelado al montar: `useMemo` faltaba en el import de React
+- Ahora el atajo ⌘K/Ctrl+K funciona y `onSelectPaciente` (F7-26) es funcional
+
+**3. `e3329e9` — Validar conflictos de citas recurrentes (T1.3 / F7-27)**
+- `AgendaModulo.jsx`: ahora pasa `citasExistentes={citas}` a `ModalNuevaCita`
+- `ModalNuevaCita.jsx`: valida con `validarConflictosRecurrencia` antes de guardar
+- Si hay conflictos: `window.confirm` con lista de solapamientos, usuario puede cancelar o continuar
+- Previene doble-booking (2 pacientes mismo box/hora)
+
+**4. `474f587` — Export handler en r2-upload-url (T1.2 / F7-35)**
+- Resuelve el TS2305 que bloqueaba `deno test -A supabase/functions/`
+- Handler ahora es `export async function handler(req: Request): Promise<Response>`
+- Arranque condicional: `if (import.meta.main) { Deno.serve(handler); }`
+- Patrón consistente con `archivos-purge` y `pacientes-purge`
+- Desbloquea los 48 tests de Deno (sanitización S1+S2 ahora pasan)
+
+**5. `8a60fcc` — Job Deno en CI/CD (TAREA 2)**
+- Nuevo job `deno` en `.github/workflows/ci.yml` como gate obligatorio
+- Ejecuta `deno check supabase/functions/**/*.ts` y `deno test -A supabase/functions/`
+- Bloquea merge a main si Edge Functions tienen errores
+- Habilitado por el commit previo (474f587) que resolvió TS2305
+
+**6. `776d25c` + `371070a` — Alineación de MASTER_ROADMAP (TAREA 3)**
+- F7-26 y F7-27 en tabla: ahora referencian PRs mergeados (#150 y #151)
+- Secciones detalladas de F7-26 y F7-27 convertidas de `####` a `###` con desgloses enriquecidos
+- Entradas resumidas agregadas para F7-31, F7-32, F7-33, F7-34, F7-34b, F7-35 (con enlaces a BITACORA)
+- Encabezado de Fase 7 actualizado con estado general: "IN PROGRESS → CIERRE"
+- Corrección de duplicados en tabla introducidos accidentalmente
+
+### Validaciones ejecutadas
+
+Por commit (incremental):
+- Vitest: 1518/1518 ✅ (verificado después de cada commit)
+- Build: OK ✅
+- Deno test: 48/48 ✅ (después del commit 4)
+- sanitization.test.ts: S1+S2 PASARON ✅
+
+Validación final completa: [ver sección "Validación final" más abajo]
+
+### Lecciones aprendidas
+
+1. **Montar componentes "muertos"** (importados pero no renderizados) revela bugs ocultos: el montaje de CommandPalette expuso el import faltante de `useMemo`
+2. **Duplicación accidental en documentación**: el `replace()` de MASTER_ROADMAP concatenó en lugar de reemplazar en F7-26/F7-27, corregido en commit 371070a
+3. **Formato de secciones inconsistente**: el roadmap mezclaba `###` y `####` para secciones de tareas, ahora unificado a `###`
+4. **Gate de Deno faltante**: el pipeline no tenía validación de Edge Functions, ahora agregado como gate obligatorio
+
+### Impacto neto
+
+- ✅ 4 bugs funcionales corregidos (CommandPalette, recurrencia, localStorage, r2-upload-url)
+- ✅ 1 gate de CI agregado (Deno)
+- ✅ Documentación alineada con realidad del código
+- ✅ 0 regresión en tests existentes (Vitest 1518/1518, Deno 48/48)
+- ✅ Arquitectura respetada (validate:architecture OK)
+
+### Pendientes para próxima sesión
+
+- Merge del PR `fix/post-audit-findings` a main
+- Verificación de que el job `deno` corre correctamente en GitHub Actions (primer PR post-merge)
+- F7-29: Manual de usuario por rol + capacitación (P2, prerequisito de F7-30)
+
+---
