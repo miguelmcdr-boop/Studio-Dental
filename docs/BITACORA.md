@@ -6788,3 +6788,77 @@ Las 5 funciones R2 corregidas fueron desplegadas a producción (2026-09-25 03:32
 
 ---
 
+
+---
+
+## 🔧 F7-35 — Corrección final: jsonResponse(500) ambiguos (2026-09-25)
+
+**Tarea:** Corrección del último defecto detectado por auditoría independiente  
+**Estado:** ✅ DONE  
+**Fecha:** 2026-09-25  
+**PR:** #161  
+**Deploy:** 04:10:32 - 04:10:41 UTC
+
+### Problema detectado
+
+La firma de jsonResponse() es:
+  jsonResponse(body, status = 200)
+
+Por lo tanto, jsonResponse(500) interpreta 500 como el body y deja el status en 200 (default).
+
+**Resultado:** HTTP 200 con body 500 en lugar de HTTP 500 real.
+
+### Casos corregidos (4)
+
+**1. r2-upload-url:275** — metadata insert failure
+- **Antes:** jsonResponse(500) → HTTP 200, body=500
+- **Ahora:** safeError(req, "METADATA_INSERT_FAILED", errorText, 500, "[r2-upload-url]")
+
+**2. r2-list-deleted:141** — query result invalid
+- **Antes:** jsonResponse(500) → HTTP 200, body=500
+- **Ahora:** safeError(req, "QUERY_RESULT_INVALID", archivosResult, 500, "[r2-list-deleted]")
+
+**3. r2-delete:229** — soft delete failure
+- **Antes:** jsonResponse({error:"..."}, 500) con errorText leído pero no loggeado
+- **Ahora:** safeError(req, "SOFT_DELETE_FAILED", errorText, 500, "[r2-delete]")
+
+**4. r2-restore:177** — restore failure
+- **Antes:** jsonResponse({error:"..."}, 500) con errorText leído pero no loggeado
+- **Ahora:** safeError(req, "RESTORE_FAILED", errorText, 500, "[r2-restore]")
+
+### Tests de regresión agregados (6 nuevos)
+
+1. safeError con status 500 produce HTTP 500 real (no 200 con body 500)
+2. safeError con status 403 produce HTTP 403 real
+3. safeError con status 400 produce HTTP 400 real
+4. safeError con status 401 produce HTTP 401 real
+5. safeError con status 404 produce HTTP 404 real
+6. Demostración documentada de por qué jsonResponse(500) es incorrecto
+
+**Total: 16 tests Deno pasando (10 previos + 6 nuevos)**
+
+### Deploy a producción
+
+Las 4 funciones R2 modificadas fueron desplegadas (2026-09-25 04:10:32 - 04:10:41 UTC):
+- r2-upload-url v12 ✅
+- r2-list-deleted v12 ✅
+- r2-delete v12 ✅
+- r2-restore v9 ✅
+
+### Validaciones
+
+- ✅ Lint: 135 warnings, 0 errores
+- ✅ Build: OK
+- ✅ Architecture validator: OK
+- ✅ Vitest: 1518/1518 tests pasando
+- ✅ Deno tests: 16/16 tests pasando
+- ✅ Búsqueda de regresión: cero jsonResponse(500) ambiguos
+
+### Impacto
+
+- **HTTP 500 real** en lugar de HTTP 200 con body engañoso
+- **Logging seguro**: errorText va a console.error, no al cliente
+- **Consistencia**: todos los errores HTTP usan safeError() centralizado
+- **No hay regresión** en los 22 tests manuales multi-clínica de F7-35
+
+---
