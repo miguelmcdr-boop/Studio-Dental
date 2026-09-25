@@ -9,7 +9,7 @@
  * @param {Function} validarFn - Función de validación de recurrenciaUtils
  * @returns {Promise<boolean>} - true si se puede continuar, false si el usuario canceló
  */
-export const validarConflictosRecurrencia = async (
+export const confirmarConflictosRecurrencia = async (
   citasAGuardar,
   citasExistentes,
   validarFn

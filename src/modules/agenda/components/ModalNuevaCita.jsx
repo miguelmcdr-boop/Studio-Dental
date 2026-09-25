@@ -15,7 +15,7 @@ import { CamposFormularioCita } from './CamposFormularioCita'
 import { RecurrenciaForm } from './RecurrenciaForm'
 import { generarCitasRecurrencia, validarConflictosRecurrencia } from '../../../utils/recurrenciaUtils'
 import { RefreshCw } from 'lucide-react'
-import { validarConflictosRecurrencia } from '../utils/validarConflictosRecurrencia'
+import { confirmarConflictosRecurrencia } from '../utils/validarConflictosRecurrencia'
 import { validarConflictoCitaUnica } from '../utils/validarConflictoCitaUnica'
 
 export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGuardar, alCerrar, citasExistentes = [] }) => {
@@ -155,7 +155,7 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
       })
 
       // F7-27 fix: validar conflictos antes de guardar citas recurrentes
-      const puedeContinuar = await validarConflictosRecurrencia(
+      const puedeContinuar = await confirmarConflictosRecurrencia(
         citasAGuardar,
         citasExistentes,
         validarConflictosRecurrencia
