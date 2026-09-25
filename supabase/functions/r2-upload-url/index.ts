@@ -25,6 +25,7 @@
 //   "expires_in": 900
 // }
 
+import { safeError, safeInternalError } from "../_shared/safeResponse.ts"
 import { validarFormatoArchivo, CategoriaArchivo } from "./validarFormatoArchivo.ts";
 
 // ============================================================
@@ -125,7 +126,7 @@ Deno.serve(async (req) => {
     });
 
     if (authError || !userData) {
-      return jsonResponse({ error: "Invalid JWT", details: authError }, 401);
+      return safeError(req, "INVALID_JWT", authError, 401, "[r2-upload-url]");
     }
 
     const userId = userData.id;
@@ -272,7 +273,7 @@ Deno.serve(async (req) => {
     if (!metadataResult.ok) {
       const errorText = await metadataResult.text();
       return jsonResponse(
-        { error: "Failed to create metadata in archivos_clinicos", details: errorText },
+        // F7-35: errorText no expuesto al cliente (ver log)
         500
       );
     }
@@ -361,7 +362,7 @@ Deno.serve(async (req) => {
     return jsonResponse(
       {
         error: "Internal server error",
-        message: error instanceof Error ? error.message : String(error),
+        // F7-35: error.message removido
         // F7-34: Stack traces removidos de respuesta HTTP (solo logs internos)
       },
       500

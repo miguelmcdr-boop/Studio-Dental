@@ -1,3 +1,4 @@
+import { safeError, safeInternalError } from "../_shared/safeResponse.ts"
 // F7-22: Edge Function de Health Check para Cloudflare R2
 // Verifica conexión al bucket sin exponer credenciales
 //
@@ -79,6 +80,44 @@ Deno.serve(async (req) => {
     });
   }
 
+  // F7-35: Validación opcional de JWT para determinar nivel de detalle.
+  // Sin JWT / JWT inválido → respuesta mínima pública (no bloquea el health check).
+  // JWT válido de admin → detalles completos (bucket, objects_count, endpoint).
+  // JWT válido de no-admin → respuesta mínima.
+  let nivelDetalle: "publico" | "admin" | "usuario" = "publico";
+  const authHeader = req.headers.get("Authorization");
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    try {
+      const jwt = authHeader.split(" ")[1];
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+      const authRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
+        headers: { Authorization: `Bearer ${jwt}`, apikey: supabaseServiceKey },
+      });
+
+      if (authRes.ok) {
+        const userData = await authRes.json();
+        const userId = userData.id;
+        const clinicaId = userData.user_metadata?.clinica_id;
+        if (userId && clinicaId) {
+          const rolRes = await fetch(
+            `${supabaseUrl}/rest/v1/miembros_clinica?user_id=eq.${userId}&clinica_id=eq.${clinicaId}&activo=eq.true&select=rol`,
+            { headers: { Authorization: `Bearer ${supabaseServiceKey}`, apikey: supabaseServiceKey } }
+          );
+          if (rolRes.ok) {
+            const roles = await rolRes.json();
+            if (Array.isArray(roles) && roles.length > 0) {
+              nivelDetalle = roles[0].rol === "admin" ? "admin" : "usuario";
+            }
+          }
+        }
+      }
+    } catch {
+      // JWT inválido o error de red → nivelDetalle queda en "publico" (no bloquea)
+    }
+  }
+
   try {
     // 1. Leer secrets de Supabase
     const accessKeyId = Deno.env.get("R2_ACCESS_KEY_ID");
@@ -96,13 +135,20 @@ Deno.serve(async (req) => {
     if (!endpoint) missing.push("R2_ENDPOINT");
 
     if (missing.length > 0) {
+      // F7-35: solo admin ve qué secrets faltan (info sensible de infraestructura)
+      if (nivelDetalle === "admin") {
+        return jsonResponse(
+          {
+            status: "error",
+            error: "Secrets faltantes en Supabase",
+            missing,
+            hint: "Ve a Supabase Dashboard → Edge Functions → Secrets y agrega los que faltan",
+          },
+          500
+        );
+      }
       return jsonResponse(
-        {
-          status: "error",
-          error: "Secrets faltantes en Supabase",
-          missing,
-          hint: "Ve a Supabase Dashboard → Edge Functions → Secrets y agrega los que faltan",
-        },
+        { status: "error", error: "R2_UNAVAILABLE" },
         500
       );
     }
@@ -185,14 +231,21 @@ Deno.serve(async (req) => {
           "Bucket no encontrado. Verifica R2_BUCKET_NAME y que el bucket exista en Cloudflare.";
       }
 
+      // F7-35: solo admin ve detalles de errores de R2
+      if (nivelDetalle === "admin") {
+        return jsonResponse(
+          {
+            status: "error",
+            error: `R2 respondió ${response.status}`,
+            r2_status: response.status,
+            r2_body: errorBody.slice(0, 500),
+            hint,
+          },
+          500
+        );
+      }
       return jsonResponse(
-        {
-          status: "error",
-          error: `R2 respondió ${response.status}`,
-          r2_status: response.status,
-          r2_body: errorBody.slice(0, 500),
-          hint,
-        },
+        { status: "error", error: "R2_UNAVAILABLE" },
         500
       );
     }
@@ -203,25 +256,27 @@ Deno.serve(async (req) => {
     const objectsCount = keyMatches ? keyMatches.length : 0;
     const isTruncated = xml.includes("<IsTruncated>true</IsTruncated>");
 
+    // F7-35: nivel de detalle depende del rol
+    if (nivelDetalle === "admin") {
+      return jsonResponse({
+        status: "ok",
+        bucket: bucketName,
+        endpoint: `https://${host}`,
+        objects_count: objectsCount,
+        has_more: isTruncated,
+        message: "Conexión R2 exitosa",
+        timestamp: new Date().toISOString(),
+      });
+    }
+    // Público o no-admin: respuesta mínima (sin bucket/endpoint/objects_count)
     return jsonResponse({
       status: "ok",
-      bucket: bucketName,
-      endpoint: `https://${host}`,
-      objects_count: objectsCount,
-      has_more: isTruncated,
-      message: "Conexión R2 exitosa",
+      message: "R2 service available",
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    return jsonResponse(
-      {
-        status: "error",
-        error: error instanceof Error ? error.message : String(error),
-        // F7-34: Stack traces removidos de respuesta HTTP (solo logs internos)
-        hint: "Error interno de la Edge Function",
-      },
-      500
-    );
+    // F7-35: usar helper seguro + mensaje genérico para el cliente
+    return safeInternalError(req, error, "[r2-health-check]");
   }
 });
 

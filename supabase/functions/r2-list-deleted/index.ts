@@ -1,3 +1,4 @@
+import { safeError, safeInternalError } from "../_shared/safeResponse.ts"
 // F7-31 Fase 2: Edge Function para listar archivos eliminados (papelera)
 //
 // Flujo:
@@ -70,7 +71,7 @@ Deno.serve(async (req) => {
     });
 
     if (authError || !userData) {
-      return jsonResponse({ error: "Invalid JWT", details: authError }, 401);
+      return safeError(req, "INVALID_JWT", authError, 401, "[r2-list-deleted]");
     }
 
     const userId = userData.id;
@@ -122,7 +123,7 @@ Deno.serve(async (req) => {
 
     if (!Array.isArray(archivosResult)) {
       return jsonResponse(
-        { error: "Failed to fetch deleted archivos", details: archivosResult },
+        // F7-35: archivosResult no expuesto al cliente
         500
       );
     }
@@ -136,7 +137,7 @@ Deno.serve(async (req) => {
     return jsonResponse(
       {
         error: "Internal server error",
-        message: error instanceof Error ? error.message : String(error),
+        // F7-35: error.message removido
         // F7-34: Stack traces removidos de respuesta HTTP (solo logs internos)
       },
       500
