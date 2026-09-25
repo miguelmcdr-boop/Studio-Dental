@@ -54,13 +54,16 @@ Deno.test("S1: Error de autenticación NO expone authError al cliente", async ()
 Deno.test("S2: Error de inserción en archivos_clinicos NO expone PostgREST error", async () => {
   const originalFetch = globalThis.fetch;
   let callCount = 0;
-  globalThis.fetch = createMockFetch({
+  
+  // Guardar referencia del mock base ANTES de asignar wrappedFetch
+  const baseMockFetch = createMockFetch({
     authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
     memberships: [{ user_id: USER_ID, clinica_id: CLINICA_A, rol: "admin", activo: true }],
     pacientes: [{ id: "pac-uuid", clinica_id: CLINICA_A, deleted_at: undefined }],
   }) as any;
 
   // Wrap para forzar error en POST a archivos_clinicos
+  // Usa baseMockFetch (no globalThis.fetch) para evitar recursión infinita
   const wrappedFetch = (async (url: string | URL | Request, init?: RequestInit) => {
     const urlStr = typeof url === "string" ? url : url instanceof URL ? url.toString() : url.url;
     if (urlStr.includes("/rest/v1/archivos_clinicos") && init?.method === "POST") {
@@ -71,7 +74,7 @@ Deno.test("S2: Error de inserción en archivos_clinicos NO expone PostgREST erro
         hint: "Check r2_object_key uniqueness"
       }), { status: 409, headers: { "Content-Type": "application/json" } });
     }
-    return (globalThis.fetch as any)(url, init);
+    return baseMockFetch(url, init);
   }) as any;
 
   try {
