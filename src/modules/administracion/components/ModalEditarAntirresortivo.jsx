@@ -7,7 +7,7 @@ import { Modal } from '../../../components/ui/Modal'
 import { Button } from '../../../components/ui/Button'
 import { CamposFormularioAntirresortivo } from './CamposFormularioAntirresortivo'
 import { validarAntirresortivo, FAMILIAS_ANTIRRESORTIVOS, NIVELES_RIESGO_MRONG } from '../schemas/vademecumSchema'
-import { Bone } from 'lucide-react'
+import { Bone, AlertTriangle } from 'lucide-react'
 
 const VALOR_INICIAL = {
   numero: '',

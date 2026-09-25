@@ -9,6 +9,7 @@ import { validarAnticoagulante } from '../schemas/anticoagulanteSchema'
 import { Modal } from '../../../components/ui/Modal'
 import { Button } from '../../../components/ui/Button'
 import { CamposFormularioProtocolo } from './CamposFormularioProtocolo'
+import { AlertTriangle } from 'lucide-react'
 
 const VALOR_INICIAL_PROFILAXIS = {
   situacion: '',
