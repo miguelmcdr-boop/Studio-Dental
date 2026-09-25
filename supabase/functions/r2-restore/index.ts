@@ -174,13 +174,8 @@ Deno.serve(async (req) => {
 
     if (!updateResult.ok) {
       const errorText = await updateResult.text();
-      return jsonResponse(
-        {
-          error: "Failed to restore archivo metadata",
-          // F7-35: detalle técnico no expuesto (ver console.error abajo)
-        },
-        500
-      );
+      // F7-35 fix: usar safeError para log seguro (errorText va a logs, no al cliente)
+      return safeError(req, "RESTORE_FAILED", errorText, 500, "[r2-restore]");
     }
 
     // 8. Registrar en audit_log via RPC

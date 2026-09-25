@@ -272,10 +272,8 @@ Deno.serve(async (req) => {
 
     if (!metadataResult.ok) {
       const errorText = await metadataResult.text();
-      return jsonResponse(
-        // F7-35: errorText no expuesto al cliente (ver log)
-        500
-      );
+      // F7-35 fix: usar safeError para HTTP 500 real + log seguro (errorText va a logs, no al cliente)
+      return safeError(req, "METADATA_INSERT_FAILED", errorText, 500, "[r2-upload-url]");
     }
 
     // 9. Registrar en audit_log via RPC

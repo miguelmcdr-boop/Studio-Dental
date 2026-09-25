@@ -226,13 +226,8 @@ Deno.serve(async (req) => {
 
     if (!updateResult.ok) {
       const errorText = await updateResult.text();
-      return jsonResponse(
-        {
-          error: "Soft delete en DB falló pero archivo R2 intacto",
-          // F7-35: detalle técnico no expuesto
-        },
-        500
-      );
+      // F7-35 fix: usar safeError para log seguro (errorText va a logs, no al cliente)
+      return safeError(req, "SOFT_DELETE_FAILED", errorText, 500, "[r2-delete]");
     }
 
     // 9. Registrar en audit_log via RPC
