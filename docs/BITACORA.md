@@ -6580,3 +6580,132 @@ M1 y FM1 demuestran que inyectar clinica_id en el body es ignorado: la funcion t
 1. **CI E2E continue-on-error:** se mantiene en .github/workflows/ci.yml linea 182. F7-30 debe decidir: si E2E es estable quitar el flag (gate real); si depende de staging documentar que valida; si esta roto arreglarlo o eliminarlo.
 2. **62 registros historicos con PHI:** no se borraron (trazabilidad). Saneamiento opcional pendiente para tarea futura si hay requerimiento de GDPR/Ley 19.628 especifico.
 3. **r2-health-check sin autenticacion:** aceptado y documentado; endpoint de diagnostico sin exposicion de PHI ni datos de clinica.
+
+
+---
+
+## 📋 F7-35: Unificación fail-closed del contexto de clínica + hardening R2 (2026-09-25)
+
+**Tarea:** F7-35  
+**Prioridad:** P0  
+**Estado:** ✅ DONE  
+**Fecha:** 2026-09-25
+
+### Diagnóstico
+
+Auditoría de seguridad detectó inconsistencia crítica entre:
+- **RLS (clinica_actual()):** fallback silencioso a primera membresía activa (ORDER BY clinica_id LIMIT 1)
+- **Edge Functions F7-34b:** fail-closed (403 si metadata ausente/inválida/no-miembro/inactiva)
+
+Adicionalmente:
+- Hardening incompleto de errores en 6 funciones R2 (details/error.message expuestos al cliente)
+- r2-health-check sin control de nivel de detalle (expone bucket/endpoint/objects_count a cualquier usuario)
+- 5 de 7 usuarios de producción sin metadata clinica_id (bloqueados por fail-closed)
+
+### Implementación
+
+**Migraciones SQL (2):**
+1. `2026_09_24_0001_f7_35_clinica_actual_fail_closed.sql` — redefine clinica_actual() sin fallback silencioso, regex-guard UUID (metadata no-UUID no rompe queries RLS)
+2. `2026_09_24_0002_f7_35_backfill_clinica_activa.sql` — backfill one-time de user_metadata.clinica_id para usuarios existentes sin selector
+
+**Frontend (1 archivo):**
+- `ClinicaSelector.jsx` — auto-persistir selector si metadata ausente o stale (evita divergencia UI/RLS)
+
+**Edge Functions (7 archivos):**
+- `safeResponse.ts` — helper para respuestas HTTP seguras (cliente nunca recibe stack traces, SQL, PostgREST internals)
+- `r2-upload-url/index.ts` — hardening: details/error.message reemplazados con safeError()
+- `r2-download-url/index.ts` — hardening
+- `r2-delete/index.ts` — hardening
+- `r2-list-deleted/index.ts` — hardening + HOTFIX: validación de membresía activa en clínica específica (detectado en Caso D3)
+- `r2-restore/index.ts` — hardening
+- `r2-health-check/index.ts` — hardening + 3 niveles de detalle (público/usuario/admin): sin JWT → respuesta mínima; JWT admin → detalles completos
+
+**Tests:**
+- `_shared/safeResponse.test.ts` — 7 tests unitarios del helper (sanitización, objetos circulares)
+- `r2-upload-url/sanitization.test.ts` — 2 tests de sanitización en r2-upload-url
+- `verify-f7-35-clinica-actual.sql` — script SQL verificable con los 9 escenarios del encargo
+
+**Hotfixes detectados durante validación:**
+- `r2-list-deleted` no validaba membresía activa en clínica específica → retornaba 200 vacío en lugar de 403. Corregido con commit 24ee5ce y re-validado.
+
+### Validación manual multi-clínica (22 tests)
+
+**Setup:** usuario dual (admin de Clínica A + Clínica B), alternando metadata via SQL + re-login.
+
+**Caso A (metadata=A):**
+- A1. r2-list-deleted → archivos_count=0 (papelera vacía tras F7-34b) ✅
+- A2. pacientes-purge con paciente de B → 403 "no_pertenece_clinica" ✅
+- A3. r2-health-check admin → 200 con detalles completos (bucket, endpoint) ✅
+
+**Caso B (metadata=B):**
+- B1. pacientes-purge con paciente de A → 403 "no_pertenece_clinica" ✅
+- B2. r2-health-check admin → 200 con detalles completos ✅
+- B3. body manipulado con clinica_id=A → 403 (body ignorado) ✅
+
+**Caso C (metadata=NULL):**
+- C1. pacientes-purge → 403 "No hay clinica activa" ✅
+- C2. archivos-purge → 403 ✅
+- C3. r2-list-deleted → 403 ✅
+- C4. r2-upload-url → 403 ✅
+- C5. r2-health-check → 200 mínimo (público, sin detalles) ✅
+
+**Caso D (clínica no-miembro, 99999999-...):**
+- D1. pacientes-purge → 403 "Membresía no válida" ✅
+- D2. archivos-purge → 403 "User role not found" ✅
+- D3. r2-list-deleted → 200 vacío → HOTFIX → 403 "Membresía no válida" ✅
+- D4. r2-upload-url → 403 "Paciente not found" ✅
+
+**Caso E (membresía B inactiva):**
+- E1. pacientes-purge → 403 "Membresía no válida" ✅
+- E2. archivos-purge → 403 "User role not found" ✅
+- E3. r2-list-deleted → 403 "Membresía no válida" ✅
+- E4. r2-upload-url → 403 "Paciente not found" ✅
+- E5. r2-health-check → 200 mínimo (no requiere membresía) ✅
+
+**Caso F (body.clinica_id manipulado):**
+- F1. pacientes-purge con body.clinica_id=B pero metadata=A → 403 (body ignorado) ✅
+- F2. r2-list-deleted con body.paciente_id de B pero metadata=A → archivos_count=0 (no hay archivos de B en papelera de A) ✅
+
+**Cleanup:** usuario dual restaurado a estado original (solo Clínica A), membresía temporal eliminada.
+
+### Verificaciones post-migración (SQL Editor)
+
+- V1. clinica_actual() tiene regex-guard, sin COALESCE/ORDER BY ✅
+- V2. Todos los 7 usuarios con membresías tienen selector válido ✅
+- V3. 0 usuarios sin selector ✅
+- V4. clinica_actual() retorna null cuando no hay usuario autenticado ✅
+- V5. es_admin_de_clinica_actual() acotada a clinica_actual() ✅
+
+### Validaciones automáticas
+
+- **Lint:** 149 warnings, 0 errores ✅
+- **Vitest:** 1518/1518 tests pasando ✅
+- **Deno check:** 6 funciones R2 + 2 migraciones ✅
+- **Build:** OK ✅
+- **Architecture validator:** OK ✅
+
+### Commits
+
+1. `14922ea` — security(F7-35): unificación fail-closed del contexto de clínica + hardening R2
+2. `02645de` — fix: agregar import de Button en PerfilProfesionalForm.jsx (hotfix preexistente)
+3. `24ee5ce` — fix(F7-35): r2-list-deleted valida membresía activa antes de listar (hotfix detectado en Caso D3)
+
+### Impacto
+
+- **RLS:** clinica_actual() ahora es fail-closed (sin fallback silencioso). Las 80+ políticas RLS heredan el comportamiento automáticamente.
+- **Edge Functions:** todas las funciones R2 validan membresía activa en la clínica específica del selector. Errores sanitizados (cliente nunca recibe stack traces/SQL/PostgREST internals).
+- **Frontend:** ClinicaSelector auto-persiste selector si metadata ausente o stale.
+- **Usuarios:** 5 de 7 usuarios de producción sin metadata fueron backfilled con su primera membresía activa.
+- **r2-health-check:** ahora tiene 3 niveles de detalle (público/usuario/admin) para no exponer info sensible a usuarios no-autenticados o no-admin.
+
+### Riesgos restantes
+
+- **62 registros históricos con PHI en audit_log:** documentados en F7-34b, no borrados (trazabilidad). Saneamiento opcional pendiente.
+- **CI E2E con continue-on-error:** documentado en F7-34b, decisión para F7-30.
+- **Tests Deno no corren en CI:** documentado en F7-34b, tarea derivada opcional.
+
+### Próxima tarea
+
+**F7-29** — Manual de usuario por rol + capacitación (P2, prerequisito de F7-30).
+
+---
