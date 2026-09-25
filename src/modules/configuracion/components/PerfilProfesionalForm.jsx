@@ -1,5 +1,6 @@
 import React, { memo, useState } from 'react'
 import { User } from 'lucide-react'
+import { Button } from '../../../components/ui/Button'
 
 export const PerfilProfesionalForm = memo(({ userProfile, alGuardar }) => {
   const [nombreCompleto, setNombreCompleto] = useState(userProfile?.nombreCompleto || '')
