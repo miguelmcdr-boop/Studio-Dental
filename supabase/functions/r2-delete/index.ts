@@ -1,3 +1,4 @@
+import { safeError, safeInternalError } from "../_shared/safeResponse.ts"
 // F7-31 Fase 1: Edge Function para soft delete de archivo (NO elimina de R2)
 //
 // Flujo:
@@ -120,7 +121,7 @@ Deno.serve(async (req) => {
     });
 
     if (authError || !userData) {
-      return jsonResponse({ error: "Invalid JWT", details: authError }, 401);
+      return safeError(req, "INVALID_JWT", authError, 401, "[r2-delete]");
     }
 
     const userId = userData.id;
@@ -228,7 +229,7 @@ Deno.serve(async (req) => {
       return jsonResponse(
         {
           error: "File deleted from R2 but failed to update metadata",
-          details: errorText,
+          // F7-35: detalle técnico no expuesto
         },
         500
       );
@@ -262,7 +263,7 @@ Deno.serve(async (req) => {
     return jsonResponse(
       {
         error: "Internal server error",
-        message: error instanceof Error ? error.message : String(error),
+        // F7-35: error.message removido
         // F7-34: Stack traces removidos de respuesta HTTP (solo logs internos)
       },
       500

@@ -1,3 +1,4 @@
+import { safeError, safeInternalError } from "../_shared/safeResponse.ts"
 // F7-22 Fase 7b: Edge Function para generar URL firmada de download
 //
 // Flujo:
@@ -117,7 +118,7 @@ Deno.serve(async (req) => {
     });
 
     if (authError || !userData) {
-      return jsonResponse({ error: "Invalid JWT", details: authError }, 401);
+      return safeError(req, "INVALID_JWT", authError, 401, "[r2-download-url]");
     }
 
     const userId = userData.id;
@@ -282,7 +283,7 @@ Deno.serve(async (req) => {
     return jsonResponse(
       {
         error: "Internal server error",
-        message: error instanceof Error ? error.message : String(error),
+        // F7-35: error.message removido
         // F7-34: Stack traces removidos de respuesta HTTP (solo logs internos)
       },
       500

@@ -1,3 +1,4 @@
+import { safeError, safeInternalError } from "../_shared/safeResponse.ts"
 // F7-31 Fase 2: Edge Function para listar archivos eliminados (papelera)
 //
 // Flujo:
@@ -70,7 +71,7 @@ Deno.serve(async (req) => {
     });
 
     if (authError || !userData) {
-      return jsonResponse({ error: "Invalid JWT", details: authError }, 401);
+      return safeError(req, "INVALID_JWT", authError, 401, "[r2-list-deleted]");
     }
 
     const userId = userData.id;
@@ -106,6 +107,22 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "No hay clinica activa. Seleccione una clinica." }, 403);
     }
 
+    // F7-35 HOTFIX: Validar membresía activa en la clínica específica del selector
+    // Sin esto, un usuario con metadata apuntando a clínica no-miembro puede listar (vacío) en lugar de 403
+    const membershipCheck = await fetch(
+      `${supabaseUrl}/rest/v1/miembros_clinica?user_id=eq.${userId}&clinica_id=eq.${clinicaId}&activo=eq.true&select=rol`,
+      {
+        headers: {
+          Authorization: `Bearer ${supabaseServiceKey}`,
+          apikey: supabaseServiceKey,
+        },
+      }
+    ).then((res) => res.json());
+
+    if (!Array.isArray(membershipCheck) || membershipCheck.length === 0) {
+      return jsonResponse({ error: "Membresía no válida para esta clínica" }, 403);
+    }
+
     // 4. Consultar archivos eliminados de la clínica del usuario
     let queryUrl = `${supabaseUrl}/rest/v1/archivos_clinicos?clinica_id=eq.${clinicaId}&estado=eq.eliminado&select=id,nombre_archivo,mime_type,tamano_bytes,categoria,deleted_at,uploaded_by,paciente_id&order=deleted_at.desc`;
 
@@ -122,7 +139,7 @@ Deno.serve(async (req) => {
 
     if (!Array.isArray(archivosResult)) {
       return jsonResponse(
-        { error: "Failed to fetch deleted archivos", details: archivosResult },
+        // F7-35: archivosResult no expuesto al cliente
         500
       );
     }
@@ -136,7 +153,7 @@ Deno.serve(async (req) => {
     return jsonResponse(
       {
         error: "Internal server error",
-        message: error instanceof Error ? error.message : String(error),
+        // F7-35: error.message removido
         // F7-34: Stack traces removidos de respuesta HTTP (solo logs internos)
       },
       500

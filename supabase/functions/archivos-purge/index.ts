@@ -123,7 +123,7 @@ export async function handler(req: Request): Promise<Response> {
       // Llamada interna del cron (desde pg_cron vía system_config secret)
       // user_id = NULL en audit_log (campo es nullable, evita FK violation)
       userId = null;
-      console.log("[F7-32] Llamada interna del cron detectada (X-Internal-Secret)");
+      // F7-35: DEBUG log removido (dejado solo console.error para errores)
     } else {
       // Llamada normal de usuario: validar JWT con Supabase
       const authHeader = req.headers.get("Authorization");
@@ -155,7 +155,7 @@ export async function handler(req: Request): Promise<Response> {
     // La clínica se obtiene de los propios archivos a purgar.
     console.log(`[F7-32 DEBUG] esLlamadaInterna=${esLlamadaInterna}, userId=${userId}`);
     if (!esLlamadaInterna) {
-      console.log("[F7-32 DEBUG] Ejecutando checks de clínica/rol (modo usuario)");
+      // F7-35: DEBUG log removido
       // Checks de clínica y rol solo para llamadas de usuario
       const clinicaResult = await fetch(
         `${supabaseUrl}/rest/v1/miembros_clinica?user_id=eq.${userId}&select=clinica_id`,

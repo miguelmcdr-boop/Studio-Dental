@@ -33,7 +33,29 @@ export const ClinicaSelector = ({ onCambioClinica }) => {
         ])
 
         setClinicas(lista)
-        setClinicaActivaState(activa || (lista.length > 0 ? lista[0].clinica_id : null))
+
+        // F7-35: Auto-persistir selector si metadata ausente o inválida.
+        // Previene que clinica_actual() fail-closed deje al usuario sin contexto
+        // mientras la UI mostraba una clínica "por defecto".
+        let clinicaFinal = activa
+        if (!clinicaFinal && lista.length > 0) {
+          clinicaFinal = lista[0].clinica_id
+          // setClinicaActiva hace updateUser + refreshSession (no bloqueante)
+          setClinicaActiva(clinicaFinal).catch(err => {
+            log.warn('F7-35: No se pudo auto-persistir clinicaActiva:', err?.message)
+          })
+        }
+        // Si clinicaFinal no está en la lista (metadata stale de clínica removida),
+        // resetear a la primera disponible.
+        if (clinicaFinal && !lista.some(c => c.clinica_id === clinicaFinal)) {
+          clinicaFinal = lista[0]?.clinica_id || null
+          if (clinicaFinal) {
+            setClinicaActiva(clinicaFinal).catch(err => {
+              log.warn('F7-35: Reset de clinicaActiva stale:', err?.message)
+            })
+          }
+        }
+        setClinicaActivaState(clinicaFinal)
       } catch (err) {
         log.error('Error cargando clínicas:', err.message)
         setError('Error cargando clínicas')
