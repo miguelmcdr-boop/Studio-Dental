@@ -12,7 +12,8 @@
 export const confirmarConflictosRecurrencia = async (
   citasAGuardar,
   citasExistentes,
-  validarFn
+  validarFn,
+  confirmFn = null
 ) => {
   const todosLosConflictos = []
   
@@ -41,5 +42,15 @@ export const confirmarConflictosRecurrencia = async (
     (todosLosConflictos.length > 5 ? `\n...y ${todosLosConflictos.length - 5} más` : '') +
     '\n\n¿Deseas continuar de todos modos?'
   
+  // Usar confirmFn (useAppDialog) si está disponible, sino fallback a window.confirm
+  if (confirmFn) {
+    return await confirmFn({
+      title: 'Conflicto de horario',
+      description: mensaje,
+      variant: 'warning',
+      confirmText: 'Continuar de todos modos',
+      cancelText: 'Revisar cita'
+    })
+  }
   return window.confirm(mensaje)
 }

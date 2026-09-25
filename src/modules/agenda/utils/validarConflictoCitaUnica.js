@@ -12,7 +12,8 @@
 export const validarConflictoCitaUnica = async (
   citaUnica,
   citasExistentes,
-  validarFn
+  validarFn,
+  confirmFn = null
 ) => {
   const resultado = validarFn(citaUnica, citasExistentes)
   
@@ -27,5 +28,15 @@ export const validarConflictoCitaUnica = async (
     ).join('\n') +
     '\n\n¿Deseas continuar de todos modos?'
   
+  // Usar confirmFn (useAppDialog) si está disponible, sino fallback a window.confirm
+  if (confirmFn) {
+    return await confirmFn({
+      title: 'Conflicto de horario',
+      description: mensaje,
+      variant: 'warning',
+      confirmText: 'Continuar de todos modos',
+      cancelText: 'Revisar cita'
+    })
+  }
   return window.confirm(mensaje)
 }

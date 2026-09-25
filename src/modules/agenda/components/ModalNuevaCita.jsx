@@ -42,7 +42,7 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
   const [fechaFin, setFechaFin] = useState('')
   const [numInstancias, setNumInstancias] = useState(4)
 
-  const { alert: dialogAlert } = useAppDialog()
+  const { alert: dialogAlert, confirm: dialogConfirm } = useAppDialog()
 
   const handleSelectPacienteChange = (e) => {
     const pId = e.target.value
@@ -158,7 +158,8 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
       const puedeContinuar = await confirmarConflictosRecurrencia(
         citasAGuardar,
         citasExistentes,
-        validarConflictosRecurrencia
+        validarConflictosRecurrencia,
+        dialogConfirm
       )
       if (!puedeContinuar) {
         return
@@ -197,7 +198,8 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
       const puedeContinuar = await validarConflictoCitaUnica(
         citaUnica,
         citasExistentes,
-        validarConflictosRecurrencia
+        validarConflictosRecurrencia,
+        dialogConfirm
       )
       if (!puedeContinuar) {
         return
