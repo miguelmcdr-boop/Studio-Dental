@@ -15,6 +15,7 @@ import { CamposFormularioCita } from './CamposFormularioCita'
 import { RecurrenciaForm } from './RecurrenciaForm'
 import { generarCitasRecurrencia, validarConflictosRecurrencia } from '../../../utils/recurrenciaUtils'
 import { RefreshCw } from 'lucide-react'
+import { validarConflictosAntesDeGuardar, validarConflictoCitaUnica } from '../utils/validarConflictosAntesDeGuardar'
 
 export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGuardar, alCerrar, citasExistentes = [] }) => {
   const [esPacienteExpress, setEsPacienteExpress] = useState(false)
@@ -153,32 +154,13 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
       })
 
       // F7-27 fix: validar conflictos antes de guardar citas recurrentes
-      const todosLosConflictos = []
-      citasAGuardar.forEach((cita) => {
-        const resultado = validarConflictosRecurrencia(cita, citasExistentes)
-        if (!resultado.valido) {
-          resultado.conflictos.forEach((conflicto) => {
-            todosLosConflictos.push({
-              fecha: conflicto.fecha,
-              hora: conflicto.horaInicio,
-              paciente: conflicto.pacienteNombre,
-              box: conflicto.boxAsignado
-            })
-          })
-        }
-      })
-
-      if (todosLosConflictos.length > 0) {
-        const mensaje = `Se detectaron ${todosLosConflictos.length} conflicto(s) de horario:\n\n` +
-          todosLosConflictos.slice(0, 5).map(c => 
-            `• ${c.fecha} a las ${c.hora} - ${c.paciente} (${c.box})`
-          ).join('\n') +
-          (todosLosConflictos.length > 5 ? `\n...y ${todosLosConflictos.length - 5} más` : '') +
-          '\n\n¿Deseas continuar de todos modos?'
-        
-        if (!window.confirm(mensaje)) {
-          return
-        }
+      const puedeContinuar = await validarConflictosAntesDeGuardar(
+        citasAGuardar,
+        citasExistentes,
+        validarConflictosRecurrencia
+      )
+      if (!puedeContinuar) {
+        return
       }
 
       // Guardar todas las citas (el hook useAgenda debe manejar arrays)
@@ -211,18 +193,13 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
       }
 
       // F7-27 fix: validar conflictos antes de guardar cita única
-      const resultado = validarConflictosRecurrencia(citaUnica, citasExistentes)
-      if (!resultado.valido) {
-        const conflictos = resultado.conflictos
-        const mensaje = `Conflicto de horario detectado:\n\n` +
-          conflictos.map(c => 
-            `• ${c.fecha} a las ${c.horaInicio} - ${c.pacienteNombre} (${c.boxAsignado})`
-          ).join('\n') +
-          '\n\n¿Deseas continuar de todos modos?'
-        
-        if (!window.confirm(mensaje)) {
-          return
-        }
+      const puedeContinuar = await validarConflictoCitaUnica(
+        citaUnica,
+        citasExistentes,
+        validarConflictosRecurrencia
+      )
+      if (!puedeContinuar) {
+        return
       }
 
       alGuardar(citaUnica, esPacienteExpress ? autoCrearFicha : false)
