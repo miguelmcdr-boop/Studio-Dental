@@ -138,10 +138,8 @@ Deno.serve(async (req) => {
     }).then((res) => res.json());
 
     if (!Array.isArray(archivosResult)) {
-      return jsonResponse(
-        // F7-35: archivosResult no expuesto al cliente
-        500
-      );
+      // F7-35 fix: usar safeError para HTTP 500 real + log seguro (archivosResult va a logs, no al cliente)
+      return safeError(req, "QUERY_RESULT_INVALID", archivosResult, 500, "[r2-list-deleted]");
     }
 
     // 5. Retornar lista de archivos eliminados
