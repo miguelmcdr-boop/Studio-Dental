@@ -1,0 +1,253 @@
+/**
+ * Tests de regresión F7-36: no-fallback-cross-clinic
+ *
+ * Garantiza que los 4 storage services con fallback peligroso
+ * (finanzas, agenda, pagos, presupuestos) NO conservan cache
+ * de clínica anterior cuando Supabase retorna [] sin error.
+ *
+ * Patrón real de la app:
+ *   1. localStorage.setItem(STORAGE_KEY, datosClinicaA)
+ *   2. servicio.obtenerX() → inicializa cache en memoria desde localStorage
+ *   3. servicio.sincronizarDesdeSupabase() → Supabase retorna []
+ *   4. DEBE retornar [] (NO los datos de clínica A)
+ */
+
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+
+// Claves de localStorage usadas por cada servicio (deben coincidir con las
+// constantes STORAGE_KEY_* en cada archivo).
+const STORAGE_KEYS = {
+  finanzas: 'studio_dental_finanzas_movimientos',
+  agenda: 'studio_dental_agenda_citas_v3',
+  pagos: 'studio_dental_pagos_historial_v3',
+  presupuestos: 'studio_dental_presupuestos_globales',
+}
+
+/**
+ * Crea un mock de supabase que soporta cadenas de múltiples .order()
+ * (necesario para agendaStorageService que hace .order('fecha').order('hora_inicio'))
+ * 
+ * Estructura: from() → select() → order() → order() → ... → Promise.resolve({ data, error })
+ * Cada .order() retorna un objeto que tiene otro .order() como método.
+ */
+const crearMockSupabase = (dataRespuesta, errorRespuesta = null) => {
+  // Nodo terminal: resuelve la promesa y también tiene .order() para permitir más encadenamiento
+  const terminalNode = {
+    order: vi.fn(),
+    then: vi.fn((resolve) => resolve({ data: dataRespuesta, error: errorRespuesta })),
+  }
+  // El .order() del terminal retorna el mismo terminal (permite encadenar infinitamente)
+  terminalNode.order.mockReturnValue(terminalNode)
+
+  return {
+    from: vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        order: vi.fn().mockReturnValue(terminalNode),
+      }),
+    }),
+    auth: {
+      getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null }),
+    },
+  }
+}
+
+describe('F7-36: No-fallback cross-clinic en storage services', () => {
+  beforeEach(() => {
+    vi.resetModules()
+    localStorage.clear()
+  })
+
+  afterEach(() => {
+    vi.doUnmock('../../services/supabaseClient')
+    vi.restoreAllMocks()
+  })
+
+  describe('Caso 1: Supabase [] no recupera cache de clínica anterior', () => {
+    it('finanzasStorageService: Supabase [] sobrescribe cache antiguo', async () => {
+      // Simular cache con datos de clínica A
+      localStorage.setItem(
+        STORAGE_KEYS.finanzas,
+        JSON.stringify([
+          { id: 'a-1', monto: 100, descripcion: 'Clínica A' },
+          { id: 'a-2', monto: 200, descripcion: 'Clínica A' },
+        ])
+      )
+
+      // Mockear supabase ANTES de importar el servicio
+      const mockSupabase = crearMockSupabase([], null)
+      vi.doMock('../../services/supabaseClient', () => ({
+        supabase: mockSupabase,
+        USE_SUPABASE: true,
+      }))
+
+      // Import dinámico (carga el módulo con el mock aplicado)
+      const { finanzasStorageService } = await import(
+        '../../modules/finanzas/services/finanzasStorageService.js'
+      )
+
+      // Obtener movimientos → inicializa cache en memoria desde localStorage
+      // (este es el flujo real de la app)
+      const inicial = finanzasStorageService.obtenerMovimientos()
+      expect(inicial).toHaveLength(2) // cache tiene datos de clínica A
+
+      // Sincronizar desde Supabase (retorna [])
+      const result = await finanzasStorageService.sincronizarDesdeSupabase()
+
+      // DEBE retornar [], NO los datos de clínica A
+      expect(Array.isArray(result)).toBe(true)
+      expect(result).toHaveLength(0)
+
+      // Cache en localStorage también debe estar vacío
+      const cachePersistido = JSON.parse(localStorage.getItem(STORAGE_KEYS.finanzas) || 'null')
+      expect(cachePersistido).toEqual([])
+    })
+
+    it('agendaStorageService: Supabase [] sobrescribe cache antiguo', async () => {
+      localStorage.setItem(
+        STORAGE_KEYS.agenda,
+        JSON.stringify([{ id: 'a-1', paciente: 'Clínica A' }])
+      )
+
+      const mockSupabase = crearMockSupabase([], null)
+      vi.doMock('../../services/supabaseClient', () => ({
+        supabase: mockSupabase,
+        USE_SUPABASE: true,
+      }))
+
+      const { agendaStorageService } = await import(
+        '../../modules/agenda/services/agendaStorageService.js'
+      )
+      const inicial = agendaStorageService.obtenerCitas()
+      expect(inicial).toHaveLength(1)
+
+      const result = await agendaStorageService.sincronizarDesdeSupabase()
+
+      expect(result).toHaveLength(0)
+      expect(JSON.parse(localStorage.getItem(STORAGE_KEYS.agenda) || 'null')).toEqual([])
+    })
+
+    it('pagosStorageService: Supabase [] sobrescribe cache antiguo', async () => {
+      localStorage.setItem(
+        STORAGE_KEYS.pagos,
+        JSON.stringify([{ id: 'a-1', monto: 50000, paciente: 'Clínica A' }])
+      )
+
+      const mockSupabase = crearMockSupabase([], null)
+      vi.doMock('../../services/supabaseClient', () => ({
+        supabase: mockSupabase,
+        USE_SUPABASE: true,
+      }))
+
+      const { pagosStorageService } = await import(
+        '../../modules/pagos/services/pagosStorageService.js'
+      )
+      const inicial = pagosStorageService.obtenerPagos()
+      expect(inicial).toHaveLength(1)
+
+      const result = await pagosStorageService.sincronizarDesdeSupabase()
+
+      expect(result).toHaveLength(0)
+      expect(JSON.parse(localStorage.getItem(STORAGE_KEYS.pagos) || 'null')).toEqual([])
+    })
+
+    it('presupuestosStorageService: Supabase [] sobrescribe cache antiguo', async () => {
+      localStorage.setItem(
+        STORAGE_KEYS.presupuestos,
+        JSON.stringify([{ id: 'a-1', total: 150000, paciente: 'Clínica A' }])
+      )
+
+      const mockSupabase = crearMockSupabase([], null)
+      vi.doMock('../../services/supabaseClient', () => ({
+        supabase: mockSupabase,
+        USE_SUPABASE: true,
+      }))
+
+      const { presupuestosStorageService } = await import(
+        '../../modules/presupuestos/services/presupuestosStorageService.js'
+      )
+      const inicial = presupuestosStorageService.obtenerPresupuestos()
+      expect(inicial).toHaveLength(1)
+
+      const result = await presupuestosStorageService.sincronizarDesdeSupabase()
+
+      expect(result).toHaveLength(0)
+      expect(JSON.parse(localStorage.getItem(STORAGE_KEYS.presupuestos) || 'null')).toEqual([])
+    })
+  })
+
+  describe('Caso 2: Error de red SÍ conserva cache (offline-first)', () => {
+    it('finanzasStorageService: error de red retorna cache existente', async () => {
+      const datosCache = [
+        { id: 'a-1', monto: 100, descripcion: 'Clínica A' },
+        { id: 'a-2', monto: 200, descripcion: 'Clínica A' },
+      ]
+      localStorage.setItem(STORAGE_KEYS.finanzas, JSON.stringify(datosCache))
+
+      // Mockear supabase con error
+      const mockSupabase = crearMockSupabase(null, new Error('Network error'))
+      vi.doMock('../../services/supabaseClient', () => ({
+        supabase: mockSupabase,
+        USE_SUPABASE: true,
+      }))
+
+      const { finanzasStorageService } = await import(
+        '../../modules/finanzas/services/finanzasStorageService.js'
+      )
+
+      // Inicializar cache en memoria desde localStorage
+      const inicial = finanzasStorageService.obtenerMovimientos()
+      expect(inicial).toEqual(datosCache)
+
+      const result = await finanzasStorageService.sincronizarDesdeSupabase()
+
+      // DEBE retornar los datos del cache (offline-first correcto)
+      expect(result).toEqual(datosCache)
+    })
+  })
+
+  describe('Caso 3: Supabase con datos válidos sobrescribe cache', () => {
+    it('finanzasStorageService: datos nuevos reemplazan cache', async () => {
+      const datosCache = [{ id: 'a-1', monto: 100, descripcion: 'Clínica A (viejo)' }]
+      localStorage.setItem(STORAGE_KEYS.finanzas, JSON.stringify(datosCache))
+
+      // Datos en formato snake_case (como vienen de la BD)
+      const datosSupabase = [
+        {
+          id: 'b-1',
+          monto: 500,
+          descripcion: 'Clínica B (nuevo)',
+          tipo: 'ingreso',
+          categoria: 'consulta',
+          fecha: '2026-09-01',
+          created_at: '2026-09-01T10:00:00Z',
+          updated_at: '2026-09-01T10:00:00Z',
+        },
+      ]
+
+      const mockSupabase = crearMockSupabase(datosSupabase, null)
+      vi.doMock('../../services/supabaseClient', () => ({
+        supabase: mockSupabase,
+        USE_SUPABASE: true,
+      }))
+
+      const { finanzasStorageService } = await import(
+        '../../modules/finanzas/services/finanzasStorageService.js'
+      )
+
+      // Inicializar cache en memoria desde localStorage
+      const inicial = finanzasStorageService.obtenerMovimientos()
+      expect(inicial).toHaveLength(1)
+      expect(inicial[0].id).toBe('a-1')
+
+      const result = await finanzasStorageService.sincronizarDesdeSupabase()
+
+      // DEBE retornar los datos nuevos (transformados desde snake_case)
+      expect(Array.isArray(result)).toBe(true)
+      expect(result.length).toBeGreaterThan(0)
+
+      // Verificar que los IDs de clínica A NO están en el resultado
+      const idsEnResultado = result.map((r) => r.id)
+      expect(idsEnResultado).not.toContain('a-1')
+    })
+  })
+})

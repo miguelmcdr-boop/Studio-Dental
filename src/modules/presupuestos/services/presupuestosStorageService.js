@@ -159,11 +159,9 @@ const sincronizarDesdeSupabase = async () => {
 
     if (!Array.isArray(data)) return presupuestosCache
 
-    // Si Supabase retorna vacío pero hay caché con datos, puede ser que la
-    // migración aún no haya corrido. No sobrescribimos la caché.
-    if (data.length === 0 && presupuestosCache && presupuestosCache.length > 0) {
-      log.info('Supabase vacío, manteniendo caché (pendiente migración)')
-      return presupuestosCache
+    // F7-36: Supabase [] = clínica sin presupuestos. Error de red ya retornó cache arriba.
+    if (data.length === 0) {
+      log.info('Supabase retornó []: clínica sin presupuestos, cache limpiada')
     }
 
     const nuevos = data.map(transformarDesdeSupabase).filter(Boolean)

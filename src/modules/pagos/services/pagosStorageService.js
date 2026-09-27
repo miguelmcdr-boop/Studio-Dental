@@ -74,9 +74,9 @@ const sincronizarDesdeSupabase = async () => {
 
     if (!Array.isArray(data)) return pagosCache
 
-    if (data.length === 0 && pagosCache && pagosCache.length > 0) {
-      log.info('Supabase vacío, manteniendo caché (pendiente migración)')
-      return pagosCache
+    // F7-36: Supabase [] = clínica sin pagos. Error de red ya retornó cache arriba.
+    if (data.length === 0) {
+      log.info('Supabase retornó []: clínica sin pagos, cache limpiada')
     }
 
     const previos = pagosCache || pagosRepo.obtener([])

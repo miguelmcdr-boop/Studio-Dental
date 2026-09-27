@@ -37,9 +37,7 @@ const cierresRepo = createLocalStorageRepository(STORAGE_KEY_CIERRES, [])
 let movimientosCache = null
 let cacheInicializado = false
 
-// ═══════════════════════════════════════════════════════════════════
 // MAPEO DE CAMPOS (camelCase JS ↔ snake_case SQL)
-// ═══════════════════════════════════════════════════════════════════
 
 const SNAKE_TO_CAMEL_MAP = {
   metodo_pago: 'metodoPago',
@@ -123,9 +121,9 @@ const sincronizarDesdeSupabase = async () => {
 
     if (!Array.isArray(data)) return movimientosCache
 
-    if (data.length === 0 && movimientosCache && movimientosCache.length > 0) {
-      log.info('Supabase vacío, manteniendo caché (pendiente migración)')
-      return movimientosCache
+    // F7-36: Supabase vacío = clínica sin datos (no confundir con error de red). Error de red ya retornó cache arriba.
+    if (data.length === 0) {
+      log.info('Supabase retornó []: clínica sin movimientos, cache limpiada')
     }
 
     const nuevos = data.map(transformarDesdeSupabase).filter(Boolean)
