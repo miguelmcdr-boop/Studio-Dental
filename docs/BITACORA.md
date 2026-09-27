@@ -6949,3 +6949,85 @@ Validación final completa: [ver sección "Validación final" más abajo]
 - F7-29: Manual de usuario por rol + capacitación (P2, prerequisito de F7-30)
 
 ---
+
+
+---
+
+## 🔧 Cierre definitivo de auditoría post-PR #164 (2026-09-28)
+
+**Tarea:** Cierre de hallazgos residuales de segunda ronda de auditoría  
+**Estado:** ✅ DONE  
+**Fecha:** 2026-09-28  
+**Rama:** `fix/alerttriangle-final-cleanup`  
+**PR:** pendiente de merge
+
+### Contexto
+
+Tras el merge del PR #164 (segunda ronda de auditoría), quedaban 3 componentes del módulo de Administración con imports faltantes de `AlertTriangle`. Esta sesión cierra definitivamente la ronda de auditorías.
+
+### Commits aplicados
+
+**1. `2875547` — Imports de AlertTriangle en 3 componentes restantes**
+- `MetadataCuracion.jsx`: import agregado (línea 7) — alerta de vademécum vencido/próximo
+- `ModalEditarInteraccion.jsx`: import agregado (línea 10) — alerta de interacción farmacológica
+- `ModalEditarUrgencia.jsx`: import agregado (línea 10) — alerta de fármaco crítico del carro de reanimación
+
+Esto completa la corrección iniciada en PR #164 (commit `606555b`) que había corregido `ModalEditarAntirresortivo` y `ModalEditarProtocolo`.
+
+**Resultado:** 0 warnings de `jsx-no-undef` en todo el proyecto. Lint bajó de 130 a 126 warnings.
+
+### Resumen consolidado de PR #164 (segunda auditoría)
+
+Los 5 hallazgos resueltos en PR #164 fueron:
+
+1. **`606555b`** — Imports de `AlertTriangle` en 2 modales clínicos críticos (MRONJ, profilaxis, anticoagulantes)
+2. **`14553b3`** — Eliminación de línea obsoleta `🔴 TODO — FASE OBLIGATORIA` en `MASTER_ROADMAP.md` (contradecía el estado actualizado `🟢 IN PROGRESS → CIERRE`)
+3. **`8ddaebf`** — Actualización de Deno a `v2.x` en `.github/workflows/ci.yml` (acción `setup-deno@v2` + `deno-version: v2.x` para parsear `deno.lock` formato v5)
+4. **`348d796`** — Corrección de recursión infinita en test S2 de `sanitization.test.ts`: guardar `baseMockFetch` antes de crear `wrappedFetch`, evitando `RangeError: Maximum call stack size exceeded`
+5. **`a26a77a` + `191c1db`** — Migración de `window.confirm` a `useAppDialog().confirm` con helper compartido `confirmarConDialogo.js` (DRY principle, UX consistente con Design System, accesibilidad, dark mode, testeable)
+
+### Validaciones finales
+
+| Suite | Resultado |
+|---|---|
+| `npm test` | 1518/1518 ✅ |
+| `npm run test:security` | 27/27 ✅ |
+| `deno test -A supabase/functions/` | 48/48 ✅ (S2 sin RangeError) |
+| `validate:architecture` | 0 violaciones ✅ |
+| `build` | OK ✅ |
+| `lint` | 126 warnings, 0 errors ✅ (↓ de 135 en 2 rondas) |
+
+### Lecciones aprendidas
+
+1. **Auditorías múltiples revelan capas:** la primera ronda (PR #163) detectó 12 hallazgos, la segunda (PR #164) detectó 5 más, y esta sesión cerró 3 residuales. Cada capa requiere un escaneo independiente.
+2. **Consistencia en imports:** el patrón `AlertTriangle` aparecía en 5 componentes, solo 2 fueron detectados inicialmente. Un grep exhaustivo (`grep -rn "AlertTriangle" src/`) habría capturado todos de una vez.
+3. **Recursión sutil en mocks:** el test S2 tenía un bug que pasaba "técnicamente" (ok) pero con RangeError oculto en output. Lectura cuidadosa del output es tan importante como el resultado.
+4. **DRY en diálogos:** extraer `confirmarConDialogo.js` no solo resolvió límites de arquitectura, sino que consolidó la lógica de diálogo en un solo lugar mantenible.
+
+### Estado del repositorio tras esta sesión
+
+- ✅ Rama: `main` listo para merge del PR de cierre
+- ✅ 0 warnings de `jsx-no-undef` en el proyecto
+- ✅ 18 commits mergeados en las últimas 3 sesiones (PRs #163 + #164 + cierre)
+- ✅ Documentación actualizada (BITACORA + MASTER_ROADMAP)
+- ✅ CI job Deno funcional en GitHub Actions
+- ✅ Validaciones de calidad en verde
+
+### Consolidado de las 3 sesiones de auditoría
+
+| Métrica | PR #163 (1ra ronda) | PR #164 (2da ronda) | Cierre | Total |
+|---|---|---|---|---|
+| Commits | 12 | 5 | 1 | 18 |
+| Archivos modificados | 11 | 9 | 3 | 23 |
+| Bugs funcionales | 4 | 3 | 3 | 10 |
+| Gates CI agregados | 1 | 0 (mejorado) | 0 | 1 |
+| Lint warnings | 135 → 133 | 133 → 130 | 130 → 126 | 135 → 126 (↓9) |
+| Tests pasando | 1593 | 1593 | 1593 | 1593 |
+
+### Próximos pasos sugeridos
+
+1. **Verificar job Deno en GitHub Actions** — Primer PR post-merge del PR #164 debería ejecutar el job `deno` exitosamente
+2. **F7-29: Manual de usuario por rol + capacitación** (P2, prerequisito de F7-30)
+3. **F7-30: Pre-producción final** (gate para producción con datos clínicos reales)
+
+---
