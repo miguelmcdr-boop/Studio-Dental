@@ -7031,3 +7031,58 @@ Los 5 hallazgos resueltos en PR #164 fueron:
 3. **F7-30: Pre-producción final** (gate para producción con datos clínicos reales)
 
 ---
+
+## 2026-09-28 — F7-36 FASE 1: Eliminación de fallback cross-clinic en storage services
+
+### Contexto
+La auditoría F7-36 identificó que 4 storage services tenían un patrón peligroso: cuando Supabase retornaba lista vacía (clínica sin datos), la app conservaba el cache de la clínica anterior, causando contaminación cross-clinic de datos.
+
+### Problema
+Los 4 servicios tenían este patrón peligroso:
+
+    if (data.length === 0 && cache.length > 0) {
+      return cache  // Recupera datos de clínica anterior
+    }
+
+Escenario de riesgo:
+1. Usuario en Clínica A carga 50 pagos
+2. Cambia a Clínica B (que tiene 0 pagos)
+3. Supabase retorna lista vacía
+4. App muestra los 50 pagos de Clínica A (filtración de datos)
+
+### Solución aplicada
+Eliminar el fallback. Cuando Supabase retorna lista vacía sin error, sobrescribir cache con lista vacía.
+
+Archivos modificados:
+1. src/modules/finanzas/services/finanzasStorageService.js
+2. src/modules/agenda/services/agendaStorageService.js
+3. src/modules/pagos/services/pagosStorageService.js
+4. src/modules/presupuestos/services/presupuestosStorageService.js
+
+Tests agregados:
+- Archivo: src/test/security/no-fallback-cross-clinic.test.js (6 tests)
+- 4 tests de caso cross-clinic (uno por servicio)
+- 1 test de offline-first (error de red conserva cache)
+- 1 test de sincronización normal (datos nuevos sobrescriben)
+
+### Desafío técnico: Mock de Supabase con múltiples .order()
+agendaStorageService hace doble encadenamiento .order('fecha').order('hora_inicio'). Solución: crear un "terminal node" que soporta encadenamiento infinito de .order() mediante then() que resuelve la promesa.
+
+### Validaciones
+- 1545/1545 tests pasando (sin regresión)
+- validate:architecture PASS
+- build OK
+- Fallback peligroso eliminado de los 4 servicios
+
+### Impacto
+Seguridad: Previene contaminación cross-clinic de datos clínicos y financieros.
+
+Comportamiento correcto:
+- Clínica vacía → muestra "Sin datos" (no datos de otra clínica)
+- Error de red → muestra cache local (offline-first)
+- Datos nuevos → sobrescribe cache antiguo
+
+### Siguiente paso
+Commit 1.3: Listener de invalidación al cambiar de clínica (limpiar cache en memoria + localStorage cuando el usuario cambia de clínica activa).
+
+---

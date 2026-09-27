@@ -2575,3 +2575,35 @@ La auditoría de 2026-08-26 registró: **852/852 tests**, **7 warnings de lint**
 - [ ] Existe RC y decisión GO/NO-GO documentada.
 
 **Regla final:** completar las tareas no equivale automáticamente a declarar producción. La decisión final requiere evidencia obtenida en staging y una revisión GO/NO-GO.
+
+### F7-36 — Tenant Cache & Audit Integrity
+
+**Estado:** 🟡 IN PROGRESS (FASE 1 en curso)
+
+**Descripción:** Auditoría y corrección profunda de aislamiento multi-tenant, integridad de auditoría, y reproducibilidad de BD.
+
+**Fases:**
+1. **Aislamiento de caché multi-clínica** (EN CURSO)
+   - ✅ Commit 1.1: tenantCache helper (src/services/tenantCache.js + 280 líneas de tests)
+   - ✅ Commit 1.2: Eliminación de fallback cross-clinic en 4 storage services
+   - ⏳ Commit 1.3: Listener de invalidación al cambiar de clínica
+   - ⏳ Commit 1.4: Extender localStorageRepository para usar tenantCache
+   - ⏳ Commit 1.5: Migrar claves de módulos clínicos a formato tenant-aware
+   - ⏳ Commit 1.6: IndexedDB tenant-aware para adjuntos
+   - ⏳ Commit 1.7: operationQueue tenant-aware
+   - ⏳ Commit 1.8: 5 tests obligatorios FASE 1
+   - ⏳ Commit 1.9: Documentación final
+2. **RPC de auditoría - cerrar superficie de ataque** (PENDIENTE)
+3. **SECURITY DEFINER hardening** (PENDIENTE)
+4. **Audit log de archivos** (PENDIENTE)
+5. **Identidad real del actor** (PENDIENTE)
+6. **Purga definitiva paciente + R2** (PENDIENTE)
+7. **Rebuild completo de base de datos** (PENDIENTE)
+8. **R2 - revisión final** (PENDIENTE)
+9. **MIME contract** (PENDIENTE)
+10. **CI / E2E** (PENDIENTE)
+11. **Test global de regresión multi-tenant** (PENDIENTE)
+
+**Criterios de aceptación:** Ver F7-36 brief original (12 fases)
+
+**Prioridad:** 🔴 CRÍTICA (seguridad multi-tenant)
