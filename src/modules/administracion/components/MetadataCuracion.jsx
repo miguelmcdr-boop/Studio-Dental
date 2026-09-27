@@ -4,7 +4,7 @@
  * F4-03f-2
  */
 import React from 'react'
-
+import { AlertTriangle } from 'lucide-react'
 const diasHasta = (fechaStr) => {
   if (!fechaStr) return null
   const fecha = new Date(fechaStr)
