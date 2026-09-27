@@ -7,6 +7,7 @@ import { Modal } from '../../../components/ui/Modal'
 import { Button } from '../../../components/ui/Button'
 import { CamposFormularioInteraccion } from './CamposFormularioInteraccion'
 import { validarInteraccion, NIVELES_SEVERIDAD_INTERACCION } from '../schemas/interaccionSchema'
+import { AlertTriangle } from 'lucide-react'
 
 const VALOR_INICIAL = {
   farmaco_a: '',

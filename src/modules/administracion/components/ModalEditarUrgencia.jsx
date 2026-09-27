@@ -7,6 +7,7 @@ import { Modal } from '../../../components/ui/Modal'
 import { CamposFormularioUrgencia } from './CamposFormularioUrgencia'
 import { Button } from '../../../components/ui/Button'
 import { validarUrgencia, VIAS_ADMINISTRACION } from '../schemas/vademecumSchema'
+import { AlertTriangle } from 'lucide-react'
 
 const VALOR_INICIAL = {
   numero: '',
