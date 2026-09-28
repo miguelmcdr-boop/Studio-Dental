@@ -209,3 +209,93 @@ Deno.test("T10: Retención legal - paciente eliminado hace menos de 10 años es 
     globalThis.fetch = originalFetch;
   }
 });
+
+// ============================================================
+// F7-36 FASE 6: Tests de fail-safe (casos D y E del brief)
+// ============================================================
+
+Deno.test("T11: Archivo R2 falla -> paciente NO eliminado (caso D)", async () => {
+  const originalFetch = globalThis.fetch;
+  // Paciente con 1 archivo en R2. Mock hace que R2 falle.
+  globalThis.fetch = createMockFetch({
+    authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+    memberships: baseMemberships,
+    pacientes: [
+      { id: PACIENTE_A, clinica_id: CLINICA_A, deleted_at: "2010-01-01T00:00:00Z" },
+    ],
+    archivos: [
+      { id: "arch-1", clinica_id: CLINICA_A, paciente_id: PACIENTE_A, r2_object_key: "key-falla", estado: "eliminado" },
+    ],
+    r2DeleteOk: false, // R2 falla
+  }) as any;
+
+  // Spy de DELETE a pacientes
+  const deleteCalls: string[] = [];
+  const wrappedFetch = async (url: any, init?: any) => {
+    const urlStr = typeof url === "string" ? url : url.url;
+    if (init?.method === "DELETE" && urlStr.includes("/rest/v1/pacientes")) {
+      deleteCalls.push(urlStr);
+    }
+    return (globalThis.fetch as any)(url, init);
+  };
+  globalThis.fetch = wrappedFetch as any;
+
+  try {
+    const req = createAuthRequest({ paciente_ids: [PACIENTE_A] });
+    const res = await handler(req);
+    const body = await res.json();
+    assertEquals(res.status, 200);
+    assertEquals(body.purgados, []);
+    assertEquals(body.rechazados.length, 1);
+    assertEquals(body.rechazados[0].id, PACIENTE_A);
+    assertEquals(body.rechazados[0].razon, "r2_parcial_1_de_1_fallidos");
+    // CRITICO: DELETE a pacientes NO debe haberse ejecutado
+    assertEquals(deleteCalls.length, 0, "DELETE a pacientes NO debe ejecutarse si R2 falla");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+Deno.test("T12: Multiples archivos, uno falla -> paciente rechazado (caso E)", async () => {
+  const originalFetch = globalThis.fetch;
+  // Paciente con 3 archivos. Solo 1 falla en R2.
+  const ARCHIVO_FALLA = "key-que-falla";
+  globalThis.fetch = createMockFetch({
+    authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+    memberships: baseMemberships,
+    pacientes: [
+      { id: PACIENTE_A, clinica_id: CLINICA_A, deleted_at: "2010-01-01T00:00:00Z" },
+    ],
+    archivos: [
+      { id: "arch-1", clinica_id: CLINICA_A, paciente_id: PACIENTE_A, r2_object_key: "key-ok-1", estado: "eliminado" },
+      { id: "arch-2", clinica_id: CLINICA_A, paciente_id: PACIENTE_A, r2_object_key: ARCHIVO_FALLA, estado: "eliminado" },
+      { id: "arch-3", clinica_id: CLINICA_A, paciente_id: PACIENTE_A, r2_object_key: "key-ok-2", estado: "eliminado" },
+    ],
+    r2DeleteOk: [ARCHIVO_FALLA], // Solo falla uno
+  }) as any;
+
+  const deleteCalls: string[] = [];
+  const wrappedFetch = async (url: any, init?: any) => {
+    const urlStr = typeof url === "string" ? url : url.url;
+    if (init?.method === "DELETE" && urlStr.includes("/rest/v1/pacientes")) {
+      deleteCalls.push(urlStr);
+    }
+    return (globalThis.fetch as any)(url, init);
+  };
+  globalThis.fetch = wrappedFetch as any;
+
+  try {
+    const req = createAuthRequest({ paciente_ids: [PACIENTE_A] });
+    const res = await handler(req);
+    const body = await res.json();
+    assertEquals(res.status, 200);
+    assertEquals(body.purgados, []);
+    assertEquals(body.rechazados.length, 1);
+    assertEquals(body.rechazados[0].id, PACIENTE_A);
+    assertEquals(body.rechazados[0].razon, "r2_parcial_1_de_3_fallidos");
+    // CRITICO: DELETE a pacientes NO debe haberse ejecutado
+    assertEquals(deleteCalls.length, 0, "DELETE a pacientes NO debe ejecutarse si algun R2 falla");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

@@ -10,7 +10,7 @@ export interface MockFetchConfig {
   memberships?: Array<{ user_id: string; clinica_id: string; rol: string; activo: boolean }>;
   pacientes?: Array<{ id: string; clinica_id: string; nombre?: string; rut?: string; deleted_at?: string }>;
   archivos?: Array<{ id: string; clinica_id: string; paciente_id?: string; r2_object_key?: string; estado?: string; nombre_archivo?: string; deleted_at?: string }>;
-  r2DeleteOk?: boolean;
+  r2DeleteOk?: boolean | string[]; // string[] = r2_object_keys que deben fallar
   auditLogOk?: boolean;
   deleteOk?: boolean;
 }
@@ -102,10 +102,17 @@ export function createMockFetch(config: MockFetchConfig) {
       return new Response("{}", { status: 200 });
     }
 
-    // R2 DELETE (Cloudflare)
+    // R2 DELETE (Cloudflare) - F7-36 FASE 6: soporta fallo por r2_object_key
     if (urlStr.includes("r2.cloudflarestorage.com")) {
       if (config.r2DeleteOk === false) {
         return new Response("R2 error", { status: 500 });
+      }
+      // Nuevo: si es array, fallar solo los r2_object_keys listados
+      if (Array.isArray(config.r2DeleteOk)) {
+        const r2Key = decodeURIComponent(urlStr.split("/").pop() || "");
+        if (config.r2DeleteOk.some(k => urlStr.includes(k))) {
+          return new Response("R2 error", { status: 500 });
+        }
       }
       return new Response(null, { status: 204 });
     }
