@@ -10,6 +10,17 @@ vi.mock('../services/authService', () => ({
   getClinicaActiva: vi.fn()
 }))
 
+vi.mock('../services/invalidarCacheCambioClinica', () => ({
+  invalidarCacheCambioClinica: vi.fn().mockResolvedValue({
+    tenantKeys: 5,
+    storageServices: 4,
+    stores: ['pacientesStore', 'prestacionesStore'],
+    legacyKeys: 3,
+    indexedDB: { eliminada: true },
+    errores: 0
+  })
+}))
+
 vi.mock('../services/logger', () => ({
   createLogger: () => ({
     info: vi.fn(),
@@ -21,6 +32,7 @@ vi.mock('../services/logger', () => ({
 
 // Importar después de mockear
 import * as authService from '../services/authService'
+import * as invalidarModule from '../services/invalidarCacheCambioClinica'
 
 describe('ClinicaSelector (F7-10)', () => {
   beforeEach(() => {
@@ -78,4 +90,30 @@ describe('ClinicaSelector (F7-10)', () => {
     const { container } = render(<ClinicaSelector onCambioClinica={undefined} />)
     expect(container).toBeTruthy()
   })
+
+  it('F7-36: debe llamar a invalidarCacheCambioClinica cuando el usuario cambia clínica', async () => {
+    // Setup: 2 clínicas, una activa
+    vi.mocked(authService.listarMisClinicas).mockResolvedValue([
+      { clinica_id: 'clinica-A', nombre: 'Clínica A', rol: 'dentista' },
+      { clinica_id: 'clinica-B', nombre: 'Clínica B', rol: 'dentista' }
+    ])
+    vi.mocked(authService.getClinicaActiva).mockResolvedValue('clinica-A')
+    vi.mocked(authService.setClinicaActiva).mockResolvedValue({ success: true })
+
+    // Renderizar
+    render(<ClinicaSelector />)
+    await new Promise(resolve => setTimeout(resolve, 10))
+
+    // El usuario cambia a clínica B
+    const select = screen.getByRole('combobox')
+    Object.defineProperty(select, 'value', { value: 'clinica-B', writable: true })
+    select.dispatchEvent(new Event('change', { bubbles: true }))
+
+    // Esperar que se procese el cambio
+    await new Promise(resolve => setTimeout(resolve, 50))
+
+    // Debe llamar a invalidarCacheCambioClinica con la clínica anterior
+    expect(invalidarModule.invalidarCacheCambioClinica).toHaveBeenCalledWith('clinica-A')
+  })
+
 })
