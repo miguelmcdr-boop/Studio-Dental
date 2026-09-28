@@ -7220,3 +7220,72 @@ Versionado F3-06 (2):
 Commit 1.5: Migrar claves de módulos clínicos a formato tenant-aware (14 storage services).
 
 ---
+
+## 2026-09-28 — F7-36 FASE 1: Fix de seguridad - limpiar claves por paciente al cambiar de clínica (Commit 1.5a)
+
+### Problema crítico identificado
+El invalidarCacheCambioClinica (Commit 1.3) solo limpiaba claves con prefijo studio_dental_, pero NO limpiaba las claves por pacienteId usadas por los servicios de PHI.
+
+### Servicios afectados (8 servicios con claves por paciente)
+- evolucionesStorageService: evoluciones_notas_<pacienteId>
+- recetasStorageService: recetas_<pacienteId>
+- certificadosStorageService: certificados_<pacienteId>
+- odontogramaStorageService: odonto_inicial_<pacienteId>, odonto_evolucion_<pacienteId>
+- periodontogramaStorageService: periodontograma_<pacienteId>, periodonto_historial_<pacienteId>
+- odontopediatriaStorageService: pediatria_<pacienteId>
+- quirurgicoStorageService: quirurgico_implantes_<pacienteId>, quirurgico_endodoncia_<pacienteId>
+- dsdStorageService: dsd_<pacienteId>
+
+### Escenario de riesgo
+Usuario en Clínica A con datos clínicos de 3 pacientes cambia a Clínica B. Las claves por pacienteId quedaban en localStorage y podían contaminar la nueva clínica si había coincidencia de UUIDs (improbable con UUIDs pero posible con IDs legacy).
+
+### Solución aplicada
+Extender invalidarCacheCambioClinica para limpiar TODAS las claves clínicas en 3 categorías:
+
+1. Claves legacy de servicios (prefijo studio_dental_)
+2. Claves por pacienteId de PHI (10 prefijos)
+3. Claves específicas de estado clínico:
+   - clinica_paciente_seleccionado_id (PHI)
+   - clinica_active_section (UI, no crítico)
+
+### Claves preservadas intencionalmente (NO se borran)
+- profile_<email> — perfil del usuario, es global entre clínicas
+- clinica_active_user — email del usuario logueado (requerido por ClinicaSelector)
+- sb-<ref>-auth-token — token de Supabase Auth (sesión del usuario)
+- goTrue-* — tokens legacy de GoTrue (auth)
+
+Si borramos estas claves, forzaríamos logout al cambiar de clínica (incorrecto).
+
+### Cambios en el código
+invalidarCacheCambioClinica.js (209 → 267 líneas):
+- Reemplaza PREFIJO_LEGACY por PREFIJOS_CLINICA + CLAVES_CLINICA_EXPLICITAS
+- Renombra limpiarClavesLegacy → limpiarClavesClinicas
+- Agrega conteos separados: legacyKeys, patientKeys, explicitKeys
+- Actualiza resumen y log con los 3 conteos
+
+invalidarCacheCambioClinica.test.js (282 → 397 líneas):
+- Amplía describe "Paso 4" con 5 tests nuevos
+- Agrega describe "Seguridad F7-36: Escenario de filtración cross-clinic"
+- Actualiza tests de resumen con nuevos campos
+
+### Tests agregados (~12 nuevos, total 24)
+- Elimina claves por pacienteId (PHI) - 12 casos
+- Elimina claves específicas de estado clínico
+- PRESERVA claves del usuario (profile_, clinica_active_user, sb-*, goTrue-*)
+- Cuenta por paciente correctamente
+- Cuenta mix legacy + paciente + explícitas
+- Escenario de filtración cross-clinic (crítico)
+
+### Validaciones
+- 24/24 tests de invalidarCacheCambioClinica pasando
+- 1589/1589 tests completos sin regresión
+- validate:architecture PASS
+- build OK
+
+### Impacto
+Cierra GAP de seguridad crítico donde PHI de una clínica podía quedar en localStorage al cambiar de clínica. Alinea con decisión de usuario de "Opción A: perder datos legacy al cambiar clínica" (Commit 1.3).
+
+### Próximo paso
+Commit 1.5b: Migrar servicios PHI críticos (agenda + pacientes) a formato tenant-aware.
+
+---
