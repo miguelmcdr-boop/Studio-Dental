@@ -2578,7 +2578,7 @@ La auditoría de 2026-08-26 registró: **852/852 tests**, **7 warnings de lint**
 
 ### F7-36 — Tenant Cache & Audit Integrity (12 fases)
 
-**Estado:** 🟡 EN CURSO (FASE 1 ✅ 2026-09-28, FASE 2 ✅ 2026-09-28, FASE 3 pendiente)
+**Estado:** 🟡 EN CURSO (FASE 1 ✅ 2026-09-28, FASE 2 ✅ 2026-09-28, FASE 3 ✅ 2026-09-28, FASE 4 pendiente)
 
 **Descripción:** Auditoría y corrección profunda de aislamiento multi-tenant, integridad de auditoría, y reproducibilidad de BD.
 
@@ -2645,7 +2645,7 @@ PRs: #166 (Parte 1) ✅ mergeado, #167 (Parte 2) ✅ mergeado
 
 ---
 
-#### FASE 3: SECURITY DEFINER hardening ⏳ PENDIENTE
+#### FASE 3: SECURITY DEFINER hardening ✅ COMPLETADA (2026-09-28, 8 funciones endurecidas + 8 tests)
 Buscar `SECURITY DEFINER` en todas las migraciones. Para cada función: identificar propósito, caller, permisos, search_path, objetos referenciados, validar parámetros, prevenir escalada de privilegios, prevenir manipulación de datos de otra clínica.
 
 **Principio del brief:** Preferir `SECURITY DEFINER SET search_path = ''` cuando sea compatible. Usar referencias completamente calificadas (`public.tabla`) cuando corresponda.
