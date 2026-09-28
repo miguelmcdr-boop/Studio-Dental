@@ -184,7 +184,7 @@ describe('F7-36 FASE 4: Regresión de PHI en audit_log de archivos', () => {
   it('6. Migración SQL NO incluye nombre_archivo en new_data', () => {
     const ruta = join(
       ROOT,
-      'supabase/migrations/2026_09_28_0005_f7_36_fase4_audit_log_archivos.sql'
+      'supabase/migrations/20260928000500_f7_36_fase4_audit_log_archivos.sql'
     )
     const contenido = readFileSync(ruta, 'utf-8')
 
@@ -206,7 +206,7 @@ describe('F7-36 FASE 4: Regresión de PHI en audit_log de archivos', () => {
   it('7. Migración SQL NO incluye r2_object_key en new_data', () => {
     const ruta = join(
       ROOT,
-      'supabase/migrations/2026_09_28_0005_f7_36_fase4_audit_log_archivos.sql'
+      'supabase/migrations/20260928000500_f7_36_fase4_audit_log_archivos.sql'
     )
     const contenido = readFileSync(ruta, 'utf-8')
 
@@ -225,7 +225,7 @@ describe('F7-36 FASE 4: Regresión de PHI en audit_log de archivos', () => {
   it('8. Migración SQL conserva paciente_id, categoria, tamano_bytes en new_data', () => {
     const ruta = join(
       ROOT,
-      'supabase/migrations/2026_09_28_0005_f7_36_fase4_audit_log_archivos.sql'
+      'supabase/migrations/20260928000500_f7_36_fase4_audit_log_archivos.sql'
     )
     const contenido = readFileSync(ruta, 'utf-8')
 

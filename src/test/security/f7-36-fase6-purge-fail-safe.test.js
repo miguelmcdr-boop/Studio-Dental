@@ -100,7 +100,7 @@ describe('F7-36 FASE 6: Regresion fail-safe en purge', () => {
   it('5. Migracion SQL de hardening registrar_evento_purge tiene SET search_path = \'\'', () => {
     const ruta = join(
       ROOT,
-      'supabase/migrations/2026_09_29_0002_f7_36_fase6_hardening_registrar_evento_purge.sql'
+      'supabase/migrations/20260929000200_f7_36_fase6_hardening_registrar_evento_purge.sql'
     )
     const contenido = readFileSync(ruta, 'utf-8')
     expect(contenido).toMatch(/SET search_path = ''/)
@@ -112,7 +112,7 @@ describe('F7-36 FASE 6: Regresion fail-safe en purge', () => {
   it('6. Migracion SQL tiene REVOKE EXECUTE FROM authenticated', () => {
     const ruta = join(
       ROOT,
-      'supabase/migrations/2026_09_29_0002_f7_36_fase6_hardening_registrar_evento_purge.sql'
+      'supabase/migrations/20260929000200_f7_36_fase6_hardening_registrar_evento_purge.sql'
     )
     const contenido = readFileSync(ruta, 'utf-8')
     expect(contenido).toMatch(/REVOKE EXECUTE ON FUNCTION public\.registrar_evento_purge.*FROM authenticated/)
@@ -124,7 +124,7 @@ describe('F7-36 FASE 6: Regresion fail-safe en purge', () => {
   it('7. Migracion SQL tiene GRANT EXECUTE TO service_role', () => {
     const ruta = join(
       ROOT,
-      'supabase/migrations/2026_09_29_0002_f7_36_fase6_hardening_registrar_evento_purge.sql'
+      'supabase/migrations/20260929000200_f7_36_fase6_hardening_registrar_evento_purge.sql'
     )
     const contenido = readFileSync(ruta, 'utf-8')
     expect(contenido).toMatch(/GRANT EXECUTE ON FUNCTION public\.registrar_evento_purge.*TO service_role/)

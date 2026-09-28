@@ -224,7 +224,7 @@ describe('F7-36 FASE 3: Regresión de hardening RBAC', () => {
   it('6. Migración SQL contiene REVOKE de set_app_metadata_role a authenticated', () => {
     const migracion = join(
       ROOT,
-      'supabase/migrations/2026_09_28_0004_f7_36_fase3_security_definer_hardening.sql'
+      'supabase/migrations/20260928000400_f7_36_fase3_security_definer_hardening.sql'
     )
     const contenido = readFileSync(migracion, 'utf-8')
 
@@ -243,7 +243,7 @@ describe('F7-36 FASE 3: Regresión de hardening RBAC', () => {
   it('7. Migración SQL establece search_path vacío en todas las funciones', () => {
     const migracion = join(
       ROOT,
-      'supabase/migrations/2026_09_28_0004_f7_36_fase3_security_definer_hardening.sql'
+      'supabase/migrations/20260928000400_f7_36_fase3_security_definer_hardening.sql'
     )
     const contenido = readFileSync(migracion, 'utf-8')
 
@@ -264,7 +264,7 @@ describe('F7-36 FASE 3: Regresión de hardening RBAC', () => {
   it('8. Contrato de escalada de privilegios documentado en la migración', () => {
     const migracion = join(
       ROOT,
-      'supabase/migrations/2026_09_28_0004_f7_36_fase3_security_definer_hardening.sql'
+      'supabase/migrations/20260928000400_f7_36_fase3_security_definer_hardening.sql'
     )
     const contenido = readFileSync(migracion, 'utf-8')
 
