@@ -19,18 +19,45 @@
  */
 
 import 'fake-indexeddb/auto'
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import {
   guardarAdjunto,
   obtenerAdjuntosPorPaciente,
   eliminarAdjunto,
-  eliminarTodosPorPaciente
+  eliminarTodosPorPaciente,
+  eliminarAdjuntosPorClinica
 } from './adjuntosStorageService'
+
+// F7-36 FASE 1 (Commit 1.6): mock global de useSesionStore con clínica por defecto.
+// Los tests existentes que NO configuraban clinicaId ahora usan 'clinica-test-default'
+// como valor por defecto, preservando su comportamiento original.
+vi.mock('../store/sesionStore', () => ({
+  useSesionStore: {
+    getState: vi.fn(() => ({
+      userProfile: { clinicaId: 'clinica-test-default' }
+    }))
+  }
+}))
+
+/**
+ * Helper F7-36: configura la clínica activa simulada para tests específicos.
+ * @param {string|null} clinicaId - UUID de la clínica a simular, o null para "sin clínica"
+ */
+const configurarClinica = async (clinicaId) => {
+  const { useSesionStore } = await import('../store/sesionStore')
+  useSesionStore.getState.mockReturnValue({
+    userProfile: clinicaId ? { clinicaId } : null
+  })
+}
 
 const blobDePrueba = (contenido = 'contenido-de-prueba') =>
   new Blob([contenido], { type: 'image/png' })
 
 describe('adjuntosStorageService', () => {
+  beforeEach(async () => {
+    // Resetear clínica al valor por defecto antes de cada test
+    await configurarClinica('clinica-test-default')
+  })
 
   describe('guardarAdjunto / obtenerAdjuntosPorPaciente', () => {
     it('guarda un adjunto y lo puede recuperar por pacienteId', async () => {
@@ -192,6 +219,143 @@ describe('adjuntosStorageService', () => {
       expect(registros[0]).toHaveProperty('storagePath')
       expect(registros[0]).toHaveProperty('sincronizado')
       expect(typeof registros[0].sincronizado).toBe('boolean')
+    })
+  })
+
+
+
+  describe('F7-36: aislamiento multi-tenant en IndexedDB', () => {
+    // Suite de tests que valida la defensa en profundidad del Commit 1.6.
+    // IndexedDB ahora almacena `clinicaId` en cada registro y filtra consultas
+    // por clínica actual, previniendo contaminación cross-clinic incluso si
+    // la limpieza de cambio de clínica fallara.
+
+    it('1. adjunto guardado tiene campo clinicaId poblado desde sesionStore', async () => {
+      const pacienteId = `paciente-${Date.now()}-campo`
+      await configurarClinica('clinica-A')
+
+      const registro = await guardarAdjunto({
+        pacienteId,
+        tipo: 'rx',
+        blob: blobDePrueba(),
+        nombre: 'rx.png'
+      })
+
+      expect(registro.clinicaId).toBe('clinica-A')
+      expect(registro.pacienteId).toBe(pacienteId)
+    })
+
+    it('2. clinicaId pasado como parámetro tiene prioridad sobre sesionStore', async () => {
+      const pacienteId = `paciente-${Date.now()}-param`
+      await configurarClinica('clinica-A')
+
+      const registro = await guardarAdjunto({
+        pacienteId,
+        tipo: 'foto',
+        blob: blobDePrueba(),
+        nombre: 'foto.png',
+        clinicaId: 'clinica-explícita' // parámetro explícito
+      })
+
+      expect(registro.clinicaId).toBe('clinica-explícita')
+    })
+
+    it('3. obtenerAdjuntosPorPaciente filtra por clínica actual', async () => {
+      const pacienteId = `paciente-${Date.now()}-filtro`
+
+      // Guardar adjuntos en clínica A
+      await configurarClinica('clinica-A')
+      await guardarAdjunto({ pacienteId, tipo: 'foto', blob: blobDePrueba('a1'), nombre: 'a1.png' })
+      await guardarAdjunto({ pacienteId, tipo: 'rx', blob: blobDePrueba('a2'), nombre: 'a2.png' })
+
+      // Consultar desde clínica A: debe ver ambos adjuntos
+      // F7-36 FIX: IndexedDB no garantiza orden de inserción, validar presencia
+      await configurarClinica('clinica-A')
+      const desdeA = await obtenerAdjuntosPorPaciente(pacienteId)
+      expect(desdeA).toHaveLength(2)
+      const nombresA = desdeA.map(r => r.nombre)
+      expect(nombresA).toContain('a1.png')
+      expect(nombresA).toContain('a2.png')
+    })
+
+    it('4. CRÍTICO: adjuntos de clínica A NO se ven al consultar desde clínica B', async () => {
+      const pacienteId = `paciente-${Date.now()}-cruzado`
+
+      // Guardar adjuntos en clínica A
+      await configurarClinica('clinica-A')
+      await guardarAdjunto({ pacienteId, tipo: 'foto', blob: blobDePrueba('a'), nombre: 'clinicaA.png' })
+
+      // Guardar adjuntos en clínica B
+      await configurarClinica('clinica-B')
+      await guardarAdjunto({ pacienteId, tipo: 'rx', blob: blobDePrueba('b'), nombre: 'clinicaB.png' })
+
+      // Consultar desde clínica B: SOLO debe ver su propio adjunto
+      await configurarClinica('clinica-B')
+      const desdeB = await obtenerAdjuntosPorPaciente(pacienteId)
+      expect(desdeB).toHaveLength(1)
+      expect(desdeB[0].nombre).toBe('clinicaB.png')
+      expect(desdeB[0].clinicaId).toBe('clinica-B')
+
+      // Consultar desde clínica A: SOLO debe ver su propio adjunto
+      await configurarClinica('clinica-A')
+      const desdeA = await obtenerAdjuntosPorPaciente(pacienteId)
+      expect(desdeA).toHaveLength(1)
+      expect(desdeA[0].nombre).toBe('clinicaA.png')
+      expect(desdeA[0].clinicaId).toBe('clinica-A')
+    })
+
+    it('5. sin clínica activa, consultas retornan vacío (seguridad por defecto)', async () => {
+      // F7-36: usar clínica única para evitar interferencia con tests anteriores.
+      const pacienteId = `paciente-${Date.now()}-sin-clinica`
+      const CLINICA_5 = 'clinica-5-sinclinica'
+
+      // Guardar un adjunto en clínica única
+      await configurarClinica(CLINICA_5)
+      await guardarAdjunto({ pacienteId, tipo: 'foto', blob: blobDePrueba(), nombre: 'foto.png' })
+
+      // "Cerrar sesión" / sin clínica activa
+      await configurarClinica(null)
+
+      // La consulta debe retornar vacío (no exponer datos de ninguna clínica)
+      const sinClinica = await obtenerAdjuntosPorPaciente(pacienteId)
+      expect(sinClinica).toEqual([])
+    })
+
+    it('6. eliminarAdjuntosPorClinica borra solo adjuntos de esa clínica', async () => {
+      // F7-36: usar clínicas únicas para evitar interferencia con adjuntos
+      // acumulados de tests anteriores (fake-indexeddb mantiene estado entre tests).
+      const pacienteId = `paciente-${Date.now()}-borrado`
+      const CLINICA_6A = 'clinica-6a-borrado'
+      const CLINICA_6B = 'clinica-6b-borrado'
+
+      // Guardar en clínica A y B
+      await configurarClinica(CLINICA_6A)
+      await guardarAdjunto({ pacienteId, tipo: 'foto', blob: blobDePrueba('a'), nombre: 'a.png' })
+      await configurarClinica(CLINICA_6B)
+      await guardarAdjunto({ pacienteId, tipo: 'rx', blob: blobDePrueba('b'), nombre: 'b.png' })
+
+      // Eliminar solo los de clínica A
+      await configurarClinica(CLINICA_6A)
+      const eliminados = await eliminarAdjuntosPorClinica(CLINICA_6A)
+      expect(eliminados).toBe(1)
+
+      // Clínica A: vacío
+      const enA = await obtenerAdjuntosPorPaciente(pacienteId)
+      expect(enA).toEqual([])
+
+      // Clínica B: intacta
+      await configurarClinica(CLINICA_6B)
+      const enB = await obtenerAdjuntosPorPaciente(pacienteId)
+      expect(enB).toHaveLength(1)
+      expect(enB[0].nombre).toBe('b.png')
+    })
+
+    it('7. eliminarAdjuntosPorClinica sin clinicaId retorna 0 (defensivo)', async () => {
+      const resultado = await eliminarAdjuntosPorClinica(null)
+      expect(resultado).toBe(0)
+
+      const resultadoVacio = await eliminarAdjuntosPorClinica('')
+      expect(resultadoVacio).toBe(0)
     })
   })
 

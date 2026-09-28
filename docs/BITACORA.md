@@ -7592,3 +7592,254 @@ Total: 15 servicios/archivos migrados, ~30 repos ahora tenant-aware
 Commit 1.6: IndexedDB tenant-aware para adjuntos clínicos (FASE 1 continúa).
 
 ---
+
+## 2026-09-28 — F7-36 FASE 1: IndexedDB tenant-aware para adjuntos clínicos (Commit 1.6)
+
+### Contexto
+IndexedDB ahora almacena adjuntos clínicos con aislamiento multi-tenant, previniendo contaminación cross-clinic incluso si la limpieza al cambiar de clínica fallara por cualquier razón. Este commit cierra el sub-grupo de migración de almacenamiento (localStorage + IndexedDB) y agrega la tercera capa de defensa en profundidad.
+
+### Cambios en adjuntosStorageService.js (255 → 344 líneas)
+
+1. Migración v1 → v2 de la base de datos:
+   - Sube DB_VERSION de 1 a 2
+   - onupgradeneeded crea índice clinicaId
+   - Registros existentes se poblan con clinicaId actual al migrar
+
+2. guardarAdjunto:
+   - clinicaId ahora es OBLIGATORIO (parámetro o sesionStore)
+   - Sin clinicaId → lanza error explícito
+   - Campo clinicaId se persiste en cada registro
+
+3. obtenerAdjuntosPorPaciente:
+   - Filtra resultados por clínica actual (defensa en profundidad)
+   - Sin clínica activa → retorna array vacío (seguridad por defecto)
+   - Previene exposición de datos cross-clinic
+
+4. Nueva función eliminarAdjuntosPorClinica(clinicaId):
+   - Borra solo adjuntos de una clínica específica
+   - Útil para limpieza granular sin afectar otras clínicas
+   - Intenta eliminar también de Supabase Storage si existe storagePath
+
+### Defensa en profundidad (3 capas)
+
+┌─────────────────────────────────────────────────────┐
+│ CAPA 1: Supabase Storage (RLS)                      │
+│ → Previene acceso cross-clinic a blobs en la nube   │
+├─────────────────────────────────────────────────────┤
+│ CAPA 2: Campo clinicaId + filtro en consultas       │ ← NUEVO
+│ → Consultas solo devuelven datos de clínica actual  │
+├─────────────────────────────────────────────────────┤
+│ CAPA 3: Borrado completo de BD al cambiar clínica   │
+│ → Limpieza agresiva de caché offline                │
+└─────────────────────────────────────────────────────┘
+
+### Tests actualizados (adjuntosStorageService.test.js: 197 → 359 líneas)
+
+- Mock global de useSesionStore con clínica por defecto
+- Helper configurarClinica(clinicaId) para simular clínica activa
+- beforeEach resetea clínica antes de cada test
+- Test F6-E reescrito: ahora valida que guardar sin clinicaId lanza error
+  (antes validaba que resultaba en sincronizado=false)
+- 7 tests nuevos en describe 'F7-36: aislamiento multi-tenant en IndexedDB':
+  1. Campo clinicaId poblado desde sesionStore
+  2. Parámetro clinicaId tiene prioridad sobre sesionStore
+  3. obtenerAdjuntosPorPaciente filtra por clínica actual
+  4. CRÍTICO: adjuntos de clínica A NO se ven desde clínica B
+  5. Sin clínica activa → array vacío (seguridad por defecto)
+  6. eliminarAdjuntosPorClinica borra solo esa clínica
+  7. eliminarAdjuntosPorClinica defensivo con null/''
+
+Total: 21 tests pasando (14 originales - 1 reescrito + 7 nuevos)
+
+### Cambios en invalidarCacheCambioClinica.js (solo documentación)
+- Actualización de comentario en Paso 5 (IndexedDB)
+- Documenta la defensa en profundidad (3 capas)
+- Sin cambios funcionales
+
+### Corrección en MASTER_ROADMAP.md
+- Commit 1.7 marcado como DONE (redundante con Commit 1.5f)
+- operationQueue ya fue migrado a tenant-aware en 1.5f
+
+### Validaciones
+- 1596/1596 tests pasando (sin regresión, +7 nuevos)
+- validate:architecture PASS
+- build OK
+
+### Próximo paso
+Commit 1.8: 5 tests obligatorios FASE 1 (aislamiento multi-tenant end-to-end).
+
+---
+
+## 2026-09-28 — F7-36 FASE 1: 5 tests obligatorios de aislamiento multi-tenant (Commit 1.8)
+
+### Contexto
+Cinco tests end-to-end que validan el comportamiento integrado de las 3 capas de defensa en profundidad implementadas en F7-36 FASE 1:
+- CAPA 1: Supabase Storage + RLS (validada en F7-24)
+- CAPA 2: tenant-aware + filtro en consultas (createTenantRepository + IndexedDB v2)
+- CAPA 3: invalidarCacheCambioClinica (5 pasos fail-safe)
+
+### Archivo nuevo
+`src/test/security/f7-36-fase1-mandatory.test.js` (433 líneas, environment jsdom)
+
+### Los 5 tests obligatorios
+
+1. **Cambio de clínica aísla datos en localStorage (pacientes)**
+   - Clínica A crea datos → reload → Clínica B ve []
+   - Clínica B crea sus datos → reload → Clínica A sigue viendo sus datos
+   - Valida CAPA 2 (tenant-aware) end-to-end
+
+2. **Cambio de clínica aísla adjuntos en IndexedDB**
+   - Clínica A guarda adjunto → Clínica B no lo ve (filtro por clinicaId)
+   - Valida CAPA 2 aplicada a IndexedDB v2
+
+3. **invalidarCacheCambioClinica ejecuta los 5 pasos fail-safe**
+   - Valida que la función retorna estructura completa:
+     `{ tenantKeys, storageServices, stores, legacyKeys, patientKeys, explicitKeys, indexedDB, errores }`
+   - Verifica que claves tenant-aware de clínica anterior se eliminan
+   - Valida CAPA 3 (invalidación)
+
+4. **Aislamiento sigue funcionando tras reload (defensa en profundidad)**
+   - Simula que invalidarCacheCambioClinica falla silenciosamente
+   - Clínica A tiene datos → cambiar a B + reload → B ve []
+   - Valida que CAPA 2 protege incluso cuando CAPA 3 falla
+
+5. **Claves legacy preexistentes no interfieren con tenant-aware**
+   - Pre-carga clave legacy `studio_dental_pacientes_v3` en localStorage
+   - Clínica A (post-migración) no ve esos datos legacy
+   - Valida coexistencia segura de claves legacy + tenant-aware
+
+### Concepto clave: simulación de reload de página
+
+Los storage services tienen **caché en memoria al nivel de módulo** (`let pacientesCache = null`, `let cacheInicializado = false`). En producción, `ClinicaSelector.handleCambio()` dispara reload tras `invalidarCacheCambioClinica()`.
+
+Los tests simulan este comportamiento con helper `simularReload()`:
+1. Preserva clínica activa actual
+2. `vi.resetModules()` — fuerza re-evaluación de módulos
+3. Re-importa todos los servicios dinámicamente
+4. Restaura clínica activa
+5. Retorna servicios frescos
+
+### Aspectos técnicos
+
+**Mocks globales (vi.mock):**
+- `authService.getClinicaActiva`: función síncrona mockeable via variable
+- `supabaseClient`: mocks vacíos (evita llamadas reales)
+- `logger`: silenciado (evita ruido)
+- `pacientesStore`, `prestacionesStore`, `sesionStore`: Zustand mocks que previenen inicialización con `SEED_PACIENTES_DEMO` (que contaminaba caché de storageService)
+
+**fake-indexeddb/auto:** Provee IndexedDB en environment jsdom (usado en Test 2).
+
+### Defensa en profundidad validada
+
+┌──────────────────────────────────────────────────────┐
+│ CAPA 1: Supabase Storage (RLS)                       │
+│   Validada por: multi-tenant.test.js (F7-24)         │
+├──────────────────────────────────────────────────────┤
+│ CAPA 2: tenant-aware + filtro en consultas           │
+│   Validada por: Tests 1, 2, 4, 5                     │
+├──────────────────────────────────────────────────────┤
+│ CAPA 3: invalidarCacheCambioClinica (5 pasos)        │
+│   Validada por: Test 3                               │
+└──────────────────────────────────────────────────────┘
+
+### Desafíos técnicos resueltos
+
+1. **Problema:** `localStorage is not defined` en environment node
+   - **Fix:** Cambiado a `@vitest-environment jsdom`
+
+2. **Problema:** Tests recibían `SEED_PACIENTES_DEMO` (Camila Silva, Carlos Mendoza)
+   - **Causa:** `pacientesStore.js` se inicializaba con SEED al ser importado, contaminando caché de `pacientesStorageService`
+   - **Fix:** Mock de `usePacientesStore`, `usePrestacionesStore`, `useSesionStore` con stores vacíos
+
+3. **Problema:** Test 1 y 4 fallaban porque cambiar clínica sin reload dejaba caché en memoria antigua
+   - **Fix:** Helper `simularReload()` que simula el comportamiento de producción
+
+4. **Problema:** Test 3 con timeout por `indexedDB.deleteDatabase` bloqueado
+   - **Fix:** Spy mockeado que dispara `onsuccess` sincrónicamente
+
+### Validaciones
+- 1601/1601 tests pasando (1596 existentes + 5 nuevos, sin regresión)
+- validate:architecture PASS
+- build OK
+
+### Próximo paso
+Commit 1.9: Documentación final + cierre FASE 1 (RFC interno + checklist de verificación manual).
+
+---
+
+
+## 2026-09-28 — F7-36 FASE 1: Cierre formal con RFC + checklist (Commit 1.9)
+
+### Contexto
+Commit final de documentación que consolida todo el trabajo de F7-36 FASE 1 en 2 documentos nuevos + actualizaciones de MASTER_ROADMAP.md.
+
+### Archivos nuevos
+
+1. **docs/F7-36-FASE1-RFC.md** (~260 líneas)
+   - Resumen ejecutivo de FASE 1
+   - Contexto del problema (4 problemas críticos detectados en auditoría)
+   - Estrategia: defensa en profundidad de 3 capas
+   - Implementación detallada de los 14 commits
+   - Métricas finales
+   - 3 bugs críticos corregidos
+   - Riesgos mitigados
+   - Trabajo futuro (FASE 2-11)
+   - Referencias
+
+2. **docs/F7-36-FASE1-VERIFICACION.md** (~240 líneas)
+   - Checklist de verificación manual para QA
+   - Prerequisitos de entorno
+   - Verificación automática (4 pasos obligatorios)
+   - 7 escenarios manuales detallados:
+     1. Aislamiento localStorage
+     2. Aislamiento IndexedDB
+     3. Invalidación de caché (5 pasos)
+     4. Defensa en profundidad
+     5. Claves legacy coexisten
+     6. Logout completo
+     7. Operaciones offline en cola
+   - Checklist final de release
+   - Rollback plan
+
+### Archivos actualizados
+
+3. **docs/MASTER_ROADMAP.md**
+   - Commit 1.9 marcado como DONE
+   - Estado de F7-36 actualizado a "✅ FASE 1 COMPLETADA (2026-09-28)"
+   - Subtítulo "Aislamiento de caché multi-clínica (EN CURSO)" → "(✅ COMPLETADA)"
+
+### Resumen ejecutivo de F7-36 FASE 1
+
+**Objetivo:** Resolver contaminación cross-clinic de datos clínicos y financieros en el frontend.
+
+**Estrategia:** 3 capas de defensa en profundidad
+- CAPA 1: Supabase Storage + RLS (servidor)
+- CAPA 2: tenantCache + IndexedDB v2 (frontend)
+- CAPA 3: invalidarCacheCambioClinica (5 pasos fail-safe)
+
+**Métricas finales:**
+- 14 commits atómicos (13 reales + 1 redundante)
+- 1601/1601 tests pasando (sin regresiones)
+- 15+ servicios migrados a tenant-aware
+- ~30 repos ahora aislados por clínica
+- 0 violaciones de arquitectura
+- 3 bugs críticos corregidos
+
+**Bugs críticos corregidos:**
+1. Fallback cross-clinic en 4 storage services (Commit 1.2)
+2. Reportes BI silenciosamente rotos (Commit 1.5f)
+3. GAP de seguridad en claves por pacienteId (Commit 1.5a)
+
+**PRs relacionados:**
+- PR #166: F7-36 FASE 1 Parte 1 (localStorage migrado) ✅ mergeado
+- PR #167: F7-36 FASE 1 Parte 2 (IndexedDB + tests + docs) ⏳ en preparación
+
+### Validaciones finales
+- 1601/1601 tests pasando
+- validate:architecture PASS
+- build OK
+- Documentación completa en 2 RFCs nuevos
+
+### Estado final de F7-36
+- ✅ **FASE 1 COMPLETADA** (Aislamiento multi-tenant frontend)
+- ⏳ FASE 2-11 pendientes (trabajo server-side: RPC, SECURITY DEFINER, audit log, etc.)
