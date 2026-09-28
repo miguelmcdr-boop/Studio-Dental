@@ -269,10 +269,13 @@ describe('adjuntosStorageService', () => {
       await guardarAdjunto({ pacienteId, tipo: 'rx', blob: blobDePrueba('a2'), nombre: 'a2.png' })
 
       // Consultar desde clínica A: debe ver ambos adjuntos
+      // F7-36 FIX: IndexedDB no garantiza orden de inserción, validar presencia
       await configurarClinica('clinica-A')
       const desdeA = await obtenerAdjuntosPorPaciente(pacienteId)
       expect(desdeA).toHaveLength(2)
-      expect(desdeA.map(r => r.nombre)).toEqual(['a1.png', 'a2.png'])
+      const nombresA = desdeA.map(r => r.nombre)
+      expect(nombresA).toContain('a1.png')
+      expect(nombresA).toContain('a2.png')
     })
 
     it('4. CRÍTICO: adjuntos de clínica A NO se ven al consultar desde clínica B', async () => {
