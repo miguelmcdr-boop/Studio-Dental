@@ -10,7 +10,7 @@
  * Nota: paquetes aún no tiene esquema de validación (posible tarea derivada
  * futura si se requiere).
  */
-import { createLocalStorageRepository } from '../../../services/localStorageRepository'
+import { createTenantRepository } from '../../../services/localStorageRepository'
 import { validarListaPrestaciones } from '../schemas/prestacionSchema'
 import { createLogger } from '../../../services/logger.js'
 
@@ -19,8 +19,10 @@ const log = createLogger('prestacionesStorageService')
 const STORAGE_KEY_ARANCEL = 'clinica_arancel_prestaciones'
 const STORAGE_KEY_PAQUETES = 'clinica_paquetes_clinicos_promos'
 
-const arancelRepo = createLocalStorageRepository(STORAGE_KEY_ARANCEL, undefined)
-const paquetesRepo = createLocalStorageRepository(STORAGE_KEY_PAQUETES, undefined)
+// F7-36 FASE 1 (Commit 1.5e): migrados a createTenantRepository para aislamiento multi-tenant.
+// Claves con prefijo clinica_ ahora: sd_<clinicaId>_clinica_arancel_prestaciones, sd_<clinicaId>_clinica_paquetes_clinicos_promos
+const arancelRepo = createTenantRepository(STORAGE_KEY_ARANCEL, undefined)
+const paquetesRepo = createTenantRepository(STORAGE_KEY_PAQUETES, undefined)
 
 export const prestacionesStorageService = {
   // Arancel — con validación F2-04d

@@ -1,13 +1,15 @@
 /**
  * Persistencia aislada para Comunicaciones, Bitácora y Plantillas
  */
-import { createLocalStorageRepository } from '../../../services/localStorageRepository'
+import { createTenantRepository } from '../../../services/localStorageRepository'
 
 const STORAGE_KEY_PLANTILLAS = 'studio_dental_comunicaciones_plantillas_v3'
 const STORAGE_KEY_HISTORIAL = 'studio_dental_comunicaciones_historial_v3'
 
-const plantillasRepo = createLocalStorageRepository(STORAGE_KEY_PLANTILLAS, [])
-const historialRepo = createLocalStorageRepository(STORAGE_KEY_HISTORIAL, [])
+// F7-36 FASE 1 (Commit 1.5e): migrados a createTenantRepository para aislamiento multi-tenant.
+// Claves legacy ahora: sd_<clinicaId>_studio_dental_comunicaciones_*
+const plantillasRepo = createTenantRepository(STORAGE_KEY_PLANTILLAS, [])
+const historialRepo = createTenantRepository(STORAGE_KEY_HISTORIAL, [])
 
 /**
  * Migración C4-Fase2: Limpia emojis de nombres de plantillas existentes en localStorage

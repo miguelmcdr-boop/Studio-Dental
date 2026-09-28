@@ -9,7 +9,7 @@
  * Migración automática: al primer load con Supabase activo, si el usuario es
  * admin y hay datos en localStorage, se migran a la tabla clinicas.
  */
-import { createLocalStorageRepository } from '../../../services/localStorageRepository'
+import { createTenantRepository } from '../../../services/localStorageRepository'
 import { supabase, USE_SUPABASE } from '../../../services/supabaseClient'
 import { createLogger } from '../../../services/logger'
 
@@ -18,8 +18,11 @@ const log = createLogger('configuracionStorageService')
 const KEY_CLINICA = 'studio_dental_config_clinica'
 const KEY_PARAMETROS_AGENDA = 'studio_dental_config_agenda'
 
-const clinicaRepo = createLocalStorageRepository(KEY_CLINICA, undefined, { notify: true })
-const parametrosAgendaRepo = createLocalStorageRepository(KEY_PARAMETROS_AGENDA, undefined)
+// F7-36 FASE 1 (Commit 1.5e): migrados a createTenantRepository para aislamiento multi-tenant.
+// Claves legacy ahora: sd_<clinicaId>_studio_dental_config_clinica, sd_<clinicaId>_studio_dental_config_agenda
+// clinicaRepo preserva notify: true para sincronización entre pestañas/módulos.
+const clinicaRepo = createTenantRepository(KEY_CLINICA, undefined, { notify: true })
+const parametrosAgendaRepo = createTenantRepository(KEY_PARAMETROS_AGENDA, undefined)
 
 // ═══════════════════════════════════════════════════════════════════
 // TRANSFORMACIÓN camelCase ↔ snake_case (F6-C-e)
