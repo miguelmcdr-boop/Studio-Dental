@@ -9,7 +9,7 @@
  *   1. Invalidar claves tenant-aware de la clínica anterior
  *   2. Resetear cache en memoria de los 4 storage services principales
  *   3. Resetear stores Zustand (pacientesStore, prestacionesStore)
- *   4. Limpiar claves legacy `studio_dental_*` sin clinica_id
+ *   4. Limpiar TODAS las claves clínicas (legacy + por paciente + específicas)
  *   5. Invalidar IndexedDB completa (base 'studio_dental_adjuntos')
  *
  * Principios:
@@ -38,8 +38,34 @@ const log = createLogger('invalidarCacheCambioClinica')
 // Nombre de la base de datos IndexedDB (debe coincidir con adjuntosStorageService.js)
 const IDB_ADJUNTOS_DB_NAME = 'studio_dental_adjuntos'
 
-// Prefijo de claves legacy (sin clinica_id) que deben eliminarse al cambiar clínica
-const PREFIJO_LEGACY = 'studio_dental_'
+// F7-36 FASE 1 (Commit 1.5a): Lista completa de prefijos de claves clínicas que deben
+// eliminarse al cambiar de clínica. Incluye:
+//   - Claves legacy de servicios (studio_dental_*)
+//   - Claves por pacienteId de servicios de PHI (recetas, evoluciones, etc.)
+//   - Claves específicas de estado clínico (paciente seleccionado, sección activa)
+//
+// NO incluye (preservadas intencionalmente):
+//   - profile_* (perfil del usuario, es global entre clínicas)
+//   - sb-*, goTrue-* (tokens de Supabase Auth, la sesión es del usuario)
+//   - clinica_active_user (email del usuario logueado)
+const PREFIJOS_CLINICA = [
+  'studio_dental_',      // Servicios con createLocalStorageRepository
+  'recetas_',            // Recetas por pacienteId
+  'evoluciones_notas_',  // Evoluciones por pacienteId
+  'certificados_',       // Certificados por pacienteId
+  'odonto_',             // Odontograma (inicial + evolucion)
+  'periodontograma_',    // Periodontograma por pacienteId
+  'periodonto_',         // Historial periodontal por pacienteId
+  'pediatria_',          // Odontopediatría por pacienteId
+  'quirurgico_',         // Quirúrgico (implantes + endodoncia) por pacienteId
+  'dsd_',                // Diseño de sonrisa por pacienteId
+]
+
+// Claves específicas que deben eliminarse (no siguen patrón de prefijo)
+const CLAVES_CLINICA_EXPLICITAS = [
+  'clinica_paciente_seleccionado_id',  // PHI: paciente actualmente seleccionado
+  'clinica_active_section',            // UI: sección activa (no es crítico, se resetea)
+]
 
 /**
  * Paso 1: Invalidar claves tenant-aware de la clínica anterior.
@@ -106,24 +132,51 @@ const resetearStoresZustand = () => {
 }
 
 /**
- * Paso 4: Limpiar claves legacy `studio_dental_*` sin clinica_id.
- * No toca claves tenant-aware (sd_<clinicaId>_*) ni preferencias UI (darkMode).
- * @returns {number} Cantidad de claves eliminadas
+ * Paso 4: Limpiar TODAS las claves clínicas (no solo legacy).
+ *
+ * Elimina:
+ *   - Claves legacy de servicios (studio_dental_*)
+ *   - Claves por pacienteId (recetas_, evoluciones_notas_, certificados_, etc.)
+ *   - Claves específicas de estado clínico (paciente seleccionado, sección activa)
+ *
+ * NO elimina (preservadas intencionalmente):
+ *   - profile_* (perfil del usuario, es global entre clínicas)
+ *   - sb-*, goTrue-* (tokens de Supabase Auth, la sesión es del usuario)
+ *   - clinica_active_user (email del usuario logueado)
+ *
+ * @returns {{legacy: number, porPaciente: number, explicitas: number}}
+ *   Conteos separados para observabilidad
  */
-const limpiarClavesLegacy = () => {
-  let eliminadas = 0
+const limpiarClavesClinicas = () => {
+  const conteo = { legacy: 0, porPaciente: 0, explicitas: 0 }
   try {
     const claves = Object.keys(localStorage)
     for (const key of claves) {
-      if (key.startsWith(PREFIJO_LEGACY)) {
+      // 1. Claves legacy (studio_dental_*)
+      if (key.startsWith('studio_dental_')) {
         localStorage.removeItem(key)
-        eliminadas++
+        conteo.legacy++
+        continue
+      }
+      // 2. Claves por pacienteId (PHI)
+      const esClavePorPaciente = PREFIJOS_CLINICA.some(
+        (prefijo) => prefijo !== 'studio_dental_' && key.startsWith(prefijo)
+      )
+      if (esClavePorPaciente) {
+        localStorage.removeItem(key)
+        conteo.porPaciente++
+        continue
+      }
+      // 3. Claves específicas explícitas
+      if (CLAVES_CLINICA_EXPLICITAS.includes(key)) {
+        localStorage.removeItem(key)
+        conteo.explicitas++
       }
     }
   } catch (e) {
-    log.error('Paso 4 falló (limpiarClavesLegacy):', e.message)
+    log.error('Paso 4 falló (limpiarClavesClinicas):', e.message)
   }
-  return eliminadas
+  return conteo
 }
 
 /**
@@ -170,6 +223,8 @@ export const invalidarCacheCambioClinica = async (clinicaAnterior = null) => {
     storageServices: 0,
     stores: [],
     legacyKeys: 0,
+    patientKeys: 0,
+    explicitKeys: 0,
     indexedDB: { eliminada: false },
     errores: 0,
   }
@@ -185,8 +240,11 @@ export const invalidarCacheCambioClinica = async (clinicaAnterior = null) => {
   // Paso 3: stores Zustand
   resumen.stores = resetearStoresZustand()
 
-  // Paso 4: claves legacy localStorage
-  resumen.legacyKeys = limpiarClavesLegacy()
+  // Paso 4: claves clínicas (legacy + por paciente + específicas)
+  const conteoClaves = limpiarClavesClinicas()
+  resumen.legacyKeys = conteoClaves.legacy
+  resumen.patientKeys = conteoClaves.porPaciente
+  resumen.explicitKeys = conteoClaves.explicitas
 
   // Paso 5: IndexedDB (async)
   resumen.indexedDB = await invalidarIndexedDB()
@@ -201,7 +259,7 @@ export const invalidarCacheCambioClinica = async (clinicaAnterior = null) => {
       `${resumen.tenantKeys} claves tenant, ` +
       `${resumen.storageServices} storage services, ` +
       `${resumen.stores.length} stores Zustand, ` +
-      `${resumen.legacyKeys} claves legacy, ` +
+      `${resumen.legacyKeys} legacy + ${resumen.patientKeys} por paciente + ${resumen.explicitKeys} explícitas, ` +
       `IndexedDB: ${resumen.indexedDB.eliminada ? 'OK' : resumen.indexedDB.razon}`
   )
 

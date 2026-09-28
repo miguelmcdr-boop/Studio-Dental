@@ -162,8 +162,8 @@ describe('invalidarCacheCambioClinica', () => {
     })
   })
 
-  describe('Paso 4: claves legacy localStorage', () => {
-    it('elimina claves con prefijo studio_dental_', async () => {
+  describe('Paso 4: claves clínicas (legacy + por paciente + específicas)', () => {
+    it('elimina claves legacy studio_dental_', async () => {
       localStorage.setItem('studio_dental_pacientes', 'datos')
       localStorage.setItem('studio_dental_citas', 'datos')
       localStorage.setItem('darkMode', 'true') // No debe eliminarse
@@ -178,13 +178,86 @@ describe('invalidarCacheCambioClinica', () => {
       expect(localStorage.getItem('otro_prefijo')).toBe('datos') // Preservado
     })
 
-    it('cuenta correctamente las claves eliminadas', async () => {
+    it('elimina claves por pacienteId (PHI)', async () => {
+      localStorage.setItem('recetas_uuid-123', 'receta1')
+      localStorage.setItem('recetas_uuid-456', 'receta2')
+      localStorage.setItem('evoluciones_notas_uuid-123', 'evolucion1')
+      localStorage.setItem('certificados_uuid-789', 'certificado1')
+      localStorage.setItem('odonto_inicial_uuid-abc', 'odonto1')
+      localStorage.setItem('odonto_evolucion_uuid-def', 'odonto2')
+      localStorage.setItem('periodontograma_uuid-ghi', 'periodonto1')
+      localStorage.setItem('periodonto_historial_uuid-jkl', 'historial1')
+      localStorage.setItem('pediatria_uuid-mno', 'pediatria1')
+      localStorage.setItem('quirurgico_implantes_uuid-pqr', 'implante1')
+      localStorage.setItem('quirurgico_endodoncia_uuid-stu', 'endodoncia1')
+      localStorage.setItem('dsd_uuid-vwx', 'dsd1')
+
+      const result = await invalidarCacheCambioClinica('clinica-uuid-123')
+
+      expect(result.patientKeys).toBe(12)
+      expect(localStorage.getItem('recetas_uuid-123')).toBeNull()
+      expect(localStorage.getItem('evoluciones_notas_uuid-123')).toBeNull()
+      expect(localStorage.getItem('certificados_uuid-789')).toBeNull()
+      expect(localStorage.getItem('odonto_inicial_uuid-abc')).toBeNull()
+      expect(localStorage.getItem('periodontograma_uuid-ghi')).toBeNull()
+      expect(localStorage.getItem('pediatria_uuid-mno')).toBeNull()
+      expect(localStorage.getItem('quirurgico_implantes_uuid-pqr')).toBeNull()
+      expect(localStorage.getItem('dsd_uuid-vwx')).toBeNull()
+    })
+
+    it('elimina claves específicas de estado clínico', async () => {
+      localStorage.setItem('clinica_paciente_seleccionado_id', 'uuid-yza')
+      localStorage.setItem('clinica_active_section', 'Dashboard')
+
+      const result = await invalidarCacheCambioClinica('clinica-uuid-123')
+
+      expect(result.explicitKeys).toBe(2)
+      expect(localStorage.getItem('clinica_paciente_seleccionado_id')).toBeNull()
+      expect(localStorage.getItem('clinica_active_section')).toBeNull()
+    })
+
+    it('PRESERVA claves del usuario (profile_, auth tokens)', async () => {
+      localStorage.setItem('profile_user@test.com', JSON.stringify({ email: 'user@test.com' }))
+      localStorage.setItem('clinica_active_user', 'user@test.com')
+      localStorage.setItem('sb-abc123-auth-token', 'token-supabase')
+      localStorage.setItem('goTrue-legacy', 'legacy-token')
+
+      await invalidarCacheCambioClinica('clinica-uuid-123')
+
+      // Todas estas claves deben preservarse
+      expect(localStorage.getItem('profile_user@test.com')).not.toBeNull()
+      expect(localStorage.getItem('clinica_active_user')).toBe('user@test.com')
+      expect(localStorage.getItem('sb-abc123-auth-token')).toBe('token-supabase')
+      expect(localStorage.getItem('goTrue-legacy')).toBe('legacy-token')
+    })
+
+    it('cuenta correctamente las claves legacy eliminadas', async () => {
       localStorage.setItem('studio_dental_a', '1')
       localStorage.setItem('studio_dental_b', '2')
       localStorage.setItem('studio_dental_c', '3')
 
       const result = await invalidarCacheCambioClinica('clinica-uuid-123')
       expect(result.legacyKeys).toBe(3)
+    })
+
+    it('cuenta correctamente las claves por paciente eliminadas', async () => {
+      localStorage.setItem('recetas_uuid-1', 'r1')
+      localStorage.setItem('recetas_uuid-2', 'r2')
+      localStorage.setItem('certificados_uuid-3', 'c1')
+
+      const result = await invalidarCacheCambioClinica('clinica-uuid-123')
+      expect(result.patientKeys).toBe(3)
+    })
+
+    it('cuenta mix de legacy + por paciente + explícitas', async () => {
+      localStorage.setItem('studio_dental_x', 'legacy')
+      localStorage.setItem('recetas_uuid-1', 'paciente')
+      localStorage.setItem('clinica_paciente_seleccionado_id', 'uuid')
+
+      const result = await invalidarCacheCambioClinica('clinica-uuid-123')
+      expect(result.legacyKeys).toBe(1)
+      expect(result.patientKeys).toBe(1)
+      expect(result.explicitKeys).toBe(1)
     })
   })
 
@@ -228,6 +301,8 @@ describe('invalidarCacheCambioClinica', () => {
   describe('Resumen estructurado', () => {
     it('retorna resumen completo con todos los conteos', async () => {
       localStorage.setItem('studio_dental_legacy', 'datos')
+      localStorage.setItem('recetas_uuid-1', 'r1')
+      localStorage.setItem('clinica_paciente_seleccionado_id', 'uuid')
 
       const result = await invalidarCacheCambioClinica('clinica-uuid-123')
 
@@ -235,6 +310,8 @@ describe('invalidarCacheCambioClinica', () => {
       expect(result).toHaveProperty('storageServices')
       expect(result).toHaveProperty('stores')
       expect(result).toHaveProperty('legacyKeys')
+      expect(result).toHaveProperty('patientKeys')
+      expect(result).toHaveProperty('explicitKeys')
       expect(result).toHaveProperty('indexedDB')
       expect(result).toHaveProperty('errores')
 
@@ -242,6 +319,8 @@ describe('invalidarCacheCambioClinica', () => {
       expect(typeof result.storageServices).toBe('number')
       expect(Array.isArray(result.stores)).toBe(true)
       expect(typeof result.legacyKeys).toBe('number')
+      expect(typeof result.patientKeys).toBe('number')
+      expect(typeof result.explicitKeys).toBe('number')
       expect(typeof result.indexedDB).toBe('object')
       expect(typeof result.errores).toBe('number')
     })
@@ -249,6 +328,9 @@ describe('invalidarCacheCambioClinica', () => {
     it('errores es 0 cuando todos los pasos son exitosos', async () => {
       const result = await invalidarCacheCambioClinica('clinica-uuid-123')
       expect(result.errores).toBe(0)
+      expect(result.legacyKeys).toBeGreaterThanOrEqual(0)
+      expect(result.patientKeys).toBeGreaterThanOrEqual(0)
+      expect(result.explicitKeys).toBeGreaterThanOrEqual(0)
     })
   })
 
@@ -280,4 +362,36 @@ describe('invalidarCacheCambioClinica', () => {
       expect(usePrestacionesStore.setState).toHaveBeenCalled()
     })
   })
+
+  describe('Seguridad F7-36: Escenario de filtración cross-clinic (crítico)', () => {
+    it('previene filtración de PHI entre clínicas al cambiar clínica', async () => {
+      // Simula: Usuario en Clínica A con datos clínicos de 3 pacientes
+      localStorage.setItem('recetas_paciente-uuid-A1', JSON.stringify([{ medicamento: 'Ibuprofeno' }]))
+      localStorage.setItem('evoluciones_notas_paciente-uuid-A2', 'Evolución con diagnóstico confidencial')
+      localStorage.setItem('certificados_paciente-uuid-A3', 'Certificado médico')
+      localStorage.setItem('odonto_inicial_paciente-uuid-A1', JSON.stringify({ dientes: '11,12' }))
+      localStorage.setItem('clinica_paciente_seleccionado_id', 'paciente-uuid-A1')
+      localStorage.setItem('studio_dental_pacientes', JSON.stringify([{ id: 'A1', nombre: 'Juan Clínica A' }]))
+
+      // Preservar perfil del usuario
+      localStorage.setItem('profile_user@test.com', JSON.stringify({ email: 'user@test.com' }))
+      localStorage.setItem('clinica_active_user', 'user@test.com')
+
+      // Usuario cambia a Clínica B
+      await invalidarCacheCambioClinica('clinica-A')
+
+      // TODO el PHI de clínica A debe estar eliminado
+      expect(localStorage.getItem('recetas_paciente-uuid-A1')).toBeNull()
+      expect(localStorage.getItem('evoluciones_notas_paciente-uuid-A2')).toBeNull()
+      expect(localStorage.getItem('certificados_paciente-uuid-A3')).toBeNull()
+      expect(localStorage.getItem('odonto_inicial_paciente-uuid-A1')).toBeNull()
+      expect(localStorage.getItem('clinica_paciente_seleccionado_id')).toBeNull()
+      expect(localStorage.getItem('studio_dental_pacientes')).toBeNull()
+
+      // Perfil del usuario debe estar PRESERVADO
+      expect(JSON.parse(localStorage.getItem('profile_user@test.com') || '{}')).toEqual({ email: 'user@test.com' })
+      expect(localStorage.getItem('clinica_active_user')).toBe('user@test.com')
+    })
+  })
+
 })
