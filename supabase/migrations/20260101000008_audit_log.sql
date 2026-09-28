@@ -75,3 +75,9 @@ COMMENT ON TABLE public.audit_log IS
   'Escritura solo vía trigger auditar_cambio() (SECURITY DEFINER).';
 COMMENT ON COLUMN public.audit_log.action IS 'INSERT, UPDATE, DELETE, CONFLICT_RESOLVED';
 COMMENT ON COLUMN public.audit_log.resolution_strategy IS 'last_write_wins, manual_local, manual_remote, auto';
+
+-- F7-36 FASE 7: Agregar FK a clinicas (clinicas existe desde base_schema en 0001)
+-- audit_log se crea en 0000 sin FK para evitar dependencia circular
+ALTER TABLE public.audit_log
+  ADD CONSTRAINT audit_log_clinica_id_fkey
+  FOREIGN KEY (clinica_id) REFERENCES public.clinicas(id);
