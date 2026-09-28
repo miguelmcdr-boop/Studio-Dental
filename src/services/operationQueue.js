@@ -31,9 +31,14 @@
  */
 
 import { estaOnline } from './supabaseClient'
+import { createTenantRepository } from './localStorageRepository'
 
-const QUEUE_KEY = 'studio_dental_operation_queue'
-const FAILED_KEY = 'studio_dental_failed_operations'
+// F7-36 FASE 1 (Commit 1.5f): migrado a createTenantRepository para aislamiento multi-tenant.
+// Las operaciones pendientes ahora están aisladas por clínica: si el usuario cambia
+// de clínica, las operaciones de la clínica A no se procesarán en la clínica B.
+const queueRepo = createTenantRepository('studio_dental_operation_queue', [])
+const failedRepo = createTenantRepository('studio_dental_failed_operations', [])
+
 const MAX_RETRIES = 5
 const RETRY_DELAYS = [0, 1000, 2000, 4000, 8000] // ms
 
@@ -50,45 +55,27 @@ const generateId = () => {
 }
 
 /**
- * Lee la cola desde localStorage.
+ * Lee la cola desde tenantCache (aislada por clínica).
  */
-const readQueue = () => {
-  try {
-    const data = localStorage.getItem(QUEUE_KEY)
-    return data ? JSON.parse(data) : []
-  } catch (e) {
-    log.error('Error leyendo cola:', e)
-    return []
-  }
-}
+const readQueue = () => queueRepo.obtener([])
 
 /**
- * Escribe la cola en localStorage.
+ * Escribe la cola en tenantCache (aislada por clínica).
  */
-const writeQueue = (queue) => {
-  try {
-    localStorage.setItem(QUEUE_KEY, JSON.stringify(queue))
-  } catch (e) {
-    log.error('Error escribiendo cola:', e)
-  }
-}
+const writeQueue = (queue) => queueRepo.guardar(queue)
 
 /**
- * Mueve una operación fallida a failed_operations (log).
+ * Mueve una operación fallida a failed_operations (log) en tenantCache.
  */
 const moveToFailed = (operation, error) => {
-  try {
-    const failed = JSON.parse(localStorage.getItem(FAILED_KEY) || '[]')
-    failed.push({
-      ...operation,
-      failedAt: Date.now(),
-      error: error?.message || 'Unknown error'
-    })
-    localStorage.setItem(FAILED_KEY, JSON.stringify(failed))
-    log.error('Operación fallida después de máximos reintentos:', operation, error)
-  } catch (e) {
-    log.error('Error moviendo a failed:', e)
-  }
+  const failed = failedRepo.obtener([])
+  failed.push({
+    ...operation,
+    failedAt: Date.now(),
+    error: error?.message || 'Unknown error'
+  })
+  failedRepo.guardar(failed)
+  log.error('Operación fallida después de máximos reintentos:', operation, error)
 }
 
 /**

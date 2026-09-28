@@ -30,6 +30,38 @@ vi.mock('./supabaseClient', () => ({
   estaOnline: vi.fn(() => Promise.resolve(true))
 }))
 
+// F7-36 FASE 1 (Commit 1.5f): Mock de tenantCache para pruebas tenant-aware
+const CLINICA_ID = 'clinica-test'
+vi.mock('./tenantCache', () => ({
+  tenantCache: {
+    getClinicaId: vi.fn(() => CLINICA_ID),
+    claveTenant: (baseKey) => `sd_${CLINICA_ID}_${baseKey}`,
+    leerTenant: (baseKey, fallback) => {
+      const key = `sd_${CLINICA_ID}_${baseKey}`
+      const saved = localStorage.getItem(key)
+      return saved !== null ? JSON.parse(saved) : fallback
+    },
+    escribirTenant: (baseKey, value) => {
+      const key = `sd_${CLINICA_ID}_${baseKey}`
+      try {
+        localStorage.setItem(key, JSON.stringify(value))
+        return true
+      } catch {
+        return false
+      }
+    },
+    eliminarTenant: (baseKey) => {
+      const key = `sd_${CLINICA_ID}_${baseKey}`
+      const existia = localStorage.getItem(key) !== null
+      localStorage.removeItem(key)
+      return existia
+    },
+    existeTenant: (baseKey) => {
+      return localStorage.getItem(`sd_${CLINICA_ID}_${baseKey}`) !== null
+    },
+  },
+}))
+
 // Mock de localStorage
 const localStorageMock = (() => {
   let store = {}
@@ -80,7 +112,7 @@ describe('operationQueue', () => {
       })
 
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
-        'studio_dental_operation_queue',
+        `sd_${CLINICA_ID}_studio_dental_operation_queue`,
         expect.any(String)
       )
 
@@ -140,7 +172,7 @@ describe('operationQueue', () => {
 
       expect(operationQueue.getPendingCount()).toBe(0)
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
-        'studio_dental_operation_queue',
+        `sd_${CLINICA_ID}_studio_dental_operation_queue`,
         '[]'
       )
     })
@@ -209,7 +241,7 @@ describe('operationQueue', () => {
       await Promise.all([promise1, promise2])
 
       // Solo uno debe haber procesado (el segundo vio el lock)
-      const stored = localStorageMock.getItem('studio_dental_operation_queue')
+      const stored = localStorageMock.getItem(`sd_${CLINICA_ID}_studio_dental_operation_queue`)
       expect(stored).toBe('[]')
     })
   })
