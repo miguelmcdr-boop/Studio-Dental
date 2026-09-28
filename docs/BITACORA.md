@@ -7592,3 +7592,80 @@ Total: 15 servicios/archivos migrados, ~30 repos ahora tenant-aware
 Commit 1.6: IndexedDB tenant-aware para adjuntos clínicos (FASE 1 continúa).
 
 ---
+
+## 2026-09-28 — F7-36 FASE 1: IndexedDB tenant-aware para adjuntos clínicos (Commit 1.6)
+
+### Contexto
+IndexedDB ahora almacena adjuntos clínicos con aislamiento multi-tenant, previniendo contaminación cross-clinic incluso si la limpieza al cambiar de clínica fallara por cualquier razón. Este commit cierra el sub-grupo de migración de almacenamiento (localStorage + IndexedDB) y agrega la tercera capa de defensa en profundidad.
+
+### Cambios en adjuntosStorageService.js (255 → 344 líneas)
+
+1. Migración v1 → v2 de la base de datos:
+   - Sube DB_VERSION de 1 a 2
+   - onupgradeneeded crea índice clinicaId
+   - Registros existentes se poblan con clinicaId actual al migrar
+
+2. guardarAdjunto:
+   - clinicaId ahora es OBLIGATORIO (parámetro o sesionStore)
+   - Sin clinicaId → lanza error explícito
+   - Campo clinicaId se persiste en cada registro
+
+3. obtenerAdjuntosPorPaciente:
+   - Filtra resultados por clínica actual (defensa en profundidad)
+   - Sin clínica activa → retorna array vacío (seguridad por defecto)
+   - Previene exposición de datos cross-clinic
+
+4. Nueva función eliminarAdjuntosPorClinica(clinicaId):
+   - Borra solo adjuntos de una clínica específica
+   - Útil para limpieza granular sin afectar otras clínicas
+   - Intenta eliminar también de Supabase Storage si existe storagePath
+
+### Defensa en profundidad (3 capas)
+
+┌─────────────────────────────────────────────────────┐
+│ CAPA 1: Supabase Storage (RLS)                      │
+│ → Previene acceso cross-clinic a blobs en la nube   │
+├─────────────────────────────────────────────────────┤
+│ CAPA 2: Campo clinicaId + filtro en consultas       │ ← NUEVO
+│ → Consultas solo devuelven datos de clínica actual  │
+├─────────────────────────────────────────────────────┤
+│ CAPA 3: Borrado completo de BD al cambiar clínica   │
+│ → Limpieza agresiva de caché offline                │
+└─────────────────────────────────────────────────────┘
+
+### Tests actualizados (adjuntosStorageService.test.js: 197 → 359 líneas)
+
+- Mock global de useSesionStore con clínica por defecto
+- Helper configurarClinica(clinicaId) para simular clínica activa
+- beforeEach resetea clínica antes de cada test
+- Test F6-E reescrito: ahora valida que guardar sin clinicaId lanza error
+  (antes validaba que resultaba en sincronizado=false)
+- 7 tests nuevos en describe 'F7-36: aislamiento multi-tenant en IndexedDB':
+  1. Campo clinicaId poblado desde sesionStore
+  2. Parámetro clinicaId tiene prioridad sobre sesionStore
+  3. obtenerAdjuntosPorPaciente filtra por clínica actual
+  4. CRÍTICO: adjuntos de clínica A NO se ven desde clínica B
+  5. Sin clínica activa → array vacío (seguridad por defecto)
+  6. eliminarAdjuntosPorClinica borra solo esa clínica
+  7. eliminarAdjuntosPorClinica defensivo con null/''
+
+Total: 21 tests pasando (14 originales - 1 reescrito + 7 nuevos)
+
+### Cambios en invalidarCacheCambioClinica.js (solo documentación)
+- Actualización de comentario en Paso 5 (IndexedDB)
+- Documenta la defensa en profundidad (3 capas)
+- Sin cambios funcionales
+
+### Corrección en MASTER_ROADMAP.md
+- Commit 1.7 marcado como DONE (redundante con Commit 1.5f)
+- operationQueue ya fue migrado a tenant-aware en 1.5f
+
+### Validaciones
+- 1596/1596 tests pasando (sin regresión, +7 nuevos)
+- validate:architecture PASS
+- build OK
+
+### Próximo paso
+Commit 1.8: 5 tests obligatorios FASE 1 (aislamiento multi-tenant end-to-end).
+
+---
