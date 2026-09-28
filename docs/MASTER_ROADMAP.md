@@ -2576,40 +2576,240 @@ La auditoría de 2026-08-26 registró: **852/852 tests**, **7 warnings de lint**
 
 **Regla final:** completar las tareas no equivale automáticamente a declarar producción. La decisión final requiere evidencia obtenida en staging y una revisión GO/NO-GO.
 
-### F7-36 — Tenant Cache & Audit Integrity
+### F7-36 — Tenant Cache & Audit Integrity (12 fases)
 
-**Estado:** ✅ FASE 1 COMPLETADA (2026-09-28)
+**Estado:** 🟡 EN CURSO (FASE 1 ✅ 2026-09-28, FASE 2 ✅ 2026-09-28, FASE 3 pendiente)
 
 **Descripción:** Auditoría y corrección profunda de aislamiento multi-tenant, integridad de auditoría, y reproducibilidad de BD.
 
-**Fases:**
-1. **Aislamiento de caché multi-clínica** (✅ COMPLETADA — 2026-09-28)
-   - ✅ Commit 1.1: tenantCache helper (src/services/tenantCache.js + 280 líneas de tests)
-   - ✅ Commit 1.2: Eliminación de fallback cross-clinic en 4 storage services
-   - ✅ Commit 1.3: Listener de invalidación al cambiar de clínica (invalidarCacheCambioClinica.js + integración en ClinicaSelector.jsx)
-   - ✅ Commit 1.4: Extender localStorageRepository para usar tenantCache (createTenantRepository, 19 tests)
-   - 🟡 Commit 1.5: Migrar claves de módulos clínicos a formato tenant-aware (en progreso)
-   - ✅ Commit 1.5a: Fix de seguridad - limpiar claves por paciente al cambiar de clínica
-   - ✅ Commit 1.5b: Migrar servicios PHI críticos (agenda + pacientes) - migrados a createTenantRepository
-   - ✅ Commit 1.5c: Migrar servicios financieros (pagos, presupuestos, finanzas) - migrados a createTenantRepository
-   - ✅ Commit 1.5d: Migrar servicios operacionales (inventario, laboratorio, esterilización, urgencias GES) - 8 repos migrados
-   - ✅ Commit 1.5e: Migrar servicios de configuración (comunicaciones, prestaciones, configuracion) - 6 repos migrados
-   - ✅ Commit 1.5f: Migrar pendientes (operationQueue, reportes, App.jsx) + bug silencioso corregido en reportes (operationQueue, reportes, App.jsx)
-   - ✅ Commit 1.6: IndexedDB tenant-aware para adjuntos - BD v2 + campo clinicaId + filtro + 7 tests nuevos
-   - ✅ Commit 1.7: operationQueue tenant-aware (cubierto en Commit 1.5f)
-   - ✅ Commit 1.8: 5 tests obligatorios FASE 1 - aislamiento multi-tenant end-to-end con 3 capas de defensa
-   - ✅ Commit 1.9: Documentación final - RFC + checklist + cierre FASE 1
-2. **RPC de auditoría - cerrar superficie de ataque** (PENDIENTE)
-3. **SECURITY DEFINER hardening** (PENDIENTE)
-4. **Audit log de archivos** (PENDIENTE)
-5. **Identidad real del actor** (PENDIENTE)
-6. **Purga definitiva paciente + R2** (PENDIENTE)
-7. **Rebuild completo de base de datos** (PENDIENTE)
-8. **R2 - revisión final** (PENDIENTE)
-9. **MIME contract** (PENDIENTE)
-10. **CI / E2E** (PENDIENTE)
-11. **Test global de regresión multi-tenant** (PENDIENTE)
-
-**Criterios de aceptación:** Ver F7-36 brief original (12 fases)
-
 **Prioridad:** 🔴 CRÍTICA (seguridad multi-tenant)
+
+**Regla final del brief original:** corrección conservadora, verificable y orientada a seguridad. Primero entender → demostrar el defecto → corregir → escribir regresión → ejecutar pruebas → revisar nuevamente.
+
+---
+
+#### FASE 1: Aislamiento de caché multi-clínica ✅ COMPLETADA (2026-09-28)
+- ✅ Commit 1.1: tenantCache helper
+- ✅ Commit 1.2: Eliminación de fallback cross-clinic en 4 storage services
+- ✅ Commit 1.3: Listener de invalidación al cambiar de clínica
+- ✅ Commit 1.4: createTenantRepository (wrapper drop-in)
+- ✅ Commit 1.5a: Fix de seguridad - limpiar claves por paciente
+- ✅ Commit 1.5b-1.5f: Migración de 15 servicios/archivos a tenant-aware
+- ✅ Commit 1.6: IndexedDB tenant-aware para adjuntos clínicos
+- ✅ Commit 1.7: (redundante con 1.5f) operationQueue ya migrado
+- ✅ Commit 1.8: 5 tests obligatorios FASE 1 (aislamiento end-to-end)
+- ✅ Commit 1.9: RFC FASE 1 + checklist de verificación
+
+Documentación: docs/F7-36-FASE1-RFC.md, docs/F7-36-FASE1-VERIFICACION.md
+Métricas: 1601/1601 tests, 0 regresiones, 15+ servicios migrados, ~30 repos tenant-aware
+PRs: #166 (Parte 1) ✅ mergeado, #167 (Parte 2) ✅ mergeado
+
+---
+
+#### FASE 2: RPC de auditoría — cerrar superficie de ataque ✅ COMPLETADA (2026-09-28)
+**Objetivo del brief:** Revisar TODAS las funciones SECURITY DEFINER. Determinar quién necesita ejecutar cada una. Si una función no debe estar disponible vía Data API para anon/authenticated/PUBLIC, revocar explícitamente esos permisos.
+
+**Regla crítica del brief:** RLS NO protege automáticamente la ejecución de una función. RLS correcto ≠ RPC segura.
+
+**Test obligatorio del brief:** Usuario autenticado normal NO debe poder invocar `registrar_evento_purge(...)` ni `registrar_evento_archivo(...)` si no forman parte de la API pública del usuario.
+
+**Commits completados:**
+- ✅ Commit 2.1 (`17142ae`): endurecer permisos de `registrar_evento_archivo`
+- ✅ Commit 2.2 (`d53dbcb`): endurecer permisos de 4 funciones purge/trigger helpers
+- ✅ Commit 2.3 (`8b8b8cd`): 7 tests JS de regresión de permisos
+- ✅ Commit 2.4 (`6077f82`): documentación + checklist deploy manual
+
+**Hallazgos de la auditoría (2026-09-28):**
+- ✅ `registrar_evento_archivo` endurecido (Commit 2.1): REVOKE PUBLIC, GRANT service_role
+- ✅ `registrar_evento_purge` endurecido (Commit 2.2): REVOKE PUBLIC/authenticated/anon, GRANT service_role
+- ✅ `purgar_archivos_expirados` endurecido (Commit 2.2): REVOKE PUBLIC/authenticated/anon
+- ✅ `purgar_certificados_expirados` endurecido (Commit 2.2): REVOKE PUBLIC/authenticated/anon
+- ✅ `validar_eliminado_at_certificados` endurecido (Commit 2.2): REVOKE PUBLIC/authenticated/anon
+- 🟠 7 helpers RBAC sin permisos explícitos (current_role, get_role_from_metadata, has_role, is_admin, set_app_metadata_role, profiles_lock_role, role_in) — **pendiente para FASE 3 (SECURITY DEFINER hardening)**
+- ✅ 13 funciones ya endurecidas correctamente (clinica_actual, invitaciones, bootstrap, registrar_exportacion)
+
+**PR:** #168 (pendiente de merge)
+**Métricas:** 1608/1608 tests, 5 funciones endurecidas, 7 tests de regresión
+**⚠️ Deploy manual requerido post-merge:** ejecutar `supabase db push` (ver checklist en BITACORA.md)
+- ⚠️ `auditar_cambio()` no encontrada en migraciones actuales (gap para FASE 7)
+
+**Commits planeados:**
+- ⏳ Commit 2.0: Actualizar MASTER_ROADMAP.md con brief completo (ESTE)
+- ⏳ Commit 2.1: Migración SQL — REVOKE/GRANT para registrar_evento_archivo
+- ⏳ Commit 2.2: Migración SQL — REVOKE/GRANT para registrar_evento_purge
+- ⏳ Commit 2.3: Migración SQL — REVOKE/GRANT para los 7 helpers RBAC
+- ⏳ Commit 2.4: Test SQL — usuario autenticado NO puede invocar registrar_evento_archivo
+- ⏳ Commit 2.5: Test SQL — usuario autenticado NO puede invocar registrar_evento_purge
+- ⏳ Commit 2.6: RFC FASE 2 + entrada BITACORA.md
+
+---
+
+#### FASE 3: SECURITY DEFINER hardening ⏳ PENDIENTE
+Buscar `SECURITY DEFINER` en todas las migraciones. Para cada función: identificar propósito, caller, permisos, search_path, objetos referenciados, validar parámetros, prevenir escalada de privilegios, prevenir manipulación de datos de otra clínica.
+
+**Principio del brief:** Preferir `SECURITY DEFINER SET search_path = ''` cuando sea compatible. Usar referencias completamente calificadas (`public.tabla`) cuando corresponda.
+
+**Regla del brief:** NO modificar funciones legítimas innecesariamente.
+
+---
+
+#### FASE 4: Audit log de archivos ⏳ PENDIENTE
+Revisar `registrar_evento_archivo()` y todos sus callers. El audit_log debe contener SOLO información necesaria para trazabilidad.
+
+**Evitar almacenar innecesariamente:** nombre completo del paciente, RUT, nombre de archivo potencialmente identificable, contenido clínico, URLs firmadas, object keys sensibles, JWT, Authorization headers, secretos.
+
+**Regla del brief:** Si se necesita correlacionar un evento con un archivo/paciente, usar identificadores internos cuando sea estrictamente necesario. NO eliminar información necesaria para auditoría sin reemplazar su trazabilidad.
+
+---
+
+#### FASE 5: Identidad real del actor ⏳ PENDIENTE
+Revisar especialmente: r2-upload-url, r2-download-url, r2-delete, r2-restore, r2-list-deleted.
+
+**Problema del brief:** No confiar en `auth.uid()` dentro de una RPC ejecutada mediante service_role para representar al usuario final. El flujo correcto es: JWT usuario → validación → user_id real → Edge Function → RPC → audit_log.user_id = usuario real.
+
+**Test obligatorio:** Dentista A descarga archivo → audit_log.user_id = Dentista A. Dentista B descarga archivo → audit_log.user_id = Dentista B. No deben confundirse.
+
+---
+
+#### FASE 6: Purga definitiva paciente + R2 ⏳ PENDIENTE
+Revisar supabase/functions/pacientes-purge/ y archivos-purge/. Operación irreversible.
+
+**Requisito fail-safe del brief:** Si existen archivos R2 asociados: 1) obtener lista, 2) intentar eliminarlos, 3) verificar resultado, 4) si algún objeto falla → NO eliminar paciente, 5) si todos eliminados → eliminar paciente, 6) registrar resultado.
+
+**Regla del brief:** PostgreSQL y R2 NO comparten transacción ACID. No inventar transacción distribuida. Minimizar estados inconsistentes y hacer fallos recuperables.
+
+**Tests obligatorios:** 6 casos (A: sin archivos, B: 1 archivo OK, C: múltiples archivos OK, D: archivo fail → no eliminar paciente, E: R2 parcial → BD consistente y reintento posible, F: usuario sin permisos → rechazado).
+
+---
+
+#### FASE 7: Rebuild completo de base de datos ⏳ PENDIENTE
+Demostrar que una base completamente nueva puede construirse SOLO con el repositorio actual.
+
+**Comando a ejecutar:** `supabase db reset` (o equivalente seguro).
+
+**Verificar específicamente:** auditar_cambio(), audit triggers, RLS, RBAC, clinica_actual(), funciones SECURITY DEFINER, RPC de auditoría, tablas, índices, constraints, cron jobs.
+
+**Criterio del brief:** Después de rebuild limpio deben existir TODAS las funciones y triggers necesarios. NO puede depender de "eso ya existía históricamente" si no existe migración reproducible.
+
+**Si se encuentra dependencia histórica:** 1) identificar, 2) localizar origen, 3) crear migración faltante, 4) ejecutar rebuild, 5) verificar nuevamente.
+
+---
+
+#### FASE 8: R2 — revisión final ⏳ PENDIENTE
+Sin rehacer el sistema R2, revisar: r2-upload-url, r2-download-url, r2-delete, r2-restore, r2-list-deleted, r2-health-check.
+
+**Buscar:** jsonResponse, safeError, safeInternalError, error.message, errorText, console.log, console.error, stack, Authorization, JWT, R2 credentials, patient data.
+
+**Confirmar:** errores internos → logs; cliente → error genérico.
+
+**NUNCA devolver:** stack trace, SQL, PostgREST details, R2 credentials, JWT, Authorization header, infraestructura interna.
+
+**Regla del brief:** No reabrir F7-35 salvo que encuentres regresión.
+
+---
+
+#### FASE 9: MIME contract ⏳ PENDIENTE
+Comparar: frontend allowed MIME vs backend allowed MIME vs DB metadata vs R2 upload. Determinar lista canónica única.
+
+**Regla del brief:** Si GIF no está soportado → frontend rechaza GIF, backend rechaza GIF. Si GIF sí debe soportarse → frontend acepta, backend acepta, tests aceptan. NO mantener contratos contradictorios.
+
+---
+
+#### FASE 10: CI / E2E ⏳ PENDIENTE
+Revisar .github/workflows/ci.yml.
+
+**NO eliminar:** security-regression, deno, build, architecture, coverage (son gates importantes).
+
+**Revisar especialmente:** `continue-on-error: true` en E2E. Determinar si debe eliminarse ahora o si existe dependencia real de staging que impide convertir E2E en gate.
+
+**Regla del brief:** NO cambiarlo simplemente para obtener CI verde. Si staging no permite E2E confiable todavía, documentar explícitamente y dejar como deuda de release.
+
+---
+
+#### FASE 11: Test global de regresión multi-tenant ⏳ PENDIENTE
+Después de todas las modificaciones ejecutar: Vitest, Security Regression, Deno type-check, Deno tests, Build, Architecture validator, E2E (si el entorno lo permite).
+
+**Búsquedas globales:** jsonResponse(500, jsonResponse(, dangerouslySetInnerHTML, innerHTML, localStorage, sessionStorage, SECURITY DEFINER, GRANT EXECUTE, REVOKE EXECUTE, auth.uid(), service_role, data.length === 0, return cache, fallback, clinica_id.
+
+**Regla del brief:** No basta con corregir archivos encontrados inicialmente. Buscar patrones equivalentes.
+
+---
+
+#### FASE 12: NO HACER ⏳ PENDIENTE
+**NO:**
+- reescribir la arquitectura completa
+- eliminar RLS
+- confiar en el frontend para seguridad
+- volver a introducir fallback cross-clinic
+- guardar PHI innecesaria en logs
+- exponer errores internos al cliente
+- eliminar auditoría para "simplificar"
+- eliminar tests existentes
+- reducir cobertura
+- desactivar security regression
+- desactivar Deno
+- marcar E2E como exitoso si falló
+- modificar `clinica_actual()` salvo regresión demostrada
+- inventar resultados
+- modificar el roadmap antes de terminar las pruebas
+
+---
+
+#### Criterios de aceptación globales F7-36
+
+**Multi-tenant cache:**
+- [x] cache aislada por clínica (FASE 1 ✅)
+- [x] no existe fallback cross-clinic (FASE 1 ✅)
+- [x] [] válido de Supabase no recupera cache antigua (FASE 1 ✅)
+- [x] cambio A → B → A funciona correctamente (FASE 1 ✅)
+- [x] error de red puede usar solo cache de la misma clínica (FASE 1 ✅)
+- [x] legacy cache no puede contaminar otra clínica (FASE 1 ✅)
+
+**Auditoría:**
+- [ ] RPC de auditoría no puede ser abusada por usuarios normales (FASE 2)
+- [ ] SECURITY DEFINER revisadas (FASE 2 + FASE 3)
+- [ ] search_path endurecido donde corresponde (FASE 3)
+- [ ] actor real registrado (FASE 5)
+- [ ] no se almacena PHI innecesaria (FASE 4)
+
+**Purga:**
+- [ ] R2 failure no permite borrar silenciosamente paciente (FASE 6)
+- [ ] reintento posible (FASE 6)
+- [ ] casos parciales cubiertos por tests (FASE 6)
+
+**Database:**
+- [ ] db reset limpio (FASE 7)
+- [ ] auditar_cambio existe después del reset (FASE 7)
+- [ ] triggers existen (FASE 7)
+- [ ] RLS existe (FASE 7)
+- [ ] funciones existen (FASE 7)
+
+**CI:**
+- [ ] Vitest (FASE 11)
+- [ ] security regression (FASE 11)
+- [ ] Deno (FASE 11)
+- [ ] build (FASE 11)
+- [ ] architecture (FASE 11)
+- [ ] coverage (FASE 11)
+- [ ] E2E evaluado honestamente (FASE 10 + FASE 11)
+
+---
+
+#### Reporte final obligatorio F7-36
+Al terminar NO responder "Listo". Entregar reporte estructurado con 9 secciones:
+1. Problemas encontrados (tabla con Severidad, Causa, Corrección)
+2. Archivos modificados (lista exacta)
+3. Migraciones creadas (lista exacta)
+4. Tests agregados (lista con descripción)
+5. Tests ejecutados (Vitest X/X, Security X/X, Deno X/X, Build, Architecture, E2E X/X, DB reset)
+6. Búsqueda de regresiones (patrones buscados y coincidencias restantes)
+7. Seguridad (multi-tenant, cache, RLS, RBAC, RPC, SECURITY DEFINER, audit log, R2, purge, PHI)
+8. Riesgos que permanecen (si queda algo pendiente, decirlo explícitamente)
+9. Estado final: elegir uno de 🟢 CORREGIDO Y VERIFICADO / 🟡 CORREGIDO CON RIESGOS PENDIENTES / 🔴 NO COMPLETADO
+
+**Regla del brief:** No declarar GO para producción solo porque los tests unitarios pasen.
+
+---
+
+**Referencia del brief original:** Documento "F7-36 brief original (12 fases)" compartido 2026-09-28, archivado en BITACORA.md bajo la entrada del Commit 2.0.
+
