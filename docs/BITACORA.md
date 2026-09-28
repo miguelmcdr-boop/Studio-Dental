@@ -8175,3 +8175,82 @@ Las migraciones SQL NO se aplican automáticamente al hacer push. Después de me
 **PR:** #170 (pendiente de merge)
 
 ---
+
+
+---
+
+## 2026-09-29 — F7-36 FASE 4: Audit log de archivos (limpieza de PHI)
+
+### Problema detectado
+Auditoría de datos reales en audit_log reveló que registrar_evento_archivo almacenaba nombre_archivo en new_data, exponiendo potencialmente PHI (ej: "consentimiento_Pepito_Perez_RUT.pdf").
+
+Además, F7-34 incompleto: r2-upload-url tenía nombre_archivo en p_detalle (las otras 3 Edge Functions sí lo habían removido).
+
+### Principio del brief aplicado
+"Evitar almacenar innecesariamente: nombre completo del paciente, RUT, nombre de archivo potencialmente identificable, contenido clínico, URLs firmadas, object keys sensibles, JWT, Authorization headers, secretos."
+
+### Solución implementada (2 commits)
+
+#### Commit 4.1: Migración SQL
+Archivo: supabase/migrations/2026_09_28_0005_f7_36_fase4_audit_log_archivos.sql
+
+Reescritura de registrar_evento_archivo():
+- ELIMINAR: nombre_archivo y estado de new_data
+- CONSERVAR: evento, paciente_id, categoria, tamano_bytes, timestamp, detalle (limpio de duplicados)
+- AGREGAR: SET search_path = '' (alineado con FASE 3)
+- MANTENER: permisos restrictivos de FASE 2 (solo service_role)
+- DEFENSA EN PROFUNDIDAD: función remueve nombre_archivo y r2_object_key del p_detalle que las Edge Functions puedan mandar (previene regresiones)
+
+Trazabilidad preservada vía JOIN:
+
+    SELECT al.created_at, al.action, al.user_id,
+           a.nombre_archivo, a.categoria, a.tamano_bytes
+    FROM audit_log al
+    JOIN archivos_clinicos a ON a.id = al.record_id::uuid
+    WHERE al.action = 'FILE_UPLOAD'
+    ORDER BY al.created_at DESC LIMIT 1;
+
+#### Commit 4.2: Tests de regresión + Hotfix
+Archivo: src/test/security/f7-36-fase4-audit-log-archivos.test.js
+
+8 tests que validan:
+1. Frontend NO invoca registrar_evento_archivo vía supabase.rpc()
+2. r2-upload-url NO manda nombre_archivo ni r2_object_key en p_detalle
+3. r2-download-url NO manda PHI en p_detalle
+4. r2-delete NO manda PHI en p_detalle
+5. r2-restore NO manda PHI en p_detalle
+6. Migración SQL NO incluye nombre_archivo en new_data
+7. Migración SQL NO incluye r2_object_key en new_data
+8. Migración SQL conserva paciente_id, categoria, tamano_bytes (trazabilidad)
+
+Hotfix incluido: Removido nombre_archivo de p_detalle en supabase/functions/r2-upload-url/index.ts (F7-34 incompleto).
+
+Mejora en tests: Función stripComments() remueve comentarios antes de buscar PHI, evitando falsos positivos en comentarios F7-34.
+
+### Decisiones clave
+1. ELIMINAR nombre_archivo de new_data (Opción A) — trazabilidad vía JOIN
+2. NO tocar datos históricos (audit_log es append-only)
+3. NO tocar user_id = null (delegado a FASE 5: identidad real del actor)
+
+### Validación post-deploy
+
+    -- Subir archivo en la app, luego ejecutar:
+    SELECT action, new_data
+    FROM audit_log
+    WHERE action = 'FILE_UPLOAD'
+    ORDER BY created_at DESC LIMIT 1;
+
+    -- Esperado: new_data SIN "nombre_archivo" ni "r2_object_key"
+
+### Métricas
+- Commits: 2 (4.1 SQL + 4.2 tests + hotfix)
+- Archivos modificados: 2 (migración + Edge Function)
+- Archivos nuevos: 2 (migración + tests)
+- Tests: 8 nuevos, todos pasando
+- Suite: 1624/1624 pasando
+- Principio: Conservador (NO eliminar sin reemplazar trazabilidad)
+
+### Estado
+🟡 CORREGIDO CON RIESGOS PENDIENTES (hasta aplicar migración en staging con supabase db push y validar con query de verificación)
+
+---
