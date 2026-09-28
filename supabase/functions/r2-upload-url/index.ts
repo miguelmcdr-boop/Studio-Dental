@@ -291,7 +291,6 @@ export async function handler(req: Request): Promise<Response> {
         p_detalle: {
           paciente_id,
           categoria,
-          nombre_archivo,
           tamano_bytes,
           // F7-34: r2_object_key removido (contiene clinica_id/paciente_id)
         },

@@ -2578,7 +2578,7 @@ La auditoría de 2026-08-26 registró: **852/852 tests**, **7 warnings de lint**
 
 ### F7-36 — Tenant Cache & Audit Integrity (12 fases)
 
-**Estado:** 🟡 EN CURSO (FASE 1 ✅ 2026-09-28, FASE 2 ✅ 2026-09-28, FASE 3 ✅ 2026-09-28, FASE 4 pendiente)
+**Estado:** 🟡 EN CURSO (FASE 1 ✅ 2026-09-28, FASE 2 ✅ 2026-09-28, FASE 3 ✅ 2026-09-28, FASE 4 ✅ 2026-09-29, FASE 5 pendiente)
 
 **Descripción:** Auditoría y corrección profunda de aislamiento multi-tenant, integridad de auditoría, y reproducibilidad de BD.
 
@@ -2654,7 +2654,7 @@ Buscar `SECURITY DEFINER` en todas las migraciones. Para cada función: identifi
 
 ---
 
-#### FASE 4: Audit log de archivos ⏳ PENDIENTE
+#### FASE 4: Audit log de archivos ✅ COMPLETADA (2026-09-29, 2 commits + hotfix, 8 tests)
 Revisar `registrar_evento_archivo()` y todos sus callers. El audit_log debe contener SOLO información necesaria para trazabilidad.
 
 **Evitar almacenar innecesariamente:** nombre completo del paciente, RUT, nombre de archivo potencialmente identificable, contenido clínico, URLs firmadas, object keys sensibles, JWT, Authorization headers, secretos.
