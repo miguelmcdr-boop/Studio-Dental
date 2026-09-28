@@ -204,11 +204,27 @@ export async function handler(req: Request): Promise<Response> {
       ).then((res) => res.json());
 
       let archivosPurgados = 0;
+      let archivosFallidos = 0;
+      const totalArchivos = Array.isArray(archivosResult) ? archivosResult.length : 0;
       if (Array.isArray(archivosResult)) {
         for (const archivo of archivosResult) {
           const ok = await eliminarDeR2(archivo.r2_object_key);
-          if (ok) archivosPurgados++;
+          if (ok) {
+            archivosPurgados++;
+          } else {
+            archivosFallidos++;
+          }
         }
+      }
+
+
+      // F7-36 FASE 6: FAIL-SAFE (brief: si algun R2 falla, NO eliminar paciente)
+      if (archivosFallidos > 0) {
+        rechazados.push({
+          id: pacienteId,
+          razon: `r2_parcial_${archivosFallidos}_de_${totalArchivos}_fallidos`,
+        });
+        continue; // NO hacer DELETE del paciente
       }
 
       // 7. DELETE del paciente (cascada elimina dependencias)
