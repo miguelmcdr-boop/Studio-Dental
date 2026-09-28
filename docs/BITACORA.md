@@ -7467,3 +7467,55 @@ La migración agrega una SEGUNDA capa de aislamiento sobre el RLS de Supabase:
 Commit 1.5e: Migrar servicios de configuración (configuracion, comunicaciones, prestaciones) a tenant-aware.
 
 ---
+
+## 2026-09-28 — F7-36 FASE 1: Migración de servicios de configuración a tenant-aware (Commit 1.5e)
+
+### Contexto
+Cuarta migración real de servicios a claves tenant-aware. Los 3 servicios de configuración ahora almacenan sus datos con formato sd_<clinicaId>_<baseKey> en lugar de las claves legacy studio_dental_* y clinica_*.
+
+### Servicios migrados
+
+1. comunicacionesStorageService.js (38 → 40 líneas)
+   - 2 repos migrados: plantillasRepo, historialRepo
+   - Claves legacy migradas:
+     * 'studio_dental_comunicaciones_plantillas_v3'
+     * 'studio_dental_comunicaciones_historial_v3'
+
+2. prestacionesStorageService.js (55 → 57 líneas)
+   - 2 repos migrados: arancelRepo, paquetesRepo
+   - Claves migradas (antes tenían prefijo clinica_):
+     * 'clinica_arancel_prestaciones'
+     * 'clinica_paquetes_clinicos_promos'
+   - Nota: ya estaban 'semi-tenant-aware' con prefijo clinica_, ahora usan tenantCache para consistencia con el resto de servicios
+
+3. configuracionStorageService.js (240 → 243 líneas)
+   - 2 repos migrados: clinicaRepo, parametrosAgendaRepo
+   - Claves legacy migradas:
+     * 'studio_dental_config_clinica'
+     * 'studio_dental_config_agenda'
+   - clinicaRepo preserva notify: true para sincronización entre pestañas
+   - Lógica de backup/restore NO modificada (opera sobre TODO localStorage, es operación administrativa, no por clave específica)
+
+### Total
+6 repos migrados, 6 claves legacy ahora aisladas por clínica.
+
+### Defensa en profundidad
+La migración agrega una SEGUNDA capa de aislamiento sobre el RLS de Supabase:
+- RLS: previene acceso cross-clinic a nivel BD
+- tenantCache: previene contaminación cross-clinic en localStorage
+
+### Validaciones
+- 1589/1589 tests pasando (sin regresión)
+- validate:architecture PASS
+- build OK
+
+### Dependencias preservadas
+- useComunicaciones, usePrestaciones, useConfiguración
+- Los servicios mantienen API pública idéntica
+- invalidarCacheCambioClinica ya limpia sus claves (vía prefijos studio_dental_ y clinica_)
+- Backup/restore completo sigue funcionando (opera sobre TODO localStorage)
+
+### Próximo paso
+Commit 1.5f: Migrar pendientes (operationQueue, reportesStorageService, App.jsx) a tenant-aware.
+
+---
