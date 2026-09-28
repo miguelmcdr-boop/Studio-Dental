@@ -33,6 +33,7 @@ import { usePacientesActions } from './modules/pacientes/hooks/usePacientesActio
 import { useSessionGuard } from './hooks/useSessionGuard'
 import { DashboardModulo } from './modules/dashboard'
 import { createLogger } from './services/logger'
+import { createTenantRepository } from './services/localStorageRepository' // F7-36 FASE 1 (hotfix import)
 
 const log = createLogger('App')
 
