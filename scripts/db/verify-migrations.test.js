@@ -33,9 +33,13 @@ describe('Migraciones de esquema (F7-13)', () => {
     expect(files).toEqual(sorted)
   })
   
-  it('la migración base_schema debe ser la primera', () => {
+  it('la migración base_schema debe estar entre las primeras 3', () => {
+    // F7-36 FASE 7: audit_log se crea en migración inicial 0000 antes de base_schema
+    // para resolver dependencias históricas. base_schema sigue siendo temprano (top 3).
     const files = readdirSync(migrationsDir).filter(f => f.endsWith('.sql')).sort()
-    expect(files[0]).toContain('base_schema')
+    const primeras3 = files.slice(0, 3)
+    const tieneBaseSchema = primeras3.some(f => f.includes('base_schema'))
+    expect(tieneBaseSchema).toBe(true)
   })
   
   it('todas las migraciones deben ser SQL válido (sin errores de sintaxis obvios)', () => {
