@@ -7086,3 +7086,59 @@ Comportamiento correcto:
 Commit 1.3: Listener de invalidación al cambiar de clínica (limpiar cache en memoria + localStorage cuando el usuario cambia de clínica activa).
 
 ---
+
+## 2026-09-28 — F7-36 FASE 1: Listener de invalidación al cambiar de clínica (Commit 1.3)
+
+### Contexto
+Al cambiar de clínica activa, la aplicación actualizaba el JWT en Supabase pero NO invalidaba:
+- Cache en memoria de los 4 storage services principales
+- Stores Zustand (pacientesStore, prestacionesStore)
+- Claves legacy studio_dental_* en localStorage
+- IndexedDB (base studio_dental_adjuntos)
+
+Esto permitía contaminación cross-clinic durante el lapso de 300ms antes del reload de página.
+
+### Solución
+Nuevo servicio invalidarCacheCambioClinica.js que orquesta 5 pasos fail-safe:
+1. tenantCache.invalidarClinica() - elimina claves tenant-aware de la clínica anterior
+2. resetCache() en 4 storage services - limpia cache en memoria
+3. setState() en pacientesStore y prestacionesStore - resetea stores Zustand
+4. Limpieza de claves legacy studio_dental_* - sin clinica_id
+5. indexedDB.deleteDatabase() - invalida cache offline completa
+
+### Integración
+ClinicaSelector.handleCambio() ahora llama a invalidarCacheCambioClinica(clinicaAnterior) inmediatamente después de setClinicaActiva() exitoso, ANTES del reload.
+
+### Archivos
+- src/services/invalidarCacheCambioClinica.js (nuevo, 209 líneas)
+- src/services/invalidarCacheCambioClinica.test.js (nuevo, 18 tests)
+- src/components/ClinicaSelector.jsx (integración, +5 líneas)
+- src/components/ClinicaSelector.test.jsx (+1 test F7-36)
+
+### Tests cubiertos
+- 5 pasos fail-safe independientes (cada uno con try/catch)
+- Llama a invalidarClinica() con ID de clínica anterior
+- Usa invalidarTodas() cuando no hay clínica anterior conocida
+- Resetea correctamente los 4 storage services
+- Resetea ambos stores Zustand
+- Elimina solo claves legacy (preserva darkMode y otras preferencias UI)
+- Elimina IndexedDB completa
+- Maneja correctamente cuando indexedDB no está disponible
+- Maneja estado blocked (otras pestañas abiertas)
+- Todos los pasos continúan aunque uno falle
+
+### Validaciones
+- 1564/1564 tests pasando (18 nuevos + 1 test de integración)
+- validate:architecture PASS
+- build OK
+
+### Decisiones clave
+1. Integración solo en ClinicaSelector.jsx (NO en bootstrap/invitación)
+2. Invalidación de IndexedDB completa (Opción A aprobada - sin datos clínicos reales aún)
+3. Limpieza de claves legacy sin clinica_id (eliminar y reconstruir desde Supabase)
+4. No invalidar en auto-persistencia inicial ni reset de metadata stale (no hay clínica anterior válida)
+
+### Próximo paso
+Commit 1.4: Extender localStorageRepository para usar tenantCache (migración gradual de servicios a claves tenant-aware).
+
+---

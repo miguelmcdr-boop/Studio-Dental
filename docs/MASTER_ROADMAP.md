@@ -2586,7 +2586,7 @@ La auditoría de 2026-08-26 registró: **852/852 tests**, **7 warnings de lint**
 1. **Aislamiento de caché multi-clínica** (EN CURSO)
    - ✅ Commit 1.1: tenantCache helper (src/services/tenantCache.js + 280 líneas de tests)
    - ✅ Commit 1.2: Eliminación de fallback cross-clinic en 4 storage services
-   - ⏳ Commit 1.3: Listener de invalidación al cambiar de clínica
+   - ✅ Commit 1.3: Listener de invalidación al cambiar de clínica (invalidarCacheCambioClinica.js + integración en ClinicaSelector.jsx)
    - ⏳ Commit 1.4: Extender localStorageRepository para usar tenantCache
    - ⏳ Commit 1.5: Migrar claves de módulos clínicos a formato tenant-aware
    - ⏳ Commit 1.6: IndexedDB tenant-aware para adjuntos
