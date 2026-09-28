@@ -2578,7 +2578,7 @@ La auditoría de 2026-08-26 registró: **852/852 tests**, **7 warnings de lint**
 
 ### F7-36 — Tenant Cache & Audit Integrity (12 fases)
 
-**Estado:** 🟡 EN CURSO (FASE 1 ✅ 2026-09-28, FASE 2 ✅ 2026-09-28, FASE 3 ✅ 2026-09-28, FASE 4 ✅ 2026-09-29, FASE 5 pendiente)
+**Estado:** 🟡 EN CURSO (FASE 1 ✅ 2026-09-28, FASE 2 ✅ 2026-09-28, FASE 3 ✅ 2026-09-28, FASE 4 ✅ 2026-09-29, FASE 5 ✅ 2026-09-29, FASE 6 pendiente)
 
 **Descripción:** Auditoría y corrección profunda de aislamiento multi-tenant, integridad de auditoría, y reproducibilidad de BD.
 
@@ -2663,7 +2663,7 @@ Revisar `registrar_evento_archivo()` y todos sus callers. El audit_log debe cont
 
 ---
 
-#### FASE 5: Identidad real del actor ⏳ PENDIENTE
+#### FASE 5: Identidad real del actor ✅ COMPLETADA (2026-09-29, 3 commits, 8 tests)
 Revisar especialmente: r2-upload-url, r2-download-url, r2-delete, r2-restore, r2-list-deleted.
 
 **Problema del brief:** No confiar en `auth.uid()` dentro de una RPC ejecutada mediante service_role para representar al usuario final. El flujo correcto es: JWT usuario → validación → user_id real → Edge Function → RPC → audit_log.user_id = usuario real.
