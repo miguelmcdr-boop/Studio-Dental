@@ -160,21 +160,21 @@ Deno.test("T6: Error 500 NO expone error.message al cliente", async () => {
 
 Deno.test("T7: R2 falla -> archivo NO eliminado (caso D)", async () => {
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = createMockFetch({
+  const mockFetch = createMockFetch({
     authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
     memberships: baseMemberships,
     archivos: baseArchivos,
     r2DeleteOk: false, // R2 falla
   }) as any;
 
-  // Spy de DELETE a archivos_clinicos
+  // Spy de DELETE a archivos_clinicos (captura mockFetch para evitar recursión)
   const deleteCalls: string[] = [];
   const wrappedFetch = async (url: any, init?: any) => {
     const urlStr = typeof url === "string" ? url : url.url;
     if (init?.method === "DELETE" && urlStr.includes("/rest/v1/archivos_clinicos")) {
       deleteCalls.push(urlStr);
     }
-    return (globalThis.fetch as any)(url, init);
+    return mockFetch(url, init);
   };
   globalThis.fetch = wrappedFetch as any;
 
@@ -205,12 +205,13 @@ Deno.test("T8: Multiples archivos, mixto -> solo exitos purgados (caso E)", asyn
     { id: ARCHIVO_C, clinica_id: CLINICA_A, r2_object_key: `${CLINICA_A}/pac/r2key-c`, estado: "eliminado", nombre_archivo: "c.pdf" },
   ];
 
-  globalThis.fetch = createMockFetch({
+  const mockFetch = createMockFetch({
     authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
     memberships: baseMemberships,
     archivos: archivosMix,
     r2DeleteOk: [ARCHIVO_FALLA], // Solo falla uno
   }) as any;
+  globalThis.fetch = mockFetch as any;
 
   try {
     const req = createRequest({ archivo_ids: [ARCHIVO_A, ARCHIVO_B, ARCHIVO_C] });

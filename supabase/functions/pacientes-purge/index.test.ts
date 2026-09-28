@@ -217,7 +217,7 @@ Deno.test("T10: Retención legal - paciente eliminado hace menos de 10 años es 
 Deno.test("T11: Archivo R2 falla -> paciente NO eliminado (caso D)", async () => {
   const originalFetch = globalThis.fetch;
   // Paciente con 1 archivo en R2. Mock hace que R2 falle.
-  globalThis.fetch = createMockFetch({
+  const mockFetch = createMockFetch({
     authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
     memberships: baseMemberships,
     pacientes: [
@@ -229,14 +229,14 @@ Deno.test("T11: Archivo R2 falla -> paciente NO eliminado (caso D)", async () =>
     r2DeleteOk: false, // R2 falla
   }) as any;
 
-  // Spy de DELETE a pacientes
+  // Spy de DELETE a pacientes (captura mockFetch en variable para evitar recursión)
   const deleteCalls: string[] = [];
   const wrappedFetch = async (url: any, init?: any) => {
     const urlStr = typeof url === "string" ? url : url.url;
     if (init?.method === "DELETE" && urlStr.includes("/rest/v1/pacientes")) {
       deleteCalls.push(urlStr);
     }
-    return (globalThis.fetch as any)(url, init);
+    return mockFetch(url, init);
   };
   globalThis.fetch = wrappedFetch as any;
 
@@ -260,7 +260,7 @@ Deno.test("T12: Multiples archivos, uno falla -> paciente rechazado (caso E)", a
   const originalFetch = globalThis.fetch;
   // Paciente con 3 archivos. Solo 1 falla en R2.
   const ARCHIVO_FALLA = "key-que-falla";
-  globalThis.fetch = createMockFetch({
+  const mockFetch = createMockFetch({
     authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
     memberships: baseMemberships,
     pacientes: [
@@ -280,7 +280,7 @@ Deno.test("T12: Multiples archivos, uno falla -> paciente rechazado (caso E)", a
     if (init?.method === "DELETE" && urlStr.includes("/rest/v1/pacientes")) {
       deleteCalls.push(urlStr);
     }
-    return (globalThis.fetch as any)(url, init);
+    return mockFetch(url, init);
   };
   globalThis.fetch = wrappedFetch as any;
 
