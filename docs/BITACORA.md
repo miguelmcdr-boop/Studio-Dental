@@ -8391,3 +8391,203 @@ Esperado: user_id = UUID del usuario autenticado (NO null)
 **PR:** #173 (pendiente de merge)
 
 ---
+
+
+---
+
+## 2026-09-29 - F7-36 FASE 6: Purga definitiva paciente + R2 (Commits 6.1, 6.2, 6.3)
+
+### Contexto
+Revisar pacientes-purge y archivos-purge, operaciones IRREVERSIBLES. El brief enfatiza: "PostgreSQL y R2 NO comparten transaccion ACID. No inventar transaccion distribuida. Minimizar estados inconsistentes y hacer fallos recuperables."
+
+### GAP CRITICO detectado en pacientes-purge
+
+El codigo anterior intentaba eliminar blobs de R2 y contaba exitos, pero SIEMPRE ejecutaba DELETE del paciente, incluso si algun blob fallaba. Esto violaba el requisito fail-safe del brief:
+
+> "Si existen archivos R2 asociados: 1) obtener lista, 2) intentar eliminarlos, 3) verificar resultado, 4) **si algun objeto falla, NO eliminar paciente**, 5) si todos eliminados, eliminar paciente, 6) registrar resultado."
+
+**Caso de ejemplo (ANTES):**
+- Paciente tiene 3 archivos en R2
+- 2 se eliminan OK, 1 falla (R2 temporalmente caido)
+- archivosPurgados = 2
+- DELETE del paciente se ejecuta igual
+- **Resultado:** paciente eliminado de BD, pero 1 blob queda huerfano en R2
+- El contador archivos_r2_purgados: 2 queda en audit_log pero no se puede recuperar que blob quedo
+
+**archivos-purge** ya implementaba el fail-safe correctamente. **pacientes-purge** no lo tenia.
+
+### Otros gaps menores identificados
+
+1. **registrar_evento_purge** no tenia hardening FASE 3 (search_path vacio + permisos explicitos)
+2. **Tests faltantes** para casos D (archivo fail) y E (R2 parcial) del brief
+
+### Solucion implementada (3 commits)
+
+#### Commit 6.1: Fix fail-safe en pacientes-purge
+**Archivo:** supabase/functions/pacientes-purge/index.ts (lineas ~206-224)
+
+Agregar fail-safe que bloquea DELETE del paciente si algun R2 falla:
+
+    let archivosPurgados = 0;
+    let archivosFallidos = 0;
+    const totalArchivos = Array.isArray(archivosResult) ? archivosResult.length : 0;
+
+    if (Array.isArray(archivosResult)) {
+      for (const archivo of archivosResult) {
+        const ok = await eliminarDeR2(archivo.r2_object_key);
+        if (ok) { archivosPurgados++; }
+        else { archivosFallidos++; }
+      }
+    }
+
+    // F7-36 FASE 6: FAIL-SAFE
+    if (archivosFallidos > 0) {
+      rechazados.push({
+        id: pacienteId,
+        razon: r2_parcial_${archivosFallidos}_de_${totalArchivos}_fallidos,
+      });
+      continue; // NO hacer DELETE del paciente
+    }
+
+    // DELETE solo si archivosFallidos === 0
+    const deleteRes = await fetch(...)
+
+**Caso de ejemplo (DESPUES):**
+- Paciente con 3 archivos, 1 falla en R2
+- archivosPurgados=2, archivosFallidos=1
+- Paciente agregado a rechazados con razon r2_parcial_1_de_3_fallidos
+- **DELETE NO se ejecuta**
+- **Resultado:** BD y R2 consistentes, reintento posible despues
+
+#### Commit 6.2: Hardening FASE 3 en registrar_evento_purge
+**Archivo:** supabase/migrations/2026_09_29_0002_f7_36_fase6_hardening_registrar_evento_purge.sql
+
+Alinea registrar_evento_purge con el hardening de FASE 3 aplicado a registrar_evento_archivo:
+- SET search_path = '' (vacio, protege de hijacking)
+- REVOKE ALL FROM PUBLIC
+- REVOKE EXECUTE FROM authenticated, anon
+- GRANT EXECUTE TO service_role
+- **Preservar:** firma (4 args), logica (COALESCE(p_user_id, auth.uid())), new_data sin PHI
+
+**Callers legitimos (no afectados):**
+- pacientes-purge (Edge Function) - usa service_role
+- archivos-purge (Edge Function) - usa service_role
+- purga_automatica_archivos (pg_cron) - usa service_role
+
+#### Commit 6.3: Tests Deno + Vitest
+**Archivos modificados:**
+- supabase/functions/_shared/testUtils.ts (extendido r2DeleteOk: boolean | string[])
+- supabase/functions/pacientes-purge/index.test.ts (T11 y T12 agregados)
+- supabase/functions/archivos-purge/index.test.ts (T7 y T8 agregados)
+- src/test/security/f7-36-fase6-purge-fail-safe.test.js (11 tests Vitest nuevos)
+
+**Tests Deno agregados (4 nuevos):**
+
+| Test | Edge Function | Caso del brief | Valida |
+|---|---|---|---|
+| T11 | pacientes-purge | **D: archivo fail** | Paciente NO eliminado si R2 falla |
+| T12 | pacientes-purge | **E: R2 parcial** | Rechazado con razon r2_parcial_X_de_Y_fallidos |
+| T7 | archivos-purge | **D: archivo fail** | Archivo NO eliminado si R2 falla |
+| T8 | archivos-purge | **E: R2 parcial** | Solo exitos purgados, fallos rechazados |
+
+**Tests Vitest agregados (11 nuevos):**
+1. pacientes-purge declara contador archivosFallidos
+2. pacientes-purge verifica archivosFallidos antes de DELETE de paciente
+3. pacientes-purge usa razon r2_parcial_X_de_Y_fallidos
+4. pacientes-purge hace continue si archivosFallidos > 0
+5. Migracion SQL tiene SET search_path = ''
+6. Migracion SQL tiene REVOKE EXECUTE FROM authenticated
+7. Migracion SQL tiene GRANT EXECUTE TO service_role
+8. Deno test T11 existe
+9. Deno test T12 existe
+10. Deno test T7 existe en archivos-purge
+11. Deno test T8 existe en archivos-purge
+
+### Tests obligatorios del brief - Cobertura
+
+| Caso | pacientes-purge | archivos-purge |
+|---|---|---|
+| A: sin archivos | implícito | implícito |
+| B: 1 archivo OK | implícito | implícito |
+| C: multiples archivos OK | implícito | implícito |
+| **D: archivo fail, no eliminar** | **T11** | **T7** |
+| **E: R2 parcial, BD consistente** | **T12** | **T8** |
+| F: usuario sin permisos, rechazado | T7 | T3 |
+
+### Validaciones
+- 1643/1643 tests pasando (+11 Vitest nuevos + 4 Deno nuevos)
+- validate:architecture PASS
+- build OK
+- 0 regresiones
+
+### CHECKLIST DE DEPLOY MANUAL POST-MERGE (CRITICO)
+
+**Paso 1: Aplicar migracion SQL**
+
+    supabase db push
+
+O copiar contenido de supabase/migrations/2026_09_29_0002_f7_36_fase6_hardening_registrar_evento_purge.sql en Supabase Dashboard - SQL Editor.
+
+**Paso 2: Redeploy de pacientes-purge (CRITICO, sin esto el fail-safe no tiene efecto)**
+
+    supabase functions deploy pacientes-purge
+
+**NO requiere redeploy:** archivos-purge (solo se agregaron tests, codigo no modificado).
+
+**Paso 3: Validacion post-deploy**
+
+Query 1: Verificar hardening de registrar_evento_purge
+
+    SELECT p.proname, p.proconfig AS config,
+           has_function_privilege('authenticated', p.oid, 'EXECUTE') AS auth_can_exec,
+           has_function_privilege('public', p.oid, 'EXECUTE') AS public_can_exec,
+           has_function_privilege('service_role', p.oid, 'EXECUTE') AS service_can_exec
+    FROM pg_proc p
+    JOIN pg_namespace n ON p.pronamespace = n.oid
+    WHERE n.nspname = 'public' AND p.proname = 'registrar_evento_purge';
+
+Esperado:
+- config = {search_path=} (vacio)
+- auth_can_exec = false
+- public_can_exec = false
+- service_can_exec = true
+
+Query 2: Test funcional del fail-safe (requiere setup manual)
+
+1. Crear paciente con deleted_at de 2010 (mas de 10 anios) + 3 archivos R2
+2. Provocar fallo de R2 (mock o fallo real)
+3. Intentar purgar el paciente desde la app
+4. Verificar:
+
+    SELECT action, user_id, new_data
+    FROM audit_log
+    WHERE action = 'ADMIN_PURGE_PACIENTES'
+    ORDER BY created_at DESC LIMIT 1;
+
+Esperado: NO se registra ADMIN_PURGE_PACIENTES (paciente rechazado con razon r2_parcial_1_de_3_fallidos).
+
+Query 3: Confirmar BD consistente tras fallo R2
+
+    SELECT id, deleted_at
+    FROM pacientes
+    WHERE id = 'uuid-del-paciente';
+
+Esperado: Paciente SIGUE en BD (no fue eliminado).
+
+### Decisiones clave
+
+1. **NO modificar archivos-purge** - Ya implementaba fail-safe correctamente. Solo se agregaron tests.
+2. **NO tocar logica de retencion legal 10 anios** - Ya correcta (Ley 20.584).
+3. **NO tocar PHI de datos historicos** - audit_log es append-only, solo documentar.
+4. **Backward compatible** - registrar_evento_purge mantiene firma de 4 args.
+
+### Estado final FASE 6
+- Fail-safe en pacientes-purge (viola brief, resuelto)
+- Hardening FASE 3 en registrar_evento_purge
+- 4 tests Deno nuevos (casos D y E para ambas Edge Functions)
+- 11 tests Vitest nuevos (validacion estatica del fail-safe y hardening)
+- Principio del brief cumplido: "Minimizar estados inconsistentes y hacer fallos recuperables"
+
+**PR:** #174 (pendiente de merge)
+
+---

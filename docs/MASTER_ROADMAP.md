@@ -2578,7 +2578,7 @@ La auditoría de 2026-08-26 registró: **852/852 tests**, **7 warnings de lint**
 
 ### F7-36 — Tenant Cache & Audit Integrity (12 fases)
 
-**Estado:** 🟡 EN CURSO (FASE 1 ✅ 2026-09-28, FASE 2 ✅ 2026-09-28, FASE 3 ✅ 2026-09-28, FASE 4 ✅ 2026-09-29, FASE 5 ✅ 2026-09-29, FASE 6 pendiente)
+**Estado:** 🟡 EN CURSO (FASE 1 ✅ 2026-09-28, FASE 2 ✅ 2026-09-28, FASE 3 ✅ 2026-09-28, FASE 4 ✅ 2026-09-29, FASE 5 ✅ 2026-09-29, FASE 6 ✅ 2026-09-29, FASE 7 pendiente)
 
 **Descripción:** Auditoría y corrección profunda de aislamiento multi-tenant, integridad de auditoría, y reproducibilidad de BD.
 
@@ -2672,7 +2672,7 @@ Revisar especialmente: r2-upload-url, r2-download-url, r2-delete, r2-restore, r2
 
 ---
 
-#### FASE 6: Purga definitiva paciente + R2 ⏳ PENDIENTE
+#### FASE 6: Purga definitiva paciente + R2 ✅ COMPLETADA (2026-09-29, 3 commits, 15 tests)
 Revisar supabase/functions/pacientes-purge/ y archivos-purge/. Operación irreversible.
 
 **Requisito fail-safe del brief:** Si existen archivos R2 asociados: 1) obtener lista, 2) intentar eliminarlos, 3) verificar resultado, 4) si algún objeto falla → NO eliminar paciente, 5) si todos eliminados → eliminar paciente, 6) registrar resultado.
