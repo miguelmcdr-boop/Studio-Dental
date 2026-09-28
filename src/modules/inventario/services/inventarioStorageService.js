@@ -2,14 +2,16 @@
  * Persistencia aislada en LocalStorage para Inventario
  * Incluye persistencia de las asociaciones tratamiento→material (F2-11/F2-12).
  */
-import { createLocalStorageRepository } from '../../../services/localStorageRepository'
+import { createTenantRepository } from '../../../services/localStorageRepository'
 import { INSUMOS_POR_PRESTACION_DEFAULT } from '../utils/inventarioCalculations'
 
 const STORAGE_KEY_INVENTARIO = 'studio_dental_inventario_stock'
 const STORAGE_KEY_ASOCIACIONES = 'studio_dental_inventario_asociaciones_tratamiento'
 
-const inventarioRepo = createLocalStorageRepository(STORAGE_KEY_INVENTARIO, undefined)
-const asociacionesRepo = createLocalStorageRepository(STORAGE_KEY_ASOCIACIONES, INSUMOS_POR_PRESTACION_DEFAULT)
+// F7-36 FASE 1 (Commit 1.5d): migrados a createTenantRepository para aislamiento multi-tenant.
+// Claves legacy ahora: sd_<clinicaId>_studio_dental_inventario_*
+const inventarioRepo = createTenantRepository(STORAGE_KEY_INVENTARIO, undefined)
+const asociacionesRepo = createTenantRepository(STORAGE_KEY_ASOCIACIONES, INSUMOS_POR_PRESTACION_DEFAULT)
 
 export const inventarioStorageService = {
   obtenerItems: (defaults) => inventarioRepo.obtener(defaults),

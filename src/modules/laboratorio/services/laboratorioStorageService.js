@@ -1,13 +1,15 @@
 /**
  * Persistencia en LocalStorage para Órdenes y Directorio de Laboratorios
  */
-import { createLocalStorageRepository } from '../../../services/localStorageRepository'
+import { createTenantRepository } from '../../../services/localStorageRepository'
 
 const STORAGE_KEY_ORDENES = 'studio_dental_laboratorio_ordenes'
 const STORAGE_KEY_LABS = 'studio_dental_laboratorio_directorio'
 
-const ordenesRepo = createLocalStorageRepository(STORAGE_KEY_ORDENES, undefined)
-const laboratoriosRepo = createLocalStorageRepository(STORAGE_KEY_LABS, undefined)
+// F7-36 FASE 1 (Commit 1.5d): migrados a createTenantRepository para aislamiento multi-tenant.
+// Claves legacy ahora: sd_<clinicaId>_studio_dental_laboratorio_*
+const ordenesRepo = createTenantRepository(STORAGE_KEY_ORDENES, undefined)
+const laboratoriosRepo = createTenantRepository(STORAGE_KEY_LABS, undefined)
 
 export const laboratorioStorageService = {
   obtenerOrdenes: (defaults) => ordenesRepo.obtener(defaults),
