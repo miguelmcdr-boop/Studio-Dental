@@ -294,6 +294,7 @@ export async function handler(req: Request): Promise<Response> {
           tamano_bytes,
           // F7-34: r2_object_key removido (contiene clinica_id/paciente_id)
         },
+        p_user_id: userId,
       }),
     });
 

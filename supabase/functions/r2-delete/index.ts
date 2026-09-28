@@ -245,6 +245,7 @@ Deno.serve(async (req) => {
           // F7-34: nombre_archivo removido (PHI potencial)
           // F7-34: r2_object_key removido (contiene clinica_id/paciente_id)
         },
+        p_user_id: userId,
       }),
     });
 

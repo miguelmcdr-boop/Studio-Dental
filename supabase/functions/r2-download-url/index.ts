@@ -216,6 +216,7 @@ Deno.serve(async (req) => {
           mime_type: archivo.mime_type,
           // F7-34: r2_object_key removido (contiene clinica_id/paciente_id)
         },
+        p_user_id: userId,
       }),
     });
 

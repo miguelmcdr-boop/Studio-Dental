@@ -8254,3 +8254,140 @@ Mejora en tests: Función stripComments() remueve comentarios antes de buscar PH
 🟡 CORREGIDO CON RIESGOS PENDIENTES (hasta aplicar migración en staging con supabase db push y validar con query de verificación)
 
 ---
+
+
+---
+
+## 2026-09-29 — F7-36 FASE 5: Identidad real del actor (Commits 5.1, 5.2, 5.3)
+
+### Contexto
+Resolver user_id = null en audit_log para eventos FILE_* (FILE_UPLOAD, FILE_DOWNLOAD, FILE_DELETE, FILE_RESTORE).
+
+### Problema detectado
+Auditoría de datos reales en staging reveló que TODOS los eventos FILE_* tenían user_id = null:
+
+    | created_at            | action        | user_id |
+    |-----------------------|---------------|---------|
+    | 2026-09-28 18:30:16   | FILE_DOWNLOAD | null    |
+    | 2026-09-28 18:30:07   | FILE_UPLOAD   | null    |
+
+Causa raíz: las Edge Functions invocan registrar_evento_archivo con SUPABASE_SERVICE_ROLE_KEY. Dentro de la función, auth.uid() retorna null porque el JWT es de service_role, no del usuario real.
+
+### Test obligatorio del brief
+
+> "Dentista A descarga archivo -> audit_log.user_id = Dentista A. Dentista B descarga archivo -> audit_log.user_id = Dentista B. No deben confundirse."
+
+### Solución implementada (3 commits)
+
+#### Commit 5.1: Migración SQL
+Archivo: supabase/migrations/2026_09_29_0001_f7_36_fase5_actor_real_archivos.sql (193 líneas)
+
+- Agrega 4to parámetro: p_user_id UUID DEFAULT NULL
+- INSERT usa: COALESCE(p_user_id, auth.uid())
+- Backward compatible: llamados viejos (sin p_user_id) siguen funcionando
+- Preserva limpieza PHI de FASE 4 (sin nombre_archivo en new_data)
+- Preserva permisos de FASE 2 (solo service_role)
+- Preserva search_path vacío de FASE 3
+
+Referencia de diseño: registrar_evento_purge v2 (FASE 2, 20260101000017) ya resolvió este mismo problema con la misma técnica.
+
+#### Commit 5.2: Modificar 4 Edge Functions
+Archivos modificados:
+- supabase/functions/r2-upload-url/index.ts (FILE_UPLOAD)
+- supabase/functions/r2-download-url/index.ts (FILE_DOWNLOAD)
+- supabase/functions/r2-delete/index.ts (FILE_DELETE)
+- supabase/functions/r2-restore/index.ts (FILE_RESTORE)
+
+NO modificado: r2-list-deleted NO llama a registrar_evento_archivo (solo lista archivos eliminados)
+
+Cambio en cada Edge Function: agregar p_user_id: userId al body JSON de la llamada RPC. userId ya existía en las 4 funciones (extraído del JWT del usuario en la fase de autenticación).
+
+#### Commit 5.3: Tests de regresión
+Archivo: src/test/security/f7-36-fase5-actor-real-archivos.test.js (8 tests)
+
+Los 8 tests:
+1. r2-upload-url manda p_user_id: userId en body
+2. r2-download-url manda p_user_id: userId en body
+3. r2-delete manda p_user_id: userId en body
+4. r2-restore manda p_user_id: userId en body
+5. r2-list-deleted NO llama a registrar_evento_archivo (solo lista)
+6. Migración SQL usa COALESCE(p_user_id, auth.uid()) en INSERT
+7. Migración SQL define p_user_id uuid DEFAULT NULL como 4to parámetro
+8. Migración SQL preserva limpieza de nombre_archivo en new_data (regresión FASE 4)
+
+### Flujo completo post-FASE 5
+
+1. Usuario autenticado -> Edge Function con JWT
+2. Edge Function valida JWT -> extrae userId
+3. Edge Function valida membresía en miembros_clinica
+4. Edge Function hace operación R2
+5. Edge Function llama RPC con p_user_id: userId
+6. RPC inserta en audit_log con user_id = userId real
+7. Auditor puede ver QUIÉN hizo la operación (no null)
+
+### Validaciones
+- 1632/1632 tests pasando (1624 previos + 8 nuevos)
+- validate:architecture PASS
+- build OK
+- 0 regresiones
+
+### ⚠️ CHECKLIST DE DEPLOY MANUAL POST-MERGE (CRÍTICO)
+
+Las migraciones SQL NO se aplican automáticamente al hacer push. Después de merge del PR, ejecutar:
+
+**Opción 1 (recomendada):** supabase db push
+
+**Opción 2:** Copiar contenido de supabase/migrations/2026_09_29_0001_f7_36_fase5_actor_real_archivos.sql en Supabase Dashboard -> SQL Editor.
+
+Las Edge Functions requieren redeploy manual:
+
+    supabase functions deploy r2-upload-url
+    supabase functions deploy r2-download-url
+    supabase functions deploy r2-delete
+    supabase functions deploy r2-restore
+
+#### Verificación post-deploy (obligatoria)
+
+**Query 1: Verificar firma de la función**
+
+    SELECT p.proname,
+           pg_get_function_identity_arguments(p.oid) AS args_signature,
+           p.proconfig AS config,
+           has_function_privilege('authenticated', p.oid, 'EXECUTE') AS auth_can_exec,
+           has_function_privilege('public', p.oid, 'EXECUTE') AS public_can_exec,
+           has_function_privilege('service_role', p.oid, 'EXECUTE') AS service_can_exec
+    FROM pg_proc p
+    JOIN pg_namespace n ON p.pronamespace = n.oid
+    WHERE n.nspname = 'public' AND p.proname = 'registrar_evento_archivo';
+
+Esperado (1 fila):
+- args_signature = p_archivo_id uuid, p_evento text, p_detalle jsonb, p_user_id uuid
+- config = {search_path=}
+- auth_can_exec = false
+- public_can_exec = false
+- service_can_exec = true
+
+**Query 2: Test obligatorio del brief**
+Subir archivo en la app como usuario autenticado, luego:
+
+    SELECT action, user_id, created_at
+    FROM audit_log
+    WHERE action = 'FILE_UPLOAD'
+    ORDER BY created_at DESC LIMIT 1;
+
+Esperado: user_id = UUID del usuario autenticado (NO null)
+
+**Query 3: Test multi-usuario (manual)**
+1. Login como Dentista A, subir archivo -> user_id = Dentista A
+2. Login como Dentista B, subir archivo -> user_id = Dentista B
+3. Confirmar que no se confunden
+
+### Estado final FASE 5
+- ✅ 4to parámetro p_user_id agregado (backward compatible)
+- ✅ 4 Edge Functions modificadas
+- ✅ 8 tests de regresión pasando
+- ✅ Principio del brief cumplido: "JWT usuario -> validación -> user_id real -> Edge Function -> RPC -> audit_log.user_id = usuario real"
+
+**PR:** #173 (pendiente de merge)
+
+---
