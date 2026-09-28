@@ -7983,3 +7983,62 @@ Las migraciones SQL NO se aplican automáticamente al hacer push. Después de me
 - Si todo OK, proceder con FASE 3 (SECURITY DEFINER hardening)
 
 ---
+
+
+## 2026-09-28 — F7-36 FASE 2 HOTFIX: Permisos incompletos (Commit 2.5)
+
+### Contexto
+Post-merge de PR #168, al aplicar las migraciones en staging se descubrió que los permisos estaban incompletos. El estado anterior VIOLABA el principio del brief: "NO permitir fabricar auditoría".
+
+### Problemas detectados
+
+| Problema | Severidad | Causa |
+|---|---|---|
+| `registrar_evento_archivo` tenía `auth_can_exec = true` | 🔴 Crítico | Commit 2.1 faltó `REVOKE FROM authenticated/anon` |
+| `registrar_evento_purge` v1 (3 args) invocable por `authenticated` | 🔴 Crítico | Commit 2.2 solo revocó firma v2 (4 args), ignoró v1 de 20260101000016 |
+| Funciones cron/trigger con `service_can_exec = true` innecesario | 🟡 Menor | Mala práctica, pg_cron corre como postgres |
+
+### Migración hotfix
+
+Archivo: `supabase/migrations/2026_09_28_0003_f7_36_fase2_rpc_hotfix_perms.sql` (141 líneas)
+
+**9 REVOKEs aplicados:**
+1. `REVOKE EXECUTE ON registrar_evento_archivo FROM authenticated`
+2. `REVOKE EXECUTE ON registrar_evento_archivo FROM anon`
+3. `REVOKE ALL ON registrar_evento_purge(UUID, TEXT, JSONB) FROM PUBLIC` (v1)
+4. `REVOKE EXECUTE ON registrar_evento_purge(UUID, TEXT, JSONB) FROM authenticated` (v1)
+5. `REVOKE EXECUTE ON registrar_evento_purge(UUID, TEXT, JSONB) FROM anon` (v1)
+6. `REVOKE EXECUTE ON registrar_evento_purge(UUID, TEXT, JSONB) FROM service_role` (v1)
+7. `REVOKE EXECUTE ON purgar_archivos_expirados FROM service_role`
+8. `REVOKE EXECUTE ON purgar_certificados_expirados FROM service_role`
+9. `REVOKE EXECUTE ON validar_eliminado_at_certificados FROM service_role`
+
+### Estado post-hotfix
+
+| Función | Firma | auth | public | service_role |
+|---|---|---|---|---|
+| `purgar_archivos_expirados` | () | ❌ | ❌ | ❌ |
+| `purgar_certificados_expirados` | () | ❌ | ❌ | ❌ |
+| `registrar_evento_archivo` | (UUID, TEXT, JSONB) | ❌ | ❌ | ✅ |
+| `registrar_evento_purge` (v1 obsoleta) | (UUID, TEXT, JSONB) | ❌ | ❌ | ❌ |
+| `registrar_evento_purge` (v2 activa) | (UUID, TEXT, JSONB, UUID) | ❌ | ❌ | ✅ |
+| `validar_eliminado_at_certificados` | () trigger | ❌ | ❌ | ❌ |
+
+### Validación post-aplicación
+
+**Query 1 (permisos):** Verificar que las 6 filas tienen auth=false, public=false. Solo registrar_evento_archivo y registrar_evento_purge v2 tienen service=true.
+
+**Query 2 (test obligatorio del brief):** `SET ROLE authenticated; SELECT public.registrar_evento_purge(...)` debe fallar con `permission denied` para AMBAS firmas (v1 y v2).
+
+### Estado final FASE 2
+- ✅ Commit 2.1: endurecer `registrar_evento_archivo` (parcial, completado en 2.5)
+- ✅ Commit 2.2: endurecer 4 funciones purge/trigger helpers (parcial, completado en 2.5)
+- ✅ Commit 2.3: 7 tests JS de regresión de permisos
+- ✅ Commit 2.4: documentación + checklist deploy manual
+- ✅ **Commit 2.5: hotfix permisos incompletos** (este commit)
+
+**PR:** #169 (pendiente de merge)
+
+**⚠️ Deploy manual requerido post-merge:** ejecutar `supabase db push` y validar con queries.
+
+---

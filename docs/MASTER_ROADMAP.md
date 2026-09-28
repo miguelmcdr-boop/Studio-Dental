@@ -2614,10 +2614,11 @@ PRs: #166 (Parte 1) ✅ mergeado, #167 (Parte 2) ✅ mergeado
 **Test obligatorio del brief:** Usuario autenticado normal NO debe poder invocar `registrar_evento_purge(...)` ni `registrar_evento_archivo(...)` si no forman parte de la API pública del usuario.
 
 **Commits completados:**
-- ✅ Commit 2.1 (`17142ae`): endurecer permisos de `registrar_evento_archivo`
-- ✅ Commit 2.2 (`d53dbcb`): endurecer permisos de 4 funciones purge/trigger helpers
+- ✅ Commit 2.1 (`17142ae`): endurecer permisos de `registrar_evento_archivo` (parcial)
+- ✅ Commit 2.2 (`d53dbcb`): endurecer permisos de 4 funciones purge/trigger helpers (parcial)
 - ✅ Commit 2.3 (`8b8b8cd`): 7 tests JS de regresión de permisos
 - ✅ Commit 2.4 (`6077f82`): documentación + checklist deploy manual
+- ✅ **Commit 2.5 (`53a6b85`): hotfix — completar REVOKEs faltantes de 2.1 y 2.2**
 
 **Hallazgos de la auditoría (2026-09-28):**
 - ✅ `registrar_evento_archivo` endurecido (Commit 2.1): REVOKE PUBLIC, GRANT service_role
