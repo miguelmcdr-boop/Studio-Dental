@@ -7406,3 +7406,64 @@ Todos usan mock de tenantCache con clínica activa simulada y claves sd_clinica-
 Commit 1.5d: Migrar servicios operacionales (inventario, laboratorio, esterilización, urgencias GES) a tenant-aware.
 
 ---
+
+## 2026-09-28 — F7-36 FASE 1: Migración de servicios operacionales a tenant-aware (Commit 1.5d)
+
+### Contexto
+Tercera migración real de servicios a claves tenant-aware. Los 4 servicios operacionales ahora almacenan sus datos con formato sd_<clinicaId>_<baseKey> en lugar de las claves legacy studio_dental_*.
+
+### Servicios migrados (4 wrappers simples, sin Supabase)
+
+1. inventarioStorageService.js (21 → 23 líneas)
+   - 2 repos migrados: inventarioRepo, asociacionesRepo
+   - Claves legacy migradas:
+     * 'studio_dental_inventario_stock'
+     * 'studio_dental_inventario_asociaciones_tratamiento'
+
+2. laboratorioStorageService.js (17 → 19 líneas)
+   - 2 repos migrados: ordenesRepo, laboratoriosRepo
+   - Claves legacy migradas:
+     * 'studio_dental_laboratorio_ordenes'
+     * 'studio_dental_laboratorio_directorio'
+
+3. esterilizacionStorageService.js (22 → 24 líneas)
+   - 3 repos migrados: cargasRepo, biologicosRepo, testDiariosRepo
+   - Claves legacy migradas:
+     * 'studio_dental_esterilizacion_cargas'
+     * 'studio_dental_esterilizacion_biologicos'
+     * 'studio_dental_esterilizacion_test_diarios'
+
+4. urgenciasGesStorageService.js (11 → 13 líneas)
+   - 1 repo migrado: gesRepo
+   - Clave legacy migrada:
+     * 'studio_dental_atenciones_ges_urgencias'
+
+### Total
+8 repos migrados, 8 claves legacy ahora aisladas por clínica.
+
+### Características de la migración
+- Cambio de UNA línea por repo: createLocalStorageRepository → createTenantRepository
+- Preserva valores default (undefined, [], INSUMOS_POR_PRESTACION_DEFAULT)
+- Los 4 servicios son wrappers simples sin lógica de Supabase ni fallbacks
+- Ninguno estaba en allowlist (no requieren actualización de límites)
+- No requieren tests transversales (no tienen patrón Supabase-overwrite)
+
+### Defensa en profundidad
+La migración agrega una SEGUNDA capa de aislamiento sobre el RLS de Supabase:
+- RLS: previene acceso cross-clinic a nivel BD
+- tenantCache: previene contaminación cross-clinic en localStorage
+
+### Validaciones
+- 1589/1589 tests pasando (sin regresión)
+- validate:architecture PASS
+- build OK
+
+### Dependencias preservadas
+- useInventario, useLaboratorio, useEsterilizacion, useUrgenciasGes
+- Los servicios mantienen API pública idéntica
+- invalidarCacheCambioClinica ya limpia sus claves (vía prefijo studio_dental_)
+
+### Próximo paso
+Commit 1.5e: Migrar servicios de configuración (configuracion, comunicaciones, prestaciones) a tenant-aware.
+
+---
