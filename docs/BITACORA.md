@@ -7766,3 +7766,80 @@ Los tests simulan este comportamiento con helper `simularReload()`:
 Commit 1.9: Documentación final + cierre FASE 1 (RFC interno + checklist de verificación manual).
 
 ---
+
+
+## 2026-09-28 — F7-36 FASE 1: Cierre formal con RFC + checklist (Commit 1.9)
+
+### Contexto
+Commit final de documentación que consolida todo el trabajo de F7-36 FASE 1 en 2 documentos nuevos + actualizaciones de MASTER_ROADMAP.md.
+
+### Archivos nuevos
+
+1. **docs/F7-36-FASE1-RFC.md** (~260 líneas)
+   - Resumen ejecutivo de FASE 1
+   - Contexto del problema (4 problemas críticos detectados en auditoría)
+   - Estrategia: defensa en profundidad de 3 capas
+   - Implementación detallada de los 14 commits
+   - Métricas finales
+   - 3 bugs críticos corregidos
+   - Riesgos mitigados
+   - Trabajo futuro (FASE 2-11)
+   - Referencias
+
+2. **docs/F7-36-FASE1-VERIFICACION.md** (~240 líneas)
+   - Checklist de verificación manual para QA
+   - Prerequisitos de entorno
+   - Verificación automática (4 pasos obligatorios)
+   - 7 escenarios manuales detallados:
+     1. Aislamiento localStorage
+     2. Aislamiento IndexedDB
+     3. Invalidación de caché (5 pasos)
+     4. Defensa en profundidad
+     5. Claves legacy coexisten
+     6. Logout completo
+     7. Operaciones offline en cola
+   - Checklist final de release
+   - Rollback plan
+
+### Archivos actualizados
+
+3. **docs/MASTER_ROADMAP.md**
+   - Commit 1.9 marcado como DONE
+   - Estado de F7-36 actualizado a "✅ FASE 1 COMPLETADA (2026-09-28)"
+   - Subtítulo "Aislamiento de caché multi-clínica (EN CURSO)" → "(✅ COMPLETADA)"
+
+### Resumen ejecutivo de F7-36 FASE 1
+
+**Objetivo:** Resolver contaminación cross-clinic de datos clínicos y financieros en el frontend.
+
+**Estrategia:** 3 capas de defensa en profundidad
+- CAPA 1: Supabase Storage + RLS (servidor)
+- CAPA 2: tenantCache + IndexedDB v2 (frontend)
+- CAPA 3: invalidarCacheCambioClinica (5 pasos fail-safe)
+
+**Métricas finales:**
+- 14 commits atómicos (13 reales + 1 redundante)
+- 1601/1601 tests pasando (sin regresiones)
+- 15+ servicios migrados a tenant-aware
+- ~30 repos ahora aislados por clínica
+- 0 violaciones de arquitectura
+- 3 bugs críticos corregidos
+
+**Bugs críticos corregidos:**
+1. Fallback cross-clinic en 4 storage services (Commit 1.2)
+2. Reportes BI silenciosamente rotos (Commit 1.5f)
+3. GAP de seguridad en claves por pacienteId (Commit 1.5a)
+
+**PRs relacionados:**
+- PR #166: F7-36 FASE 1 Parte 1 (localStorage migrado) ✅ mergeado
+- PR #167: F7-36 FASE 1 Parte 2 (IndexedDB + tests + docs) ⏳ en preparación
+
+### Validaciones finales
+- 1601/1601 tests pasando
+- validate:architecture PASS
+- build OK
+- Documentación completa en 2 RFCs nuevos
+
+### Estado final de F7-36
+- ✅ **FASE 1 COMPLETADA** (Aislamiento multi-tenant frontend)
+- ⏳ FASE 2-11 pendientes (trabajo server-side: RPC, SECURITY DEFINER, audit log, etc.)

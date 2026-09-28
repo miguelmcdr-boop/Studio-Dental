@@ -2578,12 +2578,12 @@ La auditoría de 2026-08-26 registró: **852/852 tests**, **7 warnings de lint**
 
 ### F7-36 — Tenant Cache & Audit Integrity
 
-**Estado:** 🟡 IN PROGRESS (FASE 1 en curso)
+**Estado:** ✅ FASE 1 COMPLETADA (2026-09-28)
 
 **Descripción:** Auditoría y corrección profunda de aislamiento multi-tenant, integridad de auditoría, y reproducibilidad de BD.
 
 **Fases:**
-1. **Aislamiento de caché multi-clínica** (EN CURSO)
+1. **Aislamiento de caché multi-clínica** (✅ COMPLETADA — 2026-09-28)
    - ✅ Commit 1.1: tenantCache helper (src/services/tenantCache.js + 280 líneas de tests)
    - ✅ Commit 1.2: Eliminación de fallback cross-clinic en 4 storage services
    - ✅ Commit 1.3: Listener de invalidación al cambiar de clínica (invalidarCacheCambioClinica.js + integración en ClinicaSelector.jsx)
@@ -2598,7 +2598,7 @@ La auditoría de 2026-08-26 registró: **852/852 tests**, **7 warnings de lint**
    - ✅ Commit 1.6: IndexedDB tenant-aware para adjuntos - BD v2 + campo clinicaId + filtro + 7 tests nuevos
    - ✅ Commit 1.7: operationQueue tenant-aware (cubierto en Commit 1.5f)
    - ✅ Commit 1.8: 5 tests obligatorios FASE 1 - aislamiento multi-tenant end-to-end con 3 capas de defensa
-   - ⏳ Commit 1.9: Documentación final
+   - ✅ Commit 1.9: Documentación final - RFC + checklist + cierre FASE 1
 2. **RPC de auditoría - cerrar superficie de ataque** (PENDIENTE)
 3. **SECURITY DEFINER hardening** (PENDIENTE)
 4. **Audit log de archivos** (PENDIENTE)
