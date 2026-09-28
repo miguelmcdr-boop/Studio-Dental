@@ -2594,7 +2594,7 @@ La auditoría de 2026-08-26 registró: **852/852 tests**, **7 warnings de lint**
    - ✅ Commit 1.5c: Migrar servicios financieros (pagos, presupuestos, finanzas) - migrados a createTenantRepository
    - ✅ Commit 1.5d: Migrar servicios operacionales (inventario, laboratorio, esterilización, urgencias GES) - 8 repos migrados
    - ✅ Commit 1.5e: Migrar servicios de configuración (comunicaciones, prestaciones, configuracion) - 6 repos migrados
-   - ⏳ Commit 1.5f: Migrar pendientes (operationQueue, reportes, App.jsx)
+   - ✅ Commit 1.5f: Migrar pendientes (operationQueue, reportes, App.jsx) + bug silencioso corregido en reportes (operationQueue, reportes, App.jsx)
    - ⏳ Commit 1.6: IndexedDB tenant-aware para adjuntos
    - ⏳ Commit 1.7: operationQueue tenant-aware
    - ⏳ Commit 1.8: 5 tests obligatorios FASE 1

@@ -7519,3 +7519,76 @@ La migración agrega una SEGUNDA capa de aislamiento sobre el RLS de Supabase:
 Commit 1.5f: Migrar pendientes (operationQueue, reportesStorageService, App.jsx) a tenant-aware.
 
 ---
+
+## 2026-09-28 — F7-36 FASE 1: Migración final de pendientes + corrección de bug silencioso en reportes (Commit 1.5f)
+
+### Contexto
+ÚLTIMA migración real de servicios a claves tenant-aware en F7-36 FASE 1. Incluye 3 tipos de cambios: migración directa, reescritura con servicios públicos, y corrección de bug silencioso crítico en reportes BI.
+
+### Archivos modificados
+
+1. operationQueue.js (252 → 239 líneas) — MIGRACIÓN DIRECTA
+   - Migrado de localStorage directo a createTenantRepository
+   - 2 repos nuevos: queueRepo (operation_queue), failedRepo (failed_operations)
+   - Las operaciones pendientes ahora están aisladas por clínica:
+     si el usuario cambia de clínica, las operaciones de clínica A
+     NO se procesarán en clínica B
+   - Preserva toda la lógica de retry exponencial y lock
+
+2. operationQueue.test.js (235 → 267 líneas) — AJUSTE DE TESTS
+   - Agregado mock completo de tenantCache con clínica activa simulada
+   - Actualizadas 3 referencias a clave legacy por clave tenant-aware
+   - Los 13 tests siguen validando la misma lógica en contexto tenant-aware
+
+3. reportesStorageService.js (30 → 43 líneas) — REESCRITURA + FIX BUG
+   🔴 BUG SILENCIOSO CORREGIDO:
+   Antes: leía localStorage directo con claves legacy:
+     - studio_dental_pagos_historial_v3
+     - studio_dental_presupuestos_globales
+     - studio_dental_agenda_citas_v3
+   Estas claves YA FUERON MIGRADAS a tenant-aware en commits 1.5b y 1.5c,
+   por lo que reportesStorageService SIEMPRE retornaba arrays vacíos para
+   pagos, presupuestos y citas. Solo pacientes funcionaba (porque usaba
+   el servicio público desde el inicio).
+
+   Después: usa servicios públicos:
+     - pagosStorageService.obtenerPagos()
+     - presupuestosStorageService.obtenerPresupuestos()
+     - agendaStorageService.obtenerCitas()
+     - pacientesStorageService.obtenerPacientes()
+
+   Beneficios:
+   ✅ Corrige bug silencioso crítico (reportes BI ahora funcionan)
+   ✅ Hereda automáticamente aislamiento multi-tenant
+   ✅ Reduce acoplamiento (cambios en lógica interna de servicios se propagan)
+   ✅ Fuente única de verdad: cada servicio es dueño de sus claves
+
+4. App.jsx (360 → 361 líneas) — MIGRACIÓN DE CLAVE PHI
+   - clinica_paciente_seleccionado_id migrado a createTenantRepository
+   - Ahora se almacena como sd_<clinicaId>_clinica_paciente_seleccionado_id
+   - Previene contaminación cross-clinic del paciente seleccionado
+   - clinica_active_section NO migrada (preferencia UI global del usuario)
+
+### Defensa en profundidad (FASE 1 COMPLETA)
+- RLS de Supabase: previene acceso cross-clinic a nivel BD
+- tenantCache: previene contaminación cross-clinic en localStorage
+- invalidarCacheCambioClinica: limpia TODO al cambiar de clínica
+
+### Resumen F7-36 FASE 1 — Migración de servicios
+- 1.5b: agenda + pacientes (2 servicios, PHI críticos)
+- 1.5c: pagos + presupuestos + finanzas (3 servicios, financieros)
+- 1.5d: inventario + laboratorio + esterilización + urgencias (4 servicios)
+- 1.5e: comunicaciones + prestaciones + configuración (3 servicios)
+- 1.5f: operationQueue + reportesStorageService + App.jsx (3 pendientes)
+Total: 15 servicios/archivos migrados, ~30 repos ahora tenant-aware
+
+### Validaciones
+- 1589/1589 tests pasando (sin regresión)
+- 13/13 tests de operationQueue pasando (con mock tenant-aware)
+- validate:architecture PASS
+- build OK (App.jsx JSX validado por esbuild/Vite)
+
+### Próximo paso
+Commit 1.6: IndexedDB tenant-aware para adjuntos clínicos (FASE 1 continúa).
+
+---
