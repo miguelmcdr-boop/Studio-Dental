@@ -8042,3 +8042,136 @@ Archivo: `supabase/migrations/2026_09_28_0003_f7_36_fase2_rpc_hotfix_perms.sql` 
 **⚠️ Deploy manual requerido post-merge:** ejecutar `supabase db push` y validar con queries.
 
 ---
+
+
+## 2026-09-28 — F7-36 FASE 3: SECURITY DEFINER hardening (Commits 3.1, 3.2, 3.3)
+
+### Contexto
+Endurecimiento de las 8 funciones SECURITY DEFINER del sistema RBAC para cerrar vectores de ataque:
+- search_path vulnerable (= public) → reemplazado por = '' (vacío)
+- Permisos implícitos (dependían de PUBLIC) → REVOKE/GRANT explícitos
+- Vector crítico cerrado: escalada de privilegios vía set_app_metadata_role
+
+### Principio del brief aplicado
+> "Preferir SECURITY DEFINER SET search_path = '' cuando sea compatible. Usar referencias completamente calificadas (public.tabla). NO modificar funciones legítimas innecesariamente."
+
+### Commits de FASE 3
+
+| # | Commit | Tipo | Contenido |
+|---|---|---|---|
+| 3.1 | `d5ec9ac` | SQL | Migración `2026_09_28_0004_f7_36_fase3_security_definer_hardening.sql` (312 líneas) |
+| 3.2 | `3e3af29` | JS | 8 tests de regresión de hardening RBAC |
+| 3.3 | este commit | docs | BITACORA + MASTER_ROADMAP |
+
+### 8 funciones endurecidas
+
+| Función | search_path | auth_can_exec | service_can_exec | Caller legítimo |
+|---|---|---|---|---|
+| `current_role()` | `''` | ✅ | ✅ | RLS policies |
+| `has_role(app_role)` | `''` | ✅ | ✅ | RLS policies |
+| `is_admin()` | `''` | ✅ | ✅ | dead code preservado |
+| `role_in(app_role[])` | `''` | ✅ | ✅ | RLS policies |
+| **`set_app_metadata_role(uuid, app_role)`** | `''` | ❌ RESTRINGIDO | ✅ | trigger + service_role |
+| **`get_role_from_metadata(uuid)`** | `''` | ❌ RESTRINGIDO | ✅ | service_role |
+| `handle_new_user()` | `''` | trigger | trigger | PostgreSQL (trigger) |
+| `profiles_lock_role()` | `''` | trigger | trigger | PostgreSQL (trigger) |
+
+### Vector crítico cerrado: escalada de privilegios
+
+**Antes (vulnerable):**
+
+    -- Usuario autenticado podía hacer esto:
+    SELECT public.set_app_metadata_role(
+      'otro-user-id',
+      'admin'::app_role
+    );
+    -- Resultado: modificaba auth.users de OTRO usuario → escalada de privilegios
+
+**Después (protegido):**
+
+    SET ROLE authenticated;
+    SELECT public.set_app_metadata_role('...', 'admin'::app_role);
+    -- ERROR: permission denied for function set_app_metadata_role
+
+### Tests agregados
+
+Archivo: `src/test/security/f7-36-fase3-rbac-hardening.test.js` (277 líneas, 8 tests)
+
+| # | Test | Valida |
+|---|---|---|
+| 1 | Frontend NO invoca `set_app_metadata_role` | Previene escalada de privilegios |
+| 2 | Frontend NO invoca `get_role_from_metadata` | Previene enumeración de roles |
+| 3 | Frontend NO intenta UPDATE directo en auth.users | Previene escalada por bypass |
+| 4 | Frontend NO invoca `handle_new_user` | Trigger interno preservado |
+| 5 | Frontend NO invoca `profiles_lock_role` | Trigger interno preservado |
+| 6 | Migración contiene REVOKEs críticos | Contrato cumplido |
+| 7 | Migración establece search_path vacío | Sin search_path=public |
+| 8 | Contrato de escalada documentado | Principio del brief |
+
+**Nota honesta:** Los tests NO validan permisos reales contra BD viva (Supabase local no corre durante CI). Valida el contrato mediante grep estático.
+
+### Validaciones
+- 1616/1616 tests pasando (1608 previos + 8 nuevos)
+- validate:architecture PASS
+- build OK
+- 0 regresiones
+
+### ⚠️ CHECKLIST DE DEPLOY MANUAL POST-MERGE (CRÍTICO)
+
+Las migraciones SQL NO se aplican automáticamente al hacer push. Después de merge del PR, ejecutar:
+
+**Opción 1 (recomendada):** `supabase db push`
+
+**Opción 2:** Copiar contenido de la migración en Supabase Dashboard → SQL Editor.
+
+#### Verificación post-deploy (obligatoria)
+
+**Query 1: Verificar search_path vacío y permisos**
+
+    SELECT p.proname,
+           p.proconfig AS config,
+           has_function_privilege('authenticated', p.oid, 'EXECUTE') AS auth_can_exec,
+           has_function_privilege('public', p.oid, 'EXECUTE') AS public_can_exec,
+           has_function_privilege('service_role', p.oid, 'EXECUTE') AS service_can_exec
+    FROM pg_proc p
+    JOIN pg_namespace n ON p.pronamespace = n.oid
+    WHERE n.nspname = 'public'
+      AND p.proname IN (
+        'current_role', 'has_role', 'is_admin', 'role_in',
+        'set_app_metadata_role', 'get_role_from_metadata',
+        'handle_new_user', 'profiles_lock_role'
+      )
+    ORDER BY p.proname;
+
+**Esperado (8 filas):**
+- `config = {search_path=}` en TODAS las filas (vacío)
+- `auth_can_exec = false` SOLO en `set_app_metadata_role` y `get_role_from_metadata`
+- `public_can_exec = false` en TODAS las filas
+- `service_can_exec = true` en TODAS las filas
+
+**Query 2: Test obligatorio del brief (escalada bloqueada)**
+
+    SET ROLE authenticated;
+    SELECT public.set_app_metadata_role(
+      '00000000-0000-0000-0000-000000000000'::uuid, 'admin'::public.app_role
+    );
+    -- Esperado: ERROR "permission denied for function set_app_metadata_role"
+    RESET ROLE;
+
+**Query 3: RLS sigue funcionando (login como usuario autenticado real)**
+
+    -- Debe retornar el rol del usuario actual (no NULL)
+    SELECT public.current_role();
+    SELECT public.role_in(ARRAY['admin','dentista']::public.app_role[]);
+    -- Esperado: retorna booleano según el rol real del usuario
+
+### Estado final FASE 3
+- ✅ 8 funciones SECURITY DEFINER endurecidas
+- ✅ search_path = '' (vacío) en todas
+- ✅ Permisos explícitos (sin depender de PUBLIC)
+- ✅ Vector de escalada de privilegios cerrado
+- ✅ 8 tests de regresión pasando
+
+**PR:** #170 (pendiente de merge)
+
+---
