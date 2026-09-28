@@ -7289,3 +7289,58 @@ Cierra GAP de seguridad crítico donde PHI de una clínica podía quedar en loca
 Commit 1.5b: Migrar servicios PHI críticos (agenda + pacientes) a formato tenant-aware.
 
 ---
+
+## 2026-09-28 — F7-36 FASE 1: Migración de servicios PHI críticos a tenant-aware (Commit 1.5b)
+
+### Contexto
+Primera migración real de servicios a claves tenant-aware. Los 2 servicios PHI más críticos (agenda y pacientes) ahora almacenan sus datos con formato sd_<clinicaId>_<baseKey> en lugar de las claves legacy studio_dental_*.
+
+### Servicios migrados
+1. pacientesStorageService.js (463 → 432 líneas)
+   - createLocalStorageRepository → createTenantRepository
+   - Clave legacy 'studio_dental_pacientes_v3' → 'sd_<clinicaId>_studio_dental_pacientes_v3'
+   - Fail-safe: si no hay clínica activa, retorna defaultValue (SEED_PACIENTES_DEMO)
+   - Preserva lógica de Supabase, soft delete, validación Zod
+
+2. agendaStorageService.js (378 → 379 líneas)
+   - createLocalStorageRepository → createTenantRepository
+   - Clave legacy 'studio_dental_agenda_citas_v3' → 'sd_<clinicaId>_studio_dental_agenda_citas_v3'
+   - Preserva notify: true para sincronización entre pestañas
+   - Preserva lógica de Supabase, mapeo de estados, transformaciones
+
+### Defensa en profundidad
+La migración agrega una SEGUNDA capa de aislamiento sobre el RLS de Supabase:
+- RLS: previene acceso cross-clinic a nivel BD
+- tenantCache: previene contaminación cross-clinic en localStorage
+
+Si un bug permite acceder a datos de otra clínica a nivel BD (RLS mal configurado, por ejemplo), el aislamiento en localStorage prevendría que se cacheen esos datos en el cliente.
+
+### Archivos modificados
+- src/modules/pacientes/services/pacientesStorageService.js
+- src/modules/agenda/services/agendaStorageService.js
+- scripts/architecture-allowlist.json (límite agenda 378 → 379 por comentario)
+- src/test/security/no-fallback-cross-clinic.test.js (test de agenda reescrito)
+
+### Actualización de test
+El test 'agendaStorageService: Supabase [] sobrescribe cache antiguo' fue reescrito para usar el patrón tenant-aware:
+- Mock de tenantCache con clínica activa simulada
+- Datos en clave sd_clinica-A_studio_dental_agenda_citas_v3
+- Verifica que Supabase [] sobrescribe cache antiguo en clave tenant-aware
+
+Helper nuevo: crearMockTenantCache(clinicaId) simula tenantCache con clínica activa para los tests de servicios migrados.
+
+### Validaciones
+- 1589/1589 tests pasando (sin regresión)
+- 6/6 tests de no-fallback-cross-clinic pasando (incluye test reescrito)
+- validate:architecture PASS
+- build OK
+
+### Dependencias preservadas
+- pacientesStore.js: sigue usando pacientesStorageService.obtenerPacientes()
+- ClinicaSelector.jsx: ya integra invalidarCacheCambioClinica (Commit 1.3)
+- Supabase sync: lógica intacta, solo cambia dónde se persiste localmente
+
+### Próximo paso
+Commit 1.5c: Migrar servicios financieros (pagos, presupuestos, finanzas) a tenant-aware.
+
+---

@@ -2590,7 +2590,7 @@ La auditoría de 2026-08-26 registró: **852/852 tests**, **7 warnings de lint**
    - ✅ Commit 1.4: Extender localStorageRepository para usar tenantCache (createTenantRepository, 19 tests)
    - 🟡 Commit 1.5: Migrar claves de módulos clínicos a formato tenant-aware (en progreso)
    - ✅ Commit 1.5a: Fix de seguridad - limpiar claves por paciente al cambiar de clínica
-   - ⏳ Commit 1.5b: Migrar servicios PHI críticos (agenda + pacientes)
+   - ✅ Commit 1.5b: Migrar servicios PHI críticos (agenda + pacientes) - migrados a createTenantRepository
    - ⏳ Commit 1.5c: Migrar servicios financieros
    - ⏳ Commit 1.5d: Migrar servicios operacionales
    - ⏳ Commit 1.5e: Migrar servicios de configuración
