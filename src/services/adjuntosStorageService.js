@@ -27,9 +27,12 @@ import { createLogger } from './logger'
 const log = createLogger('adjuntosStorageService')
 
 const DB_NAME = 'studio_dental_adjuntos'
-const DB_VERSION = 1
+// F7-36 FASE 1 (Commit 1.6): versión 2 agrega aislamiento multi-tenant
+// vía campo clinicaId en registros e índice para consultas filtradas.
+const DB_VERSION = 2
 const STORE_NAME = 'adjuntos'
 const INDEX_PACIENTE = 'pacienteId'
+const INDEX_CLINICA = 'clinicaId'
 
 let dbPromise = null
 
@@ -48,9 +51,36 @@ const abrirDB = () => {
 
     request.onupgradeneeded = (event) => {
       const db = event.target.result
+      const oldVersion = event.oldVersion
+
       if (!db.objectStoreNames.contains(STORE_NAME)) {
+        // Instalación nueva: crear store con ambos índices
         const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' })
         store.createIndex(INDEX_PACIENTE, INDEX_PACIENTE, { unique: false })
+        store.createIndex(INDEX_CLINICA, INDEX_CLINICA, { unique: false })
+      } else if (oldVersion < 2) {
+        // F7-36 FASE 1 (Commit 1.6): migración v1 → v2
+        // Agregar índice clinicaId y poblar registros existentes con la
+        // clínica actual. Si no hay clínica activa, los registros quedan
+        // con clinicaId=undefined y serán invisibles en consultas
+        // (defensa en profundidad: se limpian al próximo cambio de clínica).
+        const store = event.target.transaction.objectStore(STORE_NAME)
+        if (!store.indexNames.contains(INDEX_CLINICA)) {
+          store.createIndex(INDEX_CLINICA, INDEX_CLINICA, { unique: false })
+        }
+        const clinicaIdActual = obtenerClinicaId()
+        if (clinicaIdActual) {
+          const cursorReq = store.openCursor()
+          cursorReq.onsuccess = (e) => {
+            const cursor = e.target.result
+            if (cursor) {
+              if (!cursor.value.clinicaId) {
+                cursor.update({ ...cursor.value, clinicaId: clinicaIdActual })
+              }
+              cursor.continue()
+            }
+          }
+        }
       }
     }
 
@@ -95,12 +125,19 @@ const obtenerClinicaId = () => {
  */
 export const guardarAdjunto = async ({ pacienteId, tipo, blob, nombre, clinicaId }) => {
   if (!pacienteId) throw new Error('No se puede guardar un adjunto sin pacienteId asociado.')
+  // F7-36 FASE 1 (Commit 1.6): clinicaId obligatorio para aislamiento multi-tenant.
+  // Sin clinicaId, el adjunto quedaría huérfano y podría contaminar otras clínicas.
+  const clinicaIdEfectivo = clinicaId || obtenerClinicaId()
+  if (!clinicaIdEfectivo) {
+    throw new Error('No se puede guardar un adjunto sin clinicaId (aislamiento multi-tenant).')
+  }
   const db = await abrirDB()
 
   // Paso 1: guardar en IndexedDB inmediatamente (offline-first)
   const registro = {
     id: generarId(),
     pacienteId,
+    clinicaId: clinicaIdEfectivo, // F7-36 FASE 1: aislamiento multi-tenant en IndexedDB
     tipo,
     blob,
     nombre,
@@ -118,8 +155,6 @@ export const guardarAdjunto = async ({ pacienteId, tipo, blob, nombre, clinicaId
 
   // Paso 2: intentar subir a Supabase (asíncrono, no bloquea)
   if (storageDisponible()) {
-    const clinicaIdEfectivo = clinicaId || obtenerClinicaId()
-    
     if (clinicaIdEfectivo) {
       try {
         const resultado = await subirAdjunto({
@@ -145,8 +180,6 @@ export const guardarAdjunto = async ({ pacienteId, tipo, blob, nombre, clinicaId
       } catch (e) {
         log.warn('No se pudo subir a Supabase, adjunto queda solo en IndexedDB:', e)
       }
-    } else {
-      log.warn('No hay clinicaId disponible, adjunto queda solo en IndexedDB')
     }
   }
 
@@ -160,12 +193,25 @@ export const guardarAdjunto = async ({ pacienteId, tipo, blob, nombre, clinicaId
 export const obtenerAdjuntosPorPaciente = async (pacienteId) => {
   if (!pacienteId) return []
   const db = await abrirDB()
+  // F7-36 FASE 1 (Commit 1.6): filtro por clínica actual como defensa en profundidad.
+  // Aunque invalidarCacheCambioClinica borra la BD al cambiar de clínica, este filtro
+  // previene contaminación cross-clinic si la limpieza fallara por cualquier razón.
+  const clinicaIdActual = obtenerClinicaId()
 
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, 'readonly')
     const index = tx.objectStore(STORE_NAME).index(INDEX_PACIENTE)
     const request = index.getAll(pacienteId)
-    request.onsuccess = () => resolve(request.result || [])
+    request.onsuccess = () => {
+      const todos = request.result || []
+      if (!clinicaIdActual) {
+        // Sin clínica activa, retornar vacío (seguridad: no exponer datos de ninguna clínica)
+        resolve([])
+        return
+      }
+      const filtrados = todos.filter((r) => r.clinicaId === clinicaIdActual)
+      resolve(filtrados)
+    }
     request.onerror = () => reject(new Error('No se pudieron leer los adjuntos del paciente.'))
   })
 }
@@ -252,4 +298,47 @@ export const eliminarTodosPorPaciente = async (pacienteId) => {
   }
 
   return true
+}
+
+/**
+ * F7-36 FASE 1 (Commit 1.6): Elimina todos los adjuntos de una clínica específica.
+ * Útil para limpieza granular sin afectar adjuntos de otras clínicas que el usuario
+ * pueda tener cacheados offline. Actualmente invalidarCacheCambioClinica.js borra la BD
+ * completa (más agresivo pero simple), pero esta función queda disponible para
+ * implementaciones futuras más granulares.
+ *
+ * @param {string} clinicaId — UUID de la clínica cuyos adjuntos se eliminarán
+ * @returns {Promise<number>} Cantidad de adjuntos eliminados
+ */
+export const eliminarAdjuntosPorClinica = async (clinicaId) => {
+  if (!clinicaId) return 0
+  const db = await abrirDB()
+  let eliminados = 0
+
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite')
+    const store = tx.objectStore(STORE_NAME)
+    const index = store.index(INDEX_CLINICA)
+    const request = index.openCursor(IDBKeyRange.only(clinicaId))
+
+    request.onsuccess = (event) => {
+      const cursor = event.target.result
+      if (cursor) {
+        const registro = cursor.value
+        // Intentar eliminar también de Supabase Storage si existe storagePath
+        if (registro?.storagePath && storageDisponible()) {
+          eliminarAdjuntoDeStorage(registro.storagePath).catch((e) => {
+            log.warn('No se pudo eliminar de Supabase Storage durante limpieza por clínica:', e)
+          })
+        }
+        store.delete(cursor.primaryKey)
+        eliminados++
+        cursor.continue()
+      }
+    }
+    tx.oncomplete = () => resolve()
+    tx.onerror = () => reject(new Error('No se pudieron eliminar los adjuntos de la clínica.'))
+  })
+
+  return eliminados
 }
