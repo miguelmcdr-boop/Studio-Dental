@@ -2779,11 +2779,11 @@ Después de todas las modificaciones ejecutar: Vitest, Security Regression, Deno
 - [ ] casos parciales cubiertos por tests (FASE 6)
 
 **Database:**
-- [ ] db reset limpio (FASE 7)
-- [ ] auditar_cambio existe después del reset (FASE 7)
-- [ ] triggers existen (FASE 7)
-- [ ] RLS existe (FASE 7)
-- [ ] funciones existen (FASE 7)
+- [x] db reset limpio (FASE 7) ✅
+- [x] auditar_cambio existe después del reset (FASE 7) ✅
+- [x] triggers existen (FASE 7) ✅
+- [x] RLS existe (FASE 7) ✅
+- [x] funciones existen (FASE 7) ✅
 
 **CI:**
 - [ ] Vitest (FASE 11)
