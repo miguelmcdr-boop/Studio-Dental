@@ -8,6 +8,7 @@
 
 CREATE TABLE IF NOT EXISTS public.audit_log (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  clinica_id uuid NOT NULL DEFAULT '00000000-0000-0000-0000-000000000001' REFERENCES public.clinicas(id),
   user_id uuid REFERENCES auth.users(id) ON DELETE SET NULL,
   table_name text NOT NULL,
   record_id text NOT NULL,

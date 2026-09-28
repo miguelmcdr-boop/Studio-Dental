@@ -161,7 +161,7 @@ BEGIN
     'pacientes','citas','prestaciones','presupuestos','presupuesto_items','pagos',
     'movimientos_financieros','inventario','evoluciones_clinicas','recetas',
     'odontogramas','periodontogramas','periodontogramas_historial','dsd_configs',
-    'odontopediatria','quirurgico_implantes','quirurgico_endodoncia','audit_log'
+    'odontopediatria','quirurgico_implantes','quirurgico_endodoncia'
   ]
   LOOP
     -- 1. Agregar columna nullable (idempotente)
@@ -291,7 +291,7 @@ BEGIN
     'pacientes','citas','prestaciones','presupuestos','presupuesto_items','pagos',
     'movimientos_financieros','inventario','evoluciones_clinicas','recetas',
     'odontogramas','periodontogramas','periodontogramas_historial','dsd_configs',
-    'odontopediatria','quirurgico_implantes','quirurgico_endodoncia','audit_log'
+    'odontopediatria','quirurgico_implantes','quirurgico_endodoncia'
   ]
   LOOP
     -- Eliminar trigger si existe (idempotente)
