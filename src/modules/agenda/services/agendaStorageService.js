@@ -25,7 +25,7 @@
  * - Al leer desde Supabase: desnormalizar al formato del código
  * - Al escribir a Supabase: normalizar al formato esperado
  */
-import { createLocalStorageRepository } from '../../../services/localStorageRepository'
+import { createTenantRepository } from '../../../services/localStorageRepository'
 import { validarListaCitas } from '../schemas/citaSchema'
 import { supabase, USE_SUPABASE } from '../../../services/supabaseClient'
 import { migrationStorageService } from '../../../services/migrationStorageService'
@@ -35,7 +35,10 @@ import { createLogger } from '../../../services/logger'
 const log = createLogger('agendaStorageService')
 
 const STORAGE_KEY_AGENDA = 'studio_dental_agenda_citas_v3'
-const citasRepo = createLocalStorageRepository(STORAGE_KEY_AGENDA, [], { notify: true })
+// F7-36 FASE 1 (Commit 1.5b): migrado a createTenantRepository para aislamiento multi-tenant.
+// La clave legacy 'studio_dental_agenda_citas_v3' ahora se almacena como sd_<clinicaId>_studio_dental_agenda_citas_v3.
+// notify: true se preserva para sincronización entre pestañas/módulos.
+const citasRepo = createTenantRepository(STORAGE_KEY_AGENDA, [], { notify: true })
 
 // Caché en memoria: evita lecturas repetidas de localStorage y permite
 // que la API pública permanezca síncrona.
@@ -208,11 +211,9 @@ const sincronizarDesdeSupabase = async () => {
 
     if (!Array.isArray(data)) return citasCache
 
-    // Si Supabase retorna vacío pero hay caché con datos, puede ser que la
-    // migración aún no haya corrido. No sobrescribimos la caché.
-    if (data.length === 0 && citasCache && citasCache.length > 0) {
-      log.info('Supabase vacío, manteniendo caché (pendiente migración)')
-      return citasCache
+    // F7-36: Supabase [] = clínica sin citas. Error de red ya retornó cache arriba.
+    if (data.length === 0) {
+      log.info('Supabase retornó []: clínica sin citas, cache limpiada')
     }
 
     const nuevas = data.map(transformarDesdeSupabase).filter(Boolean)

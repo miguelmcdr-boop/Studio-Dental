@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { listarMisClinicas, setClinicaActiva, getClinicaActiva } from '../services/authService'
 import { createLogger } from '../services/logger'
+import { invalidarCacheCambioClinica } from '../services/invalidarCacheCambioClinica'
 
 const log = createLogger('ClinicaSelector')
 
@@ -75,9 +76,14 @@ export const ClinicaSelector = ({ onCambioClinica }) => {
     setError(null)
 
     try {
+      const clinicaAnterior = clinicaActiva
       const result = await setClinicaActiva(nuevaClinicaId)
 
       if (result.success) {
+        // F7-36 FASE 1: invalidar cache de clínica anterior antes de actualizar state
+        // Previene contaminación cross-clinic durante el lapso antes del reload (300ms)
+        await invalidarCacheCambioClinica(clinicaAnterior)
+
         setClinicaActivaState(nuevaClinicaId)
         log.info('Clínica cambiada a:', nuevaClinicaId)
         if (onCambioClinica) {

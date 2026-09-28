@@ -1,15 +1,17 @@
 /**
  * Persistencia aislada en LocalStorage para Esterilización (Cargas, Biológicos y Test Diarios)
  */
-import { createLocalStorageRepository } from '../../../services/localStorageRepository'
+import { createTenantRepository } from '../../../services/localStorageRepository'
 
 const STORAGE_KEY_CARGAS = 'studio_dental_esterilizacion_cargas'
 const STORAGE_KEY_BIOLOGICOS = 'studio_dental_esterilizacion_biologicos'
 const STORAGE_KEY_TEST_DIARIOS = 'studio_dental_esterilizacion_test_diarios'
 
-const cargasRepo = createLocalStorageRepository(STORAGE_KEY_CARGAS, undefined)
-const biologicosRepo = createLocalStorageRepository(STORAGE_KEY_BIOLOGICOS, undefined)
-const testDiariosRepo = createLocalStorageRepository(STORAGE_KEY_TEST_DIARIOS, undefined)
+// F7-36 FASE 1 (Commit 1.5d): migrados a createTenantRepository para aislamiento multi-tenant.
+// Claves legacy ahora: sd_<clinicaId>_studio_dental_esterilizacion_*
+const cargasRepo = createTenantRepository(STORAGE_KEY_CARGAS, undefined)
+const biologicosRepo = createTenantRepository(STORAGE_KEY_BIOLOGICOS, undefined)
+const testDiariosRepo = createTenantRepository(STORAGE_KEY_TEST_DIARIOS, undefined)
 
 export const esterilizacionStorageService = {
   obtenerCargas: (defaults) => cargasRepo.obtener(defaults),

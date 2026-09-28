@@ -53,6 +53,11 @@ const AdminVademecumModulo = lazy(() => import('./modules/administracion').then(
 const GestionMiembrosModulo = lazy(() => import('./modules/gestionMiembros').then(m => ({ default: m.GestionMiembrosModulo })))
 
 function App() {
+  // F7-36 FASE 1 (Commit 1.5f): repo tenant-aware para paciente seleccionado (PHI).
+  // La clave clinica_paciente_seleccionado_id ahora se almacena como
+  // sd_<clinicaId>_clinica_paciente_seleccionado_id para aislamiento multi-tenant.
+  const pacienteSeleccionadoRepo = createTenantRepository('clinica_paciente_seleccionado_id', null)
+
   // F4-02e: Persistir activeSection (localStorage). Si no hay, usar 'Dashboard'.
   const [activeSection, setActiveSection] = useState(() => {
     try {
@@ -65,14 +70,15 @@ function App() {
   // F4-02e: Paciente seleccionado (null inicialmente, restaurado desde Supabase).
   const [pacienteSeleccionado, setPacienteSeleccionadoState] = useState(null)
 
-  // F4-02e: Wrapper que persiste el pacienteId al seleccionar
+  // F4-02e + F7-36: Wrapper que persiste el pacienteId en repo tenant-aware
   const setPacienteSeleccionado = (paciente) => {
     setPacienteSeleccionadoState(paciente)
     try {
       if (paciente?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(paciente.id)) {
-        localStorage.setItem('clinica_paciente_seleccionado_id', paciente.id)
+        // F7-36: usa tenant-aware para aislamiento multi-tenant
+        pacienteSeleccionadoRepo.guardar(paciente.id)
       } else {
-        localStorage.removeItem('clinica_paciente_seleccionado_id')
+        pacienteSeleccionadoRepo.eliminar()
       }
     } catch (e) {
       log.error('Error al persistir pacienteId:', e)

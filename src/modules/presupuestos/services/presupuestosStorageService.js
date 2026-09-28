@@ -25,7 +25,7 @@
  * - false: usa localStorage como fuente de verdad (legacy)
  */
 import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
-import { leerJSON, escribirJSON, createLocalStorageRepository } from '../../../services/localStorageRepository'
+import { leerJSON, escribirJSON, createTenantRepository } from '../../../services/localStorageRepository'
 import { validarListaPresupuestos } from '../schemas/presupuestoSchema'
 import { supabase, USE_SUPABASE } from '../../../services/supabaseClient'
 import { migrationStorageService } from '../../../services/migrationStorageService'
@@ -35,7 +35,10 @@ import { createLogger } from '../../../services/logger'
 const log = createLogger('presupuestosStorageService')
 
 const STORAGE_KEY_PRESUPUESTOS = 'studio_dental_presupuestos_globales'
-const presupuestosRepo = createLocalStorageRepository(STORAGE_KEY_PRESUPUESTOS, [], {
+// F7-36 FASE 1 (Commit 1.5c): migrado a createTenantRepository para aislamiento multi-tenant.
+// La clave legacy 'studio_dental_presupuestos_globales' ahora se almacena como sd_<clinicaId>_studio_dental_presupuestos_globales.
+// Preserva notify: true y evento 'presupuestos_actualizados' para sincronización entre pestañas/módulos.
+const presupuestosRepo = createTenantRepository(STORAGE_KEY_PRESUPUESTOS, [], {
   notify: true,
   eventos: ['presupuestos_actualizados']
 })
@@ -159,11 +162,9 @@ const sincronizarDesdeSupabase = async () => {
 
     if (!Array.isArray(data)) return presupuestosCache
 
-    // Si Supabase retorna vacío pero hay caché con datos, puede ser que la
-    // migración aún no haya corrido. No sobrescribimos la caché.
-    if (data.length === 0 && presupuestosCache && presupuestosCache.length > 0) {
-      log.info('Supabase vacío, manteniendo caché (pendiente migración)')
-      return presupuestosCache
+    // F7-36: Supabase [] = clínica sin presupuestos. Error de red ya retornó cache arriba.
+    if (data.length === 0) {
+      log.info('Supabase retornó []: clínica sin presupuestos, cache limpiada')
     }
 
     const nuevos = data.map(transformarDesdeSupabase).filter(Boolean)

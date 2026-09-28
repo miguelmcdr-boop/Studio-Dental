@@ -1,31 +1,43 @@
 /**
- * Servicio de consolidación de datos cruzados
+ * Servicio de consolidación de datos cruzados para reportes BI
+ *
+ * F7-36 FASE 1 (Commit 1.5f): Reescrito para usar servicios públicos
+ * en lugar de leer localStorage directo. Esto:
+ *   1. Corrige bug silencioso: las claves legacy studio_dental_* ya fueron
+ *      migradas a tenant-aware en commits 1.5b y 1.5c
+ *   2. Hereda automáticamente el aislamiento multi-tenant de los servicios
+ *   3. Reduce acoplamiento: si cambia la lógica interna de un servicio,
+ *      reportesStorageService se actualiza solo
+ *
+ * Fuente única de verdad: cada storage service es dueño de sus claves.
  */
 
-import { pacientesStorageService } from '../../pacientes'
+import { pacientesStorageService } from '../../pacientes/services/pacientesStorageService'
+import { pagosStorageService } from '../../pagos/services/pagosStorageService'
+import { presupuestosStorageService } from '../../presupuestos/services/presupuestosStorageService'
+import { agendaStorageService } from '../../agenda/services/agendaStorageService'
 import { createLogger } from '../../../services/logger.js'
 
 const log = createLogger('reportesStorageService')
 
 export const reportesStorageService = {
+  /**
+   * Obtiene datos consolidados de las 4 fuentes principales para reportes BI.
+   * Usa los servicios públicos (tenant-aware) en lugar de leer localStorage directo.
+   *
+   * @returns {Object} { pacientes, pagos, presupuestos, citas }
+   */
   obtenerDatosConsolidados: () => {
     try {
-      // Pacientes se lee vía el servicio dueño de esa clave (F1-05: fuente
-      // única de verdad). Pagos/presupuestos/citas quedan pendientes del
-      // mismo tratamiento en F2-07 (fuera del alcance de esta tarea).
-      const pagSaved = localStorage.getItem('studio_dental_pagos_historial_v3') || localStorage.getItem('studio_dental_pagos_historial')
-      const presSaved = localStorage.getItem('studio_dental_presupuestos_globales')
-      const citasSaved = localStorage.getItem('studio_dental_agenda_citas_v3')
-
       return {
         pacientes: pacientesStorageService.obtenerPacientes(),
-        pagos: pagSaved ? JSON.parse(pagSaved) : [],
-        presupuestos: presSaved ? JSON.parse(presSaved) : [],
-        citas: citasSaved ? JSON.parse(citasSaved) : []
+        pagos: pagosStorageService.obtenerPagos(),
+        presupuestos: presupuestosStorageService.obtenerPresupuestos(),
+        citas: agendaStorageService.obtenerCitas(),
       }
     } catch (e) {
       log.error('Error al obtener datos consolidados para BI:', e)
       return { pacientes: [], pagos: [], presupuestos: [], citas: [] }
     }
-  }
+  },
 }

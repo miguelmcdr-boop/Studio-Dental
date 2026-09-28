@@ -19,6 +19,7 @@
 
 import { wrapWithVersion, unwrapAndMigrate } from './schemaMigrationService'
 import { createLogger } from './logger.js'
+import { tenantCache } from './tenantCache'
 
 const log = createLogger('localStorageRepository')
 
@@ -121,5 +122,112 @@ export const createLocalStorageRepository = (key, defaultValue, opciones = {}) =
       const wrapped = wrapWithVersion(value, schemaVersion)
       return escribirJSON(key, wrapped, { notify, eventos })
     }
+  }
+}
+
+/**
+ * Repositorio genérico de persistencia aislado por clínica (multi-tenant).
+ * F7-36 FASE 1 (Commit 1.4) — wrapper sobre tenantCache con la misma API
+ * que createLocalStorageRepository para permitir migración drop-in.
+ *
+ * Las claves se almacenan con formato `sd_<clinicaId>_<baseKey>` mediante
+ * tenantCache, garantizando aislamiento entre clínicas.
+ *
+ * Fail-safe real (sin bugs ocultos):
+ *   - Si no hay clínica activa, retorna defaultValue con log.warn
+ *   - Nunca lanza errores al caller
+ *   - Si falla escritura, eventos NO se disparan (evita "eventos fantasma")
+ *   - Versionado de esquemas (F3-06) soportado igual que createLocalStorageRepository
+ *
+ * @param {string} baseKey - Clave base (sin clinica_id). Ej: 'pacientes_v3'
+ * @param {*} defaultValue - Valor por defecto si no hay datos o no hay clínica activa
+ * @param {{
+ *   notify?: boolean,
+ *   eventos?: string[],
+ *   schemaVersion?: number,
+ *   migrations?: Object<number, Function>
+ * }} [opciones] - Opciones de eventos y versionado (idénticas a createLocalStorageRepository)
+ * @returns {{
+ *   baseKey: string,
+ *   obtener: (fallback?: *) => *,
+ *   guardar: (value: *) => boolean,
+ *   eliminar: () => boolean,
+ *   existe: () => boolean
+ * }}
+ */
+export const createTenantRepository = (baseKey, defaultValue, opciones = {}) => {
+  const { notify, eventos, schemaVersion, migrations } = opciones
+  const hasVersioning = typeof schemaVersion === 'number'
+
+  return {
+    baseKey,
+
+    /**
+     * Lee datos del tenant actual. Si no hay clínica activa, retorna fallback
+     * con log.warn (fail-safe, nunca lanza error).
+     */
+    obtener: (fallback = defaultValue) => {
+      try {
+        const raw = tenantCache.leerTenant(baseKey, fallback)
+        if (!hasVersioning) return raw
+        return unwrapAndMigrate(raw, schemaVersion, migrations || {}, fallback)
+      } catch (e) {
+        log.warn(`createTenantRepository.obtener sin clínica activa para "${baseKey}": ${e.message}`)
+        return fallback
+      }
+    },
+
+    /**
+     * Escribe datos en el tenant actual. Si no hay clínica activa, retorna false
+     * con log.warn y NO dispara eventos (evita "eventos fantasma" sin contexto).
+     */
+    guardar: (value) => {
+      try {
+        const wrapped = hasVersioning ? wrapWithVersion(value, schemaVersion) : value
+        const ok = tenantCache.escribirTenant(baseKey, wrapped)
+        if (!ok) {
+          log.warn(`createTenantRepository.guardar falló para "${baseKey}"`)
+          return false
+        }
+        // Solo disparar eventos si la escritura fue exitosa Y hay clínica activa
+        // (tenantCache.escribirTenant ya lanzó error interno si no había clínica)
+        if (notify) {
+          window.dispatchEvent(new Event('storage'))
+        }
+        ;(eventos || []).forEach((nombreEvento) => {
+          window.dispatchEvent(new CustomEvent(nombreEvento))
+        })
+        return true
+      } catch (e) {
+        log.warn(`createTenantRepository.guardar sin clínica activa para "${baseKey}": ${e.message}`)
+        return false
+      }
+    },
+
+    /**
+     * Elimina la clave del tenant actual. Si no hay clínica activa, retorna false
+     * con log.warn (fail-safe).
+     */
+    eliminar: () => {
+      try {
+        return tenantCache.eliminarTenant(baseKey)
+      } catch (e) {
+        log.warn(`createTenantRepository.eliminar sin clínica activa para "${baseKey}": ${e.message}`)
+        return false
+      }
+    },
+
+    /**
+     * Verifica si existe la clave en el tenant actual. Si no hay clínica activa,
+     * retorna false con log.warn (fail-safe).
+     */
+    existe: () => {
+      try {
+        return tenantCache.existeTenant(baseKey)
+      } catch (e) {
+        log.warn(`createTenantRepository.existe sin clínica activa para "${baseKey}": ${e.message}`)
+        return false
+      }
+    },
   }
 }

@@ -7031,3 +7031,564 @@ Los 5 hallazgos resueltos en PR #164 fueron:
 3. **F7-30: Pre-producción final** (gate para producción con datos clínicos reales)
 
 ---
+
+## 2026-09-28 — F7-36 FASE 1: Eliminación de fallback cross-clinic en storage services
+
+### Contexto
+La auditoría F7-36 identificó que 4 storage services tenían un patrón peligroso: cuando Supabase retornaba lista vacía (clínica sin datos), la app conservaba el cache de la clínica anterior, causando contaminación cross-clinic de datos.
+
+### Problema
+Los 4 servicios tenían este patrón peligroso:
+
+    if (data.length === 0 && cache.length > 0) {
+      return cache  // Recupera datos de clínica anterior
+    }
+
+Escenario de riesgo:
+1. Usuario en Clínica A carga 50 pagos
+2. Cambia a Clínica B (que tiene 0 pagos)
+3. Supabase retorna lista vacía
+4. App muestra los 50 pagos de Clínica A (filtración de datos)
+
+### Solución aplicada
+Eliminar el fallback. Cuando Supabase retorna lista vacía sin error, sobrescribir cache con lista vacía.
+
+Archivos modificados:
+1. src/modules/finanzas/services/finanzasStorageService.js
+2. src/modules/agenda/services/agendaStorageService.js
+3. src/modules/pagos/services/pagosStorageService.js
+4. src/modules/presupuestos/services/presupuestosStorageService.js
+
+Tests agregados:
+- Archivo: src/test/security/no-fallback-cross-clinic.test.js (6 tests)
+- 4 tests de caso cross-clinic (uno por servicio)
+- 1 test de offline-first (error de red conserva cache)
+- 1 test de sincronización normal (datos nuevos sobrescriben)
+
+### Desafío técnico: Mock de Supabase con múltiples .order()
+agendaStorageService hace doble encadenamiento .order('fecha').order('hora_inicio'). Solución: crear un "terminal node" que soporta encadenamiento infinito de .order() mediante then() que resuelve la promesa.
+
+### Validaciones
+- 1545/1545 tests pasando (sin regresión)
+- validate:architecture PASS
+- build OK
+- Fallback peligroso eliminado de los 4 servicios
+
+### Impacto
+Seguridad: Previene contaminación cross-clinic de datos clínicos y financieros.
+
+Comportamiento correcto:
+- Clínica vacía → muestra "Sin datos" (no datos de otra clínica)
+- Error de red → muestra cache local (offline-first)
+- Datos nuevos → sobrescribe cache antiguo
+
+### Siguiente paso
+Commit 1.3: Listener de invalidación al cambiar de clínica (limpiar cache en memoria + localStorage cuando el usuario cambia de clínica activa).
+
+---
+
+## 2026-09-28 — F7-36 FASE 1: Listener de invalidación al cambiar de clínica (Commit 1.3)
+
+### Contexto
+Al cambiar de clínica activa, la aplicación actualizaba el JWT en Supabase pero NO invalidaba:
+- Cache en memoria de los 4 storage services principales
+- Stores Zustand (pacientesStore, prestacionesStore)
+- Claves legacy studio_dental_* en localStorage
+- IndexedDB (base studio_dental_adjuntos)
+
+Esto permitía contaminación cross-clinic durante el lapso de 300ms antes del reload de página.
+
+### Solución
+Nuevo servicio invalidarCacheCambioClinica.js que orquesta 5 pasos fail-safe:
+1. tenantCache.invalidarClinica() - elimina claves tenant-aware de la clínica anterior
+2. resetCache() en 4 storage services - limpia cache en memoria
+3. setState() en pacientesStore y prestacionesStore - resetea stores Zustand
+4. Limpieza de claves legacy studio_dental_* - sin clinica_id
+5. indexedDB.deleteDatabase() - invalida cache offline completa
+
+### Integración
+ClinicaSelector.handleCambio() ahora llama a invalidarCacheCambioClinica(clinicaAnterior) inmediatamente después de setClinicaActiva() exitoso, ANTES del reload.
+
+### Archivos
+- src/services/invalidarCacheCambioClinica.js (nuevo, 209 líneas)
+- src/services/invalidarCacheCambioClinica.test.js (nuevo, 18 tests)
+- src/components/ClinicaSelector.jsx (integración, +5 líneas)
+- src/components/ClinicaSelector.test.jsx (+1 test F7-36)
+
+### Tests cubiertos
+- 5 pasos fail-safe independientes (cada uno con try/catch)
+- Llama a invalidarClinica() con ID de clínica anterior
+- Usa invalidarTodas() cuando no hay clínica anterior conocida
+- Resetea correctamente los 4 storage services
+- Resetea ambos stores Zustand
+- Elimina solo claves legacy (preserva darkMode y otras preferencias UI)
+- Elimina IndexedDB completa
+- Maneja correctamente cuando indexedDB no está disponible
+- Maneja estado blocked (otras pestañas abiertas)
+- Todos los pasos continúan aunque uno falle
+
+### Validaciones
+- 1564/1564 tests pasando (18 nuevos + 1 test de integración)
+- validate:architecture PASS
+- build OK
+
+### Decisiones clave
+1. Integración solo en ClinicaSelector.jsx (NO en bootstrap/invitación)
+2. Invalidación de IndexedDB completa (Opción A aprobada - sin datos clínicos reales aún)
+3. Limpieza de claves legacy sin clinica_id (eliminar y reconstruir desde Supabase)
+4. No invalidar en auto-persistencia inicial ni reset de metadata stale (no hay clínica anterior válida)
+
+### Próximo paso
+Commit 1.4: Extender localStorageRepository para usar tenantCache (migración gradual de servicios a claves tenant-aware).
+
+---
+
+## 2026-09-28 — F7-36 FASE 1: Wrapper createTenantRepository para migración drop-in (Commit 1.4)
+
+### Contexto
+Para migrar los 14 storage services a claves tenant-aware sin reescribir cada uno, se necesita un wrapper que encapsule tenantCache con la misma API que createLocalStorageRepository. Esto permite migración de UNA línea por servicio.
+
+### Solución
+Nueva función createTenantRepository en localStorageRepository.js que envuelve tenantCache con API idéntica al repo legacy:
+
+- obtener(fallback) → tenantCache.leerTenant()
+- guardar(value) → tenantCache.escribirTenant() + eventos
+- eliminar() → tenantCache.eliminarTenant()
+- existe() → tenantCache.existeTenant()
+
+### Fail-safe real (sin bugs ocultos)
+Sin clínica activa:
+- obtener/eliminar/existe retornan defaultValue con log.warn (nunca lanzan error)
+- guardar retorna false y NO dispara eventos (evita "eventos fantasma" sin contexto)
+- Cada fallo emite log.warn informativo para detectar bugs sin crash
+
+Con clínica activa:
+- Comportamiento idéntico a createLocalStorageRepository
+- Soporte de eventos notify y custom
+- Soporte de versionado de esquemas (F3-06) via schemaVersion + migrations
+
+### Estrategia de migración
+Los servicios migran cambiando UNA línea:
+
+Antes: const repo = createLocalStorageRepository('pacientes_v3', [])
+Después: const repo = createTenantRepository('pacientes_v3', [])
+
+Esto garantiza aislamiento automático por clínica sin cambios en la lógica de negocio.
+
+### Archivos
+- src/services/localStorageRepository.js (124 → 233 líneas, agrega createTenantRepository)
+- src/services/tenantRepository.test.js (nuevo, 289 líneas, 19 tests)
+
+### Tests cubiertos (19 casos)
+API pública (1):
+- Expone los 4 métodos y baseKey correctamente
+
+Fail-safe sin clínica activa (6):
+- obtener() retorna defaultValue sin lanzar error
+- obtener() retorna fallback pasado explícitamente
+- guardar() retorna false sin lanzar error
+- eliminar() retorna false sin lanzar error
+- existe() retorna false sin lanzar error
+- guardar() sin clínica NO dispara eventos (crítico)
+
+Funcionalidad con clínica activa (5):
+- obtener() retorna defaultValue si no hay datos
+- guardar() + obtener() round-trip funciona
+- existe() retorna true si hay datos
+- eliminar() elimina los datos
+- guardar() escribe con formato sd_<clinicaId>_<baseKey>
+
+Aislamiento multi-tenant (3):
+- Clínica A no ve datos de Clínica B
+- Cambio A → B → A mantiene datos separados
+- eliminar() de una clínica no afecta a la otra
+
+Eventos (2):
+- notify: true dispara evento storage
+- eventos: [name] dispara CustomEvents
+
+Versionado F3-06 (2):
+- schemaVersion envuelve datos al guardar
+- obtener() desenvuelve datos versionados
+
+### Validaciones
+- 1583/1583 tests pasando (19 nuevos + sin regresión)
+- validate:architecture PASS
+- build OK
+
+### Próximo paso
+Commit 1.5: Migrar claves de módulos clínicos a formato tenant-aware (14 storage services).
+
+---
+
+## 2026-09-28 — F7-36 FASE 1: Fix de seguridad - limpiar claves por paciente al cambiar de clínica (Commit 1.5a)
+
+### Problema crítico identificado
+El invalidarCacheCambioClinica (Commit 1.3) solo limpiaba claves con prefijo studio_dental_, pero NO limpiaba las claves por pacienteId usadas por los servicios de PHI.
+
+### Servicios afectados (8 servicios con claves por paciente)
+- evolucionesStorageService: evoluciones_notas_<pacienteId>
+- recetasStorageService: recetas_<pacienteId>
+- certificadosStorageService: certificados_<pacienteId>
+- odontogramaStorageService: odonto_inicial_<pacienteId>, odonto_evolucion_<pacienteId>
+- periodontogramaStorageService: periodontograma_<pacienteId>, periodonto_historial_<pacienteId>
+- odontopediatriaStorageService: pediatria_<pacienteId>
+- quirurgicoStorageService: quirurgico_implantes_<pacienteId>, quirurgico_endodoncia_<pacienteId>
+- dsdStorageService: dsd_<pacienteId>
+
+### Escenario de riesgo
+Usuario en Clínica A con datos clínicos de 3 pacientes cambia a Clínica B. Las claves por pacienteId quedaban en localStorage y podían contaminar la nueva clínica si había coincidencia de UUIDs (improbable con UUIDs pero posible con IDs legacy).
+
+### Solución aplicada
+Extender invalidarCacheCambioClinica para limpiar TODAS las claves clínicas en 3 categorías:
+
+1. Claves legacy de servicios (prefijo studio_dental_)
+2. Claves por pacienteId de PHI (10 prefijos)
+3. Claves específicas de estado clínico:
+   - clinica_paciente_seleccionado_id (PHI)
+   - clinica_active_section (UI, no crítico)
+
+### Claves preservadas intencionalmente (NO se borran)
+- profile_<email> — perfil del usuario, es global entre clínicas
+- clinica_active_user — email del usuario logueado (requerido por ClinicaSelector)
+- sb-<ref>-auth-token — token de Supabase Auth (sesión del usuario)
+- goTrue-* — tokens legacy de GoTrue (auth)
+
+Si borramos estas claves, forzaríamos logout al cambiar de clínica (incorrecto).
+
+### Cambios en el código
+invalidarCacheCambioClinica.js (209 → 267 líneas):
+- Reemplaza PREFIJO_LEGACY por PREFIJOS_CLINICA + CLAVES_CLINICA_EXPLICITAS
+- Renombra limpiarClavesLegacy → limpiarClavesClinicas
+- Agrega conteos separados: legacyKeys, patientKeys, explicitKeys
+- Actualiza resumen y log con los 3 conteos
+
+invalidarCacheCambioClinica.test.js (282 → 397 líneas):
+- Amplía describe "Paso 4" con 5 tests nuevos
+- Agrega describe "Seguridad F7-36: Escenario de filtración cross-clinic"
+- Actualiza tests de resumen con nuevos campos
+
+### Tests agregados (~12 nuevos, total 24)
+- Elimina claves por pacienteId (PHI) - 12 casos
+- Elimina claves específicas de estado clínico
+- PRESERVA claves del usuario (profile_, clinica_active_user, sb-*, goTrue-*)
+- Cuenta por paciente correctamente
+- Cuenta mix legacy + paciente + explícitas
+- Escenario de filtración cross-clinic (crítico)
+
+### Validaciones
+- 24/24 tests de invalidarCacheCambioClinica pasando
+- 1589/1589 tests completos sin regresión
+- validate:architecture PASS
+- build OK
+
+### Impacto
+Cierra GAP de seguridad crítico donde PHI de una clínica podía quedar en localStorage al cambiar de clínica. Alinea con decisión de usuario de "Opción A: perder datos legacy al cambiar clínica" (Commit 1.3).
+
+### Próximo paso
+Commit 1.5b: Migrar servicios PHI críticos (agenda + pacientes) a formato tenant-aware.
+
+---
+
+## 2026-09-28 — F7-36 FASE 1: Migración de servicios PHI críticos a tenant-aware (Commit 1.5b)
+
+### Contexto
+Primera migración real de servicios a claves tenant-aware. Los 2 servicios PHI más críticos (agenda y pacientes) ahora almacenan sus datos con formato sd_<clinicaId>_<baseKey> en lugar de las claves legacy studio_dental_*.
+
+### Servicios migrados
+1. pacientesStorageService.js (463 → 432 líneas)
+   - createLocalStorageRepository → createTenantRepository
+   - Clave legacy 'studio_dental_pacientes_v3' → 'sd_<clinicaId>_studio_dental_pacientes_v3'
+   - Fail-safe: si no hay clínica activa, retorna defaultValue (SEED_PACIENTES_DEMO)
+   - Preserva lógica de Supabase, soft delete, validación Zod
+
+2. agendaStorageService.js (378 → 379 líneas)
+   - createLocalStorageRepository → createTenantRepository
+   - Clave legacy 'studio_dental_agenda_citas_v3' → 'sd_<clinicaId>_studio_dental_agenda_citas_v3'
+   - Preserva notify: true para sincronización entre pestañas
+   - Preserva lógica de Supabase, mapeo de estados, transformaciones
+
+### Defensa en profundidad
+La migración agrega una SEGUNDA capa de aislamiento sobre el RLS de Supabase:
+- RLS: previene acceso cross-clinic a nivel BD
+- tenantCache: previene contaminación cross-clinic en localStorage
+
+Si un bug permite acceder a datos de otra clínica a nivel BD (RLS mal configurado, por ejemplo), el aislamiento en localStorage prevendría que se cacheen esos datos en el cliente.
+
+### Archivos modificados
+- src/modules/pacientes/services/pacientesStorageService.js
+- src/modules/agenda/services/agendaStorageService.js
+- scripts/architecture-allowlist.json (límite agenda 378 → 379 por comentario)
+- src/test/security/no-fallback-cross-clinic.test.js (test de agenda reescrito)
+
+### Actualización de test
+El test 'agendaStorageService: Supabase [] sobrescribe cache antiguo' fue reescrito para usar el patrón tenant-aware:
+- Mock de tenantCache con clínica activa simulada
+- Datos en clave sd_clinica-A_studio_dental_agenda_citas_v3
+- Verifica que Supabase [] sobrescribe cache antiguo en clave tenant-aware
+
+Helper nuevo: crearMockTenantCache(clinicaId) simula tenantCache con clínica activa para los tests de servicios migrados.
+
+### Validaciones
+- 1589/1589 tests pasando (sin regresión)
+- 6/6 tests de no-fallback-cross-clinic pasando (incluye test reescrito)
+- validate:architecture PASS
+- build OK
+
+### Dependencias preservadas
+- pacientesStore.js: sigue usando pacientesStorageService.obtenerPacientes()
+- ClinicaSelector.jsx: ya integra invalidarCacheCambioClinica (Commit 1.3)
+- Supabase sync: lógica intacta, solo cambia dónde se persiste localmente
+
+### Próximo paso
+Commit 1.5c: Migrar servicios financieros (pagos, presupuestos, finanzas) a tenant-aware.
+
+---
+
+## 2026-09-28 — F7-36 FASE 1: Migración de servicios financieros a tenant-aware (Commit 1.5c)
+
+### Contexto
+Segunda migración real de servicios a claves tenant-aware. Los 3 servicios financieros ahora almacenan sus datos con formato sd_<clinicaId>_<baseKey> en lugar de las claves legacy studio_dental_*.
+
+### Servicios migrados
+1. pagosStorageService.js (317 → 320 líneas)
+   - createLocalStorageRepository → createTenantRepository
+   - Clave legacy 'studio_dental_pagos_historial_v3' → 'sd_<clinicaId>_studio_dental_pagos_historial_v3'
+   - Fail-safe: si no hay clínica activa, retorna defaultValue ([])
+
+2. presupuestosStorageService.js (458 → 461 líneas)
+   - createLocalStorageRepository → createTenantRepository
+   - Clave legacy 'studio_dental_presupuestos_globales' → 'sd_<clinicaId>_studio_dental_presupuestos_globales'
+   - Preserva notify: true y evento 'presupuestos_actualizados' para sincronización
+
+3. finanzasStorageService.js (291 → 294 líneas)
+   - createLocalStorageRepository → createTenantRepository (3 repos)
+   - Claves legacy migradas:
+     * 'studio_dental_finanzas_movimientos'
+     * 'studio_dental_finanzas_convenios'
+     * 'studio_dental_finanzas_cierres_caja'
+   - Preserva lógica de Supabase y fallback offline-first
+
+### Defensa en profundidad
+La migración agrega una SEGUNDA capa de aislamiento sobre el RLS de Supabase:
+- RLS: previene acceso cross-clinic a nivel BD
+- tenantCache: previene contaminación cross-clinic en localStorage
+
+### Archivos modificados
+- src/modules/pagos/services/pagosStorageService.js
+- src/modules/presupuestos/services/presupuestosStorageService.js
+- src/modules/finanzas/services/finanzasStorageService.js
+- scripts/architecture-allowlist.json (3 límites actualizados: 294→295, 318→321, 461→462)
+- src/test/security/no-fallback-cross-clinic.test.js (5 tests reescritos)
+
+### Actualización de tests
+5 tests del archivo transversal fueron reescritos para usar el patrón tenant-aware:
+- finanzasStorageService: Caso 1 (Supabase [] sobrescribe cache)
+- pagosStorageService: Caso 1 (Supabase [] sobrescribe cache)
+- presupuestosStorageService: Caso 1 (Supabase [] sobrescribe cache)
+- finanzasStorageService: Caso 2 (error de red conserva cache)
+- finanzasStorageService: Caso 3 (datos válidos reemplazan cache)
+
+Todos usan mock de tenantCache con clínica activa simulada y claves sd_clinica-A_studio_dental_* en lugar de las legacy.
+
+### Validaciones
+- 1589/1589 tests pasando (sin regresión)
+- 6/6 tests de no-fallback-cross-clinic pasando (5 reescritos + agenda)
+- validate:architecture PASS
+- build OK
+
+### Dependencias preservadas
+- usePagos, usePresupuestos, useFinanzas: siguen usando los servicios
+- invalidarCacheCambioClinica: ya integra resetCache() de los 3 servicios
+- Supabase sync: lógica intacta, solo cambia dónde se persiste localmente
+
+### Próximo paso
+Commit 1.5d: Migrar servicios operacionales (inventario, laboratorio, esterilización, urgencias GES) a tenant-aware.
+
+---
+
+## 2026-09-28 — F7-36 FASE 1: Migración de servicios operacionales a tenant-aware (Commit 1.5d)
+
+### Contexto
+Tercera migración real de servicios a claves tenant-aware. Los 4 servicios operacionales ahora almacenan sus datos con formato sd_<clinicaId>_<baseKey> en lugar de las claves legacy studio_dental_*.
+
+### Servicios migrados (4 wrappers simples, sin Supabase)
+
+1. inventarioStorageService.js (21 → 23 líneas)
+   - 2 repos migrados: inventarioRepo, asociacionesRepo
+   - Claves legacy migradas:
+     * 'studio_dental_inventario_stock'
+     * 'studio_dental_inventario_asociaciones_tratamiento'
+
+2. laboratorioStorageService.js (17 → 19 líneas)
+   - 2 repos migrados: ordenesRepo, laboratoriosRepo
+   - Claves legacy migradas:
+     * 'studio_dental_laboratorio_ordenes'
+     * 'studio_dental_laboratorio_directorio'
+
+3. esterilizacionStorageService.js (22 → 24 líneas)
+   - 3 repos migrados: cargasRepo, biologicosRepo, testDiariosRepo
+   - Claves legacy migradas:
+     * 'studio_dental_esterilizacion_cargas'
+     * 'studio_dental_esterilizacion_biologicos'
+     * 'studio_dental_esterilizacion_test_diarios'
+
+4. urgenciasGesStorageService.js (11 → 13 líneas)
+   - 1 repo migrado: gesRepo
+   - Clave legacy migrada:
+     * 'studio_dental_atenciones_ges_urgencias'
+
+### Total
+8 repos migrados, 8 claves legacy ahora aisladas por clínica.
+
+### Características de la migración
+- Cambio de UNA línea por repo: createLocalStorageRepository → createTenantRepository
+- Preserva valores default (undefined, [], INSUMOS_POR_PRESTACION_DEFAULT)
+- Los 4 servicios son wrappers simples sin lógica de Supabase ni fallbacks
+- Ninguno estaba en allowlist (no requieren actualización de límites)
+- No requieren tests transversales (no tienen patrón Supabase-overwrite)
+
+### Defensa en profundidad
+La migración agrega una SEGUNDA capa de aislamiento sobre el RLS de Supabase:
+- RLS: previene acceso cross-clinic a nivel BD
+- tenantCache: previene contaminación cross-clinic en localStorage
+
+### Validaciones
+- 1589/1589 tests pasando (sin regresión)
+- validate:architecture PASS
+- build OK
+
+### Dependencias preservadas
+- useInventario, useLaboratorio, useEsterilizacion, useUrgenciasGes
+- Los servicios mantienen API pública idéntica
+- invalidarCacheCambioClinica ya limpia sus claves (vía prefijo studio_dental_)
+
+### Próximo paso
+Commit 1.5e: Migrar servicios de configuración (configuracion, comunicaciones, prestaciones) a tenant-aware.
+
+---
+
+## 2026-09-28 — F7-36 FASE 1: Migración de servicios de configuración a tenant-aware (Commit 1.5e)
+
+### Contexto
+Cuarta migración real de servicios a claves tenant-aware. Los 3 servicios de configuración ahora almacenan sus datos con formato sd_<clinicaId>_<baseKey> en lugar de las claves legacy studio_dental_* y clinica_*.
+
+### Servicios migrados
+
+1. comunicacionesStorageService.js (38 → 40 líneas)
+   - 2 repos migrados: plantillasRepo, historialRepo
+   - Claves legacy migradas:
+     * 'studio_dental_comunicaciones_plantillas_v3'
+     * 'studio_dental_comunicaciones_historial_v3'
+
+2. prestacionesStorageService.js (55 → 57 líneas)
+   - 2 repos migrados: arancelRepo, paquetesRepo
+   - Claves migradas (antes tenían prefijo clinica_):
+     * 'clinica_arancel_prestaciones'
+     * 'clinica_paquetes_clinicos_promos'
+   - Nota: ya estaban 'semi-tenant-aware' con prefijo clinica_, ahora usan tenantCache para consistencia con el resto de servicios
+
+3. configuracionStorageService.js (240 → 243 líneas)
+   - 2 repos migrados: clinicaRepo, parametrosAgendaRepo
+   - Claves legacy migradas:
+     * 'studio_dental_config_clinica'
+     * 'studio_dental_config_agenda'
+   - clinicaRepo preserva notify: true para sincronización entre pestañas
+   - Lógica de backup/restore NO modificada (opera sobre TODO localStorage, es operación administrativa, no por clave específica)
+
+### Total
+6 repos migrados, 6 claves legacy ahora aisladas por clínica.
+
+### Defensa en profundidad
+La migración agrega una SEGUNDA capa de aislamiento sobre el RLS de Supabase:
+- RLS: previene acceso cross-clinic a nivel BD
+- tenantCache: previene contaminación cross-clinic en localStorage
+
+### Validaciones
+- 1589/1589 tests pasando (sin regresión)
+- validate:architecture PASS
+- build OK
+
+### Dependencias preservadas
+- useComunicaciones, usePrestaciones, useConfiguración
+- Los servicios mantienen API pública idéntica
+- invalidarCacheCambioClinica ya limpia sus claves (vía prefijos studio_dental_ y clinica_)
+- Backup/restore completo sigue funcionando (opera sobre TODO localStorage)
+
+### Próximo paso
+Commit 1.5f: Migrar pendientes (operationQueue, reportesStorageService, App.jsx) a tenant-aware.
+
+---
+
+## 2026-09-28 — F7-36 FASE 1: Migración final de pendientes + corrección de bug silencioso en reportes (Commit 1.5f)
+
+### Contexto
+ÚLTIMA migración real de servicios a claves tenant-aware en F7-36 FASE 1. Incluye 3 tipos de cambios: migración directa, reescritura con servicios públicos, y corrección de bug silencioso crítico en reportes BI.
+
+### Archivos modificados
+
+1. operationQueue.js (252 → 239 líneas) — MIGRACIÓN DIRECTA
+   - Migrado de localStorage directo a createTenantRepository
+   - 2 repos nuevos: queueRepo (operation_queue), failedRepo (failed_operations)
+   - Las operaciones pendientes ahora están aisladas por clínica:
+     si el usuario cambia de clínica, las operaciones de clínica A
+     NO se procesarán en clínica B
+   - Preserva toda la lógica de retry exponencial y lock
+
+2. operationQueue.test.js (235 → 267 líneas) — AJUSTE DE TESTS
+   - Agregado mock completo de tenantCache con clínica activa simulada
+   - Actualizadas 3 referencias a clave legacy por clave tenant-aware
+   - Los 13 tests siguen validando la misma lógica en contexto tenant-aware
+
+3. reportesStorageService.js (30 → 43 líneas) — REESCRITURA + FIX BUG
+   🔴 BUG SILENCIOSO CORREGIDO:
+   Antes: leía localStorage directo con claves legacy:
+     - studio_dental_pagos_historial_v3
+     - studio_dental_presupuestos_globales
+     - studio_dental_agenda_citas_v3
+   Estas claves YA FUERON MIGRADAS a tenant-aware en commits 1.5b y 1.5c,
+   por lo que reportesStorageService SIEMPRE retornaba arrays vacíos para
+   pagos, presupuestos y citas. Solo pacientes funcionaba (porque usaba
+   el servicio público desde el inicio).
+
+   Después: usa servicios públicos:
+     - pagosStorageService.obtenerPagos()
+     - presupuestosStorageService.obtenerPresupuestos()
+     - agendaStorageService.obtenerCitas()
+     - pacientesStorageService.obtenerPacientes()
+
+   Beneficios:
+   ✅ Corrige bug silencioso crítico (reportes BI ahora funcionan)
+   ✅ Hereda automáticamente aislamiento multi-tenant
+   ✅ Reduce acoplamiento (cambios en lógica interna de servicios se propagan)
+   ✅ Fuente única de verdad: cada servicio es dueño de sus claves
+
+4. App.jsx (360 → 361 líneas) — MIGRACIÓN DE CLAVE PHI
+   - clinica_paciente_seleccionado_id migrado a createTenantRepository
+   - Ahora se almacena como sd_<clinicaId>_clinica_paciente_seleccionado_id
+   - Previene contaminación cross-clinic del paciente seleccionado
+   - clinica_active_section NO migrada (preferencia UI global del usuario)
+
+### Defensa en profundidad (FASE 1 COMPLETA)
+- RLS de Supabase: previene acceso cross-clinic a nivel BD
+- tenantCache: previene contaminación cross-clinic en localStorage
+- invalidarCacheCambioClinica: limpia TODO al cambiar de clínica
+
+### Resumen F7-36 FASE 1 — Migración de servicios
+- 1.5b: agenda + pacientes (2 servicios, PHI críticos)
+- 1.5c: pagos + presupuestos + finanzas (3 servicios, financieros)
+- 1.5d: inventario + laboratorio + esterilización + urgencias (4 servicios)
+- 1.5e: comunicaciones + prestaciones + configuración (3 servicios)
+- 1.5f: operationQueue + reportesStorageService + App.jsx (3 pendientes)
+Total: 15 servicios/archivos migrados, ~30 repos ahora tenant-aware
+
+### Validaciones
+- 1589/1589 tests pasando (sin regresión)
+- 13/13 tests de operationQueue pasando (con mock tenant-aware)
+- validate:architecture PASS
+- build OK (App.jsx JSX validado por esbuild/Vite)
+
+### Próximo paso
+Commit 1.6: IndexedDB tenant-aware para adjuntos clínicos (FASE 1 continúa).
+
+---

@@ -23,7 +23,7 @@
  * - true: usa Supabase como fuente de verdad, localStorage como caché
  * - false: usa localStorage como fuente de verdad (legacy)
  */
-import { createLocalStorageRepository, leerJSON, escribirJSON } from '../../../services/localStorageRepository'
+import { createTenantRepository, leerJSON, escribirJSON } from '../../../services/localStorageRepository'
 import { validarListaPacientes } from '../schemas/pacienteSchema'
 import { supabase, USE_SUPABASE } from '../../../services/supabaseClient'
 import { transformarDesdeSupabase, transformarParaSupabase } from './pacientesTransformations.js'
@@ -40,7 +40,10 @@ import { createLogger } from '../../../services/logger'
 const log = createLogger('pacientesStorageService')
 
 const STORAGE_KEY_PACIENTES = 'studio_dental_pacientes_v3'
-const pacientesRepo = createLocalStorageRepository(STORAGE_KEY_PACIENTES, [])
+// F7-36 FASE 1 (Commit 1.5b): migrado a createTenantRepository para aislamiento multi-tenant.
+// La clave legacy 'studio_dental_pacientes_v3' ahora se almacena como sd_<clinicaId>_studio_dental_pacientes_v3.
+// Fail-safe: si no hay clínica activa, obtenerPacientes() retorna defaultValue (SEED_PACIENTES_DEMO o []).
+const pacientesRepo = createTenantRepository(STORAGE_KEY_PACIENTES, [])
 
 // Caché en memoria: evita lecturas repetidas de localStorage y permite
 // que la API pública permanezca síncrona.
