@@ -140,7 +140,7 @@ describe('F7-36 FASE 5: Regresion identidad real del actor', () => {
   it('6. Migracion SQL usa COALESCE(p_user_id, auth.uid()) en INSERT', () => {
     const ruta = join(
       ROOT,
-      'supabase/migrations/2026_09_29_0001_f7_36_fase5_actor_real_archivos.sql'
+      'supabase/migrations/20260929000100_f7_36_fase5_actor_real_archivos.sql'
     )
     const contenido = readFileSync(ruta, 'utf-8')
 
@@ -153,7 +153,7 @@ describe('F7-36 FASE 5: Regresion identidad real del actor', () => {
   it('7. Migracion SQL define p_user_id uuid DEFAULT NULL como 4to parametro', () => {
     const ruta = join(
       ROOT,
-      'supabase/migrations/2026_09_29_0001_f7_36_fase5_actor_real_archivos.sql'
+      'supabase/migrations/20260929000100_f7_36_fase5_actor_real_archivos.sql'
     )
     const contenido = readFileSync(ruta, 'utf-8')
 
@@ -169,7 +169,7 @@ describe('F7-36 FASE 5: Regresion identidad real del actor', () => {
   it('8. Migracion SQL preserva limpieza de nombre_archivo en new_data', () => {
     const ruta = join(
       ROOT,
-      'supabase/migrations/2026_09_29_0001_f7_36_fase5_actor_real_archivos.sql'
+      'supabase/migrations/20260929000100_f7_36_fase5_actor_real_archivos.sql'
     )
     const contenido = readFileSync(ruta, 'utf-8')
 

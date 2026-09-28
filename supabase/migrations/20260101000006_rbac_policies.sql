@@ -172,10 +172,6 @@ CREATE TRIGGER lock_profiles_role
 GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
 GRANT ALL ON ALL TABLES IN SCHEMA public TO authenticated, service_role;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO authenticated, service_role;
-GRANT SELECT ON public.vademecum, public.vademecum_urgencia,
-  public.vademecum_antirresortivos, public.alergias_cruzadas,
-  public.interacciones_farmacologicas, public.profilaxis_endocarditis,
-  public.manejo_anticoagulantes, public.reference_data_meta TO anon;
 ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
   GRANT ALL ON TABLES TO authenticated, service_role;
 -- ============================================================
@@ -331,46 +327,6 @@ CREATE POLICY inventario_update_rol ON inventario FOR UPDATE
 CREATE POLICY inventario_delete_rol ON inventario FOR DELETE
   USING (auth.uid() = user_id
          AND public.role_in(ARRAY['admin','dentista']::app_role[]));
-
--- ============================================================
--- 5) Vademécum (8 tablas): lectura pública + escritura admin/dentista
--- ============================================================
-DO $$
-DECLARE
-  t text;
-  pol record;
-BEGIN
-  FOREACH t IN ARRAY ARRAY[
-    'vademecum','vademecum_urgencia','vademecum_antirresortivos',
-    'alergias_cruzadas','interacciones_farmacologicas',
-    'profilaxis_endocarditis','manejo_anticoagulantes','reference_data_meta'
-  ]
-  LOOP
-    FOR pol IN SELECT policyname FROM pg_policies
-               WHERE schemaname = 'public' AND tablename = t
-    LOOP
-      EXECUTE format('DROP POLICY %I ON %I', pol.policyname, t);
-    END LOOP;
-
-    EXECUTE format(
-      'CREATE POLICY %I ON %I FOR SELECT USING (true)',
-      'Lectura pública de ' || t, t);
-    EXECUTE format(
-      'CREATE POLICY %I ON %I FOR INSERT
-         WITH CHECK (public.role_in(ARRAY[''admin'',''dentista'']::app_role[]))',
-      t || '_insert_rol', t);
-    EXECUTE format(
-      'CREATE POLICY %I ON %I FOR UPDATE
-         USING (public.role_in(ARRAY[''admin'',''dentista'']::app_role[]))
-         WITH CHECK (public.role_in(ARRAY[''admin'',''dentista'']::app_role[]))',
-      t || '_update_rol', t);
-    EXECUTE format(
-      'CREATE POLICY %I ON %I FOR DELETE
-         USING (public.role_in(ARRAY[''admin'',''dentista'']::app_role[]))',
-      t || '_delete_rol', t);
-  END LOOP;
-END;
-$$;
 
 -- ============================================================
 -- 6) audit_log (append-only; admin lee todo)

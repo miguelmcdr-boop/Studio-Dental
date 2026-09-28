@@ -13,6 +13,10 @@
 -- antiguas durante el transition.
 -- ============================================================
 
+-- F7-36 FASE 7: Eliminar v1 (3 args) porque v2 es un reemplazo, no overload
+-- Esto evita ambigüedad cuando se llama con 3 args
+DROP FUNCTION IF EXISTS public.registrar_evento_purge(UUID, TEXT, JSONB);
+
 CREATE OR REPLACE FUNCTION registrar_evento_purge(
   p_clinica_id UUID,
   p_evento TEXT,
@@ -43,7 +47,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-COMMENT ON FUNCTION registrar_evento_purge IS 
+COMMENT ON FUNCTION registrar_evento_purge(uuid, text, jsonb, uuid) IS 
   'Registra eventos de purge permanente en audit_log. '
   'Eventos: ADMIN_PURGE_PACIENTES, ADMIN_PURGE_ARCHIVOS. '
   'v2: recibe user_id explícito del admin (corrige NULL en audit_log).';

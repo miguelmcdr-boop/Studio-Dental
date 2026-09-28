@@ -262,20 +262,20 @@ COMMENT ON FUNCTION public.profiles_lock_role() IS
 --
 -- Query 1: Confirmar search_path vacio y permisos correctos
 --
-SELECT p.proname,
-       p.proconfig AS config,
-       has_function_privilege('authenticated', p.oid, 'EXECUTE') AS auth_can_exec,
-       has_function_privilege('public', p.oid, 'EXECUTE') AS public_can_exec,
-       has_function_privilege('service_role', p.oid, 'EXECUTE') AS service_can_exec
-FROM pg_proc p
-JOIN pg_namespace n ON p.pronamespace = n.oid
-WHERE n.nspname = 'public'
-  AND p.proname IN (
-    'current_role', 'has_role', 'is_admin', 'role_in',
-    'set_app_metadata_role', 'get_role_from_metadata',
-    'handle_new_user', 'profiles_lock_role'
-  )
-ORDER BY p.proname;
+-- SELECT p.proname,
+--        p.proconfig AS config,
+--        has_function_privilege('authenticated', p.oid, 'EXECUTE') AS auth_can_exec,
+--        has_function_privilege('public', p.oid, 'EXECUTE') AS public_can_exec,
+--        has_function_privilege('service_role', p.oid, 'EXECUTE') AS service_can_exec
+-- FROM pg_proc p
+-- JOIN pg_namespace n ON p.pronamespace = n.oid
+-- WHERE n.nspname = 'public'
+--   AND p.proname IN (
+--     'current_role', 'has_role', 'is_admin', 'role_in',
+--     'set_app_metadata_role', 'get_role_from_metadata',
+--     'handle_new_user', 'profiles_lock_role'
+--   )
+-- ORDER BY p.proname;
 --
 -- RESULTADO ESPERADO (8 filas):
 --
@@ -297,13 +297,13 @@ ORDER BY p.proname;
 --
 -- Query 2: Test obligatorio (usuario NO puede escalar privilegios)
 --
-SET ROLE authenticated;
-SELECT public.set_app_metadata_role(
-  '00000000-0000-0000-0000-000000000000'::uuid,
-  'admin'::public.app_role
-);
+-- SET ROLE authenticated;
+-- SELECT public.set_app_metadata_role(
+--   '00000000-0000-0000-0000-000000000000'::uuid,
+--   'admin'::public.app_role
+-- );
 -- Esperado: ERROR 'permission denied for function set_app_metadata_role'
-RESET ROLE;
+-- RESET ROLE;
 --
 -- Query 3: Validar RLS sigue funcionando (login como usuario autenticado)
 --

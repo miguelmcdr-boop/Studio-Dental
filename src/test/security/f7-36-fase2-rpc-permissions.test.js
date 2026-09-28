@@ -255,7 +255,7 @@ describe('F7-36 FASE 2: Regresión de permisos de RPCs de auditoría', () => {
   it('7. Contrato de permisos está documentado en la migración SQL', () => {
     const migracion = join(
       ROOT,
-      'supabase/migrations/2026_09_28_0002_f7_36_fase2_rpc_purge_perms.sql'
+      'supabase/migrations/20260928000200_f7_36_fase2_rpc_purge_perms.sql'
     )
     const contenido = readFileSync(migracion, 'utf-8')
 

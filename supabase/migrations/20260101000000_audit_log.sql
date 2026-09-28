@@ -45,24 +45,6 @@ CREATE POLICY "audit_log_select_own"
   FOR SELECT
   USING (auth.uid() = user_id);
 
-DROP POLICY IF EXISTS "audit_log_select_clinica" ON public.audit_log;
-CREATE POLICY "audit_log_select_clinica"
-  ON public.audit_log
-  FOR SELECT
-  USING (
-    clinica_id = public.clinica_actual()
-    AND public.tiene_rol_en_clinica(ARRAY['admin', 'dentista', 'asistente', 'recepcion']::app_role[])
-  );
-
-DROP POLICY IF EXISTS "audit_log_select_admin" ON public.audit_log;
-CREATE POLICY "audit_log_select_admin"
-  ON public.audit_log
-  FOR SELECT
-  USING (
-    clinica_id = public.clinica_actual()
-    AND public.es_admin_de_clinica_actual()
-  );
-
 -- Políticas UPDATE/DELETE restrictivas (append-only)
 DROP POLICY IF EXISTS "audit_log_no_update" ON public.audit_log;
 CREATE POLICY "audit_log_no_update" ON public.audit_log
@@ -88,3 +70,7 @@ COMMENT ON TABLE public.audit_log IS
   'Escritura solo vía trigger auditar_cambio() (SECURITY DEFINER).';
 COMMENT ON COLUMN public.audit_log.action IS 'INSERT, UPDATE, DELETE, CONFLICT_RESOLVED';
 COMMENT ON COLUMN public.audit_log.resolution_strategy IS 'last_write_wins, manual_local, manual_remote, auto';
+
+-- NOTA: Las políticas audit_log_select_clinica y audit_log_select_admin
+-- se crean en migración 0008 (después de que clinica_actual() y funciones
+-- auxiliares existan en migración 0003).

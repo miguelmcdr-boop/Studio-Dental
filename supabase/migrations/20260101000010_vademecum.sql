@@ -334,3 +334,51 @@ CREATE POLICY "metadata_delete_authenticated"
 -- SELECT 'profilaxis', count(*) FROM public.profilaxis_endocarditis UNION ALL
 -- SELECT 'anticoagulantes', count(*) FROM public.manejo_anticoagulantes UNION ALL
 -- SELECT 'metadata', count(*) FROM public.reference_data_meta;
+-- F7-36 FASE 7: GRANT movido desde 0006 (las tablas de vademecum se crean aquí)
+-- Esto otorga SELECT público (anon) a las tablas de referencia clínica
+GRANT SELECT ON public.vademecum, public.vademecum_urgencia,
+  public.vademecum_antirresortivos, public.alergias_cruzadas,
+  public.interacciones_farmacologicas, public.profilaxis_endocarditis,
+  public.manejo_anticoagulantes, public.reference_data_meta TO anon;
+
+-- F7-36 FASE 7: Políticas RLS movidas desde 0006
+-- (las tablas de vademecum se crean aquí, no en 0006)
+-- ============================================================
+-- 5) Vademécum (8 tablas): lectura pública + escritura admin/dentista
+-- ============================================================
+DO $$
+DECLARE
+  t text;
+  pol record;
+BEGIN
+  FOREACH t IN ARRAY ARRAY[
+    'vademecum','vademecum_urgencia','vademecum_antirresortivos',
+    'alergias_cruzadas','interacciones_farmacologicas',
+    'profilaxis_endocarditis','manejo_anticoagulantes','reference_data_meta'
+  ]
+  LOOP
+    FOR pol IN SELECT policyname FROM pg_policies
+               WHERE schemaname = 'public' AND tablename = t
+    LOOP
+      EXECUTE format('DROP POLICY %I ON %I', pol.policyname, t);
+    END LOOP;
+
+    EXECUTE format(
+      'CREATE POLICY %I ON %I FOR SELECT USING (true)',
+      'Lectura pública de ' || t, t);
+    EXECUTE format(
+      'CREATE POLICY %I ON %I FOR INSERT
+         WITH CHECK (public.role_in(ARRAY[''admin'',''dentista'']::app_role[]))',
+      t || '_insert_rol', t);
+    EXECUTE format(
+      'CREATE POLICY %I ON %I FOR UPDATE
+         USING (public.role_in(ARRAY[''admin'',''dentista'']::app_role[]))
+         WITH CHECK (public.role_in(ARRAY[''admin'',''dentista'']::app_role[]))',
+      t || '_update_rol', t);
+    EXECUTE format(
+      'CREATE POLICY %I ON %I FOR DELETE
+         USING (public.role_in(ARRAY[''admin'',''dentista'']::app_role[]))',
+      t || '_delete_rol', t);
+  END LOOP;
+END;
+$$;
