@@ -2248,11 +2248,11 @@ No se considera resuelto un riesgo porque la interfaz lo oculte. Toda prueba de 
 **Qué ganamos:** evitar que la interfaz use la API legada que no contempla correctamente edad, contraindicaciones y límites especiales.
 
 **Criterios de aceptación:**
-- [ ] Ningún componente productivo importa `calcularTubosAnestesia`.
-- [ ] Edad/peso y antecedentes relevantes llegan al cálculo.
-- [ ] Contraindicaciones y advertencias aparecen en UI.
-- [ ] Datos clínicos obligatorios ausentes producen estado restrictivo, nunca una cifra estimada.
-- [ ] Tests para adulto, pediátrico, cardiopatía y datos incompletos.
+- [x] Ningún componente productivo importa `calcularTubosAnestesia`.
+- [x] Edad/peso y antecedentes relevantes llegan al cálculo.
+- [x] Contraindicaciones y advertencias aparecen en UI.
+- [x] Datos clínicos obligatorios ausentes producen estado restrictivo, nunca una cifra estimada.
+- [x] Tests para adulto, pediátrico, cardiopatía y datos incompletos.
 
 #### F7-02 — Corregir unidades del vademécum
 **Qué ganamos:** impedir que un valor absoluto en mg se reutilice como mg/kg o que campos pediátricos/adultos se mezclen.
@@ -2578,7 +2578,7 @@ La auditoría de 2026-08-26 registró: **852/852 tests**, **7 warnings de lint**
 
 ### F7-36 — Tenant Cache & Audit Integrity (12 fases)
 
-**Estado:** 🟡 EN CURSO (FASE 1 ✅ 2026-09-28, FASE 2 ✅ 2026-09-28, FASE 3 ✅ 2026-09-28, FASE 4 ✅ 2026-09-29, FASE 5 ✅ 2026-09-29, FASE 6 ✅ 2026-09-29, FASE 7 pendiente)
+**Estado:** 🟡 EN CURSO (FASE 1 ✅ 2026-09-28, FASE 2 ✅ 2026-09-28, FASE 3 ✅ 2026-09-28, FASE 4 ✅ 2026-09-29, FASE 5 ✅ 2026-09-29, FASE 6 ✅ 2026-09-29, FASE 7 ✅ 2026-09-29)
 
 **Descripción:** Auditoría y corrección profunda de aislamiento multi-tenant, integridad de auditoría, y reproducibilidad de BD.
 
@@ -2767,7 +2767,7 @@ Después de todas las modificaciones ejecutar: Vitest, Security Regression, Deno
 - [x] legacy cache no puede contaminar otra clínica (FASE 1 ✅)
 
 **Auditoría:**
-- [ ] RPC de auditoría no puede ser abusada por usuarios normales (FASE 2)
+- [x] RPC de auditoría no puede ser abusada por usuarios normales (FASE 2)
 - [ ] SECURITY DEFINER revisadas (FASE 2 + FASE 3)
 - [ ] search_path endurecido donde corresponde (FASE 3)
 - [ ] actor real registrado (FASE 5)
