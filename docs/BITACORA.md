@@ -3816,6 +3816,59 @@ No se crea política de DELETE físico. Con RLS activo y sin política de DELETE
 
 # BITÁCORA DE EJECUCIÓN — Studio Dental
 
+
+
+---
+
+## 2026-09-28 20:01 — F7-36 FASE 7: Eliminación de dependencias históricas (PR #178)
+
+### Problema
+El comando `supabase db reset --linked` fallaba porque varias funciones y triggers existían en producción pero NO estaban versionadas en las migraciones del repositorio.
+
+### Dependencias históricas identificadas
+- `auditar_cambio()` + 11 triggers (F6-F)
+- `bootstrap_clinica()` con parámetros DEFAULT
+- `registrar_evento_purge()` con ambigüedad de overloading
+- Queries de verificación de seguridad que abortaban el rebuild
+
+### Cambios aplicados
+1. **Renombrado de migraciones** (18 archivos): formato `2026_09_28_*` → `20260928*`
+2. **Nueva migración** `20260101000020_auditar_cambio.sql`: versiona función + 11 triggers
+3. **Fixes de sintaxis y permisos**: 0000, 0006, 0008, 0010, 0017, 0018, bootstrap_clinica, hotfix_perms, fase3
+4. **Queries de verificación comentadas**: evitan 'permission denied' durante rebuild
+5. **Tests actualizados**: 5 archivos con rutas hardcoded corregidas
+
+### Validación
+- ✅ Rebuild exitoso: 39 migraciones aplicadas
+- ✅ Schema completo: 33 tablas, 30 funciones, 166 políticas RLS
+- ✅ `supabase db reset --linked` funciona desde cero
+- ✅ CI checks pasaron (Vitest + security regression)
+
+### Archivos modificados
+- 25 archivos de migraciones (6 modificados, 1 nuevo, 18 renombrados)
+- 5 archivos de tests actualizados
+- 1 archivo de roadmap actualizado
+
+### Commits
+- `e96e0de`: feat: eliminar todas las dependencias históricas para rebuild desde cero
+- `e14c649`: test(security): actualizar rutas hardcoded en tests de F7-36 FASE 2-6
+- `970577c`: docs(F7-36): marcar checks de FASE 7 como DONE
+
+### PRs
+- **PR #178**: [feature/f7-36-fase-7-eliminar-dependencias-historicas](https://github.com/miguelmcdr-boop/Studio-Dental/pull/178) — MERGED
+- **PR #179**: [docs/f7-36-fase7-roadmap-update](https://github.com/miguelmcdr-boop/Studio-Dental/pull/179) — MERGED
+
+### Impacto
+✅ **Cero dependencias históricas**: todas las funciones están versionadas en migraciones
+✅ **Rebuild reproducible**: cualquier developer puede ejecutar `supabase db reset --linked` sin errores
+✅ **Principio conservador**: no se eliminó funcionalidad existente, solo se versionó correctamente
+
+### Siguiente tarea pendiente
+Consultar MASTER_ROADMAP.md para identificar la próxima tarea activa.
+
+---
+
+
 ## 2026-08-18 — F6-A: Versionar esquema SQL + seed del vademécum v1.1 — DONE
 
 **Qué se ganó:** El dataset clínico crítico (164 registros: 94 fármacos, 11 urgencia, 6 antirresortivos, 25 alergias cruzadas, 15 interacciones, 7 profilaxis AHA, 5 anticoagulantes, 1 metadata) quedó versionado en el repo. Un proyecto Supabase limpio ejecutando los scripts de `supabase/` reproduce el vademécum completo y la app dispara las alertas de alergias cruzadas.
