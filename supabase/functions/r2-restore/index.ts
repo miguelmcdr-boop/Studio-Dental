@@ -194,6 +194,7 @@ Deno.serve(async (req) => {
           // F7-34: r2_object_key removido (contiene clinica_id/paciente_id)
           restored_at: new Date().toISOString(),
         },
+        p_user_id: userId,
       }),
     });
 
