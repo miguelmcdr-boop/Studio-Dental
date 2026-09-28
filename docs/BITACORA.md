@@ -7843,3 +7843,143 @@ Commit final de documentación que consolida todo el trabajo de F7-36 FASE 1 en 
 ### Estado final de F7-36
 - ✅ **FASE 1 COMPLETADA** (Aislamiento multi-tenant frontend)
 - ⏳ FASE 2-11 pendientes (trabajo server-side: RPC, SECURITY DEFINER, audit log, etc.)
+
+
+## 2026-09-28 — F7-36 FASE 2: RPC de auditoría - cerrar superficie de ataque
+
+### Contexto
+Cierre de la superficie de ataque de funciones SECURITY DEFINER que estaban accesibles por PUBLIC por defecto en PostgreSQL, permitiendo a usuarios autenticados normales invocarlas vía Data API y fabricar eventos de auditoría falsos o disparar purgas automáticas.
+
+### Problema identificado (hallazgo de auditoría)
+PostgreSQL otorga permisos EXECUTE a PUBLIC por defecto en todas las funciones, incluyendo las SECURITY DEFINER. Esto significa que aunque las funciones tuvieran RLS correcto en las tablas que modifican, **RLS NO protege la ejecución de la función**. Un usuario autenticado podía invocar:
+- `registrar_evento_purge()` — fabricar eventos ADMIN_PURGE_* falsos
+- `purgar_archivos_expirados()` — disparar purga automática
+- `purgar_certificados_expirados()` — disparar purga de certificados
+- `validar_eliminado_at_certificados()` — invocar trigger helper fuera de contexto
+
+### Regla del brief F7-36 FASE 2 aplicada
+> "RLS NO protege automáticamente la ejecución de una función. Comprueba permisos de ejecución explícitamente."
+
+### Commits de FASE 2
+
+| # | Commit | Tipo | Contenido |
+|---|---|---|---|
+| 2.1 | `17142ae` | SQL | Endurecer permisos de `registrar_evento_archivo` (REVOKE PUBLIC, GRANT service_role) |
+| 2.2 | `d53dbcb` | SQL | Endurecer permisos de 4 funciones de purge/trigger helpers |
+| 2.3 | `8b8b8cd` | JS | 7 tests de regresión de permisos |
+| 2.4 | este commit | docs | Documentación + checklist deploy |
+
+### Funciones endurecidas (4 en Commit 2.2 + 1 en Commit 2.1)
+
+| Función | Caller legítimo | Permiso final |
+|---|---|---|
+| `registrar_evento_archivo(UUID, TEXT, JSONB)` | Edge Functions (r2-*) con service_role | REVOKE PUBLIC, GRANT service_role |
+| `registrar_evento_purge(UUID, TEXT, JSONB, UUID)` | Edge Functions (archivos-purge, pacientes-purge) | REVOKE PUBLIC/authenticated/anon, GRANT service_role |
+| `purgar_archivos_expirados()` | pg_cron (corre como postgres) | REVOKE PUBLIC/authenticated/anon |
+| `purgar_certificados_expirados()` | pg_cron (corre como postgres) | REVOKE PUBLIC/authenticated/anon |
+| `validar_eliminado_at_certificados()` | Trigger BEFORE UPDATE ON certificados | REVOKE PUBLIC/authenticated/anon |
+
+### Callers legítimos preservados
+
+- **Edge Functions**: siguen funcionando con `service_role` (GRANT TO service_role)
+- **pg_cron**: sigue funcionando como superuser (postgres), no necesita GRANT
+- **Triggers**: siguen funcionando como owner de la tabla (postgres)
+
+### Migraciones SQL
+
+1. `supabase/migrations/2026_09_28_0001_f7_36_fase2_rpc_evento_archivo_perms.sql` (Commit 2.1, sesión anterior)
+2. `supabase/migrations/2026_09_28_0002_f7_36_fase2_rpc_purge_perms.sql` (Commit 2.2, este PR)
+
+### Tests agregados
+
+Archivo: `src/test/security/f7-36-fase2-rpc-permissions.test.js` (280 líneas, 7 tests)
+
+| # | Test | Valida |
+|---|---|---|
+| 1 | Frontend NO invoca `registrar_evento_archivo` vía supabase.rpc() | Nadie agregó llamada directa |
+| 2 | Frontend NO invoca `registrar_evento_purge` | Idem |
+| 3 | Frontend NO invoca `purgar_archivos_expirados` | Idem |
+| 4 | Frontend NO invoca `purgar_certificados_expirados` | Idem |
+| 5 | Edge Functions invocan `registrar_evento_archivo` | Callers legítimos confirmados |
+| 6 | Edge Functions invocan `registrar_evento_purge` | Callers legítimos confirmados |
+| 7 | Contrato documentado en migración SQL | Test obligatorio del brief incluido |
+
+**Nota honesta:** Estos tests NO validan permisos reales contra una BD Supabase viva (Supabase local no está corriendo durante CI). Validan el contrato mediante grep estático + documentación. La validación real se hace manualmente post-deploy.
+
+### Validaciones
+- 1608/1608 tests pasando (1601 previos + 7 nuevos)
+- validate:architecture PASS
+- build OK
+- 0 regresiones
+
+### ⚠️ CHECKLIST DE DEPLOY MANUAL POST-MERGE (CRÍTICO)
+
+Las migraciones SQL NO se aplican automáticamente al hacer push. Después de merge del PR #168, ejecutar:
+
+**Opción 1 (recomendada): Supabase CLI**
+
+    supabase db push
+
+**Opción 2:** Copiar el contenido de `supabase/migrations/2026_09_28_0002_f7_36_fase2_rpc_purge_perms.sql` en Supabase Dashboard → SQL Editor.
+
+#### Verificación post-deploy (obligatoria)
+
+**1. Verificar permisos aplicados:**
+
+    SELECT p.proname,
+           pg_get_userbyid(p.proowner) AS owner,
+           has_function_privilege('authenticated', p.oid, 'EXECUTE') AS auth_can_exec,
+           has_function_privilege('public', p.oid, 'EXECUTE') AS public_can_exec,
+           has_function_privilege('service_role', p.oid, 'EXECUTE') AS service_can_exec
+    FROM pg_proc p
+    JOIN pg_namespace n ON p.pronamespace = n.oid
+    WHERE n.nspname = 'public'
+      AND p.proname IN (
+        'registrar_evento_archivo',
+        'registrar_evento_purge',
+        'purgar_archivos_expirados',
+        'purgar_certificados_expirados',
+        'validar_eliminado_at_certificados'
+      )
+    ORDER BY p.proname;
+
+**Esperado para las 5 funciones:**
+- `auth_can_exec = false`
+- `public_can_exec = false`
+- `service_can_exec = true` (solo para `registrar_evento_archivo` y `registrar_evento_purge`)
+
+**2. Test obligatorio del brief (simular usuario autenticado normal):**
+
+    SET ROLE authenticated;
+
+    SELECT public.registrar_evento_purge(
+      '00000000-0000-0000-0000-000000000000'::uuid,
+      'FAKE_EVENT',
+      '{}'::jsonb,
+      '00000000-0000-0000-0000-000000000000'::uuid
+    );
+    -- Esperado: ERROR "permission denied for function registrar_evento_purge"
+
+    RESET ROLE;
+
+**3. Verificar migración registrada:**
+
+    SELECT version, name FROM supabase_migrations.schema_migrations
+    WHERE name LIKE '%f7_36_fase2%'
+    ORDER BY version DESC;
+    -- Esperado: 2 filas (2026_09_28_0001 y 2026_09_28_0002)
+
+### Estado final FASE 2
+- ✅ 5 funciones SECURITY DEFINER endurecidas
+- ✅ Permisos correctamente restringidos
+- ✅ Callers legítimos preservados (Edge Functions + pg_cron + triggers)
+- ✅ Tests de regresión implementados
+- ⚠️ **Pendiente:** Aplicar migraciones con `supabase db push` (post-merge)
+
+### Próximo
+- Merge PR #168
+- Aplicar migraciones a staging con `supabase db push`
+- Verificar permisos con queries de verificación
+- Si todo OK, proceder con FASE 3 (SECURITY DEFINER hardening)
+
+---

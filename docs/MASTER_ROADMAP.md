@@ -2578,7 +2578,7 @@ La auditoría de 2026-08-26 registró: **852/852 tests**, **7 warnings de lint**
 
 ### F7-36 — Tenant Cache & Audit Integrity (12 fases)
 
-**Estado:** 🟡 EN CURSO (FASE 1 completada 2026-09-28, FASE 2 en curso)
+**Estado:** 🟡 EN CURSO (FASE 1 ✅ 2026-09-28, FASE 2 ✅ 2026-09-28, FASE 3 pendiente)
 
 **Descripción:** Auditoría y corrección profunda de aislamiento multi-tenant, integridad de auditoría, y reproducibilidad de BD.
 
@@ -2606,17 +2606,31 @@ PRs: #166 (Parte 1) ✅ mergeado, #167 (Parte 2) ✅ mergeado
 
 ---
 
-#### FASE 2: RPC de auditoría — cerrar superficie de ataque 🟡 EN CURSO
+#### FASE 2: RPC de auditoría — cerrar superficie de ataque ✅ COMPLETADA (2026-09-28)
 **Objetivo del brief:** Revisar TODAS las funciones SECURITY DEFINER. Determinar quién necesita ejecutar cada una. Si una función no debe estar disponible vía Data API para anon/authenticated/PUBLIC, revocar explícitamente esos permisos.
 
 **Regla crítica del brief:** RLS NO protege automáticamente la ejecución de una función. RLS correcto ≠ RPC segura.
 
 **Test obligatorio del brief:** Usuario autenticado normal NO debe poder invocar `registrar_evento_purge(...)` ni `registrar_evento_archivo(...)` si no forman parte de la API pública del usuario.
 
+**Commits completados:**
+- ✅ Commit 2.1 (`17142ae`): endurecer permisos de `registrar_evento_archivo`
+- ✅ Commit 2.2 (`d53dbcb`): endurecer permisos de 4 funciones purge/trigger helpers
+- ✅ Commit 2.3 (`8b8b8cd`): 7 tests JS de regresión de permisos
+- ✅ Commit 2.4 (`6077f82`): documentación + checklist deploy manual
+
 **Hallazgos de la auditoría (2026-09-28):**
-- 🔴 `registrar_evento_archivo` y `registrar_evento_purge`: sin REVOKE, sin GRANT, sin search_path
-- 🟠 7 helpers RBAC sin permisos explícitos (current_role, get_role_from_metadata, has_role, is_admin, set_app_metadata_role, profiles_lock_role, role_in)
+- ✅ `registrar_evento_archivo` endurecido (Commit 2.1): REVOKE PUBLIC, GRANT service_role
+- ✅ `registrar_evento_purge` endurecido (Commit 2.2): REVOKE PUBLIC/authenticated/anon, GRANT service_role
+- ✅ `purgar_archivos_expirados` endurecido (Commit 2.2): REVOKE PUBLIC/authenticated/anon
+- ✅ `purgar_certificados_expirados` endurecido (Commit 2.2): REVOKE PUBLIC/authenticated/anon
+- ✅ `validar_eliminado_at_certificados` endurecido (Commit 2.2): REVOKE PUBLIC/authenticated/anon
+- 🟠 7 helpers RBAC sin permisos explícitos (current_role, get_role_from_metadata, has_role, is_admin, set_app_metadata_role, profiles_lock_role, role_in) — **pendiente para FASE 3 (SECURITY DEFINER hardening)**
 - ✅ 13 funciones ya endurecidas correctamente (clinica_actual, invitaciones, bootstrap, registrar_exportacion)
+
+**PR:** #168 (pendiente de merge)
+**Métricas:** 1608/1608 tests, 5 funciones endurecidas, 7 tests de regresión
+**⚠️ Deploy manual requerido post-merge:** ejecutar `supabase db push` (ver checklist en BITACORA.md)
 - ⚠️ `auditar_cambio()` no encontrada en migraciones actuales (gap para FASE 7)
 
 **Commits planeados:**
