@@ -7344,3 +7344,65 @@ Helper nuevo: crearMockTenantCache(clinicaId) simula tenantCache con clínica ac
 Commit 1.5c: Migrar servicios financieros (pagos, presupuestos, finanzas) a tenant-aware.
 
 ---
+
+## 2026-09-28 — F7-36 FASE 1: Migración de servicios financieros a tenant-aware (Commit 1.5c)
+
+### Contexto
+Segunda migración real de servicios a claves tenant-aware. Los 3 servicios financieros ahora almacenan sus datos con formato sd_<clinicaId>_<baseKey> en lugar de las claves legacy studio_dental_*.
+
+### Servicios migrados
+1. pagosStorageService.js (317 → 320 líneas)
+   - createLocalStorageRepository → createTenantRepository
+   - Clave legacy 'studio_dental_pagos_historial_v3' → 'sd_<clinicaId>_studio_dental_pagos_historial_v3'
+   - Fail-safe: si no hay clínica activa, retorna defaultValue ([])
+
+2. presupuestosStorageService.js (458 → 461 líneas)
+   - createLocalStorageRepository → createTenantRepository
+   - Clave legacy 'studio_dental_presupuestos_globales' → 'sd_<clinicaId>_studio_dental_presupuestos_globales'
+   - Preserva notify: true y evento 'presupuestos_actualizados' para sincronización
+
+3. finanzasStorageService.js (291 → 294 líneas)
+   - createLocalStorageRepository → createTenantRepository (3 repos)
+   - Claves legacy migradas:
+     * 'studio_dental_finanzas_movimientos'
+     * 'studio_dental_finanzas_convenios'
+     * 'studio_dental_finanzas_cierres_caja'
+   - Preserva lógica de Supabase y fallback offline-first
+
+### Defensa en profundidad
+La migración agrega una SEGUNDA capa de aislamiento sobre el RLS de Supabase:
+- RLS: previene acceso cross-clinic a nivel BD
+- tenantCache: previene contaminación cross-clinic en localStorage
+
+### Archivos modificados
+- src/modules/pagos/services/pagosStorageService.js
+- src/modules/presupuestos/services/presupuestosStorageService.js
+- src/modules/finanzas/services/finanzasStorageService.js
+- scripts/architecture-allowlist.json (3 límites actualizados: 294→295, 318→321, 461→462)
+- src/test/security/no-fallback-cross-clinic.test.js (5 tests reescritos)
+
+### Actualización de tests
+5 tests del archivo transversal fueron reescritos para usar el patrón tenant-aware:
+- finanzasStorageService: Caso 1 (Supabase [] sobrescribe cache)
+- pagosStorageService: Caso 1 (Supabase [] sobrescribe cache)
+- presupuestosStorageService: Caso 1 (Supabase [] sobrescribe cache)
+- finanzasStorageService: Caso 2 (error de red conserva cache)
+- finanzasStorageService: Caso 3 (datos válidos reemplazan cache)
+
+Todos usan mock de tenantCache con clínica activa simulada y claves sd_clinica-A_studio_dental_* en lugar de las legacy.
+
+### Validaciones
+- 1589/1589 tests pasando (sin regresión)
+- 6/6 tests de no-fallback-cross-clinic pasando (5 reescritos + agenda)
+- validate:architecture PASS
+- build OK
+
+### Dependencias preservadas
+- usePagos, usePresupuestos, useFinanzas: siguen usando los servicios
+- invalidarCacheCambioClinica: ya integra resetCache() de los 3 servicios
+- Supabase sync: lógica intacta, solo cambia dónde se persiste localmente
+
+### Próximo paso
+Commit 1.5d: Migrar servicios operacionales (inventario, laboratorio, esterilización, urgencias GES) a tenant-aware.
+
+---
