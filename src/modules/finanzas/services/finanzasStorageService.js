@@ -16,7 +16,7 @@
  * porque no hay tablas correspondientes en Supabase en esta fase.
  * Se migrarán en F4-02d si es necesario.
  */
-import { createLocalStorageRepository } from '../../../services/localStorageRepository'
+import { createTenantRepository } from '../../../services/localStorageRepository'
 import { validarListaMovimientos } from '../schemas/movimientoFinancieroSchema'
 import { supabase, USE_SUPABASE } from '../../../services/supabaseClient'
 import { migrationStorageService } from '../../../services/migrationStorageService'
@@ -29,9 +29,12 @@ const STORAGE_KEY_MOVIMIENTOS = 'studio_dental_finanzas_movimientos'
 const STORAGE_KEY_CONVENIOS = 'studio_dental_finanzas_convenios'
 const STORAGE_KEY_CIERRES = 'studio_dental_finanzas_cierres_caja'
 
-const movimientosRepo = createLocalStorageRepository(STORAGE_KEY_MOVIMIENTOS, [])
-const conveniosRepo = createLocalStorageRepository(STORAGE_KEY_CONVENIOS, [])
-const cierresRepo = createLocalStorageRepository(STORAGE_KEY_CIERRES, [])
+// F7-36 FASE 1 (Commit 1.5c): migrados a createTenantRepository para aislamiento multi-tenant.
+// Las claves legacy ahora se almacenan como sd_<clinicaId>_<baseKey>.
+// Fail-safe: si no hay clínica activa, los repos retornan defaultValue ([]).
+const movimientosRepo = createTenantRepository(STORAGE_KEY_MOVIMIENTOS, [])
+const conveniosRepo = createTenantRepository(STORAGE_KEY_CONVENIOS, [])
+const cierresRepo = createTenantRepository(STORAGE_KEY_CIERRES, [])
 
 // Caché en memoria solo para movimientos
 let movimientosCache = null

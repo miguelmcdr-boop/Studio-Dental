@@ -14,7 +14,7 @@
  * Nota: Los métodos legacy de abonos por paciente fueron extraídos a
  * pagosAbonosLegacyService.js (F3-02 refactor). Se migrarán a Supabase en F4-02d.
  */
-import { leerJSON, escribirJSON, createLocalStorageRepository } from '../../../services/localStorageRepository'
+import { leerJSON, escribirJSON, createTenantRepository } from '../../../services/localStorageRepository'
 import { supabase, USE_SUPABASE } from '../../../services/supabaseClient'
 import { migrationStorageService } from '../../../services/migrationStorageService'
 import { esUuidValido } from '../../../services/migrations/uuidUtils'
@@ -24,7 +24,10 @@ import { createLogger } from '../../../services/logger'
 const log = createLogger('pagosStorageService')
 
 const STORAGE_KEY_PAGOS = 'studio_dental_pagos_historial_v3'
-const pagosRepo = createLocalStorageRepository(STORAGE_KEY_PAGOS, [])
+// F7-36 FASE 1 (Commit 1.5c): migrado a createTenantRepository para aislamiento multi-tenant.
+// La clave legacy 'studio_dental_pagos_historial_v3' ahora se almacena como sd_<clinicaId>_studio_dental_pagos_historial_v3.
+// Fail-safe: si no hay clínica activa, obtenerPagos() retorna defaultValue ([].
+const pagosRepo = createTenantRepository(STORAGE_KEY_PAGOS, [])
 
 // Caché en memoria
 let pagosCache = null

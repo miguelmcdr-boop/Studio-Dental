@@ -103,43 +103,46 @@ describe('F7-36: No-fallback cross-clinic en storage services', () => {
   })
 
   describe('Caso 1: Supabase [] no recupera cache de clínica anterior', () => {
-    it('finanzasStorageService: Supabase [] sobrescribe cache antiguo', async () => {
-      // Simular cache con datos de clínica A
+    it('finanzasStorageService: Supabase [] sobrescribe cache antiguo (tenant-aware)', async () => {
+      // F7-36 FASE 1 (Commit 1.5c): finanzasStorageService fue migrado a createTenantRepository
+      const CLINICA_ID = 'clinica-A'
+      const CLAVE_TENANT = `sd_${CLINICA_ID}_${STORAGE_KEYS.finanzas}`
+
+      // Simular cache con datos de clínica A en clave tenant-aware
       localStorage.setItem(
-        STORAGE_KEYS.finanzas,
+        CLAVE_TENANT,
         JSON.stringify([
           { id: 'a-1', monto: 100, descripcion: 'Clínica A' },
           { id: 'a-2', monto: 200, descripcion: 'Clínica A' },
         ])
       )
 
-      // Mockear supabase ANTES de importar el servicio
+      // Mockear tenantCache ANTES de importar el servicio
+      vi.doMock('../../services/tenantCache', () => ({
+        tenantCache: crearMockTenantCache(CLINICA_ID),
+      }))
+
+      // Mockear supabase
       const mockSupabase = crearMockSupabase([], null)
       vi.doMock('../../services/supabaseClient', () => ({
         supabase: mockSupabase,
         USE_SUPABASE: true,
       }))
 
-      // Import dinámico (carga el módulo con el mock aplicado)
       const { finanzasStorageService } = await import(
         '../../modules/finanzas/services/finanzasStorageService.js'
       )
 
-      // Obtener movimientos → inicializa cache en memoria desde localStorage
-      // (este es el flujo real de la app)
       const inicial = finanzasStorageService.obtenerMovimientos()
-      expect(inicial).toHaveLength(2) // cache tiene datos de clínica A
+      expect(inicial).toHaveLength(2)
 
-      // Sincronizar desde Supabase (retorna [])
       const result = await finanzasStorageService.sincronizarDesdeSupabase()
 
-      // DEBE retornar [], NO los datos de clínica A
       expect(Array.isArray(result)).toBe(true)
       expect(result).toHaveLength(0)
 
-      // Cache en localStorage también debe estar vacío
-      const cachePersistido = JSON.parse(localStorage.getItem(STORAGE_KEYS.finanzas) || 'null')
-      expect(cachePersistido).toEqual([])
+      // Cache en clave tenant-aware debe estar vacío
+      expect(JSON.parse(localStorage.getItem(CLAVE_TENANT) || 'null')).toEqual([])
     })
 
     it('agendaStorageService: Supabase [] sobrescribe cache antiguo (tenant-aware)', async () => {
@@ -182,11 +185,19 @@ describe('F7-36: No-fallback cross-clinic en storage services', () => {
       expect(JSON.parse(localStorage.getItem(CLAVE_TENANT) || 'null')).toEqual([])
     })
 
-    it('pagosStorageService: Supabase [] sobrescribe cache antiguo', async () => {
+    it('pagosStorageService: Supabase [] sobrescribe cache antiguo (tenant-aware)', async () => {
+      // F7-36 FASE 1 (Commit 1.5c): pagosStorageService fue migrado a createTenantRepository
+      const CLINICA_ID = 'clinica-A'
+      const CLAVE_TENANT = `sd_${CLINICA_ID}_${STORAGE_KEYS.pagos}`
+
       localStorage.setItem(
-        STORAGE_KEYS.pagos,
+        CLAVE_TENANT,
         JSON.stringify([{ id: 'a-1', monto: 50000, paciente: 'Clínica A' }])
       )
+
+      vi.doMock('../../services/tenantCache', () => ({
+        tenantCache: crearMockTenantCache(CLINICA_ID),
+      }))
 
       const mockSupabase = crearMockSupabase([], null)
       vi.doMock('../../services/supabaseClient', () => ({
@@ -203,14 +214,22 @@ describe('F7-36: No-fallback cross-clinic en storage services', () => {
       const result = await pagosStorageService.sincronizarDesdeSupabase()
 
       expect(result).toHaveLength(0)
-      expect(JSON.parse(localStorage.getItem(STORAGE_KEYS.pagos) || 'null')).toEqual([])
+      expect(JSON.parse(localStorage.getItem(CLAVE_TENANT) || 'null')).toEqual([])
     })
 
-    it('presupuestosStorageService: Supabase [] sobrescribe cache antiguo', async () => {
+    it('presupuestosStorageService: Supabase [] sobrescribe cache antiguo (tenant-aware)', async () => {
+      // F7-36 FASE 1 (Commit 1.5c): presupuestosStorageService fue migrado a createTenantRepository
+      const CLINICA_ID = 'clinica-A'
+      const CLAVE_TENANT = `sd_${CLINICA_ID}_${STORAGE_KEYS.presupuestos}`
+
       localStorage.setItem(
-        STORAGE_KEYS.presupuestos,
+        CLAVE_TENANT,
         JSON.stringify([{ id: 'a-1', total: 150000, paciente: 'Clínica A' }])
       )
+
+      vi.doMock('../../services/tenantCache', () => ({
+        tenantCache: crearMockTenantCache(CLINICA_ID),
+      }))
 
       const mockSupabase = crearMockSupabase([], null)
       vi.doMock('../../services/supabaseClient', () => ({
@@ -227,17 +246,25 @@ describe('F7-36: No-fallback cross-clinic en storage services', () => {
       const result = await presupuestosStorageService.sincronizarDesdeSupabase()
 
       expect(result).toHaveLength(0)
-      expect(JSON.parse(localStorage.getItem(STORAGE_KEYS.presupuestos) || 'null')).toEqual([])
+      expect(JSON.parse(localStorage.getItem(CLAVE_TENANT) || 'null')).toEqual([])
     })
   })
 
   describe('Caso 2: Error de red SÍ conserva cache (offline-first)', () => {
-    it('finanzasStorageService: error de red retorna cache existente', async () => {
+    it('finanzasStorageService: error de red retorna cache existente (tenant-aware)', async () => {
+      // F7-36 FASE 1 (Commit 1.5c): finanzasStorageService fue migrado a createTenantRepository
+      const CLINICA_ID = 'clinica-A'
+      const CLAVE_TENANT = `sd_${CLINICA_ID}_${STORAGE_KEYS.finanzas}`
+
       const datosCache = [
         { id: 'a-1', monto: 100, descripcion: 'Clínica A' },
         { id: 'a-2', monto: 200, descripcion: 'Clínica A' },
       ]
-      localStorage.setItem(STORAGE_KEYS.finanzas, JSON.stringify(datosCache))
+      localStorage.setItem(CLAVE_TENANT, JSON.stringify(datosCache))
+
+      vi.doMock('../../services/tenantCache', () => ({
+        tenantCache: crearMockTenantCache(CLINICA_ID),
+      }))
 
       // Mockear supabase con error
       const mockSupabase = crearMockSupabase(null, new Error('Network error'))
@@ -250,7 +277,6 @@ describe('F7-36: No-fallback cross-clinic en storage services', () => {
         '../../modules/finanzas/services/finanzasStorageService.js'
       )
 
-      // Inicializar cache en memoria desde localStorage
       const inicial = finanzasStorageService.obtenerMovimientos()
       expect(inicial).toEqual(datosCache)
 
@@ -262,9 +288,17 @@ describe('F7-36: No-fallback cross-clinic en storage services', () => {
   })
 
   describe('Caso 3: Supabase con datos válidos sobrescribe cache', () => {
-    it('finanzasStorageService: datos nuevos reemplazan cache', async () => {
+    it('finanzasStorageService: datos nuevos reemplazan cache (tenant-aware)', async () => {
+      // F7-36 FASE 1 (Commit 1.5c): finanzasStorageService fue migrado a createTenantRepository
+      const CLINICA_ID = 'clinica-A'
+      const CLAVE_TENANT = `sd_${CLINICA_ID}_${STORAGE_KEYS.finanzas}`
+
       const datosCache = [{ id: 'a-1', monto: 100, descripcion: 'Clínica A (viejo)' }]
-      localStorage.setItem(STORAGE_KEYS.finanzas, JSON.stringify(datosCache))
+      localStorage.setItem(CLAVE_TENANT, JSON.stringify(datosCache))
+
+      vi.doMock('../../services/tenantCache', () => ({
+        tenantCache: crearMockTenantCache(CLINICA_ID),
+      }))
 
       // Datos en formato snake_case (como vienen de la BD)
       const datosSupabase = [
@@ -290,7 +324,6 @@ describe('F7-36: No-fallback cross-clinic en storage services', () => {
         '../../modules/finanzas/services/finanzasStorageService.js'
       )
 
-      // Inicializar cache en memoria desde localStorage
       const inicial = finanzasStorageService.obtenerMovimientos()
       expect(inicial).toHaveLength(1)
       expect(inicial[0].id).toBe('a-1')
