@@ -7142,3 +7142,81 @@ ClinicaSelector.handleCambio() ahora llama a invalidarCacheCambioClinica(clinica
 Commit 1.4: Extender localStorageRepository para usar tenantCache (migración gradual de servicios a claves tenant-aware).
 
 ---
+
+## 2026-09-28 — F7-36 FASE 1: Wrapper createTenantRepository para migración drop-in (Commit 1.4)
+
+### Contexto
+Para migrar los 14 storage services a claves tenant-aware sin reescribir cada uno, se necesita un wrapper que encapsule tenantCache con la misma API que createLocalStorageRepository. Esto permite migración de UNA línea por servicio.
+
+### Solución
+Nueva función createTenantRepository en localStorageRepository.js que envuelve tenantCache con API idéntica al repo legacy:
+
+- obtener(fallback) → tenantCache.leerTenant()
+- guardar(value) → tenantCache.escribirTenant() + eventos
+- eliminar() → tenantCache.eliminarTenant()
+- existe() → tenantCache.existeTenant()
+
+### Fail-safe real (sin bugs ocultos)
+Sin clínica activa:
+- obtener/eliminar/existe retornan defaultValue con log.warn (nunca lanzan error)
+- guardar retorna false y NO dispara eventos (evita "eventos fantasma" sin contexto)
+- Cada fallo emite log.warn informativo para detectar bugs sin crash
+
+Con clínica activa:
+- Comportamiento idéntico a createLocalStorageRepository
+- Soporte de eventos notify y custom
+- Soporte de versionado de esquemas (F3-06) via schemaVersion + migrations
+
+### Estrategia de migración
+Los servicios migran cambiando UNA línea:
+
+Antes: const repo = createLocalStorageRepository('pacientes_v3', [])
+Después: const repo = createTenantRepository('pacientes_v3', [])
+
+Esto garantiza aislamiento automático por clínica sin cambios en la lógica de negocio.
+
+### Archivos
+- src/services/localStorageRepository.js (124 → 233 líneas, agrega createTenantRepository)
+- src/services/tenantRepository.test.js (nuevo, 289 líneas, 19 tests)
+
+### Tests cubiertos (19 casos)
+API pública (1):
+- Expone los 4 métodos y baseKey correctamente
+
+Fail-safe sin clínica activa (6):
+- obtener() retorna defaultValue sin lanzar error
+- obtener() retorna fallback pasado explícitamente
+- guardar() retorna false sin lanzar error
+- eliminar() retorna false sin lanzar error
+- existe() retorna false sin lanzar error
+- guardar() sin clínica NO dispara eventos (crítico)
+
+Funcionalidad con clínica activa (5):
+- obtener() retorna defaultValue si no hay datos
+- guardar() + obtener() round-trip funciona
+- existe() retorna true si hay datos
+- eliminar() elimina los datos
+- guardar() escribe con formato sd_<clinicaId>_<baseKey>
+
+Aislamiento multi-tenant (3):
+- Clínica A no ve datos de Clínica B
+- Cambio A → B → A mantiene datos separados
+- eliminar() de una clínica no afecta a la otra
+
+Eventos (2):
+- notify: true dispara evento storage
+- eventos: [name] dispara CustomEvents
+
+Versionado F3-06 (2):
+- schemaVersion envuelve datos al guardar
+- obtener() desenvuelve datos versionados
+
+### Validaciones
+- 1583/1583 tests pasando (19 nuevos + sin regresión)
+- validate:architecture PASS
+- build OK
+
+### Próximo paso
+Commit 1.5: Migrar claves de módulos clínicos a formato tenant-aware (14 storage services).
+
+---
