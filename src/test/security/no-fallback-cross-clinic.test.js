@@ -5,11 +5,17 @@
  * (finanzas, agenda, pagos, presupuestos) NO conservan cache
  * de clínica anterior cuando Supabase retorna [] sin error.
  *
- * Patrón real de la app:
+ * Patrón real de la app (legacy):
  *   1. localStorage.setItem(STORAGE_KEY, datosClinicaA)
  *   2. servicio.obtenerX() → inicializa cache en memoria desde localStorage
  *   3. servicio.sincronizarDesdeSupabase() → Supabase retorna []
  *   4. DEBE retornar [] (NO los datos de clínica A)
+ *
+ * Patrón tenant-aware (Commit 1.5b+):
+ *   Los servicios migrados a createTenantRepository usan claves
+ *   sd_<clinicaId>_<baseKey> en lugar de las legacy studio_dental_*.
+ *   El test de agendaStorageService usa este patrón; los otros 3 aún
+ *   usan el patrón legacy hasta ser migrados (Commits 1.5c-1.5e).
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
@@ -50,6 +56,40 @@ const crearMockSupabase = (dataRespuesta, errorRespuesta = null) => {
     },
   }
 }
+/**
+ * Crea un mock de tenantCache que simula una clínica activa.
+ * Necesario para los servicios migrados a createTenantRepository.
+ *
+ * @param {string} clinicaId - ID de la clínica activa simulada
+ */
+const crearMockTenantCache = (clinicaId) => ({
+  getClinicaId: vi.fn(() => clinicaId),
+  claveTenant: (baseKey) => `sd_${clinicaId}_${baseKey}`,
+  leerTenant: (baseKey, fallback) => {
+    const key = `sd_${clinicaId}_${baseKey}`
+    const saved = localStorage.getItem(key)
+    return saved !== null ? JSON.parse(saved) : fallback
+  },
+  escribirTenant: (baseKey, value) => {
+    const key = `sd_${clinicaId}_${baseKey}`
+    try {
+      localStorage.setItem(key, JSON.stringify(value))
+      return true
+    } catch {
+      return false
+    }
+  },
+  eliminarTenant: (baseKey) => {
+    const key = `sd_${clinicaId}_${baseKey}`
+    const existia = localStorage.getItem(key) !== null
+    localStorage.removeItem(key)
+    return existia
+  },
+  existeTenant: (baseKey) => {
+    return localStorage.getItem(`sd_${clinicaId}_${baseKey}`) !== null
+  },
+})
+
 
 describe('F7-36: No-fallback cross-clinic en storage services', () => {
   beforeEach(() => {
@@ -102,12 +142,24 @@ describe('F7-36: No-fallback cross-clinic en storage services', () => {
       expect(cachePersistido).toEqual([])
     })
 
-    it('agendaStorageService: Supabase [] sobrescribe cache antiguo', async () => {
+    it('agendaStorageService: Supabase [] sobrescribe cache antiguo (tenant-aware)', async () => {
+      // F7-36 FASE 1 (Commit 1.5b): agendaStorageService fue migrado a createTenantRepository.
+      // Los datos se almacenan en clave tenant-aware: sd_<clinicaId>_<baseKey>
+      const CLINICA_ID = 'clinica-A'
+      const CLAVE_TENANT = `sd_${CLINICA_ID}_${STORAGE_KEYS.agenda}`
+
+      // Simular cache con datos de clínica A en clave tenant-aware
       localStorage.setItem(
-        STORAGE_KEYS.agenda,
+        CLAVE_TENANT,
         JSON.stringify([{ id: 'a-1', paciente: 'Clínica A' }])
       )
 
+      // Mockear tenantCache ANTES de importar el servicio
+      vi.doMock('../../services/tenantCache', () => ({
+        tenantCache: crearMockTenantCache(CLINICA_ID),
+      }))
+
+      // Mockear supabase
       const mockSupabase = crearMockSupabase([], null)
       vi.doMock('../../services/supabaseClient', () => ({
         supabase: mockSupabase,
@@ -117,13 +169,17 @@ describe('F7-36: No-fallback cross-clinic en storage services', () => {
       const { agendaStorageService } = await import(
         '../../modules/agenda/services/agendaStorageService.js'
       )
+
+      // Obtener citas (lee de clave tenant-aware)
       const inicial = agendaStorageService.obtenerCitas()
       expect(inicial).toHaveLength(1)
 
+      // Sincronizar desde Supabase (retorna [])
       const result = await agendaStorageService.sincronizarDesdeSupabase()
 
       expect(result).toHaveLength(0)
-      expect(JSON.parse(localStorage.getItem(STORAGE_KEYS.agenda) || 'null')).toEqual([])
+      // Cache en localStorage debe estar vacío (en clave tenant-aware)
+      expect(JSON.parse(localStorage.getItem(CLAVE_TENANT) || 'null')).toEqual([])
     })
 
     it('pagosStorageService: Supabase [] sobrescribe cache antiguo', async () => {

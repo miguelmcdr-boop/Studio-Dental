@@ -29,7 +29,7 @@
     "src/components/LoginScreen.jsx": 343,
     "src/hooks/useAuth.js": 191,
     "src/modules/pacientes/services/pacientesStorageService.js": 463,
-    "src/modules/agenda/services/agendaStorageService.js": 378,
+    "src/modules/agenda/services/agendaStorageService.js": 379,
     "src/hooks/useDataMigration.js": 269,
     "src/modules/presupuestos/services/presupuestosStorageService.js": 461,
     "src/modules/pagos/services/pagosStorageService.js": 318,
