@@ -56,7 +56,7 @@ COMMENT ON POLICY system_config_service_role_only ON system_config IS
 -- ============================================================
 
 CREATE OR REPLACE FUNCTION purgar_archivos_expirados()
-RETURNS void AS $$
+RETURNS void AS $body$
 DECLARE
   v_archivos RECORD;
   v_archivo_ids UUID[] := ARRAY[]::UUID[];
@@ -125,9 +125,10 @@ BEGIN
       WHEN OTHERS THEN
         RAISE WARNING '[F7-32] Error encolando request: %', SQLERRM;
     END;
+  END;
 
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$body$ LANGUAGE plpgsql SECURITY DEFINER;
 
 COMMENT ON FUNCTION purgar_archivos_expirados IS 
   'F7-32: Purga automática de archivos en papelera con más de 30 días. '

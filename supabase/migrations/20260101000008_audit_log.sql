@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS public.audit_log (
   new_data jsonb,
   resolution_strategy text CHECK (resolution_strategy IN ('last_write_wins', 'manual_local', 'manual_remote', 'auto')),
   user_email text,
-  created_at timestamp with time zone DEFAULT now() NOT NULL,
+  created_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 -- RLS activado

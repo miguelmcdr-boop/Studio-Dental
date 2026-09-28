@@ -180,7 +180,7 @@ BEGIN
 END;
 $$;
 
-COMMENT ON FUNCTION public.bootstrap_clinica() IS
+COMMENT ON FUNCTION public.bootstrap_clinica(TEXT, TEXT, TEXT, TEXT, TEXT) IS
   'F7-11b: Crea una nueva clínica con estado trial y asigna al usuario actual como admin. '
   'Valida: sin clínica activa, rate limiting 24h, nombre válido, RUT único. '
   'El frontend debe llamar setClinicaActiva() después para activar la clínica.';

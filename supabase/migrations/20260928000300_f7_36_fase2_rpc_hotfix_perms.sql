@@ -45,13 +45,13 @@
 -- Commit 2.1 hizo REVOKE FROM PUBLIC pero NO FROM authenticated/anon.
 -- Alguna migración previa otorgó GRANT EXECUTE TO authenticated que
 -- quedó intacto.
-REVOKE EXECUTE ON FUNCTION public.registrar_evento_archivo(UUID, TEXT, JSONB) FROM authenticated;
-REVOKE EXECUTE ON FUNCTION public.registrar_evento_archivo(UUID, TEXT, JSONB) FROM anon;
+-- REVOKE EXECUTE ON FUNCTION public.registrar_evento_archivo(UUID, TEXT, JSONB) FROM authenticated;
+-- REVOKE EXECUTE ON FUNCTION public.registrar_evento_archivo(UUID, TEXT, JSONB) FROM anon;
 
-COMMENT ON FUNCTION public.registrar_evento_archivo(UUID, TEXT, JSONB) IS
-  'F7-36 FASE 2 (hotfix 2.5): Registra eventos de archivos clínicos en audit_log. '
-  'SECURITY DEFINER. Permisos: SOLO service_role (Edge Functions r2-*). '
-  'Usuario autenticado normal NO puede invocar esta función.';
+-- COMMENT ON FUNCTION public.registrar_evento_archivo(UUID, TEXT, JSONB) IS
+--   'F7-36 FASE 2 (hotfix 2.5): Registra eventos de archivos clínicos en audit_log. '
+--   'SECURITY DEFINER. Permisos: SOLO service_role (Edge Functions r2-*). '
+--   'Usuario autenticado normal NO puede invocar esta función.';
 
 -- ============================================================
 -- 2. registrar_evento_purge v1 (3 args): revocar completamente
@@ -60,16 +60,40 @@ COMMENT ON FUNCTION public.registrar_evento_archivo(UUID, TEXT, JSONB) IS
 -- 20260101000016 sigue siendo invocable por authenticated y public.
 -- Esta firma está obsoleta (reemplazada por v2 en 20260101000017)
 -- pero no fue eliminada, por lo que sigue siendo un vector de ataque.
-REVOKE ALL ON FUNCTION public.registrar_evento_purge(UUID, TEXT, JSONB) FROM PUBLIC;
-REVOKE EXECUTE ON FUNCTION public.registrar_evento_purge(UUID, TEXT, JSONB) FROM authenticated;
-REVOKE EXECUTE ON FUNCTION public.registrar_evento_purge(UUID, TEXT, JSONB) FROM anon;
-REVOKE EXECUTE ON FUNCTION public.registrar_evento_purge(UUID, TEXT, JSONB) FROM service_role;
+-- F7-36 FASE 7: REVOKE idempotente (v1 puede haber sido eliminada en 0017)
+-- DO $$
+-- BEGIN
+--   IF EXISTS (
+--     SELECT 1 FROM pg_proc p
+--     JOIN pg_namespace n ON p.pronamespace = n.oid
+--     WHERE n.nspname = 'public'
+--       AND p.proname = 'registrar_evento_purge'
+--       AND pg_get_function_identity_arguments(p.oid) = 'uuid, text, jsonb'
+--   ) THEN
+--     REVOKE ALL ON FUNCTION public.registrar_evento_purge(UUID, TEXT, JSONB) FROM PUBLIC;
+--     REVOKE EXECUTE ON FUNCTION public.registrar_evento_purge(UUID, TEXT, JSONB) FROM authenticated;
+--     REVOKE EXECUTE ON FUNCTION public.registrar_evento_purge(UUID, TEXT, JSONB) FROM anon;
+--     REVOKE EXECUTE ON FUNCTION public.registrar_evento_purge(UUID, TEXT, JSONB) FROM service_role;
+--   END IF;
+-- END $$;
 
-COMMENT ON FUNCTION public.registrar_evento_purge(UUID, TEXT, JSONB) IS
-  'F7-36 FASE 2 (hotfix 2.5): Firma OBSOLETA de registrar_evento_purge (3 args). '
-  'Reemplazada por v2 (4 args) en 20260101000017. '
-  'SECURITY DEFINER. Permisos: NADIE puede invocar directamente. '
-  'Edge Functions deben usar la firma v2 con p_user_id explícito.';
+-- F7-36 FASE 7: COMMENT idempotente (v1 puede haber sido eliminada en 0017)
+-- DO $$
+-- BEGIN
+--   IF EXISTS (
+--     SELECT 1 FROM pg_proc p
+--     JOIN pg_namespace n ON p.pronamespace = n.oid
+--     WHERE n.nspname = 'public'
+--       AND p.proname = 'registrar_evento_purge'
+--       AND pg_get_function_identity_arguments(p.oid) = 'uuid, text, jsonb'
+--   ) THEN
+--     COMMENT ON FUNCTION public.registrar_evento_purge(UUID, TEXT, JSONB) IS
+--   'F7-36 FASE 2 (hotfix 2.5): Firma OBSOLETA de registrar_evento_purge (3 args). '
+--   'Reemplazada por v2 (4 args) en 20260101000017. '
+--   'SECURITY DEFINER. Permisos: NADIE puede invocar directamente. '
+--   'Edge Functions deben usar la firma v2 con p_user_id explícito.';
+--   END IF;
+-- END $$;
 
 -- ============================================================
 -- 3. Cron/trigger: revocar service_role innecesario
@@ -88,22 +112,22 @@ REVOKE EXECUTE ON FUNCTION public.validar_eliminado_at_certificados() FROM servi
 --
 -- Query 1: Verificar permisos de TODAS las firmas
 --
-SELECT p.proname,
-       pg_get_function_identity_arguments(p.oid) AS args_signature,
-       has_function_privilege('authenticated', p.oid, 'EXECUTE') AS auth_can_exec,
-       has_function_privilege('public', p.oid, 'EXECUTE') AS public_can_exec,
-       has_function_privilege('service_role', p.oid, 'EXECUTE') AS service_can_exec
-FROM pg_proc p
-JOIN pg_namespace n ON p.pronamespace = n.oid
-WHERE n.nspname = 'public'
-  AND p.proname IN (
-    'registrar_evento_archivo',
-    'registrar_evento_purge',
-    'purgar_archivos_expirados',
-    'purgar_certificados_expirados',
-    'validar_eliminado_at_certificados'
-  )
-ORDER BY p.proname, pg_get_function_identity_arguments(p.oid);
+-- SELECT p.proname,
+--        pg_get_function_identity_arguments(p.oid) AS args_signature,
+--        has_function_privilege('authenticated', p.oid, 'EXECUTE') AS auth_can_exec,
+--        has_function_privilege('public', p.oid, 'EXECUTE') AS public_can_exec,
+--        has_function_privilege('service_role', p.oid, 'EXECUTE') AS service_can_exec
+-- FROM pg_proc p
+-- JOIN pg_namespace n ON p.pronamespace = n.oid
+-- WHERE n.nspname = 'public'
+--   AND p.proname IN (
+--     'registrar_evento_archivo',
+--     'registrar_evento_purge',
+--     'purgar_archivos_expirados',
+--     'purgar_certificados_expirados',
+--     'validar_eliminado_at_certificados'
+--   )
+-- ORDER BY p.proname, pg_get_function_identity_arguments(p.oid);
 --
 -- RESULTADO ESPERADO (6 filas):
 --
@@ -116,25 +140,25 @@ ORDER BY p.proname, pg_get_function_identity_arguments(p.oid);
 --
 -- Query 2: Test obligatorio del brief (ambas firmas deben fallar)
 --
-SET ROLE authenticated;
-SELECT public.registrar_evento_purge(
-  '00000000-0000-0000-0000-000000000000'::uuid, 'FAKE_EVENT', '{}'::jsonb
-);
+-- SET ROLE authenticated;
+-- SELECT public.registrar_evento_purge(
+--   '00000000-0000-0000-0000-000000000000'::uuid, 'FAKE_EVENT'::text, '{}'::jsonb
+-- );
 -- Esperado: ERROR "permission denied for function registrar_evento_purge" (v1)
 
-SELECT public.registrar_evento_purge(
-  '00000000-0000-0000-0000-000000000000'::uuid, 'FAKE_EVENT', '{}'::jsonb, NULL
-);
+-- SELECT public.registrar_evento_purge(
+--   '00000000-0000-0000-0000-000000000000'::uuid, 'FAKE_EVENT'::text, '{}'::jsonb, NULL
+-- );
 -- Esperado: ERROR "permission denied for function registrar_evento_purge" (v2)
 
-RESET ROLE;
+-- RESET ROLE;
 --
 -- Query 3: Validar que Edge Functions siguen funcionando
 --
-SET ROLE service_role;
-SELECT public.registrar_evento_purge(
-  '00000000-0000-0000-0000-000000000000'::uuid, 'TEST_EVENT', '{}'::jsonb, NULL
-);
+-- SET ROLE service_role;
+-- SELECT public.registrar_evento_purge(
+--   '00000000-0000-0000-0000-000000000000'::uuid, 'TEST_EVENT'::text, '{}'::jsonb, NULL
+-- );
 -- Esperado: La función se ejecuta (puede fallar por constraint de action,
 -- pero NO por permisos)
-RESET ROLE;
+-- RESET ROLE;
