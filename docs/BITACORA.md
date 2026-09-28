@@ -7669,3 +7669,100 @@ Total: 21 tests pasando (14 originales - 1 reescrito + 7 nuevos)
 Commit 1.8: 5 tests obligatorios FASE 1 (aislamiento multi-tenant end-to-end).
 
 ---
+
+## 2026-09-28 — F7-36 FASE 1: 5 tests obligatorios de aislamiento multi-tenant (Commit 1.8)
+
+### Contexto
+Cinco tests end-to-end que validan el comportamiento integrado de las 3 capas de defensa en profundidad implementadas en F7-36 FASE 1:
+- CAPA 1: Supabase Storage + RLS (validada en F7-24)
+- CAPA 2: tenant-aware + filtro en consultas (createTenantRepository + IndexedDB v2)
+- CAPA 3: invalidarCacheCambioClinica (5 pasos fail-safe)
+
+### Archivo nuevo
+`src/test/security/f7-36-fase1-mandatory.test.js` (433 líneas, environment jsdom)
+
+### Los 5 tests obligatorios
+
+1. **Cambio de clínica aísla datos en localStorage (pacientes)**
+   - Clínica A crea datos → reload → Clínica B ve []
+   - Clínica B crea sus datos → reload → Clínica A sigue viendo sus datos
+   - Valida CAPA 2 (tenant-aware) end-to-end
+
+2. **Cambio de clínica aísla adjuntos en IndexedDB**
+   - Clínica A guarda adjunto → Clínica B no lo ve (filtro por clinicaId)
+   - Valida CAPA 2 aplicada a IndexedDB v2
+
+3. **invalidarCacheCambioClinica ejecuta los 5 pasos fail-safe**
+   - Valida que la función retorna estructura completa:
+     `{ tenantKeys, storageServices, stores, legacyKeys, patientKeys, explicitKeys, indexedDB, errores }`
+   - Verifica que claves tenant-aware de clínica anterior se eliminan
+   - Valida CAPA 3 (invalidación)
+
+4. **Aislamiento sigue funcionando tras reload (defensa en profundidad)**
+   - Simula que invalidarCacheCambioClinica falla silenciosamente
+   - Clínica A tiene datos → cambiar a B + reload → B ve []
+   - Valida que CAPA 2 protege incluso cuando CAPA 3 falla
+
+5. **Claves legacy preexistentes no interfieren con tenant-aware**
+   - Pre-carga clave legacy `studio_dental_pacientes_v3` en localStorage
+   - Clínica A (post-migración) no ve esos datos legacy
+   - Valida coexistencia segura de claves legacy + tenant-aware
+
+### Concepto clave: simulación de reload de página
+
+Los storage services tienen **caché en memoria al nivel de módulo** (`let pacientesCache = null`, `let cacheInicializado = false`). En producción, `ClinicaSelector.handleCambio()` dispara reload tras `invalidarCacheCambioClinica()`.
+
+Los tests simulan este comportamiento con helper `simularReload()`:
+1. Preserva clínica activa actual
+2. `vi.resetModules()` — fuerza re-evaluación de módulos
+3. Re-importa todos los servicios dinámicamente
+4. Restaura clínica activa
+5. Retorna servicios frescos
+
+### Aspectos técnicos
+
+**Mocks globales (vi.mock):**
+- `authService.getClinicaActiva`: función síncrona mockeable via variable
+- `supabaseClient`: mocks vacíos (evita llamadas reales)
+- `logger`: silenciado (evita ruido)
+- `pacientesStore`, `prestacionesStore`, `sesionStore`: Zustand mocks que previenen inicialización con `SEED_PACIENTES_DEMO` (que contaminaba caché de storageService)
+
+**fake-indexeddb/auto:** Provee IndexedDB en environment jsdom (usado en Test 2).
+
+### Defensa en profundidad validada
+
+┌──────────────────────────────────────────────────────┐
+│ CAPA 1: Supabase Storage (RLS)                       │
+│   Validada por: multi-tenant.test.js (F7-24)         │
+├──────────────────────────────────────────────────────┤
+│ CAPA 2: tenant-aware + filtro en consultas           │
+│   Validada por: Tests 1, 2, 4, 5                     │
+├──────────────────────────────────────────────────────┤
+│ CAPA 3: invalidarCacheCambioClinica (5 pasos)        │
+│   Validada por: Test 3                               │
+└──────────────────────────────────────────────────────┘
+
+### Desafíos técnicos resueltos
+
+1. **Problema:** `localStorage is not defined` en environment node
+   - **Fix:** Cambiado a `@vitest-environment jsdom`
+
+2. **Problema:** Tests recibían `SEED_PACIENTES_DEMO` (Camila Silva, Carlos Mendoza)
+   - **Causa:** `pacientesStore.js` se inicializaba con SEED al ser importado, contaminando caché de `pacientesStorageService`
+   - **Fix:** Mock de `usePacientesStore`, `usePrestacionesStore`, `useSesionStore` con stores vacíos
+
+3. **Problema:** Test 1 y 4 fallaban porque cambiar clínica sin reload dejaba caché en memoria antigua
+   - **Fix:** Helper `simularReload()` que simula el comportamiento de producción
+
+4. **Problema:** Test 3 con timeout por `indexedDB.deleteDatabase` bloqueado
+   - **Fix:** Spy mockeado que dispara `onsuccess` sincrónicamente
+
+### Validaciones
+- 1601/1601 tests pasando (1596 existentes + 5 nuevos, sin regresión)
+- validate:architecture PASS
+- build OK
+
+### Próximo paso
+Commit 1.9: Documentación final + cierre FASE 1 (RFC interno + checklist de verificación manual).
+
+---

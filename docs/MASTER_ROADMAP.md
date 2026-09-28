@@ -2597,7 +2597,7 @@ La auditoría de 2026-08-26 registró: **852/852 tests**, **7 warnings de lint**
    - ✅ Commit 1.5f: Migrar pendientes (operationQueue, reportes, App.jsx) + bug silencioso corregido en reportes (operationQueue, reportes, App.jsx)
    - ✅ Commit 1.6: IndexedDB tenant-aware para adjuntos - BD v2 + campo clinicaId + filtro + 7 tests nuevos
    - ✅ Commit 1.7: operationQueue tenant-aware (cubierto en Commit 1.5f)
-   - ⏳ Commit 1.8: 5 tests obligatorios FASE 1
+   - ✅ Commit 1.8: 5 tests obligatorios FASE 1 - aislamiento multi-tenant end-to-end con 3 capas de defensa
    - ⏳ Commit 1.9: Documentación final
 2. **RPC de auditoría - cerrar superficie de ataque** (PENDIENTE)
 3. **SECURITY DEFINER hardening** (PENDIENTE)
