@@ -640,3 +640,114 @@ Las deudas P2 documentadas NO son hallazgos de seguridad, son mejoras futuras qu
 - Verificación en LOCAL y PRODUCCIÓN
 
 **Siguiente fase:** F7-29 (Manual de usuario) → F7-30 (Release Candidate)
+---
+
+## 18. F7-37 v2: Corrección de purge de certificados (PR #193)
+
+### Hallazgo adicional detectado en auditoría independiente
+
+**Problema:** `purgar_certificados_expirados()` hacía:
+1. `net.http_post()` a archivos-purge (fire-and-forget)
+2. DELETE inmediato de certificados
+
+Si archivos-purge fallaba (timeout, 5xx, crash) → objeto R2 quedaba huérfano permanentemente.
+
+### Solución implementada
+
+**Migración 000700** (`20260929000700_f7_37v2_purge_certificados_fix.sql`):
+- Agregó columnas `purga_pendiente BOOLEAN` y `purga_iniciada_at TIMESTAMPTZ` a certificados
+- Creó índice parcial `certificados_purga_pendiente_idx`
+- Reescribió `purgar_certificados_expirados()` para marcar `purga_pendiente=TRUE` en lugar de DELETE
+- Creó `cleanup_stale_purges()` para resetear certificados atascados después de 24h
+- Programó cleanup en pg_cron (condicional, solo si pg_cron está disponible)
+
+**Edge Function archivos-purge modificada:**
+- Detecta `source_type === 'certificado'` en el body
+- Extrae `source_ids` (mapa archivo_id → certificado_id)
+- DELETE R2 primero (como antes)
+- Si éxito o 404: DELETE archivos_clinicos + DELETE certificados
+- Si failure: NO hace DELETE BD (queda para retry)
+
+### Flujo propuesto
+
+```
+purgar_certificados_expirados() (pg_cron, diario 3 AM)
+  ↓
+UPDATE certificados SET purga_pendiente=TRUE
+  ↓
+Encolar HTTP a archivos-purge con source_type=certificado
+  ↓
+archivos-purge (Edge Function)
+  ↓
+DELETE R2
+  ├─ Éxito/404 → DELETE archivos_clinicos + DELETE certificados
+  └─ Failure → NO DELETE (queda para retry)
+  ↓
+cleanup_stale_purges() (pg_cron, diario 4 AM)
+  ↓
+Resetear purga_pendiente=FALSE si atascado > 24h
+```
+
+### Casos cubiertos
+
+| Caso | Comportamiento | Estado final |
+|---|---|---|
+| R2 OK | DELETE R2 → DELETE archivos_clinicos → DELETE certificados | ✅ Completado |
+| R2 failure | NO DELETE BD, purga_pendiente sigue TRUE | ✅ Retry en próximo cron |
+| R2 404 (ya eliminado) | DELETE BD idempotente | ✅ Completado |
+| Duplicate retry | Idempotente (ya no existe fila a eliminar) | ✅ Sin corrupción |
+| R2 OK + DB failure | purga_pendiente queda TRUE → cleanup resetea → retry | ✅ Recuperable |
+| Edge Function crash | Cleanup resetea purga_pendiente → retry | ✅ Recuperable |
+
+### Tests nuevos (14)
+
+**Archivo:** `src/test/security/f7-37v2-purge-certificados.test.js`
+
+- T1: Migración agrega columnas purga_pendiente y purga_iniciada_at
+- T1b: Migración crea índice parcial
+- T2: purgar_certificados_expirados actualiza purga_pendiente en lugar de DELETE
+- T3: archivos-purge detecta source_type === certificado
+- T3b: archivos-purge elimina certificados cuando sourceType es certificado
+- T4: archivos-purge preserva certificado cuando R2 falla
+- T5: purgar_certificados_expirados es idempotente
+- T5b: archivos-purge trata 404 como idempotente
+- T6: cleanup_stale_purges existe y resetea después de 24h
+- T7: archivos-purge preserva validación de clinica_id por archivo
+- T7b: source_ids solo se usa internamente (no expone cross-clínica)
+- T8: cleanup_stale_purges tiene permisos restrictivos
+- T9: pg_cron schedule es condicional (portable entre entornos)
+- T10: Migración 000700 incluye validaciones fail-closed
+
+### Evidencia final [LOCAL SUPABASE]
+
+| Verificación | Resultado |
+|---|---|
+| 29 SECURITY DEFINER con search_path vacío | ✅ |
+| 0 PUBLIC ACCESS | ✅ |
+| 0 anon ACCESS no autorizado | ✅ |
+| 0 INSERT policies en audit_log | ✅ |
+| RLS system_config (service_role only) | ✅ |
+| clinica_actual() fail-closed | ✅ |
+| cleanup_stale_purges permisos correctos | ✅ |
+| Test de flujo completo (purga_pendiente=TRUE) | ✅ |
+| Test de cleanup | ✅ |
+| Test de idempotencia | ✅ |
+
+### Tests de regresión
+
+| Suite | Resultado |
+|---|---|
+| Vitest completo | 1697/1697 |
+| Security Regression | 134/134 |
+| Deno tests | 52/52 |
+| Build | ✅ |
+| Lint | 0 errores |
+
+### Estado final
+
+🟢 **F7-37 v2 = DONE**
+
+- Hallazgo de purge de certificados: RESUELTO
+- Remaining findings de seguridad: NONE
+- Deudas P2 documentadas: H-06 (internal_purge_secret), H-07 (continue-on-error)
+- Limitaciones de verificación: [NOT AVAILABLE] en secciones 7, 8, 10, 16
