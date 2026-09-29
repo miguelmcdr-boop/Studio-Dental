@@ -110,6 +110,109 @@ El job E2E está **deshabilitado pero no eliminado**. Esto permite:
 
 ---
 
+
+
+---
+
+### 2. Secret management: internal_purge_secret en tabla SQL (F7-37 H-06)
+
+**Archivo:** supabase/migrations/20260101000018_purga_automatica_archivos.sql
+**Fecha de registro:** 2026-09-29
+**Prioridad:** P2 (no bloqueante, seguro actualmente)
+**Estado:** Activa
+
+#### Descripción
+
+El secreto compartido `internal_purge_secret` (usado por pg_cron para invocar Edge Functions de purge) está almacenado en la tabla SQL `system_config` en lugar de un gestor de secretos dedicado como Supabase Vault o environment variables.
+
+#### Razón técnica
+
+- La migración `20260101000018_purga_automatica_archivos.sql` creó la tabla `system_config` con RLS estricto (solo `service_role` puede leer/escribir).
+- Este diseño era apropiado en F7-32 cuando se creó.
+- Migrar a Supabase Vault requeriría refactorización grande de:
+  - `purgar_archivos_expirados()` (pg_cron)
+  - `purgar_certificados_expirados()` (pg_cron)
+  - Cualquier otro caller que lea `internal_purge_secret`
+
+#### ¿Por qué es seguro actualmente?
+
+- ✅ RLS estricto: solo `service_role` puede acceder a `system_config`
+- ✅ Usuarios `authenticated` y `anon` NO tienen acceso
+- ✅ No hay RPCs que expongan el secreto al frontend
+- ✅ El secreto nunca se loggea ni se retorna en respuestas
+
+#### Impacto de no resolver
+
+- ✅ No hay impacto de seguridad inmediato (RLS protege el dato)
+- ⚠️ No cumple con best-practices de secret management
+- ⚠️ Backups de la BD incluirían el secreto (aunque también están protegidos)
+
+#### Condiciones para resolver
+
+1. Habilitar Supabase Vault en el proyecto
+2. Migrar `internal_purge_secret` a Vault
+3. Refactorizar `purgar_archivos_expirados()` y `purgar_certificados_expirados()` para leer desde Vault
+4. Probar en staging antes de aplicar a producción
+
+#### Plan de mitigación actual
+
+- RLS estricto en `system_config` (policy `system_config_service_role_only`)
+- Solo Edge Functions (service_role) pueden leer el secreto
+- El secreto se pasa como header `X-Internal-Secret` (no en URL ni query string)
+
+#### Referencias
+
+- Migración: `supabase/migrations/20260101000018_purga_automatica_archivos.sql`
+- Funciones afectadas: `purgar_archivos_expirados()`, `purgar_certificados_expirados()`
+- F7-37 cierre: `docs/F7-37-CIERRE.md` sección 8
+
+
+
+---
+
+### 3. Audit log retention policy no definida
+
+**Archivo:** supabase/migrations/20260101000000_audit_log.sql
+**Fecha de registro:** 2026-09-29
+**Prioridad:** P2 (no bloqueante)
+**Estado:** Activa
+
+#### Descripción
+
+La tabla `audit_log` no tiene política de retención definida. Los snapshots clínicos (`old_data`, `new_data`) se acumulan indefinidamente.
+
+#### Razón técnica
+
+- Diseñada como append-only estricta (correcto para auditabilidad)
+- No hay mecanismo de purga programada
+- Con el tiempo, la tabla crecerá sin límite
+
+#### Impacto de no resolver
+
+- ✅ No hay impacto de seguridad
+- ⚠️ Costo de storage aumenta con el tiempo
+- ⚠️ Queries históricas pueden volverse lentas
+
+#### Condiciones para resolver
+
+1. Definir política de retención (ej: 7 años para cumplimiento regulatorio)
+2. Crear job pg_cron que archive/purge registros antiguos
+3. Considerar particionado por fecha
+4. Asegurar cumplimiento normativo (HIPAA/GDPR si aplica)
+
+#### Plan de mitigación actual
+
+- Monitoreo de tamaño de tabla (manual)
+- Índices en `created_at` para queries históricas
+- Particionado futuro cuando el volumen lo requiera
+
+#### Referencias
+
+- Migración: `supabase/migrations/20260101000000_audit_log.sql`
+- Función: `auditar_cambio()` (trigger que escribe en audit_log)
+- F7-37 cierre: `docs/F7-37-CIERRE.md` sección 5
+
+
 ## Deudas resueltas
 
 (Agregar aquí deudas que fueron pagadas)

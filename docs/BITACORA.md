@@ -3819,6 +3819,125 @@ No se crea política de DELETE físico. Con RLS activo y sin política de DELETE
 
 ---
 
+## 2026-09-29 00:48 — F7-37 COMPLETADA: Final Security Integrity Audit (PR #190)
+
+### Objetivo
+Auditoría profunda post-F7-36 y corrección de hallazgos de seguridad residual.
+
+**Principio aplicado:** Primero evidencia → después corrección → después tests → finalmente documentación.
+
+### Restricción crítica reconocida
+**Trabajamos solo con producción, sin staging.** Esto limitó las verificaciones a:
+- ✅ Lectura de código y migraciones
+- ✅ Cambios en archivos del repo
+- ✅ Tests Vitest/Deno/Architecture (no tocan BD)
+- ❌ NO rebuild real con `supabase db reset` (Docker Desktop no está corriendo)
+- ❌ NO tests RPC reales contra Supabase
+
+### Hallazgos encontrados (7)
+
+| ID | Hallazgo | Severidad | Estado |
+|---|---|---|---|
+| H-01 | DEBUG log expone `userId` en `archivos-purge:156` | P0 | ✅ Resuelto |
+| H-02 | `auditar_cambio()` sin `SET search_path = ''` | P0 | ✅ Resuelto |
+| H-03 | 14 SECURITY DEFINER pre-F7-36 con search_path vulnerable | P1 | ✅ Resuelto |
+| H-04 | 14 TRACE logs residuales en código de producción | P1 | ✅ Resuelto |
+| H-05 | `audit_log_insert_clinica` rompía append-only | P0 | ✅ Resuelto |
+| H-06 | `internal_purge_secret` en tabla SQL en lugar de Vault | P2 | 🟡 Deuda documentada |
+| H-07 | `continue-on-error` redundante en job E2E | P3 | ✅ No requiere acción |
+
+### Cambios aplicados
+
+**Código TypeScript/JavaScript (4 archivos):**
+- `supabase/functions/archivos-purge/index.ts`: DEBUG log con userId eliminado
+- `src/modules/pacientes/components/ModalPapeleraCertificados.jsx`: 7 TRACE logs eliminados
+- `src/modules/pacientes/components/CertificadosSection.jsx`: 2 TRACE logs eliminados
+- `src/modules/pacientes/services/certificadosPDFService.js`: 5 TRACE logs eliminados
+
+**Migraciones SQL (2 nuevas, total ahora 41):**
+- `20260929000300_f7_37_search_path_hardening.sql` (960 líneas): 17 funciones SECURITY DEFINER con `SET search_path = ''` + referencias `public.` calificadas
+- `20260929000400_f7_37_audit_log_append_only.sql` (77 líneas): DROP POLICY audit_log_insert_clinica
+
+**Tests (1 nuevo, 24 tests):**
+- `src/test/security/f7-37-no-debug-logs.test.js`: Valida ausencia de `[TRACE-*]` en frontend, ausencia de userId/PHI en logs de Edge Functions, y formato correcto de ambas migraciones
+
+**Documentación:**
+- `docs/F7-37-CIERRE.md`: RFC con formato brief §22 (9 secciones)
+- `docs/MASTER_ROADMAP.md`: F7-37 agregada con sección completa
+- `docs/DEUDAS_TECNICAS.md`: 2 deudas P2 agregadas
+- `docs/BITACORA.md`: Esta entrada
+
+### Funciones SECURITY DEFINER hardenizadas (17)
+
+`auditar_cambio`, `clinica_actual`, `es_admin_de_clinica_actual`, `rol_en_clinica_actual`, `tiene_rol_en_clinica`, `set_clinica_id_on_insert`, `puede_invitar_miembro`, `invitar_miembro`, `aceptar_invitacion`, `revocar_invitacion`, `listar_invitaciones_clinica`, `verificar_bootstrap_necesario`, `bootstrap_clinica`, `registrar_exportacion`, `purgar_archivos_expirados`, `purgar_certificados_expirados`, `validar_eliminado_at_certificados`.
+
+Todas con `SET search_path = ''` y referencias `public.` calificadas.
+
+### Validación
+
+| Suite | Resultado |
+|---|---|
+| Tests F7-37 (nuevos) | ✅ 24/24 |
+| Vitest completo | ✅ 1682/1682 (+24 nuevos) |
+| Security Regression | ✅ 119/119 (+24 nuevos) |
+| Deno type-check | ✅ 0 errores |
+| Deno tests | ✅ 52/52 |
+| Build | ✅ Exitoso |
+| Architecture validator | ✅ Todas las reglas se cumplen |
+| Real Supabase | ❌ NO VERIFICADO (sin entorno) |
+| E2E | ❌ NO VERIFICADO (job deshabilitado) |
+
+### Estado final
+
+🟡 **F7-37 CERRADA CON DEUDA DOCUMENTADA**
+
+**Justificación:** Todos los hallazgos P0/P1 corregidos. Tests automáticos pasan. Tests reales contra Supabase pendientes (requieren infraestructura no disponible). 2 deudas P2 documentadas (secret management + rebuild local).
+
+### ⚠️ Acción post-merge requerida
+
+**Las 2 migraciones NO están aplicadas en Supabase producción aún.**
+
+**Pasos para aplicar manualmente:**
+1. Abrir Supabase Dashboard → SQL Editor → New query
+2. Copiar y ejecutar `supabase/migrations/20260929000300_f7_37_search_path_hardening.sql`
+3. Copiar y ejecutar `supabase/migrations/20260929000400_f7_37_audit_log_append_only.sql`
+4. Verificar con queries incluidas en las migraciones (sección VERIFICACIÓN)
+
+**Rollback si algo falla:**
+- Para 000300: `ALTER FUNCTION public.<nombre>() SET search_path = public;`
+- Para 000400: `CREATE POLICY audit_log_insert_clinica ON public.audit_log FOR INSERT WITH CHECK (...);`
+
+### Archivos modificados/creados (11)
+
+- `src/modules/pacientes/components/CertificadosSection.jsx`
+- `src/modules/pacientes/components/ModalPapeleraCertificados.jsx`
+- `src/modules/pacientes/services/certificadosPDFService.js`
+- `supabase/functions/archivos-purge/index.ts`
+- `supabase/migrations/20260929000300_f7_37_search_path_hardening.sql` (NUEVO)
+- `supabase/migrations/20260929000400_f7_37_audit_log_append_only.sql` (NUEVO)
+- `src/test/security/f7-37-no-debug-logs.test.js` (NUEVO)
+- `docs/F7-37-CIERRE.md` (NUEVO)
+- `docs/MASTER_ROADMAP.md` (actualizado)
+- `docs/BITACORA.md` (esta entrada)
+- `docs/DEUDAS_TECNICAS.md` (2 deudas P2 agregadas)
+
+### PR
+- **PR #190**: [feature/f7-37-final-security-integrity](https://github.com/miguelmcdr-boop/Studio-Dental/pull/190) — MERGED (esperado)
+
+### Siguiente tarea
+**Aplicar manualmente las 2 migraciones en Supabase Dashboard** y verificar con las queries de verificación incluidas. Después:
+- ⏳ F7-29: Manual de usuario por rol + capacitación (P2)
+- ⏳ F7-30: Release Candidate + checklist GO/NO-GO (P0, gate final)
+
+---
+
+**Estado:** 🟡 F7-37 CERRADA CON DEUDA DOCUMENTADA
+
+---
+
+
+---
+
 ## 2026-09-28 23:26 — F7-36 COMPLETADA: Tenant Cache & Audit Integrity (12 fases)
 
 ### Resumen ejecutivo
