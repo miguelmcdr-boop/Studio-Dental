@@ -3820,6 +3820,56 @@ No se crea política de DELETE físico. Con RLS activo y sin política de DELETE
 
 ---
 
+## 2026-09-28 21:42 — F7-36 FASE 8: R2 revisión final (PR #183)
+
+### Problema
+Las 6 funciones R2 tenían su propia implementación local de `jsonResponse()`, duplicando la funcionalidad de `safeResponse.ts`. Esto violaba el principio DRY y creaba riesgo de inconsistencia en headers y formato de respuesta.
+
+### Hallazgos de auditoría
+- ✅ No hay exposición de error.message, stack traces, Authorization, JWT
+- ✅ Todas las funciones usan safeError/safeInternalError correctamente
+- ✅ Validación multi-tenant con clinica_id en queries
+- ✅ Solo 1 console.log en toda la base de código (debug de F7-22b)
+- ✅ Mensajes de health-check exponían nombres de secrets (corregido)
+
+### Cambios aplicados
+1. Eliminada función jsonResponse() local en las 6 funciones R2
+2. Actualizado import para incluir jsonResponse desde safeResponse.ts
+3. Limpiados mensajes de health-check que exponían nombres de secrets
+
+### Archivos modificados
+- `supabase/functions/r2-delete/index.ts` (-12 líneas)
+- `supabase/functions/r2-download-url/index.ts` (-12 líneas)
+- `supabase/functions/r2-health-check/index.ts` (-16 líneas)
+- `supabase/functions/r2-list-deleted/index.ts` (-12 líneas)
+- `supabase/functions/r2-restore/index.ts` (-12 líneas)
+- `supabase/functions/r2-upload-url/index.ts` (-12 líneas)
+
+### Validación
+- ✅ Type-check Deno: 6/6 funciones sin errores
+- ✅ Vitest: 1643/1643 tests pasando
+- ✅ Net: 68 líneas eliminadas, 8 agregadas
+- ✅ Funcionalidad preservada (solo refactor)
+
+### PRs
+- **PR #183**: [feature/f7-36-fase8-r2-refactor](https://github.com/miguelmcdr-boop/Studio-Dental/pull/183) — MERGED
+
+### Impacto
+✅ **Single source of truth**: jsonResponse ahora solo existe en safeResponse.ts
+✅ **Headers CORS consistentes**: todas las respuestas usan el mismo formato
+✅ **Reduce superficie de ataque**: menos código duplicado
+✅ **Facilita mantenimiento**: cambios futuros solo en un archivo
+
+### Siguiente tarea
+FASE 9: MIME contract — alinear contratos de MIME types entre frontend, backend y DB
+
+---
+
+
+
+
+---
+
 ## 2026-09-28 20:01 — F7-36 FASE 7: Eliminación de dependencias históricas (PR #178)
 
 ### Problema
