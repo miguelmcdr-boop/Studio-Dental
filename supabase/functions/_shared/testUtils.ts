@@ -15,6 +15,12 @@ export interface MockFetchConfig {
   auditLogOk?: boolean;
   deleteOk?: boolean;
   certificadoDeleteOk?: boolean; // F7-37 v3: controlar fallos de DELETE de certificados
+  operationCounters?: {
+    validate_cert?: number;
+    delete_r2?: number;
+    delete_archivo?: number;
+    delete_cert?: number;
+  }; // F7-37 v3.1: contadores de operaciones para tests conductuales
 }
 
 export function createMockFetch(config: MockFetchConfig) {
@@ -75,6 +81,7 @@ export function createMockFetch(config: MockFetchConfig) {
     // REST endpoint: archivos_clinicos
     if (urlStr.includes("/rest/v1/archivos_clinicos")) {
       if (method === "DELETE") {
+        if (config.operationCounters) config.operationCounters.delete_archivo = (config.operationCounters.delete_archivo || 0) + 1;
         return new Response(null, { status: 204 });
       }
       const urlObj = new URL(urlStr);
@@ -99,6 +106,7 @@ export function createMockFetch(config: MockFetchConfig) {
     // REST endpoint: certificados (F7-37 v3: soporte para tests H-08)
     if (urlStr.includes("/rest/v1/certificados")) {
       if (method === "DELETE") {
+        if (config.operationCounters) config.operationCounters.delete_cert = (config.operationCounters.delete_cert || 0) + 1;
         if (config.certificadoDeleteOk === false) {
           return new Response("DB error", { status: 500 });
         }
@@ -109,6 +117,7 @@ export function createMockFetch(config: MockFetchConfig) {
 
       let results = config.certificados || [];
       if (idsFilter) {
+        if (config.operationCounters) config.operationCounters.validate_cert = (config.operationCounters.validate_cert || 0) + 1;
         results = results.filter(c => c.id === idsFilter);
       }
 
@@ -128,6 +137,7 @@ export function createMockFetch(config: MockFetchConfig) {
 
     // R2 DELETE (Cloudflare) - F7-36 FASE 6: soporta fallo por r2_object_key
     if (urlStr.includes("r2.cloudflarestorage.com")) {
+      if (config.operationCounters) config.operationCounters.delete_r2 = (config.operationCounters.delete_r2 || 0) + 1;
       if (config.r2DeleteOk === false) {
         return new Response("R2 error", { status: 500 });
       }

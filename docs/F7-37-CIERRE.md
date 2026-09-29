@@ -849,3 +849,45 @@ Flujo v2 problemático:
 - Remaining findings de seguridad: NONE
 - Deudas P2 documentadas: H-06 (internal_purge_secret), H-07 (continue-on-error)
 - Limitaciones de verificación: [NOT AVAILABLE] en secciones 7, 8, 10, 16
+---
+
+## 20. F7-37 v3.1: Corrección H-08 residual — Orden de validación vs DELETE (PR #195)
+
+### Hallazgo H-08 residual detectado en auditoría independiente post-v3
+
+**Problema:** En v3, la validación del certificado ocurría DESPUÉS del DELETE de R2 y archivos_clinicos. Un atacante no lograba destruir el certificado de otra clínica, pero sí podía destruir su propio R2 y archivo_clinico antes de detectarse la inconsistencia.
+
+### Solución implementada
+
+**Reordenamiento del flujo en archivos-purge:**
+- FASE A — VALIDACIÓN COMPLETA (línea 268):
+  - A.1 Validar archivo existe + tenant
+  - A.2 Validar archivo en papelera
+  - A.3 Si source_type === 'certificado': validar certificado server-side
+    - Existencia del certificado
+    - certificado.clinica_id === archivo.clinica_id
+    - certificado.datos.r2ArchivoId === archivoId
+  - Si falla → rechazar, CERO deletes
+
+- FASE B — SOLO SI TODO LO ANTERIOR ES VÁLIDO (línea 301):
+  - B.1 DELETE R2
+  - B.2 DELETE archivos_clinicos
+  - B.3 DELETE certificado
+
+### Tests conductuales nuevos (T19-T27)
+
+| Test | Descripción | Resultado |
+|---|---|---|
+| T19 | Cross-tenant → CERO deletes | PASS |
+| T20 | Cert inexistente → CERO deletes | PASS |
+| T21 | r2ArchivoId incorrecto → CERO deletes | PASS |
+| T22 | Mismo tenant correcto → 3 deletes | PASS |
+| T23-T27 | R2 404, retry, duplicate, DB failure | PASS |
+
+### Estado final
+
+🟢 **F7-37 v3.1 = DONE**
+
+- H-08 residual: RESUELTO
+- Remaining findings de seguridad: NONE
+- Deudas P2 documentadas: H-06, H-07

@@ -1,5 +1,5 @@
 // Feature 1: Edge Function para purgar archivos de la papelera (eliminación permanente)
-// F7-37 v3: Validación server-side de certificados (H-08: cross-tenant prevention)
+// F7-37 v3.1: Validación server-side COMPLETA antes de cualquier DELETE (H-08 residual fix)
 //
 // Flujo:
 // 1. Frontend solicita purga de archivos en papelera
@@ -265,25 +265,49 @@ export async function handler(req: Request): Promise<Response> {
     for (const archivoId of archivoIds) {
       const archivo = archivosResult.find((a: any) => a.id === archivoId);
 
-      // No existe o no pertenece a la clínica
+      // FASE A — VALIDACIÓN COMPLETA (F7-37 v3.1 H-08 residual)
+      // No se ejecuta NINGÚN DELETE hasta que todas las validaciones pasen.
+
+      // A.1 Validar archivo existe + tenant
       if (!archivo) {
         rechazados.push({ id: archivoId, razon: "no_pertenece_clinica" });
         continue;
       }
-      // No está en papelera
+
+      // A.2 Validar archivo en papelera
       if (archivo.estado !== "eliminado") {
         rechazados.push({ id: archivoId, razon: "no_esta_en_papelera" });
         continue;
       }
 
-      // 6. Eliminar blob de R2 (sin restricción de tiempo)
+      // A.3 Si source_type === 'certificado': validar certificado ANTES de cualquier DELETE
+      let certificadoId: string | undefined;
+      if (sourceType === 'certificado' && sourceIds[archivoId]) {
+        certificadoId = sourceIds[archivoId];
+        const validacion = await validarCertificadoParaPurge(
+          supabaseUrl,
+          supabaseServiceKey,
+          certificadoId,
+          archivoId,
+          archivo.clinica_id
+        );
+
+        if (!validacion.valido) {
+          rechazados.push({ id: archivoId, razon: validacion.razon || "certificado_invalido" });
+          continue;
+        }
+      }
+
+      // FASE B — SOLO SI TODO LO ANTERIOR ES VÁLIDO, ejecutar DELETEs
+
+      // B.1 Eliminar blob de R2
       const okR2 = await eliminarDeR2(archivo.r2_object_key);
       if (!okR2) {
         rechazados.push({ id: archivoId, razon: "error_delete_r2" });
         continue;
       }
 
-      // 7. DELETE de la fila de archivos_clinicos
+      // B.2 DELETE de la fila de archivos_clinicos
       const deleteRes = await fetch(
         `${supabaseUrl}/rest/v1/archivos_clinicos?id=eq.${archivoId}`,
         {
@@ -297,26 +321,8 @@ export async function handler(req: Request): Promise<Response> {
         continue;
       }
 
-      // F7-37 v3 (H-08): Validación server-side del certificado antes de DELETE
-      // Previene cross-tenant vía source_ids manipulado por caller
-      if (sourceType === 'certificado' && sourceIds[archivoId]) {
-        const certificadoId = sourceIds[archivoId];
-
-        // Validar certificado server-side (antes de cualquier DELETE)
-        const validacion = await validarCertificadoParaPurge(
-          supabaseUrl,
-          supabaseServiceKey,
-          certificadoId,
-          archivoId,
-          archivo.clinica_id
-        );
-
-        if (!validacion.valido) {
-          rechazados.push({ id: archivoId, razon: validacion.razon || "certificado_invalido" });
-          continue;
-        }
-
-        // Solo después de validar: DELETE del certificado
+      // B.3 DELETE del certificado (solo si sourceType === 'certificado' y validación pasó)
+      if (sourceType === 'certificado' && certificadoId) {
         const deleteCertRes = await fetch(
           `${supabaseUrl}/rest/v1/certificados?id=eq.${certificadoId}`,
           {

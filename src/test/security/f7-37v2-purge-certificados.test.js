@@ -107,13 +107,17 @@ describe('F7-37 v2: Purge de certificados con eventual consistency', () => {
     expect(contenido).toMatch(/archivo\.clinica_id/)
   })
 
-  it('T7b: source_ids solo se usa internamente (no expone cross-clínica)', () => {
+  it('T7b: source_ids es referencia no confiable, validada server-side (v3.1)', () => {
     const ruta = join(ROOT, 'supabase/functions/archivos-purge/index.ts')
     const contenido = readFileSync(ruta, 'utf-8')
-    // source_ids se usa SOLO cuando sourceType es certificado
+    // F7-37 v3.1: source_ids se usa SOLO cuando sourceType es certificado
     expect(contenido).toMatch(/sourceType === 'certificado' && sourceIds\[archivoId\]/)
-    // El DELETE de certificado usa el certificado_id del mapa
-    expect(contenido).toMatch(/const certificadoId = sourceIds\[archivoId\]/)
+    // Pero ANTES de usarlo, se valida server-side con validarCertificadoParaPurge
+    expect(contenido).toMatch(/certificadoId = sourceIds\[archivoId\]/)
+    expect(contenido).toMatch(/validarCertificadoParaPurge\(/)
+    // Y si la validación falla, NO se hace DELETE
+    expect(contenido).toMatch(/if \(!validacion\.valido\)/)
+    expect(contenido).toMatch(/certificado_invalido/)
   })
 
   // ============================================================
@@ -178,15 +182,23 @@ describe('F7-37 v2: Purge de certificados con eventual consistency', () => {
     expect(contenido).toMatch(/r2ArchivoId !== archivoId/)
   })
 
-  it('H-08-4: validación ocurre ANTES del DELETE de certificados', () => {
+  it('H-08-4: validación ANTES de CUALQUIER DELETE (v3.1)', () => {
     const ruta = join(ROOT, 'supabase/functions/archivos-purge/index.ts')
     const contenido = readFileSync(ruta, 'utf-8')
-    // validarCertificadoParaPurge debe ser llamado antes del DELETE de certificados
-    const idxValidacion = contenido.indexOf('validarCertificadoParaPurge(')
-    const idxDeleteCert = contenido.indexOf('error_delete_certificado')
+    // F7-37 v3.1: validarCertificadoParaPurge debe aparecer ANTES de eliminarDeR2
+    // dentro del mismo loop (bloque FASE A antes de FASE B)
+    const idxValidacion = contenido.indexOf('FASE A')
+    const idxEliminarR2 = contenido.indexOf('FASE B')
     expect(idxValidacion).toBeGreaterThan(-1)
-    expect(idxDeleteCert).toBeGreaterThan(-1)
-    expect(idxValidacion).toBeLessThan(idxDeleteCert)
+    expect(idxEliminarR2).toBeGreaterThan(-1)
+    expect(idxValidacion).toBeLessThan(idxEliminarR2)
+    // Además, validarCertificadoParaPurge debe estar en FASE A
+    const bloqueFaseA = contenido.substring(idxValidacion, idxEliminarR2)
+    expect(bloqueFaseA).toMatch(/validarCertificadoParaPurge/)
+    expect(bloqueFaseA).toMatch(/certificado_invalido/)
+    // Y eliminarDeR2 debe estar en FASE B
+    const bloqueFaseB = contenido.substring(idxEliminarR2)
+    expect(bloqueFaseB).toMatch(/eliminarDeR2/)
   })
 
   it('H-08-5: Deno tests incluyen casos H-08 (T9-T18)', () => {
@@ -210,5 +222,41 @@ describe('F7-37 v2: Purge de certificados con eventual consistency', () => {
     expect(contenido).toMatch(/certificados\?:/)
     expect(contenido).toMatch(/certificadoDeleteOk\?:/)
     expect(contenido).toMatch(/\/rest\/v1\/certificados/)
+  })
+
+  // ============================================================
+  // F7-37 v3.1: Tests conductuales (orden de operaciones)
+  // ============================================================
+
+  it('H-08-7: Deno tests T19-T21 verifican CERO deletes en casos inválidos', () => {
+    const ruta = join(ROOT, 'supabase/functions/archivos-purge/index.test.ts')
+    const contenido = readFileSync(ruta, 'utf-8')
+    // T19-T21 deben verificar que operationCounters.delete_r2 === 0
+    expect(contenido).toMatch(/T19: H-08 residual cross-tenant → CERO deletes/)
+    expect(contenido).toMatch(/T20: H-08 residual cert inexistente → CERO deletes/)
+    expect(contenido).toMatch(/T21: H-08 residual r2ArchivoId incorrecto → CERO deletes/)
+    // Deben verificar contadores
+    expect(contenido).toMatch(/operationCounters\.delete_r2, 0/)
+    expect(contenido).toMatch(/operationCounters\.delete_archivo, 0/)
+    expect(contenido).toMatch(/operationCounters\.delete_cert, 0/)
+  })
+
+  it('H-08-8: Deno test T22 verifica 3 deletes en caso válido', () => {
+    const ruta = join(ROOT, 'supabase/functions/archivos-purge/index.test.ts')
+    const contenido = readFileSync(ruta, 'utf-8')
+    expect(contenido).toMatch(/T22: H-08 residual mismo tenant \+ relación correcta → 3 deletes/)
+    expect(contenido).toMatch(/operationCounters\.delete_r2, 1/)
+    expect(contenido).toMatch(/operationCounters\.delete_archivo, 1/)
+    expect(contenido).toMatch(/operationCounters\.delete_cert, 1/)
+  })
+
+  it('H-08-9: testUtils.ts soporta operationCounters para tests conductuales', () => {
+    const ruta = join(ROOT, 'supabase/functions/_shared/testUtils.ts')
+    const contenido = readFileSync(ruta, 'utf-8')
+    expect(contenido).toMatch(/operationCounters\?:/)
+    expect(contenido).toMatch(/validate_cert\?: number/)
+    expect(contenido).toMatch(/delete_r2\?: number/)
+    expect(contenido).toMatch(/delete_archivo\?: number/)
+    expect(contenido).toMatch(/delete_cert\?: number/)
   })
 })
