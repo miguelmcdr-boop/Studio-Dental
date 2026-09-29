@@ -2578,7 +2578,7 @@ La auditoría de 2026-08-26 registró: **852/852 tests**, **7 warnings de lint**
 
 ### F7-36 — Tenant Cache & Audit Integrity (12 fases)
 
-**Estado:** 🟡 EN CURSO (FASE 1 ✅ 2026-09-28, FASE 2 ✅ 2026-09-28, FASE 3 ✅ 2026-09-28, FASE 4 ✅ 2026-09-29, FASE 5 ✅ 2026-09-29, FASE 6 ✅ 2026-09-29, FASE 7 ✅ 2026-09-29, FASE 8 ✅ 2026-09-29, FASE 9 ✅ 2026-09-29, FASE 10 ✅ 2026-09-29)
+**Estado:** 🟡 EN CURSO (FASE 1 ✅ 2026-09-28, FASE 2 ✅ 2026-09-28, FASE 3 ✅ 2026-09-28, FASE 4 ✅ 2026-09-29, FASE 5 ✅ 2026-09-29, FASE 6 ✅ 2026-09-29, FASE 7 ✅ 2026-09-29, FASE 8 ✅ 2026-09-29, FASE 9 ✅ 2026-09-29, FASE 10 ✅ 2026-09-29, FASE 11 ✅ 2026-09-29)
 
 **Descripción:** Auditoría y corrección profunda de aislamiento multi-tenant, integridad de auditoría, y reproducibilidad de BD.
 
@@ -2727,7 +2727,7 @@ Revisar .github/workflows/ci.yml.
 
 ---
 
-#### FASE 11: Test global de regresión multi-tenant ⏳ PENDIENTE
+#### FASE 11: Test global de regresión multi-tenant ✅ COMPLETADA (2026-09-29) — sin regresiones
 Después de todas las modificaciones ejecutar: Vitest, Security Regression, Deno type-check, Deno tests, Build, Architecture validator, E2E (si el entorno lo permite).
 
 **Búsquedas globales:** jsonResponse(500, jsonResponse(, dangerouslySetInnerHTML, innerHTML, localStorage, sessionStorage, SECURITY DEFINER, GRANT EXECUTE, REVOKE EXECUTE, auth.uid(), service_role, data.length === 0, return cache, fallback, clinica_id.
