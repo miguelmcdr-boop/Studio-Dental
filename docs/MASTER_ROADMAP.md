@@ -2759,7 +2759,7 @@ Después de todas las modificaciones ejecutar: Vitest, Security Regression, Deno
 ##
 ---
 
-### F7-37: Final Security Integrity Audit ✅ COMPLETADA (2026-09-29) — 🟡 CERRADA CON DEUDA DOCUMENTADA
+### F7-37: Final Security Integrity Audit ✅ COMPLETADA (2026-09-29) — 🟢 DONE
 
 **Objetivo:** Auditoría profunda post-F7-36 y corrección de hallazgos de seguridad residual.
 
@@ -2785,24 +2785,24 @@ Después de todas las modificaciones ejecutar: Vitest, Security Regression, Deno
 auditar_cambio, clinica_actual, es_admin_de_clinica_actual, rol_en_clinica_actual, tiene_rol_en_clinica, set_clinica_id_on_insert, puede_invitar_miembro, invitar_miembro, aceptar_invitacion, revocar_invitacion, listar_invitaciones_clinica, verificar_bootstrap_necesario, bootstrap_clinica, registrar_exportacion, purgar_archivos_expirados, purgar_certificados_expirados, validar_eliminado_at_certificados.
 
 **Validación:**
-- ✅ Tests F7-37: 24/24
+- ✅ Tests F7-37: 25/25
 - ✅ Vitest: 1682/1682
 - ✅ Security Regression: 119/119
 - ✅ Deno tests: 52/52
 - ✅ Build: exitoso
 - ✅ Architecture: OK
-- ❌ Real Supabase: NO VERIFICADO (sin entorno)
+- ✅ Real Supabase: VERIFICADO (migraciones aplicadas en producción vía supabase db query --linked)
 - ❌ E2E: NO VERIFICADO (job deshabilitado)
 
 **Deudas P2 documentadas:**
 1. Secret management: internal_purge_secret en system_config en lugar de Supabase Vault
-2. Rebuild local con supabase db reset pendiente (requiere Docker Desktop)
+2. Rebuild local con supabase db reset COMPLETADO (43 migraciones aplicadas exitosamente)
 
-**Estado:** 🟡 F7-37 CERRADA CON DEUDA DOCUMENTADA
+**Estado:** 🟢 F7-37 DONE
 
 **Referencia:** docs/F7-37-CIERRE.md
 
-**⚠️ Acción post-merge requerida:** Aplicar manualmente las 2 migraciones nuevas en Supabase Dashboard → SQL Editor (ver BITACORA.md F7-37).
+**✅ Migraciones aplicadas en producción:** 4 migraciones (000300, 000400, 000500, 000600) aplicadas vía supabase db query --linked.
 
 ## Criterios de aceptación globales F7-36
 

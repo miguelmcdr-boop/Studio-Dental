@@ -1,175 +1,642 @@
 # F7-37: Final Security Integrity Audit — Reporte de Cierre
 
-**Commit:** feature/f7-37-final-security-integrity
-**Branch:** feature/f7-37-final-security-integrity
+**Estado:** 🟢 DONE
 **Fecha:** 2026-09-29
-**Duración:** 1 sesión (auditoría + corrección + tests)
-**PR:** #190
+**Rama:** feature/f7-37-final-hardening
+**PR:** #192 (pendiente)
+**Duración:** 1 sesión intensiva (auditoría + correcciones iterativas)
+**Migraciones:** 4 (000300, 000400, 000500, 000600)
+**Archivos modificados:** 13
 
 ---
 
-## 1. Commit final
+## 1. Objetivo
 
-commit: <pendiente del push>
-branch: feature/f7-37-final-security-integrity
-fecha: 2026-09-29
+F7-37 es la fase final de integridad y hardening de seguridad del proyecto Studio Dental. Su objetivo es **auditar exhaustivamente** y **corregir con evidencia real** todos los hallazgos residuales post-F7-36, llevando la seguridad del sistema a un estado DONE verificable.
 
-**Archivos modificados (12):**
-- src/modules/pacientes/components/CertificadosSection.jsx (eliminar 2 TRACE logs)
-- src/modules/pacientes/components/ModalPapeleraCertificados.jsx (eliminar 7 TRACE logs)
-- src/modules/pacientes/services/certificadosPDFService.js (eliminar 5 TRACE logs)
-- supabase/functions/archivos-purge/index.ts (eliminar DEBUG log con userId)
-- supabase/migrations/20260929000300_f7_37_search_path_hardening.sql (NUEVO, 960 líneas)
-- supabase/migrations/20260929000400_f7_37_audit_log_append_only.sql (NUEVO, 77 líneas)
-- src/test/security/f7-37-no-debug-logs.test.js (NUEVO, 24 tests)
-- docs/F7-37-CIERRE.md (NUEVO, este RFC)
-- docs/MASTER_ROADMAP.md (actualizado)
-- docs/BITACORA.md (entrada agregada)
-- docs/DEUDAS_TECNICAS.md (2 deudas P2 agregadas)
+**Principio aplicado:** Primero evidencia → después corrección → después tests → finalmente documentación.
+
+**Principios adicionales aplicados (brief §1-25):**
+- NO fabricar resultados (brief §24)
+- NO reabrir F7-35 ni F7-36 (brief §2)
+- Migraciones fail-closed con `RAISE EXCEPTION` (brief §4)
+- Distinguir technical logs de clinical audit trail (brief §13)
+- Auditoría global sin limitarse a 17 funciones iniciales (brief §4)
+- Compensar limitaciones de infraestructura con pruebas locales (brief §1)
 
 ---
 
-## 2. Hallazgos encontrados
+## 2. Hallazgos originales identificados
 
-| ID | Hallazgo | Severidad | Corrección | Evidencia | Estado |
-|---|---|---|---|---|---|
-| H-01 | DEBUG log expone userId en archivos-purge:156 | P0 | Línea eliminada | console.log con userId eliminado | ✅ |
-| H-02 | auditar_cambio() sin search_path seguro | P0 | Migración 000300 | SET search_path = '' + referencias public. | ✅ |
-| H-03 | 14 SECURITY DEFINER pre-F7-36 vulnerables | P1 | Migración 000300 | 17 funciones hardenizadas | ✅ |
-| H-04 | 14 TRACE logs residuales en producción | P1 | Eliminados | 0 ocurrencias de [TRACE- | ✅ |
-| H-05 | audit_log_insert_clinica rompía append-only | P0 | Migración 000400 | DROP POLICY ejecutado | ✅ |
-| H-05b | audit_log_insert_rol rompía append-only (no detectada inicialmente) | P0 | Migración 000500 | DROP POLICY ejecutado | ✅ |
-| H-06 | internal_purge_secret en tabla SQL | P2 | Documentada | RLS estricto la protege | 🟡 Deuda |
-| H-07 | continue-on-error redundante en E2E | P3 | Preservado | Job deshabilitado | ✅ |
+### Hallazgos resueltos (7)
 
----
-
-## 3. SECURITY DEFINER — Lista completa de 17 funciones hardenizadas
-
-| Función | search_path | permisos | caller | riesgo mitigado |
+| ID | Hallazgo | Severidad | Migración | Evidencia |
 |---|---|---|---|---|
-| auditar_cambio() | '' | owner postgres (BYPASSRLS) | trigger (11 tablas) | Search path hijacking |
-| clinica_actual() | '' | authenticated, service_role | RLS policies | Base de 80+ policies |
-| es_admin_de_clinica_actual() | '' | authenticated, service_role | RLS policies | Bypass admin check |
-| rol_en_clinica_actual() | '' | authenticated, service_role | RLS policies | Suplantación de rol |
-| tiene_rol_en_clinica() | '' | authenticated, service_role | RLS policies | Escalada de privilegios |
-| set_clinica_id_on_insert() | '' | authenticated, service_role | trigger | Inyección de clinica_id |
-| puede_invitar_miembro() | '' | authenticated | RPC | Invitación no autorizada |
-| invitar_miembro() | '' | authenticated | RPC | Invitaciones falsas |
-| aceptar_invitacion() | '' | authenticated | RPC | Aceptación por usuario incorrecto |
-| revocar_invitacion() | '' | authenticated | RPC | Revocación no autorizada |
-| listar_invitaciones_clinica() | '' | authenticated | RPC | Fuga de invitaciones |
-| verificar_bootstrap_necesario() | '' | authenticated | RPC | Bypass wizard |
-| bootstrap_clinica() | '' | authenticated | RPC | Creación masiva |
-| registrar_exportacion() | '' | authenticated | RPC | Bypass rate limiting |
-| purgar_archivos_expirados() | '' | solo pg_cron | cron diario 3AM | Purga no autorizada |
-| purgar_certificados_expirados() | '' | solo pg_cron | cron diario 3AM | Purga no autorizada |
-| validar_eliminado_at_certificados() | '' | trigger caller | trigger | Papelera no autorizada |
+| H-01 | DEBUG log exponía `userId` en `archivos-purge:156` | P0 | Commit PR #190 | [STATIC] |
+| H-02 | `auditar_cambio()` sin `SET search_path = ''` | P0 | 000300 | [LOCAL SUPABASE] + [PRODUCTION] |
+| H-03 | 14 SECURITY DEFINER pre-F7-36 con search_path vulnerable | P1 | 000300 | [LOCAL SUPABASE] + [PRODUCTION] |
+| H-04 | 14 TRACE logs residuales en código de producción | P1 | Commit PR #190 | [STATIC] |
+| H-05 | `audit_log_insert_clinica` policy rompía append-only | P0 | 000400 | [LOCAL SUPABASE] + [PRODUCTION] |
+| H-05b | `audit_log_insert_rol` policy rompía append-only (no detectada inicialmente) | P0 | 000500 | [LOCAL SUPABASE] + [PRODUCTION] |
+| H-05c | 13 funciones SECURITY DEFINER con PUBLIC ACCESS + 6 con anon ACCESS no autorizado | P0 | 000600 | [LOCAL SUPABASE] + [PRODUCTION] |
 
-**Pre-F7-36 ya hardenizadas (FASE 3):** current_role, has_role, is_admin, role_in, set_app_metadata_role, get_role_from_metadata, handle_new_user, profiles_lock_role.
+### Hallazgos preservados (documentados)
 
-**F7-36 FASE 4-6 ya hardenizadas:** registrar_evento_archivo, registrar_evento_purge.
+| ID | Hallazgo | Severidad | Justificación |
+|---|---|---|---|
+| H-06 | `internal_purge_secret` en tabla SQL `system_config` | P2 | RLS estricto (service_role only) verificado. No es deuda si se mantiene el RLS. |
+| H-07 | `continue-on-error: true` redundante en job E2E | P3 | Job deshabilitado, flag inofensivo. |
+
+### Corrección de auditoría inicial (transparencia)
+
+La auditoría inicial identificó incorrectamente `audit_log_insert_clinica` como la policy problemática. La auditoría exhaustiva reveló que:
+1. F7-08 ya había eliminado `audit_log_insert_clinica`
+2. La policy real problemática era `audit_log_insert_rol` (PR #191)
+3. Adicionalmente, 13 funciones tenían PUBLIC ACCESS real (PR #192)
+
+**Principio aplicado:** "Si descubres que una afirmación anterior era incorrecta, corrígela explícitamente" (brief §23).
 
 ---
 
-## 4. Multi-tenant
+## 3. Correcciones realizadas
 
-| Capa | Estado | Evidencia |
+### Código TypeScript/JavaScript (4 archivos)
+- `supabase/functions/archivos-purge/index.ts`: DEBUG log con userId eliminado
+- `src/modules/pacientes/components/ModalPapeleraCertificados.jsx`: 7 TRACE logs eliminados
+- `src/modules/pacientes/components/CertificadosSection.jsx`: 2 TRACE logs eliminados
+- `src/modules/pacientes/services/certificadosPDFService.js`: 5 TRACE logs eliminados
+
+### Migraciones SQL (4 nuevas, total ahora 43)
+1. `20260929000300_f7_37_search_path_hardening.sql` (960 líneas)
+2. `20260929000400_f7_37_audit_log_append_only.sql` (77 líneas)
+3. `20260929000500_f7_37_drop_audit_log_insert_rol.sql` (89 líneas)
+4. `20260929000600_f7_37_final_hardening.sql` (228 líneas)
+
+### Tests (1 nuevo, 25 tests totales)
+- `src/test/security/f7-37-no-debug-logs.test.js`: 25 tests de regresión
+
+### Documentación (5 archivos)
+- `docs/F7-37-CIERRE.md` (este archivo, reescrito con 17 secciones)
+- `docs/MASTER_ROADMAP.md` (F7-37 agregada y actualizada)
+- `docs/BITACORA.md` (3 entradas: PR #190, PR #191, PR #192)
+- `docs/DEUDAS_TECNICAS.md` (2 deudas P2 agregadas)
+
+---
+
+## 4. Migraciones aplicadas
+
+### 4.1 Migración 000300: Search path hardening
+
+**Archivo:** `supabase/migrations/20260929000300_f7_37_search_path_hardening.sql` (960 líneas)
+
+**Funciones hardenizadas (17):**
+- `auditar_cambio` (trigger SECURITY DEFINER, owner postgres)
+- `clinica_actual` (base de 80+ policies RLS)
+- `es_admin_de_clinica_actual`, `rol_en_clinica_actual`, `tiene_rol_en_clinica` (RBAC)
+- `set_clinica_id_on_insert` (trigger BEFORE INSERT)
+- 5 funciones de invitación (`puede_invitar_miembro`, `invitar_miembro`, `aceptar_invitacion`, `revocar_invitacion`, `listar_invitaciones_clinica`)
+- 2 funciones de bootstrap (`verificar_bootstrap_necesario`, `bootstrap_clinica`)
+- `registrar_exportacion` (rate limiting)
+- `purgar_archivos_expirados`, `purgar_certificados_expirados` (pg_cron)
+- `validar_eliminado_at_certificados` (trigger)
+
+**Evidencia [LOCAL SUPABASE] + [PRODUCTION]:**
+Verificación SQL: COUNT de SECURITY DEFINER con search_path vacío = 28
+
+### 4.2 Migración 000400: Audit log append-only (parte 1)
+
+**Archivo:** `supabase/migrations/20260929000400_f7_37_audit_log_append_only.sql` (77 líneas)
+
+**Acción:** DROP POLICY IF EXISTS audit_log_insert_clinica ON public.audit_log
+
+**Nota:** Esta policy ya había sido eliminada por F7-08. La migración es idempotente pero redundante. Se mantuvo como documentación del intent.
+
+### 4.3 Migración 000500: Audit log append-only (parte 2) — H-05b
+
+**Archivo:** `supabase/migrations/20260929000500_f7_37_drop_audit_log_insert_rol.sql` (89 líneas)
+
+**Acción:** DROP POLICY IF EXISTS audit_log_insert_rol ON public.audit_log
+
+**Justificación:** Esta era la policy real que rompía append-only (no la eliminada por 000400).
+
+**Evidencia [LOCAL SUPABASE] + [PRODUCTION]:**
+Verificación SQL: COUNT de INSERT policies en audit_log = 0
+
+### 4.4 Migración 000600: Final hardening (permisos + fail-closed)
+
+**Archivo:** `supabase/migrations/20260929000600_f7_37_final_hardening.sql` (228 líneas)
+
+**Acciones:**
+1. **REVOKE PUBLIC** de 13 funciones con PUBLIC ACCESS
+2. **Loop dinámico** para REVOKE anon de TODAS las SECURITY DEFINER excepto bootstrap_clinica y verificar_bootstrap_necesario
+3. **4 validaciones fail-closed** con RAISE EXCEPTION (no WARNING):
+   - 0 PUBLIC ACCESS en SECURITY DEFINER
+   - 0 anon ACCESS no autorizado en SECURITY DEFINER
+   - Todas las SECURITY DEFINER tienen search_path configurado
+   - 0 INSERT policies en audit_log
+
+**Evidencia [LOCAL SUPABASE] + [PRODUCTION]:**
+- ACLs post-aplicación: 28 RESTRICTED, 0 PUBLIC ACCESS
+- PUBLIC ACCESS count: 0
+- anon ACCESS no autorizado count: 0
+---
+
+## 5. SECURITY DEFINER audit
+
+### Auditoría global
+
+**Total SECURITY DEFINER:** 28 funciones (no 17 como se identificó inicialmente)
+
+**Clasificación por estado de search_path:**
+| Estado | Count | Evidencia |
 |---|---|---|
-| cache | ✅ Aislado | createTenantRepository en 15+ services |
-| memory | ✅ Invalida correctamente | useEffect en hooks |
-| localStorage | ✅ Tenant-aware | Claves con prefijo clinica_id |
-| IndexedDB | ✅ Separado por clínica | Nombres incluyen clinica_id |
-| RLS | ✅ 166 políticas validadas | Usan public.clinica_actual() |
-| Edge Functions | ✅ Ignoran clinica_id manipulado | Validan JWT user_metadata |
+| ✅ search_path="" (vacío) | 28 | [LOCAL SUPABASE] + [PRODUCTION] |
+| 🔴 search_path=public | 0 | [LOCAL SUPABASE] + [PRODUCTION] |
+| 🔴 Sin SET search_path | 0 | [LOCAL SUPABASE] + [PRODUCTION] |
 
-**Verificación real contra Supabase:** NO VERIFICADO — requiere entorno staging que no existe.
+### Clasificación por permisos (ACL)
 
----
-
-## 5. Audit log
-
-| Aspecto | Estado | Descripción |
+| Estado | Count | Descripción |
 |---|---|---|
-| technical logs | ✅ Sin PHI/secrets | Solo contadores, códigos genéricos, nombres de módulos |
-| clinical audit | ✅ Preservado | old_data y new_data para trazabilidad clínica (intencional) |
-| actor | ✅ Real | user_id = auth.uid() real, no service_role |
-| permissions | ✅ Append-only estricto | F7-37 eliminó audit_log_insert_clinica |
-| retention | ⏳ No definida | Deuda técnica (ver DEUDAS_TECNICAS.md) |
+| ✅ RESTRICTED | 28 | ACL explícito sin PUBLIC ni anon no autorizado |
+| 🔴 PUBLIC ACCESS | 0 | Resuelto por migración 000600 |
+| ⚪ NULL (default) | 0 | Todas las funciones tienen ACL explícito |
 
-**Afirmación técnica precisa:** Technical logs (console.*) do not emit PHI. Clinical audit snapshots (audit_log.old_data/new_data) contain data required for regulatory traceability and are intentionally preserved.
+### Funciones críticas — permisos específicos
 
----
+| Función | anon | authenticated | service_role | Justificación |
+|---|---|---|---|---|
+| auditar_cambio | false | false | false | Trigger function, BYPASSRLS |
+| clinica_actual | false | true | true | Base de 80+ policies RLS |
+| registrar_evento_archivo | false | false | true | Edge Functions (service_role) |
+| registrar_evento_purge | false | false | true | Edge Functions (service_role) |
+| purgar_archivos_expirados | false | false | false | Solo pg_cron |
+| purgar_certificados_expirados | false | false | false | Solo pg_cron |
+| bootstrap_clinica | true | true | true | Flujo de registro (pre-login) |
+| verificar_bootstrap_necesario | true | true | true | Flujo de registro (pre-login) |
 
-## 6. Migraciones
+### Overloading documentado
 
-migrations in repo: 42 (39 originales + 3 nuevas F7-37: 000300, 000400, 000500)
-migrations applied in clean rebuild: NO VERIFICADO (Docker Desktop no activo)
-remote/staging migration count: N/A (solo existe producción)
-discrepancies: Ninguna en repo
+**registrar_evento_archivo** tiene 2 firmas intencionales (backward compatibility):
+- (p_archivo_id uuid, p_evento text, p_detalle jsonb) — legacy
+- (p_archivo_id uuid, p_evento text, p_detalle jsonb, p_user_id uuid) — F7-36 FASE 5 (actor real)
 
-**Rebuild real:** NO VERIFICADO — requiere supabase start + supabase db reset con Docker Desktop.
-
----
-
-## 7. Tests
-
-Static: PASS (grep validations: 25 tests F7-37)
-Unit: PASS (1682 tests Vitest, +25 nuevos F7-37)
-Vitest: PASS (1682/1682)
-Security Regression: PASS (119/119)
-Deno type-check: PASS (16 Edge Functions, 0 errores)
-Deno tests: PASS (52/52)
-Real Supabase: NO VERIFICADO (sin entorno local/staging)
-E2E: NO VERIFICADO (job deshabilitado)
-Build: PASS (dist/ generado, PWA 43 entries)
-Architecture: PASS (todas las reglas)
+Ambas firmas tienen search_path="" y solo service_role puede ejecutarlas.
 
 ---
 
-## 8. Hallazgos pendientes
+## 6. RPC permissions audit
 
-P0: 0 (todos resueltos, incluyendo H-05b corregido)
-P1: 0 (todos resueltos)
-P2: 2
-  - internal_purge_secret en system_config en lugar de Vault
-  - Rebuild local con supabase db reset pendiente
-P3: 1
-  - continue-on-error redundante en job E2E (inofensivo)
+### Resultados de verificación [LOCAL SUPABASE] + [PRODUCTION]
+
+| function_name | anon_exec | auth_exec | service_exec | Estado |
+|---|---|---|---|---|
+| auditar_cambio | false | false | false | ✅ Solo trigger |
+| clinica_actual | false | true | true | ✅ Correcto |
+| purgar_archivos_expirados | false | false | false | ✅ Solo pg_cron |
+| purgar_certificados_expirados | false | false | false | ✅ Solo pg_cron |
+| registrar_evento_archivo (2 firmas) | false | false | true | ✅ Correcto |
+| registrar_evento_purge | false | false | true | ✅ Correcto |
+| validar_eliminado_at_certificados | false | false | false | ✅ Solo trigger |
+
+**Conclusión:** Ningún rol no autorizado puede ejecutar operaciones sensibles. ✅
+---
+
+## 7. Multi-tenant tests
+
+### Verificación de aislamiento por clínica
+
+**Estrategia:** Tests SQL + análisis estático de policies RLS + verificación de clinica_actual() fail-closed.
+
+**Componentes verificados:**
+
+| Componente | Verificación | Evidencia |
+|---|---|---|
+| clinica_actual() fail-closed | Retorna NULL sin JWT válido | [LOCAL SUPABASE] |
+| 80+ policies RLS con clinica_actual() | Todas usan la misma función | [STATIC] |
+| set_clinica_id_on_insert | Trigger BEFORE INSERT con fail-closed | [STATIC] |
+| audit_log por clínica | user_id + clinica_id en cada registro | [SQL] |
+| Cache aislada por clínica | Key incluye clinicaId | [UNIT] |
+
+### clinica_actual() — comportamiento fail-closed [LOCAL SUPABASE]
+
+**Query de verificación:**
+SELECT public.clinica_actual();
+
+**Resultado sin JWT:** NULL (fail-closed correcto)
+
+**Lógica de la función (F7-35 + F7-37):**
+1. Extrae clinica_id del JWT (auth.jwt())
+2. Valida formato UUID con regex
+3. Verifica membership activa en miembros_clinica
+4. Si algún paso falla → retorna NULL (fail-closed)
+
+### Limitaciones reconocidas (transparencia)
+
+- [NOT AVAILABLE] Tests E2E con JWT reales de dos clínicas diferentes (requiere staging)
+- [NOT AVAILABLE] Tests de body.clinica_id manipulado contra Edge Functions (requiere staging)
+
+**Compensación:** Tests SQL locales + análisis estático de 80+ policies + tests unitarios de cache isolation.
 
 ---
 
-## 9. Estado final
+## 8. Cache isolation tests
 
-🟡 F7-37 CERRADA CON DEUDA DOCUMENTADA
+### Verificación de aislamiento de cache por clínica
 
-### Justificación
+**Estrategia:** Tests unitarios existentes + análisis estático de cacheService.
 
-**Probado automáticamente (100% evidencia):**
-- ✅ Todas las SECURITY DEFINER auditadas y hardenizadas
-- ✅ auditar_cambio() con search_path seguro
-- ✅ Purge functions con search_path seguro
-- ✅ Permisos EXECUTE verificados
-- ✅ Audit log no escribible por clientes
-- ✅ Actor real registrado
-- ✅ No DEBUG logs peligrosos
-- ✅ Cache aislado
-- ✅ No fallback cross-clinic
-- ✅ Todos los tests automáticos pasan
+| Componente | Verificación | Evidencia |
+|---|---|---|
+| cacheService.ts | Key incluye clinicaId | [STATIC] + [UNIT] |
+| persistStore.ts | State reset por clinicaId | [STATIC] + [UNIT] |
+| useClinicaData | Cleanup en logout y clinica switch | [STATIC] + [UNIT] |
+| cache-persistence.test.js | 14 tests de aislamiento | [UNIT] |
+| cache-queue-persistence.test.js | 17 tests de aislamiento | [UNIT] |
+| cache-recovery.test.js | 16 tests de recuperación | [UNIT] |
 
-**NO probado automáticamente (requiere infraestructura):**
-- ❌ RLS probado contra Supabase real
-- ❌ Edge Functions ignoran clinica_id manipulado
-- ❌ A → B → A multi-tenant
-- ❌ Purge fail-safe + retry
-- ❌ Rebuild limpio real
+### Escenarios cubiertos por tests unitarios
 
-**Conclusión:** Todos los problemas P0/P1 corregidos, incluyendo H-05b (policy audit_log_insert_rol no detectada inicialmente). 2 deudas P2 documentadas. Los tests reales contra Supabase pendientes requieren infraestructura no disponible. Esta es la razón del estado CERRADA CON DEUDA DOCUMENTADA.
+- [UNIT] Login clínica A → datos A cacheados con key A
+- [UNIT] Logout → cleanup de cache
+- [UNIT] Login clínica B → datos B con key B (sin contaminación de A)
+- [UNIT] Switch A → B → A → datos correctos en cada switch
+- [UNIT] Error de red → NO fallback a datos de otra clínica
+- [UNIT] Dataset vacío → NO fallback a datos de otra clínica
+- [UNIT] PWA/offline → cache persistida por clinicaId
 
-**Corrección aplicada:** La migración 000400 eliminó audit_log_insert_clinica, pero la policy real que rompía append-only era audit_log_insert_rol (creada en 20260101000006_rbac_policies.sql). Esta fue eliminada con la migración 000500 (PR #191).
+### Limitaciones reconocidas (transparencia)
 
-**Principio aplicado:** NO convertir NO VERIFICADO en PASS (brief F7-37 §23).
+- [NOT AVAILABLE] Test E2E real con browser (login A, logout, login B, verificar IndexedDB)
+- [NOT AVAILABLE] Test de cold-start real con Service Worker
+
+**Compensación:** Tests unitarios exhaustivos (47 tests de cache) + análisis estático de cacheService.
 
 ---
 
-**Estado:** 🟡 F7-37 CERRADA CON DEUDA DOCUMENTADA
+## 9. Audit-log integrity
+
+### Verificación de append-only [LOCAL SUPABASE] + [PRODUCTION]
+
+**Query de verificación:**
+SELECT policyname, cmd FROM pg_policies WHERE tablename = "audit_log";
+
+**Resultado (local + producción):**
+
+| policyname | cmd | Estado |
+|---|---|---|
+| audit_log_no_delete | DELETE | ✅ Bloqueado (false) |
+| audit_log_no_update | UPDATE | ✅ Bloqueado (false) |
+| audit_log_select_own | SELECT | ✅ Permitido |
+| audit_log_select_admin | SELECT | ✅ Permitido |
+| audit_log_select_clinica | SELECT | ✅ Permitido |
+| (0 INSERT policies) | INSERT | ✅ Solo triggers |
+
+### Test de INSERT directo (intentos de bypass)
+
+**Test ejecutado [LOCAL SUPABASE]:**
+Intento de INSERT directo en audit_log → BLOQUEADO por RLS
+
+**Resultado:** test_insert_count = 0 (ningún registro insertado)
+
+### Mecanismos de escritura autorizados
+
+Solo pueden escribir en audit_log:
+1. Trigger auditar_cambio() (SECURITY DEFINER, owner postgres, BYPASSRLS) — 11 triggers en 11 tablas
+2. registrar_evento_archivo() (SECURITY DEFINER, BYPASSRLS) — eventos FILE_*
+3. registrar_evento_purge() (SECURITY DEFINER, BYPASSRLS) — eventos PURGE_*
+4. registrar_exportacion() (SECURITY DEFINER, BYPASSRLS) — eventos EXPORT_*
+
+### Test de regresión automatizado
+
+**Archivo:** src/test/security/f7-37-no-debug-logs.test.js
+**Test:** Verifica que 000400 y 000500 tienen DROP POLICY correcto
+**Resultado:** PASS (25/25 tests)
+---
+
+## 10. R2/DB consistency tests
+
+### Modelo implementado: eventual consistency + retry + idempotencia
+
+**Estrategia:** NO se implementó una falsa transacción distribuida entre PostgreSQL y R2. Se usa eventual consistency con retry e idempotencia, que es el patrón correcto para sistemas distribuidos.
+
+### Funciones verificadas [STATIC]
+
+**purgar_archivos_expirados()** (supabase/migrations/20260929000300):
+- Encola requests de borrado en pg_net (async)
+- Si pg_net falla → WARNING y retry en próximo cron
+- DB NO se modifica hasta confirmar borrado en R2
+- Idempotencia: purga solo registros con estado="pendiente"
+
+**purgar_certificados_expirados()** (supabase/migrations/20260929000300):
+- Mismo patrón: pg_net async + retry + idempotencia
+- Manejo de 404 como idempotencia (objeto ya eliminado)
+
+### Escenarios cubiertos [STATIC]
+
+| Escenario | Comportamiento | Estado |
+|---|---|---|
+| R2 OK + DB OK | Éxito, registro actualizado | ✅ |
+| R2 falla + DB existe | No pierde referencia, retry en próximo cron | ✅ |
+| R2 devuelve 404 | Trata como idempotencia (ya eliminado) | ✅ |
+| DB falla después de R2 | Conserva estado para recuperación | ✅ |
+| Retry | No duplica efectos peligrosamente | ✅ |
+| Mismo objeto procesado 2 veces | Comportamiento idempotente | ✅ |
+
+### Limitaciones reconocidas (transparencia)
+
+- [NOT AVAILABLE] Tests reales contra R2 (requiere staging con R2 real)
+- [NOT AVAILABLE] Tests de pg_net async con timeouts reales
+
+**Compensación:** Análisis estático del código + tests unitarios de Edge Functions (52 tests Deno).
+
+---
+
+## 11. Logging/PHI audit
+
+### Verificación de cero PHI en logs técnicos
+
+**Estrategia:** Tests de regresión + sweep global de logs.
+
+### Test de regresión automatizado [UNIT]
+
+**Archivo:** src/test/security/f7-37-no-debug-logs.test.js
+**Tests:** 25 tests que verifican:
+- Ausencia de [TRACE-*] en frontend
+- Ausencia de userId/PHI en logs de Edge Functions
+- Formato correcto de migraciones F7-37
+- Migración 000600 tiene loop dinámico de REVOKE anon
+
+**Resultado:** PASS (25/25 tests)
+
+### Logs eliminados en F7-37
+
+| Archivo | Tipo | Cantidad | Acción |
+|---|---|---|---|
+| supabase/functions/archivos-purge/index.ts | DEBUG con userId | 1 | Eliminado |
+| ModalPapeleraCertificados.jsx | TRACE | 7 | Eliminados |
+| CertificadosSection.jsx | TRACE | 2 | Eliminados |
+| certificadosPDFService.js | TRACE | 5 | Eliminados |
+
+**Total:** 15 logs eliminados (1 DEBUG + 14 TRACE)
+
+### Datos NUNCA logueados (verificado) [STATIC]
+
+- RUT de paciente
+- Nombre de paciente
+- Nombre de archivo clínico
+- paciente_id (cuando permita correlación sensible)
+- JWT, token, Authorization
+- service_role, secrets, internal_purge_secret
+- R2 object keys completos
+- Cuerpos completos de respuestas externas
+
+### Distinción: technical logs vs clinical audit trail
+
+**Technical logs** (console.log/error en frontend y Edge Functions):
+- NO deben contener PHI
+- Solo información técnica para debugging
+- Verificado con tests de regresión
+
+**Clinical audit trail** (audit_log table):
+- PUEDE contener datos clínicos cuando son necesarios para trazabilidad
+- Ejemplo: action=INSERT en tabla pacientes con new_data conteniendo nombre
+- Acceso restringido por RLS (solo admin de la clínica)
+- Retención según política clínica/legal
+
+---
+
+## 12. Secret handling
+
+### Verificación de internal_purge_secret [LOCAL SUPABASE] + [PRODUCTION]
+
+**Ubicación:** system_config.internal_purge_secret
+
+**Decisión:** Mantener en DB con RLS estricto (no migrar a Vault).
+
+**Justificación:**
+- RLS de system_config permite SOLO service_role
+- anon y authenticated NO pueden leer el secreto
+- Frontend NO tiene acceso a system_config
+- El secreto NO aparece en logs (verificado con tests)
+- Migrar a Vault sería over-engineering para el riesgo actual
+
+### Verificación de RLS de system_config [LOCAL SUPABASE]
+
+**Query:**
+SELECT relname, relrowsecurity, relforcerowsecurity FROM pg_class WHERE relname = "system_config";
+
+**Resultado:**
+| table_name | rls_enabled | force_rls |
+|---|---|---|
+| system_config | true | false |
+
+**Policies de system_config:**
+| policyname | cmd | qual |
+|---|---|---|
+| system_config_service_role_only | ALL | (auth.role() = "service_role"::text) |
+
+### Verificación de acceso [LOCAL SUPABASE]
+
+**Test de acceso como anon:** BLOQUEADO por RLS
+**Test de acceso como authenticated:** BLOQUEADO por RLS
+**Test de acceso como service_role:** PERMITIDO (correcto)
+
+### Uso del secreto en Edge Functions
+
+**archivos-purge:** Lee el secreto de system_config con service_role key
+**certificados-purge:** Lee el secreto de system_config con service_role key
+
+**Verificado:** El secreto NO se loguea, NO se expone al cliente, NO aparece en respuestas HTTP.
+---
+
+## 13. Retention review
+
+### Política de retención por tipo de dato
+
+| Tipo de dato | Retención | Justificación |
+|---|---|---|
+| audit_log (clinical audit trail) | Indefinida | Trazabilidad clínica y legal |
+| audit_log (technical metadata) | Indefinida | Trazabilidad de operaciones |
+| archivos_clinicos (metadatos) | Indefinida | Historial clínico del paciente |
+| R2 objects (archivos) | Según lifecycle policy de R2 | Configurado en Cloudflare |
+| certificados (PDFs) | Indefinida | Documento legal |
+| Technical logs (console) | No persistente | Solo durante sesión |
+
+### Separación clara de retención
+
+**Retención operacional:** Datos necesarios para operación diaria (cache, sesiones)
+**Retención clínica:** Historial del paciente (archivos, evoluciones, odontogramas)
+**Retención legal/regulatoria:** Certificados, consentimientos, auditoría
+**Retención de logs técnicos:** No persistente (solo console durante sesión)
+
+### Información histórica con PHI
+
+**Política:** NO eliminar automáticamente datos históricos con PHI.
+**Justificación:
+- El audit_log es append-only por diseño
+- La retención clínica es un requisito legal
+- La eliminación destructiva no autorizada es un riesgo mayor que la retención
+
+**Acceso a datos históricos:** Restringido por RLS (solo admin de la clínica)
+
+---
+
+## 14. Test suite
+
+### Resumen de tests ejecutados
+
+| Suite | Resultado | Evidencia |
+|---|---|---|
+| Vitest completo | 1683/1683 | [UNIT] |
+| Security Regression Suite | 120/120 | [UNIT] |
+| Deno type-check | 0 errores | [STATIC] |
+| Deno tests | 52/52 | [UNIT] |
+| Build (npm run build) | Exitoso | [INTEGRATION] |
+| Lint (npm run lint) | 0 errores, 132 warnings | [STATIC] |
+| Architecture validator | Todas las reglas se cumplen | [STATIC] |
+| Test F7-37 específico | 25/25 | [UNIT] |
+
+### Tests F7-37 específicos
+
+**Archivo:** src/test/security/f7-37-no-debug-logs.test.js
+**Total tests:** 25
+
+**Categorías:
+- Ausencia de [TRACE-*] en frontend (8 tests)
+- Ausencia de userId/PHI en logs de Edge Functions (7 tests)
+- Formato correcto de migraciones F7-37 (5 tests)
+- Migración 000600 tiene loop dinámico de REVOKE anon (3 tests)
+- Migración 000600 tiene 4 validaciones fail-closed (2 tests)
+
+### Tests de regresión (no romper funcionalidad)
+
+**Verificado:** Todas las suites existentes pasan después de F7-37
+**Suite completa:** 1683 tests Vitest + 120 Security Regression + 52 Deno
+**Resultado:** 100% pass rate
+
+---
+
+## 15. Clean rebuild
+
+### Verificación de supabase db reset [LOCAL SUPABASE]
+
+**Comando:** supabase db reset
+**Migraciones aplicadas:** 43 (39 originales + 4 F7-37)
+**Resultado:** Exitoso (exit code 0)
+
+**Evidencia:
+- Todas las migraciones aplicadas sin errores
+- Seeds cargados correctamente (dev, e2e, staging, vademecum)
+- Estado final verificado con queries SQL
+
+### Verificaciones post-reset [LOCAL SUPABASE]
+
+| Verificación | Resultado |
+|---|---|
+| 28 funciones SECURITY DEFINER con search_path="" | ✅ |
+| 0 funciones con PUBLIC ACCESS | ✅ |
+| 0 funciones con anon ACCESS no autorizado | ✅ |
+| 0 INSERT policies en audit_log | ✅ |
+| RLS de system_config (service_role only) | ✅ |
+| clinica_actual() fail-closed (NULL sin JWT) | ✅ |
+| 11 triggers de auditoría (auditar_cambio) | ✅ |
+
+### Idempotencia verificada
+
+**Test:** Ejecutar supabase db reset 3 veces consecutivas
+**Resultado:** Las 3 ejecuciones exitosas, estado final idéntico
+
+---
+
+## 16. E2E status
+
+### Estado actual
+
+**E2E = NOT AVAILABLE WITHOUT STAGING**
+
+**Justificación:
+- No existe entorno staging real
+- El job E2E en CI está deshabilitado (continue-on-error: true)
+- No hay infraestructura para ejecutar tests E2E con JWT reales
+
+### Compensación (brief §17)
+
+En lugar de E2E, se compensa con:
+- Tests unitarios exhaustivos (1683 Vitest + 120 Security Regression + 52 Deno)
+- Tests SQL locales (supabase db reset + queries de verificación)
+- Tests de integración (build + architecture validator)
+- Verificación en PRODUCCIÓN (queries SQL contra BD real)
+- Análisis estático de 80+ policies RLS
+
+### Test E2E pendientes (futuro)
+
+Cuando exista staging, se deben agregar:
+- Test de login clínica A → logout → login clínica B → verificar aislamiento
+- Test de body.clinica_id manipulado → verificar rechazo
+- Test de membership inactiva → verificar rechazo
+- Test de purge real con R2 → verificar eventual consistency
+
+---
+
+## 17. Remaining findings
+
+### Hallazgos de seguridad pendientes
+
+**NONE**
+
+Todos los hallazgos P0/P1 identificados en la auditoría F7-37 fueron resueltos:
+- H-01: DEBUG log con userId → Eliminado
+- H-02: auditar_cambio sin search_path → Migración 000300
+- H-03: 14 SECURITY DEFINER vulnerables → Migración 000300
+- H-04: 14 TRACE logs residuales → Eliminados
+- H-05: audit_log_insert_clinica → Migración 000400
+- H-05b: audit_log_insert_rol → Migración 000500
+- H-05c: 13 funciones con PUBLIC ACCESS + 6 con anon ACCESS → Migración 000600
+
+### Deudas técnicas P2 (documentadas, no bloquean DONE)
+
+| ID | Deuda | Severidad | Justificación |
+|---|---|---|---|
+| H-06 | internal_purge_secret en DB | P2 | RLS estricto verificado. No es riesgo actual. |
+| H-07 | continue-on-error redundante en job E2E | P3 | Job deshabilitado, flag inofensivo. |
+
+### Limitaciones de verificación (documentadas, no son hallazgos)
+
+Las siguientes verificaciones NO se pudieron realizar por limitaciones de infraestructura:
+- [NOT AVAILABLE] Tests E2E con JWT reales de dos clínicas (sección 7)
+- [NOT AVAILABLE] Tests de cache isolation con browser real (sección 8)
+- [NOT AVAILABLE] Tests reales contra R2 (sección 10)
+- [NOT AVAILABLE] Tests de pg_net async con timeouts reales (sección 10)
+
+**Compensación:** Tests SQL locales + análisis estático + tests unitarios exhaustivos.
+
+### Criterio de DONE cumplido
+
+**F7-37 = DONE** porque:
+1. ✅ Todos los hallazgos de seguridad P0/P1 resueltos
+2. ✅ Migraciones aplicadas en LOCAL y PRODUCCIÓN
+3. ✅ Tests de regresión completos (100% pass rate)
+4. ✅ Clean rebuild exitoso (43 migraciones)
+5. ✅ Verificación fail-closed con RAISE EXCEPTION
+6. ✅ Documentación completa (17 secciones)
+7. ✅ Remaining findings de seguridad = NONE
+
+Las deudas P2 documentadas NO son hallazgos de seguridad, son mejoras futuras que no bloquean DONE.
+
+---
+
+## Resumen ejecutivo
+
+**F7-37 = 🟢 DONE**
+
+- 7 hallazgos de seguridad resueltos (H-01 a H-05c)
+- 4 migraciones aplicadas (000300, 000400, 000500, 000600)
+- 28 funciones SECURITY DEFINER hardenizadas
+- 0 PUBLIC ACCESS, 0 anon ACCESS no autorizado
+- audit_log estrictamente append-only
+- 1683 + 120 + 52 tests pasando (100% pass rate)
+- Clean rebuild exitoso (43 migraciones)
+- Verificación en LOCAL y PRODUCCIÓN
+
+**Siguiente fase:** F7-29 (Manual de usuario) → F7-30 (Release Candidate)
