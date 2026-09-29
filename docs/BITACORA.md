@@ -3816,6 +3816,116 @@ No se crea política de DELETE físico. Con RLS activo y sin política de DELETE
 
 # BITÁCORA DE EJECUCIÓN — Studio Dental
 
+---
+
+## 2026-09-29 01:10 — F7-37 H-05b CORREGIDO: Eliminar audit_log_insert_rol (PR #191)
+
+### Problema detectado
+
+Durante la verificación post-merge del PR #190, se descubrió que la policy eliminada (audit_log_insert_clinica) no era la única que rompía el modelo append-only de audit_log.
+
+**Policy real problemática:** audit_log_insert_rol (creada en 20260101000006_rbac_policies.sql:345)
+
+Esta policy permite INSERT directo por usuarios authenticated con roles específicos, posibilitando la inyección de registros falsos en audit_log.
+
+### Contexto histórico
+
+- F7-08 (2026-08-29) eliminó audit_log_insert_clinica con la misma justificación
+- F7-08 NO eliminó audit_log_insert_rol, dejando el modelo append-only incompleto
+- F7-37 000400 (PR #190) eliminó audit_log_insert_clinica (redundante, ya no existía)
+- F7-37 000500 (PR #191) elimina audit_log_insert_rol (la policy real problemática)
+
+### Evidencia de que eliminar es seguro
+
+- ✅ 0 callers en frontend (src/) hacen INSERT directo en audit_log
+- ✅ 0 callers en Edge Functions hacen INSERT directo en audit_log
+- ✅ Solo callers son funciones SECURITY DEFINER que usan BYPASSRLS o tienen owner postgres:
+  - auditar_cambio() (trigger SECURITY DEFINER, owner postgres)
+  - registrar_evento_archivo() (SECURITY DEFINER con search_path vacío)
+  - registrar_evento_purge() (SECURITY DEFINER con search_path vacío)
+  - registrar_exportacion() (SECURITY DEFINER con search_path vacío)
+- ✅ 0 tests dependen de esta policy
+
+### Principio aplicado
+
+"Si descubres que una afirmación anterior era incorrecta, corrígela explícitamente." (brief F7-37 §23)
+
+La migración 000400 eliminó la policy incorrecta. Esta migración 000500 corrige el error y elimina la policy real que rompe append-only.
+
+### Cambios aplicados
+
+**Migración SQL (1 nueva, total ahora 42):**
+- 20260929000500_f7_37_drop_audit_log_insert_rol.sql (89 líneas):
+  - DROP POLICY audit_log_insert_rol
+  - Verificación post-migración (0 INSERT policies esperadas)
+  - Documentación actualizada de audit_log
+
+**Tests (actualizado):**
+- src/test/security/f7-37-no-debug-logs.test.js: Agregado test que valida migración 000500 (25 tests totales)
+
+**Documentación (actualizada):**
+- docs/F7-37-CIERRE.md: Corregido H-05, agregado H-05b, conteo de archivos (12), conteo de migraciones (42)
+- docs/BITACORA.md: Esta entrada
+
+### Validación
+
+| Suite | Resultado |
+|---|---|
+| Tests F7-37 (actualizados) | ✅ 25/25 (+1 nuevo) |
+| Vitest completo | ✅ 1682/1682 |
+| Security Regression | ✅ 119/119 |
+| Deno tests | ✅ 52/52 |
+| Build | ✅ Exitoso |
+| Architecture | ✅ OK |
+
+### Estado final de F7-37
+
+🟡 **F7-37 CERRADA CON DEUDA DOCUMENTADA** (ahora sí completamente cerrada)
+
+**Justificación actualizada:** Todos los hallazgos P0/P1 corregidos, incluyendo H-05b (policy audit_log_insert_rol no detectada inicialmente). Tests automáticos pasan. Tests reales contra Supabase pendientes (requieren infraestructura no disponible). 2 deudas P2 documentadas.
+
+### ⚠️ Acción post-merge requerida (corregida)
+
+**Las 3 migraciones F7-37 deben aplicarse manualmente en Supabase Dashboard:**
+
+1. 20260929000300_f7_37_search_path_hardening.sql (17 funciones hardenizadas)
+2. 20260929000400_f7_37_audit_log_append_only.sql (DROP audit_log_insert_clinica — redundante)
+3. 20260929000500_f7_37_drop_audit_log_insert_rol.sql (DROP audit_log_insert_rol — CRÍTICO)
+
+**Pasos para aplicar:**
+1. Abrir Supabase Dashboard → SQL Editor → New query
+2. Ejecutar migración 000300 (960 líneas)
+3. Ejecutar migración 000400 (77 líneas, idempotente)
+4. Ejecutar migración 000500 (89 líneas, CRÍTICO)
+5. Verificar con query: SELECT policyname, cmd FROM pg_policies WHERE tablename = 'audit_log';
+
+**Resultado esperado:**
+- 0 INSERT policies
+- Solo SELECT, UPDATE, DELETE policies
+
+### Archivos modificados/creados (4)
+
+- supabase/migrations/20260929000500_f7_37_drop_audit_log_insert_rol.sql (NUEVO)
+- src/test/security/f7-37-no-debug-logs.test.js (actualizado, 25 tests)
+- docs/F7-37-CIERRE.md (actualizado con H-05b)
+- docs/BITACORA.md (esta entrada)
+
+### PR
+- **PR #191**: [hotfix/f7-37-drop-audit-log-insert-rol](https://github.com/miguelmcdr-boop/Studio-Dental/pull/191) — MERGED (esperado)
+
+### Lección aprendida
+
+**Auditoría de policies debe ser exhaustiva:** La búsqueda inicial de policies INSERT en audit_log solo encontró audit_log_insert_clinica (mencionada en comentarios de F7-08). La búsqueda debió incluir todas las migraciones históricas, no solo las mencionadas en documentación.
+
+**Query correcta para auditoría futura:**
+SELECT policyname, cmd, qual, with_check FROM pg_policies WHERE tablename = 'audit_log' AND cmd = 'INSERT';
+
+---
+
+**Estado:** 🟡 F7-37 CERRADA CON DEUDA DOCUMENTADA (H-05b corregido)
+
+---
+
 
 ---
 

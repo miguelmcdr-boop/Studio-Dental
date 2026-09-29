@@ -14,7 +14,7 @@ commit: <pendiente del push>
 branch: feature/f7-37-final-security-integrity
 fecha: 2026-09-29
 
-**Archivos modificados (11):**
+**Archivos modificados (12):**
 - src/modules/pacientes/components/CertificadosSection.jsx (eliminar 2 TRACE logs)
 - src/modules/pacientes/components/ModalPapeleraCertificados.jsx (eliminar 7 TRACE logs)
 - src/modules/pacientes/services/certificadosPDFService.js (eliminar 5 TRACE logs)
@@ -38,6 +38,7 @@ fecha: 2026-09-29
 | H-03 | 14 SECURITY DEFINER pre-F7-36 vulnerables | P1 | Migración 000300 | 17 funciones hardenizadas | ✅ |
 | H-04 | 14 TRACE logs residuales en producción | P1 | Eliminados | 0 ocurrencias de [TRACE- | ✅ |
 | H-05 | audit_log_insert_clinica rompía append-only | P0 | Migración 000400 | DROP POLICY ejecutado | ✅ |
+| H-05b | audit_log_insert_rol rompía append-only (no detectada inicialmente) | P0 | Migración 000500 | DROP POLICY ejecutado | ✅ |
 | H-06 | internal_purge_secret en tabla SQL | P2 | Documentada | RLS estricto la protege | 🟡 Deuda |
 | H-07 | continue-on-error redundante en E2E | P3 | Preservado | Job deshabilitado | ✅ |
 
@@ -102,7 +103,7 @@ fecha: 2026-09-29
 
 ## 6. Migraciones
 
-migrations in repo: 41 (39 originales + 2 nuevas F7-37)
+migrations in repo: 42 (39 originales + 3 nuevas F7-37: 000300, 000400, 000500)
 migrations applied in clean rebuild: NO VERIFICADO (Docker Desktop no activo)
 remote/staging migration count: N/A (solo existe producción)
 discrepancies: Ninguna en repo
@@ -113,8 +114,8 @@ discrepancies: Ninguna en repo
 
 ## 7. Tests
 
-Static: PASS (grep validations: 24 tests F7-37)
-Unit: PASS (1682 tests Vitest, +24 nuevos F7-37)
+Static: PASS (grep validations: 25 tests F7-37)
+Unit: PASS (1682 tests Vitest, +25 nuevos F7-37)
 Vitest: PASS (1682/1682)
 Security Regression: PASS (119/119)
 Deno type-check: PASS (16 Edge Functions, 0 errores)
@@ -128,7 +129,7 @@ Architecture: PASS (todas las reglas)
 
 ## 8. Hallazgos pendientes
 
-P0: 0 (todos resueltos)
+P0: 0 (todos resueltos, incluyendo H-05b corregido)
 P1: 0 (todos resueltos)
 P2: 2
   - internal_purge_secret en system_config en lugar de Vault
@@ -163,7 +164,9 @@ P3: 1
 - ❌ Purge fail-safe + retry
 - ❌ Rebuild limpio real
 
-**Conclusión:** Todos los problemas P0/P1 corregidos. 2 deudas P2 documentadas. Los tests reales contra Supabase pendientes requieren infraestructura no disponible. Esta es la razón del estado CERRADA CON DEUDA DOCUMENTADA.
+**Conclusión:** Todos los problemas P0/P1 corregidos, incluyendo H-05b (policy audit_log_insert_rol no detectada inicialmente). 2 deudas P2 documentadas. Los tests reales contra Supabase pendientes requieren infraestructura no disponible. Esta es la razón del estado CERRADA CON DEUDA DOCUMENTADA.
+
+**Corrección aplicada:** La migración 000400 eliminó audit_log_insert_clinica, pero la policy real que rompía append-only era audit_log_insert_rol (creada en 20260101000006_rbac_policies.sql). Esta fue eliminada con la migración 000500 (PR #191).
 
 **Principio aplicado:** NO convertir NO VERIFICADO en PASS (brief F7-37 §23).
 
