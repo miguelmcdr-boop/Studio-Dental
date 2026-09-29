@@ -206,10 +206,16 @@ jobs:
 
   e2e:
     name: Tests E2E (Playwright + Supabase staging)
+    # F7-36 FASE 10: DESHABILITADO — Supabase staging eliminado
+    # Razón: No hay entorno staging disponible para ejecutar E2E.
+    # Ejecutar contra producción sería peligroso (modificaría datos reales).
+    # Código preservado para cuando se cree nuevo entorno staging.
+    # Ver documentación en docs/DEUDAS_TECNICAS.md
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 20
     continue-on-error: true
-    needs: [build]
+    # needs: [build]  # Comentado: job deshabilitado
 
     steps:
       - name: Checkout código
