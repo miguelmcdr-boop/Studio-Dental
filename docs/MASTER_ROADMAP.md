@@ -2756,7 +2756,55 @@ Después de todas las modificaciones ejecutar: Vitest, Security Regression, Deno
 
 ---
 
-#### Criterios de aceptación globales F7-36
+##
+---
+
+### F7-37: Final Security Integrity Audit ✅ COMPLETADA (2026-09-29) — 🟡 CERRADA CON DEUDA DOCUMENTADA
+
+**Objetivo:** Auditoría profunda post-F7-36 y corrección de hallazgos de seguridad residual.
+
+**Principio aplicado:** Primero evidencia → después corrección → después tests → finalmente documentación.
+
+**Hallazgos encontrados (7):**
+- H-01 (P0): DEBUG log exponía userId en archivos-purge:156 → ELIMINADO
+- H-02 (P0): auditar_cambio() sin SET search_path = '' → MIGRACIÓN 000300
+- H-03 (P1): 14 SECURITY DEFINER pre-F7-36 con search_path vulnerable → MIGRACIÓN 000300
+- H-04 (P1): 14 TRACE logs residuales en 3 archivos frontend → ELIMINADOS
+- H-05 (P0): audit_log_insert_clinica policy rompía append-only → MIGRACIÓN 000400
+- H-06 (P2): internal_purge_secret en tabla SQL en lugar de Vault → DEUDA DOCUMENTADA
+- H-07 (P3): continue-on-error redundante en job E2E → PRESERVADO (inofensivo)
+
+**Cambios aplicados:**
+- 1 DEBUG log eliminado en supabase/functions/archivos-purge/index.ts
+- 14 TRACE logs eliminados en 3 archivos frontend
+- Migración 20260929000300_f7_37_search_path_hardening.sql (17 funciones con SET search_path = '')
+- Migración 20260929000400_f7_37_audit_log_append_only.sql (DROP POLICY audit_log_insert_clinica)
+- Test src/test/security/f7-37-no-debug-logs.test.js (24 tests de regresión)
+
+**Funciones SECURITY DEFINER hardenizadas (17):**
+auditar_cambio, clinica_actual, es_admin_de_clinica_actual, rol_en_clinica_actual, tiene_rol_en_clinica, set_clinica_id_on_insert, puede_invitar_miembro, invitar_miembro, aceptar_invitacion, revocar_invitacion, listar_invitaciones_clinica, verificar_bootstrap_necesario, bootstrap_clinica, registrar_exportacion, purgar_archivos_expirados, purgar_certificados_expirados, validar_eliminado_at_certificados.
+
+**Validación:**
+- ✅ Tests F7-37: 24/24
+- ✅ Vitest: 1682/1682
+- ✅ Security Regression: 119/119
+- ✅ Deno tests: 52/52
+- ✅ Build: exitoso
+- ✅ Architecture: OK
+- ❌ Real Supabase: NO VERIFICADO (sin entorno)
+- ❌ E2E: NO VERIFICADO (job deshabilitado)
+
+**Deudas P2 documentadas:**
+1. Secret management: internal_purge_secret en system_config en lugar de Supabase Vault
+2. Rebuild local con supabase db reset pendiente (requiere Docker Desktop)
+
+**Estado:** 🟡 F7-37 CERRADA CON DEUDA DOCUMENTADA
+
+**Referencia:** docs/F7-37-CIERRE.md
+
+**⚠️ Acción post-merge requerida:** Aplicar manualmente las 2 migraciones nuevas en Supabase Dashboard → SQL Editor (ver BITACORA.md F7-37).
+
+## Criterios de aceptación globales F7-36
 
 **Multi-tenant cache:**
 - [x] cache aislada por clínica (FASE 1 ✅)

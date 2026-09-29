@@ -81,12 +81,6 @@ export const CertificadosSection = memo(({
   // Certificados eliminados para el modal (derivado de certsLocal)
   const certificadosEliminados = useMemo(() => {
     const result = Array.isArray(certsLocal) ? certsLocal.filter(c => c.eliminadoAt) : []
-    console.log('[TRACE-PADRE] certificadosEliminados:', result.map(c => ({
-      id: c.id,
-      tipo: c.tipo,
-      eliminadoAt: c.eliminadoAt,
-      fechaEmision: c.fechaEmision
-    })))
     return result
   }, [certsLocal])
 
@@ -267,7 +261,6 @@ export const CertificadosSection = memo(({
       )}
 
       {papeleraAbierta && (
-        console.log('[TRACE-PADRE] Renderizando modal con', certificadosEliminados.length, 'certs eliminados'),
         <ModalPapeleraCertificados
           alCerrar={cerrarPapelera}
           certificadosEliminados={certificadosEliminados}
