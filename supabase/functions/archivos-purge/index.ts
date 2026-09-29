@@ -151,6 +151,11 @@ export async function handler(req: Request): Promise<Response> {
     const body = await req.json();
     const archivoIds: string[] = Array.isArray(body.archivo_ids) ? body.archivo_ids : [];
 
+    // F7-37 v2: Detectar si es purge de certificados (source_type === 'certificado')
+    // source_ids mapea archivo_id -> certificado_id para poder eliminar ambos
+    const sourceType: string = body.source_type === 'certificado' ? 'certificado' : 'archivo';
+    const sourceIds: Record<string, string> = sourceType === 'certificado' && body.source_ids ? body.source_ids : {};
+
     // F7-32 FIX: En modo interno (cron), saltar checks de clínica/rol del usuario.
     // La clínica se obtiene de los propios archivos a purgar.
     if (!esLlamadaInterna) {
@@ -240,6 +245,24 @@ export async function handler(req: Request): Promise<Response> {
       if (!deleteRes.ok) {
         rechazados.push({ id: archivoId, razon: "error_delete_bd" });
         continue;
+      }
+
+      // F7-37 v2: Si es purge de certificados, también eliminar el certificado de la BD
+      // El DELETE del certificado solo ocurre DESPUÉS de confirmar R2 + archivos_clinicos
+      // Si falla, el certificado queda con purga_pendiente=TRUE para retry (cleanup lo resetea)
+      if (sourceType === 'certificado' && sourceIds[archivoId]) {
+        const certificadoId = sourceIds[archivoId];
+        const deleteCertRes = await fetch(
+          `${supabaseUrl}/rest/v1/certificados?id=eq.${certificadoId}`,
+          {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${supabaseServiceKey}`, apikey: supabaseServiceKey },
+          }
+        );
+        if (!deleteCertRes.ok) {
+          rechazados.push({ id: archivoId, razon: "error_delete_certificado" });
+          continue;
+        }
       }
 
       // 8. Registrar auditoría

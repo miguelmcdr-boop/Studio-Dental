@@ -3819,6 +3819,57 @@ No se crea política de DELETE físico. Con RLS activo y sin política de DELETE
 
 ---
 
+## 2026-09-29 17:41 — F7-37 v2 COMPLETADA: Corrección de purge de certificados (PR #193)
+
+### Resumen ejecutivo
+
+F7-37 v2 corrigió el último hallazgo técnico detectado en el flujo de purge de certificados:
+- `purgar_certificados_expirados()` hacía DELETE inmediato sin confirmar R2
+- Si archivos-purge fallaba → objeto R2 quedaba huérfano permanentemente
+
+### Solución implementada
+
+**Migración 000700** + **Modificación de archivos-purge**:
+- Agregó estado intermedio `purga_pendiente` a certificados
+- El DELETE físico solo ocurre DESPUÉS de confirmar R2 en archivos-purge
+- Cleanup resetea certificados atascados después de 24h
+
+### Evidencia final
+
+| Verificación | Resultado | Evidencia |
+|---|---|---|
+| 29 SECURITY DEFINER con search_path vacío | ✅ | [LOCAL SUPABASE] |
+| 0 PUBLIC ACCESS | ✅ | [LOCAL SUPABASE] |
+| 0 anon ACCESS no autorizado | ✅ | [LOCAL SUPABASE] |
+| 0 INSERT policies en audit_log | ✅ | [LOCAL SUPABASE] |
+| Test de flujo completo (purga_pendiente=TRUE) | ✅ | [LOCAL SUPABASE] |
+| Test de cleanup | ✅ | [LOCAL SUPABASE] |
+| Test de idempotencia | ✅ | [LOCAL SUPABASE] |
+| Vitest completo | 1697/1697 | [UNIT] |
+| Security Regression | 134/134 | [UNIT] |
+| Deno tests | 52/52 | [UNIT] |
+
+### Tests nuevos (14)
+
+**Archivo:** src/test/security/f7-37v2-purge-certificados.test.js
+
+### Estado final
+
+🟢 **F7-37 v2 = DONE**
+
+- Remaining findings de seguridad: NONE
+- Deudas P2 documentadas: H-06, H-07
+- Limitaciones de verificación: [NOT AVAILABLE] en secciones 7, 8, 10, 16
+
+### PR
+
+**PR #193:** feature/f7-37v2-purge-fix — MERGED (esperado)
+
+---
+
+
+---
+
 ## 2026-09-29 03:00 — F7-37 COMPLETADA: Final Security Integrity Audit (PR #192)
 
 ### Resumen ejecutivo
