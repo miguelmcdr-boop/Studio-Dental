@@ -3819,6 +3819,92 @@ No se crea política de DELETE físico. Con RLS activo y sin política de DELETE
 
 ---
 
+## 2026-09-28 22:43 — F7-36 FASE 10: CI / E2E (PR #187)
+
+### Objetivo
+Revisar `.github/workflows/ci.yml` y determinar el estado del job E2E.
+
+### Contexto crítico
+**Supabase staging fue eliminado.** Solo existe Supabase producción.
+
+Esto significa:
+- ❌ No hay entorno staging para ejecutar E2E
+- ❌ Secrets `E2E_*` no existen o apuntan a producción
+- 🚫 Ejecutar E2E contra producción sería peligroso (modificaría datos reales)
+
+### Regla del brief
+> "Si staging no permite E2E confiable todavía, documentar explícitamente y dejar como deuda de release."
+
+### Decisión basada en evidencia
+
+**Deshabilitar job E2E con `if: false`** y documentar como deuda de release.
+
+**Justificación:**
+1. Job no se ejecuta (no rompe CI)
+2. Código preservado para cuando se cree nuevo staging
+3. Documentación explícita de por qué está deshabilitado
+4. No hay riesgo de modificar producción accidentalmente
+
+### Cambios aplicados
+
+1. **`.github/workflows/ci.yml`:**
+   - Agregado `if: false` al job E2E
+   - Comentado `needs: [build]` (job no se ejecuta)
+   - Agregado comentario explicativo con referencia a DEUDAS_TECNICAS.md
+
+2. **`docs/DEUDAS_TECNICAS.md` (NUEVO):**
+   - Documento centralizado para deudas técnicas
+   - Entrada detallada de E2E con:
+     - Razón: Supabase staging eliminado
+     - Impacto de mantener deshabilitado
+     - Condiciones para reactivar
+     - Plan de mitigación actual
+     - Código preservado para futuro
+
+3. **`docs/MASTER_ROADMAP.md`:**
+   - FASE 10 marcada como DONE (deuda documentada)
+   - Línea de estado general actualizada
+
+### Condiciones para reactivar E2E (futuro)
+
+Para volver a habilitar el job E2E, se requiere:
+1. Crear nuevo proyecto Supabase staging (separado de producción)
+2. Configurar secrets: `E2E_SUPABASE_URL`, `E2E_SUPABASE_ANON_KEY`, `E2E_DATABASE_URL`
+3. Configurar storage bucket separado para E2E
+4. Validar que E2E nunca modifica producción
+5. Estabilidad demostrada (≥95% success rate durante 2 semanas)
+
+### Plan de mitigación actual
+
+Mientras E2E esté deshabilitado:
+1. Testing manual antes de releases
+2. Monitoreo de logs de producción
+3. Validación en staging manual (entorno temporal)
+4. Tests unitarios + integración como primera línea de defensa
+
+### Validación
+- ✅ Workflow CI sigue ejecutándose correctamente
+- ✅ Job E2e no se ejecuta (if: false)
+- ✅ Deuda técnica documentada con plan de mitigación
+- ✅ No se eliminó código (preservado para futuro)
+
+### Archivos modificados
+- `.github/workflows/ci.yml` (if: false agregado)
+- `docs/DEUDAS_TECNICAS.md` (NUEVO, documento centralizado)
+- `docs/MASTER_ROADMAP.md` (FASE 10 marcada DONE)
+- `docs/BITACORA.md` (esta entrada)
+
+### PR
+- **PR #187**: [feature/f7-36-fase10-ci-e2e](https://github.com/miguelmcdr-boop/Studio-Dental/pull/187) — MERGED (esperado)
+
+### Siguiente tarea
+FASE 11: Test global de regresión multi-tenant
+
+---
+
+
+---
+
 ## 2026-09-28 22:17 — F7-36 FASE 9: MIME contract (PR #186)
 
 ### Problema
