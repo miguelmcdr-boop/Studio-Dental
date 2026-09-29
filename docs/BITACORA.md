@@ -3816,6 +3816,94 @@ No se crea política de DELETE físico. Con RLS activo y sin política de DELETE
 
 # BITÁCORA DE EJECUCIÓN — Studio Dental
 
+
+---
+
+## 2026-09-29 03:00 — F7-37 COMPLETADA: Final Security Integrity Audit (PR #192)
+
+### Resumen ejecutivo
+
+F7-37 elevó la seguridad del proyecto a un estado DONE verificable mediante:
+- Auditoría exhaustiva de 28 funciones SECURITY DEFINER
+- Corrección de 7 hallazgos de seguridad (H-01 a H-05c)
+- 4 migraciones aplicadas en LOCAL y PRODUCCIÓN
+- Verificación fail-closed con RAISE EXCEPTION
+
+### Hallazgos resueltos (7)
+
+| ID | Hallazgo | Migración |
+|---|---|---|
+| H-01 | DEBUG log con userId en archivos-purge | Commit PR #190 |
+| H-02 | auditar_cambio sin search_path | 000300 |
+| H-03 | 14 SECURITY DEFINER vulnerables | 000300 |
+| H-04 | 14 TRACE logs residuales | Commit PR #190 |
+| H-05 | audit_log_insert_clinica | 000400 |
+| H-05b | audit_log_insert_rol | 000500 |
+| H-05c | 13 funciones con PUBLIC ACCESS + 6 con anon ACCESS | 000600 |
+
+### Migraciones aplicadas (4)
+
+1. 20260929000300_f7_37_search_path_hardening.sql (960 líneas)
+2. 20260929000400_f7_37_audit_log_append_only.sql (77 líneas)
+3. 20260929000500_f7_37_drop_audit_log_insert_rol.sql (89 líneas)
+4. 20260929000600_f7_37_final_hardening.sql (228 líneas)
+
+### Evidencia final
+
+| Verificación | Resultado | Evidencia |
+|---|---|---|
+| 28 SECURITY DEFINER con search_path="" | ✅ | [LOCAL SUPABASE] + [PRODUCTION] |
+| 0 funciones con PUBLIC ACCESS | ✅ | [LOCAL SUPABASE] + [PRODUCTION] |
+| 0 funciones con anon ACCESS no autorizado | ✅ | [LOCAL SUPABASE] + [PRODUCTION] |
+| 0 INSERT policies en audit_log | ✅ | [LOCAL SUPABASE] + [PRODUCTION] |
+| RLS de system_config (service_role only) | ✅ | [LOCAL SUPABASE] + [PRODUCTION] |
+| clinica_actual() fail-closed | ✅ | [LOCAL SUPABASE] |
+| Clean rebuild (43 migraciones) | ✅ | [LOCAL SUPABASE] |
+| Vitest | 1683/1683 | [UNIT] |
+| Security Regression | 120/120 | [UNIT] |
+| Deno tests | 52/52 | [UNIT] |
+| Build + Lint + Architecture | ✅ | [INTEGRATION] |
+
+### Iteraciones de corrección (transparencia)
+
+La migración 000600 requirió 4 iteraciones para aplicarse correctamente en producción:
+1. Iteración 1: Firma de has_role incorrecta (app_role[] vs app_role)
+2. Iteración 2: auditar_cambio con anon ACCESS no detectado
+3. Iteración 3: puede_invitar_miembro con anon ACCESS no detectado
+4. Iteración 4: Loop dinámico para REVOKE anon de TODAS las SECURITY DEFINER
+
+**Lección aprendida:** Producción tiene permisos diferentes de local. La estrategia correcta es usar loops dinámicos que cubran TODAS las funciones, no REVOKE hardcodeados.
+
+### Principios aplicados
+
+- Primero evidencia → después corrección → después tests → finalmente documentación
+- NO fabricar resultados (brief §24)
+- Migraciones fail-closed con RAISE EXCEPTION (brief §4)
+- Si descubres que una afirmación anterior era incorrecta, corrígela explícitamente (brief §23)
+- Compensar limitaciones de infraestructura con pruebas locales (brief §1)
+
+### Estado final
+
+🟢 **F7-37 = DONE**
+
+- Remaining findings de seguridad: NONE
+- Deudas P2 documentadas: H-06 (internal_purge_secret), H-07 (continue-on-error)
+- Limitaciones de verificación: [NOT AVAILABLE] en secciones 7, 8, 10, 16
+
+### PR
+
+**PR #192:** feature/f7-37-final-hardening — MERGED (esperado)
+
+### Referencia completa
+
+docs/F7-37-CIERRE.md (641 líneas, 17 secciones)
+
+---
+
+**Estado:** 🟢 F7-37 — DONE
+
+---
+
 ---
 
 ## 2026-09-29 01:10 — F7-37 H-05b CORREGIDO: Eliminar audit_log_insert_rol (PR #191)
