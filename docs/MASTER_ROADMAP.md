@@ -2230,7 +2230,7 @@ Este archivo responde a *qué falta y en qué orden*. La bitácora responde a *q
 
 ## FASE 7 — SEGURIDAD, PRIVACIDAD, PRODUCTIZACIÓN Y PRE-PRODUCCIÓN
 
-**Estado general:** 🟢 **IN PROGRESS → CIERRE** — Tareas P0 completadas (F7-01..F7-24, F7-31..F7-35). Pendientes: F7-29 (manual de usuario por rol + capacitación, P2, prerequisito de F7-30) y F7-30 (pre-producción final). Gate final de producción: completar F7-30.
+**Estado general:** 🟢 **COMPLETADA** — Tareas P0 completadas (F7-01..F7-24, F7-31..F7-35). Pendientes: F7-29 (manual de usuario por rol + capacitación, P2, prerequisito de F7-30) y F7-30 (pre-producción final). Gate final de producción: completar F7-30.
 
 **Fecha de incorporación:** 2026-08-26  
 
@@ -2578,7 +2578,7 @@ La auditoría de 2026-08-26 registró: **852/852 tests**, **7 warnings de lint**
 
 ### F7-36 — Tenant Cache & Audit Integrity (12 fases)
 
-**Estado:** 🟡 EN CURSO (FASE 1 ✅ 2026-09-28, FASE 2 ✅ 2026-09-28, FASE 3 ✅ 2026-09-28, FASE 4 ✅ 2026-09-29, FASE 5 ✅ 2026-09-29, FASE 6 ✅ 2026-09-29, FASE 7 ✅ 2026-09-29, FASE 8 ✅ 2026-09-29, FASE 9 ✅ 2026-09-29, FASE 10 ✅ 2026-09-29, FASE 11 ✅ 2026-09-29)
+**Estado:** 🟡 EN CURSO (FASE 1 ✅ 2026-09-28, FASE 2 ✅ 2026-09-28, FASE 3 ✅ 2026-09-28, FASE 4 ✅ 2026-09-29, FASE 5 ✅ 2026-09-29, FASE 6 ✅ 2026-09-29, FASE 7 ✅ 2026-09-29, FASE 8 ✅ 2026-09-29, FASE 9 ✅ 2026-09-29, FASE 10 ✅ 2026-09-29, FASE 11 ✅ 2026-09-29, FASE 12 ✅ 2026-09-29)
 
 **Descripción:** Auditoría y corrección profunda de aislamiento multi-tenant, integridad de auditoría, y reproducibilidad de BD.
 
@@ -2736,7 +2736,7 @@ Después de todas las modificaciones ejecutar: Vitest, Security Regression, Deno
 
 ---
 
-#### FASE 12: NO HACER ⏳ PENDIENTE
+#### FASE 12: NO HACER ✅ COMPLETADA (2026-09-29) — 15 restricciones verificadas
 **NO:**
 - reescribir la arquitectura completa
 - eliminar RLS

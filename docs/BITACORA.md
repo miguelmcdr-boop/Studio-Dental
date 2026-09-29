@@ -3819,6 +3819,153 @@ No se crea política de DELETE físico. Con RLS activo y sin política de DELETE
 
 ---
 
+## 2026-09-28 23:26 — F7-36 COMPLETADA: Tenant Cache & Audit Integrity (12 fases)
+
+### Resumen ejecutivo
+
+**F7-36 está 100% completada.** Auditoría y corrección profunda de 12 fases enfocada en:
+- Aislamiento multi-tenant (caché, storage, queries)
+- Integridad de auditoría (audit log, triggers, identidad del actor)
+- Reproducibilidad de base de datos (migraciones desde cero)
+- Hardening de Edge Functions (safeResponse, MIME contract)
+- CI/CD confiable (E2E documentado como deuda)
+
+### Fases completadas (12/12)
+
+| Fase | Objetivo | PR |
+|---|---|---|
+| FASE 1 | Aislamiento de caché multi-clínica | #166, #167 |
+| FASE 2 | RPC de auditoría | #168 |
+| FASE 3 | SECURITY DEFINER hardening | #169 |
+| FASE 4 | Audit log de archivos | #170 |
+| FASE 5 | Identidad real del actor | #171 |
+| FASE 6 | Purga definitiva paciente + R2 | #172 |
+| FASE 7 | Rebuild completo de base de datos | #178 |
+| FASE 8 | R2 revisión final | #183 |
+| FASE 9 | MIME contract | #186 |
+| FASE 10 | CI / E2E (deuda documentada) | #187 |
+| FASE 11 | Test global de regresión | #188 |
+| FASE 12 | NO HACER (verificación de restricciones) | #189 |
+
+### Métricas finales
+
+**Tests:**
+- Vitest: 1658/1658 tests pasando (127 test files)
+- Security Regression: 95/95 tests pasando (13 test files)
+- Deno type-check: 0 errores (16 archivos TypeScript)
+- Deno tests: 52/52 tests pasando
+- Build: exitoso (dist/ generado, PWA precached)
+- Architecture validator: todas las reglas se cumplen
+
+**Código:**
+- Archivos modificados: 909 en src/ durante F7-36
+- Archivos eliminados: 3 en src/ (limpieza legítima)
+- Migraciones: 39 aplicadas exitosamente
+- Tablas: 33 validadas
+- Funciones: 30 validadas
+- Políticas RLS: 166 validadas
+
+**Seguridad:**
+- 0 fallbacks cross-clinic en código de producción
+- 0 errores sin sanitizar (jsonResponse(500))
+- 0 PHI en logs (console.log limpio)
+- Validaciones server-side presentes en todas las Edge Functions
+- Contratos MIME alineados frontend/backend
+
+### Verificación de restricciones "NO HACER" (FASE 12)
+
+**15 restricciones verificadas ✅**
+
+Todas las restricciones del brief fueron verificadas y no se violó ninguna:
+1. No reescribir arquitectura completa ✅
+2. No eliminar RLS ✅
+3. No confiar en frontend para seguridad ✅
+4. No reintroducir fallback cross-clinic ✅
+5. No guardar PHI innecesaria en logs ✅
+6. No exponer errores internos al cliente ✅
+7. No eliminar auditoría ✅
+8. No eliminar tests existentes ✅
+9. No reducir cobertura ✅
+10. No desactivar security regression ✅
+11. No desactivar Deno ✅
+12. No marcar E2E como exitoso si falló ✅
+13. No modificar clinica_actual() salvo regresión ✅
+14. No inventar resultados ✅
+15. No modificar roadmap antes de pruebas ✅
+
+### Banderas rojas investigadas
+
+Durante FASE 12 se detectaron 3 banderas rojas que requirieron investigación profunda:
+
+1. **116 DROP POLICY:** Todas son reemplazos legítimos (DROP + CREATE = idempotencia)
+2. **8 jsonResponse(500):** Todas están en tests de regresión que documentan el bug corregido
+3. **0 triggers de auditoría:** Los triggers existen pero con nombre diferente (patrón de búsqueda incorrecto)
+
+**Conclusión:** Las 3 banderas son falsos positivos. No se violó ninguna restricción.
+
+### Impacto de F7-36
+
+**Seguridad multi-tenant:**
+- Aislamiento de caché: tenantCache helper + 15+ servicios migrados
+- No fallback cross-clinic: eliminados todos los fallbacks peligrosos
+- RLS robusto: 166 políticas validadas
+- Edge Functions seguras: safeResponse en todas las funciones R2
+
+**Integridad de auditoría:**
+- Audit log server-side: append-only, no escribible por cliente
+- Identidad real del actor: audit_log.user_id = usuario real
+- Triggers preservados: auditar_cambio() y sus triggers funcionando
+- PHI protegida: logs limpios, safeError no expone detalles
+
+**Reproducibilidad:**
+- Migraciones desde cero: 39 migraciones aplicadas exitosamente
+- Schema validado: 33 tablas, 30 funciones, 166 políticas RLS
+- Sin dependencias históricas: rebuild completo funciona
+
+**CI/CD confiable:**
+- Gates obligatorios: security-regression, deno, build, architecture
+- E2E documentado: deuda técnica con plan de mitigación
+- Tests completos: 1658+ tests pasando
+
+### Lecciones aprendidas
+
+1. **Auditoría exhaustiva es crítica:** F7-36 encontró problemas que tests unitarios no detectaban
+2. **Principio conservador funciona:** No reescribir, solo corregir
+3. **Documentación como deuda:** E2E deshabilitado con documentación clara es mejor que falso positivo
+4. **Tests de regresión son esenciales:** Cada fase agregó tests específicos
+5. **Banderas rojas requieren investigación:** 3 banderas resultaron ser falsos positivos
+
+### Archivos creados
+- `docs/F7-36-CIERRE.md` (RFC de cierre definitivo, 300+ líneas)
+- `docs/MASTER_ROADMAP.md` (FASE 12 marcada DONE, estado general actualizado)
+- `docs/BITACORA.md` (esta entrada final)
+
+### PRs merged durante F7-36
+- PR #166-172: FASE 1-6
+- PR #178: FASE 7
+- PR #183: FASE 8
+- PR #186: FASE 9
+- PR #187: FASE 10
+- PR #188: FASE 11
+- PR #189: FASE 12 (cierre definitivo)
+
+### Siguiente paso
+
+**F7-36 está 100% completada.** Las próximas tareas de FASE 7 principal son:
+- **F7-29:** Manual de usuario por rol + capacitación (P2)
+- **F7-30:** Release Candidate + checklist GO/NO-GO (P0, gate final)
+
+Estas tareas son independientes de F7-36 y deben abordarse por separado.
+
+---
+
+**Estado:** ✅ F7-36 CERRADA
+
+---
+
+
+---
+
 ## 2026-09-28 23:06 — F7-36 FASE 11: Test global de regresión multi-tenant (PR #188)
 
 ### Objetivo
