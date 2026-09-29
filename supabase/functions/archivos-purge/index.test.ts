@@ -6,6 +6,8 @@ import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { handler } from "./index.ts";
 import { createMockFetch, setupDenoEnv } from "../_shared/testUtils.ts";
 
+const ROOT = Deno.cwd();
+
 const USER_ID = "user-123";
 const CLINICA_A = "clinica-A-uuid";
 const CLINICA_B = "clinica-B-uuid";
@@ -405,7 +407,7 @@ Deno.test("T12: H-08 r2ArchivoId incorrecto -> DENY", async () => {
   }
 });
 
-Deno.test("T13: H-08 R2 OK -> DELETE archivos_clinicos + DELETE certificados", async () => {
+Deno.test("T13: H-08 R2 OK -> RPC atómica elimina archivo + certificado", async () => {
   const originalFetch = globalThis.fetch;
   const archivos = [
     { id: ARCHIVO_A, clinica_id: CLINICA_A, r2_object_key: `${CLINICA_A}/pac/r2key`, estado: "eliminado", nombre_archivo: "a.pdf" },
@@ -414,7 +416,8 @@ Deno.test("T13: H-08 R2 OK -> DELETE archivos_clinicos + DELETE certificados", a
     { id: CERT_A, clinica_id: CLINICA_A, datos: { r2ArchivoId: ARCHIVO_A } },
   ];
 
-  let deleteCertificadosCalled = false;
+  let rpcCalled = false;
+  let rpcParams: any = null;
   const mockFetch = createMockFetch({
     authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
     memberships: baseMemberships,
@@ -422,11 +425,14 @@ Deno.test("T13: H-08 R2 OK -> DELETE archivos_clinicos + DELETE certificados", a
     certificados,
   });
 
-  // Wrapper para detectar DELETE de certificados
+  // F7-37 v3.2: Wrapper para detectar llamada a RPC atómica
   const wrappedFetch = async (url: any, init?: any) => {
     const urlStr = typeof url === "string" ? url : url.url;
-    if (urlStr.includes("/rest/v1/certificados") && init?.method === "DELETE") {
-      deleteCertificadosCalled = true;
+    if (urlStr.includes("/rest/v1/rpc/purgar_archivo_y_certificado")) {
+      rpcCalled = true;
+      if (init?.body) {
+        try { rpcParams = JSON.parse(init.body as string); } catch {}
+      }
     }
     return mockFetch(url, init);
   };
@@ -451,7 +457,9 @@ Deno.test("T13: H-08 R2 OK -> DELETE archivos_clinicos + DELETE certificados", a
     assertEquals(res.status, 200);
     assertEquals(body.purgados.length, 1);
     assertEquals(body.rechazados.length, 0);
-    assertEquals(deleteCertificadosCalled, true);
+    assertEquals(rpcCalled, true, "RPC atómica debe ser llamada");
+    assertEquals(rpcParams?.p_archivo_id, ARCHIVO_A, "RPC debe recibir archivo_id");
+    assertEquals(rpcParams?.p_certificado_id, CERT_A, "RPC debe recibir certificado_id");
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -1204,6 +1212,346 @@ Deno.test("T27: H-08 residual DB failure después de R2 OK → estado recuperabl
     assertEquals(operationCounters.delete_archivo, 1);
     assertEquals(operationCounters.delete_cert, 1);
     // El sistema no finje transacción distribuida - estado es recuperable vía cleanup
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+
+// ============================================================
+// F7-37 v3.2: Tests T28-T34 (RPC atómica + UUIDs + autorización)
+// ============================================================
+
+Deno.test("T28: v3.2 DB transaction failure + retry → recuperación real", async () => {
+  const originalFetch = globalThis.fetch;
+  const archivos = [
+    { id: ARCHIVO_A, clinica_id: CLINICA_A, r2_object_key: `${CLINICA_A}/pac/r2key`, estado: "eliminado", nombre_archivo: "a.pdf" },
+  ];
+  const certificados = [
+    { id: CERT_A, clinica_id: CLINICA_A, datos: { r2ArchivoId: ARCHIVO_A } },
+  ];
+
+  // Primera ejecución: RPC falla
+  const counters1 = { validate_cert: 0, delete_r2: 0, delete_archivo: 0, delete_cert: 0 };
+  globalThis.fetch = createMockFetch({
+    authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+    memberships: baseMemberships,
+    archivos,
+    certificados,
+    rpcOk: false,
+    rpcRazon: "error_db_transaccional",
+    operationCounters: counters1,
+  }) as any;
+
+  try {
+    const req1 = new Request("http://localhost/archivos-purge", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer valid-jwt",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        archivo_ids: [ARCHIVO_A],
+        source_type: "certificado",
+        source_ids: { [ARCHIVO_A]: CERT_A },
+      }),
+    });
+    const res1 = await handler(req1);
+    const body1 = await res1.json();
+    assertEquals(res1.status, 200);
+    assertEquals(body1.purgados.length, 0);
+    assertEquals(body1.rechazados.length, 1);
+    // R2 se intentó eliminar (R2-first), pero DB falló
+    assertEquals(counters1.delete_r2, 1);
+    assertEquals(counters1.delete_archivo, 1); // Se intentó la RPC
+    assertEquals(counters1.delete_cert, 0); // Pero RPC no hizo commit
+
+    // Segunda ejecución (retry): RPC OK
+    const counters2 = { validate_cert: 0, delete_r2: 0, delete_archivo: 0, delete_cert: 0 };
+    globalThis.fetch = createMockFetch({
+      authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+      memberships: baseMemberships,
+      archivos,
+      certificados,
+      operationCounters: counters2,
+    }) as any;
+
+    const req2 = new Request("http://localhost/archivos-purge", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer valid-jwt",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        archivo_ids: [ARCHIVO_A],
+        source_type: "certificado",
+        source_ids: { [ARCHIVO_A]: CERT_A },
+      }),
+    });
+    const res2 = await handler(req2);
+    const body2 = await res2.json();
+    assertEquals(res2.status, 200);
+    assertEquals(body2.purgados.length, 1);
+    // v3.2: RPC atómica asegura que ambos se eliminan juntos
+    assertEquals(counters2.delete_archivo, 1);
+    assertEquals(counters2.delete_cert, 1);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+Deno.test("T29: v3.2 Atomicidad PostgreSQL - si RPC falla, archivo NO queda eliminado parcialmente", async () => {
+  const originalFetch = globalThis.fetch;
+  const archivos = [
+    { id: ARCHIVO_A, clinica_id: CLINICA_A, r2_object_key: `${CLINICA_A}/pac/r2key`, estado: "eliminado", nombre_archivo: "a.pdf" },
+  ];
+  const certificados = [
+    { id: CERT_A, clinica_id: CLINICA_A, datos: { r2ArchivoId: ARCHIVO_A } },
+  ];
+
+  const counters = { validate_cert: 0, delete_r2: 0, delete_archivo: 0, delete_cert: 0 };
+  globalThis.fetch = createMockFetch({
+    authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+    memberships: baseMemberships,
+    archivos,
+    certificados,
+    rpcOk: false,
+    rpcRazon: "error_db_transaccional",
+    operationCounters: counters,
+  }) as any;
+
+  try {
+    const req = new Request("http://localhost/archivos-purge", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer valid-jwt",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        archivo_ids: [ARCHIVO_A],
+        source_type: "certificado",
+        source_ids: { [ARCHIVO_A]: CERT_A },
+      }),
+    });
+    const res = await handler(req);
+    const body = await res.json();
+    assertEquals(res.status, 200);
+    assertEquals(body.rechazados.length, 1);
+    // v3.2: la RPC garantiza ROLLBACK - delete_cert = 0 (nada se comprometió)
+    assertEquals(counters.delete_cert, 0, "RPC fallida no debe hacer commit");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+Deno.test("T30: v3.2 UUID inválido en cron no aborta batch", () => {
+  // Test de migración SQL - verificar que la función maneja UUID inválido
+  // Este test es de documentación estática (no hay forma de ejecutar SQL en Deno)
+  const ruta = `${ROOT}/supabase/migrations/20260929000800_f7_37v3_2_atomic_db_purge.sql`;
+  const contenido = Deno.readTextFileSync(ruta);
+
+  // Debe tener EXCEPTION handling por iteración
+  const idxFor = contenido.indexOf("FOR v_cert IN");
+  const idxLoop = contenido.indexOf("END LOOP;", idxFor);
+  const bloqueLoop = contenido.substring(idxFor, idxLoop);
+  assertEquals(bloqueLoop.includes("BEGIN"), true, "Debe tener BEGIN dentro del loop");
+  assertEquals(bloqueLoop.includes("EXCEPTION"), true, "Debe tener EXCEPTION dentro del loop");
+  assertEquals(bloqueLoop.includes("invalid_text_representation"), true, "Debe capturar UUID inválido");
+  assertEquals(bloqueLoop.includes("CONTINUE"), true, "Debe continuar con siguiente certificado");
+});
+
+Deno.test("T31: v3.2 UUID NULL / ausencia de r2ArchivoId no rompe cron", () => {
+  const ruta = `${ROOT}/supabase/migrations/20260929000800_f7_37v3_2_atomic_db_purge.sql`;
+  const contenido = Deno.readTextFileSync(ruta);
+
+  // Debe verificar NULL antes del cast
+  assertEquals(
+    contenido.includes("IS NOT NULL"),
+    true,
+    "Debe verificar NULL antes de castear"
+  );
+});
+
+Deno.test("T32: v3.2 Política admin + dentista consistente", async () => {
+  const originalFetch = globalThis.fetch;
+  const archivos = [
+    { id: ARCHIVO_A, clinica_id: CLINICA_A, r2_object_key: `${CLINICA_A}/pac/r2key`, estado: "eliminado", nombre_archivo: "a.pdf" },
+  ];
+
+  // Test 1: admin puede purgar
+  globalThis.fetch = createMockFetch({
+    authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+    memberships: [{ user_id: USER_ID, clinica_id: CLINICA_A, rol: "admin", activo: true }],
+    archivos,
+  }) as any;
+
+  try {
+    const reqAdmin = new Request("http://localhost/archivos-purge", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer valid-jwt",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ archivo_ids: [ARCHIVO_A] }),
+    });
+    const resAdmin = await handler(reqAdmin);
+    assertEquals(resAdmin.status, 200, "admin debe poder purgar");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+
+  // Test 2: dentista puede purgar
+  globalThis.fetch = createMockFetch({
+    authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+    memberships: [{ user_id: USER_ID, clinica_id: CLINICA_A, rol: "dentista", activo: true }],
+    archivos,
+  }) as any;
+
+  try {
+    const reqDentista = new Request("http://localhost/archivos-purge", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer valid-jwt",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ archivo_ids: [ARCHIVO_A] }),
+    });
+    const resDentista = await handler(reqDentista);
+    assertEquals(resDentista.status, 200, "dentista debe poder purgar");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+
+  // Test 3: rol no permitido -> 403
+  globalThis.fetch = createMockFetch({
+    authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+    memberships: [{ user_id: USER_ID, clinica_id: CLINICA_A, rol: "recepcionista", activo: true }],
+    archivos,
+  }) as any;
+
+  try {
+    const reqOtro = new Request("http://localhost/archivos-purge", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer valid-jwt",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ archivo_ids: [ARCHIVO_A] }),
+    });
+    const resOtro = await handler(reqOtro);
+    assertEquals(resOtro.status, 403, "rol no permitido debe rechazar");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+Deno.test("T33: v3.2 Retry con archivo DB inexistente (certificado huérfano)", async () => {
+  const originalFetch = globalThis.fetch;
+  // El archivo ya no existe (fue purgado previamente)
+  const archivos: any[] = [];
+  const certificados = [
+    { id: CERT_A, clinica_id: CLINICA_A, datos: { r2ArchivoId: ARCHIVO_A } },
+  ];
+
+  globalThis.fetch = createMockFetch({
+    authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+    memberships: baseMemberships,
+    archivos,
+    certificados,
+  }) as any;
+
+  try {
+    const req = new Request("http://localhost/archivos-purge", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer valid-jwt",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        archivo_ids: [ARCHIVO_A],
+        source_type: "certificado",
+        source_ids: { [ARCHIVO_A]: CERT_A },
+      }),
+    });
+    const res = await handler(req);
+    const body = await res.json();
+    assertEquals(res.status, 200);
+    // El archivo no existe → validación FASE A falla
+    assertEquals(body.rechazados.length, 1);
+    assertEquals(body.rechazados[0].razon, "no_pertenece_clinica");
+    // Sin DELETE destructivo
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+Deno.test("T34: v3.2 Idempotencia - ejecutar dos veces el mismo purge válido", async () => {
+  const originalFetch = globalThis.fetch;
+  const archivos = [
+    { id: ARCHIVO_A, clinica_id: CLINICA_A, r2_object_key: `${CLINICA_A}/pac/r2key`, estado: "eliminado", nombre_archivo: "a.pdf" },
+  ];
+  const certificados = [
+    { id: CERT_A, clinica_id: CLINICA_A, datos: { r2ArchivoId: ARCHIVO_A } },
+  ];
+
+  const makeReq = () => new Request("http://localhost/archivos-purge", {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer valid-jwt",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      archivo_ids: [ARCHIVO_A],
+      source_type: "certificado",
+      source_ids: { [ARCHIVO_A]: CERT_A },
+    }),
+  });
+
+  // Primera ejecución: éxito
+  globalThis.fetch = createMockFetch({
+    authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+    memberships: baseMemberships,
+    archivos,
+    certificados,
+  }) as any;
+
+  try {
+    const res1 = await handler(makeReq());
+    const body1 = await res1.json();
+    assertEquals(res1.status, 200);
+    assertEquals(body1.purgados.length, 1);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+
+  // Segunda ejecución: R2 retorna 404 (ya eliminado) y RPC dice archivo inexistente
+  const mockFetch404 = async (url: any, init?: any) => {
+    const urlStr = typeof url === "string" ? url : url.url;
+    if (urlStr.includes("r2.cloudflarestorage.com")) {
+      return new Response(null, { status: 404 });
+    }
+    if (urlStr.includes("/rest/v1/rpc/purgar_archivo_y_certificado")) {
+      // RPC indica que archivo ya no existe (idempotente)
+      return new Response(JSON.stringify({
+        exito: false,
+        razon: "archivo_inexistente"
+      }), { status: 200, headers: { "Content-Type": "application/json" } });
+    }
+    return createMockFetch({
+      authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+      memberships: baseMemberships,
+      archivos,
+      certificados: [],
+    })(url, init);
+  };
+  globalThis.fetch = mockFetch404 as any;
+
+  try {
+    const res2 = await handler(makeReq());
+    const body2 = await res2.json();
+    assertEquals(res2.status, 200, "Segunda ejecución no debe fallar con 500");
+    // Idempotente: el archivo ya no existe, rechazado con razón clara
+    assertEquals(body2.rechazados.length, 1);
   } finally {
     globalThis.fetch = originalFetch;
   }

@@ -45,27 +45,29 @@ describe('F7-37 v2: Purge de certificados con eventual consistency', () => {
     expect(contenido).toMatch(/sourceType === 'certificado'/)
   })
 
-  it('T3b: archivos-purge elimina certificados cuando sourceType es certificado', () => {
+  it('T3b: archivos-purge usa RPC atómica para eliminar certificado (v3.2)', () => {
     const ruta = join(ROOT, 'supabase/functions/archivos-purge/index.ts')
     const contenido = readFileSync(ruta, 'utf-8')
-    // Debe hacer DELETE de certificados
-    expect(contenido).toMatch(/rest\/v1\/certificados/)
-    expect(contenido).toMatch(/error_delete_certificado/)
+    // F7-37 v3.2: Uso de RPC atómica en lugar de DELETE REST separados
+    expect(contenido).toMatch(/\/rest\/v1\/rpc\/purgar_archivo_y_certificado/)
+    expect(contenido).toMatch(/p_certificado_id/)
   })
 
   // ============================================================
   // T4: R2 failure → certificado preservado para retry
   // ============================================================
-  it('T4: archivos-purge preserva certificado cuando R2 falla', () => {
+  it('T4: archivos-purge preserva certificado cuando R2 falla (v3.2)', () => {
     const ruta = join(ROOT, 'supabase/functions/archivos-purge/index.ts')
     const contenido = readFileSync(ruta, 'utf-8')
-    // Debe haber reject sin delete cuando R2 falla
+    // F7-37 v3.2: R2 failure → RPC no se llama → certificado preservado
     expect(contenido).toMatch(/error_delete_r2/)
-    // El DELETE de certificado solo ocurre DESPUÉS del DELETE de archivos_clinicos
-    // Si R2 falla, archivos_clinicos no se elimina → certificado tampoco
+    // El R2 check debe ocurrir ANTES de la URL de llamada a RPC atómica
+    // Buscamos la URL completa (con /rest/v1/rpc/) que aparece después del error_delete_r2
     const idxR2Fail = contenido.indexOf('error_delete_r2')
-    const idxDeleteCert = contenido.indexOf('error_delete_certificado')
-    expect(idxR2Fail).toBeLessThan(idxDeleteCert)
+    const idxRPC = contenido.indexOf('/rest/v1/rpc/purgar_archivo_y_certificado')
+    expect(idxR2Fail).toBeGreaterThan(-1)
+    expect(idxRPC).toBeGreaterThan(-1)
+    expect(idxR2Fail).toBeLessThan(idxRPC)
   })
 
   // ============================================================
@@ -258,5 +260,63 @@ describe('F7-37 v2: Purge de certificados con eventual consistency', () => {
     expect(contenido).toMatch(/delete_r2\?: number/)
     expect(contenido).toMatch(/delete_archivo\?: number/)
     expect(contenido).toMatch(/delete_cert\?: number/)
+  })
+
+  // ============================================================
+  // F7-37 v3.2: Tests de RPC atómica y manejo robusto
+  // ============================================================
+
+  it('H-08-10: existe RPC purgar_archivo_y_certificado en migración 000800', () => {
+    const ruta = join(ROOT, 'supabase/migrations/20260929000800_f7_37v3_2_atomic_db_purge.sql')
+    const contenido = readFileSync(ruta, 'utf-8')
+    expect(contenido).toMatch(/CREATE OR REPLACE FUNCTION public\.purgar_archivo_y_certificado/)
+    expect(contenido).toMatch(/SECURITY DEFINER/)
+    expect(contenido).toMatch(/search_path = ''/)
+  })
+
+  it('H-08-11: RPC tiene permisos restrictivos (solo service_role)', () => {
+    const ruta = join(ROOT, 'supabase/migrations/20260929000800_f7_37v3_2_atomic_db_purge.sql')
+    const contenido = readFileSync(ruta, 'utf-8')
+    expect(contenido).toMatch(/REVOKE ALL ON FUNCTION public\.purgar_archivo_y_certificado/)
+    expect(contenido).toMatch(/REVOKE EXECUTE.*FROM anon/)
+    expect(contenido).toMatch(/REVOKE EXECUTE.*FROM authenticated/)
+    expect(contenido).toMatch(/GRANT EXECUTE.*TO service_role/)
+  })
+
+  it('H-08-12: cron maneja UUID inválido con EXCEPTION por iteración', () => {
+    const ruta = join(ROOT, 'supabase/migrations/20260929000800_f7_37v3_2_atomic_db_purge.sql')
+    const contenido = readFileSync(ruta, 'utf-8')
+    expect(contenido).toMatch(/BEGIN[\s\S]*?EXCEPTION[\s\S]*?invalid_text_representation/)
+    expect(contenido).toMatch(/CONTINUE/)
+  })
+
+  it('H-08-13: Deno tests T28-T34 verifican atomicidad, UUID, política', () => {
+    const ruta = join(ROOT, 'supabase/functions/archivos-purge/index.test.ts')
+    const contenido = readFileSync(ruta, 'utf-8')
+    expect(contenido).toMatch(/T28: v3\.2 DB transaction failure \+ retry/)
+    expect(contenido).toMatch(/T29: v3\.2 Atomicidad PostgreSQL/)
+    expect(contenido).toMatch(/T30: v3\.2 UUID inválido en cron/)
+    expect(contenido).toMatch(/T31: v3\.2 UUID NULL/)
+    expect(contenido).toMatch(/T32: v3\.2 Política admin \+ dentista/)
+    expect(contenido).toMatch(/T33: v3\.2 Retry con archivo DB inexistente/)
+    expect(contenido).toMatch(/T34: v3\.2 Idempotencia/)
+  })
+
+  it('H-08-14: archivos-purge NO hace DELETE REST de archivos/certificados en v3.2', () => {
+    const ruta = join(ROOT, 'supabase/functions/archivos-purge/index.ts')
+    const contenido = readFileSync(ruta, 'utf-8')
+    // No debe haber DELETE REST a archivos_clinicos ni certificados
+    expect(contenido).not.toMatch(/\/rest\/v1\/archivos_clinicos\?id=eq/)
+    expect(contenido).not.toMatch(/\/rest\/v1\/certificados\?id=eq.*DELETE/)
+    // Sí debe haber RPC atómica
+    expect(contenido).toMatch(/\/rest\/v1\/rpc\/purgar_archivo_y_certificado/)
+  })
+
+  it('H-08-15: testUtils.ts soporta mock de RPC atómica', () => {
+    const ruta = join(ROOT, 'supabase/functions/_shared/testUtils.ts')
+    const contenido = readFileSync(ruta, 'utf-8')
+    expect(contenido).toMatch(/\/rest\/v1\/rpc\/purgar_archivo_y_certificado/)
+    expect(contenido).toMatch(/rpcOk\?: boolean/)
+    expect(contenido).toMatch(/rpcRazon\?: string/)
   })
 })
