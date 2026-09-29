@@ -3819,6 +3819,53 @@ No se crea política de DELETE físico. Con RLS activo y sin política de DELETE
 
 ---
 
+## 2026-09-29 20:00 — F7-37 v3.2 COMPLETADA: RPC atómica + manejo robusto de UUIDs (PR #196)
+
+### Resumen ejecutivo
+
+F7-37 v3.2 resuelve tres problemas críticos de recuperación y robustez:
+1. Fallo de PostgreSQL después de DELETE R2 → RPC atómica garantiza transacción
+2. UUID inválido en cron abortaba todo el batch → EXCEPTION handling por iteración
+3. Política admin vs dentista ambigua → definida explícitamente
+
+### Cambios principales
+
+**Migración 000800:**
+- RPC `purgar_archivo_y_certificado` con transacción atómica
+- EXCEPTION handling en `purgar_certificados_expirados` para UUIDs inválidos
+- Permisos restrictivos (solo service_role)
+
+**archivos-purge:**
+- FASE B reescrita: usa RPC atómica en lugar de DELETE REST separados
+- Preserva FASE A (validaciones H-08) y R2-first
+
+### Evidencia
+
+| Verificación | Resultado | Evidencia |
+|---|---|---|
+| Tests F7-37 | 29/29 | [UNIT] |
+| Vitest completo | 1712/1712 | [UNIT] |
+| Security Regression | 149/149 | [UNIT] |
+| Deno tests | 78/78 (34 en archivos-purge) | [UNIT] |
+| Build | exitoso | [INTEGRATION] |
+| Lint | 0 errores | [STATIC] |
+| Architecture validator | OK | [STATIC] |
+| Migración 000800 | 277 líneas | [SQL] |
+
+### Estado final
+
+🟢 **F7-37 v3.2 = DONE**
+
+- Remaining findings de seguridad: NONE
+- Deudas P2: H-06, H-07
+
+### PR
+
+**PR #196:** feature/f7-37v3.2-atomic-recovery — MERGED (esperado)
+
+
+---
+
 ## 2026-09-29 18:51 — F7-37 v3.1 COMPLETADA: H-08 residual (PR #195)
 
 ### Resumen ejecutivo

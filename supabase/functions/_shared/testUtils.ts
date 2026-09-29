@@ -15,6 +15,8 @@ export interface MockFetchConfig {
   auditLogOk?: boolean;
   deleteOk?: boolean;
   certificadoDeleteOk?: boolean; // F7-37 v3: controlar fallos de DELETE de certificados
+  rpcOk?: boolean; // F7-37 v3.2: si false → RPC falla
+  rpcRazon?: string; // F7-37 v3.2: razón del fallo RPC
   operationCounters?: {
     validate_cert?: number;
     delete_r2?: number;
@@ -122,6 +124,102 @@ export function createMockFetch(config: MockFetchConfig) {
       }
 
       return new Response(JSON.stringify(results), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // REST endpoint: rpc/purgar_archivo_y_certificado (F7-37 v3.2 - transacción atómica)
+    if (urlStr.includes("/rest/v1/rpc/purgar_archivo_y_certificado")) {
+      if (config.operationCounters) {
+        config.operationCounters.delete_archivo = (config.operationCounters.delete_archivo || 0) + 1;
+      }
+      // Si rpcOk es false, simular fallo transaccional
+      if (config.rpcOk === false) {
+        return new Response(JSON.stringify({
+          exito: false,
+          razon: config.rpcRazon || "error_db_transaccional"
+        }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      // Leer body (p_archivo_id, p_certificado_id)
+      let body: any = {};
+      try {
+        if (init?.body) {
+          body = JSON.parse(init.body as string);
+        }
+      } catch (e) {}
+      const p_archivo_id = body.p_archivo_id;
+      const p_certificado_id = body.p_certificado_id;
+
+      // Validar archivo existe
+      const archivo = (config.archivos || []).find(a => a.id === p_archivo_id);
+      if (!archivo) {
+        return new Response(JSON.stringify({
+          exito: false,
+          razon: "archivo_inexistente"
+        }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      // Si no hay certificado, eliminar solo archivo
+      if (!p_certificado_id) {
+        return new Response(JSON.stringify({
+          exito: true,
+          archivo_eliminado: p_archivo_id
+        }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      // Validar certificado existe
+      const certificado = (config.certificados || []).find(c => c.id === p_certificado_id);
+      if (!certificado) {
+        return new Response(JSON.stringify({
+          exito: false,
+          razon: "certificado_inexistente"
+        }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      // Validar misma clínica
+      if (certificado.clinica_id !== archivo.clinica_id) {
+        return new Response(JSON.stringify({
+          exito: false,
+          razon: "certificado_cross_tenant"
+        }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      // Validar r2ArchivoId
+      if (certificado.datos?.r2ArchivoId !== p_archivo_id) {
+        return new Response(JSON.stringify({
+          exito: false,
+          razon: "certificado_no_referencia_archivo"
+        }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      // Éxito: eliminar ambos atómicamente
+      if (config.operationCounters) {
+        config.operationCounters.delete_cert = (config.operationCounters.delete_cert || 0) + 1;
+      }
+      return new Response(JSON.stringify({
+        exito: true,
+        archivo_eliminado: p_archivo_id,
+        certificado_eliminado: p_certificado_id
+      }), {
         status: 200,
         headers: { "Content-Type": "application/json" },
       });

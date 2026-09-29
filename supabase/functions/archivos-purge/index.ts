@@ -1,5 +1,5 @@
 // Feature 1: Edge Function para purgar archivos de la papelera (eliminación permanente)
-// F7-37 v3.1: Validación server-side COMPLETA antes de cualquier DELETE (H-08 residual fix)
+// F7-37 v3.2: RPC atómica + recuperación real + manejo robusto de UUIDs
 //
 // Flujo:
 // 1. Frontend solicita purga de archivos en papelera
@@ -299,41 +299,44 @@ export async function handler(req: Request): Promise<Response> {
       }
 
       // FASE B — SOLO SI TODO LO ANTERIOR ES VÁLIDO, ejecutar DELETEs
+      // F7-37 v3.2: Uso de RPC atómica purgar_archivo_y_certificado
 
-      // B.1 Eliminar blob de R2
+      // B.1 Eliminar blob de R2 (no transaccional con PostgreSQL - R2-first)
       const okR2 = await eliminarDeR2(archivo.r2_object_key);
       if (!okR2) {
         rechazados.push({ id: archivoId, razon: "error_delete_r2" });
         continue;
       }
 
-      // B.2 DELETE de la fila de archivos_clinicos
-      const deleteRes = await fetch(
-        `${supabaseUrl}/rest/v1/archivos_clinicos?id=eq.${archivoId}`,
+      // B.2 Llamar RPC atómica: DELETE archivos_clinicos + DELETE certificados en transacción SQL
+      // Preserva H-08: la RPC valida nuevamente en BD (defensa en profundidad)
+      const rpcRes = await fetch(
+        `${supabaseUrl}/rest/v1/rpc/purgar_archivo_y_certificado`,
         {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${supabaseServiceKey}`, apikey: supabaseServiceKey },
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${supabaseServiceKey}`,
+            apikey: supabaseServiceKey,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            p_archivo_id: archivoId,
+            p_certificado_id: certificadoId || null,
+          }),
         }
       );
 
-      if (!deleteRes.ok) {
-        rechazados.push({ id: archivoId, razon: "error_delete_bd" });
+      if (!rpcRes.ok) {
+        rechazados.push({ id: archivoId, razon: "error_rpc_call" });
         continue;
       }
 
-      // B.3 DELETE del certificado (solo si sourceType === 'certificado' y validación pasó)
-      if (sourceType === 'certificado' && certificadoId) {
-        const deleteCertRes = await fetch(
-          `${supabaseUrl}/rest/v1/certificados?id=eq.${certificadoId}`,
-          {
-            method: "DELETE",
-            headers: { Authorization: `Bearer ${supabaseServiceKey}`, apikey: supabaseServiceKey },
-          }
-        );
-        if (!deleteCertRes.ok) {
-          rechazados.push({ id: archivoId, razon: "error_delete_certificado" });
-          continue;
-        }
+      const rpcResult = await rpcRes.json();
+
+      if (!rpcResult.exito) {
+        // La RPC devolvió fallo de validación o error transaccional
+        rechazados.push({ id: archivoId, razon: rpcResult.razon || "error_rpc" });
+        continue;
       }
 
       // 8. Registrar auditoría

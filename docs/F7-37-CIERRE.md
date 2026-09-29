@@ -891,3 +891,102 @@ Flujo v2 problemático:
 - H-08 residual: RESUELTO
 - Remaining findings de seguridad: NONE
 - Deudas P2 documentadas: H-06, H-07
+
+## 21. F7-37 v3.2: RPC atómica + manejo robusto de UUIDs (PR #196)
+
+### Problemas identificados
+
+**1. Fallo de PostgreSQL después de DELETE R2:**
+- Si R2 se eliminaba correctamente pero el DELETE de archivos_clinicos o certificados fallaba, el sistema quedaba en estado inconsistente
+- El certificado podía quedar con `purga_pendiente=TRUE` apuntando a un archivo ya eliminado
+- El retry posterior no podía completar la operación
+
+**2. UUID inválido en cron:**
+- Si un certificado tenía `r2ArchivoId` con valor no-UUID, el cast `::UUID` abortaba todo el batch de 100 certificados
+- Un solo certificado corrupto detenía la purga de todos los demás
+
+**3. Política admin vs dentista:**
+- Documentación ambigua sobre qué roles pueden purgar archivos
+- Necesidad de definir explícitamente la política
+
+### Solución implementada
+
+#### Migración 000800: `f7_37v3_2_atomic_db_purge.sql`
+
+**RPC atómica `purgar_archivo_y_certificado`:**
+- Transacción PostgreSQL que elimina archivo + certificado atómicamente
+- Validaciones server-side:
+  - Archivo existe
+  - Certificado existe (si se proporciona)
+  - `certificado.clinica_id === archivo.clinica_id` (H-08)
+  - `certificado.datos.r2ArchivoId === archivo.id` (H-08)
+- Permisos: solo `service_role` puede ejecutar
+- Retorna JSONB con `{exito, razon}` para manejo de errores
+
+**EXCEPTION handling en `purgar_certificados_expirados`:**
+- Captura `invalid_text_representation` y `data_exception` por iteración
+- Loggea el certificado con UUID inválido (sin PHI)
+- Marca el certificado con `eliminado_motivo = '[UUID inválido en purga]'`
+- Continúa con el siguiente certificado (no aborta el batch)
+
+**Política de roles:**
+- Definida explícitamente: `admin` y `dentista` pueden purgar
+- Consistente entre Edge Function (`allowedRoles`) y RLS de archivos_clinicos
+
+#### Modificación de archivos-purge
+
+**FASE B reescrita:**
+- Reemplaza dos DELETE REST separados por una llamada a la RPC atómica
+- Preserva FASE A (todas las validaciones H-08)
+- Preserva R2-first (R2 failure → no se llama RPC)
+- Manejo de errores de la RPC (retorna razón específica)
+
+### Tests implementados
+
+**Deno (T28-T34):**
+- T28: DB transaction failure + retry → recuperación real
+- T29: Atomicidad PostgreSQL - rollback funciona
+- T30: UUID inválido en cron no aborta batch
+- T31: UUID NULL / ausencia de r2ArchivoId no rompe cron
+- T32: Política admin + dentista consistente
+- T33: Retry con archivo DB inexistente (certificado huérfano)
+- T34: Idempotencia - ejecutar dos veces el mismo purge
+
+**Vitest (H-08-10 a H-08-15):**
+- H-08-10: existe RPC purgar_archivo_y_certificado
+- H-08-11: RPC tiene permisos restrictivos (solo service_role)
+- H-08-12: cron maneja UUID inválido con EXCEPTION por iteración
+- H-08-13: Deno tests T28-T34 verifican atomicidad, UUID, política
+- H-08-14: archivos-purge NO hace DELETE REST de archivos/certificados en v3.2
+- H-08-15: testUtils.ts soporta mock de RPC atómica
+
+### Resultados de tests
+
+- **Tests F7-37:** 29/29 PASS
+- **Vitest completo:** 1712/1712 PASS
+- **Security Regression:** 149/149 PASS
+- **Deno tests:** 78/78 PASS (34 en archivos-purge)
+- **Build:** exitoso
+- **Lint:** 0 errores
+- **Architecture validator:** todas las reglas se cumplen
+
+### Archivos modificados
+
+- `supabase/migrations/20260929000800_f7_37v3_2_atomic_db_purge.sql` (NUEVO)
+- `supabase/functions/archivos-purge/index.ts` (MODIFICADO)
+- `supabase/functions/archivos-purge/index.test.ts` (MODIFICADO)
+- `supabase/functions/_shared/testUtils.ts` (MODIFICADO)
+- `src/test/security/f7-37v2-purge-certificados.test.js` (MODIFICADO)
+
+### Estado final
+
+🟢 **F7-37 v3.2 = DONE**
+
+**Hallazgos resueltos:**
+- ✅ Recuperación después de fallo de PostgreSQL (RPC atómica)
+- ✅ UUID inválido no aborta batch (EXCEPTION handling)
+- ✅ Política admin+dentista definida explícitamente
+
+**Remaining findings de seguridad:** NONE
+
+**Deudas P2 documentadas:** H-06 (internal_purge_secret), H-07 (continue-on-error)
