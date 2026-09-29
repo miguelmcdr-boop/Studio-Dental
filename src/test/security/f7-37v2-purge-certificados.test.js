@@ -150,4 +150,65 @@ describe('F7-37 v2: Purge de certificados con eventual consistency', () => {
     expect(contenido).toMatch(/RAISE EXCEPTION.*columna purga_pendiente no existe/)
     expect(contenido).toMatch(/RAISE EXCEPTION.*cleanup_stale_purges no existe/)
   })
+
+  // ============================================================
+  // F7-37 v3: Tests H-08 (cross-tenant validation)
+  // ============================================================
+
+  it('H-08-1: archivos-purge incluye función validarCertificadoParaPurge', () => {
+    const ruta = join(ROOT, 'supabase/functions/archivos-purge/index.ts')
+    const contenido = readFileSync(ruta, 'utf-8')
+    expect(contenido).toMatch(/async function validarCertificadoParaPurge/)
+    expect(contenido).toMatch(/certificado_cross_tenant/)
+    expect(contenido).toMatch(/certificado_inexistente/)
+    expect(contenido).toMatch(/certificado_no_referencia_archivo/)
+  })
+
+  it('H-08-2: validación de clinica_id antes de DELETE certificado', () => {
+    const ruta = join(ROOT, 'supabase/functions/archivos-purge/index.ts')
+    const contenido = readFileSync(ruta, 'utf-8')
+    // Debe comparar clinica_id del certificado con clinica_id del archivo
+    expect(contenido).toMatch(/cert\.clinica_id !== clinicaId/)
+  })
+
+  it('H-08-3: validación de relación r2ArchivoId antes de DELETE', () => {
+    const ruta = join(ROOT, 'supabase/functions/archivos-purge/index.ts')
+    const contenido = readFileSync(ruta, 'utf-8')
+    // Debe validar que certificado.datos.r2ArchivoId === archivoId
+    expect(contenido).toMatch(/r2ArchivoId !== archivoId/)
+  })
+
+  it('H-08-4: validación ocurre ANTES del DELETE de certificados', () => {
+    const ruta = join(ROOT, 'supabase/functions/archivos-purge/index.ts')
+    const contenido = readFileSync(ruta, 'utf-8')
+    // validarCertificadoParaPurge debe ser llamado antes del DELETE de certificados
+    const idxValidacion = contenido.indexOf('validarCertificadoParaPurge(')
+    const idxDeleteCert = contenido.indexOf('error_delete_certificado')
+    expect(idxValidacion).toBeGreaterThan(-1)
+    expect(idxDeleteCert).toBeGreaterThan(-1)
+    expect(idxValidacion).toBeLessThan(idxDeleteCert)
+  })
+
+  it('H-08-5: Deno tests incluyen casos H-08 (T9-T18)', () => {
+    const ruta = join(ROOT, 'supabase/functions/archivos-purge/index.test.ts')
+    const contenido = readFileSync(ruta, 'utf-8')
+    expect(contenido).toMatch(/T9: H-08 mismo tenant/)
+    expect(contenido).toMatch(/T10: H-08 cross-tenant/)
+    expect(contenido).toMatch(/T11: H-08 certificado inexistente/)
+    expect(contenido).toMatch(/T12: H-08 r2ArchivoId incorrecto/)
+    expect(contenido).toMatch(/T13: H-08 R2 OK/)
+    expect(contenido).toMatch(/T14: H-08 R2 404/)
+    expect(contenido).toMatch(/T15: H-08 R2 failure/)
+    expect(contenido).toMatch(/T16: H-08 retry/)
+    expect(contenido).toMatch(/T17: H-08 duplicate retry/)
+    expect(contenido).toMatch(/T18: H-08 DB failure/)
+  })
+
+  it('H-08-6: testUtils.ts soporta mocks de certificados', () => {
+    const ruta = join(ROOT, 'supabase/functions/_shared/testUtils.ts')
+    const contenido = readFileSync(ruta, 'utf-8')
+    expect(contenido).toMatch(/certificados\?:/)
+    expect(contenido).toMatch(/certificadoDeleteOk\?:/)
+    expect(contenido).toMatch(/\/rest\/v1\/certificados/)
+  })
 })

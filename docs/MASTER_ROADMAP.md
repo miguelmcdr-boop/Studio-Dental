@@ -2798,7 +2798,7 @@ auditar_cambio, clinica_actual, es_admin_de_clinica_actual, rol_en_clinica_actua
 1. Secret management: internal_purge_secret en system_config en lugar de Supabase Vault
 2. Rebuild local con supabase db reset COMPLETADO (43 migraciones aplicadas exitosamente)
 
-**Estado:** 🟢 F7-37 DONE (v2: corrección de purge de certificados en PR #193)
+**Estado:** 🟢 F7-37 DONE (v3: H-08 cross-tenant validation en PR #194)
 
 **Referencia:** docs/F7-37-CIERRE.md
 

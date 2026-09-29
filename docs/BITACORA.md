@@ -3819,6 +3819,63 @@ No se crea política de DELETE físico. Con RLS activo y sin política de DELETE
 
 ---
 
+## 2026-09-29 18:13 — F7-37 v3 COMPLETADA: Corrección H-08 — Cross-tenant validation (PR #194)
+
+### Resumen ejecutivo
+
+F7-37 v3 corrigió H-08: vulnerabilidad cross-tenant en purge de certificados detectada en auditoría independiente post-v2.
+
+### Problema detectado
+
+La solución v2 de archivos-purge aceptaba source_ids del caller como autoridad para eliminar certificados, permitiendo:
+- Clínica A podría destruir certificados de Clínica B
+- Caller podía elegir arbitrariamente qué certificado eliminar
+
+### Solución implementada
+
+**Edge Function archivos-purge modificada:**
+- Agregada función validarCertificadoParaPurge() con validaciones server-side
+- Antes de DELETE de certificado valida:
+  1. Certificado EXISTE en BD
+  2. certificado.clinica_id === archivo.clinica_id
+  3. certificado.datos->>'r2ArchivoId' === archivoId
+- source_ids ahora es solo referencia, NO autoridad
+
+### Evidencia final
+
+| Verificación | Resultado | Evidencia |
+|---|---|---|
+| 29 SECURITY DEFINER con search_path vacío | ✅ | [LOCAL SUPABASE] |
+| 0 PUBLIC ACCESS | ✅ | [LOCAL SUPABASE] |
+| 0 anon ACCESS no autorizado | ✅ | [LOCAL SUPABASE] |
+| H-08: validarCertificadoParaPurge | ✅ | [STATIC] |
+| T10: Cross-tenant DENY | ✅ | [UNIT Deno] |
+| Vitest completo | 1703/1703 | [UNIT] |
+| Security Regression | 140/140 | [UNIT] |
+| Deno tests | 62/62 | [UNIT] |
+
+### Tests nuevos
+
+**Deno:** T9-T18 (10 tests H-08 específicos)
+**Vitest:** H-08-1 a H-08-6 (6 tests de validación estática)
+
+### Estado final
+
+🟢 **F7-37 v3 = DONE**
+
+- H-08: RESUELTO
+- Remaining findings de seguridad: NONE
+- Deudas P2 documentadas: H-06, H-07
+
+### PR
+
+**PR #194:** feature/f7-37v3-h08-fix — MERGED (esperado)
+
+---
+
+
+---
+
 ## 2026-09-29 17:41 — F7-37 v2 COMPLETADA: Corrección de purge de certificados (PR #193)
 
 ### Resumen ejecutivo

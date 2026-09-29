@@ -1,4 +1,5 @@
 // Feature 1: Edge Function para purgar archivos de la papelera (eliminación permanente)
+// F7-37 v3: Validación server-side de certificados (H-08: cross-tenant prevention)
 //
 // Flujo:
 // 1. Frontend solicita purga de archivos en papelera
@@ -90,6 +91,55 @@ async function eliminarDeR2(r2ObjectKey: string): Promise<boolean> {
     return res.ok || res.status === 404;
   } catch {
     return false;
+  }
+}
+
+
+// F7-37 v3: Validación server-side de certificado antes de DELETE
+// Previene H-08: cross-tenant vía source_ids manipulado por caller
+async function validarCertificadoParaPurge(
+  supabaseUrl: string,
+  serviceKey: string,
+  certificadoId: string,
+  archivoId: string,
+  clinicaId: string
+): Promise<{ valido: boolean; razon?: string }> {
+  if (!certificadoId) {
+    return { valido: false, razon: "certificado_id_vacio" };
+  }
+
+  try {
+    // Obtener certificado desde BD (SELECT con service_role)
+    const certRes = await fetch(
+      `${supabaseUrl}/rest/v1/certificados?id=eq.${certificadoId}&select=id,clinica_id,datos`,
+      { headers: { Authorization: `Bearer ${serviceKey}`, apikey: serviceKey } }
+    );
+
+    if (!certRes.ok) {
+      return { valido: false, razon: "error_fetch_certificado" };
+    }
+
+    const certs = await certRes.json();
+    if (!Array.isArray(certs) || certs.length === 0) {
+      return { valido: false, razon: "certificado_inexistente" };
+    }
+
+    const cert = certs[0];
+
+    // Validación 1: clinica_id coincide con el archivo
+    if (cert.clinica_id !== clinicaId) {
+      return { valido: false, razon: "certificado_cross_tenant" };
+    }
+
+    // Validación 2: certificado.datos->>'r2ArchivoId' === archivoId
+    const r2ArchivoId = cert.datos?.r2ArchivoId;
+    if (r2ArchivoId !== archivoId) {
+      return { valido: false, razon: "certificado_no_referencia_archivo" };
+    }
+
+    return { valido: true };
+  } catch (err) {
+    return { valido: false, razon: "error_validacion_certificado" };
   }
 }
 
@@ -247,11 +297,26 @@ export async function handler(req: Request): Promise<Response> {
         continue;
       }
 
-      // F7-37 v2: Si es purge de certificados, también eliminar el certificado de la BD
-      // El DELETE del certificado solo ocurre DESPUÉS de confirmar R2 + archivos_clinicos
-      // Si falla, el certificado queda con purga_pendiente=TRUE para retry (cleanup lo resetea)
+      // F7-37 v3 (H-08): Validación server-side del certificado antes de DELETE
+      // Previene cross-tenant vía source_ids manipulado por caller
       if (sourceType === 'certificado' && sourceIds[archivoId]) {
         const certificadoId = sourceIds[archivoId];
+
+        // Validar certificado server-side (antes de cualquier DELETE)
+        const validacion = await validarCertificadoParaPurge(
+          supabaseUrl,
+          supabaseServiceKey,
+          certificadoId,
+          archivoId,
+          archivo.clinica_id
+        );
+
+        if (!validacion.valido) {
+          rechazados.push({ id: archivoId, razon: validacion.razon || "certificado_invalido" });
+          continue;
+        }
+
+        // Solo después de validar: DELETE del certificado
         const deleteCertRes = await fetch(
           `${supabaseUrl}/rest/v1/certificados?id=eq.${certificadoId}`,
           {

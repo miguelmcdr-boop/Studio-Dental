@@ -10,9 +10,11 @@ export interface MockFetchConfig {
   memberships?: Array<{ user_id: string; clinica_id: string; rol: string; activo: boolean }>;
   pacientes?: Array<{ id: string; clinica_id: string; nombre?: string; rut?: string; deleted_at?: string }>;
   archivos?: Array<{ id: string; clinica_id: string; paciente_id?: string; r2_object_key?: string; estado?: string; nombre_archivo?: string; deleted_at?: string }>;
+  certificados?: Array<{ id: string; clinica_id: string; paciente_id?: string; datos?: Record<string, any> }>;
   r2DeleteOk?: boolean | string[]; // string[] = r2_object_keys que deben fallar
   auditLogOk?: boolean;
   deleteOk?: boolean;
+  certificadoDeleteOk?: boolean; // F7-37 v3: controlar fallos de DELETE de certificados
 }
 
 export function createMockFetch(config: MockFetchConfig) {
@@ -86,6 +88,28 @@ export function createMockFetch(config: MockFetchConfig) {
       if (idsFilter) {
         const ids = idsFilter.split(",");
         results = results.filter(a => ids.includes(a.id));
+      }
+
+      return new Response(JSON.stringify(results), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // REST endpoint: certificados (F7-37 v3: soporte para tests H-08)
+    if (urlStr.includes("/rest/v1/certificados")) {
+      if (method === "DELETE") {
+        if (config.certificadoDeleteOk === false) {
+          return new Response("DB error", { status: 500 });
+        }
+        return new Response(null, { status: 204 });
+      }
+      const urlObj = new URL(urlStr);
+      const idsFilter = urlObj.searchParams.get("id")?.replace("eq.", "");
+
+      let results = config.certificados || [];
+      if (idsFilter) {
+        results = results.filter(c => c.id === idsFilter);
       }
 
       return new Response(JSON.stringify(results), {
