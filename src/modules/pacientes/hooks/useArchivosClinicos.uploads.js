@@ -28,7 +28,7 @@ export const useArchivosClinicosUploads = (
       for (let i = 0; i < archivosArray.length; i++) {
         const file = archivosArray[i]
 
-        const validacion = validarArchivo(file, permisos)
+        const validacion = validarArchivo(file, permisos, categoriaR2)
         if (!validacion.valido) {
           setError(validacion.mensaje)
           continue

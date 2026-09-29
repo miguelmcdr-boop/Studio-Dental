@@ -1,5 +1,4 @@
 import React, { memo, useRef } from 'react'
-import { Paperclip } from 'lucide-react'
 
 /**
  * Botón/input de subida de archivos clínicos a R2.
@@ -8,6 +7,9 @@ import { Paperclip } from 'lucide-react'
  * - Oculta el input file real
  * - Muestra progreso cuando hay upload activo
  * - Respeta RBAC: si no puedeSubir, no renderiza botón
+ * 
+ * F7-36 FASE 9:
+ * - accept específico por categoría (alineado con backend)
  */
 export const ArchivoUploader = memo(({
   tipoArchivo,
@@ -22,21 +24,31 @@ export const ArchivoUploader = memo(({
     return null
   }
 
+  // F7-36 FASE 9: accept específico por categoría (alineado con backend)
   const config = {
     foto: {
       label: 'Subir Fotos',
-      accept: 'image/*',
+      accept: 'image/jpeg,image/png,image/webp',
     },
     rx: {
       label: 'Subir Radiografías',
-      accept: 'image/*,.pdf',
+      accept: 'image/jpeg,image/png,image/webp,application/dicom',
+    },
+    consentimiento: {
+      label: 'Subir Consentimiento',
+      accept: 'application/pdf',
+    },
+    documento: {
+      label: 'Subir Documento',
+      accept: 'application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    },
+    otro: {
+      label: 'Subir Archivo',
+      accept: 'application/pdf,image/jpeg,image/png,text/plain',
     },
   }
 
-  const cfg = config[tipoArchivo] || {
-    label: 'Subir Archivo',
-    accept: 'image/*,.pdf',
-  }
+  const cfg = config[tipoArchivo] || config.otro
 
   const handleChange = async (e) => {
     const files = e.target.files
