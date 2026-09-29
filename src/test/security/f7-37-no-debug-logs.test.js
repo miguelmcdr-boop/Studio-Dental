@@ -164,5 +164,15 @@ describe('F7-37: No debug logs peligrosos', () => {
       );
       expect(contenido).toContain('DROP POLICY IF EXISTS audit_log_insert_clinica');
     });
+
+    it('Migración 000500 existe y tiene DROP POLICY audit_log_insert_rol', () => {
+      const contenido = readFileSync(
+        join(ROOT, 'supabase/migrations/20260929000500_f7_37_drop_audit_log_insert_rol.sql'),
+        'utf-8'
+      );
+      expect(contenido).toContain('DROP POLICY IF EXISTS audit_log_insert_rol');
+      expect(contenido.length).toBeGreaterThan(50);
+    });
+
   });
 });
