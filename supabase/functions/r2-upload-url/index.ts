@@ -25,7 +25,7 @@
 //   "expires_in": 900
 // }
 
-import { safeError, safeInternalError } from "../_shared/safeResponse.ts"
+import { safeError, safeInternalError, jsonResponse } from "../_shared/safeResponse.ts"
 import { validarFormatoArchivo, CategoriaArchivo } from "./validarFormatoArchivo.ts";
 
 // ============================================================
@@ -366,14 +366,4 @@ export async function handler(req: Request): Promise<Response> {
 // Esto permite importar handler desde tests sin iniciar el servidor
 if (import.meta.main) {
   Deno.serve(handler);
-}
-
-function jsonResponse(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body, null, 2), {
-    status,
-    headers: {
-      "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
-    },
-  });
 }
