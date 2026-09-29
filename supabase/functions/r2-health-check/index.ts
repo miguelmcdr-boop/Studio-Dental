@@ -1,4 +1,4 @@
-import { safeError, safeInternalError } from "../_shared/safeResponse.ts"
+import { safeError, safeInternalError, jsonResponse } from "../_shared/safeResponse.ts"
 // F7-22: Edge Function de Health Check para Cloudflare R2
 // Verifica conexión al bucket sin exponer credenciales
 //
@@ -218,10 +218,10 @@ Deno.serve(async (req) => {
       if (response.status === 403) {
         if (errorBody.includes("InvalidAccessKeyId")) {
           hint =
-            "Access Key ID incorrecto. Verifica R2_ACCESS_KEY_ID en Supabase Secrets.";
+            "R2 credentials inválidas. Contacta al administrador.";
         } else if (errorBody.includes("SignatureDoesNotMatch")) {
           hint =
-            "Secret Access Key incorrecto o mal copiado. Verifica R2_SECRET_ACCESS_KEY.";
+            "R2 credentials inválidas. Contacta al administrador.";
         } else if (errorBody.includes("AccessDenied")) {
           hint =
             "El token de R2 no tiene permisos suficientes. Verifica que tenga 'Object Read & Write'.";
@@ -279,13 +279,3 @@ Deno.serve(async (req) => {
     return safeInternalError(req, error, "[r2-health-check]");
   }
 });
-
-function jsonResponse(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body, null, 2), {
-    status,
-    headers: {
-      "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
-    },
-  });
-}

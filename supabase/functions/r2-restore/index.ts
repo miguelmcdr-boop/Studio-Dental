@@ -1,4 +1,4 @@
-import { safeError, safeInternalError } from "../_shared/safeResponse.ts"
+import { safeError, safeInternalError, jsonResponse } from "../_shared/safeResponse.ts"
 // F7-31 Fase 3: Edge Function para restaurar archivo eliminado
 //
 // Flujo:
@@ -208,13 +208,3 @@ Deno.serve(async (req) => {
     return safeInternalError(req, error, "[r2-restore]");
   }
 });
-
-function jsonResponse(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body, null, 2), {
-    status,
-    headers: {
-      "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
-    },
-  });
-}

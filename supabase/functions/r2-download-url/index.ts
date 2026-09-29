@@ -1,4 +1,4 @@
-import { safeError, safeInternalError } from "../_shared/safeResponse.ts"
+import { safeError, safeInternalError, jsonResponse } from "../_shared/safeResponse.ts"
 // F7-22 Fase 7b: Edge Function para generar URL firmada de download
 //
 // Flujo:
@@ -284,13 +284,3 @@ Deno.serve(async (req) => {
     return safeInternalError(req, error, "[r2-download-url]");
   }
 });
-
-function jsonResponse(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body, null, 2), {
-    status,
-    headers: {
-      "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
-    },
-  });
-}
