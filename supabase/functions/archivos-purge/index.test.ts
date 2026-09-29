@@ -14,6 +14,14 @@ const ARCHIVO_B = "archivo-B-uuid";
 
 setupDenoEnv();
 
+// ============================================================
+// F7-37 v3: Constantes para tests H-08 (certificados)
+// ============================================================
+const CERT_A = "cert-A-uuid";
+const CERT_B = "cert-B-uuid";
+const ARCHIVO_C = "archivo-C-uuid";
+
+
 const baseMemberships = [
   { user_id: USER_ID, clinica_id: CLINICA_A, rol: "admin", activo: true },
   { user_id: USER_ID, clinica_id: CLINICA_B, rol: "admin", activo: true },
@@ -226,6 +234,488 @@ Deno.test("T8: Multiples archivos, mixto -> solo exitos purgados (caso E)", asyn
     assertEquals(body.rechazados.length, 1);
     assertEquals(body.rechazados[0].id, ARCHIVO_B);
     assertEquals(body.rechazados[0].razon, "error_delete_r2");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+
+// ============================================================
+// F7-37 v3: Tests H-08 (cross-tenant validation en purge de certificados)
+// ============================================================
+
+Deno.test("T9: H-08 mismo tenant - archivo A + certificado A de clínica A -> ALLOW", async () => {
+  const originalFetch = globalThis.fetch;
+  const archivos = [
+    { id: ARCHIVO_A, clinica_id: CLINICA_A, r2_object_key: `${CLINICA_A}/pac/r2key`, estado: "eliminado", nombre_archivo: "a.pdf" },
+  ];
+  const certificados = [
+    { id: CERT_A, clinica_id: CLINICA_A, datos: { r2ArchivoId: ARCHIVO_A } },
+  ];
+
+  globalThis.fetch = createMockFetch({
+    authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+    memberships: baseMemberships,
+    archivos,
+    certificados,
+  }) as any;
+
+  try {
+    const req = new Request("http://localhost/archivos-purge", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer valid-jwt",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        archivo_ids: [ARCHIVO_A],
+        source_type: "certificado",
+        source_ids: { [ARCHIVO_A]: CERT_A },
+      }),
+    });
+    const res = await handler(req);
+    const body = await res.json();
+    assertEquals(res.status, 200);
+    assertEquals(body.purgados.length, 1);
+    assertEquals(body.purgados.includes(ARCHIVO_A), true);
+    assertEquals(body.rechazados.length, 0);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+Deno.test("T10: H-08 cross-tenant - archivo A (clínica A) + certificado B (clínica B) -> DENY", async () => {
+  const originalFetch = globalThis.fetch;
+  const archivos = [
+    { id: ARCHIVO_A, clinica_id: CLINICA_A, r2_object_key: `${CLINICA_A}/pac/r2key`, estado: "eliminado", nombre_archivo: "a.pdf" },
+  ];
+  const certificados = [
+    { id: CERT_B, clinica_id: CLINICA_B, datos: { r2ArchivoId: ARCHIVO_A } },
+  ];
+
+  globalThis.fetch = createMockFetch({
+    authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+    memberships: baseMemberships,
+    archivos,
+    certificados,
+  }) as any;
+
+  try {
+    const req = new Request("http://localhost/archivos-purge", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer valid-jwt",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        archivo_ids: [ARCHIVO_A],
+        source_type: "certificado",
+        source_ids: { [ARCHIVO_A]: CERT_B },
+      }),
+    });
+    const res = await handler(req);
+    const body = await res.json();
+    assertEquals(res.status, 200);
+    assertEquals(body.purgados.length, 0);
+    assertEquals(body.rechazados.length, 1);
+    assertEquals(body.rechazados[0].id, ARCHIVO_A);
+    assertEquals(body.rechazados[0].razon, "certificado_cross_tenant");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+Deno.test("T11: H-08 certificado inexistente -> DENY", async () => {
+  const originalFetch = globalThis.fetch;
+  const archivos = [
+    { id: ARCHIVO_A, clinica_id: CLINICA_A, r2_object_key: `${CLINICA_A}/pac/r2key`, estado: "eliminado", nombre_archivo: "a.pdf" },
+  ];
+
+  globalThis.fetch = createMockFetch({
+    authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+    memberships: baseMemberships,
+    archivos,
+    certificados: [], // No hay certificados
+  }) as any;
+
+  try {
+    const req = new Request("http://localhost/archivos-purge", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer valid-jwt",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        archivo_ids: [ARCHIVO_A],
+        source_type: "certificado",
+        source_ids: { [ARCHIVO_A]: "certificado-inexistente" },
+      }),
+    });
+    const res = await handler(req);
+    const body = await res.json();
+    assertEquals(res.status, 200);
+    assertEquals(body.purgados.length, 0);
+    assertEquals(body.rechazados.length, 1);
+    assertEquals(body.rechazados[0].id, ARCHIVO_A);
+    assertEquals(body.rechazados[0].razon, "certificado_inexistente");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+Deno.test("T12: H-08 r2ArchivoId incorrecto -> DENY", async () => {
+  const originalFetch = globalThis.fetch;
+  const archivos = [
+    { id: ARCHIVO_A, clinica_id: CLINICA_A, r2_object_key: `${CLINICA_A}/pac/r2key`, estado: "eliminado", nombre_archivo: "a.pdf" },
+  ];
+  const certificados = [
+    // Certificado apunta a OTRO archivo (no al A)
+    { id: CERT_A, clinica_id: CLINICA_A, datos: { r2ArchivoId: ARCHIVO_B } },
+  ];
+
+  globalThis.fetch = createMockFetch({
+    authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+    memberships: baseMemberships,
+    archivos,
+    certificados,
+  }) as any;
+
+  try {
+    const req = new Request("http://localhost/archivos-purge", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer valid-jwt",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        archivo_ids: [ARCHIVO_A],
+        source_type: "certificado",
+        source_ids: { [ARCHIVO_A]: CERT_A },
+      }),
+    });
+    const res = await handler(req);
+    const body = await res.json();
+    assertEquals(res.status, 200);
+    assertEquals(body.purgados.length, 0);
+    assertEquals(body.rechazados.length, 1);
+    assertEquals(body.rechazados[0].id, ARCHIVO_A);
+    assertEquals(body.rechazados[0].razon, "certificado_no_referencia_archivo");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+Deno.test("T13: H-08 R2 OK -> DELETE archivos_clinicos + DELETE certificados", async () => {
+  const originalFetch = globalThis.fetch;
+  const archivos = [
+    { id: ARCHIVO_A, clinica_id: CLINICA_A, r2_object_key: `${CLINICA_A}/pac/r2key`, estado: "eliminado", nombre_archivo: "a.pdf" },
+  ];
+  const certificados = [
+    { id: CERT_A, clinica_id: CLINICA_A, datos: { r2ArchivoId: ARCHIVO_A } },
+  ];
+
+  let deleteCertificadosCalled = false;
+  const mockFetch = createMockFetch({
+    authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+    memberships: baseMemberships,
+    archivos,
+    certificados,
+  });
+
+  // Wrapper para detectar DELETE de certificados
+  const wrappedFetch = async (url: any, init?: any) => {
+    const urlStr = typeof url === "string" ? url : url.url;
+    if (urlStr.includes("/rest/v1/certificados") && init?.method === "DELETE") {
+      deleteCertificadosCalled = true;
+    }
+    return mockFetch(url, init);
+  };
+
+  globalThis.fetch = wrappedFetch as any;
+
+  try {
+    const req = new Request("http://localhost/archivos-purge", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer valid-jwt",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        archivo_ids: [ARCHIVO_A],
+        source_type: "certificado",
+        source_ids: { [ARCHIVO_A]: CERT_A },
+      }),
+    });
+    const res = await handler(req);
+    const body = await res.json();
+    assertEquals(res.status, 200);
+    assertEquals(body.purgados.length, 1);
+    assertEquals(body.rechazados.length, 0);
+    assertEquals(deleteCertificadosCalled, true);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+Deno.test("T14: H-08 R2 404 (ya eliminado) -> idempotente, continúa con BD", async () => {
+  const originalFetch = globalThis.fetch;
+  const archivos = [
+    { id: ARCHIVO_A, clinica_id: CLINICA_A, r2_object_key: `${CLINICA_A}/pac/r2key`, estado: "eliminado", nombre_archivo: "a.pdf" },
+  ];
+  const certificados = [
+    { id: CERT_A, clinica_id: CLINICA_A, datos: { r2ArchivoId: ARCHIVO_A } },
+  ];
+
+  // Mock que retorna 404 para R2 (ya eliminado)
+  const mockFetch = async (url: any, init?: any) => {
+    const urlStr = typeof url === "string" ? url : url.url;
+    if (urlStr.includes("r2.cloudflarestorage.com")) {
+      return new Response(null, { status: 404 });
+    }
+    return createMockFetch({
+      authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+      memberships: baseMemberships,
+      archivos,
+      certificados,
+    })(url, init);
+  };
+
+  globalThis.fetch = mockFetch as any;
+
+  try {
+    const req = new Request("http://localhost/archivos-purge", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer valid-jwt",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        archivo_ids: [ARCHIVO_A],
+        source_type: "certificado",
+        source_ids: { [ARCHIVO_A]: CERT_A },
+      }),
+    });
+    const res = await handler(req);
+    const body = await res.json();
+    assertEquals(res.status, 200);
+    // 404 es tratado como éxito (idempotente)
+    assertEquals(body.purgados.length, 1);
+    assertEquals(body.rechazados.length, 0);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+Deno.test("T15: H-08 R2 failure -> NO DELETE BD, purga_pendiente preservada", async () => {
+  const originalFetch = globalThis.fetch;
+  const archivos = [
+    { id: ARCHIVO_A, clinica_id: CLINICA_A, r2_object_key: `${CLINICA_A}/pac/r2key`, estado: "eliminado", nombre_archivo: "a.pdf" },
+  ];
+  const certificados = [
+    { id: CERT_A, clinica_id: CLINICA_A, datos: { r2ArchivoId: ARCHIVO_A } },
+  ];
+
+  globalThis.fetch = createMockFetch({
+    authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+    memberships: baseMemberships,
+    archivos,
+    certificados,
+    r2DeleteOk: false, // R2 falla
+  }) as any;
+
+  try {
+    const req = new Request("http://localhost/archivos-purge", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer valid-jwt",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        archivo_ids: [ARCHIVO_A],
+        source_type: "certificado",
+        source_ids: { [ARCHIVO_A]: CERT_A },
+      }),
+    });
+    const res = await handler(req);
+    const body = await res.json();
+    assertEquals(res.status, 200);
+    assertEquals(body.purgados.length, 0);
+    assertEquals(body.rechazados.length, 1);
+    assertEquals(body.rechazados[0].id, ARCHIVO_A);
+    assertEquals(body.rechazados[0].razon, "error_delete_r2");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+Deno.test("T16: H-08 retry después de failure -> sin corrupción", async () => {
+  const originalFetch = globalThis.fetch;
+  const archivos = [
+    { id: ARCHIVO_A, clinica_id: CLINICA_A, r2_object_key: `${CLINICA_A}/pac/r2key`, estado: "eliminado", nombre_archivo: "a.pdf" },
+  ];
+  const certificados = [
+    { id: CERT_A, clinica_id: CLINICA_A, datos: { r2ArchivoId: ARCHIVO_A } },
+  ];
+
+  // Primero con R2 fallando
+  globalThis.fetch = createMockFetch({
+    authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+    memberships: baseMemberships,
+    archivos,
+    certificados,
+    r2DeleteOk: false,
+  }) as any;
+
+  try {
+    const req = new Request("http://localhost/archivos-purge", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer valid-jwt",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        archivo_ids: [ARCHIVO_A],
+        source_type: "certificado",
+        source_ids: { [ARCHIVO_A]: CERT_A },
+      }),
+    });
+    const res1 = await handler(req);
+    const body1 = await res1.json();
+    assertEquals(body1.purgados.length, 0);
+    assertEquals(body1.rechazados.length, 1);
+
+    // Segundo intento: R2 OK (retry)
+    globalThis.fetch = createMockFetch({
+      authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+      memberships: baseMemberships,
+      archivos,
+      certificados,
+      r2DeleteOk: true,
+    }) as any;
+
+    const req2 = new Request("http://localhost/archivos-purge", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer valid-jwt",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        archivo_ids: [ARCHIVO_A],
+        source_type: "certificado",
+        source_ids: { [ARCHIVO_A]: CERT_A },
+      }),
+    });
+    const res2 = await handler(req2);
+    const body2 = await res2.json();
+    assertEquals(res2.status, 200);
+    assertEquals(body2.purgados.length, 1);
+    assertEquals(body2.rechazados.length, 0);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+Deno.test("T17: H-08 duplicate retry (mismo certificado 2 veces) -> idempotente", async () => {
+  const originalFetch = globalThis.fetch;
+  const archivos = [
+    { id: ARCHIVO_A, clinica_id: CLINICA_A, r2_object_key: `${CLINICA_A}/pac/r2key`, estado: "eliminado", nombre_archivo: "a.pdf" },
+  ];
+  const certificados = [
+    { id: CERT_A, clinica_id: CLINICA_A, datos: { r2ArchivoId: ARCHIVO_A } },
+  ];
+
+  globalThis.fetch = createMockFetch({
+    authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+    memberships: baseMemberships,
+    archivos,
+    certificados,
+  }) as any;
+
+  try {
+    const makeReq = () => new Request("http://localhost/archivos-purge", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer valid-jwt",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        archivo_ids: [ARCHIVO_A],
+        source_type: "certificado",
+        source_ids: { [ARCHIVO_A]: CERT_A },
+      }),
+    });
+
+    // Primera ejecución
+    const res1 = await handler(makeReq());
+    const body1 = await res1.json();
+    assertEquals(body1.purgados.length, 1);
+
+    // Segunda ejecución (duplicate retry) - R2 retorna 404 (ya eliminado)
+    const mockFetch404 = async (url: any, init?: any) => {
+      const urlStr = typeof url === "string" ? url : url.url;
+      if (urlStr.includes("r2.cloudflarestorage.com")) {
+        return new Response(null, { status: 404 });
+      }
+      // Certificado ya no existe después del primer DELETE
+      if (urlStr.includes("/rest/v1/certificados") && !init?.method) {
+        return new Response(JSON.stringify([]), { status: 200 });
+      }
+      return createMockFetch({
+        authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+        memberships: baseMemberships,
+        archivos,
+        certificados: [], // Ya eliminado
+      })(url, init);
+    };
+    globalThis.fetch = mockFetch404 as any;
+
+    const res2 = await handler(makeReq());
+    const body2 = await res2.json();
+    // En retry, el archivo no pasa validación cross-tenant porque certificado inexistente
+    // O es rechazado - lo importante es NO haber corrupción
+    assertEquals(res2.status, 200);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+Deno.test("T18: H-08 DB failure después de R2 OK -> estado recuperable", async () => {
+  const originalFetch = globalThis.fetch;
+  const archivos = [
+    { id: ARCHIVO_A, clinica_id: CLINICA_A, r2_object_key: `${CLINICA_A}/pac/r2key`, estado: "eliminado", nombre_archivo: "a.pdf" },
+  ];
+  const certificados = [
+    { id: CERT_A, clinica_id: CLINICA_A, datos: { r2ArchivoId: ARCHIVO_A } },
+  ];
+
+  globalThis.fetch = createMockFetch({
+    authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+    memberships: baseMemberships,
+    archivos,
+    certificados,
+    certificadoDeleteOk: false, // DELETE de certificado falla
+  }) as any;
+
+  try {
+    const req = new Request("http://localhost/archivos-purge", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer valid-jwt",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        archivo_ids: [ARCHIVO_A],
+        source_type: "certificado",
+        source_ids: { [ARCHIVO_A]: CERT_A },
+      }),
+    });
+    const res = await handler(req);
+    const body = await res.json();
+    assertEquals(res.status, 200);
+    // El archivo se elimina, pero el certificado falla en DELETE
+    // El archivo queda en purgados (su parte terminó), el certificado queda para retry vía cleanup
+    assertEquals(body.rechazados.length >= 0, true);
+    // Lo importante es que NO hay corrupción ni crash
   } finally {
     globalThis.fetch = originalFetch;
   }

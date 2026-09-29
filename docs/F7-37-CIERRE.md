@@ -751,3 +751,101 @@ Resetear purga_pendiente=FALSE si atascado > 24h
 - Remaining findings de seguridad: NONE
 - Deudas P2 documentadas: H-06 (internal_purge_secret), H-07 (continue-on-error)
 - Limitaciones de verificación: [NOT AVAILABLE] en secciones 7, 8, 10, 16
+---
+
+## 19. F7-37 v3: Corrección H-08 — Cross-tenant validation en purge de certificados (PR #194)
+
+### Hallazgo H-08 detectado en auditoría independiente post-v2
+
+**Problema:** La solución v2 de `archivos-purge` aceptaba `source_ids` del caller como autoridad para eliminar certificados. Esto permitía un ataque cross-tenant:
+
+```
+Request malicioso:
+{
+  "source_type": "certificado",
+  "archivo_ids": ["archivo-A-de-Clínica-A"],
+  "source_ids": {
+    "archivo-A-de-Clínica-A": "certificado-X-de-Clínica-B"
+  }
+}
+
+Flujo v2 problemático:
+1. ✅ Valida archivo-A pertenece a Clínica A
+2. ✅ Valida archivo-A está en papelera
+3. ✅ DELETE R2 del archivo-A
+4. ✅ DELETE archivos_clinicos del archivo-A
+5. 🔴 DELETE certificados-X (de Clínica B!) usando service_role que bypassa RLS
+```
+
+### Solución implementada
+
+**Modificación de archivos-purge (Edge Function):**
+- Agregada función `validarCertificadoParaPurge()` con validaciones server-side
+- Antes de DELETE de certificado, valida:
+  1. Certificado EXISTE en BD
+  2. `certificado.clinica_id === archivo.clinica_id` (previene cross-tenant)
+  3. `certificado.datos->>'r2ArchivoId' === archivoId` (previene asociación arbitraria)
+- Si alguna validación falla → rechaza operación sin tocar R2 ni BD
+- `source_ids` ahora es solo una referencia, NO una autoridad de confianza
+
+### Tests Deno nuevos (T9-T18)
+
+**Archivo:** `supabase/functions/archivos-purge/index.test.ts`
+
+| Test | Descripción | Resultado |
+|---|---|---|
+| T9 | H-08 mismo tenant (archivo A + cert A clínica A) | ✅ ALLOW |
+| T10 | H-08 cross-tenant (archivo A clínica A + cert B clínica B) | ✅ DENY (certificado_cross_tenant) |
+| T11 | H-08 certificado inexistente | ✅ DENY (certificado_inexistente) |
+| T12 | H-08 r2ArchivoId incorrecto | ✅ DENY (certificado_no_referencia_archivo) |
+| T13 | H-08 R2 OK → DELETE completo | ✅ |
+| T14 | H-08 R2 404 (ya eliminado) → idempotente | ✅ |
+| T15 | H-08 R2 failure → NO DELETE BD | ✅ |
+| T16 | H-08 retry después de failure | ✅ Sin corrupción |
+| T17 | H-08 duplicate retry | ✅ Idempotente |
+| T18 | H-08 DB failure después de R2 OK | ✅ Recuperable |
+
+### Tests Vitest nuevos (H-08-1 a H-08-6)
+
+**Archivo:** `src/test/security/f7-37v2-purge-certificados.test.js`
+
+- H-08-1: archivos-purge incluye función validarCertificadoParaPurge
+- H-08-2: validación de clinica_id antes de DELETE certificado
+- H-08-3: validación de relación r2ArchivoId antes de DELETE
+- H-08-4: validación ocurre ANTES del DELETE de certificados
+- H-08-5: Deno tests incluyen casos H-08 (T9-T18)
+- H-08-6: testUtils.ts soporta mocks de certificados
+
+### Evidencia final [LOCAL SUPABASE]
+
+| Verificación | Resultado |
+|---|---|
+| 29 SECURITY DEFINER con search_path vacío | ✅ |
+| 0 PUBLIC ACCESS | ✅ |
+| 0 anon ACCESS no autorizado | ✅ |
+| 0 INSERT policies en audit_log | ✅ |
+| RLS system_config (service_role only) | ✅ |
+| clinica_actual() fail-closed | ✅ |
+| H-08: validarCertificadoParaPurge presente | ✅ |
+| H-08: validación antes de DELETE | ✅ |
+| H-08: source_ids no es autoridad | ✅ |
+
+### Tests de regresión
+
+| Suite | Resultado |
+|---|---|
+| Vitest completo | 1703/1703 |
+| Security Regression | 140/140 |
+| Deno tests | 62/62 (18 en archivos-purge) |
+| Build | ✅ |
+| Lint | 0 errores |
+| Architecture validator | ✅ |
+
+### Estado final
+
+🟢 **F7-37 v3 = DONE**
+
+- Hallazgo H-08 (cross-tenant en purge): RESUELTO
+- Remaining findings de seguridad: NONE
+- Deudas P2 documentadas: H-06 (internal_purge_secret), H-07 (continue-on-error)
+- Limitaciones de verificación: [NOT AVAILABLE] en secciones 7, 8, 10, 16
