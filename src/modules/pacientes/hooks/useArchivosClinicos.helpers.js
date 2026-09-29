@@ -1,7 +1,17 @@
 /**
  * Constantes y helpers para useArchivosClinicos.
  * Extraído para cumplir límite constitucional de 150 líneas por archivo.
+ * 
+ * F7-36 FASE 9: Validación MIME extraída a useArchivosClinicos.mimeValidation.js
  */
+
+// Re-export de validación MIME (backward compatibility)
+export {
+  MAX_TAMANO_MB,
+  MAX_TAMANO_BYTES,
+  MIME_TYPES_POR_CATEGORIA,
+  validarArchivo,
+} from './useArchivosClinicos.mimeValidation'
 
 // Mapeo bidireccional entre tipo UI y categoría R2.
 // M4b: 'consentimiento' usa categoría 'pdf' porque es la válida en el
@@ -24,46 +34,6 @@ export const CATEGORIA_A_TIPO = {
 // M4b: subcategorías para distinguir tipos dentro de categoría 'pdf'
 export const SUBCATEGORIAS = {
   CONSENTIMIENTO: 'consentimiento',
-}
-
-// Límites de validación
-export const MAX_TAMANO_MB = 50
-export const MAX_TAMANO_BYTES = MAX_TAMANO_MB * 1024 * 1024
-export const MIME_TYPES_PERMITIDOS = [
-  'image/jpeg',
-  'image/png',
-  'image/webp',
-  'image/gif',
-  'application/pdf',
-]
-
-/**
- * Valida archivo antes de subir.
- * @returns {{ valido: boolean, mensaje: string }}
- */
-export const validarArchivo = (file, permisos) => {
-  if (file.size > MAX_TAMANO_BYTES) {
-    return {
-      valido: false,
-      mensaje: `El archivo es demasiado grande (${(file.size / 1024 / 1024).toFixed(1)}MB). Máximo ${MAX_TAMANO_MB}MB.`,
-    }
-  }
-
-  if (!MIME_TYPES_PERMITIDOS.includes(file.type)) {
-    return {
-      valido: false,
-      mensaje: `Tipo de archivo no permitido: ${file.type}. Solo se permiten imágenes y PDFs.`,
-    }
-  }
-
-  if (!permisos.puedeSubir) {
-    return {
-      valido: false,
-      mensaje: 'No tienes permisos para subir archivos. Solo administradores y dentistas pueden subir.',
-    }
-  }
-
-  return { valido: true, mensaje: '' }
 }
 
 /**
@@ -89,11 +59,9 @@ export const calcularPermisos = (rol, ROLES) => {
 export const determinarTipoDesdeArchivo = (archivo) => {
   if (!archivo) return null
 
-  // Consentimiento: categoría 'pdf' + metadata.subcategoria === 'consentimiento'
   if (archivo.categoria === 'pdf' && archivo.metadata?.subcategoria === SUBCATEGORIAS.CONSENTIMIENTO) {
     return 'consentimiento'
   }
 
-  // Otros archivos: usar mapeo directo
   return CATEGORIA_A_TIPO[archivo.categoria] || archivo.categoria
 }

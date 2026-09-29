@@ -3817,6 +3817,75 @@ No se crea política de DELETE físico. Con RLS activo y sin política de DELETE
 # BITÁCORA DE EJECUCIÓN — Studio Dental
 
 
+---
+
+## 2026-09-28 22:17 — F7-36 FASE 9: MIME contract (PR #186)
+
+### Problema
+Los contratos de MIME types entre frontend y backend estaban **desalineados**, violando la regla del brief: "Si GIF no está soportado → frontend rechaza GIF, backend rechaza GIF."
+
+### Inconsistencias críticas encontradas
+| MIME Type | Frontend (antes) | Backend | Impacto |
+|---|---|---|---|
+| `image/gif` | ✅ Aceptaba | ❌ Rechazaba | **CRÍTICO**: usuario subía GIF, backend lo rechazaba después del upload |
+| `application/dicom` | ❌ No aceptaba | ✅ Aceptaba | **ALTO**: no se podían subir radiografías médicas |
+| `application/msword` / `.docx` | ❌ No aceptaba | ✅ Aceptaba | **ALTO**: no se podían subir documentos Word |
+| `text/plain` | ❌ No aceptaba | ✅ Aceptaba | **MEDIO**: no se podían subir notas de texto |
+
+### Root cause
+Frontend usaba **lista plana** de MIME types. Backend validaba **por categoría + extensión**.
+
+### Lista canónica unificada
+Alineación frontend con backend (el backend ya era correcto, el frontend era el desalineado).
+
+### Cambios aplicados
+1. **`useArchivosClinicos.helpers.js`**:
+   - Eliminado `image/gif` de MIME types
+   - Cambiado de lista plana a `MIME_TYPES_POR_CATEGORIA` (Record por categoría)
+   - Agregados: `application/dicom`, `application/msword`, `.docx`, `text/plain`
+   - `validarArchivo()` ahora acepta `categoria` como parámetro
+   - Mensaje de error mejorado (muestra tipos permitidos por categoría)
+
+2. **`ArchivoUploader.jsx`**:
+   - `accept` específico por categoría (5 categorías: foto, rx, consentimiento, documento, otro)
+   - Alineado exactamente con `validarFormatoArchivo.ts`
+
+3. **`useArchivosClinicos.uploads.js`**:
+   - Caller actualizado: `validarArchivo(file, permisos, categoriaR2)`
+
+### Tests de regresión (15 tests)
+- GIF rechazado en foto_clinica y radiografia
+- DICOM aceptado en radiografia, rechazado en foto_clinica
+- Word (.doc/.docx) aceptado en documento
+- text/plain aceptado en otro
+- Límite 50MB consistente frontend/backend
+- RBAC consistente
+- Alineación completa (6 categorías con los mismos MIME types)
+- Defensa en profundidad (categoría desconocida, MIME vacío)
+
+### Validación
+- ✅ Vitest completo: 1643/1643 tests pasando (0 regresiones)
+- ✅ Tests FASE 9: 15/15 tests pasando
+- ✅ Backend NO fue modificado (principio conservador)
+
+### Archivos modificados
+- `src/modules/pacientes/hooks/useArchivosClinicos.helpers.js` (refactor + alineación)
+- `src/modules/pacientes/hooks/useArchivosClinicos.uploads.js` (caller actualizado)
+- `src/modules/pacientes/components/ArchivoUploader.jsx` (accept específico)
+- `src/test/security/f7-36-fase9-mime-contract.test.js` (15 tests de regresión)
+- `docs/F7-36-FASE9-RFC.md` (RFC con análisis completo)
+- `docs/MASTER_ROADMAP.md` (FASE 9 marcada DONE)
+- `docs/BITACORA.md` (esta entrada)
+
+### PR
+- **PR #186**: [feature/f7-36-fase9-mime-contract](https://github.com/miguelmcdr-boop/Studio-Dental/pull/186) — MERGED (esperado)
+
+### Siguiente tarea
+FASE 10: CI / E2E — revisar .github/workflows/ci.yml y `continue-on-error` en E2E
+
+---
+
+
 
 ---
 
