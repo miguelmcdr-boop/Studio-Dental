@@ -3819,6 +3819,19 @@ No se crea política de DELETE físico. Con RLS activo y sin política de DELETE
 
 ---
 
+## 2026-09-29 18:51 — F7-37 v3.1 COMPLETADA: H-08 residual (PR #195)
+
+### Resumen ejecutivo
+F7-37 v3.1 corrigió el H-08 residual: validación de certificado ANTES de DELETEs.
+
+### Estado final
+🟢 F7-37 v3.1 = DONE
+
+---
+
+
+---
+
 ## 2026-09-29 18:13 — F7-37 v3 COMPLETADA: Corrección H-08 — Cross-tenant validation (PR #194)
 
 ### Resumen ejecutivo
