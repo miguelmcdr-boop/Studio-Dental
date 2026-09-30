@@ -1576,14 +1576,14 @@ quirurgico_implantes, quirurgico_endodoncia
 - Ejecutar supabase/align-dev-supabase.sql (agregar políticas audit_log + verificar vademécum)
 - Ejecutar supabase/cleanup-e2e-data-from-dev.sql (limpiar datos de E2E)
 - Verificar que las tablas vademécum faltantes se crean (si es necesario)
-- Documentar el proceso manual en docs/DEV_DATABASE.md
+- Documentar el proceso manual en docs/STAGING.md
 
 **Criterios de aceptación:**
 - Proyecto original alineado con schemas versionados en supabase/
 - 0 usuarios e2e_* en auth.users
 - 0 datos asociados a usuarios e2e (pacientes, odontogramas, membresías, etc.)
 - Datos reales del usuario preservados e intactos
-- Documentación del proceso manual en docs/DEV_DATABASE.md (nuevo)
+- Documentación del proceso manual en docs/STAGING.md (nuevo)
 
 **Dependencias:** F6-I (staging ya configurado)
 
