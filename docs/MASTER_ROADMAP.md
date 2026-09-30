@@ -190,7 +190,7 @@
 | F7-34b | Cierre definitivo de contexto multi-clínica en funciones destructivas y purge | 7 | **P0** | M (1-2 d) | F7-34 | **DONE (2026-09-24)** — Validacion manual completa en produccion con usuario dual (12 casos: 4 cross-clinic DENEGADOS, 4 purges permitidos destructivos, 2 body manipulados ignorados, 2 canarios sin metadata bloqueados 403). Audit log verificado sin PHI. Cleanup de fixtures verificado. 16 tests Deno + 1518 Vitest pasando. CI E2E continue-on-error documentado para F7-30. 62 registros historicos con PHI pre-F7-34b documentados como saneamiento opcional. |
 | F7-35 | Unificación fail-closed del contexto de clínica + hardening R2 | 7 | **P0** | M (2-3 d) | F7-34b | **DONE (2026-09-25)** — clinica_actual() fail-closed sin fallback + regex-guard UUID. Backfill one-time de metadata para 5/7 usuarios. ClinicaSelector auto-persistente. Hardening R2: 10 vectores de details/error.message reemplazados con safeResponse.ts. r2-health-check: 3 niveles de detalle (público/usuario/admin). 22 tests manuales multi-clínica (A-F + C/D/E). Bug detectado y corregido en r2-list-deleted. 149 warnings lint, 0 errores. Vitest 1518/1518. Build OK. Architecture OK. |
 | F7-36 | Implementación completa en 12 fases (E2E + hardening multi-clínica) | 7 | **P0** | L (15-20 d) | F7-35 | **DONE (2026-09-29)** — 12 fases completadas (F1-F12). Cache multi-tenant, E2E canario inverso, 12 Edge Functions desplegadas, hardening de registros, actor_real en audit_log, permisos RPC restrictivos, fail-safe en purge. 1,518+ Vitest, 149 Security Regression. PRs #177-#189 mergeados. |
-| F7-37 | Final Security Integrity Audit (v3.2: RPC atómica + UUID robusto) | 7 | **P0** | L (10-15 d) | F7-36 | **DONE (2026-09-29)** — 5 iteraciones de hardening progresivo. 13 hallazgos resueltos (H-01 a H-08 residual). 6 migraciones (000300-000800). RPC atómica purgar_archivo_y_certificado, EXCEPTION handling para UUIDs inválidos, política admin+dentista. 30 SECURITY DEFINER con search_path vacío. 1,712 Vitest + 149 Security + 78 Deno. PRs #190-#196. archivos-purge v20 desplegada en producción. |
+| F7-37 | Final Security Integrity Audit (v3.2: RPC atómica + UUID robusto) | 7 | **P0** | L (10-20 d) | F7-36 | **DONE (2026-09-30)** — 5 iteraciones de hardening progresivo + configuración operativa. 13 hallazgos resueltos (H-01 a H-08 residual). 6 migraciones (000300-000800). RPC atómica purgar_archivo_y_certificado, EXCEPTION handling para UUIDs inválidos, política admin+dentista. 30 SECURITY DEFINER con search_path vacío. 1,712 Vitest + 149 Security + 78 Deno. PRs #190-#198. archivos-purge v20 desplegada. **Configuración operativa completa:** pg_cron (2 jobs activos) + system_config (secrets configurados). |
 | F7-22a | Corregir r2-upload-url para guardar mime_type al crear archivo | 7 | P2 | XS (<0.5 d) | F7-22 | DONE (2026-09-06) — mime_type se guarda correctamente en r2-upload-url v7, validado en E2E de F7-22b |
 | F7-22b | Validación server-side de mime_type en Edge Function r2-upload-url | 7 | P2 | XS (<0.5 d) | F7-22a | DONE (2026-09-05) — helper validarFormatoArchivo + 14 tests Deno, lista blanca por categoría, E2E 4/4, r2-upload-url v4 desplegada |
 
@@ -2828,6 +2828,49 @@ auditar_cambio, clinica_actual, es_admin_de_clinica_actual, rol_en_clinica_actua
 **✅ Migraciones aplicadas en producción:** 6 migraciones (000300, 000400, 000500, 000600, 000700, 000800) aplicadas vía supabase db push --include-all.
 
 ---
+
+---
+
+### Configuración operativa post-F7-37 ✅ COMPLETADA (2026-09-30) — 🟢 DONE
+
+**Objetivo:** Configurar el sistema de purga automática en producción después del cierre de F7-37.
+
+**pg_cron (scheduling automático):**
+- ✅ Extensión pg_cron v1.6.4 habilitada en producción
+- ✅ Job 1: `purge-certificados-expirados` — `0 3 * * *` (diario 3AM UTC)
+  - Ejecuta `purgar_certificados_expirados()`
+  - Purga certificados vencidos (>730 días)
+- ✅ Job 2: `cleanup-stale-purges` — `0 * * * *` (cada hora)
+  - Ejecuta `cleanup_stale_purges()`
+  - Resetea purga_pendiente si lleva >24h sin resolución
+
+**system_config (secrets operativos):**
+- ✅ `internal_purge_secret`: `sd-internal-purge-2026-secure-token-v1`
+  - Autenticación de Edge Function archivos-purge
+  - Configurado: 2026-09-30 01:37:12 UTC
+- ✅ `supabase_url`: `https://nagduvivilmzupdpoayo.supabase.co`
+  - URL base para llamadas HTTP desde funciones PostgreSQL
+  - Configurado: 2026-09-30 01:37:19 UTC
+
+**Flujo de purga automática:**
+- pg_cron (3 AM UTC) -> purgar_certificados_expirados()
+  - Lee internal_purge_secret de system_config
+  - Lee supabase_url de system_config
+  - net.http_post() a archivos-purge Edge Function
+  - archivos-purge valida X-Internal-Secret
+  - archivos-purge elimina R2 + certificados vía RPC atómica
+  - purgar_archivo_y_certificado() (transacción PostgreSQL)
+- pg_cron (cada hora) -> cleanup_stale_purges()
+  - Resetea purga_pendiente si lleva >24h sin resolución
+
+**Estado del sistema:**
+- ✅ 0 certificados vencidos pendientes
+- ✅ 0 archivos en papelera pendientes
+- ✅ 2 Edge Functions activas (archivos-purge v20, pacientes-purge v7)
+- ✅ 30 SECURITY DEFINER con search_path vacío
+- ✅ 1,939 tests pasando (1712 Vitest + 149 Security + 78 Deno)
+
+**Estado:** 🟢 Configuración operativa DONE
 
 #### Reporte final obligatorio F7-36
 Al terminar NO responder "Listo". Entregar reporte estructurado con 9 secciones:
