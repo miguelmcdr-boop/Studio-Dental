@@ -3819,6 +3819,71 @@ No se crea política de DELETE físico. Con RLS activo y sin política de DELETE
 
 ---
 
+## 2026-09-29 22:58 — Configuración operativa post-F7-37: pg_cron + system_config
+
+### Resumen ejecutivo
+
+Después del cierre de F7-37, se realizó la configuración operativa completa del sistema de purga automática en producción, incluyendo pg_cron y system_config.
+
+### Configuraciones aplicadas en producción
+
+**system_config (secrets operativos):**
+- `internal_purge_secret`: `sd-internal-purge-2026-secure-token-v1` (38 caracteres)
+  - Propósito: Autenticación de Edge Function archivos-purge cuando es llamada por pg_cron
+  - Configurado: 2026-09-30 01:37:12 UTC
+- `supabase_url`: `https://nagduvivilmzupdpoayo.supabase.co` (40 caracteres)
+  - Propósito: URL base para llamadas HTTP desde funciones PostgreSQL
+  - Configurado: 2026-09-30 01:37:19 UTC
+
+**pg_cron jobs (purga automática):**
+- Job ID 1: `purge-certificados-expirados`
+  - Schedule: `0 3 * * *` (todos los días a las 3 AM UTC)
+  - Comando: `SELECT public.purgar_certificados_expirados();`
+  - Estado: ACTIVE
+- Job ID 2: `cleanup-stale-purges`
+  - Schedule: `0 * * * *` (cada hora)
+  - Comando: `SELECT public.cleanup_stale_purges();`
+  - Estado: ACTIVE
+
+### Verificación en producción
+
+| Componente | Estado | Evidencia |
+|---|---|---|
+| purgar_certificados_expirados() | OPERATIVA | SECURITY DEFINER + search_path vacío |
+| cleanup_stale_purges() | OPERATIVA | SECURITY DEFINER + search_path vacío |
+| Jobs pg_cron | 2 ACTIVOS | Verificados en cron.job |
+| system_config | CONFIGURADO | 2 keys insertadas |
+| Edge Functions | 2 ACTIVAS | archivos-purge v20, pacientes-purge v7 |
+| Datos en sistema | LIMPIOS | 0 certificados vencidos, 0 en papelera |
+
+### Flujo completo de purga automática
+
+pg_cron (3 AM UTC)
+  -> purgar_certificados_expirados()
+    -> Lee internal_purge_secret de system_config
+    -> Lee supabase_url de system_config
+    -> net.http_post() a archivos-purge Edge Function
+      -> archivos-purge valida X-Internal-Secret
+      -> archivos-purge elimina R2 + certificados vía RPC atómica
+        -> purgar_archivo_y_certificado() (transacción PostgreSQL)
+
+pg_cron (cada hora)
+  -> cleanup_stale_purges()
+    -> Resetea purga_pendiente si lleva >24h sin resolución
+
+### Notas importantes
+
+1. El `internal_purge_secret` debe coincidir con el `X-Internal-Secret` que el cron envía a la Edge Function.
+2. pg_cron v1.6.4 está habilitado en producción (no requiere servicios externos).
+3. Al momento de la configuración: 0 certificados vencidos y 0 archivos en papelera.
+
+### Estado final
+
+🟢 **Configuración operativa = DONE**
+
+
+---
+
 ## 2026-09-29 20:00 — F7-37 v3.2 COMPLETADA: RPC atómica + manejo robusto de UUIDs (PR #196)
 
 ### Resumen ejecutivo
