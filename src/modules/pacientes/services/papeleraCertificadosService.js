@@ -1,6 +1,5 @@
-import { supabase, USE_SUPABASE } from '../../../services/supabaseClient'
+import { supabase, USE_SUPABASE, supabaseUrl } from '../../../services/supabaseClient'
 import { certificadosStorageService } from './certificadosStorageService'
-import { eliminaArchivo } from '../../../services/r2ArchivosService'
 import { createLogger } from '../../../services/logger'
 
 const log = createLogger('papeleraCertificadosService')
@@ -85,42 +84,66 @@ export const restaurarCertificado = async (pacienteId, certId) => {
 }
 
 /**
- * Elimina definitivamente un certificado (borra R2 + Supabase + localStorage)
+ * Elimina definitivamente un certificado.
+ *
+ * F7-37 v4 H-12 FIX: Usa arquitectura segura vía archivos-purge Edge Function
+ * que garantiza:
+ *   - Validación de sesión, tenant y rol (admin/dentista)
+ *   - Validación de source_ids obligatorio (H-09)
+ *   - Validación de UUID válido
+ *   - Validación server-side de tenant + relación r2ArchivoId
+ *   - R2-first DELETE (idempotente con 404)
+ *   - RPC atómica (DELETE archivo + DELETE certificado en transacción)
+ *
+ * Caso especial: si el certificado NO tiene r2ArchivoId, se usa DELETE directo
+ * como fallback (certificados sin archivo físico).
+ *
+ * @param {string} pacienteId - ID del paciente (para caché local)
+ * @param {string} certId - ID del certificado a eliminar
+ * @returns {Promise<boolean>} true si se eliminó correctamente
  */
 export const eliminarDefinitivo = async (pacienteId, certId) => {
   const todos = certificadosStorageService.obtenerCertificados(pacienteId, [])
   const target = todos.find(c => String(c.id) === String(certId))
+
   if (!target) {
     log.warn(`eliminarDefinitivo: cert ${certId} no encontrado`)
     return false
   }
 
-  // 1. Borrar PDF de R2 si existe
-  if (target.r2ArchivoId) {
-    const okR2 = await eliminaArchivo(target.r2ArchivoId)
-    if (!okR2) {
-      log.warn(`eliminarDefinitivo: no se pudo borrar R2 de ${certId}, continuando con metadata`)
-    }
+  if (!target.eliminadoAt) {
+    log.warn(`eliminarDefinitivo: cert ${certId} no está en papelera`)
+    return false
   }
 
-  // 2. DELETE en Supabase (si aplica)
-  if (USE_SUPABASE && supabase) {
+  // ============================================================
+  // H-12 FIX: Usar arquitectura segura (archivos-purge)
+  // ============================================================
+  if (target.r2ArchivoId) {
+    // CASO A: Certificado con archivo físico → usar archivos-purge
+    const ok = await eliminarViaArchivosPurge(target.r2ArchivoId, certId)
+    if (!ok) {
+      log.error(`eliminarDefinitivo: archivos-purge falló para cert ${certId}`)
+      return false
+    }
+  } else if (USE_SUPABASE && supabase) {
+    // CASO B: Certificado sin archivo físico → DELETE directo (fallback)
     try {
       const { error } = await supabase
         .from('certificados')
         .delete()
         .eq('id', certId)
       if (error) {
-        log.error('Error eliminando certificado de Supabase:', error.message)
+        log.error('Error eliminando certificado sin R2:', error.message)
         return false
       }
     } catch (e) {
-      log.error('Excepción eliminando de Supabase:', e.message)
+      log.error('Excepción eliminando certificado sin R2:', e.message)
       return false
     }
   }
 
-  // 3. Quitar del caché local
+  // Quitar del caché local (solo si éxito)
   const actualizados = todos.filter(c => String(c.id) !== String(certId))
   const key = `certificados_${pacienteId}`
   try {
@@ -130,8 +153,69 @@ export const eliminarDefinitivo = async (pacienteId, certId) => {
     log.warn('No se pudo actualizar caché local:', e.message)
   }
 
-  log.info(`[AUDITORÍA] Eliminación definitiva: id=${certId}, tipo=${target.tipo}, paciente=${pacienteId}`)
+  log.info(`[AUDITORÍA] Eliminación definitiva vía archivos-purge: id=${certId}, tipo=${target.tipo}, paciente=${pacienteId}`)
   return true
+}
+
+/**
+ * Llama a archivos-purge Edge Function con source_type='certificado'.
+ *
+ * @param {string} r2ArchivoId - ID del archivo en R2
+ * @param {string} certId - ID del certificado
+ * @returns {Promise<boolean>} true si fue purgado correctamente
+ */
+const eliminarViaArchivosPurge = async (r2ArchivoId, certId) => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      log.error('eliminarViaArchivosPurge: no hay sesión activa')
+      return false
+    }
+
+    if (!supabaseUrl) {
+      log.error('eliminarViaArchivosPurge: supabaseUrl no configurado')
+      return false
+    }
+
+    const response = await fetch(`${supabaseUrl}/functions/v1/archivos-purge`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        archivo_ids: [r2ArchivoId],
+        source_type: 'certificado',
+        source_ids: { [r2ArchivoId]: certId },
+      }),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'unknown')
+      log.error(`archivos-purge HTTP ${response.status}: ${errorText}`)
+      return false
+    }
+
+    const result = await response.json()
+
+    if (!result.success) {
+      log.error(`archivos-purge respondió success=false: ${JSON.stringify(result)}`)
+      return false
+    }
+
+    if (!Array.isArray(result.purgados) || !result.purgados.includes(r2ArchivoId)) {
+      const rechazado = Array.isArray(result.rechazados)
+        ? result.rechazados.find(r => r.id === r2ArchivoId)
+        : null
+      log.error(`archivos-purge no purgó ${r2ArchivoId}: ${rechazado?.razon || 'desconocido'}`)
+      return false
+    }
+
+    return true
+  } catch (e) {
+    log.error('Excepción en eliminarViaArchivosPurge:', e.message)
+    return false
+  }
 }
 
 /**

@@ -281,9 +281,25 @@ export async function handler(req: Request): Promise<Response> {
       }
 
       // A.3 Si source_type === 'certificado': validar certificado ANTES de cualquier DELETE
+      // H-09 FIX: Fail-closed — source_ids[archivoId] es OBLIGATORIO cuando source_type === 'certificado'
       let certificadoId: string | undefined;
-      if (sourceType === 'certificado' && sourceIds[archivoId]) {
+      if (sourceType === 'certificado') {
+        // H-09 FIX: source_ids[archivoId] es obligatorio para purgas de certificados
+        if (!sourceIds[archivoId]) {
+          rechazados.push({ id: archivoId, razon: "source_ids_missing_for_certificado" });
+          continue;
+        }
+
         certificadoId = sourceIds[archivoId];
+
+        // H-09 FIX: Validar formato UUID válido
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (!uuidRegex.test(certificadoId)) {
+          rechazados.push({ id: archivoId, razon: "certificado_id_invalid_uuid" });
+          continue;
+        }
+
+        // Validación completa existente (tenant + relación r2ArchivoId)
         const validacion = await validarCertificadoParaPurge(
           supabaseUrl,
           supabaseServiceKey,

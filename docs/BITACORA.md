@@ -1,3 +1,27 @@
+
+
+## 2026-09-30 00:34 — F7-37 v4: Hardening final de H-09 a H-12
+
+**Estado:** ✅ DONE | **Duración:** ~3h | **Migración:** 20260929000900 (290 líneas)
+
+### Hallazgos corregidos
+- **H-09:** source_type fail-closed + UUID regex en archivos-purge
+- **H-10:** Lote mixto con/sin R2 procesados correctamente
+- **H-11:** array_agg único (una sola selección)
+- **H-11b:** Cuarentena 30 días para UUID inválidos
+- **H-12:** Flujo manual unificado vía archivos-purge
+
+### Adicional
+- .gitignore corregido (eliminar *.sql, agregar !supabase/migrations/*.sql)
+
+### Verificaciones finales
+✅ 30/30 SECURITY DEFINER con search_path vacío
+✅ EXECUTE permissions correctas
+✅ AUDIT LOG append-only
+✅ 46 migraciones aplicadas con supabase db reset
+✅ 1719/1719 Vitest + 34/34 Deno
+
+Próximo paso: F7-29 (Manual) o F7-30 (Release Candidate)
 ## 2026-09-04 — F7-31 COMPLETADO: Papelera de archivos clínicos (restauración)
 
 **Qué se ganó:** Sistema completo de papelera de reciclaje para archivos clínicos. Los usuarios pueden eliminar archivos (soft delete) y restaurarlos después. Auditoría completa de ambos eventos.

@@ -991,3 +991,103 @@ Flujo v2 problemático:
 **Remaining findings de seguridad:** NONE
 
 **Deudas P2 documentadas:** H-06 (internal_purge_secret), H-07 (continue-on-error)
+
+
+---
+
+## 18. Hallazgos adicionales detectados en v4 (H-09 a H-12)
+
+Durante la revisión final de F7-37 v3.2, se detectaron 5 hallazgos residuales:
+
+- **H-09**: source_type="certificado" sin validación de source_ids
+- **H-10**: Certificados sin R2 atrapados en lotes mixtos
+- **H-11**: Dos queries SELECT con LIMIT 100 desalineadas
+- **H-11b**: UUID inválido sin cuarentena permanente
+- **H-12**: Flujo manual no usaba arquitectura segura
+
+Todos corregidos dentro de F7-37 (no se creó F7-38).
+
+---
+
+## 19. Corrección de H-09 (source_type sin source_ids)
+
+**Problema:** Condición permisiva permitía bypass de validación de certificado.
+
+**Solución:** Fail-closed en archivos-purge:
+- Validación obligatoria de source_ids[archivoId]
+- Regex UUID válido antes de procesar
+- Razones específicas: source_ids_missing_for_certificado, certificado_id_invalid_uuid
+
+**Archivo:** supabase/functions/archivos-purge/index.ts (líneas 285-302)
+
+**Tests:** T35-T39 agregados, 34/34 tests Deno pasan.
+
+---
+
+## 20. Corrección de H-10, H-11, H-11b (migración 000900)
+
+**Migración:** supabase/migrations/20260929000900_f7_37v4_purge_hardening.sql (290 líneas)
+
+### H-10: Certificados sin R2 atrapados
+**Solución:** Separar procesamiento con/sin R2 en el mismo batch.
+
+### H-11: Dos queries SELECT desalineadas
+**Solución:** Unificar en SELECT array_agg(id) único.
+
+### H-11b: UUID inválido sin cuarentena
+**Solución:** Nueva columna cuarentena_until TIMESTAMPTZ.
+- UUID inválido → cuarentena_until = NOW() + 30 days
+- cleanup_stale_purges() respeta cuarentena
+
+**Evidencia:** [LOCAL SUPABASE] con SQL tests reales.
+
+---
+
+## 21. Corrección de H-12 (flujo manual inseguro)
+
+**Problema:** Dos arquitecturas diferentes (automática vs manual).
+
+**Solución:** Unificar en archivos-purge con source_type=certificado.
+
+**Archivos modificados:**
+- src/modules/pacientes/services/papeleraCertificadosService.js
+- src/modules/pacientes/hooks/usePapeleraCertificados.js
+- src/services/supabaseClient.js (exportó supabaseUrl)
+
+**Semántica fail-closed:**
+- Si tiene r2ArchivoId → archivos-purge (validación completa)
+- Si archivos-purge falla → retorna false, no actualiza estado
+- Caso especial: sin r2ArchivoId → DELETE directo (único fallback)
+
+**Tests:** T48-T53 agregados, 1719/1719 Vitest tests pasan.
+
+---
+
+## 22. Corrección de .gitignore
+
+**Problema:** Regla *.sql ocultaría nuevas migraciones.
+
+**Solución:** Reemplazar por reglas específicas + excepción !supabase/migrations/*.sql
+
+**Verificado:** Migraciones nuevas NO ignoradas, backups/ SÍ ignorado.
+
+---
+
+## 23. Resumen final F7-37 v4
+
+### Estadísticas
+- Total hallazgos resueltos: 13 (H-01 a H-12)
+- Total migraciones: 10 (000300-000900)
+- SECURITY DEFINER hardenizadas: 30
+- Tests Deno: 34/34
+- Tests Vitest: 1719/1719
+
+### Estado de cada hallazgo
+| Hallazgo | Estado | Evidencia |
+|---|---|---|
+| H-01 a H-08 | ✅ | [LOCAL SUPABASE] + [PRODUCTION] |
+| H-09 | ✅ | [STATIC] + 34/34 Deno |
+| H-10, H-11, H-11b | ✅ | [LOCAL SUPABASE] SQL tests |
+| H-12 | ✅ | [STATIC] + 1719/1719 Vitest |
+
+### Estado final: 🟢 F7-37 DONE (v4)

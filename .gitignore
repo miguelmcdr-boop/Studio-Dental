@@ -27,8 +27,13 @@ cov/
 # Contienen volcados de producción con datos clínicos reales (pacientes, certificados, etc.)
 # NUNCA deben subirse a GitHub. Mantener solo localmente.
 # ============================================================================
-backups/
-*.sql
+# ⚠️ NO usar *.sql porque ocultaría nuevas migraciones en supabase/migrations/
+/backups/
 *.dump
-*.tar.gz
 *.sql.gz
+*.tar.gz
+*.bak
+*.backup
+
+# Excepciones explícitas para migraciones de Supabase
+!supabase/migrations/*.sql
