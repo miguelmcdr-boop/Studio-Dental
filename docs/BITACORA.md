@@ -1,5 +1,20 @@
 
 
+## 2026-09-30 02:14 — F7-37 v5: Hardening final (P1 #1, P1 #2, H-12 residual, H-11b)
+
+**Estado:** ✅ DONE | **Migración:** 20260930001000 (233 líneas)
+
+### Hallazgos corregidos
+- P1 #1: source_type fail-closed + T54-T58
+- P1 #2: RPC defense + nueva RPC + T60-T62
+- H-12 residual: flujo manual sin R2 unificado + T67-T68
+- H-11b: cuarentena temporal documentada
+
+### Verificaciones
+✅ 43/43 Deno + 287/287 Vitest + 5/5 SQL tests reales
+✅ 17 hallazgos resueltos. Próximo: F7-29 o F7-30.
+
+
 ## 2026-09-30 00:34 — F7-37 v4: Hardening final de H-09 a H-12
 
 **Estado:** ✅ DONE | **Duración:** ~3h | **Migración:** 20260929000900 (290 líneas)

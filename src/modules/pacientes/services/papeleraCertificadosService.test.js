@@ -227,6 +227,45 @@ describe('papeleraCertificadosService (M3)', () => {
       expect(mocks.mockSupabaseFrom).not.toHaveBeenCalled()
     })
 
+    it('T67: fail-closed para certificado sin R2 si archivos-purge falla', async () => {
+      mocks.mockObtenerCertificados.mockReturnValue([
+        { id: 'cert-1', eliminadoAt: '2026-09-14T10:00:00Z' } // sin r2ArchivoId
+      ])
+      mocks.mockFetch.mockResolvedValue({
+        ok: false,
+        status: 500,
+        text: () => Promise.resolve('Internal error')
+      })
+
+      const ok = await eliminarDefinitivo('pac-123', 'cert-1')
+
+      // Fail-closed: si archivos-purge falla, certificado NO se elimina
+      expect(ok).toBe(false)
+      // Caché local NO se actualiza
+      expect(mocks.mockGuardarCertificados).not.toHaveBeenCalled()
+    })
+
+    it('T68: certificado sin R2 - archivos-purge rechaza por validación server-side', async () => {
+      mocks.mockObtenerCertificados.mockReturnValue([
+        { id: 'cert-1', eliminadoAt: '2026-09-14T10:00:00Z' } // sin r2ArchivoId
+      ])
+      mocks.mockFetch.mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({
+          success: true,
+          purgados: [],
+          rechazados: [{ id: 'cert-1', razon: 'certificado_no_en_papelera' }]
+        })
+      })
+
+      const ok = await eliminarDefinitivo('pac-123', 'cert-1')
+
+      // Fail-closed: si archivos-purge rechaza, certificado NO se elimina
+      expect(ok).toBe(false)
+      expect(mocks.mockGuardarCertificados).not.toHaveBeenCalled()
+    })
+
+
     it('T49: fail-closed - si archivos-purge falla, certificado NO se elimina', async () => {
       mocks.mockObtenerCertificados.mockReturnValue([
         { id: 'cert-1', r2ArchivoId: 'r2-arch-123', eliminadoAt: '2026-09-14T10:00:00Z' }
@@ -335,19 +374,72 @@ describe('papeleraCertificadosService (M3)', () => {
       expect(mocks.mockGuardarCertificados).not.toHaveBeenCalled()
     })
 
-    it('certificado SIN r2ArchivoId → DELETE directo (caso especial fallback)', async () => {
+    it('certificado SIN r2ArchivoId → llama a archivos-purge con archivo_ids=[] (H-12)', async () => {
       mocks.mockObtenerCertificados.mockReturnValue([
         { id: 'cert-1', eliminadoAt: '2026-09-14T10:00:00Z' } // sin r2ArchivoId
       ])
+      mocks.mockFetch.mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({
+          success: true,
+          purgados: ['cert-1'],
+          rechazados: []
+        })
+      })
 
       const ok = await eliminarDefinitivo('pac-123', 'cert-1')
 
       expect(ok).toBe(true)
-      // NO debe llamar archivos-purge (no hay archivo)
-      expect(mocks.mockFetch).not.toHaveBeenCalled()
-      // Debe usar DELETE directo
-      expect(mocks.mockSupabaseFrom).toHaveBeenCalledWith('certificados')
+      // F7-37 v5 H-12: Ahora SÍ llama a archivos-purge (unificado)
+      expect(mocks.mockFetch).toHaveBeenCalledTimes(1)
+      const [url, options] = mocks.mockFetch.mock.calls[0]
+      expect(url).toContain('/functions/v1/archivos-purge')
+      const body = JSON.parse(options.body)
+      expect(body.archivo_ids).toEqual([])
+      expect(body.source_type).toBe('certificado')
+      expect(body.certificado_id).toBe('cert-1')
+      // NO debe usar DELETE directo (arquitectura antigua)
+      expect(mocks.mockSupabaseFrom).not.toHaveBeenCalled()
     })
+
+    it('T67: fail-closed para certificado sin R2 si archivos-purge falla', async () => {
+      mocks.mockObtenerCertificados.mockReturnValue([
+        { id: 'cert-1', eliminadoAt: '2026-09-14T10:00:00Z' } // sin r2ArchivoId
+      ])
+      mocks.mockFetch.mockResolvedValue({
+        ok: false,
+        status: 500,
+        text: () => Promise.resolve('Internal error')
+      })
+
+      const ok = await eliminarDefinitivo('pac-123', 'cert-1')
+
+      // Fail-closed: si archivos-purge falla, certificado NO se elimina
+      expect(ok).toBe(false)
+      // Caché local NO se actualiza
+      expect(mocks.mockGuardarCertificados).not.toHaveBeenCalled()
+    })
+
+    it('T68: certificado sin R2 - archivos-purge rechaza por validación server-side', async () => {
+      mocks.mockObtenerCertificados.mockReturnValue([
+        { id: 'cert-1', eliminadoAt: '2026-09-14T10:00:00Z' } // sin r2ArchivoId
+      ])
+      mocks.mockFetch.mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({
+          success: true,
+          purgados: [],
+          rechazados: [{ id: 'cert-1', razon: 'certificado_no_en_papelera' }]
+        })
+      })
+
+      const ok = await eliminarDefinitivo('pac-123', 'cert-1')
+
+      // Fail-closed: si archivos-purge rechaza, certificado NO se elimina
+      expect(ok).toBe(false)
+      expect(mocks.mockGuardarCertificados).not.toHaveBeenCalled()
+    })
+
 
     it('actualiza caché local solo si éxito', async () => {
       mocks.mockObtenerCertificados.mockReturnValue([

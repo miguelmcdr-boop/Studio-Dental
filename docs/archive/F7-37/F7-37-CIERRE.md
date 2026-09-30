@@ -1091,3 +1091,51 @@ Todos corregidos dentro de F7-37 (no se creó F7-38).
 | H-12 | ✅ | [STATIC] + 1719/1719 Vitest |
 
 ### Estado final: 🟢 F7-37 DONE (v4)
+
+
+---
+
+## 24. Hallazgos v5 (P1 #1, P1 #2, H-12 residual, H-11b)
+
+Durante revisión final de F7-37 v4, se detectaron 4 hallazgos residuales:
+
+- **P1 #1**: source_type no fail-closed
+- **P1 #2**: RPC permitía purga genérica de archivos vinculados
+- **H-12 residual**: Flujo manual sin R2 usaba DELETE directo
+- **H-11b**: Cuarentena 30 días no documentada como temporal
+
+---
+
+## 25. P1 #1: source_type fail-closed
+
+Validación estricta con whitelist [archivo, certificado]. Todo lo demás RECHAZA 400.
+Tests: T54-T58 (5 Deno tests). 43/43 pasan.
+
+---
+
+## 26. P1 #2: RPC defense en profundidad
+
+Migración 001000: defensa de vínculo antes de purga genérica.
+Nueva RPC eliminar_certificado_sin_archivo.
+Tests SQL reales: T60-T62 + RPC tests (5 pasan).
+
+---
+
+## 27. H-12 residual: flujo manual unificado
+
+Ambos flujos (con/sin R2) pasan por archivos-purge.
+Nueva función eliminarCertificadoSinArchivo.
+Tests: T67-T68 (2 Vitest tests). 287/287 pasan.
+
+---
+
+## 28. H-11b: cuarentena temporal documentada
+
+Comentario actualizado: cuarentena TEMPORAL 30 días (no permanente).
+
+---
+
+## 29. Estado final F7-37 v5
+
+17 hallazgos resueltos. 11 migraciones. 43 Deno + 287 Vitest + 5 SQL tests.
+Estado: 🟢 F7-37 DONE (v5).

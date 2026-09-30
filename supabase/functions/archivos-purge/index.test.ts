@@ -57,7 +57,7 @@ Deno.test("T1: Usuario con clinica A activa puede purgar archivo A", async () =>
   }) as any;
 
   try {
-    const req = createRequest({ archivo_ids: [ARCHIVO_A] });
+    const req = createRequest({ source_type: "archivo", archivo_ids: [ARCHIVO_A] });
     const res = await handler(req);
     const body = await res.json();
     assertEquals(res.status, 200);
@@ -76,7 +76,7 @@ Deno.test("T2: Usuario con clinica A activa NO puede purgar archivo B (cross-cli
   }) as any;
 
   try {
-    const req = createRequest({ archivo_ids: [ARCHIVO_B] });
+    const req = createRequest({ source_type: "archivo", archivo_ids: [ARCHIVO_B] });
     const res = await handler(req);
     const body = await res.json();
     assertEquals(res.status, 200);
@@ -98,7 +98,7 @@ Deno.test("T3: Miembro con membresía revocada en A -> 403", async () => {
   }) as any;
 
   try {
-    const req = createRequest({ archivo_ids: [ARCHIVO_A] });
+    const req = createRequest({ source_type: "archivo", archivo_ids: [ARCHIVO_A] });
     const res = await handler(req);
     assertEquals(res.status, 403);
   } finally {
@@ -120,7 +120,7 @@ Deno.test("T4: Modo cron interno con X-Internal-Secret puede purgar sin JWT", as
         "X-Internal-Secret": "cron-secret-123",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ archivo_ids: [ARCHIVO_A] }),
+      body: JSON.stringify({ source_type: "archivo", archivo_ids: [ARCHIVO_A] }),
     });
     const res = await handler(req);
     const body = await res.json();
@@ -141,7 +141,7 @@ Deno.test("T5: X-Internal-Secret incorrecto -> 401", async () => {
         "X-Internal-Secret": "wrong-secret",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ archivo_ids: [ARCHIVO_A] }),
+      body: JSON.stringify({ source_type: "archivo", archivo_ids: [ARCHIVO_A] }),
     });
     const res = await handler(req);
     assertEquals(res.status, 401);
@@ -157,7 +157,7 @@ Deno.test("T6: Error 500 NO expone error.message al cliente", async () => {
   }) as any;
 
   try {
-    const req = createRequest({ archivo_ids: [ARCHIVO_A] });
+    const req = createRequest({ source_type: "archivo", archivo_ids: [ARCHIVO_A] });
     const res = await handler(req);
     const body = await res.json();
     assertEquals(res.status, 500);
@@ -192,7 +192,7 @@ Deno.test("T7: R2 falla -> archivo NO eliminado (caso D)", async () => {
   globalThis.fetch = wrappedFetch as any;
 
   try {
-    const req = createRequest({ archivo_ids: [ARCHIVO_A] });
+    const req = createRequest({ source_type: "archivo", archivo_ids: [ARCHIVO_A] });
     const res = await handler(req);
     const body = await res.json();
     assertEquals(res.status, 200);
@@ -227,7 +227,7 @@ Deno.test("T8: Multiples archivos, mixto -> solo exitos purgados (caso E)", asyn
   globalThis.fetch = mockFetch as any;
 
   try {
-    const req = createRequest({ archivo_ids: [ARCHIVO_A, ARCHIVO_B, ARCHIVO_C] });
+    const req = createRequest({ source_type: "archivo", archivo_ids: [ARCHIVO_A, ARCHIVO_B, ARCHIVO_C] });
     const res = await handler(req);
     const body = await res.json();
     assertEquals(res.status, 200);
@@ -1395,7 +1395,7 @@ Deno.test("T32: v3.2 Política admin + dentista consistente", async () => {
         "Authorization": "Bearer valid-jwt",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ archivo_ids: [ARCHIVO_A] }),
+      body: JSON.stringify({ source_type: "archivo", archivo_ids: [ARCHIVO_A] }),
     });
     const resAdmin = await handler(reqAdmin);
     assertEquals(resAdmin.status, 200, "admin debe poder purgar");
@@ -1417,7 +1417,7 @@ Deno.test("T32: v3.2 Política admin + dentista consistente", async () => {
         "Authorization": "Bearer valid-jwt",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ archivo_ids: [ARCHIVO_A] }),
+      body: JSON.stringify({ source_type: "archivo", archivo_ids: [ARCHIVO_A] }),
     });
     const resDentista = await handler(reqDentista);
     assertEquals(resDentista.status, 200, "dentista debe poder purgar");
@@ -1439,7 +1439,7 @@ Deno.test("T32: v3.2 Política admin + dentista consistente", async () => {
         "Authorization": "Bearer valid-jwt",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ archivo_ids: [ARCHIVO_A] }),
+      body: JSON.stringify({ source_type: "archivo", archivo_ids: [ARCHIVO_A] }),
     });
     const resOtro = await handler(reqOtro);
     assertEquals(resOtro.status, 403, "rol no permitido debe rechazar");
@@ -1555,6 +1555,317 @@ Deno.test("T34: v3.2 Idempotencia - ejecutar dos veces el mismo purge válido", 
     assertEquals(res2.status, 200, "Segunda ejecución no debe fallar con 500");
     // Idempotente: el archivo ya no existe, rechazado con razón clara
     assertEquals(body2.rechazados.length, 1);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+
+// ============================================================
+// F7-37 v5: Tests de source_type fail-closed (P1 #1)
+// ============================================================
+
+Deno.test("T54: source_type ausente → REJECT 400, 0 DELETE", async () => {
+  const originalFetch = globalThis.fetch;
+  const archivos = [
+    { id: ARCHIVO_A, clinica_id: CLINICA_A, r2_object_key: `${CLINICA_A}/pac/r2key`, estado: "eliminado", nombre_archivo: "a.pdf" },
+  ];
+
+  globalThis.fetch = createMockFetch({
+    authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+    memberships: baseMemberships,
+    archivos,
+    certificados: [],
+  }) as any;
+
+  try {
+    const req = new Request("http://localhost/archivos-purge", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer valid-jwt",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        archivo_ids: [ARCHIVO_A],
+        // source_type omitido intencionalmente
+      }),
+    });
+    const res = await handler(req);
+    assertEquals(res.status, 400);
+    const body = await res.json();
+    assertEquals(body.error.includes("source_type"), true);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+Deno.test("T55: source_type = null → REJECT 400, 0 DELETE", async () => {
+  const originalFetch = globalThis.fetch;
+  const archivos = [
+    { id: ARCHIVO_A, clinica_id: CLINICA_A, r2_object_key: `${CLINICA_A}/pac/r2key`, estado: "eliminado", nombre_archivo: "a.pdf" },
+  ];
+
+  globalThis.fetch = createMockFetch({
+    authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+    memberships: baseMemberships,
+    archivos,
+    certificados: [],
+  }) as any;
+
+  try {
+    const req = new Request("http://localhost/archivos-purge", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer valid-jwt",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        archivo_ids: [ARCHIVO_A],
+        source_type: null,
+      }),
+    });
+    const res = await handler(req);
+    assertEquals(res.status, 400);
+    const body = await res.json();
+    assertEquals(body.error.includes("source_type"), true);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+Deno.test("T56: source_type = 'foo' → REJECT 400, 0 DELETE", async () => {
+  const originalFetch = globalThis.fetch;
+  const archivos = [
+    { id: ARCHIVO_A, clinica_id: CLINICA_A, r2_object_key: `${CLINICA_A}/pac/r2key`, estado: "eliminado", nombre_archivo: "a.pdf" },
+  ];
+
+  globalThis.fetch = createMockFetch({
+    authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+    memberships: baseMemberships,
+    archivos,
+    certificados: [],
+  }) as any;
+
+  try {
+    const req = new Request("http://localhost/archivos-purge", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer valid-jwt",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        archivo_ids: [ARCHIVO_A],
+        source_type: "foo",
+      }),
+    });
+    const res = await handler(req);
+    assertEquals(res.status, 400);
+    const body = await res.json();
+    assertEquals(body.error.includes("source_type"), true);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+Deno.test("T57: source_type = '' → REJECT 400, 0 DELETE", async () => {
+  const originalFetch = globalThis.fetch;
+  const archivos = [
+    { id: ARCHIVO_A, clinica_id: CLINICA_A, r2_object_key: `${CLINICA_A}/pac/r2key`, estado: "eliminado", nombre_archivo: "a.pdf" },
+  ];
+
+  globalThis.fetch = createMockFetch({
+    authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+    memberships: baseMemberships,
+    archivos,
+    certificados: [],
+  }) as any;
+
+  try {
+    const req = new Request("http://localhost/archivos-purge", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer valid-jwt",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        archivo_ids: [ARCHIVO_A],
+        source_type: "",
+      }),
+    });
+    const res = await handler(req);
+    assertEquals(res.status, 400);
+    const body = await res.json();
+    assertEquals(body.error.includes("source_type"), true);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+Deno.test("T58: source_type con tipo incorrecto (número) → REJECT 400, 0 DELETE", async () => {
+  const originalFetch = globalThis.fetch;
+  const archivos = [
+    { id: ARCHIVO_A, clinica_id: CLINICA_A, r2_object_key: `${CLINICA_A}/pac/r2key`, estado: "eliminado", nombre_archivo: "a.pdf" },
+  ];
+
+  globalThis.fetch = createMockFetch({
+    authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+    memberships: baseMemberships,
+    archivos,
+    certificados: [],
+  }) as any;
+
+  try {
+    const req = new Request("http://localhost/archivos-purge", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer valid-jwt",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        archivo_ids: [ARCHIVO_A],
+        source_type: 123,
+      }),
+    });
+    const res = await handler(req);
+    assertEquals(res.status, 400);
+    const body = await res.json();
+    assertEquals(body.error.includes("source_type"), true);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+// ============================================================
+// F7-37 v5 H-12: Tests de flujo certificado sin archivo
+// ============================================================
+
+Deno.test("T63: certificado sin archivo - flujo válido vía archivos-purge", async () => {
+  const originalFetch = globalThis.fetch;
+  const certificados = [
+    { id: CERT_A, clinica_id: CLINICA_A, eliminado_at: "2026-09-14T10:00:00Z", datos: {} },
+  ];
+
+  globalThis.fetch = createMockFetch({
+    authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+    memberships: baseMemberships,
+    archivos: [],
+    certificados,
+  }) as any;
+
+  try {
+    const req = new Request("http://localhost/archivos-purge", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer valid-jwt",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        archivo_ids: [],
+        source_type: "certificado",
+        certificado_id: CERT_A,
+      }),
+    });
+    const res = await handler(req);
+    assertEquals(res.status, 200);
+    const body = await res.json();
+    assertEquals(body.success, true);
+    assertEquals(body.purgados.length, 1);
+    assertEquals(body.purgados[0], CERT_A);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+Deno.test("T64: certificado sin archivo - certificado_id ausente → REJECT 400", async () => {
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = createMockFetch({
+    authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+    memberships: baseMemberships,
+    archivos: [],
+    certificados: [],
+  }) as any;
+
+  try {
+    const req = new Request("http://localhost/archivos-purge", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer valid-jwt",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        archivo_ids: [],
+        source_type: "certificado",
+        // certificado_id omitido
+      }),
+    });
+    const res = await handler(req);
+    assertEquals(res.status, 400);
+    const body = await res.json();
+    assertEquals(body.error.includes("certificado_id"), true);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+Deno.test("T65: certificado sin archivo - UUID inválido → REJECT 400", async () => {
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = createMockFetch({
+    authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+    memberships: baseMemberships,
+    archivos: [],
+    certificados: [],
+  }) as any;
+
+  try {
+    const req = new Request("http://localhost/archivos-purge", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer valid-jwt",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        archivo_ids: [],
+        source_type: "certificado",
+        certificado_id: "no-es-uuid-valido",
+      }),
+    });
+    const res = await handler(req);
+    assertEquals(res.status, 400);
+    const body = await res.json();
+    assertEquals(body.error.includes("UUID"), true);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+Deno.test("T66: source_type='archivo' con archivo_ids vacío → REJECT 400", async () => {
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = createMockFetch({
+    authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+    memberships: baseMemberships,
+    archivos: [],
+    certificados: [],
+  }) as any;
+
+  try {
+    const req = new Request("http://localhost/archivos-purge", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer valid-jwt",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        archivo_ids: [],
+        source_type: "archivo",
+      }),
+    });
+    const res = await handler(req);
+    assertEquals(res.status, 400);
+    const body = await res.json();
+    assertEquals(body.error.includes("archivo_ids"), true);
   } finally {
     globalThis.fetch = originalFetch;
   }

@@ -95,8 +95,8 @@ export const restaurarCertificado = async (pacienteId, certId) => {
  *   - R2-first DELETE (idempotente con 404)
  *   - RPC atómica (DELETE archivo + DELETE certificado en transacción)
  *
- * Caso especial: si el certificado NO tiene r2ArchivoId, se usa DELETE directo
- * como fallback (certificados sin archivo físico).
+ * Caso especial: si el certificado NO tiene r2ArchivoId, se usa archivos-purge
+ * con source_type='certificado' y archivo_ids=[] (unificado con el flujo con R2).
  *
  * @param {string} pacienteId - ID del paciente (para caché local)
  * @param {string} certId - ID del certificado a eliminar
@@ -126,19 +126,19 @@ export const eliminarDefinitivo = async (pacienteId, certId) => {
       log.error(`eliminarDefinitivo: archivos-purge falló para cert ${certId}`)
       return false
     }
-  } else if (USE_SUPABASE && supabase) {
-    // CASO B: Certificado sin archivo físico → DELETE directo (fallback)
-    try {
-      const { error } = await supabase
-        .from('certificados')
-        .delete()
-        .eq('id', certId)
-      if (error) {
-        log.error('Error eliminando certificado sin R2:', error.message)
-        return false
-      }
-    } catch (e) {
-      log.error('Excepción eliminando certificado sin R2:', e.message)
+  } else {
+    // ============================================================
+    // CASO B: Certificado sin archivo físico → UNIFICADO vía archivos-purge
+    // F7-37 v5 H-12 FIX: Eliminar DELETE directo desde cliente.
+    // Ahora ambos caminos (con R2 y sin R2) pasan por archivos-purge
+    // con source_type='certificado', manteniendo autorización consistente.
+    //
+    // archivos-purge llama a la RPC eliminar_certificado_sin_archivo()
+    // que valida server-side: existe, está en papelera, NO tiene r2ArchivoId.
+    // ============================================================
+    const ok = await eliminarCertificadoSinArchivo(certId)
+    if (!ok) {
+      log.error(`eliminarDefinitivo: archivos-purge falló para certificado sin R2: ${certId}`)
       return false
     }
   }
@@ -218,6 +218,67 @@ const eliminarViaArchivosPurge = async (r2ArchivoId, certId) => {
   }
 }
 
+
+/**
+ * Elimina un certificado SIN archivo físico vía archivos-purge Edge Function.
+ * F7-37 v5 H-12: Unifica el flujo manual con el automático.
+ *
+ * @param {string} certId - ID del certificado a eliminar
+ * @returns {Promise<boolean>} true si fue eliminado correctamente
+ */
+const eliminarCertificadoSinArchivo = async (certId) => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      log.error('eliminarCertificadoSinArchivo: no hay sesión activa')
+      return false
+    }
+
+    if (!supabaseUrl) {
+      log.error('eliminarCertificadoSinArchivo: supabaseUrl no configurado')
+      return false
+    }
+
+    const response = await fetch(`${supabaseUrl}/functions/v1/archivos-purge`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        archivo_ids: [],
+        source_type: 'certificado',
+        certificado_id: certId,
+      }),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'unknown')
+      log.error(`archivos-purge HTTP ${response.status}: ${errorText}`)
+      return false
+    }
+
+    const result = await response.json()
+
+    if (!result.success) {
+      log.error(`archivos-purge respondió success=false: ${JSON.stringify(result)}`)
+      return false
+    }
+
+    if (!Array.isArray(result.purgados) || !result.purgados.includes(certId)) {
+      const rechazado = Array.isArray(result.rechazados)
+        ? result.rechazados.find(r => r.id === certId)
+        : null
+      log.error(`archivos-purge no purgó certificado ${certId}: ${rechazado?.razon || 'desconocido'}`)
+      return false
+    }
+
+    return true
+  } catch (e) {
+    log.error('Excepción en eliminarCertificadoSinArchivo:', e.message)
+    return false
+  }
+}
 /**
  * Vacía la papelera de un paciente (elimina definitivamente todos los certificados)
  * @returns {Promise<number>} cantidad eliminada
