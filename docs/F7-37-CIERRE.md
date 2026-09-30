@@ -1,12 +1,13 @@
 # F7-37: Final Security Integrity Audit — Reporte de Cierre
 
-**Estado:** 🟢 DONE
+**Estado:** 🟢 DONE (v3.2)
 **Fecha:** 2026-09-29
-**Rama:** feature/f7-37-final-hardening
-**PR:** #192 (pendiente)
-**Duración:** 1 sesión intensiva (auditoría + correcciones iterativas)
-**Migraciones:** 4 (000300, 000400, 000500, 000600)
-**Archivos modificados:** 13
+**Iteraciones:** v1 → v2 → v3 → v3.1 → v3.2 (5 ciclos de hardening progresivo)
+**PRs merged:** PRs #190 al #196 (+ #197 docs)
+**Migraciones:** 6 (000300, 000400, 000500, 000600, 000700, 000800)
+**Tests:** 1,712 Vitest / 149 Security Regression / 78 Deno (34 en archivos-purge)
+**Edge Functions desplegadas:** archivos-purge v20 (RPC atómica)
+**Duración:** 5 sesiones de auditoría progresiva + despliegue en producción
 
 ---
 

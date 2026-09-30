@@ -125,7 +125,7 @@ DECLARE
   v_count INTEGER := 0;
   v_archivo_id UUID;
   v_uuid_invalid_count INTEGER := 0;
-  v_supabase_url TEXT := 'https://nagduvivilmzupdpoayo.supabase.co';
+  v_supabase_url TEXT;
   v_service_key TEXT;
 BEGIN
   -- Leer internal_purge_secret (compartida con F7-32)
@@ -137,6 +137,18 @@ BEGIN
     RAISE WARNING '[F7-37 v3.2] internal_purge_secret no configurada. Abortando purga.'
       USING HINT = 'INSERT INTO public.system_config (key, value) VALUES (''internal_purge_secret'', ''<SECRETO>'');';
     RETURN;
+  END IF;
+
+  -- F7-37 v3.2 hardening: Obtener URL de Supabase dinámicamente con fallback seguro
+  -- Evita llamar HTTP de producción cuando la función se ejecuta en staging/local
+  SELECT value INTO v_supabase_url
+  FROM public.system_config
+  WHERE key = 'supabase_url';
+
+  IF v_supabase_url IS NULL OR v_supabase_url = '' THEN
+    v_supabase_url := 'https://nagduvivilmzupdpoayo.supabase.co';
+    RAISE NOTICE '[F7-37 v3.2] supabase_url no configurada. Usando fallback de producción.'
+      USING HINT = 'INSERT INTO public.system_config (key, value) VALUES (''supabase_url'', ''<URL_ENTORNO>'');';
   END IF;
 
   -- Buscar certificados vencidos NO marcados como purga_pendiente

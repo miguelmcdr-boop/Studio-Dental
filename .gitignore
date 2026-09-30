@@ -21,3 +21,14 @@ coverage/
 # Deno artifacts (F7-22b)
 deno.lock
 cov/
+
+# ============================================================================
+# Backups locales de base de datos con PHI (Regla de seguridad F7-37 post-auditoría)
+# Contienen volcados de producción con datos clínicos reales (pacientes, certificados, etc.)
+# NUNCA deben subirse a GitHub. Mantener solo localmente.
+# ============================================================================
+backups/
+*.sql
+*.dump
+*.tar.gz
+*.sql.gz
