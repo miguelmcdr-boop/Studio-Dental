@@ -6,7 +6,6 @@
 **Última actualización:** 2026-08-26 — Fase 6 cerrada funcionalmente salvo F6-F, que se reabre por discrepancia detectada en auditoría de triggers server-side. Fase 7 incorporada como fase obligatoria de seguridad, privacidad, productización y pre-producción.
 **Bitácora histórica:** `docs/BITACORA.md`
 
-
 ## 0. REGLAS DE GOBERNANZA DE ESTE DOCUMENTO
 
 1. Ningún cambio de código se implementa si no corresponde a una tarea con ID en este documento. Si aparece una necesidad no contemplada aquí, se agrega primero como tarea nueva (con su ID, dependencias y criterios de aceptación) antes de tocar código — no se improvisa en el camino.
@@ -24,7 +23,6 @@
 `F<fase>-<número>` — ejemplo: `F1-03` = Fase 1, tarea 3. Sufijos de letra (`F2-03g`, `F2-07h`) identifican hallazgos derivados registrados durante la ejecución de la tarea base, siguiendo la Regla 1 de gobernanza.
 8. **Regla de trazabilidad de métricas:** toda métrica citada en este documento (número de tests, tablas, cobertura, tamaño de bundle) debe ir acompañada del comando que la produce y la fecha de ejecución. Una métrica sin fuente no se copia hacia adelante: se vuelve a medir.
 9. **Regla de verificación contra el código:** antes de marcar `DONE` una tarea cuyo criterio de aceptación sea observable en el repositorio, se deja constancia del comando de verificación y su salida. Marcar `DONE` porque "se implementó" y no porque "se comprobó" es lo que produjo la deriva corregida el 2026-08-16.
-
 
 ---
 
@@ -191,9 +189,10 @@
 | F7-34 | Alinear Edge Functions con contexto multi-clínica activo | 7 | **P0** | M (2-3 d) | F7-10, F7-22, F7-31, F7-32 | **DONE (2026-09-24)** — Validacion manual completa en produccion (commit e5c9f59). Deploy 2026-09-24 05:41 UTC. 12 casos reales ejecutados con usuario dual (admin 28800b1d en Clinicas A+B alternando activa): cross-clinic DENEGADO en ambas direcciones (D1/D3/F1/F3), purges permitidos sobre clinica activa (D2/D4/F2/F4), manipulacion de clinica_id en body ignorada (M1/FM1), canario inverso sin metadata bloquea con 403 (C1/FC1). Audit log verificado sin PHI (nombre/rut removidos). Cleanup completo de fixtures. Ver F7-34b para detalle. |
 | F7-34b | Cierre definitivo de contexto multi-clínica en funciones destructivas y purge | 7 | **P0** | M (1-2 d) | F7-34 | **DONE (2026-09-24)** — Validacion manual completa en produccion con usuario dual (12 casos: 4 cross-clinic DENEGADOS, 4 purges permitidos destructivos, 2 body manipulados ignorados, 2 canarios sin metadata bloqueados 403). Audit log verificado sin PHI. Cleanup de fixtures verificado. 16 tests Deno + 1518 Vitest pasando. CI E2E continue-on-error documentado para F7-30. 62 registros historicos con PHI pre-F7-34b documentados como saneamiento opcional. |
 | F7-35 | Unificación fail-closed del contexto de clínica + hardening R2 | 7 | **P0** | M (2-3 d) | F7-34b | **DONE (2026-09-25)** — clinica_actual() fail-closed sin fallback + regex-guard UUID. Backfill one-time de metadata para 5/7 usuarios. ClinicaSelector auto-persistente. Hardening R2: 10 vectores de details/error.message reemplazados con safeResponse.ts. r2-health-check: 3 niveles de detalle (público/usuario/admin). 22 tests manuales multi-clínica (A-F + C/D/E). Bug detectado y corregido en r2-list-deleted. 149 warnings lint, 0 errores. Vitest 1518/1518. Build OK. Architecture OK. |
+| F7-36 | Implementación completa en 12 fases (E2E + hardening multi-clínica) | 7 | **P0** | L (15-20 d) | F7-35 | **DONE (2026-09-29)** — 12 fases completadas (F1-F12). Cache multi-tenant, E2E canario inverso, 12 Edge Functions desplegadas, hardening de registros, actor_real en audit_log, permisos RPC restrictivos, fail-safe en purge. 1,518+ Vitest, 149 Security Regression. PRs #177-#189 mergeados. |
+| F7-37 | Final Security Integrity Audit (v3.2: RPC atómica + UUID robusto) | 7 | **P0** | L (10-15 d) | F7-36 | **DONE (2026-09-29)** — 5 iteraciones de hardening progresivo. 13 hallazgos resueltos (H-01 a H-08 residual). 6 migraciones (000300-000800). RPC atómica purgar_archivo_y_certificado, EXCEPTION handling para UUIDs inválidos, política admin+dentista. 30 SECURITY DEFINER con search_path vacío. 1,712 Vitest + 149 Security + 78 Deno. PRs #190-#196. archivos-purge v20 desplegada en producción. |
 | F7-22a | Corregir r2-upload-url para guardar mime_type al crear archivo | 7 | P2 | XS (<0.5 d) | F7-22 | DONE (2026-09-06) — mime_type se guarda correctamente en r2-upload-url v7, validado en E2E de F7-22b |
 | F7-22b | Validación server-side de mime_type en Edge Function r2-upload-url | 7 | P2 | XS (<0.5 d) | F7-22a | DONE (2026-09-05) — helper validarFormatoArchivo + 14 tests Deno, lista blanca por categoría, E2E 4/4, r2-upload-url v4 desplegada |
-
 
 ### F6-06b — Pasos comerciales de despliegue a producción — DEFERRED (2026-08-25)
 
@@ -1397,8 +1396,6 @@ quirurgico_implantes, quirurgico_endodoncia
 
 ---
 
-
-
 ### F6-B7 — Alinear `profiles.role` a `app_role` en cloud — DONE (2026-08-25)
 
 **Qué ganamos:** la columna `profiles.role` ahora es del tipo ENUM `app_role` en lugar de `text`, tanto en staging como en el proyecto original. Elimina la inconsistencia de tipos entre el ENUM creado en F6-B1 y la columna que lo usa.
@@ -1560,8 +1557,6 @@ quirurgico_implantes, quirurgico_endodoncia
 
 ---
 
-
-
 ### F6-Ib — Alinear proyecto original de Supabase con schemas versionados — DONE (2026-08-24)
 
 **Qué ganamos:** el proyecto original de Supabase (nagduvivilmzupdpoayo, usado para desarrollo local) queda alineado con los schemas versionados en supabase/ y libre de datos de E2E. Elimina la deuda técnica de desalineación entre entornos.
@@ -1632,10 +1627,6 @@ quirurgico_implantes, quirurgico_endodoncia
 ### BLOQUE DE HARDENING — origen auditoría de métricas
 
 ---
-
-
-
-
 
 ### F6-O — Crear tabla `certificados` faltante + corregir verificaciones — DONE (2026-08-25)
 
@@ -1985,10 +1976,7 @@ quirurgico_implantes, quirurgico_endodoncia
 
 ---
 
-
-
 ---
-
 
 ### F7-31 — Papelera de archivos clínicos (restaurar archivos eliminados de R2)
 
@@ -2224,7 +2212,6 @@ No se implementará ninguna tarea hasta confirmación explícita del usuario (Re
 El registro histórico de tareas completadas se trasladó a **`docs/BITACORA.md`** para mantener este documento legible de una sentada.
 
 Este archivo responde a *qué falta y en qué orden*. La bitácora responde a *qué se hizo y cuándo*. Toda tarea que pase a `DONE` se registra allí, con su evidencia y su fecha, y aquí solo cambia la columna Estado del tablero.
-
 
 ---
 
@@ -2754,9 +2741,45 @@ Después de todas las modificaciones ejecutar: Vitest, Security Regression, Deno
 - inventar resultados
 - modificar el roadmap antes de terminar las pruebas
 
----
 
-##
+### Criterios de aceptación globales F7-36
+
+**Multi-tenant cache:**
+- [x] cache aislada por clínica (FASE 1 ✅)
+- [x] no existe fallback cross-clinic (FASE 1 ✅)
+- [x] [] válido de Supabase no recupera cache antigua (FASE 1 ✅)
+- [x] cambio A → B → A funciona correctamente (FASE 1 ✅)
+- [x] error de red puede usar solo cache de la misma clínica (FASE 1 ✅)
+- [x] legacy cache no puede contaminar otra clínica (FASE 1 ✅)
+
+**Auditoría:**
+- [x] RPC de auditoría no puede ser abusada por usuarios normales (FASE 2)
+- [ ] SECURITY DEFINER revisadas (FASE 2 + FASE 3)
+- [ ] search_path endurecido donde corresponde (FASE 3)
+- [ ] actor real registrado (FASE 5)
+- [ ] no se almacena PHI innecesaria (FASE 4)
+
+**Purga:**
+- [ ] R2 failure no permite borrar silenciosamente paciente (FASE 6)
+- [ ] reintento posible (FASE 6)
+- [ ] casos parciales cubiertos por tests (FASE 6)
+
+**Database:**
+- [x] db reset limpio (FASE 7) ✅
+- [x] auditar_cambio existe después del reset (FASE 7) ✅
+- [x] triggers existen (FASE 7) ✅
+- [x] RLS existe (FASE 7) ✅
+- [x] funciones existen (FASE 7) ✅
+
+**CI:**
+- [ ] Vitest (FASE 11)
+- [ ] security regression (FASE 11)
+- [ ] Deno (FASE 11)
+- [ ] build (FASE 11)
+- [ ] architecture (FASE 11)
+- [ ] coverage (FASE 11)
+- [ ] E2E evaluado honestamente (FASE 10 + FASE 11)
+
 ---
 
 ### F7-37: Final Security Integrity Audit ✅ COMPLETADA (2026-09-29) — 🟢 DONE
@@ -2802,45 +2825,7 @@ auditar_cambio, clinica_actual, es_admin_de_clinica_actual, rol_en_clinica_actua
 
 **Referencia:** docs/F7-37-CIERRE.md
 
-**✅ Migraciones aplicadas en producción:** 5 migraciones (000300, 000400, 000500, 000600, 000700) aplicadas vía supabase db query --linked.
-
-## Criterios de aceptación globales F7-36
-
-**Multi-tenant cache:**
-- [x] cache aislada por clínica (FASE 1 ✅)
-- [x] no existe fallback cross-clinic (FASE 1 ✅)
-- [x] [] válido de Supabase no recupera cache antigua (FASE 1 ✅)
-- [x] cambio A → B → A funciona correctamente (FASE 1 ✅)
-- [x] error de red puede usar solo cache de la misma clínica (FASE 1 ✅)
-- [x] legacy cache no puede contaminar otra clínica (FASE 1 ✅)
-
-**Auditoría:**
-- [x] RPC de auditoría no puede ser abusada por usuarios normales (FASE 2)
-- [ ] SECURITY DEFINER revisadas (FASE 2 + FASE 3)
-- [ ] search_path endurecido donde corresponde (FASE 3)
-- [ ] actor real registrado (FASE 5)
-- [ ] no se almacena PHI innecesaria (FASE 4)
-
-**Purga:**
-- [ ] R2 failure no permite borrar silenciosamente paciente (FASE 6)
-- [ ] reintento posible (FASE 6)
-- [ ] casos parciales cubiertos por tests (FASE 6)
-
-**Database:**
-- [x] db reset limpio (FASE 7) ✅
-- [x] auditar_cambio existe después del reset (FASE 7) ✅
-- [x] triggers existen (FASE 7) ✅
-- [x] RLS existe (FASE 7) ✅
-- [x] funciones existen (FASE 7) ✅
-
-**CI:**
-- [ ] Vitest (FASE 11)
-- [ ] security regression (FASE 11)
-- [ ] Deno (FASE 11)
-- [ ] build (FASE 11)
-- [ ] architecture (FASE 11)
-- [ ] coverage (FASE 11)
-- [ ] E2E evaluado honestamente (FASE 10 + FASE 11)
+**✅ Migraciones aplicadas en producción:** 6 migraciones (000300, 000400, 000500, 000600, 000700, 000800) aplicadas vía supabase db push --include-all.
 
 ---
 

@@ -48,7 +48,7 @@ export const CertificadosSection = memo(({
   // Sincronizar causaba duplicados (mismo ID con diferentes props).
   // El padre se actualiza solo al desmontar este componente.
   
-  const { confirm, alert } = useAppDialog()
+  const { confirm } = useAppDialog()
   
   // CRÍTICO: Sincronizar con el padre al desmontar (para persistencia)
   useEffect(() => {
