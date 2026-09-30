@@ -199,42 +199,11 @@ export async function handler(req: Request): Promise<Response> {
 
     // 2. Parsear body
     const body = await req.json();
-
-    // ============================================================
-    // F7-37 v5 P1 #1 FIX: source_type fail-closed
-    // Solo acepta "archivo" o "certificado" (strings exactos).
-    // Cualquier otro valor (null, "", número, "foo", undefined) → RECHAZAR 400
-    // No existe fallback silencioso a "archivo".
-    // ============================================================
-    const validSourceTypes = ['archivo', 'certificado'];
-    const sourceTypeRaw = body.source_type;
-
-    if (
-      sourceTypeRaw === null ||
-      sourceTypeRaw === undefined ||
-      typeof sourceTypeRaw !== 'string' ||
-      !validSourceTypes.includes(sourceTypeRaw)
-    ) {
-      return jsonResponse(
-        { error: "Invalid source_type. Must be 'archivo' or 'certificado'." },
-        400
-      );
-    }
-
-    const sourceType: string = sourceTypeRaw;
     const archivoIds: string[] = Array.isArray(body.archivo_ids) ? body.archivo_ids : [];
 
-    // ============================================================
-    // F7-37 v5: Validación específica por source_type
-    // ============================================================
-    if (sourceType === 'archivo' && archivoIds.length === 0) {
-      return jsonResponse(
-        { error: "archivo_ids is required and non-empty when source_type='archivo'." },
-        400
-      );
-    }
-
+    // F7-37 v2: Detectar si es purge de certificados (source_type === 'certificado')
     // source_ids mapea archivo_id -> certificado_id para poder eliminar ambos
+    const sourceType: string = body.source_type === 'certificado' ? 'certificado' : 'archivo';
     const sourceIds: Record<string, string> = sourceType === 'certificado' && body.source_ids ? body.source_ids : {};
 
     // F7-32 FIX: En modo interno (cron), saltar checks de clínica/rol del usuario.
@@ -274,89 +243,6 @@ export async function handler(req: Request): Promise<Response> {
       }
     }
 
-    // ============================================================
-    // F7-37 v5 H-12 FIX: Flujo certificado sin archivo
-    // Si source_type === 'certificado' y archivo_ids está vacío,
-    // requiere certificado_id y llama a la RPC eliminar_certificado_sin_archivo.
-    // ============================================================
-    if (sourceType === 'certificado' && archivoIds.length === 0) {
-      const certificadoId = body.certificado_id;
-
-      // Validar que se proporcionó certificado_id
-      if (!certificadoId || typeof certificadoId !== 'string') {
-        return jsonResponse(
-          { error: "certificado_id is required when source_type='certificado' and archivo_ids is empty." },
-          400
-        );
-      }
-
-      // Validar formato UUID
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      if (!uuidRegex.test(certificadoId)) {
-        return jsonResponse(
-          { error: "Invalid certificado_id format. Must be a valid UUID." },
-          400
-        );
-      }
-
-      // Llamar a la RPC eliminar_certificado_sin_archivo (usa service_role)
-      const rpcRes = await fetch(
-        `${supabaseUrl}/rest/v1/rpc/eliminar_certificado_sin_archivo`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${supabaseServiceKey}`,
-            apikey: supabaseServiceKey,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ p_certificado_id: certificadoId }),
-        }
-      );
-
-      if (!rpcRes.ok) {
-        return jsonResponse({ error: "RPC call failed" }, 500);
-      }
-
-      const rpcResult = await rpcRes.json();
-
-      if (!rpcResult.exito) {
-        return jsonResponse(
-          {
-            success: true,
-            purgados: [],
-            rechazados: [{ id: certificadoId, razon: rpcResult.razon || "error_rpc" }],
-            message: "Certificado rechazado",
-          },
-          200
-        );
-      }
-
-      // Registrar auditoría
-      await fetch(`${supabaseUrl}/rest/v1/rpc/registrar_evento_purge`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${supabaseServiceKey}`, apikey: supabaseServiceKey, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          p_clinica_id: null, // La RPC no devuelve clinica_id; se omite
-          p_evento: "ADMIN_PURGE_CERTIFICADO_SIN_ARCHIVO",
-          p_detalle: { certificado_id: certificadoId },
-          p_user_id: userId,
-        }),
-      });
-
-      return jsonResponse(
-        {
-          success: true,
-          purgados: [certificadoId],
-          rechazados: [],
-          message: "Certificado sin archivo eliminado correctamente",
-        },
-        200
-      );
-    }
-
-    // ============================================================
-    // Flujo normal con archivo_ids (existente)
-    // ============================================================
     if (archivoIds.length === 0) {
       return jsonResponse({ error: "Missing required field: archivo_ids" }, 400);
     }

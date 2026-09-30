@@ -249,6 +249,21 @@ export function createMockFetch(config: MockFetchConfig) {
       return new Response(null, { status: 204 });
     }
 
+
+    // F7-37 v5 H-12: RPC para eliminar certificado sin archivo
+    if (urlStr.includes("/rest/v1/rpc/eliminar_certificado_sin_archivo")) {
+      if (config.rpcOk === false) {
+        return new Response(JSON.stringify({
+          exito: false,
+          razon: config.rpcRazon || "error_db_transaccional"
+        }), { status: 200, headers: { "Content-Type": "application/json" } });
+      }
+      // Éxito: simular DELETE de certificado sin archivo
+      return new Response(JSON.stringify({
+        exito: true,
+        certificado_eliminado: "test-cert-id"
+      }), { status: 200, headers: { "Content-Type": "application/json" } });
+    }
     console.error(`[mockFetch] Unmatched URL: ${urlStr}`);
     return new Response("Not found", { status: 404 });
   };
