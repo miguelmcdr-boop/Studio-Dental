@@ -1,13 +1,17 @@
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '../../../services/supabaseClient'
 import { certificadosStorageService } from '../services/certificadosStorageService'
-import { eliminaArchivo } from '../../../services/r2ArchivosService'
+import * as papeleraCertificadosService from '../services/papeleraCertificadosService'
 import { createLogger } from '../../../services/logger'
 
 const log = createLogger('usePapeleraCertificados')
 
 /**
  * Hook papelera de certificados (M3).
+ *
+ * F7-37 v4 H-12: La eliminación definitiva delega al service que usa
+ * archivos-purge Edge Function (arquitectura segura + RPC atómica).
+ *
  * Estado local como fuente única de verdad.
  * Storage se actualiza de forma async (fire-and-forget).
  */
@@ -63,32 +67,56 @@ export const usePapeleraCertificados = (pacienteId, certificados, setCertificado
     return true
   }
 
+  /**
+   * Elimina definitivamente un certificado usando la arquitectura segura
+   * vía archivos-purge Edge Function (F7-37 v4 H-12).
+   *
+   * Solo actualiza el estado local si el service reporta éxito.
+   * Si el service falla, NO se actualiza el estado local (consistencia).
+   */
   const eliminarDef = async (certId) => {
-    const cert = certificados.find(c => String(c.id) === String(certId))
+    if (!Array.isArray(certificados)) return false
+
+    // Delegar al service (que usa archivos-purge con validaciones completas)
+    const ok = await papeleraCertificadosService.eliminarDefinitivo(pacienteId, certId)
+
+    if (!ok) {
+      log.error(`eliminarDef: service falló para cert ${certId}, NO actualizar estado local`)
+      return false
+    }
+
+    // Solo actualizar estado local si éxito
     const actualizados = certificados.filter(c => String(c.id) !== String(certId))
     setCertificados(actualizados)
     persistir(actualizados)
-    if (cert?.r2ArchivoId) {
-      eliminaArchivo(cert.r2ArchivoId).catch(err => log.warn('Error borrando R2:', err))
-    }
-    log.info(`[AUDITORÍA] Eliminación definitiva: id=${certId}, paciente=${pacienteId}`)
+    log.info(`[AUDITORÍA] Eliminación definitiva vía archivos-purge: id=${certId}, paciente=${pacienteId}`)
     return true
   }
 
+  /**
+   * Vacía la papelera eliminando definitivamente todos los certificados.
+   * Usa el service para cada uno (arquitectura segura vía archivos-purge).
+   */
   const vaciarPapeleraLocal = async () => {
     const eliminados = certificados.filter(c => c.eliminadoAt)
     if (eliminados.length === 0) return 0
-    const actualizados = certificados.filter(c => !c.eliminadoAt)
-    setCertificados(actualizados)
-    persistir(actualizados)
-    const conR2 = eliminados.filter(c => c.r2ArchivoId)
-    if (conR2.length > 0) {
-      Promise.all(conR2.map(c => eliminaArchivo(c.r2ArchivoId)))
-        .then(res => log.info(`[AUDITORÍA] Vaciado papelera: R2 eliminados=${res.filter(Boolean).length}`))
-        .catch(err => log.warn('Error vaciando R2:', err))
+
+    // Procesar cada certificado a través del service
+    const resultados = await Promise.all(
+      eliminados.map(c => papeleraCertificadosService.eliminarDefinitivo(pacienteId, c.id))
+    )
+
+    // Solo remover del estado local los que fueron eliminados exitosamente
+    const eliminadosExitosos = eliminados.filter((_, i) => resultados[i])
+    const actualizados = certificados.filter(c => !eliminadosExitosos.some(e => String(e.id) === String(c.id)))
+
+    if (eliminadosExitosos.length > 0) {
+      setCertificados(actualizados)
+      persistir(actualizados)
     }
-    log.info(`[AUDITORÍA] Vaciado papelera: paciente=${pacienteId}, eliminados=${eliminados.length}`)
-    return eliminados.length
+
+    log.info(`[AUDITORÍA] Vaciado papelera: paciente=${pacienteId}, exitosos=${eliminadosExitosos.length}/${eliminados.length}`)
+    return eliminadosExitosos.length
   }
 
   return {

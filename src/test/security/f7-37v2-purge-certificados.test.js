@@ -112,8 +112,8 @@ describe('F7-37 v2: Purge de certificados con eventual consistency', () => {
   it('T7b: source_ids es referencia no confiable, validada server-side (v3.1)', () => {
     const ruta = join(ROOT, 'supabase/functions/archivos-purge/index.ts')
     const contenido = readFileSync(ruta, 'utf-8')
-    // F7-37 v3.1: source_ids se usa SOLO cuando sourceType es certificado
-    expect(contenido).toMatch(/sourceType === 'certificado' && sourceIds\[archivoId\]/)
+    // F7-37 v4 H-09: validación fail-closed de source_ids
+    expect(contenido).toMatch(/if \(sourceType === 'certificado'\)/)
     // Pero ANTES de usarlo, se valida server-side con validarCertificadoParaPurge
     expect(contenido).toMatch(/certificadoId = sourceIds\[archivoId\]/)
     expect(contenido).toMatch(/validarCertificadoParaPurge\(/)

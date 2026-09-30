@@ -6,22 +6,25 @@ import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { handler } from "./index.ts";
 import { createMockFetch, setupDenoEnv } from "../_shared/testUtils.ts";
 
-const ROOT = Deno.cwd();
+// F7-37 v4: Usar import.meta.url para obtener ruta absoluta del repo root
+// (Deno.cwd() es incorrecto cuando tests se ejecutan desde supabase/functions/archivos-purge/)
+// F7-37 v4: decodeURIComponent para convertir %20 → espacio en paths con espacios
+const ROOT = decodeURIComponent(new URL('../../../', import.meta.url).pathname).replace(/\/$/, '');
 
-const USER_ID = "user-123";
-const CLINICA_A = "clinica-A-uuid";
-const CLINICA_B = "clinica-B-uuid";
-const ARCHIVO_A = "archivo-A-uuid";
-const ARCHIVO_B = "archivo-B-uuid";
+const USER_ID = "11111111-1111-1111-1111-111111111111";
+const CLINICA_A = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
+const CLINICA_B = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
+const ARCHIVO_A = "11111111-2222-3333-4444-555555555555";
+const ARCHIVO_B = "22222222-3333-4444-5555-666666666666";
 
 setupDenoEnv();
 
 // ============================================================
 // F7-37 v3: Constantes para tests H-08 (certificados)
 // ============================================================
-const CERT_A = "cert-A-uuid";
-const CERT_B = "cert-B-uuid";
-const ARCHIVO_C = "archivo-C-uuid";
+const CERT_A = "cccccccc-cccc-cccc-cccc-cccccccccccc";
+const CERT_B = "dddddddd-dddd-dddd-dddd-dddddddddddd";
+const ARCHIVO_C = "33333333-4444-5555-6666-777777777777";
 
 
 const baseMemberships = [
@@ -206,7 +209,7 @@ Deno.test("T7: R2 falla -> archivo NO eliminado (caso D)", async () => {
 
 Deno.test("T8: Multiples archivos, mixto -> solo exitos purgados (caso E)", async () => {
   const originalFetch = globalThis.fetch;
-  const ARCHIVO_C = "archivo-C-uuid";
+  const ARCHIVO_C = "33333333-4444-5555-6666-777777777777";
   const ARCHIVO_FALLA = `${CLINICA_A}/pac/r2key-falla`;
 
   const archivosMix = [
@@ -350,7 +353,7 @@ Deno.test("T11: H-08 certificado inexistente -> DENY", async () => {
       body: JSON.stringify({
         archivo_ids: [ARCHIVO_A],
         source_type: "certificado",
-        source_ids: { [ARCHIVO_A]: "certificado-inexistente" },
+        source_ids: { [ARCHIVO_A]: "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee" },
       }),
     });
     const res = await handler(req);
@@ -807,7 +810,7 @@ Deno.test("T20: H-08 residual cert inexistente → CERO deletes", async () => {
       body: JSON.stringify({
         archivo_ids: [ARCHIVO_A],
         source_type: "certificado",
-        source_ids: { [ARCHIVO_A]: "certificado-inexistente" },
+        source_ids: { [ARCHIVO_A]: "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee" },
       }),
     });
     const res = await handler(req);

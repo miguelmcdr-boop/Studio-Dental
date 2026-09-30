@@ -19,7 +19,8 @@ import { createLogger } from './logger.js'
 const log = createLogger('supabaseClient')
 
 // Cargar variables de entorno de Vite
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+// F7-37 v4 H-12: exportar para que papeleraCertificadosService pueda llamar a archivos-purge
+export const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 // Feature flag para activar/desactivar Supabase (estrategia de reversibilidad)
