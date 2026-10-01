@@ -4,7 +4,16 @@
  * Configuración visual por estado del cálculo.
  */
 
-export const CONFIG_ESTADO = {
+export interface EstadoVisualConfig {
+  bg: string
+  border: string
+  text: string
+  label: string
+}
+
+export type TipoEstadoCalculo = 'OK' | 'DATOS_INCOMPLETOS' | 'ANESTESICO_DESCONOCIDO'
+
+export const CONFIG_ESTADO: Record<TipoEstadoCalculo, EstadoVisualConfig> = {
   OK: {
     bg: 'bg-blue-50',
     border: 'border-blue-200',
