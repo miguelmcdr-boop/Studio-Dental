@@ -19,6 +19,7 @@ import { Icon } from './Icon'
 import { Button } from './ui/Button'
 import { Badge } from './ui/Badge'
 import { ClinicaSelector } from './ClinicaSelector'
+import { DentikOSLogo } from './brand/DentikOSLogo'
 import { NOMBRES_ROLES } from '../constants/rbacConstants'
 
 export const TopBar = ({
@@ -70,16 +71,14 @@ export const TopBar = ({
   return (
     <header className="sticky top-0 z-40 bg-white dark:bg-graphite-900 border-b border-graphite-200 dark:border-graphite-700 shadow-sm">
       <div className="flex items-center justify-between px-4 py-2 h-16">
-        {/* Izquierda: Logo + ClinicaSelector */}
+        {/* Izquierda: Logo DentikOS + ClinicaSelector */}
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 bg-primary rounded-full flex items-center justify-center font-bold text-base text-white">
-              C
-            </div>
-            <span className="font-bold text-base text-graphite-900 dark:text-graphite-50 hidden md:block">
-              Consulta
-            </span>
-          </div>
+          <DentikOSLogo
+            variant="horizontal"
+            size="sm"
+            opticalSize="standard"
+            dark={darkMode}
+          />
 
           <div className="h-8 w-px bg-graphite-200 dark:bg-graphite-700 hidden md:block" />
 

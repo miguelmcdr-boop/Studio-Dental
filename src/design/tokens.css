@@ -1,105 +1,151 @@
 /**
- * Design Tokens — Studio Dental (F7-25 + F10-A1 v2)
+ * Design Tokens — DentikOS (Manual Maestro de Marca y Sistema de Diseño v1.0)
  * 
- * Paleta: Graphite & Champagne (híbrido claro/oscuro)
+ * Identidad Oficial: Oro Corporativo, Superficies Clínicas de Precisión y Modo Quirúrgico
  * 
- * Modo CLARO (uso diario 8+ horas):
- *   Fondo:     Grafito suave #f3f4f6
- *   Primario:  Champagne #b08d57 (dorado sutil)
- *   Acento:    Carbón #1f2937
+ * Modo CLARO:
+ *   Canvas:     #F8FAFC
+ *   Superficie: #FFFFFF
+ *   Elevado:    #F1F5F9
+ *   Bordes:     #E2E8F0
  * 
- * Modo OSCURO (presentaciones/ejecutivos):
- *   Fondo:     Grafito profundo #111827
- *   Primario:  Champagne brillante #d4b896
- *   Acento:    Gris humo #f9fafb
+ * Modo OSCURO (Obsidiana):
+ *   Canvas:     #070B14
+ *   Superficie: #0F172A
+ *   Elevado:    #1E293B
+ *   Bordes:     #24334A
  * 
- * Uso en componentes:
- *   className="bg-primary text-graphite-900 dark:bg-graphite-900 dark:text-graphite-50"
- * 
- * Activar modo oscuro: agregar clase 'dark' al <html> o <body>
+ * Modo QUIRÚRGICO (.theme-surgical - Antirreflejo / Pabellón):
+ *   Canvas:     #CBD5E1
+ *   Superficie: #F1F5F9
+ *   Elevado:    #E2E8F0
+ *   Bordes:     #475569
+ *   Texto:      #000000 (SemiBold 600)
  */
 
 @theme {
-  /* === CHAMPAGNE (primario) === */
-  --color-champagne-50: #faf6f0;
-  --color-champagne-100: #f0e5d1;
-  --color-champagne-200: #e0c99f;
-  --color-champagne-300: #d4b896;
-  --color-champagne-400: #c9a961;
-  --color-champagne-500: #b08d57;  /* Primario claro */
-  --color-champagne-600: #8f6f3f;
-  --color-champagne-700: #6b5330;
-  --color-champagne-800: #4a3a22;
-  --color-champagne-900: #2a2113;
+  /* === ORO CORPORATIVO DENTIKOS === */
+  --color-gold-light: #FFF5DF;
+  --color-gold-satin: #E5C378;
+  --color-gold-solid: #B88E3A;
+  --color-gold-accent: #D4AF37;
 
-  /* === GRAPHITE (fondo/base) === */
-  --color-graphite-50: #f9fafb;
-  --color-graphite-100: #f3f4f6;   /* Fondo claro */
-  --color-graphite-200: #e5e7eb;
-  --color-graphite-300: #d1d5db;
-  --color-graphite-400: #9ca3af;
-  --color-graphite-500: #6b7280;
-  --color-graphite-600: #4b5563;
-  --color-graphite-700: #374151;
-  --color-graphite-800: #1f2937;   /* Acento claro */
-  --color-graphite-900: #111827;   /* Fondo oscuro */
-  --color-graphite-950: #0a0a0a;
+  /* Compatibilidad con paleta Champagne previa */
+  --color-champagne-50: #FFF5DF;
+  --color-champagne-100: #F9ECD2;
+  --color-champagne-200: #F0DCAB;
+  --color-champagne-300: #E5C378;
+  --color-champagne-400: #CCA352;
+  --color-champagne-500: #B88E3A;  /* Primario sólido */
+  --color-champagne-600: #99732B;
+  --color-champagne-700: #7A591F;
+  --color-champagne-800: #573E13;
+  --color-champagne-900: #332309;
 
-  /* === SEMÁNTICOS (estados clínicos) === */
-  --color-clinical-success: #10b981;
-  --color-clinical-warning: #f59e0b;
-  --color-clinical-error: #dc2626;
-  --color-clinical-info: #0369a1;
+  /* === GRAPHITE / OBSIDIANA === */
+  --color-graphite-50: #F8FAFC;
+  --color-graphite-100: #F1F5F9;
+  --color-graphite-200: #E2E8F0;
+  --color-graphite-300: #CBD5E1;
+  --color-graphite-400: #94A3B8;
+  --color-graphite-500: #64748B;
+  --color-graphite-600: #475569;
+  --color-graphite-700: #334155;
+  --color-graphite-800: #1E293B;
+  --color-graphite-900: #0F172A;
+  --color-graphite-950: #070B14;
 
-  /* === ALIASES (mapeo para uso directo) === */
-  --color-primary: #b08d57;
-  --color-primary-light: #d4b896;
-  --color-surface: #ffffff;
-  --color-surface-muted: #f3f4f6;
-  --color-border: #e5e7eb;
+  /* === SUBPALETA CLÍNICA (Odontograma / Periodontograma) === */
+  --color-clinical-healthy-light: #0284C7;
+  --color-clinical-healthy-dark: #38BDF8;
+  --color-clinical-caries-light: #DC2626;
+  --color-clinical-caries-dark: #F43F5E;
+  --color-clinical-endo-light: #D97706;
+  --color-clinical-endo-dark: #FBBF24;
+  --color-clinical-implant-light: #64748B;
+  --color-clinical-implant-dark: #94A3B8;
+  --color-clinical-missing-light: #334155;
+  --color-clinical-missing-dark: #475569;
+  --color-clinical-bleeding-light: #BE123C;
+  --color-clinical-bleeding-dark: #FB7185;
 
-  /* === TIPOGRAFÍA === */
-  --font-display: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+  /* Semánticos generales */
+  --color-clinical-success: #10B981;
+  --color-clinical-warning: #F59E0B;
+  --color-clinical-error: #DC2626;
+  --color-clinical-info: #0284C7;
 
-  /* Escala tipográfica del Design System (F10)
-     Uso en componentes base nuevos: font-size: var(--ds-text-base)
-     Nota: namespace propio para NO sobreescribir utilidades Tailwind text-*. */
-  --ds-text-xs: 0.75rem;    /* 12px — captions, helper text */
-  --ds-text-sm: 0.8125rem;  /* 13px — labels, metadatos */
-  --ds-text-base: 0.875rem; /* 14px — UI densa (base del DS) */
-  --ds-text-lg: 1rem;       /* 16px — body estándar */
-  --ds-text-xl: 1.25rem;    /* 20px — títulos de sección */
-  --ds-text-2xl: 1.5rem;    /* 24px — títulos de página */
-  --ds-text-3xl: 1.875rem;  /* 30px — hero (uso excepcional) */
+  /* === ALIASES DE MARCA === */
+  --color-primary: #B88E3A;
+  --color-primary-light: #E5C378;
+  --color-surface: #FFFFFF;
+  --color-surface-muted: #F8FAFC;
+  --color-border: #E2E8F0;
 
-  /* Pesos tipográficos normalizados (F10)
-     Retira font-black/extrabold en favor de escala 400/500/600. */
+  /* === TIPOGRAFÍA OFICIAL === */
+  --font-display: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+
+  /* Escala tipográfica */
+  --ds-text-xs: 0.75rem;    /* 12px */
+  --ds-text-sm: 0.8125rem;  /* 13px */
+  --ds-text-base: 0.875rem; /* 14px */
+  --ds-text-lg: 1rem;       /* 16px */
+  --ds-text-xl: 1.25rem;    /* 20px */
+  --ds-text-2xl: 1.5rem;    /* 24px */
+  --ds-text-3xl: 1.875rem;  /* 30px */
+
+  /* Pesos tipográficos */
   --ds-weight-regular: 400;
   --ds-weight-medium: 500;
   --ds-weight-semibold: 600;
+  --ds-weight-bold: 700;
 
-  /* === RADIOS === */
-  --radius-xs: 4px;   /* Controles muy pequeños (Badge, dot) */
-  --radius-sm: 6px;   /* Botones, inputs */
-  --radius-md: 8px;   /* Cards estándar */
-  --radius-lg: 12px;  /* Modales grandes */
-  --radius-xl: 16px;  /* Contenedores grandes (legacy) */
+  /* === GEOMETRÍA NORMATIVA (Border Radius) === */
+  --radius-input: 8px;     /* Inputs y Botones */
+  --radius-btn: 8px;
+  --radius-card: 12px;     /* Tarjetas y Contenedores */
+  --radius-modal: 16px;    /* Modales y Diálogos */
+
+  /* Compatibilidad con escalas radius estándar */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
 
   /* === SOMBRAS === */
-  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.03);                                          /* Sutil para elementos estáticos */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);                                          /* Botones, inputs */
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);       /* Cards elevados */
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);     /* Dropdowns, popovers */
-  --shadow-overlay: 0 25px 50px -12px rgb(0 0 0 / 0.25);                               /* Modales y overlays */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.03);
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+  --shadow-overlay: 0 25px 50px -12px rgb(0 0 0 / 0.25);
 }
 
-/* === ESPACIADO (base 4px) ===
-   FUERA de @theme a propósito (F7-25 hotfix): dentro de @theme, Tailwind v4
-   registra --spacing-* como valores de utilidades (max-w-md = 12px!) y
-   colapsa todos los max-w-*. Como variables :root siguen disponibles
-   para var(--spacing-md) sin tocar el namespace de utilidades. */
+/* === VARIABLES DE MOVIMIENTO Y SUPERFICIES (:root) === */
 :root {
+  /* Tokens de Superficie — Modo Claro */
+  --surface-canvas: #F8FAFC;
+  --surface-default: #FFFFFF;
+  --surface-elevated: #F1F5F9;
+  --surface-border: #E2E8F0;
+  --surface-text: #0F172A;
+
+  /* Subpaleta Clínica Activa (por defecto claro) */
+  --clinical-healthy: #0284C7;
+  --clinical-caries: #DC2626;
+  --clinical-endo: #D97706;
+  --clinical-implant: #64748B;
+  --clinical-missing: #334155;
+  --clinical-bleeding: #BE123C;
+
+  /* Tokens de Movimiento */
+  --motion-instant: 100ms cubic-bezier(0, 0, 0.2, 1);
+  --motion-fast: 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-standard: 250ms cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-fluid: 350ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Espaciado base 4px */
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 12px;
@@ -108,30 +154,88 @@
   --spacing-2xl: 32px;
 }
 
-/* === MODO OSCURO === */
-/* Activar con clase 'dark' en <html> o <body> */
+/* === MODO OSCURO (Obsidiana) === */
 .dark {
   color-scheme: dark;
 
-  --color-primary: #d4b896;
-  --color-primary-light: #e0c99f;
-  --color-surface: #1f2937;
-  --color-surface-muted: #111827;
-  --color-border: #374151;
+  --surface-canvas: #070B14;
+  --surface-default: #0F172A;
+  --surface-elevated: #1E293B;
+  --surface-border: #24334A;
+  --surface-text: #F8FAFC;
+
+  --color-primary: #E5C378;
+  --color-primary-light: #FFF5DF;
+  --color-surface: #0F172A;
+  --color-surface-muted: #070B14;
+  --color-border: #24334A;
+
+  /* Subpaleta clínica modo oscuro */
+  --clinical-healthy: #38BDF8;
+  --clinical-caries: #F43F5E;
+  --clinical-endo: #FBBF24;
+  --clinical-implant: #94A3B8;
+  --clinical-missing: #475569;
+  --clinical-bleeding: #FB7185;
 }
 
-/* === ESTILOS BASE === */
+/* === MODO QUIRÚRGICO (.theme-surgical - Antirreflejo) === */
+.theme-surgical {
+  color-scheme: light;
+
+  --surface-canvas: #CBD5E1;
+  --surface-default: #F1F5F9;
+  --surface-elevated: #E2E8F0;
+  --surface-border: #475569;
+  --surface-text: #000000;
+
+  --color-primary: #B88E3A;
+  --color-primary-light: #E5C378;
+  --color-surface: #F1F5F9;
+  --color-surface-muted: #CBD5E1;
+  --color-border: #475569;
+
+  font-weight: 600 !important;
+}
+
+.theme-surgical body,
+.theme-surgical p,
+.theme-surgical span,
+.theme-surgical div,
+.theme-surgical label,
+.theme-surgical button {
+  color: #000000;
+}
+
+/* === ESTILOS BASE Y TABULAR-NUMS GLOBAL === */
 body {
   font-family: var(--font-body);
-  background-color: var(--color-surface-muted);
-  color: var(--color-graphite-900);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  background-color: var(--surface-canvas);
+  color: var(--surface-text);
+  transition: background-color var(--motion-standard), color var(--motion-standard);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .dark body {
-  background-color: var(--color-surface-muted);
-  color: var(--color-graphite-50);
+  background-color: var(--surface-canvas);
+  color: var(--surface-text);
 }
 
-/* === UTILIDADES PERSONALIZADAS === */
-/* Uso: className="text-primary" ya funciona automáticamente por @theme */
+.theme-surgical body {
+  background-color: var(--surface-canvas);
+  color: var(--surface-text);
+}
+
+/* Regla obligatoria: números tabulares para datos clínicos, aranceles, RUT y fechas */
+table,
+.tabular-nums,
+[data-tabular],
+.font-tabular,
+input[type="number"],
+.arancel-valor,
+.rut-display,
+.hora-display {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
