@@ -1,20 +1,40 @@
 import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
 
-/**
- * Utilidades para verificación de disponibilidad de Box y tiempos
- */
+export interface CitaAgendaCalc {
+  id?: string | number
+  boxId?: string
+  fechaIso?: string
+  fecha?: string
+  horaInicio?: string
+  horaFin?: string
+  estado?: string
+  [key: string]: unknown
+}
 
-export const verificarDisponibilidadBox = (citas = [], boxId, fechaIso, horaInicio, idExcluir = null) => {
+export interface ResumenAgenda {
+  totalHoy: number
+  agendadosCount: number
+  enEsperaCount: number
+  enSillonCount: number
+  finalizadosCount: number
+  citasHoy: CitaAgendaCalc[]
+}
+
+export const verificarDisponibilidadBox = (
+  citas: CitaAgendaCalc[] = [],
+  boxId: string,
+  fechaIso: string,
+  horaInicio: string,
+  idExcluir: string | number | null = null
+): boolean => {
   return !citas.some(c => {
     if (idExcluir && String(c.id) === String(idExcluir)) return false
     if (c.boxId !== boxId || c.fechaIso !== fechaIso || c.estado === 'NoAsiste') return false
-
-    // Detección de solapamiento
-    return (horaInicio >= c.horaInicio && horaInicio < c.horaFin)
+    return Boolean(c.horaInicio && c.horaFin && horaInicio >= c.horaInicio && horaInicio < c.horaFin)
   })
 }
 
-export const calcularResumenAgenda = (citas = []) => {
+export const calcularResumenAgenda = (citas: CitaAgendaCalc[] = []): ResumenAgenda => {
   const hoyIso = obtenerFechaLocalISO()
   const citasHoy = citas.filter(c => c.fechaIso === hoyIso || c.fecha === new Date().toLocaleDateString('es-CL'))
 
