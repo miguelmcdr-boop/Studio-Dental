@@ -59,7 +59,7 @@
     "src/modules/administracion/AdminVademecumModulo.jsx": 238,
     "src/constants/rbacConstants.ts": 37,
     "src/components/Sidebar.jsx": 142,
-    "src/modules/administracion/schemas/alergiaCruzadaSchema.js": 78,
+    "src/modules/administracion/schemas/alergiaCruzadaSchema.ts": 82,
     "src/modules/administracion/components/TablaAlergiasCruzadas.jsx": 165,
     "src/modules/administracion/components/ModalEditarAlergiaCruzada.jsx": 244,
     "src/modules/administracion/schemas/interaccionSchema.ts": 60,

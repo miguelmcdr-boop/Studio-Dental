@@ -1,6 +1,6 @@
 /**
  * Esquema Zod para validación de reglas de alergias cruzadas.
- * F4-03f-5a
+ * F4-03f-5a / Migración TypeScript
  */
 import { z } from 'zod'
 
@@ -25,12 +25,16 @@ export const FAMILIAS_ALERGIAS = [
   'anestesico_ester',
   'antifungico_azol',
   'antiviral'
-]
+] as const
+
+export type FamiliaAlergia = typeof FAMILIAS_ALERGIAS[number]
 
 /**
  * Niveles de severidad de reactividad cruzada
  */
-export const NIVELES_SEVERIDAD = ['critica', 'advertencia', 'sin_relacion']
+export const NIVELES_SEVERIDAD = ['critica', 'advertencia', 'sin_relacion'] as const
+
+export type NivelSeveridadAlergia = typeof NIVELES_SEVERIDAD[number]
 
 /**
  * Esquema Zod para validar una regla de alergia cruzada
@@ -56,20 +60,26 @@ export const alergiaCruzadaSchema = z.object({
   nota_clinica: z.string().max(2000, 'Máximo 2000 caracteres').optional().nullable()
 })
 
+export type AlergiaCruzada = z.infer<typeof alergiaCruzadaSchema>
+
+export interface ValidacionAlergiaCruzadaResultado {
+  valido: boolean
+  errores: Record<string, string>
+  datos?: AlergiaCruzada
+}
+
 /**
  * Valida datos de alergia cruzada y retorna errores estructurados.
- * @param {Object} data - Datos del formulario
- * @returns {{valido: boolean, errores: Object, datos?: Object}}
  */
-export const validarAlergiaCruzada = (data) => {
+export const validarAlergiaCruzada = (data: unknown): ValidacionAlergiaCruzadaResultado => {
   const resultado = alergiaCruzadaSchema.safeParse(data)
   if (resultado.success) {
     return { valido: true, errores: {}, datos: resultado.data }
   }
   
-  const errores = {}
+  const errores: Record<string, string> = {}
   resultado.error.issues.forEach(issue => {
-    const campo = issue.path[0]
+    const campo = String(issue.path[0])
     errores[campo] = issue.message
   })
   
