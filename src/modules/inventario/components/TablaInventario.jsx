@@ -13,10 +13,10 @@ export const TablaInventario = memo(({ items, onAjustarCantidad, onEditar, onEli
   }
 
   return (
-    <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl overflow-hidden shadow-xs text-xs">
+    <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl overflow-hidden shadow-xs text-xs">
       <table className="w-full text-left border-collapse">
         <thead>
-          <tr className="bg-gray-100 dark:bg-graphite-800 border-b border-gray-200 dark:border-graphite-700 text-gray-700 dark:text-graphite-300 font-bold uppercase text-[10px]">
+          <tr className="bg-[#F8FAFC] dark:bg-[#070B14] surgical:bg-[#E2E8F0] border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] text-gray-700 dark:text-graphite-300 surgical:text-black font-bold uppercase text-[10px]">
             <th className="p-3">Insumo / Producto</th>
             <th className="p-3">Categoría</th>
             <th className="p-3 text-center">Stock Actual</th>
@@ -32,18 +32,18 @@ export const TablaInventario = memo(({ items, onAjustarCantidad, onEditar, onEli
             const estadoVenc = evaluarVencimiento(item.fechaVencimiento)
 
             return (
-              <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-graphite-700 dark:hover:bg-graphite-700 transition-colors">
-                <td className="p-3 font-bold text-gray-900 dark:text-graphite-50">
+              <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-graphite-800 surgical:hover:bg-slate-200 transition-colors">
+                <td className="p-3 font-bold text-gray-900 dark:text-graphite-50 surgical:text-black">
                   {item.nombre}
-                  <span className="block text-[10px] font-normal text-gray-500 dark:text-graphite-400">
+                  <span className="block text-[10px] font-normal text-gray-500 dark:text-graphite-400 surgical:text-graphite-600 tabular-nums">
                     Mínimo deseado: {item.minimoCritico} {item.unidad}
                   </span>
                 </td>
 
-                <td className="p-3 font-medium text-gray-600 dark:text-graphite-400">{item.categoria}</td>
+                <td className="p-3 font-medium text-gray-600 dark:text-graphite-400 surgical:text-graphite-700">{item.categoria}</td>
 
                 <td className="p-3 text-center font-bold">
-                  <div className="inline-flex items-center gap-1.5 bg-gray-50 dark:bg-graphite-800 px-2 py-1 rounded-xl border">
+                  <div className="inline-flex items-center gap-1.5 bg-[#F8FAFC] dark:bg-[#070B14] surgical:bg-white px-2 py-1 rounded-xl border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569]">
                     <Button
                       onClick={() => onAjustarCantidad(item.id, -1)}
                       size="sm"
@@ -53,7 +53,7 @@ export const TablaInventario = memo(({ items, onAjustarCantidad, onEditar, onEli
                     >
                       -
                     </Button>
-                    <span className="text-sm px-1">{item.cantidad}</span>
+                    <span className="text-sm px-1 text-gray-900 dark:text-graphite-50 surgical:text-black tabular-nums">{item.cantidad}</span>
                     <Button
                       onClick={() => onAjustarCantidad(item.id, 1)}
                       size="sm"
@@ -72,10 +72,10 @@ export const TablaInventario = memo(({ items, onAjustarCantidad, onEditar, onEli
                   </span>
                 </td>
 
-                <td className="p-3">
+                <td className="p-3 tabular-nums">
                   <span className={`font-semibold ${
-                    estadoVenc.estado === 'vencido' ? 'text-red-600 font-bold' :
-                    estadoVenc.estado === 'por_vencer' ? 'text-amber-600 font-bold' : 'text-gray-600 dark:text-graphite-400'
+                    estadoVenc.estado === 'vencido' ? 'text-red-600 dark:text-red-400 font-bold' :
+                    estadoVenc.estado === 'por_vencer' ? 'text-amber-600 dark:text-amber-400 font-bold' : 'text-gray-600 dark:text-graphite-400 surgical:text-graphite-700'
                   }`}>
                     {item.fechaVencimiento || 'N/I'}
                   </span>

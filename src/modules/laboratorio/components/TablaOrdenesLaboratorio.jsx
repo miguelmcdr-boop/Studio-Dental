@@ -12,10 +12,10 @@ export const TablaOrdenesLaboratorio = memo(({ ordenes, onActualizarEtapa, onCam
   }
 
   return (
-    <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl overflow-hidden shadow-xs text-xs">
+    <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl overflow-hidden shadow-xs text-xs">
       <table className="w-full text-left border-collapse">
         <thead>
-          <tr className="bg-gray-100 dark:bg-graphite-800 border-b border-gray-200 dark:border-graphite-700 text-gray-700 dark:text-graphite-300 font-bold uppercase text-[10px]">
+          <tr className="bg-[#F8FAFC] dark:bg-[#070B14] surgical:bg-[#E2E8F0] border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] text-gray-700 dark:text-graphite-300 surgical:text-black font-bold uppercase text-[10px]">
             <th className="p-3">Código / Paciente</th>
             <th className="p-3">Trabajo / Pieza</th>
             <th className="p-3">Laboratorio Proveedor</th>
@@ -31,33 +31,33 @@ export const TablaOrdenesLaboratorio = memo(({ ordenes, onActualizarEtapa, onCam
             const estaPagado = o.estadoPagoLab === 'Pagado'
 
             return (
-              <tr key={o.id} className="hover:bg-gray-50 dark:hover:bg-graphite-700 dark:hover:bg-graphite-700 transition-colors">
+              <tr key={o.id} className="hover:bg-gray-50 dark:hover:bg-graphite-800 surgical:hover:bg-slate-200 transition-colors">
                 <td className="p-3">
-                  <span className="bg-gray-100 dark:bg-graphite-800 px-2 py-0.5 rounded border border-gray-300 dark:border-graphite-600 font-mono text-[11px] font-bold block w-max">
+                  <span className="bg-[#F8FAFC] dark:bg-[#070B14] surgical:bg-white text-gray-900 dark:text-graphite-50 surgical:text-black px-2 py-0.5 rounded border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] font-mono text-[11px] font-bold block w-max tabular-nums">
                     {o.codigoOrden}
                   </span>
-                  <span className="font-extrabold text-gray-900 dark:text-graphite-50 block mt-1">{o.pacienteNombre}</span>
-                  <span className="text-[10px] text-gray-500 dark:text-graphite-400">RUT: {o.pacienteRut}</span>
+                  <span className="font-extrabold text-gray-900 dark:text-graphite-50 surgical:text-black block mt-1">{o.pacienteNombre}</span>
+                  <span className="text-[10px] text-gray-500 dark:text-graphite-400 surgical:text-graphite-600 tabular-nums">RUT: {o.pacienteRut}</span>
                 </td>
 
                 <td className="p-3">
-                  <span className="font-bold text-gray-900 dark:text-graphite-50 block">{o.tipoTrabajo}</span>
-                  <span className="text-[11px] font-semibold text-blue-900 block">{o.piezaDientaria}</span>
-                  <span className="text-[10px] text-gray-500 dark:text-graphite-400">Color: {o.colorGuia || 'N/I'}</span>
+                  <span className="font-bold text-gray-900 dark:text-graphite-50 surgical:text-black block">{o.tipoTrabajo}</span>
+                  <span className="text-[11px] font-semibold text-blue-900 dark:text-sky-300 surgical:text-black block">{o.piezaDientaria}</span>
+                  <span className="text-[10px] text-gray-500 dark:text-graphite-400 surgical:text-graphite-600">Color: {o.colorGuia || 'N/I'}</span>
                 </td>
 
-                <td className="p-3 font-semibold text-gray-800 dark:text-graphite-100">{o.laboratorioNombre}</td>
+                <td className="p-3 font-semibold text-gray-800 dark:text-graphite-100 surgical:text-black">{o.laboratorioNombre}</td>
 
-                <td className="p-3">
-                  <span className="text-gray-600 block"><strong className="text-gray-800 dark:text-graphite-100">Envío:</strong> {o.fechaEnvio}</span>
-                  <span className="text-gray-600 dark:text-graphite-400 block"><strong className="text-emerald-800">Promesa:</strong> {o.fechaEntregaPrometida}</span>
+                <td className="p-3 tabular-nums">
+                  <span className="text-gray-600 dark:text-graphite-300 surgical:text-black block"><strong className="text-gray-800 dark:text-graphite-100 surgical:text-black">Envío:</strong> {o.fechaEnvio}</span>
+                  <span className="text-gray-600 dark:text-graphite-400 surgical:text-graphite-700 block"><strong className="text-emerald-800 dark:text-emerald-300 surgical:text-black">Promesa:</strong> {o.fechaEntregaPrometida}</span>
                 </td>
 
                 <td className="p-3 text-center">
                   <select
                     value={o.etapa}
                     onChange={(e) => onActualizarEtapa(o.id, e.target.value)}
-                    className={`px-2.5 py-1 rounded-xl font-extrabold text-[11px] border bg-white dark:bg-graphite-800 ${etapaConfig.colorText} ${etapaConfig.colorBorder}`}
+                    className={`px-2.5 py-1 rounded-xl font-extrabold text-[11px] border bg-white dark:bg-[#0F172A] surgical:bg-white surgical:text-black border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] ${etapaConfig.colorText}`}
                   >
                     {ETAPAS_LABORATORIO.map(e => (
                       <option key={e.id} value={e.id}>{e.nombre}</option>
@@ -66,11 +66,11 @@ export const TablaOrdenesLaboratorio = memo(({ ordenes, onActualizarEtapa, onCam
                 </td>
 
                 <td className="p-3 text-right">
-                  <span className="font-black text-gray-900 dark:text-graphite-50 block">${(parseFloat(o.costoLaboratorio) || 0).toLocaleString('es-CL')} CLP</span>
+                  <span className="font-black text-gray-900 dark:text-graphite-50 surgical:text-black block tabular-nums">${(parseFloat(o.costoLaboratorio) || 0).toLocaleString('es-CL')} CLP</span>
                   <button
                     onClick={() => onCambiarPago(o.id, estaPagado ? 'Pendiente' : 'Pagado')}
                     className={`px-2 py-0.5 rounded-lg text-[9px] font-bold mt-1 border transition-all ${
-                      estaPagado ? 'bg-emerald-100 text-emerald-900 border-emerald-300' : 'bg-amber-100 text-amber-900 border-amber-300'
+                      estaPagado ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-900 dark:text-emerald-200 border-emerald-300 dark:border-emerald-800 surgical:bg-white surgical:text-black surgical:border-[#475569]' : 'bg-amber-100 dark:bg-amber-950 text-amber-900 dark:text-amber-200 border-amber-300 dark:border-amber-800 surgical:bg-white surgical:text-black surgical:border-[#475569]'
                     }`}
                   >
                     {estaPagado ? 'PAGADO' : 'PENDIENTE PAGO'}

@@ -55,7 +55,7 @@ const TarjetaMetrica = ({ icono, label, valor, sublabel, color = 'graphite', ari
       aria-label={ariaLabel || label}
       onClick={esClickeable ? onClick : undefined}
       onKeyDown={esClickeable ? handleKeyDown : undefined}
-      className={`bg-white dark:bg-graphite-800 border border-graphite-200 dark:border-graphite-700 rounded-xl p-3 flex items-start gap-3 hover:border-graphite-300 dark:hover:border-graphite-600 transition-all ${
+      className={`bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-xl p-3 flex items-start gap-3 hover:border-graphite-300 dark:hover:border-graphite-600 transition-all ${
         esClickeable ? 'cursor-pointer hover:shadow-md hover:scale-[1.02] active:scale-[0.98]' : ''
       }`}
     >
@@ -63,14 +63,14 @@ const TarjetaMetrica = ({ icono, label, valor, sublabel, color = 'graphite', ari
         <Icon icon={icono} size="sm" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[10px] uppercase tracking-wider font-semibold text-graphite-500 dark:text-graphite-400 mb-0.5">
+        <p className="text-[10px] uppercase tracking-wider font-semibold text-graphite-500 dark:text-graphite-400 surgical:text-black mb-0.5">
           {label}
         </p>
-        <p className="text-sm font-bold text-graphite-900 dark:text-graphite-50 truncate">
+        <p className="text-sm font-bold text-graphite-900 dark:text-graphite-50 surgical:text-black truncate tabular-nums">
           {valor}
         </p>
         {sublabel && (
-          <p className="text-[10px] text-graphite-500 dark:text-graphite-400 truncate mt-0.5">
+          <p className="text-[10px] text-graphite-500 dark:text-graphite-400 surgical:text-graphite-700 truncate mt-0.5 tabular-nums">
             {sublabel}
           </p>
         )}
