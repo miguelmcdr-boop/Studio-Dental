@@ -2,7 +2,12 @@
  * Constantes Gold Standard para Reportes Gerenciales y BI
  */
 
-export const PERIODOS_REPORTES = [
+export interface PeriodoReporte {
+  id: string
+  nombre: string
+}
+
+export const PERIODOS_REPORTES: readonly PeriodoReporte[] = [
   { id: 'este_mes', nombre: 'Este Mes' },
   { id: 'esta_semana', nombre: 'Esta Semana' },
   { id: 'ultimo_trimestre', nombre: 'Último Trimestre' },
@@ -10,7 +15,7 @@ export const PERIODOS_REPORTES = [
   { id: 'historico', nombre: 'Histórico Completo' }
 ]
 
-export const ESPECIALIDADES_COLOR = {
+export const ESPECIALIDADES_COLOR: Readonly<Record<string, string>> = {
   'Diagnóstico y Prevención': 'bg-blue-500',
   'Operatoria / Estética': 'bg-emerald-500',
   'Endodoncia': 'bg-purple-500',
