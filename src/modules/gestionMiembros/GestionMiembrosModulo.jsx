@@ -35,41 +35,43 @@ export const GestionMiembrosModulo = () => {
   return (
     <div className="p-8 max-w-6xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-graphite-50 mb-2 inline-flex items-center gap-3">
-          <UsersRound size={28} />
+        <h1 className="text-3xl font-bold text-graphite-900 dark:text-graphite-50 surgical:text-black mb-2 inline-flex items-center gap-3">
+          <UsersRound size={28} className="text-[#B88E3A]" />
           Gestión de Miembros
         </h1>
-        <p className="text-gray-600 dark:text-graphite-400">Administra el personal de tu clínica. Invita nuevos miembros y gestiona los roles.</p>
+        <p className="text-graphite-600 dark:text-graphite-400 surgical:text-graphite-800">
+          Administra el personal de tu clínica. Invita nuevos miembros y gestiona los roles.
+        </p>
       </div>
 
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-800">{error}</p>
+        <div className="mb-6 p-4 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/50 rounded-lg">
+          <p className="text-rose-800 dark:text-rose-300">{error}</p>
         </div>
       )}
 
       {mensajeExito && (
-        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-          <p className="text-green-800">{mensajeExito}</p>
+        <div className="mb-6 p-4 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/50 rounded-lg">
+          <p className="text-emerald-800 dark:text-emerald-300">{mensajeExito}</p>
         </div>
       )}
 
-      <div className="bg-white dark:bg-graphite-800 rounded-lg shadow-sm border border-gray-200 dark:border-graphite-700 p-6 mb-8">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-graphite-50 mb-4">Invitar Nuevo Miembro</h2>
+      <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] rounded-lg shadow-sm border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] p-6 mb-8">
+        <h2 className="text-xl font-semibold text-graphite-900 dark:text-graphite-50 surgical:text-black mb-4">Invitar Nuevo Miembro</h2>
         <form onSubmit={handleInvitar} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-graphite-300 mb-1">Email</label>
+              <label htmlFor="email" className="block text-sm font-medium text-graphite-700 dark:text-graphite-300 surgical:text-graphite-900 mb-1">Email</label>
               <input type="email" id="email" value={emailInvitar} onChange={(e) => setEmailInvitar(e.target.value)}
                 placeholder="ejemplo@clinica.com" required
-                className="w-full px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] bg-white dark:bg-[#070B14] surgical:bg-[#E2E8F0] text-graphite-900 dark:text-graphite-100 surgical:text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B88E3A]/40 focus:border-[#B88E3A]"
                 disabled={invitando} />
             </div>
 
             <div>
-              <label htmlFor="rol" className="block text-sm font-medium text-gray-700 dark:text-graphite-300 mb-1">Rol</label>
+              <label htmlFor="rol" className="block text-sm font-medium text-graphite-700 dark:text-graphite-300 surgical:text-graphite-900 mb-1">Rol</label>
               <select id="rol" value={rolInvitar} onChange={(e) => setRolInvitar(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] bg-white dark:bg-[#070B14] surgical:bg-[#E2E8F0] text-graphite-900 dark:text-graphite-100 surgical:text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B88E3A]/40 focus:border-[#B88E3A]"
                 disabled={invitando}>
                 {rolesDisponibles.map((rol) => (
                   <option key={rol.key} value={rol.value}>{rol.nombre}</option>
@@ -79,46 +81,50 @@ export const GestionMiembrosModulo = () => {
           </div>
 
           <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-600 dark:text-graphite-400">
+            <div className="text-sm text-graphite-600 dark:text-graphite-400 surgical:text-graphite-800">
               {rolesDisponibles.find(r => r.value === rolInvitar)?.descripcion}
             </div>
             <button type="submit" disabled={invitando || !emailInvitar}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors">
+              className="px-6 py-2 bg-[#B88E3A] hover:bg-[#99732B] dark:bg-[#E5C378] dark:hover:bg-[#B88E3A] text-white dark:text-graphite-950 font-medium rounded-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
               {invitando ? 'Invitando...' : 'Enviar Invitación'}
             </button>
           </div>
         </form>
       </div>
 
-      <div className="bg-white dark:bg-graphite-800 rounded-lg shadow-sm border border-gray-200 dark:border-graphite-700 mb-8">
-        <div className="p-6 border-b border-gray-200 dark:border-graphite-700">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-graphite-50">Miembros Actuales ({miembros.length})</h2>
+      <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] rounded-lg shadow-sm border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] mb-8 overflow-hidden">
+        <div className="p-6 border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569]">
+          <h2 className="text-xl font-semibold text-graphite-900 dark:text-graphite-50 surgical:text-black">
+            Miembros Actuales (<span className="tabular-nums">{miembros.length}</span>)
+          </h2>
         </div>
 
         {miembros.length === 0 ? (
-          <div className="p-8 text-center text-gray-500 dark:text-graphite-400">No hay miembros en esta clínica</div>
+          <div className="p-8 text-center text-graphite-500 dark:text-graphite-400">No hay miembros en esta clínica</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 dark:bg-graphite-800 border-b border-gray-200 dark:border-graphite-700">
+              <thead className="bg-slate-50 dark:bg-[#1E293B] surgical:bg-[#E2E8F0] border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569]">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-graphite-400 uppercase tracking-wider">Email</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-graphite-400 uppercase tracking-wider">Rol</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-graphite-400 uppercase tracking-wider">Estado</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-graphite-600 dark:text-graphite-300 surgical:text-graphite-900 uppercase tracking-wider">Email</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-graphite-600 dark:text-graphite-300 surgical:text-graphite-900 uppercase tracking-wider">Rol</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-graphite-600 dark:text-graphite-300 surgical:text-graphite-900 uppercase tracking-wider">Estado</th>
                 </tr>
               </thead>
-              <tbody className="bg-white dark:bg-graphite-800 divide-y divide-gray-200 dark:divide-graphite-700">
+              <tbody className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] divide-y divide-[#E2E8F0] dark:divide-[#24334A] surgical:divide-[#475569]">
                 {miembros.map((miembro) => (
-                  <tr key={miembro.id || miembro.user_id} className="hover:bg-gray-50 dark:hover:bg-graphite-700 dark:hover:bg-graphite-700">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-graphite-50">{miembro.email || 'N/A'}</td>
+                  <tr key={miembro.id || miembro.user_id} className="hover:bg-slate-50 dark:hover:bg-[#1E293B]/60 surgical:hover:bg-[#E2E8F0]">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-graphite-900 dark:text-graphite-50 surgical:text-black">{miembro.email || 'N/A'}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                      <span className="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/50">
                         {NOMBRES_ROLES[miembro.rol] || miembro.rol}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        miembro.activo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      <span className={`px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full border ${
+                        miembro.activo 
+                          ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/50' 
+                          : 'bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 border-rose-200 dark:border-rose-800/50'
                       }`}>
                         {miembro.activo ? 'Activo' : 'Inactivo'}
                       </span>
@@ -131,50 +137,53 @@ export const GestionMiembrosModulo = () => {
         )}
       </div>
 
-      <div className="bg-white dark:bg-graphite-800 rounded-lg shadow-sm border border-gray-200 dark:border-graphite-700">
-        <div className="p-6 border-b border-gray-200 dark:border-graphite-700">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-graphite-50">Invitaciones Pendientes ({invitacionesPendientes.length})</h2>
+      <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] rounded-lg shadow-sm border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] overflow-hidden">
+        <div className="p-6 border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569]">
+          <h2 className="text-xl font-semibold text-graphite-900 dark:text-graphite-50 surgical:text-black">
+            Invitaciones Pendientes (<span className="tabular-nums">{invitacionesPendientes.length}</span>)
+          </h2>
         </div>
 
         {invitacionesPendientes.length === 0 ? (
-          <div className="p-8 text-center text-gray-500 dark:text-graphite-400">No hay invitaciones pendientes</div>
+          <div className="p-8 text-center text-graphite-500 dark:text-graphite-400">No hay invitaciones pendientes</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 dark:bg-graphite-800 border-b border-gray-200 dark:border-graphite-700">
+              <thead className="bg-slate-50 dark:bg-[#1E293B] surgical:bg-[#E2E8F0] border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569]">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-graphite-400 uppercase tracking-wider">Email</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-graphite-400 uppercase tracking-wider">Rol</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-graphite-400 uppercase tracking-wider">Estado</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-graphite-400 uppercase tracking-wider">Enviada</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-graphite-400 uppercase tracking-wider">Acciones</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-graphite-600 dark:text-graphite-300 surgical:text-graphite-900 uppercase tracking-wider">Email</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-graphite-600 dark:text-graphite-300 surgical:text-graphite-900 uppercase tracking-wider">Rol</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-graphite-600 dark:text-graphite-300 surgical:text-graphite-900 uppercase tracking-wider">Estado</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-graphite-600 dark:text-graphite-300 surgical:text-graphite-900 uppercase tracking-wider">Enviada</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-graphite-600 dark:text-graphite-300 surgical:text-graphite-900 uppercase tracking-wider">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="bg-white dark:bg-graphite-800 divide-y divide-gray-200 dark:divide-graphite-700">
+              <tbody className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] divide-y divide-[#E2E8F0] dark:divide-[#24334A] surgical:divide-[#475569]">
                 {invitacionesPendientes.map((invitacion) => (
-                  <tr key={invitacion.id} className="hover:bg-gray-50 dark:hover:bg-graphite-700 dark:hover:bg-graphite-700">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-graphite-50">{invitacion.email}</td>
+                  <tr key={invitacion.id} className="hover:bg-slate-50 dark:hover:bg-[#1E293B]/60 surgical:hover:bg-[#E2E8F0]">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-graphite-900 dark:text-graphite-50 surgical:text-black">{invitacion.email}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                      <span className="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/50">
                         {NOMBRES_ROLES[invitacion.rol] || invitacion.rol}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                      <span className="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50">
                         Pendiente
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-graphite-400">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm tabular-nums text-graphite-600 dark:text-graphite-300 surgical:text-graphite-900">
                       {new Date(invitacion.creada_en).toLocaleDateString('es-CL')}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                      <button onClick={() => handleCopiarLink(invitacion.token)} className="text-blue-600 hover:text-blue-900"
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
+                      <button onClick={() => handleCopiarLink(invitacion.token)} 
+                        className="text-[#B88E3A] hover:text-[#99732B] dark:text-[#E5C378] transition-colors"
                         title="Copiar link de invitación">
                         {urlCopiada === invitacion.token ? '✓ Copiado' : 'Copiar Link'}
                       </button>
                       <button 
                         onClick={() => handleRevocar(invitacion.id)} 
-                        className="text-red-600 hover:text-red-900"
+                        className="text-rose-600 hover:text-rose-800 dark:text-rose-400 transition-colors"
                         title="Revocar invitación"
                       >
                         Revocar

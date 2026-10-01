@@ -60,8 +60,8 @@ export const FormRegistroGes = memo(({ pacientes = [], alRegistrar }) => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-6 shadow-xs space-y-4 text-xs">
-      <div className="border-b pb-2">
+    <form onSubmit={handleSubmit} className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-6 shadow-xs space-y-4 text-xs">
+      <div className="border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] pb-2">
         <h3 className="font-bold text-sm text-gray-900 dark:text-graphite-50 uppercase tracking-wider inline-flex items-center gap-2">
           <FileText size={16} />Registro de Atención de Urgencia & Constancia GES / AUGE
         </h3>
@@ -76,7 +76,7 @@ export const FormRegistroGes = memo(({ pacientes = [], alRegistrar }) => {
           <select
             value={pacienteId}
             onChange={(e) => setPacienteId(e.target.value)}
-            className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-bold"
+            className="w-full p-2.5 rounded-lg border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] text-graphite-900 dark:text-graphite-50 surgical:text-black font-bold focus:outline-none focus:ring-2 focus:ring-[#B88E3A]/40"
           >
             <option value="">-- Seleccionar paciente --</option>
             {pacientes.map(p => (
@@ -90,7 +90,7 @@ export const FormRegistroGes = memo(({ pacientes = [], alRegistrar }) => {
           <select
             value={triage}
             onChange={(e) => setTriage(e.target.value)}
-            className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-bold text-gray-800 dark:text-graphite-100"
+            className="w-full p-2.5 rounded-lg border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] font-bold text-gray-800 dark:text-graphite-100 surgical:text-black focus:outline-none focus:ring-2 focus:ring-[#B88E3A]/40"
           >
             {CATEGORIAS_TRIAGE_URGENCIA.map(t => (
               <option key={t.id} value={t.id}>{t.nombre}</option>
@@ -103,7 +103,7 @@ export const FormRegistroGes = memo(({ pacientes = [], alRegistrar }) => {
           <select
             value={patologiaGes}
             onChange={(e) => setPatologiaGes(e.target.value)}
-            className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-bold text-blue-900"
+            className="w-full p-2.5 rounded-lg border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] font-bold text-sky-800 dark:text-sky-300 surgical:text-black focus:outline-none focus:ring-2 focus:ring-[#B88E3A]/40"
           >
             {PATOLOGIAS_GES_ODONTO.map(p => (
               <option key={p.id} value={p.id}>[{p.codigo}] {p.nombre}</option>
@@ -118,7 +118,7 @@ export const FormRegistroGes = memo(({ pacientes = [], alRegistrar }) => {
           <select
             value={diagnostico}
             onChange={(e) => setDiagnostico(e.target.value)}
-            className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800"
+            className="w-full p-2.5 rounded-lg border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] text-graphite-900 dark:text-graphite-50 surgical:text-black focus:outline-none focus:ring-2 focus:ring-[#B88E3A]/40"
           >
             {DIAGNOSTICOS_URGENCIA_COMMON.map(d => (
               <option key={d} value={d}>{d}</option>
@@ -129,7 +129,7 @@ export const FormRegistroGes = memo(({ pacientes = [], alRegistrar }) => {
         <div>
           <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Decisión del Paciente</label>
           <div className="flex gap-4 pt-2">
-            <label className="flex items-center gap-2 font-bold text-emerald-800 cursor-pointer">
+            <label className="flex items-center gap-2 font-bold text-emerald-700 dark:text-emerald-400 surgical:text-black cursor-pointer">
               <input
                 type="radio"
                 name="acepta"
@@ -138,7 +138,7 @@ export const FormRegistroGes = memo(({ pacientes = [], alRegistrar }) => {
               />
               Acepta atención prestador
             </label>
-            <label className="flex items-center gap-2 font-bold text-red-800 cursor-pointer">
+            <label className="flex items-center gap-2 font-bold text-red-700 dark:text-red-400 surgical:text-black cursor-pointer">
               <input
                 type="radio"
                 name="acepta"
@@ -158,7 +158,7 @@ export const FormRegistroGes = memo(({ pacientes = [], alRegistrar }) => {
           placeholder="Ej: Se realiza trepanación y alivio de oclusión en pieza 1.6, indicación de farmacoterapia analgésica/antibiótica..."
           value={indicacionesTratamiento}
           onChange={(e) => setIndicacionesTratamiento(e.target.value)}
-          className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600"
+          className="w-full p-2.5 rounded-lg border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] text-graphite-900 dark:text-graphite-50 surgical:text-black focus:outline-none focus:ring-2 focus:ring-[#B88E3A]/40"
         />
       </div>
 

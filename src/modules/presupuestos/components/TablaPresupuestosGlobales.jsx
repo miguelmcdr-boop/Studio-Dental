@@ -12,17 +12,17 @@ export const TablaPresupuestosGlobales = memo(({
 }) => {
   if (presupuestos.length === 0) {
     return (
-      <div className="p-10 text-center text-xs text-gray-400 dark:text-graphite-500 bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl">
+      <div className="p-10 text-center text-xs text-graphite-400 dark:text-graphite-500 surgical:text-black bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl">
         No hay presupuestos o cotizaciones registradas para el criterio seleccionado.
       </div>
     )
   }
 
   return (
-    <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl overflow-hidden shadow-xs text-xs">
+    <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl overflow-hidden shadow-xs text-xs">
       <table className="w-full text-left border-collapse">
         <thead>
-          <tr className="bg-gray-100 dark:bg-graphite-800 border-b border-gray-200 dark:border-graphite-700 text-gray-700 dark:text-graphite-300 font-bold uppercase text-[10px]">
+          <tr className="bg-slate-50 dark:bg-[#070B14] surgical:bg-[#E2E8F0] border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] text-graphite-600 dark:text-graphite-300 surgical:text-black font-bold uppercase text-[10px]">
             <th className="p-3">Folio / Paciente</th>
             <th className="p-3">Emisión / Convenio</th>
             <th className="p-3 text-center">Estado Comercial</th>
@@ -32,7 +32,7 @@ export const TablaPresupuestosGlobales = memo(({
             <th className="p-3 text-right print:hidden">Acciones</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100 dark:divide-graphite-800">
+        <tbody className="divide-y divide-[#E2E8F0] dark:divide-[#24334A] surgical:divide-[#475569]">
           {presupuestos.map((p) => {
             const configEstado = ESTADOS_PRESUPUESTO.find(e => e.id === p.estado) || ESTADOS_PRESUPUESTO[0]
             const montoTotal = parseFloat(p.montoTotal) || 0
@@ -40,18 +40,18 @@ export const TablaPresupuestosGlobales = memo(({
             const saldo = Math.max(0, montoTotal - montoAbonado)
 
             return (
-              <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-graphite-700 dark:hover:bg-graphite-700 transition-colors">
+              <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-[#1E293B]/50 surgical:hover:bg-[#E2E8F0] transition-colors">
                 <td className="p-3">
-                  <span className="bg-gray-100 dark:bg-graphite-800 px-2 py-0.5 rounded border border-gray-300 dark:border-graphite-600 font-mono text-[11px] font-bold block w-max">
+                  <span className="bg-slate-100 dark:bg-[#1E293B] surgical:bg-[#E2E8F0] px-2 py-0.5 rounded border border-[#E2E8F0] dark:border-[#24334A] font-mono text-[11px] font-bold block w-max tabular-nums text-graphite-800 dark:text-graphite-200 surgical:text-black">
                     {p.folio}
                   </span>
-                  <span className="font-extrabold text-gray-900 dark:text-graphite-50 block mt-1">{p.pacienteNombre}</span>
-                  <span className="text-[10px] text-gray-500 dark:text-graphite-400">RUT: {p.pacienteRut}</span>
+                  <span className="font-extrabold text-graphite-900 dark:text-graphite-50 surgical:text-black block mt-1">{p.pacienteNombre}</span>
+                  <span className="text-[10px] text-graphite-500 dark:text-graphite-400 surgical:text-black tabular-nums">RUT: {p.pacienteRut}</span>
                 </td>
 
                 <td className="p-3">
-                  <span className="font-semibold text-gray-800 dark:text-graphite-100 block">{p.fechaEmision}</span>
-                  <span className="bg-emerald-50 text-emerald-900 px-2 py-0.5 rounded-lg border border-emerald-200 font-bold text-[10px] inline-block mt-0.5">
+                  <span className="font-semibold text-graphite-800 dark:text-graphite-100 surgical:text-black block tabular-nums">{p.fechaEmision}</span>
+                  <span className="bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-300 px-2 py-0.5 rounded-lg border border-emerald-200 dark:border-emerald-800 font-bold text-[10px] inline-block mt-0.5">
                     {p.convenio || 'Particular'}
                   </span>
                 </td>
@@ -60,7 +60,7 @@ export const TablaPresupuestosGlobales = memo(({
                   <select
                     value={p.estado}
                     onChange={(e) => onCambiarEstado(p.id, e.target.value)}
-                    className={`px-2 py-1 rounded-xl font-extrabold text-[10px] border bg-white dark:bg-graphite-800 cursor-pointer ${configEstado.colorText} ${configEstado.colorBorder}`}
+                    className={`px-2 py-1 rounded-lg font-bold text-[10px] border bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] cursor-pointer ${configEstado.colorText} ${configEstado.colorBorder}`}
                   >
                     {ESTADOS_PRESUPUESTO.map(e => (
                       <option key={e.id} value={e.id}>{e.nombre}</option>
@@ -68,22 +68,22 @@ export const TablaPresupuestosGlobales = memo(({
                   </select>
                 </td>
 
-                <td className="p-3 text-right font-black text-gray-900 dark:text-graphite-50">
+                <td className="p-3 text-right font-black text-graphite-900 dark:text-graphite-50 surgical:text-black tabular-nums">
                   ${montoTotal.toLocaleString('es-CL')} CLP
                 </td>
 
-                <td className="p-3 text-right font-bold text-emerald-800">
+                <td className="p-3 text-right font-bold text-emerald-700 dark:text-emerald-400 surgical:text-black tabular-nums">
                   ${montoAbonado.toLocaleString('es-CL')} CLP
                 </td>
 
-                <td className="p-3 text-right font-black text-red-600">
+                <td className="p-3 text-right font-black text-red-600 dark:text-red-400 surgical:text-black tabular-nums">
                   ${saldo.toLocaleString('es-CL')} CLP
                 </td>
 
-                <td className="p-3 text-right print:hidden space-x-1">
+                <td className="p-3 text-right print:hidden space-x-1 whitespace-nowrap">
                   <button
                     onClick={() => onVerDocumento(p)}
-                    className="p-1.5 bg-black text-white text-[10px] font-bold rounded-lg hover:bg-gray-800"
+                    className="p-1.5 bg-[#B88E3A] hover:bg-[#99732B] dark:bg-[#E5C378] dark:hover:bg-[#B88E3A] text-white dark:text-graphite-950 surgical:bg-black surgical:text-white text-[10px] font-bold rounded-lg transition-micro cursor-pointer"
                     title="Imprimir Documento Cotización"
                   >
                     <span className="inline-flex items-center gap-1"><FileText size={10} />Ver PDF</span>
@@ -91,7 +91,7 @@ export const TablaPresupuestosGlobales = memo(({
 
                   <button
                     onClick={() => onVerFichaPaciente(p)}
-                    className="p-1.5 bg-blue-50 text-blue-900 border border-blue-200 text-[10px] font-bold rounded-lg hover:bg-blue-100"
+                    className="p-1.5 bg-sky-50 dark:bg-sky-950/40 text-sky-800 dark:text-sky-300 border border-sky-200 dark:border-sky-800 text-[10px] font-bold rounded-lg hover:bg-sky-100 transition-micro cursor-pointer"
                     title="Ir a Ficha Clínica"
                   >
                     <span className="inline-flex items-center gap-1"><Users size={10} />Ficha</span>
@@ -99,7 +99,7 @@ export const TablaPresupuestosGlobales = memo(({
 
                   <button
                     onClick={() => onEliminar(p.id, p.pacienteId, p.items)}
-                    className="p-1.5 text-red-500 hover:text-red-700 font-semibold rounded-lg hover:bg-red-50"
+                    className="p-1.5 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-semibold rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-micro cursor-pointer"
                     title="Eliminar presupuesto"
                   >
                     <Trash2 size={12} />
