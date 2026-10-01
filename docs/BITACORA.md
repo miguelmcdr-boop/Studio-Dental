@@ -9928,6 +9928,34 @@ Esperado: Paciente SIGUE en BD (no fue eliminado).
 - `npm run build`: ✅ **Vite build exitoso en ~1.3s**.
 - `npm run lint`: ✅ **0 errores** con Oxlint.
 
+---
+
+## [2026-10-01] Migración Gradual a TypeScript — Bloque Continuo 10 Archivos (Prioridad 1: P1-TS-31 a P1-TS-40)
+
+### Contexto y Alcance
+- Ejecución en **modo continuo autónomo sin puertas de aprobación** sobre la rama unificada `feat/migracion-typescript`.
+- 10 módulos de constantes clínicas, estéticas, quirúrgicas, gerenciales y de pacientes migrados a TypeScript con interfaces y tipos inmutables exportados.
+
+### Archivos Migrados (P1-TS-31 a P1-TS-40)
+1. **`src/modules/dashboard/constants/dashboardConstants.ts`** (Commit `3b3bc00` / `P1-TS-31`): Interface `AccesoRapido`, accesos rápidos y test suite dedicada.
+2. **`src/modules/odontograma/constants/odontogramaConstants.ts`** (Commit `93380ce` / `P1-TS-32`): Interface `HerramientaOdontograma`, nomenclaturas permanentes y temporales FDI.
+3. **`src/modules/pacientes/constants/pacientesConstants.ts`** (Commit `a121b16` / `P1-TS-33`): Pestañas clínicas `TABS_FICHA_PACIENTE` y arcadas permanentes.
+4. **`src/modules/pacientes/constants/plantillasConsentimiento.ts`** (Commit `0ca968c` / `P1-TS-34`): Interface `PlantillaConsentimiento` para cirugías, endodoncia e implantes.
+5. **`src/modules/pacientes/constants/anestesiaConstants.ts`** (Commit `bc46635` / `P1-TS-35`): Interface `EstadoVisualConfig`, tipo `TipoEstadoCalculo` y configuración visual de la calculadora de anestesia.
+6. **`src/modules/dsd/constants/dsdConstants.ts`** (Commit `05eace7` / `P1-TS-36`): Interfaces `TonoVita`, `FormaDentaria`, `ProporcionDoradaTeorica` y guía VITA.
+7. **`src/modules/quirurgico/constants/quirurgicoConstants.ts`** (Commit `bb50723` / `P1-TS-37`): Marcas de implantes, plataformas, conexiones, conductometría y selladores endodónticos.
+8. **`src/modules/reportes/constants/reportesConstants.ts`** (Commit `4897c0c` / `P1-TS-38`): Interface `PeriodoReporte`, periodos y colores de especialidades para BI.
+9. **`src/modules/finanzas/constants/finanzasConstants.ts`** (Commit `564fd63` / `P1-TS-39`): Interfaces `ConvenioConfig`, `MetodoPagoOpcion`, retención honorarios 13.75%.
+10. **`src/modules/presupuestos/constants/presupuestosConstants.ts`** (Commit `d87ddc8` / `P1-TS-40`): Interfaces `EstadoPresupuestoConfig`, `OpcionCuota`, `PresupuestoDefault` y catálogo de estados.
+
+### Verificación y Evidencia del Bloque
+- `npm run validate:architecture`: ✅ **0 violaciones** (todas las reglas constitucionales cumplidas).
+- `npm run test`: ✅ **149/149 suites pasadas, 1818/1818 tests unitarios pasados** (0 regresiones).
+- `npm run test:security`: ✅ **15/15 suites pasadas, 149/149 tests pasados**.
+- `npm run build`: ✅ **Vite build completado en ~1.3s sin errores**.
+- `npm run lint`: ✅ **0 errores** con Oxlint.
+
+
 
 
 
