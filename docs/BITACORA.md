@@ -9982,6 +9982,31 @@ Esperado: Paciente SIGUE en BD (no fue eliminado).
 - `npm run build`: ✅ **Vite build completado en ~1.3s sin errores**.
 - `npm run lint`: ✅ **0 errores** con Oxlint.
 
+---
+
+## [2026-10-01] Migración Gradual a TypeScript — Cierre de Capa de Bajo Riesgo (Prioridad 1: P1-TS-51 a P1-TS-56)
+
+### Contexto y Alcance
+- Ejecución en **modo continuo autónomo sin puertas de aprobación** sobre la rama unificada `feat/migracion-typescript`.
+- 6 módulos de utilidades de cálculo y validación interactiva migrados a TypeScript.
+- **Refactorización y reducción constitucional**: 3 módulos (`laboratorioCalculations`, `comunicacionesCalculations` y `presupuestosCalculations`) fueron refactorizados a ≤50 líneas, eliminando 3 excepciones históricas de la `architecture-allowlist.json` (que bajó de 74 a 71 archivos).
+
+### Archivos Migrados (P1-TS-51 a P1-TS-56)
+1. **`src/modules/agenda/utils/confirmarConDialogo.ts`** (Commit `c9e20a4` / `P1-TS-51`): Helper tipado para diálogos modales de confirmación con fallback seguro a `window.confirm`.
+2. **`src/modules/agenda/utils/validarConflictoCitaUnica.ts`** (Commit `effec77` / `P1-TS-52`): Interfaces `ConflictoCitaDetalle`, `ResultadoValidacionCita` y validación de conflicto de cita individual.
+3. **`src/modules/agenda/utils/validarConflictosRecurrencia.ts`** (Commit `54e321e` / `P1-TS-53`): Validación agregada de múltiples citas recurrentes con resumen de conflictos.
+4. **`src/modules/laboratorio/utils/laboratorioCalculations.ts`** (Commit `dd65f10` / `P1-TS-54`): Generador de folios, tarifario sugerido y resumen de laboratorio. Refactorizado a 49 líneas (allowlist reducida).
+5. **`src/modules/comunicaciones/utils/comunicacionesCalculations.ts`** (Commit `d09efe3` / `P1-TS-55`): Interpolación de plantillas, enlaces WhatsApp y tasa de confirmación. Refactorizado a 49 líneas (allowlist reducida).
+6. **`src/modules/presupuestos/utils/presupuestosCalculations.ts`** (Commit `b763e0e` / `P1-TS-56`): Simulación de cuotas, folios y resumen financiero. Refactorizado a 49 líneas (allowlist reducida).
+
+### Verificación y Evidencia Final de la Capa de Bajo Riesgo
+- `npm run validate:architecture`: ✅ **0 violaciones** (Allowlist reducida a 71 archivos).
+- `npm run test`: ✅ **163/163 suites pasadas, 1855/1855 tests unitarios pasados** (0 regresiones).
+- `npm run test:security`: ✅ **15/15 suites pasadas, 149/149 tests pasados**.
+- `npm run build`: ✅ **Vite build exitoso en ~1.3s**.
+- `npm run lint`: ✅ **0 errores** con Oxlint.
+
+
 
 
 
