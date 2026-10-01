@@ -1,10 +1,13 @@
 /**
- * Matriz de permisos por rol (F3-05).
+ * Matriz de permisos por rol (F3-05 / Migración TypeScript)
  * Extraído de rbacConstants.js para respetar límite arquitectónico.
  */
 import { ROLES, PERMISOS } from './rbacConstantsBase'
 
-export const PERMISOS_POR_ROL = {
+export type RolKey = typeof ROLES[keyof typeof ROLES]
+export type PermisoValue = typeof PERMISOS[keyof typeof PERMISOS]
+
+export const PERMISOS_POR_ROL: Record<RolKey, readonly PermisoValue[]> = {
   [ROLES.ADMIN]: [
     PERMISOS.VER_FINANZAS, PERMISOS.VER_REPORTES, PERMISOS.VER_CONFIGURACION,
     PERMISOS.VER_INVENTARIO, PERMISOS.VER_LABORATORIO, PERMISOS.VER_ESTERILIZACION,
