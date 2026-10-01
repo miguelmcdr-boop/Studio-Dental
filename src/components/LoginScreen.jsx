@@ -3,6 +3,7 @@ import {
   obtenerPerfil,
   guardarPerfil,
   supabaseSignIn,
+  supabaseSignUp,
 } from '../services/authService'
 import { construirUserProfile } from '../services/userProfileBuilder'
 import { NOMBRES_ROLES, DESCRIPCIONES_ROLES } from '../constants/rbacConstants'
@@ -61,10 +62,22 @@ export const LoginScreen = ({ onLogin }) => {
       // F7-28 FIX: useSupabase eliminado (legacy de F7-16).
       // Solo existe flujo Supabase Auth (no hay modo local).
       if (isFirstTime) {
-        // P0-1/P0-2: el registro público está deshabilitado. El alta de
-        // usuarios solo ocurre aceptando una invitación (/#/aceptar-invita).
-        setError('El registro público está deshabilitado. Para crear tu cuenta, acepta la invitación enviada por un administrador.')
-        return
+        // Registro de nuevo usuario
+        const result = await supabaseSignUp(formattedEmail, password, metadata)
+
+        if (!result.success) {
+          let mensajeError = result.error || 'Error al registrar usuario'
+          if (mensajeError.includes('already registered') || mensajeError.includes('already')) {
+            mensajeError = 'Este email ya está registrado. Intenta iniciar sesión.'
+            setIsFirstTime(false)
+          } else if (mensajeError.includes('Password') || mensajeError.includes('password')) {
+            mensajeError = 'La contraseña debe tener al menos 6 caracteres.'
+          } else if (mensajeError.includes('Invalid email')) {
+            mensajeError = 'El formato del email no es válido.'
+          }
+          setError(mensajeError)
+          return
+        }
       } else {
         // Login de usuario existente
         const result = await supabaseSignIn(formattedEmail, password)
@@ -201,11 +214,14 @@ export const LoginScreen = ({ onLogin }) => {
             {cargando ? 'Verificando...' : isFirstTime ? 'Guardar datos e Ingresar' : 'Ingresar al sistema'}
           </Button>
 
-          {/* P0-2: el registro público está deshabilitado — el alta de
-              usuarios es exclusivamente por invitación (F7-11). */}
-          <p className="text-[11px] text-gray-400 dark:text-graphite-500 text-center mt-3">
-            ¿Primera vez? Necesitas una <span className="font-semibold">invitación de un administrador</span>.
-          </p>
+          {/* F4-02b FIX: En modo Supabase, permitir cambiar entre login y registro */}
+          {import.meta.env.VITE_USE_SUPABASE === 'true' && (
+            <Button type="button" variant="ghost" size="sm" fullWidth
+              onClick={() => { setIsFirstTime(!isFirstTime); setError('') }}
+              className="mt-3 text-xs underline">
+              {isFirstTime ? '¿Ya tienes cuenta? Iniciar sesión' : '¿Primera vez? Crear cuenta'}
+            </Button>
+          )}
 
           {error && (
             <p

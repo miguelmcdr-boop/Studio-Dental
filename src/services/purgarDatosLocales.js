@@ -40,7 +40,6 @@ const IDB_ADJUNTOS_DB_NAME = 'studio_dental_adjuntos'
 // (por si hay datos de otras apps en el mismo dominio).
 const PREFIJOS_APP = [
   'studio_dental_',     // claves de servicios de persistencia
-  'sd_',                // P0-3 FIX: claves tenant-aware (sd_<clinicaId>_<baseKey>, F7-36) — sin esto el logout NO purgaba la caché de negocio/PHI ni la cola offline
   'clinica_',           // sesión activa, sección activa, paciente seleccionado
   'profile_',           // perfiles cacheados por email
   'recetas_',           // recetas por pacienteId

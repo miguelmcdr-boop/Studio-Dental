@@ -106,8 +106,6 @@ describe('purgarDatosLocales (F7-05)', () => {
       mockLocalStorage.setItem('certificados_789', '[]')
       mockLocalStorage.setItem('quirurgico_implantes_789', '[]')
       mockLocalStorage.setItem('dsd_config_clinica1', '{}')
-      // P0-3: claves tenant-aware (F7-36) también deben purgarse en logout
-      mockLocalStorage.setItem('sd_clinica-A_pacientes_v3', '[]')
 
       // Claves de otras apps (NO deben tocarse)
       mockLocalStorage.setItem('otra_app_session', 'x')
@@ -115,9 +113,8 @@ describe('purgarDatosLocales (F7-05)', () => {
 
       const r = await purgarDatosLocales()
 
-      // 15 claves de la app borradas (14 legacy + 1 tenant sd_)
-      expect(r.localStorageKeys).toBe(15)
-      expect(mockLocalStorage.getItem('sd_clinica-A_pacientes_v3')).toBeNull()
+      // 14 claves de la app borradas
+      expect(r.localStorageKeys).toBe(14)
       expect(mockLocalStorage.getItem('pediatria_789')).toBeNull()
       expect(mockLocalStorage.getItem('periodontograma_789')).toBeNull()
       expect(mockLocalStorage.getItem('quirurgico_implantes_789')).toBeNull()

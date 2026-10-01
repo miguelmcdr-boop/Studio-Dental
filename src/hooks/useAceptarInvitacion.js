@@ -55,16 +55,7 @@ export const useAceptarInvitacion = (token, onAceptarExitoso) => {
     try {
       let result
       if (modoRegistro) {
-        // P0-2: el signup solo está permitido en este flujo (invitación).
-        // Se pasa el token de invitación como credencial: si Supabase Auth
-        // reconoció la invitación, el usuario queda pre-confirmado; si no,
-        // aplica la confirmación de email obligatoria (P0-1).
-        result = await supabaseSignUp(email, password, { nombreCompleto, email, inviteToken: token })
-        if (result.requiresEmailConfirmation) {
-          setError('Te enviamos un email de confirmación. Confirma tu email y vuelve a aceptar la invitación.')
-          setEstado('error')
-          return
-        }
+        result = await supabaseSignUp(email, password, { nombreCompleto, email })
       } else {
         result = await supabaseSignIn(email, password)
       }
