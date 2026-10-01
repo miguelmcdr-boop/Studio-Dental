@@ -36,7 +36,7 @@ const formatearFechaCorta = (fechaIso) => {
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white dark:bg-graphite-800 border border-graphite-200 dark:border-graphite-700 rounded-lg p-3 shadow-lg">
+      <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-graphite-200 dark:border-[#24334A] surgical:border-[#475569] rounded-lg p-3 shadow-lg">
         <p className="text-xs font-bold text-graphite-900 dark:text-graphite-50 mb-1">
           {formatearFechaCorta(label)}
         </p>
@@ -71,7 +71,7 @@ export const TendenciasWidget = memo(({ tendenciaCitas7Dias = [], tendenciaCitas
   if ((!tendenciaCitas7Dias || tendenciaCitas7Dias.length === 0) &&
       (!tendenciaCitas30Dias || tendenciaCitas30Dias.length === 0)) {
     return (
-      <div className="bg-white dark:bg-graphite-800 border border-graphite-200 dark:border-graphite-700 rounded-2xl p-6 text-center">
+      <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-6 text-center">
         <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-graphite-100 dark:bg-graphite-700 text-graphite-400 dark:text-graphite-300 mb-3">
           <TrendingUp size={24} />
         </div>
@@ -86,7 +86,7 @@ export const TendenciasWidget = memo(({ tendenciaCitas7Dias = [], tendenciaCitas
   }
 
   return (
-    <div className="bg-white dark:bg-graphite-800 border border-graphite-200 dark:border-graphite-700 rounded-2xl p-4" role="region" aria-label="Tendencias de citas">
+    <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-4" role="region" aria-label="Tendencias de citas">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-bold text-graphite-900 dark:text-graphite-50 flex items-center gap-2">
           <TrendingUp size={16} />
@@ -98,7 +98,7 @@ export const TendenciasWidget = memo(({ tendenciaCitas7Dias = [], tendenciaCitas
             onClick={() => setPeriodo('7d')}
             className={`px-2.5 py-1 text-[10px] font-bold rounded-md transition-colors ${
               periodo === '7d'
-                ? 'bg-white dark:bg-graphite-800 text-graphite-900 dark:text-graphite-50 shadow-sm'
+                ? 'bg-white dark:bg-[#070B14] surgical:bg-white text-graphite-900 dark:text-graphite-50 shadow-sm'
                 : 'text-graphite-500 dark:text-graphite-400 hover:text-graphite-700 dark:hover:text-graphite-200'
             }`}
             aria-pressed={periodo === '7d'}
@@ -110,7 +110,7 @@ export const TendenciasWidget = memo(({ tendenciaCitas7Dias = [], tendenciaCitas
             onClick={() => setPeriodo('30d')}
             className={`px-2.5 py-1 text-[10px] font-bold rounded-md transition-colors ${
               periodo === '30d'
-                ? 'bg-white dark:bg-graphite-800 text-graphite-900 dark:text-graphite-50 shadow-sm'
+                ? 'bg-white dark:bg-[#070B14] surgical:bg-white text-graphite-900 dark:text-graphite-50 shadow-sm'
                 : 'text-graphite-500 dark:text-graphite-400 hover:text-graphite-700 dark:hover:text-graphite-200'
             }`}
             aria-pressed={periodo === '30d'}

@@ -89,25 +89,38 @@ describe('TopBar (F7-25)', () => {
     })
   })
 
-  describe('dark mode toggle', () => {
+  describe('theme mode toggle (tri-estado)', () => {
     it('renderiza el toggle cuando onToggleDarkMode está presente', () => {
       render(<TopBar {...defaultProps} />)
       expect(screen.getByRole('button', { name: /activar modo oscuro/i })).toBeInTheDocument()
     })
 
-    it('NO renderiza el toggle cuando onToggleDarkMode es undefined', () => {
-      render(<TopBar {...defaultProps} onToggleDarkMode={undefined} />)
+    it('NO renderiza el toggle cuando onToggleDarkMode y onCycleTheme son undefined', () => {
+      render(<TopBar {...defaultProps} onToggleDarkMode={undefined} onCycleTheme={undefined} />)
       expect(screen.queryByRole('button', { name: /activar modo/i })).not.toBeInTheDocument()
     })
 
-    it('llama a onToggleDarkMode al hacer click', () => {
+    it('llama a onToggleDarkMode al hacer click cuando onCycleTheme no está definido', () => {
       render(<TopBar {...defaultProps} />)
       fireEvent.click(screen.getByRole('button', { name: /activar modo oscuro/i }))
       expect(defaultProps.onToggleDarkMode).toHaveBeenCalledTimes(1)
     })
 
-    it('muestra "Activar modo claro" cuando darkMode=true', () => {
+    it('llama a onCycleTheme con prioridad al hacer click', () => {
+      const mockCycle = vi.fn()
+      render(<TopBar {...defaultProps} onCycleTheme={mockCycle} />)
+      fireEvent.click(screen.getByRole('button', { name: /activar modo oscuro/i }))
+      expect(mockCycle).toHaveBeenCalledTimes(1)
+      expect(defaultProps.onToggleDarkMode).not.toHaveBeenCalled()
+    })
+
+    it('muestra "Activar modo quirúrgico" cuando darkMode=true o theme="dark"', () => {
       render(<TopBar {...defaultProps} darkMode={true} />)
+      expect(screen.getByRole('button', { name: /activar modo quirúrgico/i })).toBeInTheDocument()
+    })
+
+    it('muestra "Activar modo claro" cuando theme="surgical"', () => {
+      render(<TopBar {...defaultProps} theme="surgical" />)
       expect(screen.getByRole('button', { name: /activar modo claro/i })).toBeInTheDocument()
     })
   })

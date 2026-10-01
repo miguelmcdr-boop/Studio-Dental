@@ -4,8 +4,8 @@ import { Clock } from 'lucide-react'
 
 export const SalaEsperaWidget = memo(({ enEspera = [], enAtencion = [], pacientes = [], alSeleccionarPaciente }) => {
   return (
-    <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-5 shadow-xs space-y-4 text-xs">
-      <div className="flex justify-between items-center border-b pb-2">
+    <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-5 shadow-xs space-y-4 text-xs">
+      <div className="flex justify-between items-center border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] pb-2">
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></span>
           <h3 className="font-bold text-gray-900 dark:text-graphite-50 uppercase tracking-wider">Monitor de Recepción & Box Dental</h3>

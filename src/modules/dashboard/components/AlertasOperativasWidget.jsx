@@ -73,7 +73,7 @@ const AlertaCard = ({ alerta, onClick }) => {
 export const AlertasOperativasWidget = memo(({ alertas = [], onNavegarAlerta }) => {
   if (!alertas || alertas.length === 0) {
     return (
-      <div className="bg-white dark:bg-graphite-800 border border-graphite-200 dark:border-graphite-700 rounded-2xl p-6 text-center">
+      <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-6 text-center">
         <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-clinical-success/10 dark:bg-emerald-400/15 text-clinical-success dark:text-emerald-300 mb-3">
           <AlertTriangle size={24} />
         </div>
@@ -88,7 +88,7 @@ export const AlertasOperativasWidget = memo(({ alertas = [], onNavegarAlerta }) 
   }
 
   return (
-    <div className="bg-white dark:bg-graphite-800 border border-graphite-200 dark:border-graphite-700 rounded-2xl p-4" role="region" aria-label="Alertas operativas">
+    <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-4" role="region" aria-label="Alertas operativas">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-bold text-graphite-900 dark:text-graphite-50 flex items-center gap-2">
           <AlertTriangle size={16} />

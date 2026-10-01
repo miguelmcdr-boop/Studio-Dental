@@ -30,7 +30,7 @@ export const AgendaViewSelector = memo(({
   }
 
   return (
-    <div className="bg-gray-50 dark:bg-graphite-800 p-4 border border-gray-200 dark:border-graphite-700 rounded-2xl flex justify-between items-center flex-wrap gap-3 text-xs print:hidden">
+    <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] p-4 border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl flex justify-between items-center flex-wrap gap-3 text-xs print:hidden">
       <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
         {/* F7-27: Búsqueda avanzada */}
         <input
@@ -38,32 +38,32 @@ export const AgendaViewSelector = memo(({
           placeholder="Buscar paciente, RUT, tratamiento..."
           value={busquedaLocal}
           onChange={handleBusquedaChange}
-          className="px-3 py-2 border rounded-xl bg-white dark:bg-graphite-800 font-medium text-xs text-graphite-900 dark:text-graphite-50 placeholder-graphite-400 min-w-[200px] focus:ring-2 focus:ring-clinical-info focus:border-transparent"
+          className="px-3 py-2 border rounded-xl bg-[#F8FAFC] dark:bg-[#070B14] surgical:bg-white border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] font-medium text-xs text-graphite-900 dark:text-graphite-50 surgical:text-black placeholder-graphite-400 min-w-[200px] focus:ring-2 focus:ring-clinical-info focus:border-transparent"
           aria-label="Buscar en agenda"
         />
 
         <div className="flex items-center gap-1.5">
-          <span className="font-semibold text-gray-600 dark:text-graphite-400">Fecha:</span>
+          <span className="font-semibold text-gray-600 dark:text-graphite-400 surgical:text-black">Fecha:</span>
           <input
             type="date"
             value={fechaSeleccionadaIso}
             onChange={(e) => setFechaSeleccionadaIso(e.target.value)}
-            className="p-2 border rounded-xl bg-white dark:bg-graphite-800 font-bold text-xs"
+            className="p-2 border rounded-xl bg-[#F8FAFC] dark:bg-[#070B14] surgical:bg-white border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] font-bold text-xs text-graphite-900 dark:text-graphite-50 surgical:text-black"
           />
           <button
             onClick={handleHoy}
-            className="px-3 py-2 bg-white dark:bg-graphite-800 border border-gray-300 dark:border-graphite-600 rounded-xl font-bold hover:bg-gray-100 dark:hover:bg-graphite-700 text-gray-800 dark:text-graphite-100 transition-colors duration-150"
+            className="px-3 py-2 bg-[#F8FAFC] dark:bg-[#070B14] surgical:bg-white border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-xl font-bold hover:bg-gray-100 dark:hover:bg-graphite-800 text-gray-800 dark:text-graphite-100 surgical:text-black transition-colors duration-150"
           >
             Hoy
           </button>
         </div>
 
         <div className="flex items-center gap-1.5 ml-0 sm:ml-2">
-          <span className="font-semibold text-gray-600 dark:text-graphite-400">Sillón / Box:</span>
+          <span className="font-semibold text-gray-600 dark:text-graphite-400 surgical:text-black">Sillón / Box:</span>
           <select
             value={boxFiltro}
             onChange={(e) => setBoxFiltro(e.target.value)}
-            className="p-2 border rounded-xl bg-white dark:bg-graphite-800 font-bold text-xs"
+            className="p-2 border rounded-xl bg-[#F8FAFC] dark:bg-[#070B14] surgical:bg-white border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] font-bold text-xs text-graphite-900 dark:text-graphite-50 surgical:text-black"
           >
             <option value="Todos">Todos los Boxes Sillones</option>
             {BOXES_DENTALES.map(b => (
@@ -74,11 +74,11 @@ export const AgendaViewSelector = memo(({
 
         {doctoresDisponibles.length > 0 && setDoctorFiltro && (
           <div className="flex items-center gap-1.5 ml-0 sm:ml-2">
-            <span className="font-semibold text-gray-600 dark:text-graphite-400">Doctor:</span>
+            <span className="font-semibold text-gray-600 dark:text-graphite-400 surgical:text-black">Doctor:</span>
             <select
               value={doctorFiltro}
               onChange={(e) => setDoctorFiltro(e.target.value)}
-              className="p-2 border rounded-xl bg-white dark:bg-graphite-800 font-bold text-xs"
+              className="p-2 border rounded-xl bg-[#F8FAFC] dark:bg-[#070B14] surgical:bg-white border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] font-bold text-xs text-graphite-900 dark:text-graphite-50 surgical:text-black"
             >
               <option value="Todos">Todos los Odontólogos</option>
               {doctoresDisponibles.map(doc => (
@@ -92,11 +92,11 @@ export const AgendaViewSelector = memo(({
       {/* F7-27: Selector de vista y botón exportar */}
       <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
         <div className="flex items-center gap-1.5">
-          <span className="font-semibold text-gray-600 dark:text-graphite-400">Vista:</span>
+          <span className="font-semibold text-gray-600 dark:text-graphite-400 surgical:text-black">Vista:</span>
           <select
             value={vista}
             onChange={(e) => setVista && setVista(e.target.value)}
-            className="p-2 border rounded-xl bg-white dark:bg-graphite-800 font-bold text-xs"
+            className="p-2 border rounded-xl bg-[#F8FAFC] dark:bg-[#070B14] surgical:bg-white border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] font-bold text-xs text-graphite-900 dark:text-graphite-50 surgical:text-black"
             aria-label="Seleccionar vista de agenda"
           >
             <option value="box">Por Box</option>
@@ -109,7 +109,7 @@ export const AgendaViewSelector = memo(({
           <button
             type="button"
             onClick={onExportarCSV}
-            className="inline-flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-graphite-800 border border-gray-300 dark:border-graphite-600 rounded-xl font-bold text-xs text-gray-800 dark:text-graphite-100 hover:bg-gray-50 dark:hover:bg-graphite-700 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#F8FAFC] dark:bg-[#070B14] surgical:bg-white border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-xl font-bold text-xs text-gray-800 dark:text-graphite-100 surgical:text-black hover:bg-gray-50 dark:hover:bg-graphite-800 transition-colors"
             aria-label="Exportar agenda a CSV"
           >
             <Download size={12} />

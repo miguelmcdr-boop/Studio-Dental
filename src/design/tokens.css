@@ -149,6 +149,13 @@
   --surface-border: #E2E8F0;
   --surface-text: #0F172A;
 
+  /* Aliases canónicos requeridos */
+  --bg-canvas: #F8FAFC;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #F1F5F9;
+  --border-surface: #E2E8F0;
+  --text-primary: #0F172A;
+
   /* Subpaleta Clínica Activa (por defecto claro) */
   --clinical-healthy: #0284C7;
   --clinical-caries: #DC2626;
@@ -193,6 +200,12 @@
   --surface-border: #24334A;
   --surface-text: #F8FAFC;
 
+  --bg-canvas: #070B14;
+  --bg-surface: #0F172A;
+  --bg-elevated: #1E293B;
+  --border-surface: #24334A;
+  --text-primary: #F8FAFC;
+
   --color-primary: #E5C378;
   --color-primary-light: #FFF5DF;
   --color-surface: #0F172A;
@@ -228,6 +241,12 @@
   --surface-border: #475569;
   --surface-text: #000000;
 
+  --bg-canvas: #CBD5E1;
+  --bg-surface: #F1F5F9;
+  --bg-elevated: #E2E8F0;
+  --border-surface: #475569;
+  --text-primary: #000000;
+
   --color-primary: #B88E3A;
   --color-primary-light: #E5C378;
   --color-surface: #F1F5F9;
@@ -255,8 +274,19 @@
   color: #000000;
 }
 
+/* Ergonomía táctil para modo quirúrgico: mínimo 48x48px en botones de cabecera y críticos */
+.theme-surgical header button,
+.theme-surgical header [role="button"],
+.theme-surgical [data-touch-target="critical"] {
+  min-width: 48px;
+  min-height: 48px;
+}
+
 /* === ESTILOS BASE Y TABULAR-NUMS GLOBAL === */
-body {
+html,
+body,
+#root {
+  min-height: 100%;
   font-family: var(--font-body);
   background-color: var(--surface-canvas);
   color: var(--surface-text);
@@ -265,12 +295,16 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-.dark body {
+.dark,
+.dark body,
+.dark #root {
   background-color: var(--surface-canvas);
   color: var(--surface-text);
 }
 
-.theme-surgical body {
+.theme-surgical,
+.theme-surgical body,
+.theme-surgical #root {
   background-color: var(--surface-canvas);
   color: var(--surface-text);
 }
@@ -286,4 +320,15 @@ input[type="number"],
 .hora-display {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
+}
+
+/* Textura Blueprint Isométrica de Escáner Clínico DentikOS */
+.bg-blueprint-scanner {
+  background-color: #070B14;
+  background-image:
+    radial-gradient(circle at 50% 50%, rgba(229, 195, 120, 0.08) 0%, transparent 65%),
+    radial-gradient(rgba(229, 195, 120, 0.12) 1px, transparent 1px),
+    linear-gradient(to right, rgba(229, 195, 120, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(229, 195, 120, 0.03) 1px, transparent 1px);
+  background-size: 100% 100%, 24px 24px, 24px 24px, 24px 24px;
 }

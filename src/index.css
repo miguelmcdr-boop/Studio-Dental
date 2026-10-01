@@ -1,10 +1,26 @@
 @import "tailwindcss";
 @import "./design/tokens.css";
 
-/* F7-25: forzar dark: a depender de clase .dark (no de prefers-color-scheme del OS) */
-@custom-variant dark (&:where(.dark, .dark *));
-/* Modo quirúrgico DentikOS (.theme-surgical) */
-@custom-variant surgical (&:where(.theme-surgical, .theme-surgical *));
+/* F7-25: forzar dark: y surgical: a depender de clase .dark y .theme-surgical con especificidad real */
+@custom-variant dark (&:is(.dark, .dark *));
+@custom-variant surgical (&:is(.theme-surgical, .theme-surgical *));
+
+/* Utilidades de Superficie y Canvas Adaptativas DentikOS */
+.bg-canvas {
+  background-color: var(--surface-canvas);
+}
+.bg-surface-card {
+  background-color: var(--surface-default);
+}
+.bg-surface-elevated {
+  background-color: var(--surface-elevated);
+}
+.border-surface {
+  border-color: var(--surface-border);
+}
+.text-primary-surface {
+  color: var(--surface-text);
+}
 
 /* Configuración global de impresión - Formato Letter (8.5" x 11") */
 @media print {

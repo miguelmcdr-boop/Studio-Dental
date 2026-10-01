@@ -4,7 +4,7 @@ import { Zap } from 'lucide-react'
 
 export const AccesosRapidosWidget = memo(({ setActiveSection }) => {
   return (
-    <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-5 shadow-xs text-xs space-y-3">
+    <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-5 shadow-xs text-xs space-y-3">
       <h3 className="font-bold text-sm text-gray-900 dark:text-graphite-50 uppercase tracking-wider inline-flex items-center gap-2"><Zap size={14} />Accesos Rápidos de Navegación</h3>
       
       <div className="grid grid-cols-2 gap-3">
