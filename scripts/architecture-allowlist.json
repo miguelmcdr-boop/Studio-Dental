@@ -65,7 +65,7 @@
     "src/modules/administracion/schemas/interaccionSchema.js": 57,
     "src/modules/administracion/components/TablaInteracciones.jsx": 190,
     "src/modules/administracion/components/ModalEditarInteraccion.jsx": 228,
-    "src/modules/administracion/schemas/profilaxisSchema.js": 46,
+    "src/modules/administracion/schemas/profilaxisSchema.ts": 46,
     "src/modules/administracion/schemas/anticoagulanteSchema.ts": 44,
     "src/modules/administracion/components/TablaProfilaxis.jsx": 121,
     "src/modules/administracion/components/TablaAnticoagulantes.jsx": 108,

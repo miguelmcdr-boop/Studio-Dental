@@ -1,6 +1,6 @@
 /**
  * Esquema Zod para validación de protocolos de profilaxis endocarditis.
- * F4-03f-5c
+ * F4-03f-5c / Migración TypeScript
  */
 import { z } from 'zod'
 
@@ -24,20 +24,26 @@ export const profilaxisSchema = z.object({
   activo: z.boolean().default(true)
 })
 
+export type Profilaxis = z.infer<typeof profilaxisSchema>
+
+export interface ValidacionProfilaxisResultado {
+  valido: boolean
+  errores: Record<string, string>
+  datos?: Profilaxis
+}
+
 /**
  * Valida datos de protocolo de profilaxis y retorna errores estructurados.
- * @param {Object} data - Datos del formulario
- * @returns {{valido: boolean, errores: Object, datos?: Object}}
  */
-export const validarProfilaxis = (data) => {
+export const validarProfilaxis = (data: unknown): ValidacionProfilaxisResultado => {
   const resultado = profilaxisSchema.safeParse(data)
   if (resultado.success) {
     return { valido: true, errores: {}, datos: resultado.data }
   }
   
-  const errores = {}
+  const errores: Record<string, string> = {}
   resultado.error.issues.forEach(issue => {
-    const campo = issue.path[0]
+    const campo = String(issue.path[0])
     errores[campo] = issue.message
   })
   
