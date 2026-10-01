@@ -9697,6 +9697,36 @@ Esperado: Paciente SIGUE en BD (no fue eliminado).
 - 11 tests Vitest nuevos (validacion estatica del fail-safe y hardening)
 - Principio del brief cumplido: "Minimizar estados inconsistentes y hacer fallos recuperables"
 
-**PR:** #174 (pendiente de merge)
 
 ---
+
+## [2026-10-01] Migración Gradual a TypeScript — src/utils/csvExport.ts (Prioridad 1)
+
+### Contexto y Alcance
+- Inicio de la migración gradual a TypeScript (Prioridad 1) según protocolo de trabajo.
+- Archivo seleccionado: `src/utils/csvExport.js` -> `src/utils/csvExport.ts` (función utilitaria de exportación de citas a formato CSV).
+- Rama creada: `feat/migracion-typescript-csvExport`.
+
+### Tipos agregados y justificación
+1. **`CitaCSVInput`**:
+   - Modela la estructura esperada de cada cita odontológica procesada para exportación: `id`, `fecha`, `horaInicio`, `pacienteNombre`, `pacienteRut`, `pacienteTelefono`, `trataMiento`, `boxAsignado`, `estado` (todos `string | null | undefined`).
+   - Incluye `[key: string]: unknown` para permitir interoperabilidad sin fricción con los objetos de cita completos provistos por los stores/servicios de agenda.
+2. **`CitaCSVFormateada`**:
+   - Modela el registro tabular exacto con cabeceras en español: `Fecha`, `Hora`, `Paciente`, `RUT`, `Teléfono`, `Tratamiento`, `Box`, `Estado`, `ID` (todos `string`).
+   - Proporciona seguridad de tipos al iterar y mapear columnas para la construcción del archivo CSV.
+3. **Firmas de funciones**:
+   - `escaparValorCSV(valor: unknown): string`
+   - `formatearCitaParaCSV(cita: CitaCSVInput): CitaCSVFormateada`
+   - `exportarCitasCSV(citas: CitaCSVInput[], filename?: string): void`
+
+### Archivos involucrados
+- `src/utils/csvExport.ts`: Nuevo archivo tipado (85 líneas, reducción de 11 líneas vs original).
+- `src/utils/csvExport.js`: Eliminado (reemplazado por `.ts`).
+- `src/utils/csvExport.test.js`: Adaptado con aserciones extendidas y mocks de `vi` (4/4 tests pasando).
+- `scripts/architecture-allowlist.json`: Actualizado para apuntar a `src/utils/csvExport.ts` con límite congelado de 85 líneas.
+
+### Verificación y Evidencia
+- `npm run validate:architecture`: ✅ Todas las reglas arquitectónicas se cumplen (74 archivos en allowlist, 0 violaciones).
+- `npm run test`: ✅ 135/135 archivos pasaron, 1766/1766 tests unitarios pasaron (0 regresiones).
+- `npm run build`: ✅ Build de producción con Vite completado en 1.38s sin errores.
+- `npm run lint`: ✅ 0 errores con Oxlint.

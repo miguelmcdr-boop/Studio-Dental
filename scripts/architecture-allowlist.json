@@ -80,7 +80,7 @@
     "src/hooks/useCommandPalette.js": 156,
     "src/modules/pacientes/components/TimelineClinicoWidget.jsx": 334,
     "src/utils/recurrenciaUtils.js": 117,
-    "src/utils/csvExport.js": 96,
+    "src/utils/csvExport.ts": 85,
     "src/utils/alertasOperativas.js": 133,
     "src/utils/tareasClinicas.js": 125
   }
