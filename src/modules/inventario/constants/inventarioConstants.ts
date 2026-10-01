@@ -2,7 +2,19 @@
  * Constantes y Enumeraciones para el Módulo de Inventario e Insumos
  */
 
-export const CATEGORIAS_INSUMOS = [
+export interface ItemInventarioDefault {
+  id: number
+  nombre: string
+  categoria: string
+  cantidad: number
+  minimoCritico: number
+  unidad: string
+  fechaVencimiento: string
+  precioUnitario: number
+  proveedor: string
+}
+
+export const CATEGORIAS_INSUMOS: readonly string[] = [
   'Anestésicos y Agujas',
   'Restauración y Resinas',
   'Endodoncia',
@@ -13,7 +25,7 @@ export const CATEGORIAS_INSUMOS = [
   'Instrumental'
 ]
 
-export const UNIDADES_MEDIDA = [
+export const UNIDADES_MEDIDA: readonly string[] = [
   'Cajas',
   'Unidades / Piezas',
   'Tubos / Cárpulas',
@@ -22,7 +34,7 @@ export const UNIDADES_MEDIDA = [
   'Kits'
 ]
 
-export const ITEMS_INVENTARIO_DEFAULT = [
+export const ITEMS_INVENTARIO_DEFAULT: readonly ItemInventarioDefault[] = [
   {
     id: 1,
     nombre: 'Lidocaína 2% con Epinefrina (36mg)',
