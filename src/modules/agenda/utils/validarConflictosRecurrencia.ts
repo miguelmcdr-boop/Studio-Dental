@@ -1,25 +1,34 @@
 /**
  * confirmarConflictosRecurrencia — Valida conflictos de horario para múltiples citas
- * 
- * Extraído de ModalNuevaCita.jsx para cumplir límites de allowlist (F3-02).
- * Usa solo para validar arrays de citas (recurrentes o múltiples).
- * 
- * @param {Array} citasAGuardar - Array de citas a validar
- * @param {Array} citasExistentes - Citas ya existentes en el sistema
- * @param {Function} validarFn - Función de validación de recurrenciaUtils
- * @param {Function|null} confirmFn - Función confirm de useAppDialog (opcional)
- * @returns {Promise<boolean>} - true si se puede continuar, false si el usuario canceló
  */
-import { confirmarConDialogo } from './confirmarConDialogo'
+import { confirmarConDialogo, ConfirmDialogFn } from './confirmarConDialogo'
+
+export interface ConflictoRecurrenciaDetalle {
+  fecha?: string
+  horaInicio?: string
+  pacienteNombre?: string
+  boxAsignado?: string
+  [key: string]: unknown
+}
+
+export interface ResultadoValidacionRecurrencia {
+  valido: boolean
+  conflictos: ConflictoRecurrenciaDetalle[]
+}
+
+export type ValidarRecurrenciaFn = (cita: unknown, existentes: unknown[]) => ResultadoValidacionRecurrencia
 
 export const confirmarConflictosRecurrencia = async (
-  citasAGuardar, citasExistentes, validarFn, confirmFn = null
-) => {
-  const todosLosConflictos = []
+  citasAGuardar: unknown[],
+  citasExistentes: unknown[],
+  validarFn: ValidarRecurrenciaFn,
+  confirmFn: ConfirmDialogFn | null = null
+): Promise<boolean> => {
+  const todosLosConflictos: Array<{ fecha?: string; hora?: string; paciente?: string; box?: string }> = []
   citasAGuardar.forEach((cita) => {
     const resultado = validarFn(cita, citasExistentes)
     if (!resultado.valido) {
-      resultado.conflictos.forEach((conflicto) => {
+      (resultado.conflictos || []).forEach((conflicto) => {
         todosLosConflictos.push({
           fecha: conflicto.fecha, hora: conflicto.horaInicio,
           paciente: conflicto.pacienteNombre, box: conflicto.boxAsignado
