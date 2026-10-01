@@ -45,7 +45,15 @@ export const presupuestoSchema = z.object({
   observacion: z.string().optional(),
 }).passthrough()
 
+export type Presupuesto = z.infer<typeof presupuestoSchema>
+
 export const listaPresupuestosSchema = z.array(presupuestoSchema)
+
+export type ValidacionListaPresupuestos = {
+  valido: boolean
+  datos: Presupuesto[] | null
+  error: z.ZodError | null
+}
 
 /**
  * Valida un arreglo de presupuestos. No lanza excepción — retorna un
@@ -53,10 +61,10 @@ export const listaPresupuestosSchema = z.array(presupuestoSchema)
  * un dato corrupto tumbe la app entera con una excepción no capturada a
  * mitad de un guardado (Cap. V.2 Constitución).
  *
- * @param {Array} presupuestos - Array de objetos presupuesto a validar.
- * @returns {{ valido: boolean, datos: Array|null, error: import('zod').ZodError|null }}
+ * @param {unknown} presupuestos - Array de objetos presupuesto a validar.
+ * @returns {ValidacionListaPresupuestos}
  */
-export const validarListaPresupuestos = (presupuestos) => {
+export const validarListaPresupuestos = (presupuestos: unknown): ValidacionListaPresupuestos => {
   const resultado = listaPresupuestosSchema.safeParse(presupuestos)
   if (resultado.success) {
     return { valido: true, datos: resultado.data, error: null }
