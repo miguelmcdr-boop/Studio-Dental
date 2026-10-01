@@ -17,6 +17,7 @@ export interface MockFetchConfig {
   certificadoDeleteOk?: boolean; // F7-37 v3: controlar fallos de DELETE de certificados
   rpcOk?: boolean; // F7-37 v3.2: si false → RPC falla
   rpcRazon?: string; // F7-37 v3.2: razón del fallo RPC
+  auditLogCalls?: Array<{ p_clinica_id?: string; p_evento: string; p_detalle: any; p_user_id?: string | null }>; // F7-37 v7
   operationCounters?: {
     validate_cert?: number;
     delete_r2?: number;
@@ -229,6 +230,13 @@ export function createMockFetch(config: MockFetchConfig) {
     if (urlStr.includes("/rest/v1/rpc/registrar_evento_purge")) {
       if (config.auditLogOk === false) {
         return new Response("Audit error", { status: 500 });
+      }
+      // F7-37 v7: capturar body para verificar en tests
+      if (init?.body && config.auditLogCalls) {
+        try {
+          const body = JSON.parse(init.body as string);
+          config.auditLogCalls.push(body);
+        } catch (e) {}
       }
       return new Response("{}", { status: 200 });
     }

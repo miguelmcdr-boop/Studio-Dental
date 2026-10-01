@@ -1,5 +1,22 @@
 
 
+## 2026-10-01 00:15 — F7-37 v7: P1 audit (p_clinica_id null corregido)
+
+**Estado:** ✅ DONE | **Cambio:** 1 línea en archivos-purge/index.ts
+
+### Hallazgo corregido
+- **P1 audit:** registrar_evento_purge recibía p_clinica_id: null, pero audit_log.clinica_id es NOT NULL
+- **Solución:** usar clinicaId del contexto autorizado (ya validado)
+- **Seguridad:** no introduce nueva vía para elección arbitraria de clinica_id
+
+### Verificaciones
+✅ 45/45 Deno tests pasan (incluye T74 audit)
+✅ T69 cross-tenant sigue pasando (no relajado)
+✅ 287/287 Vitest tests pasan
+
+F7-37: LISTO PARA CIERRE (20 hallazgos resueltos).
+
+
 ## 2026-09-30 23:42 — F7-37 v6: P1 cross-tenant + P0 función duplicada
 
 **Estado:** ✅ DONE | **Migración:** 20260930001100 (167 líneas)
