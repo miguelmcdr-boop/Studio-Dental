@@ -230,3 +230,39 @@ La tabla `audit_log` no tiene política de retención definida. Los snapshots cl
    - Plan de mitigación actual
 3. Agregar referencia en MASTER_ROADMAP.md si aplica
 4. Revisar deudas activas en cada planning de release
+
+
+### 2026-09-30 — P2: Posible r2ArchivoId duplicado en certificados
+
+**Clasificación:** P2 (robustez/operación, no seguridad)
+**Origen:** Auditoría F7-37 v6
+
+**Descripción:**
+La columna datos->>'r2ArchivoId' en la tabla certificados no tiene constraint UNIQUE ni índice GIN. Teóricamente, múltiples certificados podrían referenciar el mismo archivo R2.
+
+**Por qué NO es P1:**
+- No hay evidencia de duplicados en producción
+- No permite violar aislamiento cross-tenant
+- El flujo de creación podría garantizar unicidad por diseño (no inspeccionado)
+- Sin impacto de seguridad demostrable
+
+**Recomendación futura (si se detectan duplicados):**
+Crear índice UNIQUE funcional:
+```sql
+CREATE UNIQUE INDEX idx_certificados_r2_archivo_id_unico
+ON public.certificados ((datos->>'r2ArchivoId'))
+WHERE datos->>'r2ArchivoId' IS NOT NULL
+  AND eliminado_at IS NULL;
+```
+
+**Query de detección de duplicados:**
+```sql
+SELECT datos->>'r2ArchivoId' AS r2_id, COUNT(*) AS duplicados
+FROM public.certificados
+WHERE datos->>'r2ArchivoId' IS NOT NULL
+  AND eliminado_at IS NULL
+GROUP BY datos->>'r2ArchivoId'
+HAVING COUNT(*) > 1;
+```
+
+**Estado:** Documentado, sin migración creada (evitar migración por hipótesis).

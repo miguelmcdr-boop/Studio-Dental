@@ -1139,3 +1139,128 @@ Comentario actualizado: cuarentena TEMPORAL 30 días (no permanente).
 
 17 hallazgos resueltos. 11 migraciones. 43 Deno + 287 Vitest + 5 SQL tests.
 Estado: 🟢 F7-37 DONE (v5).
+
+
+---
+
+## 30. P1 Cross-Tenant en eliminar_certificado_sin_archivo (v6)
+
+### Problema detectado
+
+La RPC eliminar_certificado_sin_archivo (v5) validaba:
+- Certificado existe
+- Está en papelera
+- No tiene r2ArchivoId
+
+PERO NO validaba que el certificado perteneciera a la clínica del usuario que solicita la purga.
+
+**Riesgo:** Un usuario de Clínica A podría (si conoce el UUID) eliminar un certificado de Clínica B que esté en papelera y sin r2ArchivoId.
+
+### Solución [LOCAL SUPABASE] + [PRODUCTION]
+
+**Migración:** 20260930001100_f7_37v6_cross_tenant_defense.sql
+
+Cambios:
+1. Agregar parámetro p_clinica_id a la RPC
+2. Validar que certificado.clinica_id = p_clinica_id antes del DELETE
+3. Mismatch de clínica → REJECT con razón certificado_cross_tenant
+4. archivos-purge pasa clinicaId (extraído del JWT) a la RPC
+
+**Código de la RPC (extracto):**
+```sql
+CREATE OR REPLACE FUNCTION public.eliminar_certificado_sin_archivo(
+  p_certificado_id UUID,
+  p_clinica_id UUID  -- ✅ Nuevo parámetro
+)
+...
+  IF v_certificado.clinica_id <> p_clinica_id THEN
+    RETURN jsonb_build_object('exito', false, 'razon', 'certificado_cross_tenant');
+  END IF;
+```
+
+**Defensa en profundidad (3 capas):**
+1. Edge Function (archivos-purge) valida tenant del JWT
+2. RPC valida tenant del certificado vs p_clinica_id
+3. RLS de certificados (defensa adicional)
+
+### Tests
+
+**Deno tests:** T69 (cross-tenant certificado sin R2) — 44/44 pasan [STATIC]
+
+**SQL tests reales [LOCAL SUPABASE]:**
+- T69: Usuario Clínica A intenta purgar certificado Clínica B → REJECT ✅
+- T70: Mismo tenant → DELETE correcto ✅
+- T71: Con r2ArchivoId → REJECT ✅
+- T72: No en papelera → REJECT ✅
+- T73: Función vieja (1 parámetro) → no existe ✅
+
+---
+
+## 31. P0 Resuelto: Función duplicada (PostgreSQL sobrecarga)
+
+### Problema detectado
+
+Durante verificación SQL post-reset, se detectaron **DOS funciones** con el mismo nombre:
+
+| Firma | Origen | Riesgo |
+|---|---|---|
+| eliminar_certificado_sin_archivo(UUID) | VIEJA (v5) | 🚨 **P0**: Permite bypass de tenant |
+| eliminar_certificado_sin_archivo(UUID, UUID) | NUEVA (v6) | ✅ Correcta |
+
+**Causa raíz:** PostgreSQL permite sobrecarga de funciones. CREATE OR REPLACE FUNCTION no reemplaza funciones con firmas diferentes; crea una sobrecarga adicional.
+
+**Impacto:** Cualquier cliente que llamara a la función vieja con 1 solo parámetro podía eliminar certificados de CUALQUIER clínica, anulando completamente la corrección del P1.
+
+### Solución
+
+**Migración 001100 actualizada:**
+```sql
+-- F7-37 v6 P0 FIX: Eliminar la función vieja de 1 parámetro
+DROP FUNCTION IF EXISTS public.eliminar_certificado_sin_archivo(UUID);
+
+CREATE OR REPLACE FUNCTION public.eliminar_certificado_sin_archivo(
+  p_certificado_id UUID,
+  p_clinica_id UUID
+)
+...
+```
+
+**Verificación [LOCAL SUPABASE]:**
+- Solo 1 función existe (2 parámetros) ✅
+- Intentar llamar función vieja → function does not exist ✅
+- search_path vacío preservado ✅
+- Permisos restrictivos preservados ✅
+
+### Estado final
+
+**P1 cross-tenant:** Corregido con defensa en profundidad (Edge Fn + RPC + RLS)
+**P0 función duplicada:** Eliminado (migración idempotente con DROP FUNCTION)
+
+---
+
+## 32. Estado final F7-37 v6
+
+### Estadísticas
+- Total hallazgos resueltos: **19** (H-01 a H-12 + P1 #1, P1 #2, H-12 residual, H-11b, P1 cross-tenant, P0 función duplicada)
+- Total migraciones: **12** (000300 a 001100)
+- Tests Deno: **44/44**
+- Tests Vitest: **287/287**
+- Tests SQL reales: **5/5** (T69-T73)
+
+### Estado de cada hallazgo
+| Hallazgo | Estado | Evidencia |
+|---|---|---|
+| H-01 a H-08 | ✅ | v1-v3 |
+| H-09, H-10, H-11, H-12 | ✅ | v4 |
+| H-11b | ✅ | v5 |
+| P1 #1 (source_type) | ✅ | v5 |
+| P1 #2 (RPC defense) | ✅ | v5 |
+| H-12 residual | ✅ | v5 |
+| **P1 cross-tenant** | ✅ | **v6** |
+| **P0 función duplicada** | ✅ | **v6** |
+
+### Estado final: 🟢 F7-37 DONE (v6)
+
+Todos los hallazgos identificados en la auditoría han sido corregidos, cubiertos por tests de regresión, documentados y verificados en entorno local con supabase db reset.
+
+**Próximo paso:** F7-29 (Manual de usuario) o F7-30 (Release Candidate)
