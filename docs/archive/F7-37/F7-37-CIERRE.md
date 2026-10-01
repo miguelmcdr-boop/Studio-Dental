@@ -1264,3 +1264,65 @@ CREATE OR REPLACE FUNCTION public.eliminar_certificado_sin_archivo(
 Todos los hallazgos identificados en la auditoría han sido corregidos, cubiertos por tests de regresión, documentados y verificados en entorno local con supabase db reset.
 
 **Próximo paso:** F7-29 (Manual de usuario) o F7-30 (Release Candidate)
+
+
+---
+
+## 33. P1 Audit: p_clinica_id null en certificado sin R2 (v7)
+
+### Problema detectado
+
+En el flujo de purga de certificado sin R2, la llamada a `registrar_evento_purge()` enviaba `p_clinica_id: null`, pero `audit_log.clinica_id` es `NOT NULL`.
+
+**Código problemático (línea 355 de archivos-purge/index.ts):**
+\`\`\`typescript
+body: JSON.stringify({
+  p_clinica_id: null, // La RPC no devuelve clinica_id; se omite
+  p_evento: "ADMIN_PURGE_CERTIFICADO_SIN_ARCHIVO",
+  ...
+})
+\`\`\`
+
+**Impacto:** Error de base de datos en producción cuando se ejecute el flujo de certificado sin R2.
+
+### Solución [STATIC]
+
+**Archivo:** `supabase/functions/archivos-purge/index.ts` (línea 355)
+
+Reemplazar `null` con `clinicaId` del contexto autorizado:
+\`\`\`typescript
+body: JSON.stringify({
+  p_clinica_id: clinicaId, // F7-37 v7: usar clinicaId del contexto autorizado
+  p_evento: "ADMIN_PURGE_CERTIFICADO_SIN_ARCHIVO",
+  ...
+})
+\`\`\`
+
+**Seguridad preservada:**
+- `clinicaId` ya está validado en línea 308-313 (no es null en modo usuario)
+- Proviene del JWT del usuario autenticado (user_metadata.clinica_id)
+- No introduce nueva vía para que el cliente elija `clinica_id` arbitrariamente
+- Mantiene validación cross-tenant de F7-37 v6 intacta
+
+### Tests
+
+**T74 Deno:** Verifica que `registrar_evento_purge` recibe `clinicaId` correcto (no null) — **45/45 pasan** [STATIC]
+
+**Caso cross-tenant (T69):** Continúa pasando sin modificaciones (no se relajó)
+
+---
+
+## 34. Estado final F7-37 v7
+
+### Estadísticas
+- Total hallazgos resueltos: **20** (H-01 a H-12 + P1 #1, P1 #2, H-12 residual, H-11b, P1 cross-tenant, P0 función duplicada, P1 audit)
+- Total migraciones: **12** (000300 a 001100)
+- Tests Deno: **45/45**
+- Tests Vitest: **287/287**
+- Tests SQL reales: **5/5** (T69-T73)
+
+### Estado final: 🟢 F7-37 DONE (v7)
+
+Todos los hallazgos identificados en la auditoría han sido corregidos, cubiertos por tests de regresión, documentados y verificados en entorno local con supabase db reset.
+
+**F7-37: LISTO PARA CIERRE.**

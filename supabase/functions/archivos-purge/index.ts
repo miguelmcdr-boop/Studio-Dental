@@ -348,11 +348,12 @@ export async function handler(req: Request): Promise<Response> {
       }
 
       // Registrar auditoría
+      // F7-37 v7 P1 FIX: usar clinicaId del contexto autorizado (no null)
       await fetch(`${supabaseUrl}/rest/v1/rpc/registrar_evento_purge`, {
         method: "POST",
         headers: { Authorization: `Bearer ${supabaseServiceKey}`, apikey: supabaseServiceKey, "Content-Type": "application/json" },
         body: JSON.stringify({
-          p_clinica_id: null, // La RPC no devuelve clinica_id; se omite
+          p_clinica_id: clinicaId,
           p_evento: "ADMIN_PURGE_CERTIFICADO_SIN_ARCHIVO",
           p_detalle: { certificado_id: certificadoId },
           p_user_id: userId,

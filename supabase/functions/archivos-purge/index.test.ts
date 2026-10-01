@@ -1926,3 +1926,57 @@ Deno.test("T69: cross-tenant - usuario Clínica A intenta purgar certificado Cl�
     globalThis.fetch = originalFetch;
   }
 });
+
+
+// ============================================================
+// F7-37 v7 P1 FIX: Test auditoría de certificado sin R2
+// ============================================================
+
+Deno.test("T74: certificado sin archivo - auditoría usa clinicaId correcto (no null)", async () => {
+  const originalFetch = globalThis.fetch;
+  const certificados = [
+    { id: CERT_A, clinica_id: CLINICA_A, eliminado_at: "2026-09-14T10:00:00Z", datos: {} },
+  ];
+
+  // Array para capturar llamadas a registrar_evento_purge
+  const auditLogCalls: Array<any> = [];
+
+  globalThis.fetch = createMockFetch({
+    authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+    memberships: baseMemberships,
+    archivos: [],
+    certificados,
+    auditLogCalls, // Pasar array para capturar llamadas
+  }) as any;
+
+  try {
+    const req = new Request("http://localhost/archivos-purge", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer valid-jwt",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        archivo_ids: [],
+        source_type: "certificado",
+        certificado_id: CERT_A,
+      }),
+    });
+    const res = await handler(req);
+    assertEquals(res.status, 200);
+    const body = await res.json();
+    assertEquals(body.success, true);
+    assertEquals(body.purgados.length, 1);
+    assertEquals(body.purgados[0], CERT_A);
+
+    // F7-37 v7 P1: verificar que registrar_evento_purge fue llamado con clinicaId correcto
+    assertEquals(auditLogCalls.length, 1, "Debe haber 1 llamada a registrar_evento_purge");
+    const auditCall = auditLogCalls[0];
+    assertEquals(auditCall.p_evento, "ADMIN_PURGE_CERTIFICADO_SIN_ARCHIVO");
+    assertEquals(auditCall.p_clinica_id, CLINICA_A, "p_clinica_id debe ser CLINICA_A (no null)");
+    assertEquals(auditCall.p_detalle.certificado_id, CERT_A);
+    assertEquals(auditCall.p_user_id, USER_ID);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
