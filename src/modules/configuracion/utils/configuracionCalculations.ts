@@ -2,7 +2,7 @@
  * Utilidades para exportación de backups y conversión de archivos
  */
 
-export const descargarArchivoBackupJSON = (datos, nombreArchivo) => {
+export const descargarArchivoBackupJSON = (datos: unknown, nombreArchivo: string): void => {
   const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(datos, null, 2))
   const downloadAnchor = document.createElement('a')
   downloadAnchor.setAttribute('href', dataStr)
@@ -12,7 +12,7 @@ export const descargarArchivoBackupJSON = (datos, nombreArchivo) => {
   downloadAnchor.remove()
 }
 
-export const convertirImagenADataURL = (file) => {
+export const convertirImagenADataURL = (file: Blob | File): Promise<string | ArrayBuffer | null> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = () => resolve(reader.result)
