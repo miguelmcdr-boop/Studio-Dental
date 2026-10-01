@@ -55,8 +55,8 @@ const TarjetaMetrica = ({ icono, label, valor, sublabel, color = 'graphite', ari
       aria-label={ariaLabel || label}
       onClick={esClickeable ? onClick : undefined}
       onKeyDown={esClickeable ? handleKeyDown : undefined}
-      className={`bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-xl p-3 flex items-start gap-3 hover:border-graphite-300 dark:hover:border-graphite-600 transition-all ${
-        esClickeable ? 'cursor-pointer hover:shadow-md hover:scale-[1.02] active:scale-[0.98]' : ''
+      className={`relative overflow-hidden bg-white/90 dark:bg-[#0F172A]/90 surgical:bg-[#F1F5F9] backdrop-blur-md border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-3.5 flex items-start gap-3 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-[#B88E3A]/30 before:to-transparent ${
+        esClickeable ? 'cursor-pointer' : ''
       }`}
     >
       <div className={`flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center ${colorClasses[color]}`}>

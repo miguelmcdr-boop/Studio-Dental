@@ -18,20 +18,20 @@ import { FileText, FileCheck, Stethoscope, CheckCircle, ArrowRight } from 'lucid
 const TIPO_STYLES = {
   receta_pendiente: {
     icon: FileText,
-    color: 'text-clinical-info dark:text-sky-300',
-    bg: 'bg-clinical-info/10 dark:bg-sky-400/15',
+    color: 'text-sky-700 dark:text-sky-300',
+    bg: 'bg-sky-50 dark:bg-sky-950/40 border-sky-200 dark:border-sky-800/50',
     label: 'Receta',
   },
   certificado_pendiente: {
     icon: FileCheck,
-    color: 'text-clinical-warning dark:text-amber-300',
-    bg: 'bg-clinical-warning/10 dark:bg-amber-400/15',
+    color: 'text-amber-800 dark:text-amber-300',
+    bg: 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800/50',
     label: 'Certificado',
   },
   evolucion_pendiente: {
     icon: Stethoscope,
-    color: 'text-clinical-success dark:text-emerald-300',
-    bg: 'bg-clinical-success/10 dark:bg-emerald-400/15',
+    color: 'text-emerald-800 dark:text-emerald-300',
+    bg: 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/50',
     label: 'Evolución',
   },
 }
@@ -42,20 +42,20 @@ const TareaCard = ({ tarea, completada, onToggle, onNavegar }) => {
 
   return (
     <div
-      className={`p-3 rounded-xl border transition-all ${
+      className={`p-3 rounded-xl border transition-all duration-150 ${
         completada
-          ? 'bg-graphite-50 dark:bg-graphite-700/50 border-graphite-200 dark:border-graphite-600 opacity-60'
-          : 'bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] hover:shadow-sm'
+          ? 'bg-slate-50/50 dark:bg-[#1E293B]/30 border-[#E2E8F0] dark:border-[#24334A] opacity-60'
+          : 'bg-white/90 dark:bg-[#1E293B]/80 surgical:bg-[#E2E8F0] border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] hover:shadow-xs'
       }`}
     >
-      <div className="flex items-start gap-2">
+      <div className="flex items-start gap-2.5">
         <button
           type="button"
           onClick={() => onToggle && onToggle(tarea)}
-          className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+          className={`flex-shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors cursor-pointer mt-0.5 ${
             completada
-              ? 'bg-clinical-success border-clinical-success text-white'
-              : 'border-graphite-300 dark:border-graphite-600 hover:border-clinical-success'
+              ? 'bg-emerald-600 border-emerald-600 text-white'
+              : 'border-slate-300 dark:border-graphite-600 hover:border-emerald-500'
           }`}
           aria-label={completada ? 'Marcar como pendiente' : 'Marcar como completada'}
         >
@@ -63,8 +63,8 @@ const TareaCard = ({ tarea, completada, onToggle, onNavegar }) => {
         </button>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 mb-0.5">
-            <span className={`inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded ${estilo.bg} ${estilo.color}`}>
+          <div className="flex items-center gap-1.5 mb-1">
+            <span className={`inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full border ${estilo.bg} ${estilo.color}`}>
               <Icono size={10} />
               {estilo.label}
             </span>
@@ -81,7 +81,7 @@ const TareaCard = ({ tarea, completada, onToggle, onNavegar }) => {
           <button
             type="button"
             onClick={() => onNavegar(tarea)}
-            className="flex-shrink-0 text-graphite-400 hover:text-graphite-600 dark:hover:text-graphite-200 transition-colors"
+            className="flex-shrink-0 text-slate-400 hover:text-[#B88E3A] dark:hover:text-[#E5C378] transition-colors p-1"
             aria-label={`Ir a ${tarea.titulo}`}
           >
             <ArrowRight size={14} />
@@ -112,9 +112,9 @@ export const TareasClinicasWidget = memo(({ tareas = [], onNavegarTarea }) => {
 
   if (!tareas || tareas.length === 0) {
     return (
-      <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-6 text-center">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-clinical-success/10 dark:bg-emerald-400/15 text-clinical-success dark:text-emerald-300 mb-3">
-          <CheckCircle size={24} />
+      <div className="relative overflow-hidden bg-white/90 dark:bg-[#0F172A]/90 surgical:bg-[#F1F5F9] backdrop-blur-md border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-6 text-center before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-emerald-500/40 before:to-transparent">
+        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50 mb-3">
+          <CheckCircle size={22} />
         </div>
         <h4 className="text-sm font-bold text-graphite-800 dark:text-graphite-100 mb-1">
           Sin tareas clínicas pendientes
@@ -127,18 +127,18 @@ export const TareasClinicasWidget = memo(({ tareas = [], onNavegarTarea }) => {
   }
 
   return (
-    <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-4" role="region" aria-label="Tareas clínicas pendientes">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-bold text-graphite-900 dark:text-graphite-50 flex items-center gap-2">
-          <Stethoscope size={16} />
+    <div className="relative overflow-hidden bg-white/90 dark:bg-[#0F172A]/90 surgical:bg-[#F1F5F9] backdrop-blur-md border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-5 shadow-sm before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-[#B88E3A]/40 before:to-transparent" role="region" aria-label="Tareas clínicas pendientes">
+      <div className="flex items-center justify-between mb-4 border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] pb-3">
+        <h3 className="text-sm font-extrabold text-graphite-900 dark:text-graphite-50 flex items-center gap-2 tracking-tight">
+          <Stethoscope size={16} className="text-[#B88E3A]" />
           Tareas Clínicas Pendientes
         </h3>
-        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-clinical-warning/10 dark:bg-amber-400/15 text-clinical-warning dark:text-amber-300">
+        <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/50 tabular-nums">
           {tareasPendientes.length} pendiente{tareasPendientes.length === 1 ? '' : 's'}
         </span>
       </div>
 
-      <div className="space-y-2 max-h-80 overflow-y-auto">
+      <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
         {tareas.map((tarea, index) => {
           const key = `${tarea.tipo}_${tarea.pacienteId}_${tarea.fecha}`
           return (

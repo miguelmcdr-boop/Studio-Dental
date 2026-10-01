@@ -142,14 +142,18 @@ export const DirectorioPacientes = memo(({ alSeleccionarPaciente, alEliminarPaci
             <div
               key={p.id}
               data-testid={`paciente-card-${p.id}`}
-              className="p-5 border border-graphite-200 dark:border-graphite-700 rounded-lg hover:border-graphite-900 dark:hover:border-graphite-100 transition-all bg-graphite-50 dark:bg-graphite-800 flex justify-between items-center group"
+              className="relative overflow-hidden p-5 border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl transition-all duration-150 bg-white/90 dark:bg-[#0F172A]/90 surgical:bg-[#F1F5F9] backdrop-blur-md shadow-sm hover:shadow-md hover:-translate-y-0.5 hover:border-[#B88E3A]/40 flex justify-between items-center group before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-[#B88E3A]/40 before:to-transparent"
             >
               <div onClick={() => alSeleccionarPaciente(p)} className="cursor-pointer flex-1">
-                <h3 className="font-bold text-graphite-900 dark:text-graphite-50 text-sm group-hover:text-graphite-700 dark:group-hover:text-graphite-200 transition-colors">
+                <h3 className="font-extrabold text-graphite-900 dark:text-graphite-50 surgical:text-black text-sm group-hover:text-[#B88E3A] dark:group-hover:text-[#E5C378] transition-colors">
                   {p.nombre}
                 </h3>
-                <p className="text-xs text-graphite-500 dark:text-graphite-400">RUT: {p.rut}</p>
-                <p className="text-xs text-graphite-500 dark:text-graphite-400">Tel: {p.telefono || 'Sin teléfono'}</p>
+                <p className="text-xs text-graphite-500 dark:text-graphite-400 mt-1">
+                  RUT: <span className="tabular-nums font-medium text-graphite-700 dark:text-graphite-300">{p.rut}</span>
+                </p>
+                <p className="text-xs text-graphite-500 dark:text-graphite-400">
+                  Tel: <span className="tabular-nums font-medium text-graphite-700 dark:text-graphite-300">{p.telefono || 'Sin teléfono'}</span>
+                </p>
               </div>
 
               <div className="flex items-center gap-2">
