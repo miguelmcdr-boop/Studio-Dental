@@ -136,9 +136,11 @@ describe('AceptarInvitacion', () => {
     fireEvent.click(screen.getByRole('button', { name: /crear cuenta/i }))
     
     await waitFor(() => {
+      // P0-2: el signup en flujo de invitación pasa el token como credencial
       expect(supabaseSignUp).toHaveBeenCalledWith('nuevo@test.com', 'password123', {
         nombreCompleto: 'Nuevo User',
-        email: 'nuevo@test.com'
+        email: 'nuevo@test.com',
+        inviteToken: 'valid-token-123'
       })
       expect(aceptarInvitacion).toHaveBeenCalledWith('valid-token-123')
     })

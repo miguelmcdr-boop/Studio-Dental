@@ -53,14 +53,36 @@ describe('F6-B4: authService lee rol de app_metadata', () => {
   })
 
   describe('supabaseSignUp', () => {
-    it('retorna el rol desde app_metadata tras el registro', async () => {
-      supabase.auth.signUp.mockResolvedValue({ error: null })
+    it('retorna el rol desde app_metadata tras el registro (flujo invitación)', async () => {
+      supabase.auth.signUp.mockResolvedValue({
+        data: { session: { access_token: 'x' }, user: {} },
+        error: null,
+      })
       supabase.auth.getUser.mockResolvedValue({
         data: { user: { user_metadata: { full_name: 'Nuevo' }, app_metadata: { role: 'asistente' } } },
       })
-      const r = await supabaseSignUp('nuevo@test.com', 'pass123', { nombreCompleto: 'Nuevo', rol: 'asistente' })
+      // P0-2: el signup solo está permitido con token de invitación
+      const r = await supabaseSignUp('nuevo@test.com', 'pass123', { nombreCompleto: 'Nuevo', rol: 'asistente', inviteToken: 'inv-token' })
       expect(r.success).toBe(true)
       expect(r.userMetadata.role).toBe('asistente')
+      expect(supabase.auth.signUp.mock.calls[0][0].options.invite_token).toBe('inv-token')
+    })
+
+    it('P0-2: bloquea el signup sin token de invitación (sin registro público)', async () => {
+      const r = await supabaseSignUp('cualquiera@test.com', 'pass123', { nombreCompleto: 'X' })
+      expect(r.success).toBe(false)
+      expect(r.error).toMatch(/invitación/i)
+      expect(supabase.auth.signUp).not.toHaveBeenCalled()
+    })
+
+    it('P0-1: si no hay sesión tras signUp (falta confirmar email), no reporta éxito', async () => {
+      supabase.auth.signUp.mockResolvedValue({
+        data: { session: null, user: { id: 'u1' } },
+        error: null,
+      })
+      const r = await supabaseSignUp('nuevo@test.com', 'pass123', { inviteToken: 'inv-token' })
+      expect(r.success).toBe(false)
+      expect(r.requiresEmailConfirmation).toBe(true)
     })
   })
 })

@@ -178,13 +178,27 @@ export const supabaseSignUp = async (email, password, metadata = {}) => {
     return { success: false, error: 'Supabase no configurado' }
   }
 
+  // P0-2 (seguridad): el alta pública solo está permitida dentro del flujo
+  // de invitación (aceptarInvitacion → signUp con invite_token). Cualquier
+  // otro caller queda bloqueado en cliente como defensa en profundidad;
+  // la capa real es enable_confirmations=true + validación de invitación.
+  if (!metadata.inviteToken) {
+    return {
+      success: false,
+      error: 'El registro público está deshabilitado. Necesitas una invitación de un administrador.',
+    }
+  }
+
   // F7-09: NO enviar rol en metadata. handle_new_user() ignora rol del cliente
   // por seguridad y asigna 'recepcion' por defecto. El rol real se asignará
   // vía miembros_clinica (F7-11).
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email: email.trim().toLowerCase(),
     password,
     options: {
+      // P0-2: reutilizar el token de invitación de Supabase Auth si existe,
+      // para que el usuario quede pre-confirmado al aceptar la invitación.
+      ...(metadata.inviteToken ? { invite_token: metadata.inviteToken } : {}),
       data: {
         full_name: metadata.nombreCompleto || 'Usuario',
         // F7-09: role eliminado para prevenir escalamiento de privilegios
@@ -194,6 +208,16 @@ export const supabaseSignUp = async (email, password, metadata = {}) => {
 
   if (error) {
     return { success: false, error: error.message }
+  }
+
+  // P0-1: con confirmación de email activada, un signup SIN sesión indica que
+  // falta confirmar el email. No continuar al app con una cuenta no confirmada.
+  if (!data.session) {
+    return {
+      success: false,
+      requiresEmailConfirmation: true,
+      error: 'Debes confirmar tu email antes de continuar. Revisa tu bandeja de entrada.',
+    }
   }
 
   // F6-B4 + F7-09: leer rol de app_metadata (siempre 'recepcion' por defecto)
