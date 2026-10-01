@@ -9786,4 +9786,52 @@ Esperado: Paciente SIGUE en BD (no fue eliminado).
 - `npm run build`: ✅ Build de producción con Vite completado en 1.44s sin errores.
 - `npm run lint`: ✅ 0 errores con Oxlint.
 
+---
+
+## [2026-10-01] Migración Gradual a TypeScript — Lote Autónomo de Bajo Riesgo (Prioridad 1)
+
+### Contexto y Alcance
+- Activación de **Modo Operativo: Migración Autónoma por Lotes** para acelerar la adopción de TypeScript sin fricción burocrática, respetando la Constitución de Arquitectura v3.0.0.
+- Ejecución en rama unificada `feat/migracion-typescript` con commits atómicos por archivo.
+- Lote completado: 7 archivos de bajo riesgo migrados (<50 líneas, funciones puras, sin dependencias de React ni Supabase, con tests exhaustivos).
+
+### Archivos Migrados en este Lote
+1. **`src/utils/validarRutFormato.ts`** (Commit `edfafcc` / `P1-TS-04`):
+   - Tipos: `RutInput = string | null | undefined`.
+   - Funciones: `normalizarRut(rut: RutInput): string`, `formatearRut(rut: RutInput): string`.
+   - 27 líneas (<50).
+2. **`src/utils/validarRut.ts`** (Commit `0fe7e51` / `P1-TS-05`):
+   - Funciones: `validarRut(rut: RutInput): boolean`, `obtenerErrorRut(rut: RutInput): string | null`.
+   - Re-export de `normalizarRut`, `formatearRut`, `type RutInput`.
+   - 38 líneas (<50).
+3. **`src/modules/periodontograma/schemas/periodontalSchema.ts`** (Commit `fcba8e7` / `P1-TS-06`):
+   - Tipos: `MedidasSitiosString`, `MedidasSitiosBoolean`, `KeratinizedGingiva`, `PiezaPeriodontal`, `ControlPeriodontal`.
+   - Funciones: `crearPiezaVaciaSchema(): PiezaPeriodontal`, `crearControlPeriodontalSchema(id, observacion): ControlPeriodontal`.
+   - Creado test unitario dedicado: `src/modules/periodontograma/schemas/periodontalSchema.test.js` (3 tests).
+4. **`src/modules/administracion/schemas/anticoagulanteSchema.ts`** (Commit `56d5308` / `P1-TS-07`):
+   - Inferencia Zod: `Anticoagulante = z.infer<typeof anticoagulanteSchema>`.
+   - Tipos: `ValidacionAnticoagulanteResultado`.
+   - Función: `validarAnticoagulante(data: unknown): ValidacionAnticoagulanteResultado`.
+   - Allowlist actualizada a 44 líneas.
+5. **`src/modules/administracion/schemas/profilaxisSchema.ts`** (Commit `5540d22` / `P1-TS-08`):
+   - Inferencia Zod: `Profilaxis = z.infer<typeof profilaxisSchema>`.
+   - Tipos: `ValidacionProfilaxisResultado`.
+   - Función: `validarProfilaxis(data: unknown): ValidacionProfilaxisResultado`.
+   - Allowlist actualizada a 46 líneas.
+6. **`src/constants/rbacPermisosPorRol.ts`** (Commit `c97bb29` / `P1-TS-09`):
+   - Tipos: `RolKey = typeof ROLES[keyof typeof ROLES]`, `PermisoValue = typeof PERMISOS[keyof typeof PERMISOS]`.
+   - Matriz: `PERMISOS_POR_ROL: Record<RolKey, readonly PermisoValue[]>`.
+7. **`src/constants/rbacConstants.ts`** (Commit `9bdd912` / `P1-TS-10`):
+   - Tipos: `NOMBRES_ROLES: Record<RolKey, string>`, `DESCRIPCIONES_ROLES: Record<RolKey, string>`.
+   - Re-exports de tipos `RolKey`, `PermisoValue`.
+   - Allowlist reducida de 118 a 37 líneas.
+
+### Verificación y Evidencia del Lote
+- `npm run validate:architecture`: ✅ **0 violaciones** (todas las reglas constitucionales cumplidas).
+- `npm run test`: ✅ **136/136 suites pasadas, 1773/1773 tests unitarios pasados** (0 regresiones).
+- `npm run test:security`: ✅ **15/15 suites pasadas, 149/149 tests pasados**.
+- `npm run build`: ✅ **Vite build completado en 1.58s sin errores**.
+- `npm run lint`: ✅ **0 errores** con Oxlint.
+
+
 
