@@ -100,6 +100,7 @@ export const Button = forwardRef(({
         transition-all duration-200 ease-out active:scale-[0.97]
         focus:outline-none focus:ring-2 focus:ring-primary focus:border-focus focus:ring-offset-2 dark:focus:ring-offset-graphite-900
         disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none
+        surgical:min-h-[48px] surgical:min-w-[48px]
         ${fullWidth ? 'w-full' : ''}
         ${variantStyle}
         ${sizeStyle}
