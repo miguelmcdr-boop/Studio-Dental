@@ -65,7 +65,7 @@ export const PacienteNavigator = ({
     <nav
       role="navigation"
       aria-label="Navegación entre pacientes"
-      className="flex items-center justify-between gap-3 bg-graphite-50 dark:bg-graphite-800/50 border border-graphite-200 dark:border-graphite-700 rounded-xl px-3 py-2 mb-4 print:hidden"
+      className="flex items-center justify-between gap-3 bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-xl px-3 py-2 mb-4 print:hidden"
     >
       {/* Botón Anterior */}
       <button
@@ -74,7 +74,7 @@ export const PacienteNavigator = ({
         onClick={anterior}
         disabled={!hayAnterior}
         aria-label={hayAnterior ? 'Ir al paciente anterior (tecla ←)' : 'No hay paciente anterior'}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-graphite-700 dark:text-graphite-300 hover:bg-graphite-200/60 dark:hover:bg-graphite-700 enabled:cursor-pointer"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-graphite-700 dark:text-graphite-300 surgical:text-black hover:bg-graphite-100 dark:hover:bg-graphite-800 enabled:cursor-pointer"
       >
         <Icon icon={ChevronLeft} size="sm" />
         <span className="hidden sm:inline">Anterior</span>
@@ -82,7 +82,7 @@ export const PacienteNavigator = ({
 
       {/* Indicador de posición */}
       <div
-        className="flex items-center gap-2 text-xs text-graphite-600 dark:text-graphite-400"
+        className="flex items-center gap-2 text-xs text-graphite-600 dark:text-graphite-400 surgical:text-graphite-800 tabular-nums"
         aria-live="polite"
         aria-atomic="true"
       >
@@ -102,7 +102,7 @@ export const PacienteNavigator = ({
         onClick={siguiente}
         disabled={!haySiguiente}
         aria-label={haySiguiente ? 'Ir al paciente siguiente (tecla →)' : 'No hay paciente siguiente'}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-graphite-700 dark:text-graphite-300 hover:bg-graphite-200/60 dark:hover:bg-graphite-700 enabled:cursor-pointer"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-graphite-700 dark:text-graphite-300 surgical:text-black hover:bg-graphite-100 dark:hover:bg-graphite-800 enabled:cursor-pointer"
       >
         <span className="hidden sm:inline">Siguiente</span>
         <Icon icon={ChevronRight} size="sm" />
