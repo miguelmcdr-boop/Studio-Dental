@@ -132,7 +132,7 @@ export const exportarReportePDF = (metricas, userProfile) => {
  */
 const generarReporteCompletoAsync = async (metricas, periodoSeleccionado) => {
   const workbook = new ExcelJS.Workbook()
-  workbook.creator = 'Studio Dental'
+  workbook.creator = 'DentikOS'
   workbook.created = new Date()
 
   // Hoja 1: Resumen ejecutivo
@@ -212,7 +212,7 @@ export const exportarReporteCompletoExcel = (metricas, periodoSeleccionado = 'si
  */
 const generarRankingAsync = async (topPrestaciones) => {
   const workbook = new ExcelJS.Workbook()
-  workbook.creator = 'Studio Dental'
+  workbook.creator = 'DentikOS'
   workbook.created = new Date()
 
   const hoja = workbook.addWorksheet('Ranking')
@@ -269,7 +269,7 @@ export const exportarRankingExcel = (topPrestaciones) => {
  */
 const generarRendimientoAsync = async (recaudacionPorMetodo) => {
   const workbook = new ExcelJS.Workbook()
-  workbook.creator = 'Studio Dental'
+  workbook.creator = 'DentikOS'
   workbook.created = new Date()
 
   const hoja = workbook.addWorksheet('Rendimiento')

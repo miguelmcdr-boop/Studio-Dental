@@ -60,7 +60,7 @@ export const DocumentoPresupuestoImprimible = memo(({ presupuesto, userProfile, 
           <div>
             <h1 className="text-xl font-bold text-gray-900">{userProfile?.nombreCompleto || 'Dr. Miguel Díaz Rodríguez'}</h1>
             <p className="text-xs text-gray-600">{userProfile?.especialidad || 'Cirujano Dentista'} | RUT: {userProfile?.rut || 'N/I'}</p>
-            <p className="text-xs text-gray-500">Consulta Odontológica Studio Dental</p>
+            <p className="text-xs text-gray-500">Consulta Odontológica DentikOS</p>
           </div>
           <div className="text-right">
             <h2 className="text-lg font-bold text-gray-800 uppercase">Cotización de Presupuesto</h2>

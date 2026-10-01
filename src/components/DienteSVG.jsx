@@ -1,13 +1,13 @@
 import React from 'react'
 
 const ESTADOS_COLORES = {
-  sano: 'fill-white stroke-gray-400',
-  caries: 'fill-red-500 stroke-red-600',
-  restauracion: 'fill-blue-500 stroke-blue-600',
+  sano: 'fill-white dark:fill-graphite-900 stroke-gray-400 dark:stroke-graphite-600',
+  caries: 'fill-[var(--chart-caries)] stroke-[var(--chart-caries)]',
+  restauracion: 'fill-[var(--chart-sound)] stroke-[var(--chart-sound)]',
   incrustacion: 'fill-orange-400 stroke-orange-600',
   sellante: 'fill-emerald-400 stroke-emerald-600',
-  corona: 'fill-yellow-400 stroke-yellow-600',
-  endodoncia: 'fill-purple-500 stroke-purple-600',
+  corona: 'fill-amber-400 stroke-amber-600',
+  endodoncia: 'fill-[var(--chart-endo)] stroke-[var(--chart-endo)]',
 }
 
 export const DienteSVG = ({
@@ -24,23 +24,26 @@ export const DienteSVG = ({
   const obtenerColorCara = (cara) => {
     if (estadoGeneral !== 'sano') return ESTADOS_COLORES[estadoGeneral] || 'fill-gray-100 stroke-gray-300'
     const estadoCara = estadosPieza?.caras?.[cara] || 'sano'
-    return ESTADOS_COLORES[estadoCara] || 'fill-white stroke-gray-400'
+    return ESTADOS_COLORES[estadoCara] || 'fill-white dark:fill-graphite-900 stroke-gray-400 dark:stroke-graphite-600'
   }
 
   return (
     <div 
       onClick={() => alSeleccionarPieza?.(numero)}
       className={`flex flex-col items-center cursor-pointer p-1.5 rounded-xl transition-all ${
-        esActivo ? 'bg-blue-50 border-2 border-blue-500 shadow-md scale-105' : 'hover:bg-gray-100 dark:hover:bg-graphite-700 border border-transparent'
+        esActivo ? 'bg-blue-50 dark:bg-graphite-800 border-2 border-[var(--chart-sound)] shadow-md scale-105' : 'hover:bg-gray-100 dark:hover:bg-graphite-700 border border-transparent'
       }`}
     >
       <span className="text-[11px] font-extrabold text-gray-800 dark:text-graphite-100 mb-1">{numero}</span>
       <div className="relative">
-        {(estadoGeneral === 'ausente' || estadoGeneral === 'indicacion_exodoncia') && (
-          <div className="absolute inset-0 flex items-center justify-center z-10 text-red-600 font-black text-xl select-none bg-white/60 dark:bg-graphite-800/60 rounded-lg">✕</div>
+        {estadoGeneral === 'ausente' && (
+          <div className="absolute inset-0 flex items-center justify-center z-10 text-[var(--chart-missing)] font-black text-xl select-none bg-white/60 dark:bg-graphite-800/60 rounded-lg">✕</div>
+        )}
+        {estadoGeneral === 'indicacion_exodoncia' && (
+          <div className="absolute inset-0 flex items-center justify-center z-10 text-[var(--chart-caries)] font-black text-xl select-none bg-white/60 dark:bg-graphite-800/60 rounded-lg">✕</div>
         )}
         {estadoGeneral === 'implante' && (
-          <div className="absolute inset-0 flex items-center justify-center z-10 text-gray-900 dark:text-graphite-50 font-extrabold text-[9px] bg-gray-200/90 rounded px-1 border border-gray-400">IMP</div>
+          <div className="absolute inset-0 flex items-center justify-center z-10 text-[var(--chart-implant)] dark:text-graphite-100 font-extrabold text-[9px] bg-slate-200/90 dark:bg-slate-800/90 rounded px-1 border border-[var(--chart-implant)]">IMP</div>
         )}
 
         {/* 💡 SVG Ampliado de 30px a 44px x 44px para máxima comodidad al hacer clic */}

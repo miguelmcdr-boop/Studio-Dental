@@ -28,7 +28,7 @@ export const RecallPacientesSection = memo(({ pacientes = [], alEnviarRecall }) 
 
       <div className="divide-y divide-gray-100 dark:divide-graphite-800">
         {pacientesFiltrados.map(p => {
-          const mensajeRecall = `Hola ${p.nombre}, han pasado 6 meses desde su último control preventivo en Studio Dental. Le invitamos a agendar su cita de limpieza y revisión bucal.`
+          const mensajeRecall = `Hola ${p.nombre}, han pasado 6 meses desde su último control preventivo en DentikOS. Le invitamos a agendar su cita de limpieza y revisión bucal.`
 
           return (
             <div key={p.id} className="py-3 flex justify-between items-center flex-wrap gap-2 hover:bg-gray-50 dark:hover:bg-graphite-700 dark:hover:bg-graphite-700 p-2 rounded-xl">

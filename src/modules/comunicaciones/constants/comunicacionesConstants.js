@@ -34,7 +34,7 @@ export const PLANTILLAS_DEFAULT = [
     id: 3,
     nombre: 'Envío de Presupuesto / Plan de Tratamiento',
     canal: 'email',
-    asunto: 'Su Plan de Tratamiento Odontológico - Studio Dental',
+    asunto: 'Su Plan de Tratamiento Odontológico - DentikOS',
     cuerpo: 'Estimado/a {paciente}, junto con saludarle, le adjuntamos el detalle de su presupuesto en {clinica}. Quedamos a su disposición para iniciar su tratamiento.'
   },
   {
@@ -55,7 +55,7 @@ export const MENSAJES_HISTORIAL_DEFAULT = [
     pacienteEmail: 'camila.silva@gmail.com',
     canal: 'whatsapp',
     plantillaNombre: 'Confirmación Cita Próxima',
-    mensajeEnviado: 'Hola Camila Silva Morales, le recordamos su cita para el 04/08/2026 a las 10:30 hrs con Dr. Miguel Díaz en Studio Dental.',
+    mensajeEnviado: 'Hola Camila Silva Morales, le recordamos su cita para el 04/08/2026 a las 10:30 hrs con Dr. Miguel Díaz en DentikOS.',
     fechaEnvio: new Date().toLocaleDateString('es-CL'),
     horaEnvio: '09:15',
     estado: 'Confirmado',

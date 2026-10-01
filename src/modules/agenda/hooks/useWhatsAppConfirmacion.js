@@ -57,7 +57,7 @@ export const useWhatsAppConfirmacion = ({ pacientes = [], alCambiarEstado }) => 
     }
 
     const fechaTxt = cita.fecha ? new Date(cita.fecha + 'T00:00:00').toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' }) : 'su cita'
-    const mensaje = `Hola ${cita.pacienteNombre}, te saludamos de Studio Dental. Confirmamos tu hora para el ${fechaTxt} a las ${cita.horaInicio} hrs en ${cita.boxAsignado || 'Sillón 1'}. Por favor responde 'Confirmar' a este mensaje.`
+    const mensaje = `Hola ${cita.pacienteNombre}, te saludamos de DentikOS. Confirmamos tu hora para el ${fechaTxt} a las ${cita.horaInicio} hrs en ${cita.boxAsignado || 'Sillón 1'}. Por favor responde 'Confirmar' a este mensaje.`
     const url = `https://wa.me/${numLimpio}?text=${encodeURIComponent(mensaje)}`
     window.open(url, '_blank')
   }, [pacientes, alCambiarEstado, dialogAlert])

@@ -61,7 +61,7 @@ export const ArqueoCajaDiario = memo(({
         {/* Encabezado */}
         <div className="border-b-2 border-black pb-4 mb-6 flex justify-between items-start">
           <div>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-graphite-50">{userProfile?.nombreCompleto || 'Studio Dental'}</h1>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-graphite-50">{userProfile?.nombreCompleto || 'DentikOS'}</h1>
             <p className="text-xs text-gray-600 dark:text-graphite-400">Arqueo y Cierre Diario de Caja Chica</p>
           </div>
           <div className="text-right">

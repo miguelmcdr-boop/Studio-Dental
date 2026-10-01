@@ -134,11 +134,11 @@ export const Modal = ({
         aria-labelledby={titleId}
         aria-label={ariaLabel}
         tabIndex={-1}
-        className={`bg-white dark:bg-graphite-800 rounded-xl shadow-2xl w-full ${sizeStyle} max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200`}
+        className={`bg-white dark:bg-graphite-800 border border-graphite-200 dark:border-[#24334A] rounded-2xl shadow-2xl w-full ${sizeStyle} max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200`}
       >
         {/* Header */}
         {title && (
-          <div className="sticky top-0 bg-graphite-50 dark:bg-graphite-900 border-b border-graphite-200 dark:border-graphite-700 px-6 py-4 flex items-center justify-between z-10">
+          <div className="sticky top-0 bg-graphite-50 dark:bg-graphite-900 border-b border-graphite-200 dark:border-[#24334A] px-6 py-4 flex items-center justify-between z-10">
             <h2 id={titleId} className="text-xl font-bold text-graphite-900 dark:text-graphite-50">
               {title}
             </h2>

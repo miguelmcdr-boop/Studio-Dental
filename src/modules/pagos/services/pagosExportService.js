@@ -87,7 +87,7 @@ export const exportarAuditoriaPagosXLSX = async (pagos = []) => {
       return { ok: false, total: 0, nombreArchivo: '' }
     }
     const workbook = new ExcelJS.Workbook()
-    workbook.creator = 'Studio Dental'
+    workbook.creator = 'DentikOS'
     workbook.created = new Date()
     const hoja = workbook.addWorksheet('Auditoría Pagos')
     hoja.columns = COLUMNAS

@@ -9,7 +9,7 @@ export const interpolarVariablesMensaje = (textoBase = '', datos = {}) => {
     .replace(/\{fecha\}/g, datos.fechaCita || new Date().toLocaleDateString('es-CL'))
     .replace(/\{hora\}/g, datos.horaCita || '10:00')
     .replace(/\{doctor\}/g, datos.doctorNombre || 'Dr. Odontólogo')
-    .replace(/\{clinica\}/g, datos.clinicaNombre || 'Studio Dental')
+    .replace(/\{clinica\}/g, datos.clinicaNombre || 'DentikOS')
 }
 
 export const generarLinkWhatsAppWeb = (telefono, mensaje) => {

@@ -69,11 +69,29 @@
   --color-clinical-bleeding-light: #BE123C;
   --color-clinical-bleeding-dark: #FB7185;
 
+  /* Aliases normativos chart-* */
+  --color-chart-sound: #0284C7;
+  --color-chart-caries: #DC2626;
+  --color-chart-endo: #D97706;
+  --color-chart-implant: #64748B;
+  --color-chart-missing: #334155;
+  --color-chart-bleeding: #BE123C;
+
   /* Semánticos generales */
   --color-clinical-success: #10B981;
   --color-clinical-warning: #F59E0B;
   --color-clinical-error: #DC2626;
   --color-clinical-info: #0284C7;
+
+  /* Semánticos status-* */
+  --color-status-success: #10B981;
+  --color-status-warning: #F59E0B;
+  --color-status-danger: #DC2626;
+  --color-status-info: #0284C7;
+
+  /* Estados focus oro corporativo */
+  --color-focus: #E5C378;
+  --color-border-focus: #E5C378;
 
   /* === ALIASES DE MARCA === */
   --color-primary: #B88E3A;
@@ -139,6 +157,17 @@
   --clinical-missing: #334155;
   --clinical-bleeding: #BE123C;
 
+  /* Aliases chart-* */
+  --chart-sound: #0284C7;
+  --chart-caries: #DC2626;
+  --chart-endo: #D97706;
+  --chart-implant: #64748B;
+  --chart-missing: #334155;
+  --chart-bleeding: #BE123C;
+
+  /* Borde de foco normativo */
+  --border-focus: #E5C378;
+
   /* Tokens de Movimiento */
   --motion-instant: 100ms cubic-bezier(0, 0, 0.2, 1);
   --motion-fast: 180ms cubic-bezier(0.16, 1, 0.3, 1);
@@ -177,6 +206,16 @@
   --clinical-implant: #94A3B8;
   --clinical-missing: #475569;
   --clinical-bleeding: #FB7185;
+
+  /* Aliases chart-* modo oscuro */
+  --chart-sound: #38BDF8;
+  --chart-caries: #F43F5E;
+  --chart-endo: #FBBF24;
+  --chart-implant: #94A3B8;
+  --chart-missing: #475569;
+  --chart-bleeding: #FB7185;
+
+  --border-focus: #E5C378;
 }
 
 /* === MODO QUIRÚRGICO (.theme-surgical - Antirreflejo) === */
@@ -194,6 +233,15 @@
   --color-surface: #F1F5F9;
   --color-surface-muted: #CBD5E1;
   --color-border: #475569;
+
+  --chart-sound: #0284C7;
+  --chart-caries: #DC2626;
+  --chart-endo: #D97706;
+  --chart-implant: #475569;
+  --chart-missing: #1E293B;
+  --chart-bleeding: #BE123C;
+
+  --border-focus: #B88E3A;
 
   font-weight: 600 !important;
 }

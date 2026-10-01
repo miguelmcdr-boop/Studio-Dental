@@ -3,13 +3,13 @@
  */
 
 export const CLINICA_DEFAULT = {
-  nombreClinica: 'Studio Dental OS',
-  razonSocial: 'Sociedad Odontológica Studio Dental SpA',
+  nombreClinica: 'DentikOS',
+  razonSocial: 'Sociedad Odontológica DentikOS SpA',
   rutClinica: '77.854.320-K',
   direccion: 'Av. Libertador Bernardo O\'Higgins 1449, Oficina 602',
   ciudad: 'Santiago, Chile',
   telefono: '+56 9 8765 4321',
-  emailContacto: 'contacto@studiodental.cl',
+  emailContacto: 'contacto@dentikos.cl',
   eslogan: 'Odontología de Alta Precisión & Estética Dental',
   logoUrl: ''
 }

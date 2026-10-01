@@ -62,11 +62,11 @@ export const Sidebar = ({ userProfile, activeSection, setActiveSection, onLogout
         aria-current={activo ? 'page' : undefined}
         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
           activo
-            ? 'bg-graphite-900 text-white shadow-sm dark:bg-graphite-100 dark:text-graphite-900'
-            : 'text-graphite-700 dark:text-graphite-300 hover:bg-graphite-200/60 dark:hover:bg-graphite-800'
+            ? 'bg-graphite-900 text-white shadow-sm dark:bg-graphite-800 dark:text-gold-satin border-l-2 border-gold-satin pl-2.5'
+            : 'text-graphite-700 dark:text-graphite-300 hover:bg-graphite-200/60 dark:hover:bg-graphite-800/70 border-l-2 border-transparent'
         } ${colapsado ? 'justify-center' : ''}`}
       >
-        <Icon icon={item.icon} size="md" />
+        <Icon icon={item.icon} size="md" className={activo ? 'text-gold-satin' : ''} />
         {!colapsado && (
           <>
             <span className="flex-1 text-left">{item.name}</span>
@@ -82,7 +82,7 @@ export const Sidebar = ({ userProfile, activeSection, setActiveSection, onLogout
   }
 
   return (
-    <aside className={`${colapsado ? 'w-20' : 'w-64'} bg-graphite-50 dark:bg-graphite-900 p-4 border-r border-graphite-200 dark:border-graphite-700 min-h-screen flex-col justify-between transition-all duration-300 print:hidden relative hidden sm:flex`} role="navigation" aria-label="Menú principal">
+    <aside className={`${colapsado ? 'w-20' : 'w-64'} bg-graphite-50 dark:bg-graphite-950 p-4 border-r border-graphite-200 dark:border-[#24334A] min-h-screen flex-col justify-between transition-all duration-300 print:hidden relative hidden sm:flex`} role="navigation" aria-label="Menú principal">
       <div>
         {/* Logo + toggle de colapso */}
         <div className="flex items-center justify-between mb-6 px-2">
@@ -96,7 +96,7 @@ export const Sidebar = ({ userProfile, activeSection, setActiveSection, onLogout
 
           <button
             onClick={() => setColapsado(!colapsado)}
-            className="p-1.5 rounded-lg hover:bg-graphite-200 dark:hover:bg-graphite-700 text-graphite-500 dark:text-graphite-400 hover:text-graphite-900 dark:hover:text-graphite-50 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-graphite-200 dark:hover:bg-graphite-800 text-graphite-500 dark:text-graphite-400 hover:text-graphite-900 dark:hover:text-gold-satin transition-colors"
             title={colapsado ? 'Expandir menú' : 'Minimizar menú'}
             aria-label={colapsado ? 'Expandir menú' : 'Minimizar menú'}
           >
@@ -116,7 +116,7 @@ export const Sidebar = ({ userProfile, activeSection, setActiveSection, onLogout
                   {seccion.label}
                 </p>
               ) : (
-                <div className="h-px bg-graphite-200 dark:bg-graphite-700 mx-2 mb-2" aria-hidden="true" />
+                <div className="h-px bg-graphite-200 dark:bg-[#24334A] mx-2 mb-2" aria-hidden="true" />
               )}
               <div className="space-y-1">
                 {seccion.items.map(renderItem)}

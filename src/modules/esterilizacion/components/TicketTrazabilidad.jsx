@@ -26,7 +26,7 @@ export const TicketTrazabilidad = memo(({ carga, alCerrar }) => {
 
       <div className="bg-white dark:bg-graphite-800 border-2 border-dashed border-black p-4 rounded-xl max-w-sm mx-auto space-y-2 font-mono text-[11px] text-gray-900 dark:text-graphite-50">
         <div className="text-center border-b border-black pb-2">
-          <h2 className="font-black text-sm uppercase">Studio Dental OS</h2>
+          <h2 className="font-black text-sm uppercase">DentikOS</h2>
           <p className="text-[9px] font-bold">CONTROL DE TRAZABILIDAD ESTÉRIL</p>
         </div>
 

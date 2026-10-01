@@ -109,9 +109,9 @@ export const OdontogramaModulo = memo(({
         ))}
 
         <div className="h-5 w-px bg-gray-300 mx-2"></div>
-        <Button type="button" onClick={() => handleEstadoGeneral('implante')} variant="outline" size="sm" className="font-bold">Implante</Button>
-        <Button type="button" onClick={() => handleEstadoGeneral('ausente')} variant="outline" size="sm" className="border-red-200 text-red-600 hover:bg-red-50 font-bold">Ausente</Button>
-        <Button type="button" onClick={() => handleEstadoGeneral('indicacion_exodoncia')} variant="outline" size="sm" className="border-red-300 text-red-800 hover:bg-red-50 font-bold">Exodoncia</Button>
+        <Button type="button" onClick={() => handleEstadoGeneral('implante')} variant="outline" size="sm" className="font-bold border-[var(--chart-implant)]/40 text-[var(--chart-implant)] hover:bg-slate-100 dark:hover:bg-slate-800">Implante</Button>
+        <Button type="button" onClick={() => handleEstadoGeneral('ausente')} variant="outline" size="sm" className="border-[var(--chart-missing)]/40 text-[var(--chart-missing)] dark:text-graphite-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold">Ausente</Button>
+        <Button type="button" onClick={() => handleEstadoGeneral('indicacion_exodoncia')} variant="outline" size="sm" className="border-[var(--chart-caries)]/40 text-[var(--chart-caries)] hover:bg-red-50 dark:hover:bg-red-950/30 font-bold">Exodoncia</Button>
       </div>
 
       {/* Grid de Odontograma Split con ancho contenedor independiente */}
