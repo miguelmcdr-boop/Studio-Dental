@@ -21,28 +21,28 @@ export const PLANTILLAS_DEFAULT = [
     nombre: 'Confirmación Cita Próxima',
     canal: 'whatsapp',
     asunto: 'Confirmación de Atención Odontológica',
-    cuerpo: 'Hola {paciente}, le recordamos su cita para el {fecha} a las {hora} hrs con {doctor} en {clinica}. Por favor confirme respondiendo CONFIRMO o SOLICITO CAMBIO.'
+    cuerpo: 'Hola {paciente}, le recordamos su cita para el {fecha} a las {hora} hrs con {doctor} en {clinica}. Por favor confirme respondiendo CONFIRMO o SOLICITO CAMBIO.\n\nDentikOS Clinical Gateway • Notificación Asistencial Oficial'
   },
   {
     id: 2,
     nombre: 'Recall / Control Preventivo (6 Meses)',
     canal: 'whatsapp',
     asunto: 'Control Dental Periódico Requerido',
-    cuerpo: 'Estimado/a {paciente}, han pasado 6 meses desde su último control dental. En {clinica} nos preocupa su salud bucal. Le invitamos a agendar su limpieza/profilaxis periódica.'
+    cuerpo: 'Estimado/a {paciente}, han pasado 6 meses desde su último control dental. En {clinica} nos preocupa su salud bucal. Le invitamos a agendar su limpieza/profilaxis periódica.\n\nDentikOS Clinical Gateway • Notificación Asistencial Oficial'
   },
   {
     id: 3,
     nombre: 'Envío de Presupuesto / Plan de Tratamiento',
     canal: 'email',
     asunto: 'Su Plan de Tratamiento Odontológico - DentikOS',
-    cuerpo: 'Estimado/a {paciente}, junto con saludarle, le adjuntamos el detalle de su presupuesto en {clinica}. Quedamos a su disposición para iniciar su tratamiento.'
+    cuerpo: 'Estimado/a {paciente}, junto con saludarle, le adjuntamos el detalle de su presupuesto en {clinica}. Quedamos a su disposición para iniciar su tratamiento.\n\nDentikOS Clinical Gateway • Notificación Asistencial Oficial'
   },
   {
     id: 4,
     nombre: 'Indicaciones Post-Operatorias / Cirugía',
     canal: 'whatsapp',
     asunto: 'Cuidados Post-Tratamiento',
-    cuerpo: 'Hola {paciente}, esperamos que se encuentre bien tras su atención en {clinica}. Recuerde mantener reposo relativo, aplicar frío local y tomar los analgésicos según su receta.'
+    cuerpo: 'Hola {paciente}, esperamos que se encuentre bien tras su atención en {clinica}. Recuerde mantener reposo relativo, aplicar frío local y tomar los analgésicos según su receta.\n\nDentikOS Clinical Gateway • Notificación Asistencial Oficial'
   }
 ]
 
@@ -55,7 +55,7 @@ export const MENSAJES_HISTORIAL_DEFAULT = [
     pacienteEmail: 'camila.silva@gmail.com',
     canal: 'whatsapp',
     plantillaNombre: 'Confirmación Cita Próxima',
-    mensajeEnviado: 'Hola Camila Silva Morales, le recordamos su cita para el 04/08/2026 a las 10:30 hrs con Dr. Miguel Díaz en DentikOS.',
+    mensajeEnviado: 'Hola Camila Silva Morales, le recordamos su cita para el 04/08/2026 a las 10:30 hrs con Dr. Miguel Díaz en DentikOS.\n\nDentikOS Clinical Gateway • Notificación Asistencial Oficial',
     fechaEnvio: new Date().toLocaleDateString('es-CL'),
     horaEnvio: '09:15',
     estado: 'Confirmado',

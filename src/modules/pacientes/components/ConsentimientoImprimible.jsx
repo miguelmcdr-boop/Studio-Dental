@@ -1,4 +1,5 @@
 import React, { memo } from 'react'
+import { DentikOSMicroSeal } from '../../../components/brand/DentikOSMicroSeal'
 
 /**
  * Documento de Consentimiento Informado en formato Letter (M4a)
@@ -28,7 +29,7 @@ export const ConsentimientoImprimible = memo(({
   const rutProfesional = userProfile?.rut || 'N/I'
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-10 print:border-none print:p-0 min-h-[500px] flex flex-col justify-between">
+    <div className="bg-white border border-gray-200 rounded-2xl p-10 print:border-none print:p-0 print:bg-white print:text-black min-h-[500px] flex flex-col justify-between">
       <div>
         {/* Membrete con logo y datos de clínica */}
         <div className="border-b-2 border-black pb-4 mb-6 flex justify-between items-start gap-4">
@@ -45,7 +46,7 @@ export const ConsentimientoImprimible = memo(({
                 {datosClinica.nombreClinica || 'Clínica Odontológica'}
               </h1>
               <p className="text-[10px] text-gray-600 truncate">
-                RUT: {datosClinica.rutClinica || 'N/I'}
+                RUT: <span className="tabular-nums">{datosClinica.rutClinica || 'N/I'}</span>
               </p>
               <p className="text-[10px] text-gray-500 truncate">
                 {datosClinica.direccion || ''}
@@ -55,7 +56,7 @@ export const ConsentimientoImprimible = memo(({
               </p>
               {datosClinica.telefono && (
                 <p className="text-[10px] text-gray-500">
-                  Tel: {datosClinica.telefono}
+                  Tel: <span className="tabular-nums">{datosClinica.telefono}</span>
                 </p>
               )}
             </div>
@@ -65,7 +66,7 @@ export const ConsentimientoImprimible = memo(({
               CONSENTIMIENTO INFORMADO
             </h2>
             <p className="text-xs text-gray-500 mt-1">
-              Fecha: {consentimiento.fecha}
+              Fecha: <span className="tabular-nums">{consentimiento.fecha}</span>
             </p>
           </div>
         </div>
@@ -81,7 +82,7 @@ export const ConsentimientoImprimible = memo(({
         <div className="mb-6 space-y-2 text-sm text-gray-800">
           <p>
             Yo, <strong>{paciente?.nombre || 'Paciente'}</strong>, RUT{' '}
-            <strong>{paciente?.rut || 'N/I'}</strong>, declaro lo siguiente:
+            <strong className="tabular-nums">{paciente?.rut || 'N/I'}</strong>, declaro lo siguiente:
           </p>
         </div>
 
@@ -120,13 +121,14 @@ export const ConsentimientoImprimible = memo(({
         )}
       </div>
 
-      {/* Firma del profesional al pie */}
-      <div className="pt-12 text-center">
-        <div className="w-64 mx-auto border-t border-black pt-2">
+      {/* Firma del profesional al pie y Micro-Sello DentikOS */}
+      <div className="pt-12">
+        <div className="w-64 mx-auto border-t border-black pt-2 text-center">
           <p className="font-bold text-xs text-gray-900">{profesional}</p>
           <p className="text-[10px] text-gray-600">{especialidad}</p>
-          <p className="text-[10px] text-gray-500">RUT: {rutProfesional}</p>
+          <p className="text-[10px] text-gray-500">RUT: <span className="tabular-nums">{rutProfesional}</span></p>
         </div>
+        <DentikOSMicroSeal className="mt-8" />
       </div>
     </div>
   )

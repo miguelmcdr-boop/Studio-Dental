@@ -4,6 +4,7 @@
  */
 import React, { memo } from 'react'
 import { DienteSVG } from '../../../components/DienteSVG'
+import { DentikOSMicroSeal } from '../../../components/brand/DentikOSMicroSeal'
 import { PERMANENTE_SUPERIOR, PERMANENTE_INFERIOR } from '../constants/pacientesConstants'
 import { TablaItemsPresupuesto } from './TablaItemsPresupuesto'
 
@@ -19,7 +20,7 @@ export const DocumentoImprimiblePresupuesto = memo(({
   handleEliminarItem
 }) => {
   return (
-    <div className="bg-white dark:bg-graphite-900 border border-gray-200 dark:border-graphite-700 rounded-2xl p-8 print:border-none print:p-0">
+    <div className="bg-white dark:bg-graphite-900 border border-gray-200 dark:border-graphite-700 rounded-2xl p-8 print:border-none print:p-0 print:bg-white print:text-black">
       {/* Header del documento */}
       <div className="border-b-2 border-black dark:border-graphite-100 pb-4 mb-6 flex justify-between items-start">
         <div>
@@ -27,9 +28,9 @@ export const DocumentoImprimiblePresupuesto = memo(({
             {userProfile?.nombreCompleto || 'Dr. Miguel Díaz Rodríguez'}
           </h1>
           <p className="text-xs text-graphite-600 dark:text-graphite-400">
-            {userProfile?.especialidad || 'Cirujano Dentista'} | RUT: {userProfile?.rut || 'N/I'}
+            {userProfile?.especialidad || 'Cirujano Dentista'} | RUT: <span className="tabular-nums">{userProfile?.rut || 'N/I'}</span>
           </p>
-          <p className="text-xs text-graphite-500 dark:text-graphite-500">Consulta Odontológica Particular</p>
+          <p className="text-xs text-graphite-500 dark:text-graphite-500">Consulta Odontológica DentikOS</p>
         </div>
         <div className="text-right">
           <h2 className="text-lg font-bold text-graphite-800 dark:text-graphite-200 uppercase">
@@ -44,7 +45,7 @@ export const DocumentoImprimiblePresupuesto = memo(({
       {/* Datos del paciente */}
       <div className="bg-gray-50 dark:bg-graphite-800 p-4 rounded-xl border border-gray-200 dark:border-graphite-700 mb-6 text-xs grid grid-cols-2 gap-2 print:bg-white print:border">
         <p><span className="font-bold dark:text-graphite-100">Paciente:</span> <span className="dark:text-graphite-300">{paciente.nombre}</span></p>
-        <p><span className="font-bold dark:text-graphite-100">RUT:</span> <span className="dark:text-graphite-300">{paciente.rut}</span></p>
+        <p><span className="font-bold dark:text-graphite-100">RUT:</span> <span className="dark:text-graphite-300 tabular-nums">{paciente.rut}</span></p>
         <p><span className="font-bold dark:text-graphite-100">Edad:</span> <span className="dark:text-graphite-300">{paciente.edad} años</span></p>
         <p><span className="font-bold dark:text-graphite-100">Previsión:</span> <span className="dark:text-graphite-300">{paciente.prevision || 'Particular'}</span></p>
       </div>
@@ -80,6 +81,9 @@ export const DocumentoImprimiblePresupuesto = memo(({
         handleCambiarEstadoItem={handleCambiarEstadoItem}
         handleEliminarItem={handleEliminarItem}
       />
+
+      {/* Micro-Sello DentikOS Normativo */}
+      <DentikOSMicroSeal className="mt-8" />
     </div>
   )
 })

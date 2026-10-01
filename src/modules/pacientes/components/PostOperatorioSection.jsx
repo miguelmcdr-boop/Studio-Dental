@@ -1,6 +1,7 @@
 import React, { memo, useState } from 'react'
 import { Printer, MessageCircle } from 'lucide-react'
 import { INDICACIONES_POST_OPERATORIAS } from '../../../data/plantillas'
+import { DentikOSMicroSeal } from '../../../components/brand/DentikOSMicroSeal'
 
 export const PostOperatorioSection = memo(({ paciente, userProfile }) => {
   const [tipoPostOp, setTipoPostOp] = useState('Exodoncia y Cirugía Oral')
@@ -56,21 +57,21 @@ export const PostOperatorioSection = memo(({ paciente, userProfile }) => {
         </div>
       </div>
 
-      <div className="hidden print:block bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-10 print:border-none print:p-0">
+      <div className="hidden print:block bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-10 print:border-none print:p-0 print:bg-white print:text-black">
         <div className="border-b-2 border-black pb-4 mb-6 flex justify-between items-start">
           <div>
             <h1 className="text-xl font-bold text-gray-900 dark:text-graphite-50">{userProfile?.nombreCompleto || 'Dr. Miguel Díaz Rodríguez'}</h1>
-            <p className="text-xs text-gray-600 dark:text-graphite-400">{userProfile?.especialidad || 'Cirujano Dentista'} | RUT: {userProfile?.rut || 'N/I'}</p>
-            <p className="text-xs text-gray-500 dark:text-graphite-400">Consulta Odontológica</p>
+            <p className="text-xs text-gray-600 dark:text-graphite-400">{userProfile?.especialidad || 'Cirujano Dentista'} | RUT: <span className="tabular-nums">{userProfile?.rut || 'N/I'}</span></p>
+            <p className="text-xs text-gray-500 dark:text-graphite-400">Consulta Odontológica DentikOS</p>
           </div>
           <div className="text-right">
             <h2 className="text-base font-bold text-gray-800 dark:text-graphite-100 uppercase">Cuidados Postoperatorios</h2>
-            <p className="text-xs text-gray-500 dark:text-graphite-400">Fecha: {new Date().toLocaleDateString('es-CL')}</p>
+            <p className="text-xs text-gray-500 dark:text-graphite-400">Fecha: <span className="tabular-nums">{new Date().toLocaleDateString('es-CL')}</span></p>
           </div>
         </div>
 
         <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 dark:border-graphite-700 mb-6 text-xs print:bg-white dark:bg-graphite-800 print:border">
-          <p><span className="font-bold">Paciente:</span> {paciente.nombre} | RUT: {paciente.rut}</p>
+          <p><span className="font-bold">Paciente:</span> {paciente.nombre} | RUT: <span className="tabular-nums">{paciente.rut}</span></p>
           <p><span className="font-bold">Procedimiento:</span> {tipoPostOp}</p>
         </div>
 
@@ -83,6 +84,7 @@ export const PostOperatorioSection = memo(({ paciente, userProfile }) => {
             <p className="font-bold text-xs">{userProfile?.nombreCompleto}</p>
             <p className="text-[10px] text-gray-600 dark:text-graphite-400">Firma y Timbre del Cirujano Dentista</p>
           </div>
+          <DentikOSMicroSeal className="mt-8" />
         </div>
       </div>
     </div>
