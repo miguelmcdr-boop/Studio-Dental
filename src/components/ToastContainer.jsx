@@ -18,32 +18,32 @@ import { notificationService } from '../services/notificationService'
 
 const CONFIG_POR_TIPO = {
   info: {
-    bg: 'bg-blue-50',
-    border: 'border-blue-400',
-    text: 'text-blue-900',
-    icon: Info,
-    iconBg: 'bg-blue-500'
+    bg: 'bg-blue-50 dark:bg-[#0F172A] surgical:bg-[#F1F5F9]',
+    border: 'border-blue-400 dark:border-blue-500/60 surgical:border-blue-600',
+    text: 'text-blue-900 dark:text-blue-200 surgical:text-black',
+    iconColor: 'text-blue-600 dark:text-blue-400 surgical:text-black',
+    icon: Info
   },
   success: {
-    bg: 'bg-green-50',
-    border: 'border-green-400',
-    text: 'text-green-900',
-    icon: CheckCircle2,
-    iconBg: 'bg-green-500'
+    bg: 'bg-green-50 dark:bg-[#0F172A] surgical:bg-[#F1F5F9]',
+    border: 'border-green-400 dark:border-green-500/60 surgical:border-green-600',
+    text: 'text-green-900 dark:text-green-200 surgical:text-black',
+    iconColor: 'text-green-600 dark:text-green-400 surgical:text-black',
+    icon: CheckCircle2
   },
   warning: {
-    bg: 'bg-yellow-50',
-    border: 'border-yellow-400',
-    text: 'text-yellow-900',
-    icon: AlertTriangle,
-    iconBg: 'bg-yellow-500'
+    bg: 'bg-yellow-50 dark:bg-[#0F172A] surgical:bg-[#F1F5F9]',
+    border: 'border-yellow-400 dark:border-yellow-500/60 surgical:border-yellow-600',
+    text: 'text-yellow-900 dark:text-yellow-200 surgical:text-black',
+    iconColor: 'text-yellow-600 dark:text-yellow-400 surgical:text-black',
+    icon: AlertTriangle
   },
   error: {
-    bg: 'bg-red-50',
-    border: 'border-red-400',
-    text: 'text-red-900',
-    icon: XCircle,
-    iconBg: 'bg-red-500'
+    bg: 'bg-red-50 dark:bg-[#0F172A] surgical:bg-[#F1F5F9]',
+    border: 'border-red-400 dark:border-red-500/60 surgical:border-red-600',
+    text: 'text-red-900 dark:text-red-200 surgical:text-black',
+    iconColor: 'text-red-600 dark:text-red-400 surgical:text-black',
+    icon: XCircle
   }
 }
 
@@ -52,25 +52,25 @@ const ToastItem = ({ notificacion }) => {
 
   return (
     <div
-      className={`${config.bg} ${config.border} border-l-4 rounded-lg shadow-lg p-4 mb-3 min-w-[300px] max-w-md animate-slide-in flex items-start gap-3`}
+      className={`${config.bg} ${config.border} border-l-4 rounded-lg shadow-lg p-4 mb-3 min-w-[300px] max-w-md animate-slide-in flex items-start gap-3 transition-standard`}
       role="alert"
       aria-live="polite"
     >
-      <div className="flex-shrink-0">{React.createElement(config.icon, { size: 20, className: config.text })}</div>
+      <div className="flex-shrink-0 mt-0.5">{React.createElement(config.icon, { size: 18, className: config.iconColor })}</div>
       <div className="flex-1 min-w-0">
         {notificacion.titulo && (
-          <div className={`font-semibold ${config.text} text-sm mb-1`}>
+          <div className={`font-bold ${config.text} text-xs uppercase tracking-wider mb-1`}>
             {notificacion.titulo}
           </div>
         )}
-        <div className={`${config.text} text-sm break-words`}>
+        <div className={`${config.text} text-xs break-words font-medium`}>
           {notificacion.mensaje}
         </div>
       </div>
       {notificacion.dismissable && (
         <button
           onClick={() => notificationService.ocultar(notificacion.id)}
-          className={`flex-shrink-0 ${config.text} hover:opacity-70 text-lg leading-none p-1 transition-opacity duration-150`}
+          className={`flex-shrink-0 ${config.text} hover:opacity-70 text-lg leading-none p-1 transition-opacity duration-150 cursor-pointer`}
           aria-label="Cerrar notificación"
           title="Cerrar"
         >
@@ -88,27 +88,12 @@ export const ToastContainer = () => {
 
   return (
     <div
-      className="fixed top-4 right-4 z-[9999] flex flex-col items-end"
+      className="fixed top-4 right-4 z-[9999] flex flex-col items-end pointer-events-auto"
       aria-label="Notificaciones del sistema"
     >
       {notificaciones.map((notif) => (
         <ToastItem key={notif.id} notificacion={notif} />
       ))}
-      <style>{`
-        @keyframes slide-in {
-          from {
-            transform: translateX(100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
-        .animate-slide-in {
-          animation: slide-in 0.3s ease-out;
-        }
-      `}</style>
     </div>
   )
 }

@@ -28,65 +28,65 @@ export const PerfilProfesionalForm = memo(({ userProfile, alGuardar }) => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-6 shadow-xs space-y-4 text-xs">
-      <div className="border-b pb-3">
-        <h3 className="font-bold text-sm text-gray-900 dark:text-graphite-50 uppercase tracking-wider inline-flex items-center gap-2"><User size={14} />Perfil del Odontólogo / Profesional</h3>
+    <form onSubmit={handleSubmit} className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-6 shadow-xs space-y-4 text-xs">
+      <div className="border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] pb-3">
+        <h3 className="font-bold text-sm text-gray-900 dark:text-graphite-50 surgical:text-black uppercase tracking-wider inline-flex items-center gap-2"><User size={14} />Perfil del Odontólogo / Profesional</h3>
         <p className="text-gray-500 dark:text-graphite-400 text-[11px]">Información personal que aparece en firmantes de recetas y licencias.</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Nombre Completo *</label>
+          <label className="block font-semibold text-gray-700 dark:text-graphite-300 surgical:text-black mb-1">Nombre Completo *</label>
           <input
             type="text"
             required
             value={nombreCompleto}
             onChange={(e) => setNombreCompleto(e.target.value)}
-            className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 font-bold"
+            className="w-full p-2.5 rounded-lg border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] text-graphite-900 dark:text-graphite-50 surgical:text-black font-bold focus:outline-none focus:ring-2 focus:ring-[#B88E3A]/40"
           />
         </div>
 
         <div>
-          <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">RUT / Identificación *</label>
+          <label className="block font-semibold text-gray-700 dark:text-graphite-300 surgical:text-black mb-1">RUT / Identificación *</label>
           <input
             type="text"
             required
             value={rut}
             onChange={(e) => setRut(e.target.value)}
-            className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 font-bold"
+            className="w-full p-2.5 rounded-lg border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] text-graphite-900 dark:text-graphite-50 surgical:text-black font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-[#B88E3A]/40"
           />
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div>
-          <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Especialidad Principal</label>
+          <label className="block font-semibold text-gray-700 dark:text-graphite-300 surgical:text-black mb-1">Especialidad Principal</label>
           <input
             type="text"
             value={especialidad}
             onChange={(e) => setEspecialidad(e.target.value)}
-            className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600"
+            className="w-full p-2.5 rounded-lg border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] text-graphite-900 dark:text-graphite-50 surgical:text-black focus:outline-none focus:ring-2 focus:ring-[#B88E3A]/40"
           />
         </div>
 
         <div>
-          <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">N° Registro Superintendencia Salud</label>
+          <label className="block font-semibold text-gray-700 dark:text-graphite-300 surgical:text-black mb-1">N° Registro Superintendencia Salud</label>
           <input
             type="text"
             placeholder="Ej: 485120"
             value={registroSalud}
             onChange={(e) => setRegistroSalud(e.target.value)}
-            className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 font-mono font-bold"
+            className="w-full p-2.5 rounded-lg border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] text-graphite-900 dark:text-graphite-50 surgical:text-black font-mono font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-[#B88E3A]/40"
           />
         </div>
 
         <div>
-          <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Correo Electrónico</label>
+          <label className="block font-semibold text-gray-700 dark:text-graphite-300 surgical:text-black mb-1">Correo Electrónico</label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600"
+            className="w-full p-2.5 rounded-lg border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] text-graphite-900 dark:text-graphite-50 surgical:text-black focus:outline-none focus:ring-2 focus:ring-[#B88E3A]/40"
           />
         </div>
       </div>

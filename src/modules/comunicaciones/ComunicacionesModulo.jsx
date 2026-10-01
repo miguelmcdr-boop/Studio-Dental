@@ -66,7 +66,7 @@ export const ComunicacionesModulo = memo(() => {
 
         <button
           onClick={() => setModalNuevoAbierto(true)}
-          className="bg-black text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-gray-800 transition-colors shadow-xs cursor-pointer"
+          className="bg-[#B88E3A] hover:bg-[#99732B] dark:bg-[#E5C378] dark:hover:bg-[#B88E3A] text-white dark:text-graphite-950 text-xs font-bold px-4 py-2.5 rounded-lg transition-micro shadow-xs cursor-pointer"
         >
           <span className="inline-flex items-center gap-1"><MessageCircle size={12} />Transmitir Mensaje</span>
         </button>
@@ -76,11 +76,11 @@ export const ComunicacionesModulo = memo(() => {
         <ComunicacionesSummaryCards resumen={resumen} />
       </div>
 
-      <div className="flex gap-2 border-b pb-1 print:hidden text-xs overflow-x-auto">
+      <div className="flex gap-2 border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] pb-1 print:hidden text-xs overflow-x-auto">
         <button
           onClick={() => setTabActual('historial')}
-          className={`px-4 py-2 rounded-xl font-bold transition-all whitespace-nowrap ${
-            tabActual === 'historial' ? 'bg-black text-white shadow-xs' : 'bg-gray-100 dark:bg-graphite-800 text-gray-600 dark:text-graphite-400 hover:bg-gray-200'
+          className={`px-4 py-2 rounded-lg font-bold transition-micro whitespace-nowrap cursor-pointer ${
+            tabActual === 'historial' ? 'bg-[#B88E3A] dark:bg-[#E5C378] text-white dark:text-graphite-950 shadow-xs' : 'bg-slate-100 dark:bg-[#1E293B] surgical:bg-[#F1F5F9] text-graphite-600 dark:text-graphite-300 surgical:text-black hover:bg-slate-200 dark:hover:bg-[#0F172A]'
           }`}
         >
           <span className="inline-flex items-center gap-1"><ScrollText size={12} />Bitácora & Confirmaciones</span>
@@ -88,8 +88,8 @@ export const ComunicacionesModulo = memo(() => {
 
         <button
           onClick={() => setTabActual('recall')}
-          className={`px-4 py-2 rounded-xl font-bold transition-all whitespace-nowrap ${
-            tabActual === 'recall' ? 'bg-black text-white shadow-xs' : 'bg-gray-100 dark:bg-graphite-800 text-gray-600 dark:text-graphite-400 hover:bg-gray-200'
+          className={`px-4 py-2 rounded-lg font-bold transition-micro whitespace-nowrap cursor-pointer ${
+            tabActual === 'recall' ? 'bg-[#B88E3A] dark:bg-[#E5C378] text-white dark:text-graphite-950 shadow-xs' : 'bg-slate-100 dark:bg-[#1E293B] surgical:bg-[#F1F5F9] text-graphite-600 dark:text-graphite-300 surgical:text-black hover:bg-slate-200 dark:hover:bg-[#0F172A]'
           }`}
         >
           <span className="inline-flex items-center gap-1"><Bell size={12} />Citación Recall (6 Meses)</span>
@@ -97,8 +97,8 @@ export const ComunicacionesModulo = memo(() => {
 
         <button
           onClick={() => setTabActual('plantillas')}
-          className={`px-4 py-2 rounded-xl font-bold transition-all whitespace-nowrap ${
-            tabActual === 'plantillas' ? 'bg-black text-white shadow-xs' : 'bg-gray-100 dark:bg-graphite-800 text-gray-600 dark:text-graphite-400 hover:bg-gray-200'
+          className={`px-4 py-2 rounded-lg font-bold transition-micro whitespace-nowrap cursor-pointer ${
+            tabActual === 'plantillas' ? 'bg-[#B88E3A] dark:bg-[#E5C378] text-white dark:text-graphite-950 shadow-xs' : 'bg-slate-100 dark:bg-[#1E293B] surgical:bg-[#F1F5F9] text-graphite-600 dark:text-graphite-300 surgical:text-black hover:bg-slate-200 dark:hover:bg-[#0F172A]'
           }`}
         >
           <span className="inline-flex items-center gap-1"><ClipboardList size={12} />Gestor de Plantillas</span>
@@ -107,23 +107,23 @@ export const ComunicacionesModulo = memo(() => {
 
       {tabActual === 'historial' && (
         <>
-          <div className="bg-gray-50 dark:bg-graphite-800 p-4 border border-gray-200 dark:border-graphite-700 rounded-2xl flex justify-between items-center flex-wrap gap-3 text-xs print:hidden">
+          <div className="bg-slate-50 dark:bg-[#0F172A] surgical:bg-[#F1F5F9] p-4 border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl flex justify-between items-center flex-wrap gap-3 text-xs print:hidden">
             <div className="flex items-center gap-2 w-full sm:w-auto">
-              <span className="font-semibold text-gray-600 dark:text-graphite-400">Canal:</span>
+              <span className="font-semibold text-graphite-600 dark:text-graphite-400 surgical:text-black">Canal:</span>
               <select
                 value={canalFiltro}
                 onChange={(e) => setCanalFiltro(e.target.value)}
-                className="p-2 border rounded-xl bg-white dark:bg-graphite-800 font-semibold"
+                className="p-2 border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-lg bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] text-graphite-900 dark:text-graphite-100 surgical:text-black font-semibold focus:ring-2 focus:ring-[#B88E3A]/40"
               >
                 <option value="Todos">Todos los canales</option>
                 {CANALES_COMUNICACION.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
               </select>
 
-              <span className="font-semibold text-gray-600 dark:text-graphite-400 ml-2">Confirmación:</span>
+              <span className="font-semibold text-graphite-600 dark:text-graphite-400 surgical:text-black ml-2">Confirmación:</span>
               <select
                 value={estadoFiltro}
                 onChange={(e) => setEstadoFiltro(e.target.value)}
-                className="p-2 border rounded-xl bg-white dark:bg-graphite-800 font-semibold"
+                className="p-2 border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-lg bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] text-graphite-900 dark:text-graphite-100 surgical:text-black font-semibold focus:ring-2 focus:ring-[#B88E3A]/40"
               >
                 <option value="Todos">Todos los estados</option>
                 {ESTADOS_CONFIRMACION_CITA.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
@@ -135,7 +135,7 @@ export const ComunicacionesModulo = memo(() => {
               placeholder="Buscar por paciente o contenido..."
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
-              className="p-2 border rounded-xl bg-white dark:bg-graphite-800 w-full sm:w-64"
+              className="p-2 border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-lg bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] text-graphite-900 dark:text-graphite-100 surgical:text-black w-full sm:w-64 focus:ring-2 focus:ring-[#B88E3A]/40"
             />
           </div>
 

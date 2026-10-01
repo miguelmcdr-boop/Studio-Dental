@@ -129,24 +129,24 @@ export const ClinicaSelector = ({ onCambioClinica }) => {
   // Estados de carga y error
   if (cargando) {
     return (
-      <div className="px-2 py-3 mb-4 border-b border-gray-200 dark:border-graphite-700">
-        <div className="text-xs text-gray-500 dark:text-graphite-400 animate-pulse">Cargando clínica...</div>
+      <div className="px-2 py-3 mb-4 border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569]">
+        <div className="text-xs text-graphite-500 dark:text-graphite-400 surgical:text-black animate-pulse">Cargando clínica...</div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="px-2 py-3 mb-4 border-b border-red-200 bg-red-50">
-        <div className="text-xs text-red-600">{error}</div>
+      <div className="px-3 py-2.5 mb-4 border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30 rounded-lg">
+        <div className="text-xs font-semibold text-red-700 dark:text-red-300">{error}</div>
       </div>
     )
   }
 
   if (clinicas.length === 0) {
     return (
-      <div className="px-2 py-3 mb-4 border-b border-yellow-200 bg-yellow-50">
-        <div className="text-xs text-yellow-700">Sin clínicas asignadas</div>
+      <div className="px-3 py-2.5 mb-4 border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/30 rounded-lg">
+        <div className="text-xs font-semibold text-amber-800 dark:text-amber-300">Sin clínicas asignadas</div>
       </div>
     )
   }
@@ -156,10 +156,10 @@ export const ClinicaSelector = ({ onCambioClinica }) => {
   // Si solo hay 1 clínica, mostrar sin selector (solo informativo)
   if (clinicas.length === 1) {
     return (
-      <div className="px-2 py-3 mb-4 border-b border-gray-200 dark:border-graphite-700" title="F7-10: Clínica activa">
-        <div className="text-xs text-gray-500 dark:text-graphite-400 mb-1">Clínica</div>
+      <div className="px-2 py-3 mb-4 border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569]" title="F7-10: Clínica activa">
+        <div className="text-xs font-semibold text-graphite-500 dark:text-graphite-400 surgical:text-black mb-1">Clínica</div>
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-800 dark:text-graphite-100 truncate">
+          <span className="text-sm font-semibold text-graphite-900 dark:text-graphite-100 surgical:text-black truncate">
             {clinicas[0].nombre}
           </span>
         </div>
@@ -169,13 +169,13 @@ export const ClinicaSelector = ({ onCambioClinica }) => {
 
   // Múltiples clínicas: mostrar selector
   return (
-    <div className="px-2 py-3 mb-4 border-b border-gray-200 dark:border-graphite-700">
-      <label className="text-xs text-gray-500 dark:text-graphite-400 block mb-1">Clínica activa</label>
+    <div className="px-2 py-3 mb-4 border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569]">
+      <label className="text-xs font-semibold text-graphite-500 dark:text-graphite-400 surgical:text-black block mb-1">Clínica activa</label>
       <select
         value={clinicaActiva || ''}
         onChange={handleCambio}
         disabled={cambiando}
-        className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-graphite-600 rounded-md bg-white dark:bg-graphite-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full px-2.5 py-1.5 text-xs font-medium border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-lg bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] text-graphite-900 dark:text-graphite-100 surgical:text-black focus:outline-none focus:ring-2 focus:ring-[#B88E3A]/40 focus:border-[#B88E3A] dark:focus:ring-[#E5C378]/40 dark:focus:border-[#E5C378] disabled:opacity-50 disabled:cursor-not-allowed transition-fast"
       >
         {clinicas.map(c => (
           <option key={c.clinica_id} value={c.clinica_id}>
@@ -184,7 +184,7 @@ export const ClinicaSelector = ({ onCambioClinica }) => {
         ))}
       </select>
       {cambiando && (
-        <div className="text-xs text-blue-600 mt-1 animate-pulse">Cambiando...</div>
+        <div className="text-[11px] text-[#B88E3A] dark:text-[#E5C378] font-bold mt-1 animate-pulse">Cambiando clínica...</div>
       )}
     </div>
   )
