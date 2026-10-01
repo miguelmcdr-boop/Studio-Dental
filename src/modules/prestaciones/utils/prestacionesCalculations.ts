@@ -2,7 +2,20 @@
  * Utilidades puras para simulación de aranceles y cálculos
  */
 
-export const calcularResumenArancel = (prestaciones = []) => {
+export interface PrestacionParaResumen {
+  precioParticular?: number | string
+  especialidad?: string
+  [key: string]: unknown
+}
+
+export interface ResumenArancel {
+  totalProcedimientos: number
+  precioPromedio: number
+  especialidadMasFrecuente: string
+  precioMaximo: number
+}
+
+export const calcularResumenArancel = (prestaciones: PrestacionParaResumen[] = []): ResumenArancel => {
   const totalProcedimientos = prestaciones.length
   if (totalProcedimientos === 0) {
     return { totalProcedimientos: 0, precioPromedio: 0, especialidadMasFrecuente: 'N/I', precioMaximo: 0 }
@@ -10,10 +23,10 @@ export const calcularResumenArancel = (prestaciones = []) => {
 
   let sumaPrecios = 0
   let precioMaximo = 0
-  const conteoEspecialidad = {}
+  const conteoEspecialidad: Record<string, number> = {}
 
   prestaciones.forEach(p => {
-    const precio = parseFloat(p.precioParticular) || 0
+    const precio = parseFloat(String(p.precioParticular)) || 0
     sumaPrecios += precio
     if (precio > precioMaximo) precioMaximo = precio
 
