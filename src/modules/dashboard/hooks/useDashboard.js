@@ -1,0 +1,67 @@
+import { useState, useEffect, useMemo, useCallback } from 'react'
+import { calcularResumenJornada, calcularMetricasAvanzadas } from '../utils/dashboardCalculations'
+import { agendaStorageService } from '../../agenda'
+import { pagosStorageService } from '../../pagos/services/pagosStorageService'
+import { obtenerAbonosPorPaciente } from '../../pagos/services/pagosAbonosLegacyService'
+import { presupuestosStorageService } from '../../presupuestos/services/presupuestosStorageService'
+import { createLogger } from '../../../services/logger.js'
+
+const log = createLogger('useDashboard')
+
+export const useDashboard = (pacientes = []) => {
+  const [citas, setCitas] = useState([])
+  const [pagos, setPagos] = useState([])
+  const [presupuestos, setPresupuestos] = useState([])
+  const [evoluciones, setEvoluciones] = useState([])
+  const [recetas, setRecetas] = useState([])
+  const [certificados, setCertificados] = useState([])
+
+  const cargarDatos = useCallback(() => {
+    try {
+      // Cargar datos desde servicios (F2-07a)
+      const citasStorage = agendaStorageService.obtenerCitas([])
+      const pagosStorage = pagosStorageService.obtenerPagos([])
+      const presupuestosStorage = presupuestosStorageService.obtenerPresupuestos([])
+
+      // Recolectar abonos de presupuestos individuales para sumar a pagos (vía pagosStorageService, F2-07a)
+      const abonosGlobales = []
+      pacientes.forEach(p => {
+        const abonosPac = obtenerAbonosPorPaciente(p.id)
+        if (Array.isArray(abonosPac)) {
+          abonosPac.forEach(a => abonosGlobales.push(a))
+        }
+      })
+
+      setCitas(Array.isArray(citasStorage) ? citasStorage : [])
+      setPagos([...(Array.isArray(pagosStorage) ? pagosStorage : []), ...abonosGlobales])
+      setPresupuestos(Array.isArray(presupuestosStorage) ? presupuestosStorage : [])
+    } catch (e) {
+      log.error('Error al cargar datos en Dashboard:', e)
+    }
+  }, [pacientes])
+
+  useEffect(() => {
+    cargarDatos()
+
+    window.addEventListener('storage', cargarDatos)
+    window.addEventListener('arancel_actualizado', cargarDatos)
+    return () => {
+      window.removeEventListener('storage', cargarDatos)
+      window.removeEventListener('arancel_actualizado', cargarDatos)
+    }
+  }, [cargarDatos])
+
+  const resumen = useMemo(() => {
+    return calcularResumenJornada(pacientes, citas, pagos, presupuestos)
+  }, [pacientes, citas, pagos, presupuestos])
+
+  const metricasAvanzadas = useMemo(() => {
+    return calcularMetricasAvanzadas(citas, pagos, presupuestos, evoluciones, recetas, certificados)
+  }, [citas, pagos, presupuestos, evoluciones, recetas, certificados])
+
+  return {
+    resumen,
+    metricasAvanzadas,
+    refrescar: cargarDatos
+  }
+}

@@ -1,0 +1,153 @@
+import { safeError, safeInternalError, jsonResponse } from "../_shared/safeResponse.ts"
+// F7-31 Fase 2: Edge Function para listar archivos eliminados (papelera)
+//
+// Flujo:
+// 1. Frontend solicita lista de archivos eliminados
+// 2. Edge Function valida: sesión, clínica, RBAC
+// 3. Consulta archivos_clinicos WHERE estado='eliminado' AND clinica_id=clinica_usuario
+// 4. Retorna lista con metadata (id, nombre_archivo, categoria, deleted_at, uploaded_by)
+//
+// Input (JSON body):
+// {
+//   "paciente_id": "uuid" (opcional, filtra por paciente)
+// }
+//
+// Output (JSON):
+// {
+//   "archivos": [
+//     {
+//       "id": "uuid",
+//       "nombre_archivo": "string",
+//       "mime_type": "string",
+//       "tamano_bytes": 12345,
+//       "categoria": "foto_clinica|radiografia|pdf",
+//       "deleted_at": "2026-09-04T12:00:00Z",
+//       "uploaded_by": "uuid"
+//     }
+//   ]
+// }
+
+// ============================================================
+// HANDLER PRINCIPAL
+// ============================================================
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", {
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers":
+          "authorization, x-client-info, apikey, content-type",
+      },
+    });
+  }
+
+  try {
+    // 1. Validar JWT de Supabase
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return jsonResponse({ error: "Missing or invalid Authorization header" }, 401);
+    }
+
+    const jwt = authHeader.split(" ")[1];
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    // Verificar JWT con Supabase
+    const { data: userData, error: authError } = await fetch(
+      `${supabaseUrl}/auth/v1/user`,
+      {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+          apikey: supabaseServiceKey,
+        },
+      }
+    ).then(async (res) => {
+      if (!res.ok) {
+        return { data: null, error: await res.text() };
+      }
+      return { data: await res.json(), error: null };
+    });
+
+    if (authError || !userData) {
+      return safeError(req, "INVALID_JWT", authError, 401, "[r2-list-deleted]");
+    }
+
+    const userId = userData.id;
+
+    // 2. Parsear body (opcional)
+    let pacienteId: string | null = null;
+    try {
+      const body = await req.json();
+      pacienteId = body.paciente_id || null;
+    } catch {
+      // Body vacío o inválido, usar null
+    }
+
+    // 3. Obtener clínica del usuario
+    const clinicaResult = await fetch(
+      `${supabaseUrl}/rest/v1/miembros_clinica?user_id=eq.${userId}&select=clinica_id,rol`,
+      {
+        headers: {
+          Authorization: `Bearer ${supabaseServiceKey}`,
+          apikey: supabaseServiceKey,
+        },
+      }
+    ).then((res) => res.json());
+
+    if (!clinicaResult || clinicaResult.length === 0) {
+      return jsonResponse({ error: "User not associated with any clínica" }, 403);
+    }
+
+    // F7-34: Obtener clinica activa del user_metadata del JWT (establecida por setClinicaActiva)
+    const clinicaId = userData.user_metadata?.clinica_id;
+    
+    if (!clinicaId) {
+      return jsonResponse({ error: "No hay clinica activa. Seleccione una clinica." }, 403);
+    }
+
+    // F7-35 HOTFIX: Validar membresía activa en la clínica específica del selector
+    // Sin esto, un usuario con metadata apuntando a clínica no-miembro puede listar (vacío) en lugar de 403
+    const membershipCheck = await fetch(
+      `${supabaseUrl}/rest/v1/miembros_clinica?user_id=eq.${userId}&clinica_id=eq.${clinicaId}&activo=eq.true&select=rol`,
+      {
+        headers: {
+          Authorization: `Bearer ${supabaseServiceKey}`,
+          apikey: supabaseServiceKey,
+        },
+      }
+    ).then((res) => res.json());
+
+    if (!Array.isArray(membershipCheck) || membershipCheck.length === 0) {
+      return jsonResponse({ error: "Membresía no válida para esta clínica" }, 403);
+    }
+
+    // 4. Consultar archivos eliminados de la clínica del usuario
+    let queryUrl = `${supabaseUrl}/rest/v1/archivos_clinicos?clinica_id=eq.${clinicaId}&estado=eq.eliminado&select=id,nombre_archivo,mime_type,tamano_bytes,categoria,deleted_at,uploaded_by,paciente_id&order=deleted_at.desc`;
+
+    if (pacienteId) {
+      queryUrl += `&paciente_id=eq.${pacienteId}`;
+    }
+
+    const archivosResult = await fetch(queryUrl, {
+      headers: {
+        Authorization: `Bearer ${supabaseServiceKey}`,
+        apikey: supabaseServiceKey,
+      },
+    }).then((res) => res.json());
+
+    if (!Array.isArray(archivosResult)) {
+      // F7-35 fix: usar safeError para HTTP 500 real + log seguro (archivosResult va a logs, no al cliente)
+      return safeError(req, "QUERY_RESULT_INVALID", archivosResult, 500, "[r2-list-deleted]");
+    }
+
+    // 5. Retornar lista de archivos eliminados
+    return jsonResponse({
+      archivos: archivosResult,
+      count: archivosResult.length,
+    });
+  } catch (error) {
+    return safeInternalError(req, error, "[r2-list-deleted]");
+  }
+});

@@ -1,0 +1,169 @@
+From 517f7ddee230030b83632f2a02f30147b0251d27 Mon Sep 17 00:00:00 2001
+From: "qwen.ai[bot]" <qwenlm-intl@service.alibaba.com>
+Date: Thu, 1 Oct 2026 20:08:58 +0000
+Subject: [PATCH 1/2] =?UTF-8?q?fix(auth):=20reactivar=20alta=20self-servic?=
+ =?UTF-8?q?e=20del=20due=C3=B1o=20de=20cl=C3=ADnica=20(F7-11b)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+El bloqueo P0-2 del registro público cortó también el flujo legítimo del
+dueño/a de clínica (la app se instala sin web y el primer usuario no tiene
+quien lo invite). Se restaura el '¿Primera vez?' como toggle real que crea
+cuenta vía supabaseSignUp con bootstrapClinica=true:
+
+- authService: signup permitido con inviteToken O bootstrapClinica; sigue
+  bloqueado sin ninguno de los dos (defensa en profundidad).
+- LoginScreen: toggle '¿Primera vez?...' ↔ '¿Ya tienes cuenta?', mensaje de
+  confirmación de email pendiente, y handleEmailChange ya no resetea el modo.
+- Seguridad conservada: enable_confirmations=true (email obligatorio antes
+  de poder autenticarse), rol 'recepcion' por defecto, y la clínica/admin
+  solo se crean vía RPC bootstrap_clinica() (valida sin membresía + rate
+  limit 1 clínica/24h).
+- Tests: nuevo caso F7-11b en appMetadata.test.js. Suite completa: 1769/1769.
+---
+ src/components/LoginScreen.jsx               | 49 ++++++++++++++------
+ src/services/authService.appMetadata.test.js | 14 +++++-
+ src/services/authService.js                  | 14 ++++--
+ 3 files changed, 58 insertions(+), 19 deletions(-)
+
+diff --git a/src/components/LoginScreen.jsx b/src/components/LoginScreen.jsx
+index 6403eab..ff947c1 100644
+--- a/src/components/LoginScreen.jsx
++++ b/src/components/LoginScreen.jsx
+@@ -3,6 +3,7 @@ import {
+   obtenerPerfil,
+   guardarPerfil,
+   supabaseSignIn,
++  supabaseSignUp,
+ } from '../services/authService'
+ import { construirUserProfile } from '../services/userProfileBuilder'
+ import { NOMBRES_ROLES, DESCRIPCIONES_ROLES } from '../constants/rbacConstants'
+@@ -31,10 +32,8 @@ export const LoginScreen = ({ onLogin }) => {
+     const value = e.target.value
+     setEmail(value)
+     setError('')
+-    
+-    // F7-16: Modo Supabase únicamente. El usuario puede existir en Supabase Auth.
+-    // Mostramos login por defecto; si el email no existe, Supabase retorna error.
+-    setIsFirstTime(false)
++    // F7-28: no resetear isFirstTime — permite alternar manualmente entre
++    // login y alta self-service de dueño/a de clínica (F7-11b).
+   }
+ 
+   /**
+@@ -61,10 +60,26 @@ export const LoginScreen = ({ onLogin }) => {
+       // F7-28 FIX: useSupabase eliminado (legacy de F7-16).
+       // Solo existe flujo Supabase Auth (no hay modo local).
+       if (isFirstTime) {
+-        // P0-1/P0-2: el registro público está deshabilitado. El alta de
+-        // usuarios solo ocurre aceptando una invitación (/#/aceptar-invita).
+-        setError('El registro público está deshabilitado. Para crear tu cuenta, acepta la invitación enviada por un administrador.')
+-        return
++        // F7-11b: alta self-service del DUEÑO de clínica. Crea la cuenta en
++        // Supabase Auth con confirmación de email obligatoria (P0-1). Si aún
++        // no confirma, se lo indicamos; al confirmar e iniciar sesión, el
++        // wizard de bootstrap le pedirá crear su clínica (rate limit 1/24h
++        // y sin rol privilegiado hasta entonces).
++        const result = await supabaseSignUp(formattedEmail, password, {
++          ...metadata,
++          bootstrapClinica: true,
++        })
++
++        if (!result.success) {
++          if (result.requiresEmailConfirmation) {
++            setError('Cuenta creada. Revisa tu correo y confirma tu email, luego inicia sesión desde aquí.')
++          } else {
++            setError(result.error || 'No se pudo crear la cuenta. Es posible que el email ya esté registrado; intenta iniciar sesión.')
++          }
++          return
++        }
++
++        metadata._supabaseUserMetadata = result.userMetadata || {}
+       } else {
+         // Login de usuario existente
+         const result = await supabaseSignIn(formattedEmail, password)
+@@ -201,11 +216,19 @@ export const LoginScreen = ({ onLogin }) => {
+             {cargando ? 'Verificando...' : isFirstTime ? 'Guardar datos e Ingresar' : 'Ingresar al sistema'}
+           </Button>
+ 
+-          {/* P0-2: el registro público está deshabilitado — el alta de
+-              usuarios es exclusivamente por invitación (F7-11). */}
+-          <p className="text-[11px] text-gray-400 dark:text-graphite-500 text-center mt-3">
+-            ¿Primera vez? Necesitas una <span className="font-semibold">invitación de un administrador</span>.
+-          </p>
++          {/* F7-11b: dueños de clínica pueden crear su cuenta self-service
++              (con confirmación de email obligatoria). El resto del equipo
++              entra por invitación (F7-11). */}
++          <button
++            type="button"
++            data-testid="login-toggle-primeriza"
++            onClick={() => { setIsFirstTime((v) => !v); setError('') }}
++            className="w-full text-[11px] text-slate-400 dark:text-graphite-500 hover:text-white mt-3 text-center"
++          >
++            {isFirstTime
++              ? '¿Ya tienes cuenta? Inicia sesión'
++              : '¿Primera vez? Crea tu cuenta de dueño/a de clínica — o acepta la invitación de un administrador'}
++          </button>
+ 
+           {error && (
+             <p
+diff --git a/src/services/authService.appMetadata.test.js b/src/services/authService.appMetadata.test.js
+index 1367c50..6a0c23e 100644
+--- a/src/services/authService.appMetadata.test.js
++++ b/src/services/authService.appMetadata.test.js
+@@ -68,13 +68,25 @@ describe('F6-B4: authService lee rol de app_metadata', () => {
+       expect(supabase.auth.signUp.mock.calls[0][0].options.invite_token).toBe('inv-token')
+     })
+ 
+-    it('P0-2: bloquea el signup sin token de invitación (sin registro público)', async () => {
++    it('P0-2: bloquea el signup sin token de invitación ni flag bootstrap (sin registro abierto)', async () => {
+       const r = await supabaseSignUp('cualquiera@test.com', 'pass123', { nombreCompleto: 'X' })
+       expect(r.success).toBe(false)
+       expect(r.error).toMatch(/invitación/i)
+       expect(supabase.auth.signUp).not.toHaveBeenCalled()
+     })
+ 
++    it('F7-11b: permite signup self-service del dueño con bootstrapClinica=true', async () => {
++      supabase.auth.signUp.mockResolvedValue({
++        data: { session: null, user: { id: 'u1' } },
++        error: null,
++      })
++      const r = await supabaseSignUp('dueno@test.com', 'pass123', { nombreCompleto: 'Dueño', bootstrapClinica: true })
++      // Con confirmación de email activada no hay sesión inmediata → pide confirmar
++      expect(r.success).toBe(false)
++      expect(r.requiresEmailConfirmation).toBe(true)
++      expect(supabase.auth.signUp).toHaveBeenCalled()
++    })
++
+     it('P0-1: si no hay sesión tras signUp (falta confirmar email), no reporta éxito', async () => {
+       supabase.auth.signUp.mockResolvedValue({
+         data: { session: null, user: { id: 'u1' } },
+diff --git a/src/services/authService.js b/src/services/authService.js
+index dc70ff5..a2d4aac 100644
+--- a/src/services/authService.js
++++ b/src/services/authService.js
+@@ -178,11 +178,15 @@ export const supabaseSignUp = async (email, password, metadata = {}) => {
+     return { success: false, error: 'Supabase no configurado' }
+   }
+ 
+-  // P0-2 (seguridad): el alta pública solo está permitida dentro del flujo
+-  // de invitación (aceptarInvitacion → signUp con invite_token). Cualquier
+-  // otro caller queda bloqueado en cliente como defensa en profundidad;
+-  // la capa real es enable_confirmations=true + validación de invitación.
+-  if (!metadata.inviteToken) {
++  // P0-2 (seguridad): el alta está permitida en dos flujos legítimos:
++  //   a) Invitación (F7-11): aceptarInvitacion → signUp con invite_token.
++  //   b) Dueño de clínica self-service (F7-11b): bootstrapClinica=true, que
++  //      luego debe crear su clínica vía bootstrap_clinica() (RPC valida que
++  //      no tenga membresía + rate limit 1/24h). Sin ninguna de las dos, el
++  //      caller queda bloqueado en cliente como defensa en profundidad; la
++  //      capa real es enable_confirmations=true (email obligatorio antes de
++  //      poder autenticarse o crear nada).
++  if (!metadata.inviteToken && !metadata.bootstrapClinica) {
+     return {
+       success: false,
+       error: 'El registro público está deshabilitado. Necesitas una invitación de un administrador.',
+-- 
+2.39.5
+

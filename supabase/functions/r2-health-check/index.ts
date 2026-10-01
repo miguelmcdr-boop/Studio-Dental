@@ -1,0 +1,281 @@
+import { safeError, safeInternalError, jsonResponse } from "../_shared/safeResponse.ts"
+// F7-22: Edge Function de Health Check para Cloudflare R2
+// Verifica conexión al bucket sin exponer credenciales
+//
+// Respuesta:
+//   Success: { status: "ok", bucket: "...", objects_count: N }
+//   Error:   { status: "error", error: "...", hint: "..." }
+//
+// SIN DEPENDENCIAS EXTERNAS - usa solo Web Crypto API (nativa en Deno).
+// Evita problemas de red al importar desde deno.land.
+
+// ============================================================
+// HELPERS: AWS v4 Signature usando Web Crypto API
+// ============================================================
+
+const encoder = new TextEncoder();
+
+function toHex(buffer: ArrayBuffer): string {
+  return Array.from(new Uint8Array(buffer))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+async function sha256Hex(data: string): Promise<string> {
+  const hash = await crypto.subtle.digest("SHA-256", encoder.encode(data));
+  return toHex(hash);
+}
+
+async function hmacSha256(
+  key: ArrayBuffer | Uint8Array,
+  data: string
+): Promise<ArrayBuffer> {
+  // F7-34 FIX: Cast explicito para resolver TS2769 (deuda tecnica F7-22)
+  const keyData = key instanceof Uint8Array ? key.buffer.slice(key.byteOffset, key.byteOffset + key.byteLength) : key;
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw",
+    keyData as ArrayBuffer,
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  return await crypto.subtle.sign("HMAC", cryptoKey, encoder.encode(data));
+}
+
+async function getSignatureKey(
+  secret: string,
+  dateStamp: string,
+  region: string,
+  service: string
+): Promise<ArrayBuffer> {
+  // F7-34 FIX: encoder.encode retorna Uint8Array, cast a ArrayBuffer (TS2345)
+  let k = await hmacSha256(encoder.encode("AWS4" + secret) as unknown as ArrayBuffer, dateStamp);
+  k = await hmacSha256(k as ArrayBuffer, region);
+  k = await hmacSha256(k as ArrayBuffer, service);
+  k = await hmacSha256(k as ArrayBuffer, "aws4_request");
+  return k;
+}
+
+function getAmzDate(): { amzDate: string; dateStamp: string } {
+  const now = new Date();
+  const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
+  const dateStamp = amzDate.slice(0, 8);
+  return { amzDate, dateStamp };
+}
+
+// ============================================================
+// HANDLER PRINCIPAL
+// ============================================================
+
+Deno.serve(async (req) => {
+  // CORS preflight
+  if (req.method === "OPTIONS") {
+    return new Response("ok", {
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+        "Access-Control-Allow-Headers":
+          "authorization, x-client-info, apikey, content-type",
+      },
+    });
+  }
+
+  // F7-35: Validación opcional de JWT para determinar nivel de detalle.
+  // Sin JWT / JWT inválido → respuesta mínima pública (no bloquea el health check).
+  // JWT válido de admin → detalles completos (bucket, objects_count, endpoint).
+  // JWT válido de no-admin → respuesta mínima.
+  let nivelDetalle: "publico" | "admin" | "usuario" = "publico";
+  const authHeader = req.headers.get("Authorization");
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    try {
+      const jwt = authHeader.split(" ")[1];
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+      const authRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
+        headers: { Authorization: `Bearer ${jwt}`, apikey: supabaseServiceKey },
+      });
+
+      if (authRes.ok) {
+        const userData = await authRes.json();
+        const userId = userData.id;
+        const clinicaId = userData.user_metadata?.clinica_id;
+        if (userId && clinicaId) {
+          const rolRes = await fetch(
+            `${supabaseUrl}/rest/v1/miembros_clinica?user_id=eq.${userId}&clinica_id=eq.${clinicaId}&activo=eq.true&select=rol`,
+            { headers: { Authorization: `Bearer ${supabaseServiceKey}`, apikey: supabaseServiceKey } }
+          );
+          if (rolRes.ok) {
+            const roles = await rolRes.json();
+            if (Array.isArray(roles) && roles.length > 0) {
+              nivelDetalle = roles[0].rol === "admin" ? "admin" : "usuario";
+            }
+          }
+        }
+      }
+    } catch {
+      // JWT inválido o error de red → nivelDetalle queda en "publico" (no bloquea)
+    }
+  }
+
+  try {
+    // 1. Leer secrets de Supabase
+    const accessKeyId = Deno.env.get("R2_ACCESS_KEY_ID");
+    const secretAccessKey = Deno.env.get("R2_SECRET_ACCESS_KEY");
+    const bucketName = Deno.env.get("R2_BUCKET_NAME");
+    const accountId = Deno.env.get("R2_ACCOUNT_ID");
+    const endpoint = Deno.env.get("R2_ENDPOINT");
+
+    // Validar que todos los secrets existan
+    const missing: string[] = [];
+    if (!accessKeyId) missing.push("R2_ACCESS_KEY_ID");
+    if (!secretAccessKey) missing.push("R2_SECRET_ACCESS_KEY");
+    if (!bucketName) missing.push("R2_BUCKET_NAME");
+    if (!accountId) missing.push("R2_ACCOUNT_ID");
+    if (!endpoint) missing.push("R2_ENDPOINT");
+
+    if (missing.length > 0) {
+      // F7-35: solo admin ve qué secrets faltan (info sensible de infraestructura)
+      if (nivelDetalle === "admin") {
+        return jsonResponse(
+          {
+            status: "error",
+            error: "Secrets faltantes en Supabase",
+            missing,
+            hint: "Ve a Supabase Dashboard → Edge Functions → Secrets y agrega los que faltan",
+          },
+          500
+        );
+      }
+      return jsonResponse(
+        { status: "error", error: "R2_UNAVAILABLE" },
+        500
+      );
+    }
+
+    // 2. Preparar request para listar objetos (ListObjectsV2)
+    const host = `${accountId}.r2.cloudflarestorage.com`;
+    const method = "GET";
+    const region = "auto";
+    const service = "s3";
+    const path = `/${bucketName}/`;
+    const queryString = "list-type=2&max-keys=1";
+    const payload = "";
+    const payloadHash = await sha256Hex(payload);
+    const { amzDate, dateStamp } = getAmzDate();
+
+    // 3. Crear canonical request (AWS v4)
+    const canonicalHeaders = `host:${host}\nx-amz-content-sha256:${payloadHash}\nx-amz-date:${amzDate}\n`;
+    const signedHeaders = "host;x-amz-content-sha256;x-amz-date";
+    const canonicalRequest = [
+      method,
+      path,
+      queryString,
+      canonicalHeaders,
+      signedHeaders,
+      payloadHash,
+    ].join("\n");
+
+    // 4. Crear string to sign
+    const algorithm = "AWS4-HMAC-SHA256";
+    const credentialScope = `${dateStamp}/${region}/${service}/aws4_request`;
+    const canonicalRequestHash = await sha256Hex(canonicalRequest);
+    const stringToSign = [
+      algorithm,
+      amzDate,
+      credentialScope,
+      canonicalRequestHash,
+    ].join("\n");
+
+    // 5. Calcular firma
+    const signingKey = await getSignatureKey(
+      secretAccessKey!,
+      dateStamp,
+      region,
+      service
+    );
+    const signatureBuffer = await hmacSha256(signingKey as ArrayBuffer, stringToSign);
+    const signature = toHex(signatureBuffer);
+
+    // 6. Crear Authorization header
+    const authorization = `${algorithm} Credential=${accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
+
+    // 7. Hacer el request a R2
+    const url = `https://${host}${path}?${queryString}`;
+    const response = await fetch(url, {
+      method,
+      headers: {
+        Host: host,
+        "x-amz-date": amzDate,
+        "x-amz-content-sha256": payloadHash,
+        Authorization: authorization,
+      },
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      let hint = "Revisa las credenciales en Supabase Secrets";
+      if (response.status === 403) {
+        if (errorBody.includes("InvalidAccessKeyId")) {
+          hint =
+            "R2 credentials inválidas. Contacta al administrador.";
+        } else if (errorBody.includes("SignatureDoesNotMatch")) {
+          hint =
+            "R2 credentials inválidas. Contacta al administrador.";
+        } else if (errorBody.includes("AccessDenied")) {
+          hint =
+            "El token de R2 no tiene permisos suficientes. Verifica que tenga 'Object Read & Write'.";
+        }
+      } else if (response.status === 404) {
+        hint =
+          "Bucket no encontrado. Verifica R2_BUCKET_NAME y que el bucket exista en Cloudflare.";
+      }
+
+      // F7-35: solo admin ve detalles de errores de R2
+      if (nivelDetalle === "admin") {
+        return jsonResponse(
+          {
+            status: "error",
+            error: `R2 respondió ${response.status}`,
+            r2_status: response.status,
+            r2_body: errorBody.slice(0, 500),
+            hint,
+          },
+          500
+        );
+      }
+      return jsonResponse(
+        { status: "error", error: "R2_UNAVAILABLE" },
+        500
+      );
+    }
+
+    // 8. Parsear respuesta XML
+    const xml = await response.text();
+    const keyMatches = xml.match(/<Key>/g);
+    const objectsCount = keyMatches ? keyMatches.length : 0;
+    const isTruncated = xml.includes("<IsTruncated>true</IsTruncated>");
+
+    // F7-35: nivel de detalle depende del rol
+    if (nivelDetalle === "admin") {
+      return jsonResponse({
+        status: "ok",
+        bucket: bucketName,
+        endpoint: `https://${host}`,
+        objects_count: objectsCount,
+        has_more: isTruncated,
+        message: "Conexión R2 exitosa",
+        timestamp: new Date().toISOString(),
+      });
+    }
+    // Público o no-admin: respuesta mínima (sin bucket/endpoint/objects_count)
+    return jsonResponse({
+      status: "ok",
+      message: "R2 service available",
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    // F7-35: usar helper seguro + mensaje genérico para el cliente
+    return safeInternalError(req, error, "[r2-health-check]");
+  }
+});

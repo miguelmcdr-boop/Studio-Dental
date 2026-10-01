@@ -1,0 +1,261 @@
+import { safeError, safeInternalError, jsonResponse } from "../_shared/safeResponse.ts"
+// F7-31 Fase 1: Edge Function para soft delete de archivo (NO elimina de R2)
+//
+// Flujo:
+// 1. Frontend solicita eliminación de archivo
+// 2. Edge Function valida: sesión, clínica, RBAC
+// 3. Soft delete en archivos_clinicos (estado='eliminado', deleted_at=NOW())
+// 4. Registra en audit_log: "FILE_DELETE"
+//
+// IMPORTANTE (F7-31): El archivo físico NO se elimina de R2.
+// Esto permite restauración posterior mediante r2-restore.
+// La purga física se implementará en F7-32 (automática después de 30 días).
+//
+// Input (JSON body):
+// {
+//   "archivo_id": "uuid"
+// }
+//
+// Output (JSON):
+// {
+//   "success": true,
+//   "archivo_id": "uuid",
+//   "message": "Archivo marcado como eliminado (soft delete)"
+// }
+
+// ============================================================
+// HELPERS: AWS v4 Signature (Web Crypto API)
+// ============================================================
+
+const encoder = new TextEncoder();
+
+function toHex(buffer: ArrayBuffer): string {
+  return Array.from(new Uint8Array(buffer))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+async function sha256Hex(data: string): Promise<string> {
+  const hash = await crypto.subtle.digest("SHA-256", encoder.encode(data));
+  return toHex(hash);
+}
+
+async function hmacSha256(
+  key: ArrayBuffer | Uint8Array,
+  data: string
+): Promise<ArrayBuffer> {
+  // F7-34 FIX: Cast explicito para resolver TS2769 (deuda tecnica F7-22)
+  const keyData = key instanceof Uint8Array ? key.buffer.slice(key.byteOffset, key.byteOffset + key.byteLength) : key;
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw",
+    keyData as ArrayBuffer,
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  return await crypto.subtle.sign("HMAC", cryptoKey, encoder.encode(data));
+}
+
+async function getSignatureKey(
+  secret: string,
+  dateStamp: string,
+  region: string,
+  service: string
+): Promise<ArrayBuffer> {
+  // F7-34 FIX: encoder.encode retorna Uint8Array, cast a ArrayBuffer (TS2345)
+  let k = await hmacSha256(encoder.encode("AWS4" + secret) as unknown as ArrayBuffer, dateStamp);
+  k = await hmacSha256(k as ArrayBuffer, region);
+  k = await hmacSha256(k as ArrayBuffer, service);
+  k = await hmacSha256(k as ArrayBuffer, "aws4_request");
+  return k;
+}
+
+function getAmzDate(): { amzDate: string; dateStamp: string } {
+  const now = new Date();
+  const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
+  const dateStamp = amzDate.slice(0, 8);
+  return { amzDate, dateStamp };
+}
+
+// ============================================================
+// HANDLER PRINCIPAL
+// ============================================================
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", {
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers":
+          "authorization, x-client-info, apikey, content-type",
+      },
+    });
+  }
+
+  try {
+    // 1. Validar JWT de Supabase
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return jsonResponse({ error: "Missing or invalid Authorization header" }, 401);
+    }
+
+    const jwt = authHeader.split(" ")[1];
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    // Verificar JWT con Supabase
+    const { data: userData, error: authError } = await fetch(
+      `${supabaseUrl}/auth/v1/user`,
+      {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+          apikey: supabaseServiceKey,
+        },
+      }
+    ).then(async (res) => {
+      if (!res.ok) {
+        return { data: null, error: await res.text() };
+      }
+      return { data: await res.json(), error: null };
+    });
+
+    if (authError || !userData) {
+      return safeError(req, "INVALID_JWT", authError, 401, "[r2-delete]");
+    }
+
+    const userId = userData.id;
+
+    // 2. Parsear body
+    const body = await req.json();
+    const { archivo_id } = body;
+
+    // 3. Validar inputs
+    if (!archivo_id) {
+      return jsonResponse({ error: "Missing required field: archivo_id" }, 400);
+    }
+
+    // 4. Obtener clínica del usuario
+    const clinicaResult = await fetch(
+      `${supabaseUrl}/rest/v1/miembros_clinica?user_id=eq.${userId}&select=clinica_id,rol`,
+      {
+        headers: {
+          Authorization: `Bearer ${supabaseServiceKey}`,
+          apikey: supabaseServiceKey,
+        },
+      }
+    ).then((res) => res.json());
+
+    if (!clinicaResult || clinicaResult.length === 0) {
+      return jsonResponse({ error: "User not associated with any clínica" }, 403);
+    }
+
+    // F7-34: Obtener clinica activa del user_metadata del JWT (establecida por setClinicaActiva)
+    const clinicaId = userData.user_metadata?.clinica_id;
+    
+    if (!clinicaId) {
+      return jsonResponse({ error: "No hay clinica activa. Seleccione una clinica." }, 403);
+    }
+    // F7-34: Validar membresia activa en la clinica activa
+    const membresiaResult = await fetch(
+      `${supabaseUrl}/rest/v1/miembros_clinica?user_id=eq.${userId}&clinica_id=eq.${clinicaId}&activo=eq.true&select=rol`,
+      {
+        headers: {
+          Authorization: `Bearer ${supabaseServiceKey}`,
+          apikey: supabaseServiceKey,
+        },
+      }
+    ).then((res) => res.json());
+    
+    if (!membresiaResult || membresiaResult.length === 0) {
+      return jsonResponse({ error: "Sin membresia activa en la clinica seleccionada" }, 403);
+    }
+    
+    const userRol = membresiaResult[0].rol;
+
+    // 5. Validar rol del usuario (admin/dentista pueden eliminar)
+    const allowedRoles = ["admin", "dentista"];
+    if (!allowedRoles.includes(userRol)) {
+      return jsonResponse(
+        { error: `Insufficient permissions. Required: ${allowedRoles.join(" or ")}. Current: ${userRol}` },
+        403
+      );
+    }
+
+    // 6. Obtener archivo de archivos_clinicos y validar que pertenece a la clínica
+    const archivoResult = await fetch(
+      `${supabaseUrl}/rest/v1/archivos_clinicos?id=eq.${archivo_id}&clinica_id=eq.${clinicaId}&select=id,r2_object_key,nombre_archivo`,
+      {
+        headers: {
+          Authorization: `Bearer ${supabaseServiceKey}`,
+          apikey: supabaseServiceKey,
+        },
+      }
+    ).then((res) => res.json());
+
+    if (!archivoResult || archivoResult.length === 0) {
+      return jsonResponse(
+        { error: "Archivo not found or does not belong to your clínica" },
+        404
+      );
+    }
+
+    const archivo = archivoResult[0];
+    const r2ObjectKey = archivo.r2_object_key;
+
+    // 7. F7-31: NO eliminar archivo físico de R2
+    // El archivo se mantiene en R2 para permitir restauración posterior.
+    // La purga física se implementará en F7-32 (automática después de 30 días).
+
+    // 8. Soft delete en archivos_clinicos
+    const updateResult = await fetch(
+      `${supabaseUrl}/rest/v1/archivos_clinicos?id=eq.${archivo_id}`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${supabaseServiceKey}`,
+          apikey: supabaseServiceKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          estado: "eliminado",
+          deleted_at: new Date().toISOString(),
+        }),
+      }
+    );
+
+    if (!updateResult.ok) {
+      const errorText = await updateResult.text();
+      // F7-35 fix: usar safeError para log seguro (errorText va a logs, no al cliente)
+      return safeError(req, "SOFT_DELETE_FAILED", errorText, 500, "[r2-delete]");
+    }
+
+    // 9. Registrar en audit_log via RPC
+    await fetch(`${supabaseUrl}/rest/v1/rpc/registrar_evento_archivo`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${supabaseServiceKey}`,
+        apikey: supabaseServiceKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        p_archivo_id: archivo_id,
+        p_evento: "FILE_DELETE",
+        p_detalle: {
+          // F7-34: nombre_archivo removido (PHI potencial)
+          // F7-34: r2_object_key removido (contiene clinica_id/paciente_id)
+        },
+        p_user_id: userId,
+      }),
+    });
+
+    // 10. Retornar respuesta
+    return jsonResponse({
+      success: true,
+      archivo_id: archivo_id,
+      message: "Archivo eliminado correctamente",
+    });
+  } catch (error) {
+    return safeInternalError(req, error, "[r2-delete]");
+  }
+});

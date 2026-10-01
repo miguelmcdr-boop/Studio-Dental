@@ -1,0 +1,333 @@
+/**
+ * Design Tokens — DentikOS (Manual Maestro de Marca y Sistema de Diseño v1.0)
+ * 
+ * Identidad Oficial: Oro Corporativo, Superficies Clínicas de Precisión y Modo Quirúrgico
+ * 
+ * Modo CLARO:
+ *   Canvas:     #F8FAFC
+ *   Superficie: #FFFFFF
+ *   Elevado:    #F1F5F9
+ *   Bordes:     #E2E8F0
+ * 
+ * Modo OSCURO (Obsidiana):
+ *   Canvas:     #070B14
+ *   Superficie: #0F172A
+ *   Elevado:    #1E293B
+ *   Bordes:     #24334A
+ * 
+ * Modo QUIRÚRGICO (.theme-surgical - Antirreflejo / Pabellón):
+ *   Canvas:     #CBD5E1
+ *   Superficie: #F1F5F9
+ *   Elevado:    #E2E8F0
+ *   Bordes:     #475569
+ *   Texto:      #000000 (SemiBold 600)
+ */
+
+@theme {
+  /* === ORO CORPORATIVO DENTIKOS === */
+  --color-gold-light: #FFF5DF;
+  --color-gold-satin: #E5C378;
+  --color-gold-solid: #B88E3A;
+  --color-gold-accent: #D4AF37;
+
+  /* Compatibilidad con paleta Champagne previa */
+  --color-champagne-50: #FFF5DF;
+  --color-champagne-100: #F9ECD2;
+  --color-champagne-200: #F0DCAB;
+  --color-champagne-300: #E5C378;
+  --color-champagne-400: #CCA352;
+  --color-champagne-500: #B88E3A;  /* Primario sólido */
+  --color-champagne-600: #99732B;
+  --color-champagne-700: #7A591F;
+  --color-champagne-800: #573E13;
+  --color-champagne-900: #332309;
+
+  /* === GRAPHITE / OBSIDIANA === */
+  --color-graphite-50: #F8FAFC;
+  --color-graphite-100: #F1F5F9;
+  --color-graphite-200: #E2E8F0;
+  --color-graphite-300: #CBD5E1;
+  --color-graphite-400: #94A3B8;
+  --color-graphite-500: #64748B;
+  --color-graphite-600: #475569;
+  --color-graphite-700: #334155;
+  --color-graphite-800: #1E293B;
+  --color-graphite-900: #0F172A;
+  --color-graphite-950: #070B14;
+
+  /* === SUBPALETA CLÍNICA (Odontograma / Periodontograma) === */
+  --color-clinical-healthy-light: #0284C7;
+  --color-clinical-healthy-dark: #38BDF8;
+  --color-clinical-caries-light: #DC2626;
+  --color-clinical-caries-dark: #F43F5E;
+  --color-clinical-endo-light: #D97706;
+  --color-clinical-endo-dark: #FBBF24;
+  --color-clinical-implant-light: #64748B;
+  --color-clinical-implant-dark: #94A3B8;
+  --color-clinical-missing-light: #334155;
+  --color-clinical-missing-dark: #475569;
+  --color-clinical-bleeding-light: #BE123C;
+  --color-clinical-bleeding-dark: #FB7185;
+
+  /* Aliases normativos chart-* */
+  --color-chart-sound: #0284C7;
+  --color-chart-caries: #DC2626;
+  --color-chart-endo: #D97706;
+  --color-chart-implant: #64748B;
+  --color-chart-missing: #334155;
+  --color-chart-bleeding: #BE123C;
+
+  /* Semánticos generales */
+  --color-clinical-success: #10B981;
+  --color-clinical-warning: #F59E0B;
+  --color-clinical-error: #DC2626;
+  --color-clinical-info: #0284C7;
+
+  /* Semánticos status-* */
+  --color-status-success: #10B981;
+  --color-status-warning: #F59E0B;
+  --color-status-danger: #DC2626;
+  --color-status-info: #0284C7;
+
+  /* Estados focus oro corporativo */
+  --color-focus: #E5C378;
+  --color-border-focus: #E5C378;
+
+  /* === ALIASES DE MARCA === */
+  --color-primary: #B88E3A;
+  --color-primary-light: #E5C378;
+  --color-surface: #FFFFFF;
+  --color-surface-muted: #F8FAFC;
+  --color-border: #E2E8F0;
+
+  /* === TIPOGRAFÍA OFICIAL === */
+  --font-display: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+
+  /* Escala tipográfica */
+  --ds-text-xs: 0.75rem;    /* 12px */
+  --ds-text-sm: 0.8125rem;  /* 13px */
+  --ds-text-base: 0.875rem; /* 14px */
+  --ds-text-lg: 1rem;       /* 16px */
+  --ds-text-xl: 1.25rem;    /* 20px */
+  --ds-text-2xl: 1.5rem;    /* 24px */
+  --ds-text-3xl: 1.875rem;  /* 30px */
+
+  /* Pesos tipográficos */
+  --ds-weight-regular: 400;
+  --ds-weight-medium: 500;
+  --ds-weight-semibold: 600;
+  --ds-weight-bold: 700;
+
+  /* === GEOMETRÍA NORMATIVA (Border Radius) === */
+  --radius-input: 8px;     /* Inputs y Botones */
+  --radius-btn: 8px;
+  --radius-card: 12px;     /* Tarjetas y Contenedores */
+  --radius-modal: 16px;    /* Modales y Diálogos */
+
+  /* Compatibilidad con escalas radius estándar */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+
+  /* === SOMBRAS === */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.03);
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+  --shadow-overlay: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+}
+
+/* === VARIABLES DE MOVIMIENTO Y SUPERFICIES (:root) === */
+:root {
+  /* Tokens de Superficie — Modo Claro */
+  --surface-canvas: #F8FAFC;
+  --surface-default: #FFFFFF;
+  --surface-elevated: #F1F5F9;
+  --surface-border: #E2E8F0;
+  --surface-text: #0F172A;
+
+  /* Aliases canónicos requeridos */
+  --bg-canvas: #F8FAFC;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #F1F5F9;
+  --border-surface: #E2E8F0;
+  --text-primary: #0F172A;
+
+  /* Subpaleta Clínica Activa (por defecto claro) */
+  --clinical-healthy: #0284C7;
+  --clinical-caries: #DC2626;
+  --clinical-endo: #D97706;
+  --clinical-implant: #64748B;
+  --clinical-missing: #334155;
+  --clinical-bleeding: #BE123C;
+
+  /* Aliases chart-* */
+  --chart-sound: #0284C7;
+  --chart-caries: #DC2626;
+  --chart-endo: #D97706;
+  --chart-implant: #64748B;
+  --chart-missing: #334155;
+  --chart-bleeding: #BE123C;
+
+  /* Borde de foco normativo */
+  --border-focus: #E5C378;
+
+  /* Tokens de Movimiento */
+  --motion-instant: 100ms cubic-bezier(0, 0, 0.2, 1);
+  --motion-fast: 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-standard: 250ms cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-fluid: 350ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Espaciado base 4px */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+  --spacing-2xl: 32px;
+}
+
+/* === MODO OSCURO (Obsidiana) === */
+.dark {
+  color-scheme: dark;
+
+  --surface-canvas: #070B14;
+  --surface-default: #0F172A;
+  --surface-elevated: #1E293B;
+  --surface-border: #24334A;
+  --surface-text: #F8FAFC;
+
+  --bg-canvas: #070B14;
+  --bg-surface: #0F172A;
+  --bg-elevated: #1E293B;
+  --border-surface: #24334A;
+  --text-primary: #F8FAFC;
+
+  --color-primary: #E5C378;
+  --color-primary-light: #FFF5DF;
+  --color-surface: #0F172A;
+  --color-surface-muted: #070B14;
+  --color-border: #24334A;
+
+  /* Subpaleta clínica modo oscuro */
+  --clinical-healthy: #38BDF8;
+  --clinical-caries: #F43F5E;
+  --clinical-endo: #FBBF24;
+  --clinical-implant: #94A3B8;
+  --clinical-missing: #475569;
+  --clinical-bleeding: #FB7185;
+
+  /* Aliases chart-* modo oscuro */
+  --chart-sound: #38BDF8;
+  --chart-caries: #F43F5E;
+  --chart-endo: #FBBF24;
+  --chart-implant: #94A3B8;
+  --chart-missing: #475569;
+  --chart-bleeding: #FB7185;
+
+  --border-focus: #E5C378;
+}
+
+/* === MODO QUIRÚRGICO (.theme-surgical - Antirreflejo) === */
+.theme-surgical {
+  color-scheme: light;
+
+  --surface-canvas: #CBD5E1;
+  --surface-default: #F1F5F9;
+  --surface-elevated: #E2E8F0;
+  --surface-border: #475569;
+  --surface-text: #000000;
+
+  --bg-canvas: #CBD5E1;
+  --bg-surface: #F1F5F9;
+  --bg-elevated: #E2E8F0;
+  --border-surface: #475569;
+  --text-primary: #000000;
+
+  --color-primary: #B88E3A;
+  --color-primary-light: #E5C378;
+  --color-surface: #F1F5F9;
+  --color-surface-muted: #CBD5E1;
+  --color-border: #475569;
+
+  /* Subpaleta clínica modo quirúrgico (alta visibilidad / contraste) */
+  --clinical-healthy: #0284C7;
+  --clinical-caries: #DC2626;
+  --clinical-endo: #D97706;
+  --clinical-implant: #475569;
+  --clinical-missing: #1E293B;
+  --clinical-bleeding: #BE123C;
+
+  --chart-sound: #0284C7;
+  --chart-caries: #DC2626;
+  --chart-endo: #D97706;
+  --chart-implant: #475569;
+  --chart-missing: #1E293B;
+  --chart-bleeding: #BE123C;
+
+  --border-focus: #B88E3A;
+
+  font-weight: 600 !important;
+}
+
+/* Ergonomía táctil para modo quirúrgico: mínimo 48x48px en botones de cabecera y críticos */
+.theme-surgical header button,
+.theme-surgical header [role="button"],
+.theme-surgical [data-touch-target="critical"] {
+  min-width: 48px;
+  min-height: 48px;
+}
+
+/* === ESTILOS BASE Y TABULAR-NUMS GLOBAL === */
+html,
+body,
+#root {
+  min-height: 100%;
+  font-family: var(--font-body);
+  background-color: var(--surface-canvas);
+  color: var(--surface-text);
+  transition: background-color var(--motion-standard), color var(--motion-standard);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.dark,
+.dark body,
+.dark #root {
+  background-color: var(--surface-canvas);
+  color: var(--surface-text);
+}
+
+.theme-surgical,
+.theme-surgical body,
+.theme-surgical #root {
+  background-color: var(--surface-canvas);
+  color: var(--surface-text);
+}
+
+/* Regla obligatoria: números tabulares para datos clínicos, aranceles, RUT y fechas */
+table,
+.tabular-nums,
+[data-tabular],
+.font-tabular,
+input[type="number"],
+.arancel-valor,
+.rut-display,
+.hora-display {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* Textura Blueprint Isométrica de Escáner Clínico DentikOS */
+.bg-blueprint-scanner {
+  background-color: #070B14;
+  background-image:
+    radial-gradient(circle at 50% 50%, rgba(229, 195, 120, 0.08) 0%, transparent 65%),
+    radial-gradient(rgba(229, 195, 120, 0.12) 1px, transparent 1px),
+    linear-gradient(to right, rgba(229, 195, 120, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(229, 195, 120, 0.03) 1px, transparent 1px);
+  background-size: 100% 100%, 24px 24px, 24px 24px, 24px 24px;
+}

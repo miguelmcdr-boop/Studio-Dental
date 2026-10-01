@@ -1,0 +1,1 @@
+export { EsterilizacionModulo } from './EsterilizacionModulo'
