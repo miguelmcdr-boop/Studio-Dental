@@ -96,7 +96,7 @@ export const PagosModulo = memo(() => {
           {puedePurgar && (
             <button
               onClick={handleAbrirPapelera}
-              className="bg-white dark:bg-[#1E293B] surgical:bg-[#F1F5F9] text-graphite-800 dark:text-graphite-100 surgical:text-black text-xs font-bold px-4 py-2.5 rounded-lg hover:bg-slate-50 dark:hover:bg-[#0F172A] transition-micro border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] cursor-pointer"
+              className="bg-white dark:bg-graphite-800 surgical:bg-surface text-graphite-800 dark:text-graphite-100 surgical:text-black text-xs font-bold px-4 py-2.5 rounded-lg hover:bg-slate-50 dark:hover:bg-graphite-900 transition-micro border border-surface cursor-pointer"
               title="Ver pagos purgados (papelera)"
             >
               <span className="inline-flex items-center gap-1"><Trash2 size={12} />Papelera</span>
@@ -105,7 +105,7 @@ export const PagosModulo = memo(() => {
           {puedeExportar && (
             <button
               onClick={exportarAuditoria}
-              className="bg-white dark:bg-[#1E293B] surgical:bg-[#F1F5F9] text-graphite-800 dark:text-graphite-100 surgical:text-black text-xs font-bold px-4 py-2.5 rounded-lg hover:bg-slate-50 dark:hover:bg-[#0F172A] transition-micro border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] cursor-pointer"
+              className="bg-white dark:bg-graphite-800 surgical:bg-surface text-graphite-800 dark:text-graphite-100 surgical:text-black text-xs font-bold px-4 py-2.5 rounded-lg hover:bg-slate-50 dark:hover:bg-graphite-900 transition-micro border border-surface cursor-pointer"
               title="Exportar todos los pagos (vigentes + anulados) a XLSX"
             >
               <span className="inline-flex items-center gap-1"><Download size={14} />Exportar auditoría</span>
@@ -113,7 +113,7 @@ export const PagosModulo = memo(() => {
           )}
           <button
             onClick={handleAbrirNuevo}
-            className="bg-[#B88E3A] hover:bg-[#99732B] dark:bg-[#E5C378] dark:hover:bg-[#B88E3A] text-white dark:text-graphite-950 text-xs font-bold px-4 py-2.5 rounded-lg transition-micro shadow-xs cursor-pointer"
+            className="bg-primary hover:bg-champagne-600 dark:bg-gold-satin dark:hover:bg-primary text-white dark:text-graphite-950 text-xs font-bold px-4 py-2.5 rounded-lg transition-micro shadow-xs cursor-pointer"
           >
             + Registrar Pago / Recibo
           </button>
@@ -132,13 +132,13 @@ export const PagosModulo = memo(() => {
         />
       ) : (
         <>
-          <div className="bg-slate-50 dark:bg-[#0F172A] surgical:bg-[#F1F5F9] p-4 border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl flex justify-between items-center flex-wrap gap-3 text-xs print:hidden">
+          <div className="bg-slate-50 dark:bg-surface surgical:bg-surface p-4 border border-surface rounded-2xl flex justify-between items-center flex-wrap gap-3 text-xs print:hidden">
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <span className="font-semibold text-graphite-600 dark:text-graphite-400 surgical:text-black">Medio:</span>
               <select
                 value={metodoFiltro}
                 onChange={(e) => setMetodoFiltro(e.target.value)}
-                className="p-2 border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-lg bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] text-graphite-900 dark:text-graphite-100 surgical:text-black font-semibold flex-1 sm:flex-initial focus:ring-2 focus:ring-[#B88E3A]/40"
+                className="p-2 border border-surface rounded-lg bg-white dark:bg-graphite-800 surgical:bg-graphite-200 text-graphite-900 dark:text-graphite-100 surgical:text-black font-semibold flex-1 sm:flex-initial focus:ring-2 focus:ring-primary/40"
               >
                 <option value="Todos">Todos los métodos</option>
                 {METODOS_PAGO_GOLD.map(m => <option key={m.id} value={m.id}>{m.nombre}</option>)}
@@ -148,7 +148,7 @@ export const PagosModulo = memo(() => {
               <select
                 value={estadoFiltro}
                 onChange={(e) => setEstadoFiltro(e.target.value)}
-                className="p-2 border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-lg bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] text-graphite-900 dark:text-graphite-100 surgical:text-black font-semibold focus:ring-2 focus:ring-[#B88E3A]/40"
+                className="p-2 border border-surface rounded-lg bg-white dark:bg-graphite-800 surgical:bg-graphite-200 text-graphite-900 dark:text-graphite-100 surgical:text-black font-semibold focus:ring-2 focus:ring-primary/40"
               >
                 <option value="Todos">Todos</option>
                 <option value="Emitido">Vigentes</option>
@@ -171,7 +171,7 @@ export const PagosModulo = memo(() => {
               placeholder="Buscar por recibo, DTE, paciente o RUT..."
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
-              className="p-2 border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-lg bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] text-graphite-900 dark:text-graphite-100 surgical:text-black w-full sm:w-64 focus:ring-2 focus:ring-[#B88E3A]/40"
+              className="p-2 border border-surface rounded-lg bg-white dark:bg-graphite-800 surgical:bg-graphite-200 text-graphite-900 dark:text-graphite-100 surgical:text-black w-full sm:w-64 focus:ring-2 focus:ring-primary/40"
             />
           </div>
 

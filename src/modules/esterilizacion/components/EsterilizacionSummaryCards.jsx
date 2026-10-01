@@ -4,9 +4,9 @@ import { Flame, CheckCircle2, Hourglass, Activity, AlertTriangle } from 'lucide-
 export const EsterilizacionSummaryCards = memo(({ resumen }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs">
-      <div className="relative overflow-hidden p-5 bg-white/90 dark:bg-[#0F172A]/90 surgical:bg-[#F1F5F9] backdrop-blur-md border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-[#0EA5E9]/50 before:to-transparent">
+      <div className="relative overflow-hidden p-5 bg-surface/90 backdrop-blur-md border border-surface rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-[#0EA5E9]/50 before:to-transparent">
         <div className="flex items-center gap-1.5 text-gray-500 dark:text-graphite-400 mb-1">
-          <Flame size={13} className="text-[#0EA5E9]" />
+          <Flame size={13} className="text-clinical-info" />
           <span className="text-[10px] font-bold uppercase tracking-wider block">Cargas Realizadas Hoy</span>
         </div>
         <span className="text-2xl font-black text-graphite-900 dark:text-graphite-50 surgical:text-black block tabular-nums tracking-tight">
@@ -14,7 +14,7 @@ export const EsterilizacionSummaryCards = memo(({ resumen }) => {
         </span>
       </div>
 
-      <div className="relative overflow-hidden p-5 bg-emerald-50/70 dark:bg-emerald-950/20 surgical:bg-[#F1F5F9] backdrop-blur-md border border-emerald-200/80 dark:border-emerald-800/40 surgical:border-[#475569] rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-emerald-500/50 before:to-transparent">
+      <div className="relative overflow-hidden p-5 bg-emerald-50/70 dark:bg-emerald-950/20 surgical:bg-surface backdrop-blur-md border border-emerald-200/80 dark:border-emerald-800/40 surgical:border-graphite-600 rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-emerald-500/50 before:to-transparent">
         <div className="flex items-center gap-1.5 text-emerald-800 dark:text-emerald-300 mb-1">
           <CheckCircle2 size={13} className="text-emerald-500" />
           <span className="text-[10px] font-bold uppercase tracking-wider block">Cargas Conformes</span>
@@ -24,7 +24,7 @@ export const EsterilizacionSummaryCards = memo(({ resumen }) => {
         </span>
       </div>
 
-      <div className="relative overflow-hidden p-5 bg-amber-50/70 dark:bg-amber-950/20 surgical:bg-[#F1F5F9] backdrop-blur-md border border-amber-200/80 dark:border-amber-800/40 surgical:border-[#475569] rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-amber-500/50 before:to-transparent">
+      <div className="relative overflow-hidden p-5 bg-amber-50/70 dark:bg-amber-950/20 surgical:bg-surface backdrop-blur-md border border-amber-200/80 dark:border-amber-800/40 surgical:border-graphite-600 rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-amber-500/50 before:to-transparent">
         <div className="flex items-center gap-1.5 text-amber-800 dark:text-amber-300 mb-1">
           <Hourglass size={13} />
           <span className="text-[10px] font-bold uppercase tracking-wider block">Ampollas Biológicas</span>
@@ -34,9 +34,9 @@ export const EsterilizacionSummaryCards = memo(({ resumen }) => {
         </span>
       </div>
 
-      <div className="relative overflow-hidden p-5 bg-sky-50/70 dark:bg-sky-950/20 surgical:bg-[#F1F5F9] backdrop-blur-md border border-sky-200/80 dark:border-sky-800/40 surgical:border-[#475569] rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-[#0EA5E9]/50 before:to-transparent">
+      <div className="relative overflow-hidden p-5 bg-sky-50/70 dark:bg-sky-950/20 surgical:bg-surface backdrop-blur-md border border-sky-200/80 dark:border-sky-800/40 surgical:border-graphite-600 rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-[#0EA5E9]/50 before:to-transparent">
         <div className="flex items-center gap-1.5 text-sky-800 dark:text-sky-300 mb-1">
-          <Activity size={13} className="text-[#0EA5E9]" />
+          <Activity size={13} className="text-clinical-info" />
           <span className="text-[10px] font-bold uppercase tracking-wider block">Test Bowie-Dick Hoy</span>
         </div>
         <span className={`text-2xl font-black block tabular-nums tracking-tight ${resumen.testBowieDickHoy ? 'text-emerald-700 dark:text-emerald-300 surgical:text-black' : 'text-rose-600 dark:text-rose-400 surgical:text-black'}`}>

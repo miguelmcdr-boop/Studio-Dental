@@ -5,21 +5,25 @@
 @custom-variant dark (&:is(.dark, .dark *));
 @custom-variant surgical (&:is(.theme-surgical, .theme-surgical *));
 
-/* Utilidades de Superficie y Canvas Adaptativas DentikOS */
-.bg-canvas {
-  background-color: var(--surface-canvas);
-}
-.bg-surface-card {
-  background-color: var(--surface-default);
-}
-.bg-surface-elevated {
-  background-color: var(--surface-elevated);
-}
-.border-surface {
-  border-color: var(--surface-border);
-}
-.text-primary-surface {
-  color: var(--surface-text);
+/* Utilidades de Superficie y Canvas Adaptativas DentikOS
+   @layer utilities: integración con cascade de Tailwind v4 para que
+   variants (dark:, surgical:, focus:, hover:) puedan sobreescribirlas. */
+@layer utilities {
+  .bg-canvas {
+    background-color: var(--surface-canvas);
+  }
+  .bg-surface-card {
+    background-color: var(--surface-default);
+  }
+  .bg-surface-elevated {
+    background-color: var(--surface-elevated);
+  }
+  .border-surface {
+    border-color: var(--surface-border);
+  }
+  .text-primary-surface {
+    color: var(--surface-text);
+  }
 }
 
 /* Configuración global de impresión - Formato Letter (8.5" x 11") */

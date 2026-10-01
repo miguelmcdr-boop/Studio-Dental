@@ -33,8 +33,8 @@ export const DatosClinicaForm = memo(({ datosClinica, alGuardar, userProfile }) 
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-6 shadow-xs space-y-4 text-xs">
-      <div className="border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] pb-3">
+    <form onSubmit={handleSubmit} className="bg-surface border border-surface rounded-2xl p-6 shadow-xs space-y-4 text-xs">
+      <div className="border-b border-surface pb-3">
         <h3 className="font-bold text-sm text-gray-900 dark:text-graphite-50 surgical:text-black uppercase tracking-wider inline-flex items-center gap-2"><Building2 size={14} />Información de la Clínica & Membrete</h3>
         <p className="text-gray-500 dark:text-graphite-400 text-[11px]">
           Membrete impreso oficial para consentimientos, recetas y presupuestos.
@@ -55,8 +55,8 @@ export const DatosClinicaForm = memo(({ datosClinica, alGuardar, userProfile }) 
             value={form.nombreClinica}
             onChange={(e) => setForm({ ...form, nombreClinica: e.target.value })}
             disabled={esSoloLectura}
-            className={`w-full p-2.5 rounded-lg border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] font-extrabold text-graphite-900 dark:text-graphite-50 surgical:text-black focus:outline-none focus:ring-2 focus:ring-[#B88E3A]/40 ${
-              esSoloLectura ? 'bg-slate-50 dark:bg-[#1E293B] cursor-not-allowed' : 'bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0]'
+            className={`w-full p-2.5 rounded-lg border border-surface font-extrabold text-graphite-900 dark:text-graphite-50 surgical:text-black focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+              esSoloLectura ? 'bg-slate-50 dark:bg-graphite-800 cursor-not-allowed' : 'bg-white dark:bg-graphite-800 surgical:bg-graphite-200'
             }`}
           />
         </div>
@@ -68,8 +68,8 @@ export const DatosClinicaForm = memo(({ datosClinica, alGuardar, userProfile }) 
             value={form.razonSocial}
             onChange={(e) => setForm({ ...form, razonSocial: e.target.value })}
             disabled={esSoloLectura}
-            className={`w-full p-2.5 rounded-lg border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] font-semibold text-graphite-900 dark:text-graphite-50 surgical:text-black focus:outline-none focus:ring-2 focus:ring-[#B88E3A]/40 ${
-              esSoloLectura ? 'bg-slate-50 dark:bg-[#1E293B] cursor-not-allowed' : 'bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0]'
+            className={`w-full p-2.5 rounded-lg border border-surface font-semibold text-graphite-900 dark:text-graphite-50 surgical:text-black focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+              esSoloLectura ? 'bg-slate-50 dark:bg-graphite-800 cursor-not-allowed' : 'bg-white dark:bg-graphite-800 surgical:bg-graphite-200'
             }`}
           />
         </div>
@@ -83,8 +83,8 @@ export const DatosClinicaForm = memo(({ datosClinica, alGuardar, userProfile }) 
             value={form.rutClinica}
             onChange={(e) => setForm({ ...form, rutClinica: e.target.value })}
             disabled={esSoloLectura}
-            className={`w-full p-2.5 rounded-lg border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] font-bold tabular-nums text-graphite-900 dark:text-graphite-50 surgical:text-black focus:outline-none focus:ring-2 focus:ring-[#B88E3A]/40 ${
-              esSoloLectura ? 'bg-slate-50 dark:bg-[#1E293B] cursor-not-allowed' : 'bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0]'
+            className={`w-full p-2.5 rounded-lg border border-surface font-bold tabular-nums text-graphite-900 dark:text-graphite-50 surgical:text-black focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+              esSoloLectura ? 'bg-slate-50 dark:bg-graphite-800 cursor-not-allowed' : 'bg-white dark:bg-graphite-800 surgical:bg-graphite-200'
             }`}
           />
         </div>
@@ -96,8 +96,8 @@ export const DatosClinicaForm = memo(({ datosClinica, alGuardar, userProfile }) 
             value={form.telefono}
             onChange={(e) => setForm({ ...form, telefono: e.target.value })}
             disabled={esSoloLectura}
-            className={`w-full p-2.5 rounded-lg border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] tabular-nums text-graphite-900 dark:text-graphite-50 surgical:text-black focus:outline-none focus:ring-2 focus:ring-[#B88E3A]/40 ${
-              esSoloLectura ? 'bg-slate-50 dark:bg-[#1E293B] cursor-not-allowed' : 'bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0]'
+            className={`w-full p-2.5 rounded-lg border border-surface tabular-nums text-graphite-900 dark:text-graphite-50 surgical:text-black focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+              esSoloLectura ? 'bg-slate-50 dark:bg-graphite-800 cursor-not-allowed' : 'bg-white dark:bg-graphite-800 surgical:bg-graphite-200'
             }`}
           />
         </div>
@@ -109,8 +109,8 @@ export const DatosClinicaForm = memo(({ datosClinica, alGuardar, userProfile }) 
             value={form.emailContacto}
             onChange={(e) => setForm({ ...form, emailContacto: e.target.value })}
             disabled={esSoloLectura}
-            className={`w-full p-2.5 rounded-lg border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] text-graphite-900 dark:text-graphite-50 surgical:text-black focus:outline-none focus:ring-2 focus:ring-[#B88E3A]/40 ${
-              esSoloLectura ? 'bg-slate-50 dark:bg-[#1E293B] cursor-not-allowed' : 'bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0]'
+            className={`w-full p-2.5 rounded-lg border border-surface text-graphite-900 dark:text-graphite-50 surgical:text-black focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+              esSoloLectura ? 'bg-slate-50 dark:bg-graphite-800 cursor-not-allowed' : 'bg-white dark:bg-graphite-800 surgical:bg-graphite-200'
             }`}
           />
         </div>
@@ -124,8 +124,8 @@ export const DatosClinicaForm = memo(({ datosClinica, alGuardar, userProfile }) 
             value={form.direccion}
             onChange={(e) => setForm({ ...form, direccion: e.target.value })}
             disabled={esSoloLectura}
-            className={`w-full p-2.5 rounded-lg border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] text-graphite-900 dark:text-graphite-50 surgical:text-black focus:outline-none focus:ring-2 focus:ring-[#B88E3A]/40 ${
-              esSoloLectura ? 'bg-slate-50 dark:bg-[#1E293B] cursor-not-allowed' : 'bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0]'
+            className={`w-full p-2.5 rounded-lg border border-surface text-graphite-900 dark:text-graphite-50 surgical:text-black focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+              esSoloLectura ? 'bg-slate-50 dark:bg-graphite-800 cursor-not-allowed' : 'bg-white dark:bg-graphite-800 surgical:bg-graphite-200'
             }`}
           />
         </div>
@@ -137,8 +137,8 @@ export const DatosClinicaForm = memo(({ datosClinica, alGuardar, userProfile }) 
             value={form.ciudad}
             onChange={(e) => setForm({ ...form, ciudad: e.target.value })}
             disabled={esSoloLectura}
-            className={`w-full p-2.5 rounded-lg border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] text-graphite-900 dark:text-graphite-50 surgical:text-black focus:outline-none focus:ring-2 focus:ring-[#B88E3A]/40 ${
-              esSoloLectura ? 'bg-slate-50 dark:bg-[#1E293B] cursor-not-allowed' : 'bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0]'
+            className={`w-full p-2.5 rounded-lg border border-surface text-graphite-900 dark:text-graphite-50 surgical:text-black focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+              esSoloLectura ? 'bg-slate-50 dark:bg-graphite-800 cursor-not-allowed' : 'bg-white dark:bg-graphite-800 surgical:bg-graphite-200'
             }`}
           />
         </div>
@@ -152,12 +152,12 @@ export const DatosClinicaForm = memo(({ datosClinica, alGuardar, userProfile }) 
             accept="image/*"
             onChange={handleLogoUpload}
             disabled={esSoloLectura}
-            className={`p-2 border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-lg bg-slate-50 dark:bg-[#1E293B] surgical:bg-[#E2E8F0] flex-1 text-xs text-graphite-900 dark:text-graphite-50 surgical:text-black ${
+            className={`p-2 border border-surface rounded-lg bg-surface-elevated flex-1 text-xs text-graphite-900 dark:text-graphite-50 surgical:text-black ${
               esSoloLectura ? 'cursor-not-allowed' : ''
             }`}
           />
           {form.logoUrl && (
-            <img src={form.logoUrl} alt="Logo Clínica" className="h-10 border border-[#E2E8F0] dark:border-[#24334A] rounded-lg p-1 object-contain" />
+            <img src={form.logoUrl} alt="Logo Clínica" className="h-10 border border-surface rounded-lg p-1 object-contain" />
           )}
         </div>
       </div>
@@ -168,8 +168,8 @@ export const DatosClinicaForm = memo(({ datosClinica, alGuardar, userProfile }) 
           disabled={esSoloLectura}
           className={`font-bold px-5 py-2.5 rounded-lg transition-micro shadow-xs ${
             esSoloLectura
-              ? 'bg-slate-300 dark:bg-[#1E293B] text-graphite-500 dark:text-graphite-400 cursor-not-allowed'
-              : 'bg-[#B88E3A] hover:bg-[#99732B] dark:bg-[#E5C378] dark:hover:bg-[#B88E3A] text-white dark:text-graphite-950 cursor-pointer'
+              ? 'bg-slate-300 dark:bg-graphite-800 text-graphite-500 dark:text-graphite-400 cursor-not-allowed'
+              : 'bg-primary hover:bg-champagne-600 dark:bg-gold-satin dark:hover:bg-primary text-white dark:text-graphite-950 cursor-pointer'
           }`}
         >
           {esSoloLectura ? <span className='inline-flex items-center gap-1'><Lock size={14} />Solo Lectura</span> : 'Guardar Membrete de Clínica'}

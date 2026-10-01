@@ -12,10 +12,10 @@ export const TablaHistorialPagos = memo(({ pagos, onVerComprobante, onEditar, on
   }
 
   return (
-    <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl overflow-hidden shadow-xs text-xs">
+    <div className="bg-surface border border-surface rounded-2xl overflow-hidden shadow-xs text-xs">
       <table className="w-full text-left border-collapse">
         <thead>
-          <tr className="bg-slate-50 dark:bg-[#070B14] surgical:bg-[#E2E8F0] border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] text-graphite-600 dark:text-graphite-300 surgical:text-black font-bold uppercase text-[10px]">
+          <tr className="bg-slate-50 dark:bg-graphite-950 surgical:bg-graphite-200 border-b border-surface text-graphite-600 dark:text-graphite-300 surgical:text-black font-bold uppercase text-[10px]">
             <th className="p-3">Recibo / DTE SII</th>
             <th className="p-3">Paciente / RUT</th>
             <th className="p-3">Fecha / Hora</th>
@@ -26,19 +26,19 @@ export const TablaHistorialPagos = memo(({ pagos, onVerComprobante, onEditar, on
             <th className="p-3 text-right print:hidden">Acciones</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-[#E2E8F0] dark:divide-[#24334A] surgical:divide-[#475569]">
+        <tbody className="divide-y divide-surface">
           {pagos.map((p) => {
             const esAnulado = p.estado === 'Anulado'
             const esPurgado = p.estado === 'Purgado'
 
             return (
-              <tr key={p.id} className={`hover:bg-slate-50 dark:hover:bg-[#1E293B]/50 surgical:hover:bg-[#E2E8F0] transition-colors ${esPurgado ? 'bg-slate-100/60 dark:bg-[#070B14]/60 surgical:bg-[#CBD5E1]/60' : esAnulado ? 'bg-red-50/40 dark:bg-red-950/20' : ''}`}>
+              <tr key={p.id} className={`hover:bg-slate-50 dark:hover:bg-graphite-800/50 surgical:hover:bg-graphite-200 transition-colors ${esPurgado ? 'bg-slate-100/60 dark:bg-graphite-950/60 surgical:bg-graphite-300/60' : esAnulado ? 'bg-red-50/40 dark:bg-red-950/20' : ''}`}>
                 <td className="p-3">
-                  <span className="bg-slate-100 dark:bg-[#1E293B] surgical:bg-[#E2E8F0] px-2 py-0.5 rounded border border-[#E2E8F0] dark:border-[#24334A] font-mono text-[11px] font-bold block w-max tabular-nums text-graphite-800 dark:text-graphite-200 surgical:text-black">
+                  <span className="bg-slate-100 dark:bg-graphite-800 surgical:bg-graphite-200 px-2 py-0.5 rounded border border-surface font-mono text-[11px] font-bold block w-max tabular-nums text-graphite-800 dark:text-graphite-200 surgical:text-black">
                     {p.folioComprobante}
                   </span>
                   {p.folioDTE && (
-                    <span className="text-[10px] font-bold text-[#7A591F] dark:text-[#E5C378] surgical:text-black block mt-0.5 tabular-nums">
+                    <span className="text-[10px] font-bold text-champagne-700 dark:text-gold-satin surgical:text-black block mt-0.5 tabular-nums">
                       DTE: {p.folioDTE}
                     </span>
                   )}
@@ -70,7 +70,7 @@ export const TablaHistorialPagos = memo(({ pagos, onVerComprobante, onEditar, on
 
                 <td className="p-3 text-center">
                   <span className={`px-2 py-0.5 rounded-lg font-bold text-[10px] border ${
-                    esPurgado ? 'bg-slate-200 dark:bg-[#1E293B] text-slate-600 dark:text-slate-400 border-slate-400 dark:border-slate-700' : esAnulado ? 'bg-red-100 dark:bg-red-950/60 text-red-900 dark:text-red-300 border-red-300 dark:border-red-800' : 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
+                    esPurgado ? 'bg-slate-200 dark:bg-graphite-800 text-slate-600 dark:text-slate-400 border-slate-400 dark:border-slate-700' : esAnulado ? 'bg-red-100 dark:bg-red-950/60 text-red-900 dark:text-red-300 border-red-300 dark:border-red-800' : 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
                   }`}>
                     {esPurgado ? 'Purgado' : esAnulado ? 'Anulado' : 'Vigente'}
                   </span>
@@ -83,7 +83,7 @@ export const TablaHistorialPagos = memo(({ pagos, onVerComprobante, onEditar, on
                 <td className="p-3 text-right print:hidden space-x-1 whitespace-nowrap">
                   <button
                     onClick={() => onVerComprobante(p)}
-                    className="p-1.5 bg-[#B88E3A] hover:bg-[#99732B] dark:bg-[#E5C378] dark:hover:bg-[#B88E3A] text-white dark:text-graphite-950 surgical:bg-black surgical:text-white text-[10px] font-bold rounded-lg transition-micro cursor-pointer"
+                    className="p-1.5 bg-primary hover:bg-champagne-600 dark:bg-gold-satin dark:hover:bg-primary text-white dark:text-graphite-950 surgical:bg-black surgical:text-white text-[10px] font-bold rounded-lg transition-micro cursor-pointer"
                     title="Ver / Imprimir Comprobante Oficial"
                   >
                     <span className="inline-flex items-center gap-1"><Receipt size={14} />Recibo</span>
@@ -93,7 +93,7 @@ export const TablaHistorialPagos = memo(({ pagos, onVerComprobante, onEditar, on
                     <>
                       <button
                         onClick={() => onEditar(p)}
-                        className="p-1.5 text-graphite-600 dark:text-graphite-400 hover:text-black dark:hover:text-white font-semibold rounded-lg hover:bg-slate-100 dark:hover:bg-[#1E293B] transition-micro cursor-pointer"
+                        className="p-1.5 text-graphite-600 dark:text-graphite-400 hover:text-black dark:hover:text-white font-semibold rounded-lg hover:bg-slate-100 dark:hover:bg-graphite-800 transition-micro cursor-pointer"
                         title="Editar pago"
                       >
                         <Pencil size={12} />

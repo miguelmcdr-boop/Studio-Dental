@@ -65,8 +65,8 @@ export const BitacoraSection = memo(({ pacienteId, evolucionesNotas = [], setEvo
   }
 
   return (
-    <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-6 space-y-6">
-      <div className="flex justify-between items-center border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] pb-3 flex-wrap gap-2">
+    <div className="bg-surface border border-surface rounded-2xl p-6 space-y-6">
+      <div className="flex justify-between items-center border-b border-surface pb-3 flex-wrap gap-2">
         <h3 className="font-bold text-xs text-gray-800 dark:text-graphite-100 surgical:text-black uppercase tracking-wider">
           <span className="inline-flex items-center gap-1"><PenSquare size={12} />Bitácora de Evoluciones Clínicas & Historial</span>
         </h3>
@@ -78,7 +78,7 @@ export const BitacoraSection = memo(({ pacienteId, evolucionesNotas = [], setEvo
             className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
               escuchando
                 ? 'bg-red-600 text-white animate-pulse'
-                : 'bg-gray-100 dark:bg-graphite-800 text-gray-800 dark:text-graphite-100 surgical:text-black hover:bg-gray-200 border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569]'
+                : 'bg-gray-100 dark:bg-graphite-800 text-gray-800 dark:text-graphite-100 surgical:text-black hover:bg-gray-200 border border-surface'
             }`}
           >
             {escuchando ? <span className='inline-flex items-center gap-1'><Square size={12} className='fill-red-500' />Escuchando... (Clic para detener)</span> : <span className='inline-flex items-center gap-1'><Mic size={12} />Dictado Hands-Free</span>}
@@ -97,7 +97,7 @@ export const BitacoraSection = memo(({ pacienteId, evolucionesNotas = [], setEvo
               + Insertar Texto Dictado
             </button>
           </div>
-          <p className="italic text-gray-800 dark:text-graphite-100 surgical:text-black bg-[#F8FAFC] dark:bg-[#070B14] surgical:bg-white p-2 rounded border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569]">
+          <p className="italic text-gray-800 dark:text-graphite-100 surgical:text-black bg-graphite-50 dark:bg-graphite-950 surgical:bg-white p-2 rounded border border-surface">
             "{textoDictado || 'Habla claro hacia el micrófono para registrar la evolución...'}"
           </p>
         </div>
@@ -110,7 +110,7 @@ export const BitacoraSection = memo(({ pacienteId, evolucionesNotas = [], setEvo
           placeholder="Escribe el detalle de la evolución clínica, tratamiento realizado, pieza intervenida, anestesia o hallazgos..."
           value={textoNuevaEvolucion}
           onChange={(e) => setTextoNuevaEvolucion(e.target.value)}
-          className="w-full p-3 rounded-xl border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] bg-[#F8FAFC] dark:bg-[#070B14] surgical:bg-white text-gray-900 dark:text-graphite-50 surgical:text-black focus:outline-none focus:border-gold-solid font-medium"
+          className="w-full p-3 rounded-xl border border-surface bg-graphite-50 dark:bg-graphite-950 surgical:bg-white text-gray-900 dark:text-graphite-50 surgical:text-black focus:outline-none focus:border-gold-solid font-medium"
         />
 
         <div className="flex justify-between items-center gap-3 flex-wrap">
@@ -121,7 +121,7 @@ export const BitacoraSection = memo(({ pacienteId, evolucionesNotas = [], setEvo
               placeholder="Ej: LOTE-2026-0804-01"
               value={loteAutoclave}
               onChange={(e) => setLoteAutoclave(e.target.value)}
-              className="px-3 py-1.5 border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-lg bg-[#F8FAFC] dark:bg-[#070B14] surgical:bg-white text-gray-900 dark:text-graphite-50 surgical:text-black text-xs w-48 font-bold tabular-nums"
+              className="px-3 py-1.5 border border-surface rounded-lg bg-graphite-50 dark:bg-graphite-950 surgical:bg-white text-gray-900 dark:text-graphite-50 surgical:text-black text-xs w-48 font-bold tabular-nums"
             />
           </div>
 
@@ -134,13 +134,13 @@ export const BitacoraSection = memo(({ pacienteId, evolucionesNotas = [], setEvo
         </div>
       </form>
 
-      <div className="space-y-3 pt-4 border-t border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569]">
+      <div className="space-y-3 pt-4 border-t border-surface">
         {evolucionesNotas.length === 0 ? (
           <p className="text-xs text-gray-400 dark:text-graphite-500 text-center py-4">No hay evoluciones registradas en la bitácora de este paciente.</p>
         ) : (
           evolucionesNotas.map(nota => (
-            <div key={nota.id} className="p-4 bg-[#F8FAFC] dark:bg-[#070B14] surgical:bg-white rounded-xl border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] text-xs space-y-1">
-              <div className="flex justify-between items-center text-[10px] text-gray-500 dark:text-graphite-400 surgical:text-graphite-600 font-bold border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] pb-1 tabular-nums">
+            <div key={nota.id} className="p-4 bg-graphite-50 dark:bg-graphite-950 surgical:bg-white rounded-xl border border-surface text-xs space-y-1">
+              <div className="flex justify-between items-center text-[10px] text-gray-500 dark:text-graphite-400 surgical:text-graphite-600 font-bold border-b border-surface pb-1 tabular-nums">
                 <span className="inline-flex items-center gap-1"><Calendar size={10} />{nota.fecha}</span>
                 <button onClick={() => handleEliminarNota(nota.id)} className="text-red-500 hover:text-red-700 cursor-pointer" aria-label="Eliminar nota"><span className="inline-flex items-center gap-1"><Trash2 size={12} />Borrar</span></button>
               </div>

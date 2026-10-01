@@ -18,8 +18,8 @@ export const ParametrosAgendaForm = memo(({ parametrosAgenda, alGuardar }) => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-6 shadow-xs space-y-4 text-xs">
-      <div className="border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] pb-3">
+    <form onSubmit={handleSubmit} className="bg-surface border border-surface rounded-2xl p-6 shadow-xs space-y-4 text-xs">
+      <div className="border-b border-surface pb-3">
         <h3 className="font-bold text-sm text-gray-900 dark:text-graphite-50 surgical:text-black uppercase tracking-wider inline-flex items-center gap-2"><Calendar size={14} />Parámetros de Agenda & Tramos Horarios</h3>
         <p className="text-gray-500 dark:text-graphite-400 text-[11px]">Duración predeterminada de los bloques de atención y ventana de horarios.</p>
       </div>
@@ -30,7 +30,7 @@ export const ParametrosAgendaForm = memo(({ parametrosAgenda, alGuardar }) => {
           <select
             value={duracion}
             onChange={(e) => setDuracion(e.target.value)}
-            className="w-full p-2.5 rounded-lg border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] text-graphite-900 dark:text-graphite-50 surgical:text-black font-bold focus:outline-none focus:ring-2 focus:ring-[#B88E3A]/40"
+            className="w-full p-2.5 rounded-lg border border-surface bg-white dark:bg-graphite-800 surgical:bg-graphite-200 text-graphite-900 dark:text-graphite-50 surgical:text-black font-bold focus:outline-none focus:ring-2 focus:ring-primary/40"
           >
             {TRAMOS_DURACION.map(d => (
               <option key={d} value={d}>{d} Minutos por atención</option>
@@ -44,7 +44,7 @@ export const ParametrosAgendaForm = memo(({ parametrosAgenda, alGuardar }) => {
             type="time"
             value={horaInicio}
             onChange={(e) => setHoraInicio(e.target.value)}
-            className="w-full p-2.5 rounded-lg border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] text-graphite-900 dark:text-graphite-50 surgical:text-black font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-[#B88E3A]/40"
+            className="w-full p-2.5 rounded-lg border border-surface bg-white dark:bg-graphite-800 surgical:bg-graphite-200 text-graphite-900 dark:text-graphite-50 surgical:text-black font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/40"
           />
         </div>
 
@@ -54,7 +54,7 @@ export const ParametrosAgendaForm = memo(({ parametrosAgenda, alGuardar }) => {
             type="time"
             value={horaFin}
             onChange={(e) => setHoraFin(e.target.value)}
-            className="w-full p-2.5 rounded-lg border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] text-graphite-900 dark:text-graphite-50 surgical:text-black font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-[#B88E3A]/40"
+            className="w-full p-2.5 rounded-lg border border-surface bg-white dark:bg-graphite-800 surgical:bg-graphite-200 text-graphite-900 dark:text-graphite-50 surgical:text-black font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/40"
           />
         </div>
       </div>
@@ -62,7 +62,7 @@ export const ParametrosAgendaForm = memo(({ parametrosAgenda, alGuardar }) => {
       <div className="pt-2 text-right">
         <button
           type="submit"
-          className="bg-[#B88E3A] hover:bg-[#99732B] dark:bg-[#E5C378] dark:hover:bg-[#B88E3A] text-white dark:text-graphite-950 font-bold px-5 py-2.5 rounded-lg transition-micro shadow-xs cursor-pointer"
+          className="bg-primary hover:bg-champagne-600 dark:bg-gold-satin dark:hover:bg-primary text-white dark:text-graphite-950 font-bold px-5 py-2.5 rounded-lg transition-micro shadow-xs cursor-pointer"
         >
           Guardar Parámetros Agenda
         </button>

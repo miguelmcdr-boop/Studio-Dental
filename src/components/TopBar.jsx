@@ -93,7 +93,7 @@ export const TopBar = ({
   }
 
   return (
-    <header className="sticky top-0 z-40 bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border-b border-graphite-200 dark:border-[#24334A] surgical:border-[#475569] shadow-sm">
+    <header className="sticky top-0 z-40 bg-white dark:bg-surface surgical:bg-surface border-b border-surface shadow-sm">
       <div className="flex items-center justify-between px-4 py-2 h-16">
         {/* Izquierda: Logo DentikOS + ClinicaSelector */}
         <div className="flex items-center gap-4">
@@ -159,10 +159,10 @@ export const TopBar = ({
             {menuOpen && (
               <div
                 role="menu"
-                className="absolute right-0 mt-2 w-72 bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-graphite-200 dark:border-[#24334A] surgical:border-[#475569] rounded-xl shadow-lg overflow-hidden z-50"
+                className="absolute right-0 mt-2 w-72 bg-surface border border-surface rounded-xl shadow-lg overflow-hidden z-50"
               >
                 {/* Header del menú: identidad completa */}
-                <div className="px-4 py-3 border-b border-graphite-200 dark:border-[#24334A] surgical:border-[#475569]">
+                <div className="px-4 py-3 border-b border-surface">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-graphite-300 dark:bg-graphite-700 rounded-full flex items-center justify-center font-semibold text-graphite-700 dark:text-graphite-200 text-base flex-shrink-0">
                       {inicial}

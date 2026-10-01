@@ -15,8 +15,8 @@ export const AnamnesisSection = memo(({ fichaData, handleFichaChange }) => {
   }
 
   return (
-    <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-6 space-y-6">
-      <div className="flex justify-between items-center border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] pb-3 flex-wrap gap-2">
+    <div className="bg-surface border border-surface rounded-2xl p-6 space-y-6">
+      <div className="flex justify-between items-center border-b border-surface pb-3 flex-wrap gap-2">
         <h3 className="font-bold text-xs text-gray-800 dark:text-graphite-100 surgical:text-black uppercase tracking-wider inline-flex items-center gap-2">
           <ClipboardList size={14} />Anamnesis & Examen Físico Clínico
         </h3>
@@ -39,7 +39,7 @@ export const AnamnesisSection = memo(({ fichaData, handleFichaChange }) => {
       {escuchando && (
         <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs space-y-2">
           <span className="font-bold text-red-900 block inline-flex items-center gap-1"><Mic size={12} />Dictado en Curso:</span>
-          <p className="italic text-gray-800 dark:text-graphite-100 surgical:text-black bg-[#F8FAFC] dark:bg-[#070B14] surgical:bg-white p-2 rounded border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569]">"{textoDictado || 'Habla claro hacia el micrófono...'}"</p>
+          <p className="italic text-gray-800 dark:text-graphite-100 surgical:text-black bg-graphite-50 dark:bg-graphite-950 surgical:bg-white p-2 rounded border border-surface">"{textoDictado || 'Habla claro hacia el micrófono...'}"</p>
           <div className="flex gap-2">
             <Button
               onClick={() => handleAplicarDictado('anamnesisProxima')}

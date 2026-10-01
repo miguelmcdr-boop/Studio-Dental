@@ -73,7 +73,7 @@ const AlertaCard = ({ alerta, onClick }) => {
 export const AlertasOperativasWidget = memo(({ alertas = [], onNavegarAlerta }) => {
   if (!alertas || alertas.length === 0) {
     return (
-      <div className="relative overflow-hidden bg-white/90 dark:bg-[#0F172A]/90 surgical:bg-[#F1F5F9] backdrop-blur-md border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-6 text-center before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-emerald-500/40 before:to-transparent">
+      <div className="relative overflow-hidden bg-surface/90 backdrop-blur-md border border-surface rounded-2xl p-6 text-center before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-emerald-500/40 before:to-transparent">
         <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50 mb-3">
           <AlertTriangle size={22} />
         </div>
@@ -88,8 +88,8 @@ export const AlertasOperativasWidget = memo(({ alertas = [], onNavegarAlerta }) 
   }
 
   return (
-    <div className="relative overflow-hidden bg-white/90 dark:bg-[#0F172A]/90 surgical:bg-[#F1F5F9] backdrop-blur-md border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-5 shadow-sm before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-rose-500/40 before:to-transparent" role="region" aria-label="Alertas operativas">
-      <div className="flex items-center justify-between mb-4 border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] pb-3">
+    <div className="relative overflow-hidden bg-surface/90 backdrop-blur-md border border-surface rounded-2xl p-5 shadow-sm before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-rose-500/40 before:to-transparent" role="region" aria-label="Alertas operativas">
+      <div className="flex items-center justify-between mb-4 border-b border-surface pb-3">
         <h3 className="text-sm font-extrabold text-graphite-900 dark:text-graphite-50 flex items-center gap-2 tracking-tight">
           <AlertTriangle size={16} className="text-rose-500" />
           Alertas Operativas

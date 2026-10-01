@@ -19,11 +19,11 @@ export const QuirurgicoModulo = memo(({ pacienteId }) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex gap-2 border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569]">
+      <div className="flex gap-2 border-b border-surface">
         <button
           onClick={() => setTabSubSeccion('implantes')}
           className={`px-4 py-2 text-xs font-bold border-b-2 transition-micro cursor-pointer ${
-            tabSubSeccion === 'implantes' ? 'border-[#B88E3A] dark:border-[#E5C378] text-[#7A591F] dark:text-[#E5C378] surgical:border-black surgical:text-black' : 'border-transparent text-graphite-500 dark:text-graphite-400 surgical:text-black hover:text-graphite-800 dark:hover:text-graphite-200'
+            tabSubSeccion === 'implantes' ? 'border-primary dark:border-gold-satin text-champagne-700 dark:text-gold-satin surgical:border-black surgical:text-black' : 'border-transparent text-graphite-500 dark:text-graphite-400 surgical:text-black hover:text-graphite-800 dark:hover:text-graphite-200'
           }`}
         >
           <span className="inline-flex items-center gap-1"><Wrench size={12} />Implantología y Cirugía</span>
@@ -31,7 +31,7 @@ export const QuirurgicoModulo = memo(({ pacienteId }) => {
         <button
           onClick={() => setTabSubSeccion('endodoncia')}
           className={`px-4 py-2 text-xs font-bold border-b-2 transition-micro cursor-pointer ${
-            tabSubSeccion === 'endodoncia' ? 'border-[#B88E3A] dark:border-[#E5C378] text-[#7A591F] dark:text-[#E5C378] surgical:border-black surgical:text-black' : 'border-transparent text-graphite-500 dark:text-graphite-400 surgical:text-black hover:text-graphite-800 dark:hover:text-graphite-200'
+            tabSubSeccion === 'endodoncia' ? 'border-primary dark:border-gold-satin text-champagne-700 dark:text-gold-satin surgical:border-black surgical:text-black' : 'border-transparent text-graphite-500 dark:text-graphite-400 surgical:text-black hover:text-graphite-800 dark:hover:text-graphite-200'
           }`}
         >
           <span className="flex items-center gap-1.5">

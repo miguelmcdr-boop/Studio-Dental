@@ -81,7 +81,7 @@ export const AdjuntosSection = memo(({ tabActiva, pacienteId }) => {
   }, [tabActiva])
 
   return (
-    <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-6 print:hidden">
+    <div className="bg-surface border border-surface rounded-2xl p-6 print:hidden">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h3 className="font-bold text-sm text-gray-900 dark:text-graphite-50 surgical:text-black">{configuracion.titulo}</h3>

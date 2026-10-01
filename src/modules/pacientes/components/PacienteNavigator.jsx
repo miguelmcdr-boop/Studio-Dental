@@ -65,7 +65,7 @@ export const PacienteNavigator = ({
     <nav
       role="navigation"
       aria-label="Navegación entre pacientes"
-      className="flex items-center justify-between gap-3 bg-white/90 dark:bg-[#0F172A]/90 surgical:bg-[#F1F5F9] backdrop-blur-md border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl px-4 py-2.5 mb-4 shadow-sm print:hidden"
+      className="flex items-center justify-between gap-3 bg-surface/90 backdrop-blur-md border border-surface rounded-2xl px-4 py-2.5 mb-4 shadow-sm print:hidden"
     >
       {/* Botón Anterior */}
       <button

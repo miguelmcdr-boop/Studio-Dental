@@ -36,7 +36,7 @@ const formatearFechaCorta = (fechaIso) => {
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-graphite-200 dark:border-[#24334A] surgical:border-[#475569] rounded-lg p-3 shadow-lg">
+      <div className="bg-surface border border-graphite-200 dark:border-graphite-700 surgical:border-graphite-600 rounded-lg p-3 shadow-lg">
         <p className="text-xs font-bold text-graphite-900 dark:text-graphite-50 mb-1">
           {formatearFechaCorta(label)}
         </p>
@@ -71,8 +71,8 @@ export const TendenciasWidget = memo(({ tendenciaCitas7Dias = [], tendenciaCitas
   if ((!tendenciaCitas7Dias || tendenciaCitas7Dias.length === 0) &&
       (!tendenciaCitas30Dias || tendenciaCitas30Dias.length === 0)) {
     return (
-      <div className="relative overflow-hidden bg-white/90 dark:bg-[#0F172A]/90 surgical:bg-[#F1F5F9] backdrop-blur-md border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-6 text-center before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-[#0EA5E9]/40 before:to-transparent">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-100 dark:bg-[#1E293B] text-slate-500 dark:text-slate-400 mb-3">
+      <div className="relative overflow-hidden bg-surface/90 backdrop-blur-md border border-surface rounded-2xl p-6 text-center before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-[#0EA5E9]/40 before:to-transparent">
+        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-100 dark:bg-graphite-800 text-slate-500 dark:text-slate-400 mb-3">
           <TrendingUp size={22} />
         </div>
         <h4 className="text-sm font-bold text-graphite-800 dark:text-graphite-100 mb-1">
@@ -86,19 +86,19 @@ export const TendenciasWidget = memo(({ tendenciaCitas7Dias = [], tendenciaCitas
   }
 
   return (
-    <div className="relative overflow-hidden bg-white/90 dark:bg-[#0F172A]/90 surgical:bg-[#F1F5F9] backdrop-blur-md border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-5 shadow-sm before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-[#0EA5E9]/40 before:to-transparent" role="region" aria-label="Tendencias de citas">
-      <div className="flex items-center justify-between mb-4 border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] pb-3">
+    <div className="relative overflow-hidden bg-surface/90 backdrop-blur-md border border-surface rounded-2xl p-5 shadow-sm before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-[#0EA5E9]/40 before:to-transparent" role="region" aria-label="Tendencias de citas">
+      <div className="flex items-center justify-between mb-4 border-b border-surface pb-3">
         <h3 className="text-sm font-extrabold text-graphite-900 dark:text-graphite-50 flex items-center gap-2 tracking-tight">
-          <TrendingUp size={16} className="text-[#0EA5E9]" />
+          <TrendingUp size={16} className="text-clinical-info" />
           Tendencias de Citas
         </h3>
-        <div className="flex gap-1 bg-slate-100 dark:bg-[#1E293B] surgical:bg-[#CBD5E1] rounded-xl p-1 border border-[#E2E8F0] dark:border-[#24334A]">
+        <div className="flex gap-1 bg-slate-100 dark:bg-graphite-800 surgical:bg-graphite-300 rounded-xl p-1 border border-surface">
           <button
             type="button"
             onClick={() => setPeriodo('7d')}
             className={`px-3 py-1 text-[10px] font-bold rounded-lg transition-all duration-150 cursor-pointer ${
               periodo === '7d'
-                ? 'bg-white dark:bg-[#070B14] surgical:bg-white text-graphite-900 dark:text-graphite-50 shadow-xs'
+                ? 'bg-white dark:bg-graphite-950 surgical:bg-white text-graphite-900 dark:text-graphite-50 shadow-xs'
                 : 'text-graphite-500 dark:text-graphite-400 hover:text-graphite-800 dark:hover:text-graphite-200'
             }`}
             aria-pressed={periodo === '7d'}
@@ -110,7 +110,7 @@ export const TendenciasWidget = memo(({ tendenciaCitas7Dias = [], tendenciaCitas
             onClick={() => setPeriodo('30d')}
             className={`px-3 py-1 text-[10px] font-bold rounded-lg transition-all duration-150 cursor-pointer ${
               periodo === '30d'
-                ? 'bg-white dark:bg-[#070B14] surgical:bg-white text-graphite-900 dark:text-graphite-50 shadow-xs'
+                ? 'bg-white dark:bg-graphite-950 surgical:bg-white text-graphite-900 dark:text-graphite-50 shadow-xs'
                 : 'text-graphite-500 dark:text-graphite-400 hover:text-graphite-800 dark:hover:text-graphite-200'
             }`}
             aria-pressed={periodo === '30d'}

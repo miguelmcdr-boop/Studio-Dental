@@ -28,8 +28,8 @@ export const PerfilProfesionalForm = memo(({ userProfile, alGuardar }) => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-6 shadow-xs space-y-4 text-xs">
-      <div className="border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] pb-3">
+    <form onSubmit={handleSubmit} className="bg-surface border border-surface rounded-2xl p-6 shadow-xs space-y-4 text-xs">
+      <div className="border-b border-surface pb-3">
         <h3 className="font-bold text-sm text-gray-900 dark:text-graphite-50 surgical:text-black uppercase tracking-wider inline-flex items-center gap-2"><User size={14} />Perfil del Odontólogo / Profesional</h3>
         <p className="text-gray-500 dark:text-graphite-400 text-[11px]">Información personal que aparece en firmantes de recetas y licencias.</p>
       </div>
@@ -42,7 +42,7 @@ export const PerfilProfesionalForm = memo(({ userProfile, alGuardar }) => {
             required
             value={nombreCompleto}
             onChange={(e) => setNombreCompleto(e.target.value)}
-            className="w-full p-2.5 rounded-lg border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] text-graphite-900 dark:text-graphite-50 surgical:text-black font-bold focus:outline-none focus:ring-2 focus:ring-[#B88E3A]/40"
+            className="w-full p-2.5 rounded-lg border border-surface bg-white dark:bg-graphite-800 surgical:bg-graphite-200 text-graphite-900 dark:text-graphite-50 surgical:text-black font-bold focus:outline-none focus:ring-2 focus:ring-primary/40"
           />
         </div>
 
@@ -53,7 +53,7 @@ export const PerfilProfesionalForm = memo(({ userProfile, alGuardar }) => {
             required
             value={rut}
             onChange={(e) => setRut(e.target.value)}
-            className="w-full p-2.5 rounded-lg border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] text-graphite-900 dark:text-graphite-50 surgical:text-black font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-[#B88E3A]/40"
+            className="w-full p-2.5 rounded-lg border border-surface bg-white dark:bg-graphite-800 surgical:bg-graphite-200 text-graphite-900 dark:text-graphite-50 surgical:text-black font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/40"
           />
         </div>
       </div>
@@ -65,7 +65,7 @@ export const PerfilProfesionalForm = memo(({ userProfile, alGuardar }) => {
             type="text"
             value={especialidad}
             onChange={(e) => setEspecialidad(e.target.value)}
-            className="w-full p-2.5 rounded-lg border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] text-graphite-900 dark:text-graphite-50 surgical:text-black focus:outline-none focus:ring-2 focus:ring-[#B88E3A]/40"
+            className="w-full p-2.5 rounded-lg border border-surface bg-white dark:bg-graphite-800 surgical:bg-graphite-200 text-graphite-900 dark:text-graphite-50 surgical:text-black focus:outline-none focus:ring-2 focus:ring-primary/40"
           />
         </div>
 
@@ -76,7 +76,7 @@ export const PerfilProfesionalForm = memo(({ userProfile, alGuardar }) => {
             placeholder="Ej: 485120"
             value={registroSalud}
             onChange={(e) => setRegistroSalud(e.target.value)}
-            className="w-full p-2.5 rounded-lg border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] text-graphite-900 dark:text-graphite-50 surgical:text-black font-mono font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-[#B88E3A]/40"
+            className="w-full p-2.5 rounded-lg border border-surface bg-white dark:bg-graphite-800 surgical:bg-graphite-200 text-graphite-900 dark:text-graphite-50 surgical:text-black font-mono font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/40"
           />
         </div>
 
@@ -86,7 +86,7 @@ export const PerfilProfesionalForm = memo(({ userProfile, alGuardar }) => {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-2.5 rounded-lg border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] text-graphite-900 dark:text-graphite-50 surgical:text-black focus:outline-none focus:ring-2 focus:ring-[#B88E3A]/40"
+            className="w-full p-2.5 rounded-lg border border-surface bg-white dark:bg-graphite-800 surgical:bg-graphite-200 text-graphite-900 dark:text-graphite-50 surgical:text-black focus:outline-none focus:ring-2 focus:ring-primary/40"
           />
         </div>
       </div>

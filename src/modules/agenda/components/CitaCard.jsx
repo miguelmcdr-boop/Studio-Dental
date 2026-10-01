@@ -84,12 +84,12 @@ export const CitaCard = memo(({
   return (
     <div
       onClick={() => alHacerClic?.(cita)}
-      className={`p-3.5 rounded-lg border transition-all cursor-pointer space-y-2.5 bg-white dark:bg-[#1E293B] surgical:bg-white hover:shadow-md ${
+      className={`p-3.5 rounded-lg border transition-all cursor-pointer space-y-2.5 bg-white dark:bg-graphite-800 surgical:bg-white hover:shadow-md ${
         estado === 'En Sillón'
           ? 'border-purple-500 ring-2 ring-purple-400/30 bg-purple-50/20 dark:bg-purple-900/20'
           : estado === 'Confirmado'
           ? 'border-emerald-300 dark:border-emerald-700 bg-emerald-50/10 dark:bg-emerald-900/10'
-          : 'border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] hover:border-graphite-900 dark:hover:border-graphite-100'
+          : 'border-surface hover:border-graphite-900 dark:hover:border-graphite-100'
       }`}
     >
       <div className="flex justify-between items-center text-xs">
@@ -103,7 +103,7 @@ export const CitaCard = memo(({
             value={estado}
             onClick={(e) => e.stopPropagation()}
             onChange={(e) => alCambiarEstado?.(cita.id, e.target.value)}
-            className="text-[10px] font-semibold rounded-lg px-2 py-0.5 border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] bg-white dark:bg-[#0F172A] surgical:bg-white focus:outline-none cursor-pointer text-graphite-900 dark:text-graphite-100 surgical:text-black"
+            className="text-[10px] font-semibold rounded-lg px-2 py-0.5 border border-surface bg-white dark:bg-surface surgical:bg-white focus:outline-none cursor-pointer text-graphite-900 dark:text-graphite-100 surgical:text-black"
           >
             <option value="Agendado">Agendado</option>
             <option value="Confirmado">Confirmado</option>

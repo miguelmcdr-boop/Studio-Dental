@@ -11,17 +11,17 @@ export const TablaHistorialMensajes = memo(({
 }) => {
   if (historial.length === 0) {
     return (
-      <div className="p-10 text-center text-xs text-graphite-400 dark:text-graphite-500 surgical:text-black bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl">
+      <div className="p-10 text-center text-xs text-graphite-400 dark:text-graphite-500 surgical:text-black bg-surface border border-surface rounded-2xl">
         No se encontraron registros en la bitácora de mensajes para el filtro seleccionado.
       </div>
     )
   }
 
   return (
-    <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl overflow-hidden shadow-xs text-xs">
+    <div className="bg-surface border border-surface rounded-2xl overflow-hidden shadow-xs text-xs">
       <table className="w-full text-left border-collapse">
         <thead>
-          <tr className="bg-slate-50 dark:bg-[#070B14] surgical:bg-[#E2E8F0] border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] text-graphite-600 dark:text-graphite-300 surgical:text-black font-bold uppercase text-[10px]">
+          <tr className="bg-slate-50 dark:bg-graphite-950 surgical:bg-graphite-200 border-b border-surface text-graphite-600 dark:text-graphite-300 surgical:text-black font-bold uppercase text-[10px]">
             <th className="p-3">Paciente / Contacto</th>
             <th className="p-3">Canal</th>
             <th className="p-3">Mensaje / Plantilla</th>
@@ -30,12 +30,12 @@ export const TablaHistorialMensajes = memo(({
             <th className="p-3 text-right print:hidden">Acciones</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-[#E2E8F0] dark:divide-[#24334A] surgical:divide-[#475569]">
+        <tbody className="divide-y divide-surface">
           {historial.map((m) => {
             const configEst = ESTADOS_CONFIRMACION_CITA.find(e => e.id === m.estado) || ESTADOS_CONFIRMACION_CITA[0]
 
             return (
-              <tr key={m.id} className="hover:bg-slate-50 dark:hover:bg-[#1E293B]/50 surgical:hover:bg-[#E2E8F0] transition-colors">
+              <tr key={m.id} className="hover:bg-slate-50 dark:hover:bg-graphite-800/50 surgical:hover:bg-graphite-200 transition-colors">
                 <td className="p-3">
                   <span className="font-extrabold text-graphite-900 dark:text-graphite-50 surgical:text-black block">{m.pacienteNombre}</span>
                   <span className="text-[10px] text-graphite-500 dark:text-graphite-400 surgical:text-black font-mono tabular-nums">{m.pacienteTelefono || 'Sin fono'}</span>
@@ -55,7 +55,7 @@ export const TablaHistorialMensajes = memo(({
                     {m.mensajeEnviado}
                   </span>
                   {m.notaBitacora && (
-                    <span className="text-[10px] italic text-[#7A591F] dark:text-[#E5C378] bg-[#FFF5DF] dark:bg-[#1E293B] px-1.5 py-0.5 rounded border border-[#E5C378]/40 dark:border-[#B88E3A]/40 inline-block mt-0.5">
+                    <span className="text-[10px] italic text-champagne-700 dark:text-gold-satin bg-gold-light dark:bg-graphite-800 px-1.5 py-0.5 rounded border border-gold-satin/40 dark:border-primary/40 inline-block mt-0.5">
                       <span className="inline-flex items-center gap-1"><Pin size={8} />Nota: {m.notaBitacora}</span>
                     </span>
                   )}
@@ -65,7 +65,7 @@ export const TablaHistorialMensajes = memo(({
                   <select
                     value={m.estado}
                     onChange={(e) => onCambiarEstado(m.id, e.target.value)}
-                    className={`px-2 py-1 rounded-lg font-bold text-[10px] border bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] cursor-pointer ${configEst.colorText} ${configEst.colorBorder}`}
+                    className={`px-2 py-1 rounded-lg font-bold text-[10px] border bg-surface cursor-pointer ${configEst.colorText} ${configEst.colorBorder}`}
                   >
                     {ESTADOS_CONFIRMACION_CITA.map(e => (
                       <option key={e.id} value={e.id}>{e.nombre}</option>
@@ -92,7 +92,7 @@ export const TablaHistorialMensajes = memo(({
 
                   <button
                     onClick={() => onEditarBitacora(m)}
-                    className="p-1.5 text-graphite-600 dark:text-graphite-400 hover:text-black dark:hover:text-white font-semibold rounded-lg hover:bg-slate-100 dark:hover:bg-[#1E293B] transition-micro cursor-pointer"
+                    className="p-1.5 text-graphite-600 dark:text-graphite-400 hover:text-black dark:hover:text-white font-semibold rounded-lg hover:bg-slate-100 dark:hover:bg-graphite-800 transition-micro cursor-pointer"
                     title="Editar entrada en bitácora"
                   >
                     <Pencil size={12} />
