@@ -9901,6 +9901,34 @@ Esperado: Paciente SIGUE en BD (no fue eliminado).
 - `npm run build`: ✅ **Vite build completado en 1.36s sin errores**.
 - `npm run lint`: ✅ **0 errores** con Oxlint.
 
+---
+
+## [2026-10-01] Migración Gradual a TypeScript — Bloque Continuo 10 Archivos (Prioridad 1: P1-TS-21 a P1-TS-30)
+
+### Contexto y Alcance
+- Ejecución en **modo continuo autónomo sin puertas de aprobación** sobre la rama unificada `feat/migracion-typescript`.
+- 10 módulos de bajo riesgo migrados cubriendo constantes y utilidades de cálculo clínico/administrativo (Urgencias GES, Odontopediatría, Periodoncia, Agenda, Cirugía Quirúrgica, DSD Estético y Configuración).
+
+### Archivos Migrados (P1-TS-21 a P1-TS-30)
+1. **`src/modules/urgenciasGes/utils/urgenciasGesCalculations.ts`** (Commit `625b23c` / `P1-TS-21`): Folios y fechas normadas GES con tipado estricto.
+2. **`src/modules/urgenciasGes/constants/urgenciasGesConstants.ts`** (Commit `5ade9f5` / `P1-TS-22`): Interfaces `PatologiaGes`, `CategoriaTriage` y diagnósticos normados.
+3. **`src/modules/odontopediatria/constants/pediatriaConstants.ts`** (Commit `e76600b` / `P1-TS-23`): Interfaces `GradoFrankl` y colecciones tipadas de piezas temporales.
+4. **`src/modules/odontopediatria/utils/pediatriaCalculations.ts`** (Commit `3b33f01` / `P1-TS-24`): Tipos `MapaPlaca`, `CarasPlaca` y cálculo del índice O'Leary.
+5. **`src/modules/periodontograma/utils/periodontalValidation.ts`** (Commit `447a3e1` / `P1-TS-25`): Sanitización de sondaje/recesión, saquimetría y test suite unitaria dedicada (10 tests).
+6. **`src/modules/agenda/utils/agendaConflictos.ts`** (Commit `57f8288` / `P1-TS-26`): Interfaces `CitaParaConflicto`, `ResultadoConflicto` y solapamiento horario (49 líneas).
+7. **`src/modules/quirurgico/utils/quirurgicoValidation.ts`** (Commit `ee98ffb` / `P1-TS-27`): Sanitización fail-safe de torque de inserción e ISQ (27 líneas).
+8. **`src/modules/dsd/utils/dsdCalculations.ts`** (Commit `d8df3b1` / `P1-TS-28`): Interfaz `VisibilidadDoradaResultado`, ratios estéticos y proporción dorada (43 líneas).
+9. **`src/modules/configuracion/utils/configuracionCalculations.ts`** (Commit `3dbfb06` / `P1-TS-29`): Exportación JSON segura, dataURL y tests unitarios asociados.
+10. **`src/modules/configuracion/constants/configuracionConstants.ts`** (Commit `ada8f7a` / `P1-TS-30`): Interfaces `ClinicaConfig`, `ParametrosAgendaConfig` y test suite unitaria dedicada.
+
+### Verificación y Evidencia del Bloque
+- `npm run validate:architecture`: ✅ **0 violaciones** (JSX ≤250, Hooks ≤150, Utils ≤50).
+- `npm run test`: ✅ **141/141 suites pasadas, 1802/1802 tests unitarios pasados** (0 regresiones).
+- `npm run test:security`: ✅ **15/15 suites pasadas, 149/149 tests pasados**.
+- `npm run build`: ✅ **Vite build exitoso en ~1.3s**.
+- `npm run lint`: ✅ **0 errores** con Oxlint.
+
+
 
 
 
