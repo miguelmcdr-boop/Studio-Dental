@@ -1,4 +1,22 @@
-export const SILLONES_DENTALES = [
+export interface SillonDental {
+  id: string
+  nombre: string
+  especialidad: string
+}
+
+export interface TipoBloqueoAgenda {
+  id: string
+  label: string
+  color: string
+}
+
+export interface EstadoCitaConfig {
+  id: string
+  label: string
+  color: string
+}
+
+export const SILLONES_DENTALES: readonly SillonDental[] = [
   { id: 'sillon_1', nombre: 'Sillón 1 - Odontología General', especialidad: 'Evaluación y Restauraciones' },
   { id: 'sillon_2', nombre: 'Sillón 2 - Higiene & Ortodoncia', especialidad: 'Limpieza, Profilaxis y Frenillos' },
   { id: 'box_3', nombre: 'Box 3 - Quirúrgico & Implantes', especialidad: 'Cirugías y Periodoncia' }
@@ -6,14 +24,14 @@ export const SILLONES_DENTALES = [
 
 export const BOXES_DENTALES = SILLONES_DENTALES
 
-export const TIPOS_BLOQUEO_AGENDA = [
+export const TIPOS_BLOQUEO_AGENDA: readonly TipoBloqueoAgenda[] = [
   { id: 'almuerzo', label: 'Horario de Almuerzo', color: 'bg-gray-200 text-gray-800' },
   { id: 'reunion', label: 'Reunión Clínica / Administrativa', color: 'bg-amber-100 text-amber-900' },
   { id: 'mantenimiento', label: 'Mantenimiento de Sillón / Box', color: 'bg-red-100 text-red-900' },
   { id: 'urgencia_reserva', label: 'Reserva Exclusiva Urgencias', color: 'bg-purple-100 text-purple-900' }
 ]
 
-export const ESTADOS_CITA = {
+export const ESTADOS_CITA: Record<string, EstadoCitaConfig> = {
   AGENDADO: { id: 'Agendado', label: 'Agendado', color: 'bg-blue-100 text-blue-800' },
   CONFIRMADO: { id: 'Confirmado', label: 'Confirmado', color: 'bg-emerald-100 text-emerald-800' },
   SALA_ESPERA: { id: 'En Espera', label: 'En Sala de Espera', color: 'bg-amber-100 text-amber-900' },
@@ -22,13 +40,10 @@ export const ESTADOS_CITA = {
   ANULADO: { id: 'Anulado', label: 'Anulado', color: 'bg-red-100 text-red-800' }
 }
 
-// 💡 Exportamos un Arreglo Mapeable seguro para ModalNuevaCita.jsx
-export const ESTADOS_CITA_GOLD = Object.values(ESTADOS_CITA)
+export const ESTADOS_CITA_GOLD: readonly EstadoCitaConfig[] = Object.values(ESTADOS_CITA)
 export const ESTADOS_CITA_WORLD_CLASS = ESTADOS_CITA_GOLD
-/**
- * Tratamientos rápidos para el formulario de nueva cita (F10-C2.7)
- */
-export const TRATAMIENTOS_RAPIDOS = [
+
+export const TRATAMIENTOS_RAPIDOS: readonly string[] = [
   'Evaluación / Diagnóstico Inicial',
   'Limpieza / Destartraje Higiene',
   'Obturación / Tapadura Resina',
