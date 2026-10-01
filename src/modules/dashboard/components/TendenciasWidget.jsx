@@ -71,9 +71,9 @@ export const TendenciasWidget = memo(({ tendenciaCitas7Dias = [], tendenciaCitas
   if ((!tendenciaCitas7Dias || tendenciaCitas7Dias.length === 0) &&
       (!tendenciaCitas30Dias || tendenciaCitas30Dias.length === 0)) {
     return (
-      <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-6 text-center">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-graphite-100 dark:bg-graphite-700 text-graphite-400 dark:text-graphite-300 mb-3">
-          <TrendingUp size={24} />
+      <div className="relative overflow-hidden bg-white/90 dark:bg-[#0F172A]/90 surgical:bg-[#F1F5F9] backdrop-blur-md border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-6 text-center before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-[#0EA5E9]/40 before:to-transparent">
+        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-100 dark:bg-[#1E293B] text-slate-500 dark:text-slate-400 mb-3">
+          <TrendingUp size={22} />
         </div>
         <h4 className="text-sm font-bold text-graphite-800 dark:text-graphite-100 mb-1">
           Sin datos de tendencias
@@ -86,20 +86,20 @@ export const TendenciasWidget = memo(({ tendenciaCitas7Dias = [], tendenciaCitas
   }
 
   return (
-    <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-4" role="region" aria-label="Tendencias de citas">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-bold text-graphite-900 dark:text-graphite-50 flex items-center gap-2">
-          <TrendingUp size={16} />
+    <div className="relative overflow-hidden bg-white/90 dark:bg-[#0F172A]/90 surgical:bg-[#F1F5F9] backdrop-blur-md border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-5 shadow-sm before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-[#0EA5E9]/40 before:to-transparent" role="region" aria-label="Tendencias de citas">
+      <div className="flex items-center justify-between mb-4 border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] pb-3">
+        <h3 className="text-sm font-extrabold text-graphite-900 dark:text-graphite-50 flex items-center gap-2 tracking-tight">
+          <TrendingUp size={16} className="text-[#0EA5E9]" />
           Tendencias de Citas
         </h3>
-        <div className="flex gap-1 bg-graphite-100 dark:bg-graphite-700 rounded-lg p-0.5">
+        <div className="flex gap-1 bg-slate-100 dark:bg-[#1E293B] surgical:bg-[#CBD5E1] rounded-xl p-1 border border-[#E2E8F0] dark:border-[#24334A]">
           <button
             type="button"
             onClick={() => setPeriodo('7d')}
-            className={`px-2.5 py-1 text-[10px] font-bold rounded-md transition-colors ${
+            className={`px-3 py-1 text-[10px] font-bold rounded-lg transition-all duration-150 cursor-pointer ${
               periodo === '7d'
-                ? 'bg-white dark:bg-[#070B14] surgical:bg-white text-graphite-900 dark:text-graphite-50 shadow-sm'
-                : 'text-graphite-500 dark:text-graphite-400 hover:text-graphite-700 dark:hover:text-graphite-200'
+                ? 'bg-white dark:bg-[#070B14] surgical:bg-white text-graphite-900 dark:text-graphite-50 shadow-xs'
+                : 'text-graphite-500 dark:text-graphite-400 hover:text-graphite-800 dark:hover:text-graphite-200'
             }`}
             aria-pressed={periodo === '7d'}
           >
@@ -108,10 +108,10 @@ export const TendenciasWidget = memo(({ tendenciaCitas7Dias = [], tendenciaCitas
           <button
             type="button"
             onClick={() => setPeriodo('30d')}
-            className={`px-2.5 py-1 text-[10px] font-bold rounded-md transition-colors ${
+            className={`px-3 py-1 text-[10px] font-bold rounded-lg transition-all duration-150 cursor-pointer ${
               periodo === '30d'
-                ? 'bg-white dark:bg-[#070B14] surgical:bg-white text-graphite-900 dark:text-graphite-50 shadow-sm'
-                : 'text-graphite-500 dark:text-graphite-400 hover:text-graphite-700 dark:hover:text-graphite-200'
+                ? 'bg-white dark:bg-[#070B14] surgical:bg-white text-graphite-900 dark:text-graphite-50 shadow-xs'
+                : 'text-graphite-500 dark:text-graphite-400 hover:text-graphite-800 dark:hover:text-graphite-200'
             }`}
             aria-pressed={periodo === '30d'}
           >
@@ -122,26 +122,26 @@ export const TendenciasWidget = memo(({ tendenciaCitas7Dias = [], tendenciaCitas
 
       {/* Métricas resumidas */}
       <div className="grid grid-cols-3 gap-3 mb-4">
-        <div className="bg-clinical-info/5 dark:bg-sky-400/10 border border-clinical-info/20 dark:border-sky-400/30 rounded-lg p-2.5 text-center">
-          <p className="text-[9px] font-semibold text-clinical-info dark:text-sky-300 uppercase tracking-wider mb-0.5">
+        <div className="bg-sky-50/70 dark:bg-sky-950/20 border border-sky-200/80 dark:border-sky-800/40 rounded-xl p-3 text-center">
+          <p className="text-[9px] font-bold text-sky-700 dark:text-sky-300 uppercase tracking-wider mb-0.5">
             Promedio diario
           </p>
-          <p className="text-lg font-black text-graphite-900 dark:text-graphite-50">{metricas.promedio}</p>
+          <p className="text-xl font-black text-graphite-900 dark:text-graphite-50 tabular-nums">{metricas.promedio}</p>
         </div>
-        <div className="bg-clinical-success/5 dark:bg-emerald-400/10 border border-clinical-success/20 dark:border-emerald-400/30 rounded-lg p-2.5 text-center">
-          <p className="text-[9px] font-semibold text-clinical-success dark:text-emerald-300 uppercase tracking-wider mb-0.5">
+        <div className="bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-800/40 rounded-xl p-3 text-center">
+          <p className="text-[9px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider mb-0.5">
             Día pico
           </p>
-          <p className="text-lg font-black text-graphite-900 dark:text-graphite-50">{metricas.max}</p>
+          <p className="text-xl font-black text-graphite-900 dark:text-graphite-50 tabular-nums">{metricas.max}</p>
           {metricas.diaPico && (
-            <p className="text-[8px] text-graphite-500 dark:text-graphite-400">{formatearFechaCorta(metricas.diaPico.fecha)}</p>
+            <p className="text-[9px] text-graphite-500 dark:text-graphite-400 tabular-nums">{formatearFechaCorta(metricas.diaPico.fecha)}</p>
           )}
         </div>
-        <div className="bg-clinical-warning/5 dark:bg-amber-400/10 border border-clinical-warning/20 dark:border-amber-400/30 rounded-lg p-2.5 text-center">
-          <p className="text-[9px] font-semibold text-clinical-warning dark:text-amber-300 uppercase tracking-wider mb-0.5">
+        <div className="bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-800/40 rounded-xl p-3 text-center">
+          <p className="text-[9px] font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wider mb-0.5">
             Día más bajo
           </p>
-          <p className="text-lg font-black text-graphite-900 dark:text-graphite-50">{metricas.min}</p>
+          <p className="text-xl font-black text-graphite-900 dark:text-graphite-50 tabular-nums">{metricas.min}</p>
         </div>
       </div>
 

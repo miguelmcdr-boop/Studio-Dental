@@ -34,9 +34,9 @@ export const NoShowWidget = memo(({ citas = [] }) => {
 
   if (!citas || citas.length === 0) {
     return (
-      <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-6 text-center">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-graphite-100 dark:bg-graphite-700 text-graphite-400 dark:text-graphite-300 mb-3">
-          <AlertCircle size={24} />
+      <div className="relative overflow-hidden bg-white/90 dark:bg-[#0F172A]/90 surgical:bg-[#F1F5F9] backdrop-blur-md border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-6 text-center before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-amber-500/40 before:to-transparent">
+        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-100 dark:bg-[#1E293B] text-slate-500 dark:text-slate-400 mb-3">
+          <AlertCircle size={22} />
         </div>
         <h4 className="text-sm font-bold text-graphite-800 dark:text-graphite-100 mb-1">
           Sin datos de no-show
@@ -49,46 +49,46 @@ export const NoShowWidget = memo(({ citas = [] }) => {
   }
 
   return (
-    <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-4" role="region" aria-label="Métricas de no-show y cancelaciones">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-bold text-graphite-900 dark:text-graphite-50 flex items-center gap-2">
-          <AlertCircle size={16} />
+    <div className="relative overflow-hidden bg-white/90 dark:bg-[#0F172A]/90 surgical:bg-[#F1F5F9] backdrop-blur-md border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-5 shadow-sm before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-rose-500/40 before:to-transparent" role="region" aria-label="Métricas de no-show y cancelaciones">
+      <div className="flex items-center justify-between mb-4 border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] pb-3">
+        <h3 className="text-sm font-extrabold text-graphite-900 dark:text-graphite-50 flex items-center gap-2 tracking-tight">
+          <AlertCircle size={16} className="text-amber-500" />
           No-Show y Cancelaciones
         </h3>
-        <span className="text-[10px] text-graphite-500 dark:text-graphite-400">
+        <span className="text-[10px] font-bold text-graphite-600 dark:text-graphite-300 bg-slate-100 dark:bg-[#1E293B] surgical:bg-[#E2E8F0] px-2.5 py-0.5 rounded-full border border-[#E2E8F0] dark:border-[#24334A] tabular-nums">
           {metricas.totalCitas} citas totales
         </span>
       </div>
 
       {/* Tarjetas de métricas */}
       <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="bg-clinical-error/5 dark:bg-red-400/10 border border-clinical-error/20 dark:border-red-400/30 rounded-lg p-3">
+        <div className="bg-rose-50/70 dark:bg-rose-950/20 border border-rose-200/80 dark:border-rose-800/40 rounded-xl p-3.5">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[9px] font-semibold text-clinical-error dark:text-red-300 uppercase tracking-wider">
+            <span className="text-[9px] font-bold text-rose-700 dark:text-rose-300 uppercase tracking-wider">
               No-Show
             </span>
-            <XCircle size={12} className="text-clinical-error dark:text-red-300" />
+            <XCircle size={13} className="text-rose-600 dark:text-rose-400" />
           </div>
-          <p className="text-2xl font-black text-graphite-900 dark:text-graphite-50">
+          <p className="text-2xl font-black text-graphite-900 dark:text-graphite-50 tabular-nums tracking-tight">
             {metricas.tasaNoShow}%
           </p>
           <p className="text-[10px] text-graphite-500 dark:text-graphite-400 mt-1">
-            {metricas.noShowCount} paciente{metricas.noShowCount === 1 ? '' : 's'} no asistió
+            <span className="tabular-nums font-semibold">{metricas.noShowCount}</span> paciente{metricas.noShowCount === 1 ? '' : 's'} no asistió
           </p>
         </div>
 
-        <div className="bg-clinical-warning/5 dark:bg-amber-400/10 border border-clinical-warning/20 dark:border-amber-400/30 rounded-lg p-3">
+        <div className="bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-800/40 rounded-xl p-3.5">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[9px] font-semibold text-clinical-warning dark:text-amber-300 uppercase tracking-wider">
+            <span className="text-[9px] font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wider">
               Canceladas
             </span>
-            <TrendingDown size={12} className="text-clinical-warning dark:text-amber-300" />
+            <TrendingDown size={13} className="text-amber-600 dark:text-amber-400" />
           </div>
-          <p className="text-2xl font-black text-graphite-900 dark:text-graphite-50">
+          <p className="text-2xl font-black text-graphite-900 dark:text-graphite-50 tabular-nums tracking-tight">
             {metricas.tasaCancelaciones}%
           </p>
           <p className="text-[10px] text-graphite-500 dark:text-graphite-400 mt-1">
-            {metricas.canceladasCount} cita{metricas.canceladasCount === 1 ? '' : 's'} cancelada{metricas.canceladasCount === 1 ? '' : 's'}
+            <span className="tabular-nums font-semibold">{metricas.canceladasCount}</span> cita{metricas.canceladasCount === 1 ? '' : 's'} cancelada{metricas.canceladasCount === 1 ? '' : 's'}
           </p>
         </div>
       </div>
@@ -96,27 +96,27 @@ export const NoShowWidget = memo(({ citas = [] }) => {
       {/* Barra de progreso combinada */}
       <div className="space-y-2">
         <div>
-          <div className="flex justify-between items-center mb-1">
-            <span className="text-[10px] font-semibold text-graphite-600 dark:text-graphite-400">
-              Tasa de asistencia
+          <div className="flex justify-between items-center mb-1.5">
+            <span className="text-[10px] font-semibold text-graphite-700 dark:text-graphite-300">
+              Tasa de asistencia efectiva
             </span>
-            <span className="text-[10px] font-bold text-clinical-success dark:text-emerald-300">
+            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
               {100 - metricas.tasaNoShow - metricas.tasaCancelaciones}%
             </span>
           </div>
-          <div className="w-full bg-graphite-100 dark:bg-graphite-700 rounded-full h-2 overflow-hidden">
+          <div className="w-full bg-slate-100 dark:bg-[#1E293B] surgical:bg-[#CBD5E1] rounded-full h-2 overflow-hidden">
             <div
-              className="bg-clinical-success h-2 rounded-full transition-all"
+              className="bg-gradient-to-r from-emerald-500 to-emerald-400 h-2 rounded-full transition-all duration-300"
               style={{ width: `${100 - metricas.tasaNoShow - metricas.tasaCancelaciones}%` }}
             />
           </div>
         </div>
 
         {(metricas.tasaNoShow > 10 || metricas.tasaCancelaciones > 15) && (
-          <div className="bg-clinical-warning/10 dark:bg-amber-400/15 border border-clinical-warning/30 dark:border-amber-400/40 rounded-lg p-2.5 flex items-start gap-2">
-            <AlertCircle size={14} className="text-clinical-warning dark:text-amber-300 flex-shrink-0 mt-0.5" />
+          <div className="bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/50 rounded-xl p-2.5 flex items-start gap-2">
+            <AlertCircle size={14} className="text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
             <p className="text-[10px] text-graphite-700 dark:text-graphite-300">
-              <span className="font-bold">Alerta:</span> La tasa de no-show o cancelaciones es alta. Considera implementar recordatorios por WhatsApp o SMS.
+              <span className="font-bold text-amber-800 dark:text-amber-300">Alerta de Agenda:</span> La tasa de no-show o cancelaciones es elevada. Te sugerimos confirmar citas por WhatsApp.
             </p>
           </div>
         )}

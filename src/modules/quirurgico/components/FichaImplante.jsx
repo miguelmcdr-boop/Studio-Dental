@@ -34,8 +34,8 @@ export const FichaImplante = ({ implantes = [], onAgregarImplante, onEliminarImp
 
   return (
     <div className="space-y-6 text-xs">
-      <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-6 shadow-xs">
-        <h3 className="font-bold text-sm text-gray-900 dark:text-graphite-50 surgical:text-black mb-4 border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] pb-2 uppercase tracking-wider">
+      <div className="relative overflow-hidden bg-white/90 dark:bg-[#0F172A]/90 surgical:bg-[#F1F5F9] backdrop-blur-md border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-6 shadow-sm before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-[#B88E3A]/40 before:to-transparent">
+        <h3 className="font-extrabold text-sm text-gray-900 dark:text-graphite-50 surgical:text-black mb-4 border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] pb-3 uppercase tracking-wider">
           <span className="flex items-center gap-1.5"><Icon icon={Tooth} size="sm" />Registrar Colocación de Implante Óseointegrado</span>
         </h3>
 
@@ -150,8 +150,8 @@ export const FichaImplante = ({ implantes = [], onAgregarImplante, onEliminarImp
       </div>
 
       {/* Historial de Implantes */}
-      <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-6 shadow-xs">
-        <h4 className="font-bold text-sm text-gray-900 dark:text-graphite-50 surgical:text-black mb-4 border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] pb-2">Implantes Colocados en el Paciente</h4>
+      <div className="relative overflow-hidden bg-white/90 dark:bg-[#0F172A]/90 surgical:bg-[#F1F5F9] backdrop-blur-md border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-6 shadow-sm before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-[#0EA5E9]/40 before:to-transparent">
+        <h4 className="font-extrabold text-sm text-gray-900 dark:text-graphite-50 surgical:text-black mb-4 border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] pb-3 tracking-tight">Implantes Colocados en el Paciente</h4>
         <div className="space-y-3">
           {implantes.map(imp => (
             <div key={imp.id} className="p-4 bg-slate-50 dark:bg-[#070B14] surgical:bg-[#E2E8F0] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-xl flex justify-between items-start">
