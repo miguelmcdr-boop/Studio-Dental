@@ -23,7 +23,6 @@
     "src/modules/odontograma/utils/odontogramaCalculations.js": 70,
     "src/modules/dashboard/utils/dashboardCalculations.js": 112,
     "src/utils/anestesiaCalc.ts": 22,
-    "src/modules/presupuestos/utils/presupuestosCalculations.js": 53,
     "src/components/LoginScreen.jsx": 343,
     "src/hooks/useAuth.js": 191,
     "src/modules/pacientes/services/pacientesStorageService.js": 463,
