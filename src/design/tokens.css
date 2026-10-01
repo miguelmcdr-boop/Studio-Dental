@@ -253,6 +253,14 @@
   --color-surface-muted: #CBD5E1;
   --color-border: #475569;
 
+  /* Subpaleta clínica modo quirúrgico (alta visibilidad / contraste) */
+  --clinical-healthy: #0284C7;
+  --clinical-caries: #DC2626;
+  --clinical-endo: #D97706;
+  --clinical-implant: #475569;
+  --clinical-missing: #1E293B;
+  --clinical-bleeding: #BE123C;
+
   --chart-sound: #0284C7;
   --chart-caries: #DC2626;
   --chart-endo: #D97706;
@@ -263,15 +271,6 @@
   --border-focus: #B88E3A;
 
   font-weight: 600 !important;
-}
-
-.theme-surgical body,
-.theme-surgical p,
-.theme-surgical span,
-.theme-surgical div,
-.theme-surgical label,
-.theme-surgical button {
-  color: #000000;
 }
 
 /* Ergonomía táctil para modo quirúrgico: mínimo 48x48px en botones de cabecera y críticos */
