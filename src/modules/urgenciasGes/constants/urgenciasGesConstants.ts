@@ -2,7 +2,20 @@
  * Constantes y Diagnósticos Normados GES/AUGE y Urgencias
  */
 
-export const PATOLOGIAS_GES_ODONTO = [
+export interface PatologiaGes {
+  id: string
+  nombre: string
+  codigo: string
+  descripcion: string
+}
+
+export interface CategoriaTriage {
+  id: string
+  nombre: string
+  color: string
+}
+
+export const PATOLOGIAS_GES_ODONTO: PatologiaGes[] = [
   {
     id: 'urgencia_ambulatoria',
     nombre: 'Urgencia Odontológica Ambulatoria',
@@ -29,14 +42,14 @@ export const PATOLOGIAS_GES_ODONTO = [
   }
 ]
 
-export const CATEGORIAS_TRIAGE_URGENCIA = [
+export const CATEGORIAS_TRIAGE_URGENCIA: CategoriaTriage[] = [
   { id: 'C1', nombre: 'C1 - Urgencia Vital / Hemorragia Severa', color: 'bg-red-100 text-red-900 border-red-300' },
   { id: 'C2', nombre: 'C2 - Dolor Severo / Absceso / Traumatismo', color: 'bg-amber-100 text-amber-900 border-amber-300' },
   { id: 'C3', nombre: 'C3 - Dolor Moderado / Pulpitis / Fractura', color: 'bg-yellow-100 text-yellow-900 border-yellow-300' },
   { id: 'C4', nombre: 'C4 - Molestia Leve / Desprendimiento Tapón', color: 'bg-emerald-100 text-emerald-900 border-emerald-300' }
 ]
 
-export const DIAGNOSTICOS_URGENCIA_COMMON = [
+export const DIAGNOSTICOS_URGENCIA_COMMON: string[] = [
   'K04.0 - Pulpitis Aguda Irreversible',
   'K04.7 - Absceso Periapical sin Fístula',
   'K05.2 - Periodontitis Aguda / Absceso Periodontal',
