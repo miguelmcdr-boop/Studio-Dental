@@ -9730,3 +9730,32 @@ Esperado: Paciente SIGUE en BD (no fue eliminado).
 - `npm run test`: ✅ 135/135 archivos pasaron, 1766/1766 tests unitarios pasaron (0 regresiones).
 - `npm run build`: ✅ Build de producción con Vite completado en 1.38s sin errores.
 - `npm run lint`: ✅ 0 errores con Oxlint.
+
+---
+
+## [2026-10-01] Migración Gradual a TypeScript — src/utils/formatoMoneda.ts (Prioridad 1)
+
+### Contexto y Alcance
+- Continuación de la migración gradual a TypeScript (Prioridad 1) según protocolo de trabajo.
+- Archivo seleccionado: `src/utils/formatoMoneda.js` -> `src/utils/formatoMoneda.ts` (fuente única de verdad para formateo CLP en toda la aplicación, 17 líneas, <50 líneas constitucionales).
+- Rama creada: `feat/migracion-typescript-formatoMoneda`.
+
+### Tipos agregados y justificación
+1. **`MontoMoneda`**:
+   - `export type MontoMoneda = number | string | null | undefined`
+   - Tipado estricto que acepta números, strings numéricos, o valores potencialmente nulos/indefinidos provenientes de formularios y respuestas de base de datos/API sin lanzar errores en tiempo de ejecución.
+2. **Firma de función**:
+   - `export const formatearCLP = (monto: MontoMoneda): string`
+   - Manejo seguro mediante `parseInt(String(monto), 10)` con fallback explícito a `0` ante `NaN`, truncando decimales y formateando con `toLocaleString('es-CL')`.
+
+### Archivos involucrados
+- `src/utils/formatoMoneda.ts`: Nuevo archivo tipado (19 líneas, estrictamente dentro del límite de 50 líneas sin requerir allowlist).
+- `src/utils/formatoMoneda.js`: Eliminado (reemplazado por `.ts`).
+- `src/utils/formatoMoneda.test.js`: Adaptado con 2 tests adicionales para montos negativos y strings vacíos (7/7 tests pasando).
+
+### Verificación y Evidencia
+- `npm run validate:architecture`: ✅ Todas las reglas arquitectónicas se cumplen (74 archivos en allowlist, 0 violaciones).
+- `npm run test`: ✅ 135/135 suites pasaron, 1768/1768 tests unitarios pasaron (0 regresiones).
+- `npm run build`: ✅ Build de producción con Vite completado en 1.43s sin errores.
+- `npm run lint`: ✅ 0 errores con Oxlint.
+
