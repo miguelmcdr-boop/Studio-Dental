@@ -9865,6 +9865,43 @@ Esperado: Paciente SIGUE en BD (no fue eliminado).
 - `npm run build`: ✅ **Vite build completado en 1.42s sin errores**.
 - `npm run lint`: ✅ **0 errores** con Oxlint.
 
+---
+
+## [2026-10-01] Migración Gradual a TypeScript — Lote 3 Autónomo de Bajo Riesgo (Prioridad 1)
+
+### Contexto y Alcance
+- Ejecución del **Lote 3** de migración en modo batch autónomo sobre la rama unificada `feat/migracion-typescript`.
+- 5 archivos migrados cubriendo utilidades críticas de anestesia y fecha, además de esquemas clínicos y administrativos principales (prestaciones, citas, presupuestos).
+
+### Archivos Migrados en Lote 3
+1. **`src/utils/anestesiaCalc.ts`** (Commit `b0b8065` / `P1-TS-16`):
+   - Re-export delgado y tipado del módulo `anestesiaCalculations.js`.
+   - Preserva compatibilidad API legada F1-03 y enriquecida F4-03d.
+2. **`src/modules/prestaciones/schemas/prestacionSchema.ts`** (Commit `6f48c64` / `P1-TS-17`):
+   - Tipos inferidos: `Prestacion = z.infer<typeof prestacionSchema>`.
+   - Tipo de resultado: `ValidacionListaPrestaciones`.
+   - Función segura tipada `validarListaPrestaciones(prestaciones: unknown): ValidacionListaPrestaciones`.
+3. **`src/utils/dateUtils.ts`** (Commit `1aae41b` / `P1-TS-18`):
+   - Tipado estricto de funciones de fecha local e intervalos de tiempo relativo.
+   - Creada suite unitaria `src/utils/dateUtils.test.js` (11 tests cubriendo cálculo local, padding de ceros y tiempos relativos).
+   - Longitud final de 43 líneas (cumple límite constitucional de utils ≤50 líneas).
+4. **`src/modules/agenda/schemas/citaSchema.ts`** (Commit `5c02f20` / `P1-TS-19`):
+   - Tipos inferidos: `Cita = z.infer<typeof citaSchema>`.
+   - Tipo de resultado: `ValidacionListaCitas`.
+   - Función segura tipada `validarListaCitas(citas: unknown): ValidacionListaCitas`.
+5. **`src/modules/presupuestos/schemas/presupuestoSchema.ts`** (Commit `704ae0a` / `P1-TS-20`):
+   - Tipos inferidos: `Presupuesto = z.infer<typeof presupuestoSchema>`.
+   - Tipo de resultado: `ValidacionListaPresupuestos`.
+   - Función segura tipada `validarListaPresupuestos(presupuestos: unknown): ValidacionListaPresupuestos`.
+
+### Verificación y Evidencia del Lote 3
+- `npm run validate:architecture`: ✅ **0 violaciones** (todas las reglas constitucionales cumplidas).
+- `npm run test`: ✅ **138/138 suites pasadas, 1787/1787 tests unitarios pasados** (0 regresiones).
+- `npm run test:security`: ✅ **15/15 suites pasadas, 149/149 tests pasados**.
+- `npm run build`: ✅ **Vite build completado en 1.36s sin errores**.
+- `npm run lint`: ✅ **0 errores** con Oxlint.
+
+
 
 
 
