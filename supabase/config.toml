@@ -82,7 +82,11 @@ otp = 30
 [auth.email]
 enable_signup = true
 double_confirm_changes = true
-enable_confirmations = false
+# P0-1 (seguridad): confirmación de email OBLIGATORIA. Sin esto, cualquier
+# persona puede crear cuentas en el proyecto con solo email+password (acceso
+# público sin aprobación). La invitación vía token (F7-11) sigue funcionando:
+# aceptarInvitacion() valida que el email autenticado coincida con la invitación.
+enable_confirmations = true
 
 [auth.external.google]
 enabled = false
