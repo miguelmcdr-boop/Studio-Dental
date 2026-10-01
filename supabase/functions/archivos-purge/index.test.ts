@@ -1870,3 +1870,59 @@ Deno.test("T66: source_type='archivo' con archivo_ids vacío → REJECT 400", as
     globalThis.fetch = originalFetch;
   }
 });
+
+
+// ============================================================
+// F7-37 v6 P1 FIX: Test cross-tenant certificado sin R2
+// ============================================================
+
+Deno.test("T69: cross-tenant - usuario Clínica A intenta purgar certificado Clínica B (sin R2) → REJECT", async () => {
+  const originalFetch = globalThis.fetch;
+  
+  // Setup: Certificado pertenece a CLINICA_B, pero usuario autenticado es de CLINICA_A
+  const certificados = [
+    { id: CERT_A, clinica_id: CLINICA_B, eliminado_at: "2026-09-14T10:00:00Z", datos: {} },
+  ];
+
+  // Usuario autenticado con clinica_id = CLINICA_A (diferente del certificado)
+  globalThis.fetch = createMockFetch({
+    authUser: { id: USER_ID, user_metadata: { clinica_id: CLINICA_A } },
+    memberships: baseMemberships, // user es miembro de CLINICA_A
+    archivos: [],
+    certificados,
+  }) as any;
+
+  try {
+    const req = new Request("http://localhost/archivos-purge", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer valid-jwt",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        archivo_ids: [],
+        source_type: "certificado",
+        certificado_id: CERT_A,
+      }),
+    });
+    const res = await handler(req);
+    
+    // El flujo debe completar (HTTP 200) pero el certificado debe estar en rechazados
+    assertEquals(res.status, 200, "HTTP status debe ser 200 (flujo completó)");
+    
+    const body = await res.json();
+    assertEquals(body.success, true, "success debe ser true (flujo completó)");
+    assertEquals(body.purgados.length, 0, "0 certificados purgados (cross-tenant bloqueado)");
+    assertEquals(body.rechazados.length, 1, "1 certificado rechazado");
+    assertEquals(body.rechazados[0].id, CERT_A, "certificado rechazado es el correcto");
+    assertEquals(body.rechazados[0].razon, "certificado_cross_tenant", "razón es cross-tenant");
+    
+    // CRÍTICO: Verificar que NO hubo DELETE en ningún lado
+    // (el mock no incrementa contadores si la RPC rechaza)
+    // No podemos verificar contadores directamente, pero la razón "certificado_cross_tenant"
+    // garantiza que la RPC rechazó antes del DELETE
+    
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

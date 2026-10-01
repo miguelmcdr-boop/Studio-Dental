@@ -299,7 +299,20 @@ export async function handler(req: Request): Promise<Response> {
         );
       }
 
+      // ============================================================
+      // F7-37 v6 P1 FIX: Validación cross-tenant antes de llamar a la RPC
+      // En modo cron interno (esLlamadaInterna), no hay usuario autenticado
+      // y clinicaId es null. Este flujo NO aplica para cron.
+      // ============================================================
+      if (!clinicaId) {
+        return jsonResponse(
+          { error: "clinicaId is required for certificado purge flow. Internal cron mode not supported for this operation." },
+          400
+        );
+      }
+
       // Llamar a la RPC eliminar_certificado_sin_archivo (usa service_role)
+      // F7-37 v6: pasar p_clinica_id para validación cross-tenant en la RPC
       const rpcRes = await fetch(
         `${supabaseUrl}/rest/v1/rpc/eliminar_certificado_sin_archivo`,
         {
@@ -309,7 +322,10 @@ export async function handler(req: Request): Promise<Response> {
             apikey: supabaseServiceKey,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ p_certificado_id: certificadoId }),
+          body: JSON.stringify({ 
+            p_certificado_id: certificadoId,
+            p_clinica_id: clinicaId
+          }),
         }
       );
 

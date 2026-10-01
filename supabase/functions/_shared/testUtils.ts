@@ -10,7 +10,7 @@ export interface MockFetchConfig {
   memberships?: Array<{ user_id: string; clinica_id: string; rol: string; activo: boolean }>;
   pacientes?: Array<{ id: string; clinica_id: string; nombre?: string; rut?: string; deleted_at?: string }>;
   archivos?: Array<{ id: string; clinica_id: string; paciente_id?: string; r2_object_key?: string; estado?: string; nombre_archivo?: string; deleted_at?: string }>;
-  certificados?: Array<{ id: string; clinica_id: string; paciente_id?: string; datos?: Record<string, any> }>;
+  certificados?: Array<{ id: string; clinica_id: string; paciente_id?: string; datos?: Record<string, any>; eliminado_at?: string }>;
   r2DeleteOk?: boolean | string[]; // string[] = r2_object_keys que deben fallar
   auditLogOk?: boolean;
   deleteOk?: boolean;
@@ -250,7 +250,7 @@ export function createMockFetch(config: MockFetchConfig) {
     }
 
 
-    // F7-37 v5 H-12: RPC para eliminar certificado sin archivo
+    // F7-37 v6 P1 FIX: RPC para eliminar certificado sin archivo con validación cross-tenant
     if (urlStr.includes("/rest/v1/rpc/eliminar_certificado_sin_archivo")) {
       if (config.rpcOk === false) {
         return new Response(JSON.stringify({
@@ -258,10 +258,73 @@ export function createMockFetch(config: MockFetchConfig) {
           razon: config.rpcRazon || "error_db_transaccional"
         }), { status: 200, headers: { "Content-Type": "application/json" } });
       }
+
+      // Leer body para validar p_clinica_id
+      let body: any = {};
+      try {
+        if (init?.body) {
+          body = JSON.parse(init.body as string);
+        }
+      } catch (e) {}
+
+      const p_certificado_id = body.p_certificado_id;
+      const p_clinica_id = body.p_clinica_id;
+
+      // Validación 1: parámetros requeridos
+      if (!p_certificado_id) {
+        return new Response(JSON.stringify({
+          exito: false,
+          razon: "certificado_id_requerido"
+        }), { status: 200, headers: { "Content-Type": "application/json" } });
+      }
+
+      if (!p_clinica_id) {
+        return new Response(JSON.stringify({
+          exito: false,
+          razon: "clinica_id_requerido"
+        }), { status: 200, headers: { "Content-Type": "application/json" } });
+      }
+
+      // Validación 2: certificado existe
+      const certificado = (config.certificados || []).find(c => c.id === p_certificado_id);
+      if (!certificado) {
+        return new Response(JSON.stringify({
+          exito: false,
+          razon: "certificado_inexistente"
+        }), { status: 200, headers: { "Content-Type": "application/json" } });
+      }
+
+      // F7-37 v6 P1: Validación cross-tenant
+      if (certificado.clinica_id !== p_clinica_id) {
+        return new Response(JSON.stringify({
+          exito: false,
+          razon: "certificado_cross_tenant",
+          certificado_id: p_certificado_id
+        }), { status: 200, headers: { "Content-Type": "application/json" } });
+      }
+
+      // Validación 3: certificado en papelera
+      if (!certificado.eliminado_at) {
+        return new Response(JSON.stringify({
+          exito: false,
+          razon: "certificado_no_en_papelera"
+        }), { status: 200, headers: { "Content-Type": "application/json" } });
+      }
+
+      // Validación 4: sin r2ArchivoId
+      const r2ArchivoId = certificado.datos?.r2ArchivoId;
+      if (r2ArchivoId) {
+        return new Response(JSON.stringify({
+          exito: false,
+          razon: "certificado_tiene_archivo_vinculado",
+          archivo_id: r2ArchivoId
+        }), { status: 200, headers: { "Content-Type": "application/json" } });
+      }
+
       // Éxito: simular DELETE de certificado sin archivo
       return new Response(JSON.stringify({
         exito: true,
-        certificado_eliminado: "test-cert-id"
+        certificado_eliminado: p_certificado_id
       }), { status: 200, headers: { "Content-Type": "application/json" } });
     }
     console.error(`[mockFetch] Unmatched URL: ${urlStr}`);

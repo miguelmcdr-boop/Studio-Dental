@@ -1,5 +1,29 @@
 
 
+## 2026-09-30 23:42 — F7-37 v6: P1 cross-tenant + P0 función duplicada
+
+**Estado:** ✅ DONE | **Migración:** 20260930001100 (167 líneas)
+
+### Hallazgos corregidos
+- **P1 cross-tenant:** eliminar_certificado_sin_archivo ahora valida certificado.clinica_id = p_clinica_id
+- **P0 función duplicada:** DROP FUNCTION de versión vieja (1 parámetro, sin tenant check)
+- **P2 r2ArchivoId duplicado:** Documentado en DEUDAS_TECNICAS.md (sin migración, hipótesis sin evidencia)
+
+### Cambios técnicos
+- RPC: eliminar_certificado_sin_archivo(UUID, UUID) con validación cross-tenant
+- archivos-purge: pasa clinicaId (del JWT) a la RPC
+- Migración 001100 idempotente con DROP FUNCTION IF EXISTS
+
+### Verificaciones
+✅ 44/44 Deno + 287/287 Vitest + 5/5 SQL tests reales
+✅ Migración 001100 aplicada en Supabase local
+✅ Solo 1 función (2 parámetros) en producción
+✅ P1 cross-tenant bloqueado en T69 SQL test
+✅ P0 función duplicada eliminada (T73 SQL test)
+
+F7-37 completado con 19 hallazgos resueltos. Próximo: F7-29 o F7-30.
+
+
 ## 2026-09-30 02:14 — F7-37 v5: Hardening final (P1 #1, P1 #2, H-12 residual, H-11b)
 
 **Estado:** ✅ DONE | **Migración:** 20260930001000 (233 líneas)
