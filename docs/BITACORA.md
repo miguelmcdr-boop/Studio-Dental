@@ -9833,5 +9833,38 @@ Esperado: Paciente SIGUE en BD (no fue eliminado).
 - `npm run build`: ✅ **Vite build completado en 1.58s sin errores**.
 - `npm run lint`: ✅ **0 errores** con Oxlint.
 
+---
+
+## [2026-10-01] Migración Gradual a TypeScript — Lote 2 Autónomo de Bajo Riesgo (Prioridad 1)
+
+### Contexto y Alcance
+- Ejecución del **Lote 2** de migración en modo batch autónomo sobre la rama unificada `feat/migracion-typescript`.
+- 5 archivos migrados cubriendo constantes RBAC, navegación agrupada y esquemas clínicos/financieros esenciales.
+
+### Archivos Migrados en Lote 2
+1. **`src/constants/rbacConstantsBase.ts`** (Commit `eaa2ede` / `P1-TS-11`):
+   - Definición `as const` de `ROLES` y `PERMISOS`.
+   - Tipos de unión de literales: `Rol = typeof ROLES[keyof typeof ROLES]`, `Permiso = typeof PERMISOS[keyof typeof PERMISOS]`.
+2. **`src/constants/sidebarConstants.ts`** (Commit `b077d91` / `P1-TS-12`):
+   - Tipos: `CounterVariant = 'info' | 'warning' | 'error' | 'success'`, `SidebarItem`, `SidebarSeccion`.
+   - Creado test unitario: `src/constants/sidebarConstants.test.js` (3 tests verificando secciones y permisos).
+3. **`src/modules/administracion/schemas/interaccionSchema.ts`** (Commit `4f24c6e` / `P1-TS-13`):
+   - Tipos: `NIVELES_SEVERIDAD_INTERACCION = ['mayor', 'moderada', 'menor'] as const`, `NivelSeveridadInteraccion`, `Interaccion = z.infer<typeof interaccionSchema>`, `ValidacionInteraccionResultado`.
+   - Allowlist actualizada a 60 líneas.
+4. **`src/modules/finanzas/schemas/movimientoFinancieroSchema.ts`** (Commit `d75a8ee` / `P1-TS-14`):
+   - Inferencia Zod: `MovimientoFinanciero`, `ListaMovimientos`.
+   - Tipos: `ValidacionListaMovimientosResultado`.
+   - Función tipada `validarListaMovimientos`.
+5. **`src/modules/administracion/schemas/alergiaCruzadaSchema.ts`** (Commit `4166120` / `P1-TS-15`):
+   - Tipos: `FAMILIAS_ALERGIAS as const` (16 familias), `NIVELES_SEVERIDAD as const` (3 niveles), `FamiliaAlergia`, `NivelSeveridadAlergia`, `AlergiaCruzada`, `ValidacionAlergiaCruzadaResultado`.
+   - Allowlist actualizada a 82 líneas.
+
+### Verificación y Evidencia del Lote 2
+- `npm run validate:architecture`: ✅ **0 violaciones** (todas las reglas constitucionales cumplidas).
+- `npm run test`: ✅ **137/137 suites pasadas, 1776/1776 tests unitarios pasados** (0 regresiones).
+- `npm run build`: ✅ **Vite build completado en 1.42s sin errores**.
+- `npm run lint`: ✅ **0 errores** con Oxlint.
+
+
 
 
