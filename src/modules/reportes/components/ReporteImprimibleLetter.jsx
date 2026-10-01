@@ -26,7 +26,7 @@ export const ReporteImprimibleLetter = memo(({ metricas, userProfile, alCerrar }
         <div className="border-b-2 border-black pb-4 flex justify-between items-start">
           <div>
             <h1 className="text-lg font-black uppercase tracking-wider">Informe de Gestión Clínica y Financiera</h1>
-            <p className="text-[10px] text-gray-600 font-bold">{userProfile?.nombreCompleto || 'Cirujano Dentista'} | Studio Dental OS</p>
+            <p className="text-[10px] text-gray-600 font-bold">{userProfile?.nombreCompleto || 'Cirujano Dentista'} | DentikOS</p>
           </div>
           <div className="text-right">
             <span className="text-xs font-mono font-bold bg-gray-100 px-2 py-1 rounded border">REP-{new Date().getFullYear()}</span>

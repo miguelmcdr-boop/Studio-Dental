@@ -23,7 +23,7 @@ export const ModalEnviarMensaje = memo(({ pacientes = [], plantillas = [], userP
       const textoFinal = interpolarVariablesMensaje(pl.cuerpo, {
         pacienteNombre: pac?.nombre || 'Paciente',
         doctorNombre: userProfile?.nombreCompleto || 'Dr. Miguel Díaz',
-        clinicaNombre: 'Studio Dental'
+        clinicaNombre: 'DentikOS'
       })
       setMensajeTexto(textoFinal)
     }

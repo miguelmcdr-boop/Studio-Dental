@@ -6,9 +6,9 @@ import { TEMPORAL_SUPERIOR, TEMPORAL_INFERIOR } from '../constants/pediatriaCons
 export const OdontogramaTemporal = memo(({ datosDentosana = {}, onToggleEstadoPieza }) => {
   const ESTADOS_DISPONIBLES = [
     { id: 'sano', label: 'Sano', color: 'bg-emerald-500 text-white' },
-    { id: 'caries', label: 'Caries', color: 'bg-red-500 text-white' },
-    { id: 'obturado', label: 'Obturado', color: 'bg-blue-500 text-white' },
-    { id: 'extraido', label: 'Extraído', color: 'bg-gray-800 text-white' }
+    { id: 'caries', label: 'Caries', color: 'bg-[var(--chart-caries)] text-white' },
+    { id: 'obturado', label: 'Obturado', color: 'bg-[var(--chart-sound)] text-white' },
+    { id: 'extraido', label: 'Extraído', color: 'bg-[var(--chart-missing)] text-white' }
   ]
 
   const renderFila = (piezas) => (

@@ -102,7 +102,7 @@ export const TarjetaPieza = memo(({ numero, piezaData = {}, onChange }) => {
                           type="button"
                           onClick={() => handleToggleFlag(cara, idx, 'sangrado')}
                           className={`w-3.5 h-3.5 rounded text-[8px] font-black cursor-pointer ${
-                            bop ? 'bg-red-600 text-white' : 'bg-gray-200 dark:bg-graphite-700 text-gray-500 dark:text-graphite-400'
+                            bop ? 'bg-[var(--chart-bleeding)] text-white' : 'bg-gray-200 dark:bg-graphite-700 text-gray-500 dark:text-graphite-400'
                           }`}
                         >
                           B
@@ -120,7 +120,7 @@ export const TarjetaPieza = memo(({ numero, piezaData = {}, onChange }) => {
                           type="button"
                           onClick={() => handleToggleFlag(cara, idx, 'supuracion')}
                           className={`w-3.5 h-3.5 rounded text-[8px] font-black cursor-pointer ${
-                            sup ? 'bg-yellow-500 text-white' : 'bg-gray-200 dark:bg-graphite-700 text-gray-500 dark:text-graphite-400'
+                            sup ? 'bg-amber-400 text-black' : 'bg-gray-200 dark:bg-graphite-700 text-gray-500 dark:text-graphite-400'
                           }`}
                         >
                           S

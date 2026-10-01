@@ -25,28 +25,34 @@ import { Icon } from '../Icon'
 
 const VARIANT_STYLES = {
   success: {
-    light: 'bg-clinical-success/10 text-clinical-success border-clinical-success/20',
-    dark: 'dark:bg-clinical-success/5 dark:text-emerald-300 dark:border-clinical-success/30',
-    dot: 'bg-clinical-success dark:bg-emerald-400',
-    icon: 'text-clinical-success dark:text-emerald-300',
+    light: 'bg-status-success/10 text-status-success border-status-success/20',
+    dark: 'dark:bg-status-success/10 dark:text-emerald-300 dark:border-status-success/30',
+    dot: 'bg-status-success dark:bg-emerald-400',
+    icon: 'text-status-success dark:text-emerald-300',
   },
   warning: {
-    light: 'bg-clinical-warning/10 text-amber-700 border-clinical-warning/20',
-    dark: 'dark:bg-clinical-warning/5 dark:text-amber-300 dark:border-clinical-warning/30',
-    dot: 'bg-clinical-warning dark:bg-amber-400',
-    icon: 'text-clinical-warning dark:text-amber-300',
+    light: 'bg-status-warning/10 text-amber-700 border-status-warning/20',
+    dark: 'dark:bg-status-warning/10 dark:text-amber-300 dark:border-status-warning/30',
+    dot: 'bg-status-warning dark:bg-amber-400',
+    icon: 'text-status-warning dark:text-amber-300',
   },
   error: {
-    light: 'bg-clinical-error/10 text-clinical-error border-clinical-error/20',
-    dark: 'dark:bg-clinical-error/5 dark:text-red-300 dark:border-clinical-error/30',
-    dot: 'bg-clinical-error dark:text-red-400',
-    icon: 'text-clinical-error dark:text-red-300',
+    light: 'bg-status-danger/10 text-status-danger border-status-danger/20',
+    dark: 'dark:bg-status-danger/10 dark:text-red-300 dark:border-status-danger/30',
+    dot: 'bg-status-danger dark:text-red-400',
+    icon: 'text-status-danger dark:text-red-300',
+  },
+  danger: {
+    light: 'bg-status-danger/10 text-status-danger border-status-danger/20',
+    dark: 'dark:bg-status-danger/10 dark:text-red-300 dark:border-status-danger/30',
+    dot: 'bg-status-danger dark:text-red-400',
+    icon: 'text-status-danger dark:text-red-300',
   },
   info: {
-    light: 'bg-clinical-info/10 text-clinical-info border-clinical-info/20',
-    dark: 'dark:bg-clinical-info/5 dark:text-sky-300 dark:border-clinical-info/30',
-    dot: 'bg-clinical-info dark:text-sky-400',
-    icon: 'text-clinical-info dark:text-sky-300',
+    light: 'bg-status-info/10 text-status-info border-status-info/20',
+    dark: 'dark:bg-status-info/10 dark:text-sky-300 dark:border-status-info/30',
+    dot: 'bg-status-info dark:text-sky-400',
+    icon: 'text-status-info dark:text-sky-300',
   },
   neutral: {
     light: 'bg-graphite-100 text-graphite-700 border-graphite-200',
@@ -55,6 +61,12 @@ const VARIANT_STYLES = {
     icon: 'text-graphite-500 dark:text-graphite-400',
   },
 }
+
+// Aliases para variantes semánticas 'status-*'
+VARIANT_STYLES['status-success'] = VARIANT_STYLES.success
+VARIANT_STYLES['status-warning'] = VARIANT_STYLES.warning
+VARIANT_STYLES['status-danger'] = VARIANT_STYLES.danger
+VARIANT_STYLES['status-info'] = VARIANT_STYLES.info
 
 const SIZE_STYLES = {
   sm: {

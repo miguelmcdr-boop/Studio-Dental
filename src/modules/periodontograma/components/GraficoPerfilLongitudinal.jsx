@@ -53,16 +53,16 @@ export const GraficoPerfilLongitudinal = memo(({ periodontoData = {} }) => {
             <line x1="0" y1="46" x2="680" y2="46" stroke="#FECACA" strokeDasharray="3 3" />
             <text x="5" y="44" fill="#EF4444" fontSize="8" fontWeight="bold">6mm</text>
 
-            <path d={pathD} fill="none" stroke="#2563EB" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d={pathD} fill="none" stroke="var(--chart-sound)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
 
             {puntos.map((p, i) => {
               // F1-04f: determinar el color y estilo del punto según el estado
               const esSinDatos = p.ausente || p.sinDatos
               const fillColor = esSinDatos
-                ? '#9CA3AF' // gris para piezas sin datos o ausentes
+                ? 'var(--chart-missing)' // gris para piezas sin datos o ausentes
                 : p.maxVal >= 4
-                  ? '#EF4444' // rojo para sacos ≥4mm
-                  : '#2563EB' // azul para sondaje normal
+                  ? 'var(--chart-caries)' // rojo para sacos ≥4mm
+                  : 'var(--chart-sound)' // azul para sondaje normal
 
               return (
                 <g key={i}>
@@ -95,9 +95,9 @@ export const GraficoPerfilLongitudinal = memo(({ periodontoData = {} }) => {
           <TrendingUp size={14} className="inline" /> Perfil Longitudinal de Sondaje Periodontal (Arcada Superior e Inferior)
         </h4>
         <div className="flex items-center gap-3 text-[10px] font-bold">
-          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Normal (≤ 3 mm)</span>
-          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-red-500"></span> Saco (≥ 4 mm)</span>
-          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-gray-400"></span> Sin datos</span>
+          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-[var(--chart-sound)]"></span> Normal (≤ 3 mm)</span>
+          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-[var(--chart-caries)]"></span> Saco (≥ 4 mm)</span>
+          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-[var(--chart-missing)]"></span> Sin datos</span>
         </div>
       </div>
 

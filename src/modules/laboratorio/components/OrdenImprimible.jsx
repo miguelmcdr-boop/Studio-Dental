@@ -28,7 +28,7 @@ export const OrdenImprimible = memo(({ orden, userProfile, alCerrar }) => {
         <div className="border-b-2 border-black pb-4 flex justify-between items-start">
           <div>
             <h1 className="text-base font-black uppercase tracking-wider">Orden de Trabajo Prótesis / Laboratorio Dental</h1>
-            <p className="text-[10px] text-gray-600 font-bold">{userProfile?.nombreCompleto || 'Cirujano Dentista'} | Studio Dental OS</p>
+            <p className="text-[10px] text-gray-600 font-bold">{userProfile?.nombreCompleto || 'Cirujano Dentista'} | DentikOS</p>
           </div>
           <div className="text-right">
             <span className="text-sm font-black bg-gray-100 px-3 py-1 rounded-lg border border-gray-300 block">{orden.codigoOrden}</span>

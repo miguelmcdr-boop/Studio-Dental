@@ -25,7 +25,7 @@ export const LibroSeremiSection = memo(({ cargas, biologicos, userProfile }) => 
           <div>
             <h1 className="text-base font-black uppercase tracking-wider">Libro Registro de Control de Esterilización</h1>
             <p className="text-[10px] text-gray-600 dark:text-graphite-400 font-bold">Norma Técnica de Esterilización N° 199 / SEREMI de Salud Chile</p>
-            <p className="text-[10px] text-gray-500 dark:text-graphite-400 mt-1">Establecimiento: Studio Dental Clinical OS</p>
+            <p className="text-[10px] text-gray-500 dark:text-graphite-400 mt-1">Establecimiento: DentikOS Clinical</p>
           </div>
           <div className="text-right">
             <span className="text-xs font-black block">Fecha Reporte: {hoyStr}</span>
