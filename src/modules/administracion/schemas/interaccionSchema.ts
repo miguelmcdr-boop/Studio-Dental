@@ -1,13 +1,15 @@
 /**
  * Esquema Zod para validación de interacciones farmacológicas.
- * F4-03f-5b
+ * F4-03f-5b / Migración TypeScript
  */
 import { z } from 'zod'
 
 /**
  * Niveles de severidad de interacciones farmacológicas
  */
-export const NIVELES_SEVERIDAD_INTERACCION = ['mayor', 'moderada', 'menor']
+export const NIVELES_SEVERIDAD_INTERACCION = ['mayor', 'moderada', 'menor'] as const
+
+export type NivelSeveridadInteraccion = typeof NIVELES_SEVERIDAD_INTERACCION[number]
 
 /**
  * Esquema Zod para validar una interacción farmacológica
@@ -35,20 +37,26 @@ export const interaccionSchema = z.object({
   activo: z.boolean().default(true)
 })
 
+export type Interaccion = z.infer<typeof interaccionSchema>
+
+export interface ValidacionInteraccionResultado {
+  valido: boolean
+  errores: Record<string, string>
+  datos?: Interaccion
+}
+
 /**
  * Valida datos de interacción farmacológica y retorna errores estructurados.
- * @param {Object} data - Datos del formulario
- * @returns {{valido: boolean, errores: Object, datos?: Object}}
  */
-export const validarInteraccion = (data) => {
+export const validarInteraccion = (data: unknown): ValidacionInteraccionResultado => {
   const resultado = interaccionSchema.safeParse(data)
   if (resultado.success) {
     return { valido: true, errores: {}, datos: resultado.data }
   }
   
-  const errores = {}
+  const errores: Record<string, string> = {}
   resultado.error.issues.forEach(issue => {
-    const campo = issue.path[0]
+    const campo = String(issue.path[0])
     errores[campo] = issue.message
   })
   

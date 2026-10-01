@@ -62,7 +62,7 @@
     "src/modules/administracion/schemas/alergiaCruzadaSchema.js": 78,
     "src/modules/administracion/components/TablaAlergiasCruzadas.jsx": 165,
     "src/modules/administracion/components/ModalEditarAlergiaCruzada.jsx": 244,
-    "src/modules/administracion/schemas/interaccionSchema.js": 57,
+    "src/modules/administracion/schemas/interaccionSchema.ts": 60,
     "src/modules/administracion/components/TablaInteracciones.jsx": 190,
     "src/modules/administracion/components/ModalEditarInteraccion.jsx": 228,
     "src/modules/administracion/schemas/profilaxisSchema.ts": 46,
