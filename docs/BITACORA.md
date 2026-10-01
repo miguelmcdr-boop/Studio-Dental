@@ -9955,6 +9955,34 @@ Esperado: Paciente SIGUE en BD (no fue eliminado).
 - `npm run build`: ✅ **Vite build completado en ~1.3s sin errores**.
 - `npm run lint`: ✅ **0 errores** con Oxlint.
 
+---
+
+## [2026-10-01] Migración Gradual a TypeScript — Bloque Continuo 10 Archivos (Prioridad 1: P1-TS-41 a P1-TS-50)
+
+### Contexto y Alcance
+- Ejecución en **modo continuo autónomo sin puertas de aprobación** sobre la rama unificada `feat/migracion-typescript`.
+- 10 módulos de utilidades de cálculo y constantes del sistema (Prestaciones/Arancel, Esterilización, Agenda, Pagos/Caja, Periodoncia, Anestesia e Inventario) migrados con tipado estricto.
+
+### Archivos Migrados (P1-TS-41 a P1-TS-50)
+1. **`src/modules/prestaciones/constants/prestacionesConstants.ts`** (Commit `43aff20` / `P1-TS-41`): Interfaces `ArancelItemDefault`, `PaqueteClinicoDefault` y especialidades odontológicas.
+2. **`src/modules/prestaciones/utils/prestacionesCalculations.ts`** (Commit `dccc7b9` / `P1-TS-42`): Resumen de aranceles, promedios y especialidad más frecuente (48 líneas).
+3. **`src/modules/esterilizacion/utils/esterilizacionCalculations.ts`** (Commit `9f7eafe` / `P1-TS-43`): Lotes de esterilización y cálculo de conformidad biosegura (49 líneas).
+4. **`src/modules/agenda/constants/agendaConstants.ts`** (Commit `ea0f19e` / `P1-TS-44`): Interfaces `SillonDental`, `TipoBloqueoAgenda`, `EstadoCitaConfig` y estados gold.
+5. **`src/modules/agenda/utils/agendaCalculations.ts`** (Commit `2e7f6ab` / `P1-TS-45`): Verificación de disponibilidad de Box y resumen de agenda del día (49 líneas).
+6. **`src/modules/pagos/constants/pagosConstants.ts`** (Commit `00a04cf` / `P1-TS-46`): Interfaces `TipoDocumentoTributario`, `MetodoPagoGold`, `PagoDefault`.
+7. **`src/modules/pagos/utils/pagosCalculations.ts`** (Commit `7224bab` / `P1-TS-47`): Generación de folios de recibo y cálculo de recaudación tributaria/POS (49 líneas).
+8. **`src/modules/periodontograma/constants/periodontalConstants.ts`** (Commit `deaa044` / `P1-TS-48`): Nomenclaturas anatómicas, límites clínicos de sondaje y piezas multirradiculares.
+9. **`src/modules/pacientes/utils/anestesiaHelpers.ts`** (Commit `5c4ab3c` / `P1-TS-49`): Detección clínica de cardiopatías, paciente pediátrico y parseo seguro de edad (29 líneas).
+10. **`src/modules/inventario/constants/inventarioConstants.ts`** (Commit `60afd61` / `P1-TS-50`): Interface `ItemInventarioDefault`, categorías y unidades de insumos odontológicos.
+
+### Verificación y Evidencia del Bloque
+- `npm run validate:architecture`: ✅ **0 violaciones** (JSX ≤250, Hooks ≤150, Utils ≤50).
+- `npm run test`: ✅ **157/157 suites pasadas, 1840/1840 tests unitarios pasados** (0 regresiones).
+- `npm run test:security`: ✅ **15/15 suites pasadas, 149/149 tests pasados**.
+- `npm run build`: ✅ **Vite build completado en ~1.3s sin errores**.
+- `npm run lint`: ✅ **0 errores** con Oxlint.
+
+
 
 
 
