@@ -2,7 +2,33 @@
  * Utilidades puras para el cálculo de trazabilidad, vencimientos y bioseguridad
  */
 
-export const generarCodigoLoteEsterilizacion = () => {
+export interface CargaEsterilizacion {
+  fecha?: string
+  estado?: string
+  indicadorQuimico?: string
+  [key: string]: unknown
+}
+
+export interface BiologicoEsterilizacion {
+  resultado?: string
+  [key: string]: unknown
+}
+
+export interface TestDiarioEsterilizacion {
+  fecha?: string
+  [key: string]: unknown
+}
+
+export interface ResumenEsterilizacion {
+  totalCargas: number
+  cargasHoy: number
+  conformes: number
+  rechazadas: number
+  biologicosPendientes: number
+  testBowieDickHoy: boolean
+}
+
+export const generarCodigoLoteEsterilizacion = (): string => {
   const hoy = new Date()
   const yyyy = hoy.getFullYear()
   const mm = String(hoy.getMonth() + 1).padStart(2, '0')
@@ -11,9 +37,13 @@ export const generarCodigoLoteEsterilizacion = () => {
   return `LOTE-${yyyy}${mm}${dd}-${random}`
 }
 
-export const calcularResumenEsterilizacion = (cargas = [], biologicos = [], testDiarios = []) => {
+export const calcularResumenEsterilizacion = (
+  cargas: CargaEsterilizacion[] = [],
+  biologicos: BiologicoEsterilizacion[] = [],
+  testDiarios: TestDiarioEsterilizacion[] = []
+): ResumenEsterilizacion => {
   const hoyStr = new Date().toLocaleDateString('es-CL')
-  
+
   let cargasHoy = 0
   let conformes = 0
   let rechazadas = 0
@@ -21,7 +51,7 @@ export const calcularResumenEsterilizacion = (cargas = [], biologicos = [], test
   cargas.forEach(c => {
     if (c.fecha === hoyStr) cargasHoy++
     if (c.estado === 'Conforme') conformes++
-    if (c.estado === 'Rechazado' || c.indicadorQuimico.includes('Fallo')) rechazadas++
+    if (c.estado === 'Rechazado' || (c.indicadorQuimico && c.indicadorQuimico.includes('Fallo'))) rechazadas++
   })
 
   const biologicosPendientes = biologicos.filter(b => b.resultado === 'Pendiente').length
