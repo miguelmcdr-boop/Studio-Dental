@@ -1,6 +1,6 @@
 /**
  * Esquema Zod para validación de manejo perioperatorio de anticoagulantes.
- * F4-03f-5c
+ * F4-03f-5c / Migración TypeScript
  */
 import { z } from 'zod'
 
@@ -18,20 +18,26 @@ export const anticoagulanteSchema = z.object({
   activo: z.boolean().default(true)
 })
 
+export type Anticoagulante = z.infer<typeof anticoagulanteSchema>
+
+export interface ValidacionAnticoagulanteResultado {
+  valido: boolean
+  errores: Record<string, string>
+  datos?: Anticoagulante
+}
+
 /**
  * Valida datos de manejo de anticoagulantes y retorna errores estructurados.
- * @param {Object} data - Datos del formulario
- * @returns {{valido: boolean, errores: Object, datos?: Object}}
  */
-export const validarAnticoagulante = (data) => {
+export const validarAnticoagulante = (data: unknown): ValidacionAnticoagulanteResultado => {
   const resultado = anticoagulanteSchema.safeParse(data)
   if (resultado.success) {
     return { valido: true, errores: {}, datos: resultado.data }
   }
   
-  const errores = {}
+  const errores: Record<string, string> = {}
   resultado.error.issues.forEach(issue => {
-    const campo = issue.path[0]
+    const campo = String(issue.path[0])
     errores[campo] = issue.message
   })
   
