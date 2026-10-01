@@ -62,11 +62,11 @@ export const Sidebar = ({ userProfile, activeSection, setActiveSection, onLogout
         aria-current={activo ? 'page' : undefined}
         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
           activo
-            ? 'bg-graphite-900 text-white shadow-sm dark:bg-graphite-800 dark:text-gold-satin border-l-2 border-gold-satin pl-2.5'
+            ? 'bg-[#FFF5DF] text-[#7A591F] shadow-xs dark:bg-[#0F172A] dark:text-gold-satin surgical:bg-white surgical:text-black border-l-2 border-[#B88E3A] pl-2.5'
             : 'text-graphite-700 dark:text-graphite-300 hover:bg-graphite-200/60 dark:hover:bg-graphite-800/70 border-l-2 border-transparent'
         } ${colapsado ? 'justify-center' : ''}`}
       >
-        <Icon icon={item.icon} size="md" className={activo ? 'text-gold-satin' : ''} />
+        <Icon icon={item.icon} size="md" className={activo ? 'text-[#B88E3A] dark:text-gold-satin surgical:text-black' : ''} />
         {!colapsado && (
           <>
             <span className="flex-1 text-left">{item.name}</span>
@@ -82,7 +82,7 @@ export const Sidebar = ({ userProfile, activeSection, setActiveSection, onLogout
   }
 
   return (
-    <aside className={`${colapsado ? 'w-20' : 'w-64'} bg-graphite-50 dark:bg-graphite-950 p-4 border-r border-graphite-200 dark:border-[#24334A] min-h-screen flex-col justify-between transition-all duration-300 print:hidden relative hidden sm:flex`} role="navigation" aria-label="Menú principal">
+    <aside className={`${colapsado ? 'w-20' : 'w-64'} bg-white dark:bg-[#070B14] surgical:bg-[#CBD5E1] p-4 border-r border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] min-h-screen flex-col justify-between transition-all duration-300 print:hidden relative hidden sm:flex`} role="navigation" aria-label="Menú principal">
       <div>
         {/* Logo + toggle de colapso */}
         <div className="flex items-center justify-between mb-6 px-2">

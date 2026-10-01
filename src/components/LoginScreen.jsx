@@ -111,16 +111,16 @@ export const LoginScreen = ({ onLogin }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-graphite-800 flex items-center justify-center p-4 print:hidden" role="main" aria-label="Pantalla de autenticación">
-      <div className="bg-white dark:bg-graphite-800 p-8 rounded-2xl shadow-sm border border-gray-200 dark:border-graphite-700 w-full max-w-md">
+    <div className="min-h-screen bg-[#070B14] bg-blueprint-scanner flex items-center justify-center p-4 print:hidden" role="main" aria-label="Pantalla de autenticación">
+      <div className="bg-[#0B132B]/90 dark:bg-graphite-900/90 backdrop-blur-md p-8 rounded-2xl shadow-2xl border border-[#24334A] w-full max-w-md">
         <div className="flex justify-center mb-6">
-          <DentikOSLogo variant="stacked" size="lg" opticalSize="display" />
+          <DentikOSLogo variant="stacked" size="lg" opticalSize="display" dark={true} />
         </div>
 
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-graphite-50 mb-1">
+        <h2 className="text-xl sm:text-2xl font-bold text-white mb-1">
           {isFirstTime ? 'Crear perfil profesional' : 'Iniciar sesión'}
         </h2>
-        <p className="text-sm text-gray-500 dark:text-graphite-400 mb-6">
+        <p className="text-sm text-slate-400 mb-6">
           {isFirstTime ? 'Ingresa tus datos para personalizar tu clínica.' : 'Ingresa tus credenciales para acceder a tu consulta.'}
         </p>
 

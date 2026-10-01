@@ -102,8 +102,8 @@ function App() {
   // F7-11: Detectar invitación pendiente en URL hash
   const invitacionPendiente = useInvitacionHash()
 
-  // F7-25: Dark mode con persistencia
-  const { darkMode, toggleDarkMode } = useDarkMode()
+  // F7-25: Dark mode y modo quirúrgico con persistencia
+  const { theme, darkMode, cycleTheme, toggleDarkMode } = useDarkMode()
   const logoutStore = useSesionStore((state) => state.logout)
 
   // F6-H: Timeout de sesión + sincronización entre pestañas + manejo de errores 401
@@ -250,12 +250,14 @@ function App() {
       <ToastContainer />
       <AppDialogProvider />
       <CommandPalette {...commandPalette} />
-      <div className="min-h-screen flex flex-col bg-graphite-50 dark:bg-graphite-900 font-sans">
+      <div className="min-h-screen flex flex-col bg-canvas dark:bg-[#070B14] surgical:bg-[#CBD5E1] text-primary-surface font-sans">
         <TopBar
           userProfile={userProfile}
           onLogout={handleLogout}
           darkMode={darkMode}
+          theme={theme}
           onToggleDarkMode={toggleDarkMode}
+          onCycleTheme={cycleTheme}
         />
         <div className="flex flex-1">
           <Sidebar userProfile={userProfile} activeSection={activeSection} setActiveSection={setActiveSection} onLogout={handleLogout} counters={sidebarCounters} />

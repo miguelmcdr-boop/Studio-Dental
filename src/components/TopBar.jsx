@@ -14,7 +14,7 @@
  * - aria-label "Activar modo claro/oscuro" preservado (contrato TopBar.test.jsx:108)
  */
 import React, { useState, useRef, useEffect } from 'react'
-import { LogOut, Moon, Sun } from 'lucide-react'
+import { LogOut, Moon, Sun, Sparkles } from 'lucide-react'
 import { Icon } from './Icon'
 import { Button } from './ui/Button'
 import { Badge } from './ui/Badge'
@@ -22,16 +22,40 @@ import { ClinicaSelector } from './ClinicaSelector'
 import { DentikOSLogo } from './brand/DentikOSLogo'
 import { NOMBRES_ROLES } from '../constants/rbacConstants'
 
+const THEME_CONFIG = {
+  light: {
+    nextTheme: 'dark',
+    icon: Moon,
+    label: 'Activar modo oscuro'
+  },
+  dark: {
+    nextTheme: 'surgical',
+    icon: Sparkles,
+    label: 'Activar modo quirúrgico'
+  },
+  surgical: {
+    nextTheme: 'light',
+    icon: Sun,
+    label: 'Activar modo claro'
+  }
+}
+
 export const TopBar = ({
   userProfile,
   onLogout,
   darkMode = false,
+  theme,
   onToggleDarkMode,
+  onCycleTheme,
   onCambioClinica,
 }) => {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef(null)
   const triggerRef = useRef(null)
+
+  const currentTheme = theme || (darkMode ? 'dark' : 'light')
+  const themeInfo = THEME_CONFIG[currentTheme] || THEME_CONFIG.light
+  const handleToggleTheme = onCycleTheme || onToggleDarkMode
 
   const inicial = userProfile?.nombreCompleto
     ? userProfile.nombreCompleto.replace('Dr. ', '').replace('Dra. ', '').charAt(0).toUpperCase()
@@ -69,7 +93,7 @@ export const TopBar = ({
   }
 
   return (
-    <header className="sticky top-0 z-40 bg-white dark:bg-graphite-900 border-b border-graphite-200 dark:border-graphite-700 shadow-sm">
+    <header className="sticky top-0 z-40 bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border-b border-graphite-200 dark:border-[#24334A] surgical:border-[#475569] shadow-sm">
       <div className="flex items-center justify-between px-4 py-2 h-16">
         {/* Izquierda: Logo DentikOS + ClinicaSelector */}
         <div className="flex items-center gap-4">
@@ -89,16 +113,18 @@ export const TopBar = ({
 
         {/* Derecha: Dark mode toggle + Avatar + menú + Logout */}
         <div className="flex items-center gap-3">
-          {/* Dark mode toggle (siempre visible, contrato tests) */}
-          {onToggleDarkMode && (
+          {/* Dark / Theme mode toggle (siempre visible, contrato tests) */}
+          {handleToggleTheme && (
             <Button
               variant="ghost"
               size="sm"
-              onClick={onToggleDarkMode}
-              aria-label={darkMode ? 'Activar modo claro' : 'Activar modo oscuro'}
-              title={darkMode ? 'Activar modo claro' : 'Activar modo oscuro'}
+              onClick={handleToggleTheme}
+              aria-label={themeInfo.label}
+              title={themeInfo.label}
+              className="surgical:min-w-[48px] surgical:min-h-[48px]"
+              data-touch-target="critical"
             >
-              <Icon icon={darkMode ? Sun : Moon} size="md" />
+              <Icon icon={themeInfo.icon} size="md" />
             </Button>
           )}
 
@@ -110,10 +136,11 @@ export const TopBar = ({
               ref={triggerRef}
               type="button"
               onClick={() => setMenuOpen(!menuOpen)}
-              className="flex items-center gap-2 p-1 rounded-lg hover:bg-graphite-100 dark:hover:bg-graphite-800 transition-colors"
+              className="flex items-center gap-2 p-1 rounded-lg hover:bg-graphite-100 dark:hover:bg-graphite-800 transition-colors surgical:min-w-[48px] surgical:min-h-[48px]"
               aria-haspopup="menu"
               aria-expanded={menuOpen}
               aria-label="Menú de usuario"
+              data-touch-target="critical"
             >
               <div className="w-9 h-9 bg-graphite-300 dark:bg-graphite-700 rounded-full flex items-center justify-center font-semibold text-graphite-700 dark:text-graphite-200 text-sm">
                 {inicial}
@@ -132,10 +159,10 @@ export const TopBar = ({
             {menuOpen && (
               <div
                 role="menu"
-                className="absolute right-0 mt-2 w-72 bg-white dark:bg-graphite-800 border border-graphite-200 dark:border-graphite-700 rounded-xl shadow-lg overflow-hidden z-50"
+                className="absolute right-0 mt-2 w-72 bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-graphite-200 dark:border-[#24334A] surgical:border-[#475569] rounded-xl shadow-lg overflow-hidden z-50"
               >
                 {/* Header del menú: identidad completa */}
-                <div className="px-4 py-3 border-b border-graphite-200 dark:border-graphite-700">
+                <div className="px-4 py-3 border-b border-graphite-200 dark:border-[#24334A] surgical:border-[#475569]">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-graphite-300 dark:bg-graphite-700 rounded-full flex items-center justify-center font-semibold text-graphite-700 dark:text-graphite-200 text-base flex-shrink-0">
                       {inicial}
@@ -154,19 +181,22 @@ export const TopBar = ({
                   </div>
                 </div>
 
-                {/* Items del menú (dark toggle duplicado para accesibilidad en menú) */}
+                {/* Items del menú (theme toggle en menú) */}
                 <div className="py-1">
-                  {onToggleDarkMode && (
+                  {handleToggleTheme && (
                     <button
                       role="menuitem"
                       type="button"
-                      onClick={onToggleDarkMode}
-                      aria-label={darkMode ? 'Activar modo claro' : 'Activar modo oscuro'}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-graphite-700 dark:text-graphite-200 hover:bg-graphite-100 dark:hover:bg-graphite-700 transition-colors"
+                      onClick={() => {
+                        handleToggleTheme()
+                        setMenuOpen(false)
+                      }}
+                      aria-label={themeInfo.label}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-graphite-700 dark:text-graphite-200 hover:bg-graphite-100 dark:hover:bg-graphite-700 transition-colors surgical:min-h-[48px]"
                     >
-                      <Icon icon={darkMode ? Sun : Moon} size="sm" />
+                      <Icon icon={themeInfo.icon} size="sm" />
                       <span className="flex-1 text-left">
-                        {darkMode ? 'Activar modo claro' : 'Activar modo oscuro'}
+                        {themeInfo.label}
                       </span>
                     </button>
                   )}
@@ -177,7 +207,7 @@ export const TopBar = ({
                     role="menuitem"
                     type="button"
                     onClick={handleLogout}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-clinical-error hover:bg-clinical-error/10 transition-colors"
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-clinical-error hover:bg-clinical-error/10 transition-colors surgical:min-h-[48px]"
                   >
                     <Icon icon={LogOut} size="sm" />
                     <span className="flex-1 text-left">Cerrar sesión</span>
@@ -194,7 +224,8 @@ export const TopBar = ({
             onClick={handleLogout}
             aria-label="Cerrar sesión"
             title="Cerrar sesión"
-            className="text-clinical-error hover:bg-clinical-error/10"
+            className="text-clinical-error hover:bg-clinical-error/10 surgical:min-w-[48px] surgical:min-h-[48px]"
+            data-touch-target="critical"
           >
             <Icon icon={LogOut} size="md" />
           </Button>

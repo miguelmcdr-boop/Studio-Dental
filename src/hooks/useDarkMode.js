@@ -39,20 +39,28 @@ const obtenerTemaInicial = () => {
 }
 
 /**
- * Aplica las clases de tema al elemento <html> raíz.
+ * Aplica las clases de tema al elemento <html> raíz y a <body>.
+ * Limpia rigurosamente clases anteriores antes de añadir la correspondiente.
  */
 const aplicarClasesDocumento = (tema) => {
   if (typeof document === 'undefined') return
-  const root = document.documentElement
-  if (tema === 'dark') {
-    root.classList.add('dark')
-    root.classList.remove('theme-surgical')
-  } else if (tema === 'surgical') {
-    root.classList.add('theme-surgical')
-    root.classList.remove('dark')
-  } else {
-    root.classList.remove('dark', 'theme-surgical')
-  }
+  const targets = [document.documentElement, document.body].filter(Boolean)
+  targets.forEach((el) => {
+    // 1. Eliminar rigurosamente cualquier clase previa
+    el.classList.remove('dark', 'theme-surgical')
+
+    // 2. Inyectar exclusivamente la clase correspondiente
+    if (tema === 'dark') {
+      el.classList.add('dark')
+    } else if (tema === 'surgical') {
+      el.classList.add('theme-surgical')
+    }
+  })
+}
+
+// Sincronización inmediata al cargar el módulo (evita FOUC)
+if (typeof document !== 'undefined') {
+  aplicarClasesDocumento(obtenerTemaInicial())
 }
 
 export const useDarkMode = () => {

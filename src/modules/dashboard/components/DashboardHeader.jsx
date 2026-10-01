@@ -10,7 +10,7 @@ export const DashboardHeader = memo(({ userProfile }) => {
   })
 
   return (
-    <div className="bg-black text-white p-6 rounded-2xl shadow-sm flex justify-between items-center flex-wrap gap-4">
+    <div className="bg-slate-900 dark:bg-[#0F172A] surgical:bg-[#334155] border border-transparent dark:border-[#24334A] surgical:border-[#475569] text-white p-6 rounded-2xl shadow-sm flex justify-between items-center flex-wrap gap-4">
       <div>
         <h1 className="text-xl font-bold inline-flex items-center gap-2">
           <LayoutDashboard size={20} />

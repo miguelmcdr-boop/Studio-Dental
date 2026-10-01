@@ -34,7 +34,7 @@ export const NoShowWidget = memo(({ citas = [] }) => {
 
   if (!citas || citas.length === 0) {
     return (
-      <div className="bg-white dark:bg-graphite-800 border border-graphite-200 dark:border-graphite-700 rounded-2xl p-6 text-center">
+      <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-6 text-center">
         <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-graphite-100 dark:bg-graphite-700 text-graphite-400 dark:text-graphite-300 mb-3">
           <AlertCircle size={24} />
         </div>
@@ -49,7 +49,7 @@ export const NoShowWidget = memo(({ citas = [] }) => {
   }
 
   return (
-    <div className="bg-white dark:bg-graphite-800 border border-graphite-200 dark:border-graphite-700 rounded-2xl p-4" role="region" aria-label="Métricas de no-show y cancelaciones">
+    <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-4" role="region" aria-label="Métricas de no-show y cancelaciones">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-bold text-graphite-900 dark:text-graphite-50 flex items-center gap-2">
           <AlertCircle size={16} />
