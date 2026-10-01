@@ -1,16 +1,32 @@
 /**
- * SECCIONES_SIDEBAR — Navegación agrupada del Sidebar (F10-B2)
+ * SECCIONES_SIDEBAR — Navegación agrupada del Sidebar (F10-B2 / Migración TypeScript)
  * Permisos RBAC idénticos al menú original (F3-05).
- * counterKey/counterVariant: API de contadores (datos reales en B2.5).
  */
+import type { LucideIcon } from 'lucide-react'
 import {
   Calendar, LayoutDashboard, Users, Siren, Mail,
   Sparkles, FlaskConical, Package, Stethoscope, DollarSign, BarChart3,
   UsersRound, Pill, Settings, FileText, CreditCard
 } from 'lucide-react'
 import { PERMISOS } from './rbacConstants'
+import type { Permiso } from './rbacConstantsBase'
 
-export const SECCIONES_SIDEBAR = [
+export type CounterVariant = 'info' | 'warning' | 'error' | 'success'
+
+export interface SidebarItem {
+  name: string
+  icon: LucideIcon
+  permisoRequerido?: Permiso
+  counterKey?: string
+  counterVariant?: CounterVariant
+}
+
+export interface SidebarSeccion {
+  label: string
+  items: SidebarItem[]
+}
+
+export const SECCIONES_SIDEBAR: SidebarSeccion[] = [
   {
     label: 'Clínica',
     items: [
