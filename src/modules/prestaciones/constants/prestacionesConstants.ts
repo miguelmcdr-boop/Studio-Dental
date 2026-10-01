@@ -2,7 +2,24 @@
  * Constantes, Especialidades y Paquetes para el Arancel Avanzado
  */
 
-export const ESPECIALIDADES_ODONTOLOGICAS = [
+export interface ArancelItemDefault {
+  id: number
+  nombre: string
+  especialidad: string
+  precioParticular: number
+  precioFonasa: number
+  codigoFonasa: string
+}
+
+export interface PaqueteClinicoDefault {
+  id: number
+  nombre: string
+  descripcion: string
+  precioCombo: number
+  ahorroEstimado: string
+}
+
+export const ESPECIALIDADES_ODONTOLOGICAS: readonly string[] = [
   'Diagnóstico y Prevención',
   'Operatoria / Estética',
   'Endodoncia',
@@ -14,7 +31,7 @@ export const ESPECIALIDADES_ODONTOLOGICAS = [
   'Odontopediatría'
 ]
 
-export const ARANCEL_DEFAULT = [
+export const ARANCEL_DEFAULT: readonly ArancelItemDefault[] = [
   { id: 1, nombre: 'Evaluación Clínica y Diagnóstico Integral', especialidad: 'Diagnóstico y Prevención', precioParticular: 25000, precioFonasa: 15000, codigoFonasa: '01-01-001' },
   { id: 2, nombre: 'Limpieza Dental UDA + Destartraje Ultrasonido', especialidad: 'Diagnóstico y Prevención', precioParticular: 35000, precioFonasa: 22000, codigoFonasa: '01-01-005' },
   { id: 3, nombre: 'Obturación Resina Simple (1 Cara)', especialidad: 'Operatoria / Estética', precioParticular: 35000, precioFonasa: 28000, codigoFonasa: '01-02-010' },
@@ -27,7 +44,7 @@ export const ARANCEL_DEFAULT = [
   { id: 10, nombre: 'Instalación de Implante Óseo-Integrado', especialidad: 'Implantología', precioParticular: 480000, precioFonasa: 420000, codigoFonasa: '01-06-001' }
 ]
 
-export const PAQUETES_CLINICOS_DEFAULT = [
+export const PAQUETES_CLINICOS_DEFAULT: readonly PaqueteClinicoDefault[] = [
   {
     id: 101,
     nombre: 'Pack Prevención & Profilaxis Completa',
