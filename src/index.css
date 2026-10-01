@@ -16,6 +16,13 @@
   body {
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+  }
+
+  .no-print,
+  [data-no-print] {
+    display: none !important;
   }
 }
 

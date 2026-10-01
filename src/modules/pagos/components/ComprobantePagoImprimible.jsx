@@ -1,5 +1,6 @@
 import React, { memo, useState } from 'react'
 import { Printer, FileText } from 'lucide-react'
+import { DentikOSMicroSeal } from '../../../components/brand/DentikOSMicroSeal'
 
 export const ComprobantePagoImprimible = memo(({ pago, userProfile, alCerrar }) => {
   const [formato, setFormato] = useState('ticket') // 'ticket' | 'carta'
@@ -10,7 +11,7 @@ export const ComprobantePagoImprimible = memo(({ pago, userProfile, alCerrar }) 
 
   return (
     <div className="space-y-4 text-xs">
-      <div className="flex justify-between items-center print:hidden bg-gray-50 p-4 border rounded-2xl flex-wrap gap-2">
+      <div className="flex justify-between items-center no-print print:hidden bg-gray-50 p-4 border rounded-2xl flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <span className="font-bold text-gray-700">Formato de Impresión:</span>
           <button
@@ -45,7 +46,7 @@ export const ComprobantePagoImprimible = memo(({ pago, userProfile, alCerrar }) 
 
       {/* FORMATO TICKET TÉRMICO POS 80MM */}
       {formato === 'ticket' && (
-        <div className="bg-white border-2 border-dashed border-black rounded-2xl p-6 w-[320px] mx-auto space-y-3 font-mono print:border-none print:w-full print:p-0">
+        <div className="bg-white border-2 border-dashed border-black rounded-2xl p-6 w-[320px] mx-auto space-y-3 font-mono print:border-none print:w-full print:p-0 print:bg-white print:text-black">
           <div className="text-center border-b border-black pb-2">
             <h2 className="text-sm font-black uppercase">DENTIKOS</h2>
             <p className="text-[9px] font-bold uppercase">Comprobante Oficial de Pago</p>
@@ -53,11 +54,11 @@ export const ComprobantePagoImprimible = memo(({ pago, userProfile, alCerrar }) 
           </div>
 
           <div className="space-y-1 text-[10px] border-b border-black pb-2">
-            <p><strong>RECIBO:</strong> {pago.folioComprobante}</p>
-            {pago.folioDTE && <p><strong>DTE / BONO:</strong> {pago.folioDTE}</p>}
-            <p><strong>FECHA:</strong> {pago.fecha} {pago.hora} hrs</p>
+            <p><strong>RECIBO:</strong> <span className="tabular-nums">{pago.folioComprobante}</span></p>
+            {pago.folioDTE && <p><strong>DTE / BONO:</strong> <span className="tabular-nums">{pago.folioDTE}</span></p>}
+            <p><strong>FECHA:</strong> <span className="tabular-nums">{pago.fecha} {pago.hora}</span> hrs</p>
             <p><strong>PACIENTE:</strong> {pago.pacienteNombre}</p>
-            <p><strong>RUT:</strong> {pago.pacienteRut}</p>
+            <p><strong>RUT:</strong> <span className="tabular-nums">{pago.pacienteRut}</span></p>
             <p><strong>MÉTODO:</strong> {pago.metodoPago}</p>
             <p><strong>CONCEPTO:</strong> {pago.concepto}</p>
           </div>
@@ -73,38 +74,41 @@ export const ComprobantePagoImprimible = memo(({ pago, userProfile, alCerrar }) 
 
           <div className="text-center py-2 bg-gray-100 border rounded-lg print:bg-white print:border-black">
             <span className="text-[9px] font-bold block uppercase">TOTAL CANCELADO</span>
-            <span className="text-xl font-black">${montoVal.toLocaleString('es-CL')} CLP</span>
+            <span className="text-xl font-black tabular-nums">${montoVal.toLocaleString('es-CL')} CLP</span>
           </div>
 
           <div className="pt-4 text-center text-[9px] space-y-1">
             <p className="font-bold">¡Gracias por su confianza!</p>
             <p className="text-gray-500">Cajero: {pago.emitidoPor}</p>
+            <p className="text-[8px] text-gray-400 pt-2 border-t border-gray-200 mt-2">
+              DentikOS Clinical Gateway • Trazabilidad Ley 20.584
+            </p>
           </div>
         </div>
       )}
 
       {/* FORMATO CARTA LETTER MEMBRETADA */}
       {formato === 'carta' && (
-        <div className="bg-white border border-gray-300 rounded-2xl p-8 max-w-xl mx-auto space-y-6 text-gray-900 print:border-none print:max-w-none print:p-0">
+        <div className="bg-white border border-gray-300 rounded-2xl p-8 max-w-xl mx-auto space-y-6 text-gray-900 print:border-none print:max-w-none print:p-0 print:bg-white print:text-black">
           <div className="border-b-2 border-black pb-4 flex justify-between items-start">
             <div>
               <h1 className="text-base font-black uppercase tracking-wider">Comprobante de Recaudación & Pago</h1>
               <p className="text-[10px] text-gray-600 font-bold">{userProfile?.nombreCompleto || 'Cirujano Dentista'} | DentikOS</p>
             </div>
             <div className="text-right">
-              <span className="text-sm font-black bg-gray-100 px-3 py-1 rounded-lg border block">{pago.folioComprobante}</span>
-              <span className="text-[10px] text-gray-500 block mt-1">{pago.fecha} — {pago.hora} hrs</span>
+              <span className="text-sm font-black bg-gray-100 px-3 py-1 rounded-lg border block tabular-nums">{pago.folioComprobante}</span>
+              <span className="text-[10px] text-gray-500 block mt-1 tabular-nums">{pago.fecha} — {pago.hora} hrs</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
+          <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200 print:bg-white print:border">
             <div>
               <p><span className="font-bold">Paciente:</span> {pago.pacienteNombre}</p>
-              <p><span className="font-bold">RUT:</span> {pago.pacienteRut}</p>
+              <p><span className="font-bold">RUT:</span> <span className="tabular-nums">{pago.pacienteRut}</span></p>
             </div>
             <div>
               <p><span className="font-bold">Medio de Pago:</span> {pago.metodoPago}</p>
-              <p><span className="font-bold">DTE / Folio:</span> {pago.folioDTE || 'N/A'}</p>
+              <p><span className="font-bold">DTE / Folio:</span> <span className="tabular-nums">{pago.folioDTE || 'N/A'}</span></p>
             </div>
           </div>
 
@@ -114,9 +118,9 @@ export const ComprobantePagoImprimible = memo(({ pago, userProfile, alCerrar }) 
             {pago.observacion && <p><span className="font-semibold text-gray-700">Observación:</span> {pago.observacion}</p>}
           </div>
 
-          <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200 flex justify-between items-center">
-            <span className="font-extrabold text-emerald-900 uppercase">Monto Total Cancelado:</span>
-            <span className="text-2xl font-black text-emerald-900">${montoVal.toLocaleString('es-CL')} CLP</span>
+          <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200 flex justify-between items-center print:bg-white print:border-black">
+            <span className="font-extrabold text-emerald-900 uppercase print:text-black">Monto Total Cancelado:</span>
+            <span className="text-2xl font-black text-emerald-900 tabular-nums print:text-black">${montoVal.toLocaleString('es-CL')} CLP</span>
           </div>
 
           <div className="pt-16 grid grid-cols-2 gap-8 text-center print:pt-24">
@@ -130,6 +134,9 @@ export const ComprobantePagoImprimible = memo(({ pago, userProfile, alCerrar }) 
               <p className="text-[10px] text-gray-500">Recibido Conforme / Caja</p>
             </div>
           </div>
+
+          {/* Micro-Sello DentikOS Normativo */}
+          <DentikOSMicroSeal className="mt-8" />
         </div>
       )}
     </div>
