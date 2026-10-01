@@ -6,7 +6,7 @@ import { z } from 'zod'
  * `citaSchema.js` (F2-04b) y `movimientoFinancieroSchema.js` (F2-04c).
  *
  * Campos obligatorios:
- * - `id`: identificador único (number)
+ * - `id`: identificador único (number o string)
  * - `nombre`: nombre descriptivo de la prestación
  * - `especialidad`: especialidad odontológica a la que pertenece
  * - `precioParticular`: precio para paciente particular (number)
@@ -35,7 +35,15 @@ export const prestacionSchema = z.object({
   precio: z.number().optional(),
 }).passthrough()
 
+export type Prestacion = z.infer<typeof prestacionSchema>
+
 export const listaPrestacionesSchema = z.array(prestacionSchema)
+
+export type ValidacionListaPrestaciones = {
+  valido: boolean
+  datos: Prestacion[] | null
+  error: z.ZodError | null
+}
 
 /**
  * Valida un arreglo de prestaciones del arancel. No lanza excepción — retorna
@@ -43,10 +51,10 @@ export const listaPrestacionesSchema = z.array(prestacionSchema)
  * un dato corrupto tumbe la app entera con una excepción no capturada a mitad
  * de un guardado (Cap. V.2 Constitución).
  *
- * @param {Array} prestaciones - Array de objetos prestación a validar.
- * @returns {{ valido: boolean, datos: Array|null, error: import('zod').ZodError|null }}
+ * @param {unknown} prestaciones - Array de objetos prestación a validar.
+ * @returns {ValidacionListaPrestaciones}
  */
-export const validarListaPrestaciones = (prestaciones) => {
+export const validarListaPrestaciones = (prestaciones: unknown): ValidacionListaPrestaciones => {
   const resultado = listaPrestacionesSchema.safeParse(prestaciones)
   if (resultado.success) {
     return { valido: true, datos: resultado.data, error: null }
