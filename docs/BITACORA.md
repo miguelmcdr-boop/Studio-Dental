@@ -9759,3 +9759,31 @@ Esperado: Paciente SIGUE en BD (no fue eliminado).
 - `npm run build`: ✅ Build de producción con Vite completado en 1.43s sin errores.
 - `npm run lint`: ✅ 0 errores con Oxlint.
 
+---
+
+## [2026-10-01] Migración Gradual a TypeScript — src/utils/stringUtils.ts (Prioridad 1)
+
+### Contexto y Alcance
+- Continuación de la migración gradual a TypeScript (Prioridad 1) en rama unificada `feat/migracion-typescript`.
+- Archivo seleccionado: `src/utils/stringUtils.js` -> `src/utils/stringUtils.ts` (función pura para saneamiento de emojis y espacios en textos clínicos y de agenda, 27 líneas, <50 líneas constitucionales).
+
+### Tipos agregados y justificación
+1. **`StringInput`**:
+   - `export type StringInput = string | null | undefined`
+   - Modela entradas de texto potencialmente opcionales o incompletas provenientes de títulos de citas, notas clínicas y eventos de agenda, garantizando que `stripEmojis` no lance excepciones cuando el valor es nulo o indefinido.
+2. **Firma de función**:
+   - `export const stripEmojis = (text: StringInput): string`
+   - Sanitización robusta contra emojis Unicode (bloques principales, símbolos misceláneos, dingbats, variation selectors y emojis extendidos), colapsando espacios múltiples y aplicando `.trim()`.
+
+### Archivos involucrados
+- `src/utils/stringUtils.ts`: Nuevo archivo tipado (27 líneas, dentro del límite de 50 líneas sin requerir allowlist).
+- `src/utils/stringUtils.js`: Eliminado (reemplazado por `.ts`).
+- `src/utils/stringUtils.test.js`: Adaptado con 2 tests adicionales para textos con solo emojis y espacios en los extremos (10/10 tests pasando).
+
+### Verificación y Evidencia
+- `npm run validate:architecture`: ✅ Todas las reglas arquitectónicas se cumplen (74 archivos en allowlist, 0 violaciones).
+- `npm run test`: ✅ 135/135 suites pasaron, 1770/1770 tests unitarios pasaron (0 regresiones).
+- `npm run build`: ✅ Build de producción con Vite completado en 1.44s sin errores.
+- `npm run lint`: ✅ 0 errores con Oxlint.
+
+

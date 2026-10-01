@@ -37,4 +37,12 @@ describe('stripEmojis (F10-A7)', () => {
   it('colapsa espacios múltiples', () => {
     expect(stripEmojis('🍱   Horario   de   Almuerzo')).toBe('Horario de Almuerzo')
   })
+
+  it('retorna string vacío si el texto contiene únicamente emojis', () => {
+    expect(stripEmojis('🍱🛠️🎓🚨')).toBe('')
+  })
+
+  it('elimina espacios en los extremos tras remover emojis', () => {
+    expect(stripEmojis('  🍱 Consulta General  ')).toBe('Consulta General')
+  })
 })
