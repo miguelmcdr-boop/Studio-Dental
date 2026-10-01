@@ -2,7 +2,14 @@
  * Plantillas de Consentimientos Informados (M4a)
  * Extraídas de ConsentimientosSection.jsx para cumplir límite constitucional.
  */
-export const PLANTILLAS_CONSENTIMIENTO = [
+
+export interface PlantillaConsentimiento {
+  id: string
+  nombre: string
+  texto: string
+}
+
+export const PLANTILLAS_CONSENTIMIENTO: readonly PlantillaConsentimiento[] = [
   {
     id: 'cirugia_exodoncia',
     nombre: 'Consentimiento para Cirugía Bucal / Exodoncia',
