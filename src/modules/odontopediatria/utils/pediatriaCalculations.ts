@@ -4,11 +4,22 @@
 
 import { CARAS_OLEARY } from '../constants/pediatriaConstants'
 
+export type CarasPlaca = {
+  [cara: string]: boolean | undefined
+}
+
+export type MapaPlaca = {
+  [pieza: string]: CarasPlaca | null | undefined
+}
+
 /**
  * Calcula el Índice de Placa de O'Leary
  * % = (Caras con placa / Total de caras presentes evaluadas) * 100
  */
-export const calcularPorcentajeOLeary = (mapaPlaca = {}, totalPiezasPresentes = 20) => {
+export const calcularPorcentajeOLeary = (
+  mapaPlaca: MapaPlaca = {},
+  totalPiezasPresentes = 20
+): number => {
   const totalCarasPosibles = totalPiezasPresentes * 4
   if (totalCarasPosibles === 0) return 0
 
