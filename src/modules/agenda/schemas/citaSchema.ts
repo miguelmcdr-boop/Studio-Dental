@@ -51,7 +51,15 @@ export const citaSchema = z.object({
   citaPadreId: z.union([z.number(), z.string()]).optional(), // ID de la cita original (para citas recurrentes)
 }).passthrough()
 
+export type Cita = z.infer<typeof citaSchema>
+
 export const listaCitasSchema = z.array(citaSchema)
+
+export type ValidacionListaCitas = {
+  valido: boolean
+  datos: Cita[] | null
+  error: z.ZodError | null
+}
 
 /**
  * Valida un arreglo de citas. No lanza excepción — retorna un resultado
@@ -60,10 +68,10 @@ export const listaCitasSchema = z.array(citaSchema)
  * un guardado (Cap. V.2 Constitución: nunca fallar en silencio, pero
  * tampoco de forma descontrolada).
  *
- * @param {Array} citas - Array de objetos cita a validar.
- * @returns {{ valido: boolean, datos: Array|null, error: import('zod').ZodError|null }}
+ * @param {unknown} citas - Array de objetos cita a validar.
+ * @returns {ValidacionListaCitas}
  */
-export const validarListaCitas = (citas) => {
+export const validarListaCitas = (citas: unknown): ValidacionListaCitas => {
   const resultado = listaCitasSchema.safeParse(citas)
   if (resultado.success) {
     return { valido: true, datos: resultado.data, error: null }
