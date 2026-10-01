@@ -8,7 +8,7 @@
  * Detecta si el paciente tiene cardiopatía basado en el campo de enfermedades.
  * Busca términos cardiovasculares comunes en español.
  */
-export const esCardiopata = (enfermedades) => {
+export const esCardiopata = (enfermedades: unknown): boolean => {
   if (!enfermedades) return false
   const texto = String(enfermedades).toLowerCase()
   return /cardio|hipertens|hiperten|infarto|angina|insuficien|arritmia/.test(texto)
@@ -17,16 +17,16 @@ export const esCardiopata = (enfermedades) => {
 /**
  * Detecta si el paciente es pediátrico (menor de 18 años).
  */
-export const esPediatria = (edad) => {
-  const edadNum = parseInt(edad)
+export const esPediatria = (edad: unknown): boolean => {
+  const edadNum = parseInt(String(edad), 10)
   return Number.isFinite(edadNum) && edadNum < 18
 }
 
 /**
  * Parsea edad a número entero, retornando null si no es válida.
  */
-export const parseEdad = (edad) => {
+export const parseEdad = (edad: unknown): number | null => {
   if (edad === null || edad === undefined || edad === '') return null
-  const num = parseInt(edad)
+  const num = parseInt(String(edad), 10)
   return Number.isFinite(num) ? num : null
 }
