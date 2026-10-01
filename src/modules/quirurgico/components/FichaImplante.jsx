@@ -34,8 +34,8 @@ export const FichaImplante = ({ implantes = [], onAgregarImplante, onEliminarImp
 
   return (
     <div className="space-y-6 text-xs">
-      <div className="relative overflow-hidden bg-white/90 dark:bg-[#0F172A]/90 surgical:bg-[#F1F5F9] backdrop-blur-md border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-6 shadow-sm before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-[#B88E3A]/40 before:to-transparent">
-        <h3 className="font-extrabold text-sm text-gray-900 dark:text-graphite-50 surgical:text-black mb-4 border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] pb-3 uppercase tracking-wider">
+      <div className="relative overflow-hidden bg-surface/90 backdrop-blur-md border border-surface rounded-2xl p-6 shadow-sm before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-[#B88E3A]/40 before:to-transparent">
+        <h3 className="font-extrabold text-sm text-gray-900 dark:text-graphite-50 surgical:text-black mb-4 border-b border-surface pb-3 uppercase tracking-wider">
           <span className="flex items-center gap-1.5"><Icon icon={Tooth} size="sm" />Registrar Colocación de Implante Óseointegrado</span>
         </h3>
 
@@ -49,7 +49,7 @@ export const FichaImplante = ({ implantes = [], onAgregarImplante, onEliminarImp
                 value={form.pieza}
                 onChange={(e) => setForm({ ...form, pieza: e.target.value })}
                 placeholder="Ej: 1.6"
-                className="w-full px-3 py-2 border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-lg bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] text-xs font-bold text-graphite-900 dark:text-graphite-50 surgical:text-black focus:ring-2 focus:ring-[#B88E3A]/40"
+                className="w-full px-3 py-2 border border-surface rounded-lg bg-white dark:bg-graphite-800 surgical:bg-graphite-200 text-xs font-bold text-graphite-900 dark:text-graphite-50 surgical:text-black focus:ring-2 focus:ring-primary/40"
               />
             </div>
 
@@ -58,7 +58,7 @@ export const FichaImplante = ({ implantes = [], onAgregarImplante, onEliminarImp
               <select
                 value={form.marca}
                 onChange={(e) => setForm({ ...form, marca: e.target.value })}
-                className="w-full px-3 py-2 border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-lg bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] text-xs text-graphite-900 dark:text-graphite-50 surgical:text-black focus:ring-2 focus:ring-[#B88E3A]/40"
+                className="w-full px-3 py-2 border border-surface rounded-lg bg-white dark:bg-graphite-800 surgical:bg-graphite-200 text-xs text-graphite-900 dark:text-graphite-50 surgical:text-black focus:ring-2 focus:ring-primary/40"
               >
                 {MARCAS_IMPLANTES.map(m => <option key={m} value={m}>{m}</option>)}
               </select>
@@ -69,7 +69,7 @@ export const FichaImplante = ({ implantes = [], onAgregarImplante, onEliminarImp
               <select
                 value={form.plataforma}
                 onChange={(e) => setForm({ ...form, plataforma: e.target.value })}
-                className="w-full px-3 py-2 border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-lg bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] text-xs text-graphite-900 dark:text-graphite-50 surgical:text-black focus:ring-2 focus:ring-[#B88E3A]/40"
+                className="w-full px-3 py-2 border border-surface rounded-lg bg-white dark:bg-graphite-800 surgical:bg-graphite-200 text-xs text-graphite-900 dark:text-graphite-50 surgical:text-black focus:ring-2 focus:ring-primary/40"
               >
                 {TIPOS_PLATAFORMA.map(p => <option key={p} value={p}>{p}</option>)}
               </select>
@@ -80,7 +80,7 @@ export const FichaImplante = ({ implantes = [], onAgregarImplante, onEliminarImp
               <select
                 value={form.diametro}
                 onChange={(e) => setForm({ ...form, diametro: e.target.value })}
-                className="w-full px-3 py-2 border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-lg bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] text-xs text-graphite-900 dark:text-graphite-50 surgical:text-black focus:ring-2 focus:ring-[#B88E3A]/40"
+                className="w-full px-3 py-2 border border-surface rounded-lg bg-white dark:bg-graphite-800 surgical:bg-graphite-200 text-xs text-graphite-900 dark:text-graphite-50 surgical:text-black focus:ring-2 focus:ring-primary/40"
               >
                 {CONEXIONES_DIAMETRO.map(d => <option key={d} value={d}>{d}</option>)}
               </select>
@@ -95,7 +95,7 @@ export const FichaImplante = ({ implantes = [], onAgregarImplante, onEliminarImp
                 value={form.longitud}
                 onChange={(e) => setForm({ ...form, longitud: e.target.value })}
                 placeholder="Ej: 10 mm"
-                className="w-full px-3 py-2 border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-lg bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] text-xs tabular-nums text-graphite-900 dark:text-graphite-50 surgical:text-black focus:ring-2 focus:ring-[#B88E3A]/40"
+                className="w-full px-3 py-2 border border-surface rounded-lg bg-white dark:bg-graphite-800 surgical:bg-graphite-200 text-xs tabular-nums text-graphite-900 dark:text-graphite-50 surgical:text-black focus:ring-2 focus:ring-primary/40"
               />
             </div>
 
@@ -106,7 +106,7 @@ export const FichaImplante = ({ implantes = [], onAgregarImplante, onEliminarImp
                 value={form.torqueInsercion}
                 onChange={(e) => setForm({ ...form, torqueInsercion: e.target.value })}
                 placeholder="35"
-                className="w-full px-3 py-2 border border-sky-200 dark:border-sky-800 rounded-lg bg-sky-50 dark:bg-sky-950/40 font-bold text-sky-900 dark:text-sky-300 surgical:text-black text-xs tabular-nums focus:ring-2 focus:ring-[#B88E3A]/40"
+                className="w-full px-3 py-2 border border-sky-200 dark:border-sky-800 rounded-lg bg-sky-50 dark:bg-sky-950/40 font-bold text-sky-900 dark:text-sky-300 surgical:text-black text-xs tabular-nums focus:ring-2 focus:ring-primary/40"
               />
             </div>
 
@@ -117,7 +117,7 @@ export const FichaImplante = ({ implantes = [], onAgregarImplante, onEliminarImp
                 value={form.isqInicial}
                 onChange={(e) => setForm({ ...form, isqInicial: e.target.value })}
                 placeholder="70"
-                className="w-full px-3 py-2 border border-emerald-200 dark:border-emerald-800 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 font-bold text-emerald-900 dark:text-emerald-300 surgical:text-black text-xs tabular-nums focus:ring-2 focus:ring-[#B88E3A]/40"
+                className="w-full px-3 py-2 border border-emerald-200 dark:border-emerald-800 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 font-bold text-emerald-900 dark:text-emerald-300 surgical:text-black text-xs tabular-nums focus:ring-2 focus:ring-primary/40"
               />
             </div>
 
@@ -128,7 +128,7 @@ export const FichaImplante = ({ implantes = [], onAgregarImplante, onEliminarImp
                 value={form.lote}
                 onChange={(e) => setForm({ ...form, lote: e.target.value })}
                 placeholder="Ej: LOT-98212"
-                className="w-full px-3 py-2 border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-lg bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] text-xs font-mono tabular-nums text-graphite-900 dark:text-graphite-50 surgical:text-black focus:ring-2 focus:ring-[#B88E3A]/40"
+                className="w-full px-3 py-2 border border-surface rounded-lg bg-white dark:bg-graphite-800 surgical:bg-graphite-200 text-xs font-mono tabular-nums text-graphite-900 dark:text-graphite-50 surgical:text-black focus:ring-2 focus:ring-primary/40"
               />
             </div>
           </div>
@@ -139,26 +139,26 @@ export const FichaImplante = ({ implantes = [], onAgregarImplante, onEliminarImp
               rows="2"
               value={form.observacion}
               onChange={(e) => setForm({ ...form, observacion: e.target.value })}
-              className="w-full p-2.5 border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-lg bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] text-xs text-graphite-900 dark:text-graphite-50 surgical:text-black focus:ring-2 focus:ring-[#B88E3A]/40"
+              className="w-full p-2.5 border border-surface rounded-lg bg-white dark:bg-graphite-800 surgical:bg-graphite-200 text-xs text-graphite-900 dark:text-graphite-50 surgical:text-black focus:ring-2 focus:ring-primary/40"
             />
           </div>
 
-          <button type="submit" className="bg-[#B88E3A] hover:bg-[#99732B] dark:bg-[#E5C378] dark:hover:bg-[#B88E3A] text-white dark:text-graphite-950 font-bold px-4 py-2.5 rounded-lg transition-micro shadow-xs cursor-pointer">
+          <button type="submit" className="bg-primary hover:bg-champagne-600 dark:bg-gold-satin dark:hover:bg-primary text-white dark:text-graphite-950 font-bold px-4 py-2.5 rounded-lg transition-micro shadow-xs cursor-pointer">
             + Guardar Registro Quirúrgico de Implante
           </button>
         </form>
       </div>
 
       {/* Historial de Implantes */}
-      <div className="relative overflow-hidden bg-white/90 dark:bg-[#0F172A]/90 surgical:bg-[#F1F5F9] backdrop-blur-md border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-6 shadow-sm before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-[#0EA5E9]/40 before:to-transparent">
-        <h4 className="font-extrabold text-sm text-gray-900 dark:text-graphite-50 surgical:text-black mb-4 border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] pb-3 tracking-tight">Implantes Colocados en el Paciente</h4>
+      <div className="relative overflow-hidden bg-surface/90 backdrop-blur-md border border-surface rounded-2xl p-6 shadow-sm before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-[#0EA5E9]/40 before:to-transparent">
+        <h4 className="font-extrabold text-sm text-gray-900 dark:text-graphite-50 surgical:text-black mb-4 border-b border-surface pb-3 tracking-tight">Implantes Colocados en el Paciente</h4>
         <div className="space-y-3">
           {implantes.map(imp => (
-            <div key={imp.id} className="p-4 bg-slate-50 dark:bg-[#070B14] surgical:bg-[#E2E8F0] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-xl flex justify-between items-start">
+            <div key={imp.id} className="p-4 bg-slate-50 dark:bg-graphite-950 surgical:bg-graphite-200 border border-surface rounded-xl flex justify-between items-start">
               <div>
                 <div className="flex items-center gap-2">
                   <span className="font-extrabold text-sky-900 dark:text-sky-300 surgical:text-black text-sm">Pieza {imp.pieza}</span>
-                  <span className="bg-[#070B14] dark:bg-[#1E293B] text-white text-[10px] font-bold px-2 py-0.5 rounded">{imp.marca}</span>
+                  <span className="bg-graphite-950 dark:bg-graphite-800 text-white text-[10px] font-bold px-2 py-0.5 rounded">{imp.marca}</span>
                   <span className="bg-slate-200 dark:bg-graphite-700 text-gray-800 dark:text-graphite-100 text-[10px] font-semibold px-2 py-0.5 rounded">{imp.plataforma}</span>
                 </div>
                 <p className="text-gray-600 dark:text-graphite-400 surgical:text-black mt-1">

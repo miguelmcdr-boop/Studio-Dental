@@ -39,8 +39,8 @@ export const FichaEndodoncia = ({ endodoncias = [], onAgregarEndodoncia, onElimi
 
   return (
     <div className="space-y-6 text-xs">
-      <div className="relative overflow-hidden bg-white/90 dark:bg-[#0F172A]/90 surgical:bg-[#F1F5F9] backdrop-blur-md border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-6 shadow-sm before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-[#B88E3A]/40 before:to-transparent">
-        <h3 className="font-extrabold text-sm text-gray-900 dark:text-graphite-50 surgical:text-black mb-4 border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] pb-3 uppercase tracking-wider">
+      <div className="relative overflow-hidden bg-surface/90 backdrop-blur-md border border-surface rounded-2xl p-6 shadow-sm before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-[#B88E3A]/40 before:to-transparent">
+        <h3 className="font-extrabold text-sm text-gray-900 dark:text-graphite-50 surgical:text-black mb-4 border-b border-surface pb-3 uppercase tracking-wider">
           <span className="flex items-center gap-1.5"><Icon icon={FlaskConical} size="sm" />Ficha de Endodoncia y Mapa de Conductometría</span>
         </h3>
 
@@ -54,7 +54,7 @@ export const FichaEndodoncia = ({ endodoncias = [], onAgregarEndodoncia, onElimi
                 value={pieza}
                 onChange={(e) => setPieza(e.target.value)}
                 placeholder="Ej: 1.6 / 2.1"
-                className="w-full px-3 py-2 border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-lg bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] text-graphite-900 dark:text-graphite-50 surgical:text-black font-bold focus:ring-2 focus:ring-[#B88E3A]/40"
+                className="w-full px-3 py-2 border border-surface rounded-lg bg-white dark:bg-graphite-800 surgical:bg-graphite-200 text-graphite-900 dark:text-graphite-50 surgical:text-black font-bold focus:ring-2 focus:ring-primary/40"
               />
             </div>
 
@@ -63,7 +63,7 @@ export const FichaEndodoncia = ({ endodoncias = [], onAgregarEndodoncia, onElimi
               <select
                 value={tecnicaObturacion}
                 onChange={(e) => setTecnicaObturacion(e.target.value)}
-                className="w-full px-3 py-2 border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-lg bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] text-graphite-900 dark:text-graphite-50 surgical:text-black focus:ring-2 focus:ring-[#B88E3A]/40"
+                className="w-full px-3 py-2 border border-surface rounded-lg bg-white dark:bg-graphite-800 surgical:bg-graphite-200 text-graphite-900 dark:text-graphite-50 surgical:text-black focus:ring-2 focus:ring-primary/40"
               >
                 {TECNICAS_OBTURACION.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
@@ -74,7 +74,7 @@ export const FichaEndodoncia = ({ endodoncias = [], onAgregarEndodoncia, onElimi
               <select
                 value={sellador}
                 onChange={(e) => setSellador(e.target.value)}
-                className="w-full px-3 py-2 border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-lg bg-white dark:bg-[#1E293B] surgical:bg-[#E2E8F0] text-graphite-900 dark:text-graphite-50 surgical:text-black focus:ring-2 focus:ring-[#B88E3A]/40"
+                className="w-full px-3 py-2 border border-surface rounded-lg bg-white dark:bg-graphite-800 surgical:bg-graphite-200 text-graphite-900 dark:text-graphite-50 surgical:text-black focus:ring-2 focus:ring-primary/40"
               >
                 {SELLADORES_ENDODONTICOS.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
@@ -82,17 +82,17 @@ export const FichaEndodoncia = ({ endodoncias = [], onAgregarEndodoncia, onElimi
           </div>
 
           {/* Tabla de Conductometría */}
-          <div className="border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-xl overflow-x-auto bg-slate-50 dark:bg-[#070B14] surgical:bg-[#E2E8F0] p-3">
+          <div className="border border-surface rounded-xl overflow-x-auto bg-slate-50 dark:bg-graphite-950 surgical:bg-graphite-200 p-3">
             <div className="flex justify-between items-center mb-2">
               <span className="font-bold text-xs text-gray-800 dark:text-graphite-100 surgical:text-black uppercase">Tabla de Conductos y Mediciones (CAD / CRD / LTP)</span>
-              <button type="button" onClick={handleAgregarConducto} className="bg-graphite-900 dark:bg-[#1E293B] text-white px-2.5 py-1 rounded-lg text-[10px] font-bold transition-micro cursor-pointer">
+              <button type="button" onClick={handleAgregarConducto} className="bg-graphite-900 dark:bg-graphite-800 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold transition-micro cursor-pointer">
                 + Agregar Conducto
               </button>
             </div>
 
             <table className="w-full text-left text-[11px] border-collapse">
               <thead>
-                <tr className="border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] text-gray-600 dark:text-graphite-400 surgical:text-black font-bold uppercase">
+                <tr className="border-b border-surface text-gray-600 dark:text-graphite-400 surgical:text-black font-bold uppercase">
                   <th className="p-2">Conducto</th>
                   <th className="p-2">CAD (Rx)</th>
                   <th className="p-2">CRD (Localizador)</th>
@@ -105,13 +105,13 @@ export const FichaEndodoncia = ({ endodoncias = [], onAgregarEndodoncia, onElimi
               </thead>
               <tbody>
                 {conductos.map((c, idx) => (
-                  <tr key={idx} className="border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9]">
+                  <tr key={idx} className="border-b border-surface bg-surface">
                     <td className="p-1">
                       <input
                         type="text"
                         value={c.nombre}
                         onChange={(e) => handleCambiarConducto(idx, 'nombre', e.target.value)}
-                        className="w-16 px-1.5 py-1 border border-[#E2E8F0] dark:border-[#24334A] rounded bg-white dark:bg-[#1E293B] font-bold text-graphite-900 dark:text-graphite-100 surgical:text-black"
+                        className="w-16 px-1.5 py-1 border border-surface rounded bg-white dark:bg-graphite-800 font-bold text-graphite-900 dark:text-graphite-100 surgical:text-black"
                       />
                     </td>
                     <td className="p-1">
@@ -119,7 +119,7 @@ export const FichaEndodoncia = ({ endodoncias = [], onAgregarEndodoncia, onElimi
                         type="text"
                         value={c.cad}
                         onChange={(e) => handleCambiarConducto(idx, 'cad', e.target.value)}
-                        className="w-16 px-1.5 py-1 border border-[#E2E8F0] dark:border-[#24334A] rounded bg-white dark:bg-[#1E293B] tabular-nums text-graphite-900 dark:text-graphite-100 surgical:text-black"
+                        className="w-16 px-1.5 py-1 border border-surface rounded bg-white dark:bg-graphite-800 tabular-nums text-graphite-900 dark:text-graphite-100 surgical:text-black"
                       />
                     </td>
                     <td className="p-1">
@@ -127,7 +127,7 @@ export const FichaEndodoncia = ({ endodoncias = [], onAgregarEndodoncia, onElimi
                         type="text"
                         value={c.crd}
                         onChange={(e) => handleCambiarConducto(idx, 'crd', e.target.value)}
-                        className="w-16 px-1.5 py-1 border border-[#E2E8F0] dark:border-[#24334A] rounded bg-white dark:bg-[#1E293B] tabular-nums text-graphite-900 dark:text-graphite-100 surgical:text-black"
+                        className="w-16 px-1.5 py-1 border border-surface rounded bg-white dark:bg-graphite-800 tabular-nums text-graphite-900 dark:text-graphite-100 surgical:text-black"
                       />
                     </td>
                     <td className="p-1">
@@ -135,7 +135,7 @@ export const FichaEndodoncia = ({ endodoncias = [], onAgregarEndodoncia, onElimi
                         type="text"
                         value={c.ltp}
                         onChange={(e) => handleCambiarConducto(idx, 'ltp', e.target.value)}
-                        className="w-16 px-1.5 py-1 border border-[#E2E8F0] dark:border-[#24334A] rounded bg-white dark:bg-[#1E293B] font-bold tabular-nums text-blue-900 dark:text-sky-300 surgical:text-black"
+                        className="w-16 px-1.5 py-1 border border-surface rounded bg-white dark:bg-graphite-800 font-bold tabular-nums text-blue-900 dark:text-sky-300 surgical:text-black"
                       />
                     </td>
                     <td className="p-1">
@@ -143,7 +143,7 @@ export const FichaEndodoncia = ({ endodoncias = [], onAgregarEndodoncia, onElimi
                         type="text"
                         value={c.referencia}
                         onChange={(e) => handleCambiarConducto(idx, 'referencia', e.target.value)}
-                        className="w-24 px-1.5 py-1 border border-[#E2E8F0] dark:border-[#24334A] rounded bg-white dark:bg-[#1E293B] text-graphite-900 dark:text-graphite-100 surgical:text-black"
+                        className="w-24 px-1.5 py-1 border border-surface rounded bg-white dark:bg-graphite-800 text-graphite-900 dark:text-graphite-100 surgical:text-black"
                       />
                     </td>
                     <td className="p-1">
@@ -151,7 +151,7 @@ export const FichaEndodoncia = ({ endodoncias = [], onAgregarEndodoncia, onElimi
                         type="text"
                         value={c.limaApical}
                         onChange={(e) => handleCambiarConducto(idx, 'limaApical', e.target.value)}
-                        className="w-20 px-1.5 py-1 border border-[#E2E8F0] dark:border-[#24334A] rounded bg-white dark:bg-[#1E293B] font-bold tabular-nums text-emerald-800 dark:text-emerald-400 surgical:text-black"
+                        className="w-20 px-1.5 py-1 border border-surface rounded bg-white dark:bg-graphite-800 font-bold tabular-nums text-emerald-800 dark:text-emerald-400 surgical:text-black"
                       />
                     </td>
                     <td className="p-1">
@@ -159,7 +159,7 @@ export const FichaEndodoncia = ({ endodoncias = [], onAgregarEndodoncia, onElimi
                         type="text"
                         value={c.irrigacion}
                         onChange={(e) => handleCambiarConducto(idx, 'irrigacion', e.target.value)}
-                        className="w-24 px-1.5 py-1 border border-[#E2E8F0] dark:border-[#24334A] rounded bg-white dark:bg-[#1E293B] text-graphite-900 dark:text-graphite-100 surgical:text-black"
+                        className="w-24 px-1.5 py-1 border border-surface rounded bg-white dark:bg-graphite-800 text-graphite-900 dark:text-graphite-100 surgical:text-black"
                       />
                     </td>
                     <td className="p-1 text-right">
@@ -171,26 +171,26 @@ export const FichaEndodoncia = ({ endodoncias = [], onAgregarEndodoncia, onElimi
             </table>
           </div>
 
-          <button type="submit" className="bg-[#B88E3A] hover:bg-[#99732B] dark:bg-[#E5C378] dark:hover:bg-[#B88E3A] text-white dark:text-graphite-950 font-bold px-4 py-2.5 rounded-lg transition-micro shadow-xs cursor-pointer">
+          <button type="submit" className="bg-primary hover:bg-champagne-600 dark:bg-gold-satin dark:hover:bg-primary text-white dark:text-graphite-950 font-bold px-4 py-2.5 rounded-lg transition-micro shadow-xs cursor-pointer">
             + Guardar Registro de Endodoncia
           </button>
         </form>
       </div>
 
       {/* Historial Endodóntico */}
-      <div className="relative overflow-hidden bg-white/90 dark:bg-[#0F172A]/90 surgical:bg-[#F1F5F9] backdrop-blur-md border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-6 shadow-sm before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-[#0EA5E9]/40 before:to-transparent">
-        <h4 className="font-extrabold text-sm text-gray-900 dark:text-graphite-50 surgical:text-black mb-4 border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] pb-3 tracking-tight">Tratamientos de Endodoncia Realizados</h4>
+      <div className="relative overflow-hidden bg-surface/90 backdrop-blur-md border border-surface rounded-2xl p-6 shadow-sm before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-[#0EA5E9]/40 before:to-transparent">
+        <h4 className="font-extrabold text-sm text-gray-900 dark:text-graphite-50 surgical:text-black mb-4 border-b border-surface pb-3 tracking-tight">Tratamientos de Endodoncia Realizados</h4>
         <div className="space-y-3">
           {endodoncias.map(endo => (
-            <div key={endo.id} className="p-4 bg-slate-50 dark:bg-[#070B14] surgical:bg-[#E2E8F0] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-xl flex justify-between items-start">
+            <div key={endo.id} className="p-4 bg-slate-50 dark:bg-graphite-950 surgical:bg-graphite-200 border border-surface rounded-xl flex justify-between items-start">
               <div>
                 <div className="flex items-center gap-2">
                   <span className="font-extrabold text-indigo-900 dark:text-indigo-300 surgical:text-black text-sm">Pieza {endo.pieza}</span>
-                  <span className="bg-[#070B14] dark:bg-[#1E293B] text-white text-[10px] font-bold px-2 py-0.5 rounded">{endo.tecnicaObturacion}</span>
+                  <span className="bg-graphite-950 dark:bg-graphite-800 text-white text-[10px] font-bold px-2 py-0.5 rounded">{endo.tecnicaObturacion}</span>
                   <span className="bg-indigo-100 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-300 text-[10px] font-bold px-2 py-0.5 rounded">{endo.sellador}</span>
                 </div>
                 
-                <div className="mt-2 text-[11px] font-mono tabular-nums bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] p-2 border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded">
+                <div className="mt-2 text-[11px] font-mono tabular-nums bg-surface p-2 border border-surface rounded">
                   {endo.conductos.map((c, i) => (
                     <span key={i} className="inline-block mr-4">
                       <strong>{c.nombre}:</strong> LTP={c.ltp} | Lima={c.limaApical}

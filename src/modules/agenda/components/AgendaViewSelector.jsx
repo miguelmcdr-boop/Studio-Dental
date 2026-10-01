@@ -30,7 +30,7 @@ export const AgendaViewSelector = memo(({
   }
 
   return (
-    <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] p-4 border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl flex justify-between items-center flex-wrap gap-3 text-xs print:hidden">
+    <div className="bg-surface p-4 border border-surface rounded-2xl flex justify-between items-center flex-wrap gap-3 text-xs print:hidden">
       <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
         {/* F7-27: Búsqueda avanzada */}
         <input
@@ -38,7 +38,7 @@ export const AgendaViewSelector = memo(({
           placeholder="Buscar paciente, RUT, tratamiento..."
           value={busquedaLocal}
           onChange={handleBusquedaChange}
-          className="px-3 py-2 border rounded-xl bg-[#F8FAFC] dark:bg-[#070B14] surgical:bg-white border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] font-medium text-xs text-graphite-900 dark:text-graphite-50 surgical:text-black placeholder-graphite-400 min-w-[200px] focus:ring-2 focus:ring-clinical-info focus:border-transparent"
+          className="px-3 py-2 border rounded-xl bg-graphite-50 dark:bg-graphite-950 surgical:bg-white border-surface font-medium text-xs text-graphite-900 dark:text-graphite-50 surgical:text-black placeholder-graphite-400 min-w-[200px] focus:ring-2 focus:ring-clinical-info focus:border-transparent"
           aria-label="Buscar en agenda"
         />
 
@@ -48,11 +48,11 @@ export const AgendaViewSelector = memo(({
             type="date"
             value={fechaSeleccionadaIso}
             onChange={(e) => setFechaSeleccionadaIso(e.target.value)}
-            className="p-2 border rounded-xl bg-[#F8FAFC] dark:bg-[#070B14] surgical:bg-white border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] font-bold text-xs text-graphite-900 dark:text-graphite-50 surgical:text-black"
+            className="p-2 border rounded-xl bg-graphite-50 dark:bg-graphite-950 surgical:bg-white border-surface font-bold text-xs text-graphite-900 dark:text-graphite-50 surgical:text-black"
           />
           <button
             onClick={handleHoy}
-            className="px-3 py-2 bg-[#F8FAFC] dark:bg-[#070B14] surgical:bg-white border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-xl font-bold hover:bg-gray-100 dark:hover:bg-graphite-800 text-gray-800 dark:text-graphite-100 surgical:text-black transition-colors duration-150"
+            className="px-3 py-2 bg-graphite-50 dark:bg-graphite-950 surgical:bg-white border border-surface rounded-xl font-bold hover:bg-gray-100 dark:hover:bg-graphite-800 text-gray-800 dark:text-graphite-100 surgical:text-black transition-colors duration-150"
           >
             Hoy
           </button>
@@ -63,7 +63,7 @@ export const AgendaViewSelector = memo(({
           <select
             value={boxFiltro}
             onChange={(e) => setBoxFiltro(e.target.value)}
-            className="p-2 border rounded-xl bg-[#F8FAFC] dark:bg-[#070B14] surgical:bg-white border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] font-bold text-xs text-graphite-900 dark:text-graphite-50 surgical:text-black"
+            className="p-2 border rounded-xl bg-graphite-50 dark:bg-graphite-950 surgical:bg-white border-surface font-bold text-xs text-graphite-900 dark:text-graphite-50 surgical:text-black"
           >
             <option value="Todos">Todos los Boxes Sillones</option>
             {BOXES_DENTALES.map(b => (
@@ -78,7 +78,7 @@ export const AgendaViewSelector = memo(({
             <select
               value={doctorFiltro}
               onChange={(e) => setDoctorFiltro(e.target.value)}
-              className="p-2 border rounded-xl bg-[#F8FAFC] dark:bg-[#070B14] surgical:bg-white border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] font-bold text-xs text-graphite-900 dark:text-graphite-50 surgical:text-black"
+              className="p-2 border rounded-xl bg-graphite-50 dark:bg-graphite-950 surgical:bg-white border-surface font-bold text-xs text-graphite-900 dark:text-graphite-50 surgical:text-black"
             >
               <option value="Todos">Todos los Odontólogos</option>
               {doctoresDisponibles.map(doc => (
@@ -96,7 +96,7 @@ export const AgendaViewSelector = memo(({
           <select
             value={vista}
             onChange={(e) => setVista && setVista(e.target.value)}
-            className="p-2 border rounded-xl bg-[#F8FAFC] dark:bg-[#070B14] surgical:bg-white border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] font-bold text-xs text-graphite-900 dark:text-graphite-50 surgical:text-black"
+            className="p-2 border rounded-xl bg-graphite-50 dark:bg-graphite-950 surgical:bg-white border-surface font-bold text-xs text-graphite-900 dark:text-graphite-50 surgical:text-black"
             aria-label="Seleccionar vista de agenda"
           >
             <option value="box">Por Box</option>
@@ -109,7 +109,7 @@ export const AgendaViewSelector = memo(({
           <button
             type="button"
             onClick={onExportarCSV}
-            className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#F8FAFC] dark:bg-[#070B14] surgical:bg-white border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-xl font-bold text-xs text-gray-800 dark:text-graphite-100 surgical:text-black hover:bg-gray-50 dark:hover:bg-graphite-800 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-2 bg-graphite-50 dark:bg-graphite-950 surgical:bg-white border border-surface rounded-xl font-bold text-xs text-gray-800 dark:text-graphite-100 surgical:text-black hover:bg-gray-50 dark:hover:bg-graphite-800 transition-colors"
             aria-label="Exportar agenda a CSV"
           >
             <Download size={12} />

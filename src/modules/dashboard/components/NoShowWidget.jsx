@@ -34,8 +34,8 @@ export const NoShowWidget = memo(({ citas = [] }) => {
 
   if (!citas || citas.length === 0) {
     return (
-      <div className="relative overflow-hidden bg-white/90 dark:bg-[#0F172A]/90 surgical:bg-[#F1F5F9] backdrop-blur-md border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-6 text-center before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-amber-500/40 before:to-transparent">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-100 dark:bg-[#1E293B] text-slate-500 dark:text-slate-400 mb-3">
+      <div className="relative overflow-hidden bg-surface/90 backdrop-blur-md border border-surface rounded-2xl p-6 text-center before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-amber-500/40 before:to-transparent">
+        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-100 dark:bg-graphite-800 text-slate-500 dark:text-slate-400 mb-3">
           <AlertCircle size={22} />
         </div>
         <h4 className="text-sm font-bold text-graphite-800 dark:text-graphite-100 mb-1">
@@ -49,13 +49,13 @@ export const NoShowWidget = memo(({ citas = [] }) => {
   }
 
   return (
-    <div className="relative overflow-hidden bg-white/90 dark:bg-[#0F172A]/90 surgical:bg-[#F1F5F9] backdrop-blur-md border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-5 shadow-sm before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-rose-500/40 before:to-transparent" role="region" aria-label="Métricas de no-show y cancelaciones">
-      <div className="flex items-center justify-between mb-4 border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] pb-3">
+    <div className="relative overflow-hidden bg-surface/90 backdrop-blur-md border border-surface rounded-2xl p-5 shadow-sm before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-rose-500/40 before:to-transparent" role="region" aria-label="Métricas de no-show y cancelaciones">
+      <div className="flex items-center justify-between mb-4 border-b border-surface pb-3">
         <h3 className="text-sm font-extrabold text-graphite-900 dark:text-graphite-50 flex items-center gap-2 tracking-tight">
           <AlertCircle size={16} className="text-amber-500" />
           No-Show y Cancelaciones
         </h3>
-        <span className="text-[10px] font-bold text-graphite-600 dark:text-graphite-300 bg-slate-100 dark:bg-[#1E293B] surgical:bg-[#E2E8F0] px-2.5 py-0.5 rounded-full border border-[#E2E8F0] dark:border-[#24334A] tabular-nums">
+        <span className="text-[10px] font-bold text-graphite-600 dark:text-graphite-300 bg-slate-100 dark:bg-graphite-800 surgical:bg-graphite-200 px-2.5 py-0.5 rounded-full border border-surface tabular-nums">
           {metricas.totalCitas} citas totales
         </span>
       </div>
@@ -104,7 +104,7 @@ export const NoShowWidget = memo(({ citas = [] }) => {
               {100 - metricas.tasaNoShow - metricas.tasaCancelaciones}%
             </span>
           </div>
-          <div className="w-full bg-slate-100 dark:bg-[#1E293B] surgical:bg-[#CBD5E1] rounded-full h-2 overflow-hidden">
+          <div className="w-full bg-slate-100 dark:bg-graphite-800 surgical:bg-graphite-300 rounded-full h-2 overflow-hidden">
             <div
               className="bg-gradient-to-r from-emerald-500 to-emerald-400 h-2 rounded-full transition-all duration-300"
               style={{ width: `${100 - metricas.tasaNoShow - metricas.tasaCancelaciones}%` }}

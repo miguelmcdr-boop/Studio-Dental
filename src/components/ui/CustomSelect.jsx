@@ -149,13 +149,13 @@ export const CustomSelect = ({
           className={`
             w-full flex items-center justify-between gap-2
             px-3 py-2.5 rounded-lg border
-            bg-white dark:bg-graphite-900
+            bg-surface
             text-sm font-medium
             text-graphite-900 dark:text-graphite-50
             transition-all duration-200
             focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-graphite-900
             ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-            ${isOpen ? 'border-primary ring-2 ring-primary/20' : 'border-[#E2E8F0] dark:border-[#24334A]'}
+            ${isOpen ? 'border-primary ring-2 ring-primary/20' : 'border-surface'}
             ${className}
           `.trim().replace(/\s+/g, ' ')}
         >
@@ -181,7 +181,7 @@ export const CustomSelect = ({
             id={listboxId}
             role="listbox"
             aria-labelledby={label ? `${baseId}-trigger` : undefined}
-            className="absolute z-50 mt-1 w-full bg-white dark:bg-graphite-800 border border-[#E2E8F0] dark:border-[#24334A] rounded-lg shadow-lg overflow-hidden max-h-60 overflow-y-auto"
+            className="absolute z-50 mt-1 w-full bg-surface dark:bg-graphite-800 border border-surface rounded-lg shadow-lg overflow-hidden max-h-60 overflow-y-auto"
           >
             {options.map((option, idx) => {
               const isSelected = option.value === value

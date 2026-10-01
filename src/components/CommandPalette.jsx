@@ -89,12 +89,12 @@ export const CommandPalette = ({
     >
       <div
         ref={dialogRef}
-        className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[60vh] overflow-hidden border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] transition-standard zoom-in-95"
+        className="bg-surface rounded-2xl shadow-2xl w-full max-w-2xl max-h-[60vh] overflow-hidden border border-surface transition-standard zoom-in-95"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Input de búsqueda */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] focus-within:ring-2 focus-within:ring-[#B88E3A]/30">
-          <Search size={20} className="text-[#B88E3A] dark:text-[#E5C378]" />
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-surface focus-within:ring-2 focus-within:ring-primary/30">
+          <Search size={20} className="text-primary" />
           <input
             ref={inputRef}
             type="text"
@@ -107,7 +107,7 @@ export const CommandPalette = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-[#1E293B] surgical:hover:bg-slate-200 text-graphite-400 dark:text-graphite-500 transition-micro"
+            className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-graphite-800 surgical:hover:bg-slate-200 text-graphite-400 dark:text-graphite-500 transition-micro"
             aria-label="Cerrar"
           >
             <Icon icon={X} size="sm" />
@@ -125,7 +125,7 @@ export const CommandPalette = ({
           {/* Pacientes */}
           {pacientesFiltrados.length > 0 && (
             <div>
-              <div className="px-4 py-2 text-xs font-semibold text-graphite-500 dark:text-graphite-400 surgical:text-black uppercase tracking-wider bg-slate-50 dark:bg-[#070B14] surgical:bg-[#E2E8F0]">
+              <div className="px-4 py-2 text-xs font-semibold text-graphite-500 dark:text-graphite-400 surgical:text-black uppercase tracking-wider bg-surface-muted surgical:bg-graphite-200">
                 Pacientes
               </div>
               {pacientesFiltrados.map((paciente) => {
@@ -137,8 +137,8 @@ export const CommandPalette = ({
                     onClick={onSelect}
                     className={`w-full px-4 py-3 flex items-center gap-3 text-left transition-micro ${
                       idx === selectedIndex
-                        ? 'bg-[#FFF5DF] text-[#7A591F] dark:bg-[#1E293B] dark:text-[#E5C378] surgical:bg-[#CBD5E1] surgical:text-black font-semibold'
-                        : 'hover:bg-slate-50 dark:hover:bg-[#1E293B]/50 surgical:hover:bg-[#E2E8F0]'
+                        ? 'bg-gold-light text-champagne-700 dark:bg-graphite-800 dark:text-gold-satin surgical:bg-graphite-300 surgical:text-black font-semibold'
+                        : 'hover:bg-slate-50 dark:hover:bg-graphite-800/50 surgical:hover:bg-graphite-200'
                     }`}
                   >
                     <User size={24} className="text-graphite-600 dark:text-graphite-400 surgical:text-black" />
@@ -149,7 +149,7 @@ export const CommandPalette = ({
                       <div className="text-xs text-graphite-500 dark:text-graphite-400 surgical:text-black truncate flex items-center gap-2">
                         <span className="tabular-nums">{paciente.rut}</span>
                         {recientesIds.has(paciente.id) && (
-                          <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#FFF5DF] text-[#7A591F] dark:bg-[#1E293B] dark:text-[#E5C378] uppercase tracking-wider">
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-gold-light text-champagne-700 dark:bg-graphite-800 dark:text-gold-satin uppercase tracking-wider">
                             Reciente
                           </span>
                         )}
@@ -164,7 +164,7 @@ export const CommandPalette = ({
           {/* Módulos */}
           {modulosFiltrados.length > 0 && (
             <div>
-              <div className="px-4 py-2 text-xs font-semibold text-graphite-500 dark:text-graphite-400 surgical:text-black uppercase tracking-wider bg-slate-50 dark:bg-[#070B14] surgical:bg-[#E2E8F0]">
+              <div className="px-4 py-2 text-xs font-semibold text-graphite-500 dark:text-graphite-400 surgical:text-black uppercase tracking-wider bg-surface-muted surgical:bg-graphite-200">
                 Módulos
               </div>
               {modulosFiltrados.map((modulo) => {
@@ -177,8 +177,8 @@ export const CommandPalette = ({
                     onClick={onSelect}
                     className={`w-full px-4 py-3 flex items-center gap-3 text-left transition-micro ${
                       idx === selectedIndex
-                        ? 'bg-[#FFF5DF] text-[#7A591F] dark:bg-[#1E293B] dark:text-[#E5C378] surgical:bg-[#CBD5E1] surgical:text-black font-semibold'
-                        : 'hover:bg-slate-50 dark:hover:bg-[#1E293B]/50 surgical:hover:bg-[#E2E8F0]'
+                        ? 'bg-gold-light text-champagne-700 dark:bg-graphite-800 dark:text-gold-satin surgical:bg-graphite-300 surgical:text-black font-semibold'
+                        : 'hover:bg-slate-50 dark:hover:bg-graphite-800/50 surgical:hover:bg-graphite-200'
                     }`}
                   >
                     <Icon icon={IconComponent} size="md" />
@@ -196,7 +196,7 @@ export const CommandPalette = ({
           {/* Acciones rápidas */}
           {accionesRapidas.length > 0 && (
             <div>
-              <div className="px-4 py-2 text-xs font-semibold text-graphite-500 dark:text-graphite-400 surgical:text-black uppercase tracking-wider bg-slate-50 dark:bg-[#070B14] surgical:bg-[#E2E8F0]">
+              <div className="px-4 py-2 text-xs font-semibold text-graphite-500 dark:text-graphite-400 surgical:text-black uppercase tracking-wider bg-surface-muted surgical:bg-graphite-200">
                 Acciones rápidas
               </div>
               {accionesRapidas.map((accion) => {
@@ -208,8 +208,8 @@ export const CommandPalette = ({
                     onClick={onSelect}
                     className={`w-full px-4 py-3 flex items-center gap-3 text-left transition-micro ${
                       idx === selectedIndex
-                        ? 'bg-[#FFF5DF] text-[#7A591F] dark:bg-[#1E293B] dark:text-[#E5C378] surgical:bg-[#CBD5E1] surgical:text-black font-semibold'
-                        : 'hover:bg-slate-50 dark:hover:bg-[#1E293B]/50 surgical:hover:bg-[#E2E8F0]'
+                        ? 'bg-gold-light text-champagne-700 dark:bg-graphite-800 dark:text-gold-satin surgical:bg-graphite-300 surgical:text-black font-semibold'
+                        : 'hover:bg-slate-50 dark:hover:bg-graphite-800/50 surgical:hover:bg-graphite-200'
                     }`}
                   >
                     {(() => {
@@ -230,7 +230,7 @@ export const CommandPalette = ({
         </div>
 
         {/* Footer con hint de atajos */}
-        <div className="px-4 py-2 border-t border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] bg-slate-50 dark:bg-[#070B14] surgical:bg-[#E2E8F0] flex items-center gap-4 text-xs text-graphite-500 dark:text-graphite-400 surgical:text-black">
+        <div className="px-4 py-2 border-t border-surface bg-surface-muted surgical:bg-graphite-200 flex items-center gap-4 text-xs text-graphite-500 dark:text-graphite-400 surgical:text-black">
           <span>↑↓ navegar</span>
           <span>↵ seleccionar</span>
           <span>esc cerrar</span>

@@ -44,8 +44,8 @@ const TareaCard = ({ tarea, completada, onToggle, onNavegar }) => {
     <div
       className={`p-3 rounded-xl border transition-all duration-150 ${
         completada
-          ? 'bg-slate-50/50 dark:bg-[#1E293B]/30 border-[#E2E8F0] dark:border-[#24334A] opacity-60'
-          : 'bg-white/90 dark:bg-[#1E293B]/80 surgical:bg-[#E2E8F0] border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] hover:shadow-xs'
+          ? 'bg-slate-50/50 dark:bg-graphite-800/30 border-surface opacity-60'
+          : 'bg-white/90 dark:bg-graphite-800/80 surgical:bg-graphite-200 border-surface hover:shadow-xs'
       }`}
     >
       <div className="flex items-start gap-2.5">
@@ -81,7 +81,7 @@ const TareaCard = ({ tarea, completada, onToggle, onNavegar }) => {
           <button
             type="button"
             onClick={() => onNavegar(tarea)}
-            className="flex-shrink-0 text-slate-400 hover:text-[#B88E3A] dark:hover:text-[#E5C378] transition-colors p-1"
+            className="flex-shrink-0 text-slate-400 hover:text-primary dark:hover:text-gold-satin transition-colors p-1"
             aria-label={`Ir a ${tarea.titulo}`}
           >
             <ArrowRight size={14} />
@@ -112,7 +112,7 @@ export const TareasClinicasWidget = memo(({ tareas = [], onNavegarTarea }) => {
 
   if (!tareas || tareas.length === 0) {
     return (
-      <div className="relative overflow-hidden bg-white/90 dark:bg-[#0F172A]/90 surgical:bg-[#F1F5F9] backdrop-blur-md border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-6 text-center before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-emerald-500/40 before:to-transparent">
+      <div className="relative overflow-hidden bg-surface/90 backdrop-blur-md border border-surface rounded-2xl p-6 text-center before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-emerald-500/40 before:to-transparent">
         <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50 mb-3">
           <CheckCircle size={22} />
         </div>
@@ -127,10 +127,10 @@ export const TareasClinicasWidget = memo(({ tareas = [], onNavegarTarea }) => {
   }
 
   return (
-    <div className="relative overflow-hidden bg-white/90 dark:bg-[#0F172A]/90 surgical:bg-[#F1F5F9] backdrop-blur-md border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-5 shadow-sm before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-[#B88E3A]/40 before:to-transparent" role="region" aria-label="Tareas clínicas pendientes">
-      <div className="flex items-center justify-between mb-4 border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] pb-3">
+    <div className="relative overflow-hidden bg-surface/90 backdrop-blur-md border border-surface rounded-2xl p-5 shadow-sm before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-[#B88E3A]/40 before:to-transparent" role="region" aria-label="Tareas clínicas pendientes">
+      <div className="flex items-center justify-between mb-4 border-b border-surface pb-3">
         <h3 className="text-sm font-extrabold text-graphite-900 dark:text-graphite-50 flex items-center gap-2 tracking-tight">
-          <Stethoscope size={16} className="text-[#B88E3A]" />
+          <Stethoscope size={16} className="text-primary" />
           Tareas Clínicas Pendientes
         </h3>
         <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/50 tabular-nums">

@@ -77,11 +77,11 @@ export const Input = forwardRef(({
   const inputClasses = `
     w-full
     ${sizeStyle}
-    bg-white dark:bg-graphite-900
+    bg-surface
     border
     ${hasError
       ? 'border-clinical-error focus:border-clinical-error focus:ring-clinical-error/20'
-      : 'border-[#E2E8F0] dark:border-[#24334A] focus:border-primary focus:ring-primary/20'
+      : 'border-surface focus:border-primary focus:ring-primary/20'
     }
     rounded-lg
     text-graphite-900 dark:text-graphite-50

@@ -36,7 +36,7 @@ export const GestionMiembrosModulo = () => {
     <div className="p-8 max-w-6xl mx-auto">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-graphite-900 dark:text-graphite-50 surgical:text-black mb-2 inline-flex items-center gap-3">
-          <UsersRound size={28} className="text-[#B88E3A]" />
+          <UsersRound size={28} className="text-primary" />
           Gestión de Miembros
         </h1>
         <p className="text-graphite-600 dark:text-graphite-400 surgical:text-graphite-800">
@@ -56,7 +56,7 @@ export const GestionMiembrosModulo = () => {
         </div>
       )}
 
-      <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] rounded-lg shadow-sm border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] p-6 mb-8">
+      <div className="bg-surface rounded-lg shadow-sm border border-surface p-6 mb-8">
         <h2 className="text-xl font-semibold text-graphite-900 dark:text-graphite-50 surgical:text-black mb-4">Invitar Nuevo Miembro</h2>
         <form onSubmit={handleInvitar} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -64,14 +64,14 @@ export const GestionMiembrosModulo = () => {
               <label htmlFor="email" className="block text-sm font-medium text-graphite-700 dark:text-graphite-300 surgical:text-graphite-900 mb-1">Email</label>
               <input type="email" id="email" value={emailInvitar} onChange={(e) => setEmailInvitar(e.target.value)}
                 placeholder="ejemplo@clinica.com" required
-                className="w-full px-3 py-2 border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] bg-white dark:bg-[#070B14] surgical:bg-[#E2E8F0] text-graphite-900 dark:text-graphite-100 surgical:text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B88E3A]/40 focus:border-[#B88E3A]"
+                className="w-full px-3 py-2 border border-surface bg-white dark:bg-graphite-950 surgical:bg-graphite-200 text-graphite-900 dark:text-graphite-100 surgical:text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
                 disabled={invitando} />
             </div>
 
             <div>
               <label htmlFor="rol" className="block text-sm font-medium text-graphite-700 dark:text-graphite-300 surgical:text-graphite-900 mb-1">Rol</label>
               <select id="rol" value={rolInvitar} onChange={(e) => setRolInvitar(e.target.value)}
-                className="w-full px-3 py-2 border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] bg-white dark:bg-[#070B14] surgical:bg-[#E2E8F0] text-graphite-900 dark:text-graphite-100 surgical:text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B88E3A]/40 focus:border-[#B88E3A]"
+                className="w-full px-3 py-2 border border-surface bg-white dark:bg-graphite-950 surgical:bg-graphite-200 text-graphite-900 dark:text-graphite-100 surgical:text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
                 disabled={invitando}>
                 {rolesDisponibles.map((rol) => (
                   <option key={rol.key} value={rol.value}>{rol.nombre}</option>
@@ -85,15 +85,15 @@ export const GestionMiembrosModulo = () => {
               {rolesDisponibles.find(r => r.value === rolInvitar)?.descripcion}
             </div>
             <button type="submit" disabled={invitando || !emailInvitar}
-              className="px-6 py-2 bg-[#B88E3A] hover:bg-[#99732B] dark:bg-[#E5C378] dark:hover:bg-[#B88E3A] text-white dark:text-graphite-950 font-medium rounded-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+              className="px-6 py-2 bg-primary hover:bg-champagne-600 dark:bg-gold-satin dark:hover:bg-primary text-white dark:text-graphite-950 font-medium rounded-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
               {invitando ? 'Invitando...' : 'Enviar Invitación'}
             </button>
           </div>
         </form>
       </div>
 
-      <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] rounded-lg shadow-sm border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] mb-8 overflow-hidden">
-        <div className="p-6 border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569]">
+      <div className="bg-surface rounded-lg shadow-sm border border-surface mb-8 overflow-hidden">
+        <div className="p-6 border-b border-surface">
           <h2 className="text-xl font-semibold text-graphite-900 dark:text-graphite-50 surgical:text-black">
             Miembros Actuales (<span className="tabular-nums">{miembros.length}</span>)
           </h2>
@@ -104,16 +104,16 @@ export const GestionMiembrosModulo = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-slate-50 dark:bg-[#1E293B] surgical:bg-[#E2E8F0] border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569]">
+              <thead className="bg-surface-elevated border-b border-surface">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-graphite-600 dark:text-graphite-300 surgical:text-graphite-900 uppercase tracking-wider">Email</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-graphite-600 dark:text-graphite-300 surgical:text-graphite-900 uppercase tracking-wider">Rol</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-graphite-600 dark:text-graphite-300 surgical:text-graphite-900 uppercase tracking-wider">Estado</th>
                 </tr>
               </thead>
-              <tbody className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] divide-y divide-[#E2E8F0] dark:divide-[#24334A] surgical:divide-[#475569]">
+              <tbody className="bg-surface divide-y divide-surface">
                 {miembros.map((miembro) => (
-                  <tr key={miembro.id || miembro.user_id} className="hover:bg-slate-50 dark:hover:bg-[#1E293B]/60 surgical:hover:bg-[#E2E8F0]">
+                  <tr key={miembro.id || miembro.user_id} className="hover:bg-slate-50 dark:hover:bg-graphite-800/60 surgical:hover:bg-graphite-200">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-graphite-900 dark:text-graphite-50 surgical:text-black">{miembro.email || 'N/A'}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/50">
@@ -137,8 +137,8 @@ export const GestionMiembrosModulo = () => {
         )}
       </div>
 
-      <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] rounded-lg shadow-sm border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] overflow-hidden">
-        <div className="p-6 border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569]">
+      <div className="bg-surface rounded-lg shadow-sm border border-surface overflow-hidden">
+        <div className="p-6 border-b border-surface">
           <h2 className="text-xl font-semibold text-graphite-900 dark:text-graphite-50 surgical:text-black">
             Invitaciones Pendientes (<span className="tabular-nums">{invitacionesPendientes.length}</span>)
           </h2>
@@ -149,7 +149,7 @@ export const GestionMiembrosModulo = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-slate-50 dark:bg-[#1E293B] surgical:bg-[#E2E8F0] border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569]">
+              <thead className="bg-surface-elevated border-b border-surface">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-graphite-600 dark:text-graphite-300 surgical:text-graphite-900 uppercase tracking-wider">Email</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-graphite-600 dark:text-graphite-300 surgical:text-graphite-900 uppercase tracking-wider">Rol</th>
@@ -158,9 +158,9 @@ export const GestionMiembrosModulo = () => {
                   <th className="px-6 py-3 text-left text-xs font-semibold text-graphite-600 dark:text-graphite-300 surgical:text-graphite-900 uppercase tracking-wider">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] divide-y divide-[#E2E8F0] dark:divide-[#24334A] surgical:divide-[#475569]">
+              <tbody className="bg-surface divide-y divide-surface">
                 {invitacionesPendientes.map((invitacion) => (
-                  <tr key={invitacion.id} className="hover:bg-slate-50 dark:hover:bg-[#1E293B]/60 surgical:hover:bg-[#E2E8F0]">
+                  <tr key={invitacion.id} className="hover:bg-slate-50 dark:hover:bg-graphite-800/60 surgical:hover:bg-graphite-200">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-graphite-900 dark:text-graphite-50 surgical:text-black">{invitacion.email}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/50">
@@ -177,7 +177,7 @@ export const GestionMiembrosModulo = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
                       <button onClick={() => handleCopiarLink(invitacion.token)} 
-                        className="text-[#B88E3A] hover:text-[#99732B] dark:text-[#E5C378] transition-colors"
+                        className="text-primary hover:text-champagne-600 dark:text-gold-satin transition-colors"
                         title="Copiar link de invitación">
                         {urlCopiada === invitacion.token ? '✓ Copiado' : 'Copiar Link'}
                       </button>

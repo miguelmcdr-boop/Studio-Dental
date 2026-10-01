@@ -250,7 +250,7 @@ function App() {
       <ToastContainer />
       <AppDialogProvider />
       <CommandPalette {...commandPalette} />
-      <div className="min-h-screen flex flex-col bg-canvas dark:bg-[#070B14] surgical:bg-[#CBD5E1] text-primary-surface font-sans">
+      <div className="min-h-screen flex flex-col bg-canvas text-primary-surface font-sans">
         <TopBar
           userProfile={userProfile}
           onLogout={handleLogout}

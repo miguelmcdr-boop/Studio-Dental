@@ -120,13 +120,13 @@ export const FichaPacienteModulo = memo(({
       <ResumenClinicoHeader metricas={metricasClinicas} onNavegarTab={handleNavegarTab} />
 
       {/* Banner de Datos Principales del Paciente */}
-      <div className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-2xl p-4 sm:p-6 mb-6 flex flex-col lg:flex-row justify-between items-start gap-4 print:hidden">
+      <div className="bg-surface border border-surface rounded-2xl p-4 sm:p-6 mb-6 flex flex-col lg:flex-row justify-between items-start gap-4 print:hidden">
         <div>
           <div className="flex items-center gap-3">
             <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-graphite-50 surgical:text-black">{paciente.nombre}</h2>
             <button
               onClick={() => setMostrarEditarDatos(true)}
-              className="text-xs bg-[#F8FAFC] dark:bg-[#070B14] surgical:bg-white border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] text-graphite-800 dark:text-graphite-200 surgical:text-black font-semibold px-2.5 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-graphite-800 cursor-pointer"
+              className="text-xs bg-graphite-50 dark:bg-graphite-950 surgical:bg-white border border-surface text-graphite-800 dark:text-graphite-200 surgical:text-black font-semibold px-2.5 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-graphite-800 cursor-pointer"
             >
               <span className="inline-flex items-center gap-1"><Pencil size={12} />Editar Datos</span>
             </button>
@@ -144,13 +144,13 @@ export const FichaPacienteModulo = memo(({
           </div>
         </div>
 
-        <div className="bg-clinical-error/10 text-clinical-error dark:text-red-300 border border-clinical-error/20 dark:border-red-400/30 surgical:bg-white surgical:text-black surgical:border-[#475569] px-3 py-2 rounded-xl text-xs font-semibold w-full lg:w-auto" role="alert" aria-live="polite">
+        <div className="bg-clinical-error/10 text-clinical-error dark:text-red-300 border border-clinical-error/20 dark:border-red-400/30 surgical:bg-white surgical:text-black surgical:border-graphite-600 px-3 py-2 rounded-xl text-xs font-semibold w-full lg:w-auto" role="alert" aria-live="polite">
           <span className="inline-flex items-center gap-1"><AlertTriangle size={12} />Alertas: {fichaData.alergias || 'Sin alergias registradas'}</span>
         </div>
       </div>
 
       {/* Navegación por Pestañas */}
-      <div className="flex gap-2 border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] mb-6 overflow-x-auto print:hidden" role="tablist" aria-label="Secciones de la ficha clínica">
+      <div className="flex gap-2 border-b border-surface mb-6 overflow-x-auto print:hidden" role="tablist" aria-label="Secciones de la ficha clínica">
         {TABS_FICHA_PACIENTE.map(tab => (
           <button
             key={tab}
@@ -158,7 +158,7 @@ export const FichaPacienteModulo = memo(({
             role="tab"
             aria-selected={tabActiva === tab}
             aria-controls={`panel-${tab.replace(/\s+/g, '-')}`}
-            className={`px-3 sm:px-4 py-2.5 text-xs font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer rounded-t-lg ${tabActiva === tab ? 'bg-[#FFF5DF] text-[#7A591F] border-[#B88E3A] dark:bg-[#0F172A] dark:text-gold-satin dark:border-gold-satin surgical:bg-white surgical:text-black surgical:border-black' : 'border-transparent text-gray-500 dark:text-graphite-400 hover:text-gray-800 dark:hover:text-graphite-200'}`}
+            className={`px-3 sm:px-4 py-2.5 text-xs font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer rounded-t-lg ${tabActiva === tab ? 'bg-gold-light text-champagne-700 border-primary dark:bg-surface dark:text-gold-satin dark:border-gold-satin surgical:bg-white surgical:text-black surgical:border-black' : 'border-transparent text-gray-500 dark:text-graphite-400 hover:text-gray-800 dark:hover:text-graphite-200'}`}
           >
             {tab}
           </button>

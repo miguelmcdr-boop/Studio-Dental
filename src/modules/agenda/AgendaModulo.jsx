@@ -149,7 +149,7 @@ export const AgendaModulo = memo(({ alSeleccionarPaciente, alVerFichaPaciente })
 
       {/* F7-27: Renderizado condicional de vistas de agenda */}
       {vista === 'box' && (
-        <div className="bg-canvas dark:bg-[#070B14] surgical:bg-[#CBD5E1] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-xl p-4 md:p-6" role="region" aria-label="Parrilla de sillones dentales">
+        <div className="bg-canvas dark:bg-graphite-950 surgical:bg-graphite-300 border border-surface rounded-xl p-4 md:p-6" role="region" aria-label="Parrilla de sillones dentales">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {boxesAMostrar.map(box => {
               const citasBox = citasDelDia.filter(
@@ -157,9 +157,9 @@ export const AgendaModulo = memo(({ alSeleccionarPaciente, alVerFichaPaciente })
               )
 
               return (
-                <div key={box.id} className="bg-white dark:bg-[#0F172A] surgical:bg-[#F1F5F9] border border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] rounded-lg p-4 space-y-4 flex flex-col justify-between">
+                <div key={box.id} className="bg-surface border border-surface rounded-lg p-4 space-y-4 flex flex-col justify-between">
                   <div className="space-y-3">
-                    <div className="flex justify-between items-center border-b border-[#E2E8F0] dark:border-[#24334A] surgical:border-[#475569] pb-2">
+                    <div className="flex justify-between items-center border-b border-surface pb-2">
                       <div>
                         <h3 className="font-semibold text-xs text-graphite-900 dark:text-graphite-50 surgical:text-black uppercase tracking-wider">
                           {box.nombre}
