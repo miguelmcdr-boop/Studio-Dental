@@ -3,6 +3,8 @@
 
 /* F7-25: forzar dark: a depender de clase .dark (no de prefers-color-scheme del OS) */
 @custom-variant dark (&:where(.dark, .dark *));
+/* Modo quirúrgico DentikOS (.theme-surgical) */
+@custom-variant surgical (&:where(.theme-surgical, .theme-surgical *));
 
 /* Configuración global de impresión - Formato Letter (8.5" x 11") */
 @media print {

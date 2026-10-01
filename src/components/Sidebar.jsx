@@ -17,6 +17,7 @@ import { useRBAC } from '../hooks/useRBAC'
 import { ConnectionIndicator } from './ConnectionIndicator'
 import { Icon } from './Icon'
 import { Badge } from './ui/Badge'
+import { DentikOSLogo } from './brand/DentikOSLogo'
 import { SECCIONES_SIDEBAR } from '../constants/sidebarConstants'
 
 export const Sidebar = ({ userProfile, activeSection, setActiveSection, onLogout, counters = {} }) => {
@@ -85,11 +86,12 @@ export const Sidebar = ({ userProfile, activeSection, setActiveSection, onLogout
       <div>
         {/* Logo + toggle de colapso */}
         <div className="flex items-center justify-between mb-6 px-2">
-          <div className={`${colapsado ? 'mx-auto' : ''} flex items-center gap-3`}>
-            <div className="w-9 h-9 bg-primary rounded-full flex items-center justify-center font-bold text-base text-white">C</div>
-            {!colapsado && (
-              <span className="font-bold text-base text-graphite-800 dark:text-graphite-50">Consulta</span>
-            )}
+          <div className={`${colapsado ? 'mx-auto' : ''} flex items-center`}>
+            <DentikOSLogo
+              variant={colapsado ? 'icon-only' : 'horizontal'}
+              size={colapsado ? 'sm' : 'sm'}
+              opticalSize={colapsado ? 'micro' : 'standard'}
+            />
           </div>
 
           <button

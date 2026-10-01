@@ -11,6 +11,7 @@ import { obtenerRolPorDefecto } from '../services/rbacService'
 import { createLogger } from '../services/logger.js'
 import { Button } from './ui/Button'
 import { Input } from './ui/Input'
+import { DentikOSLogo } from './brand/DentikOSLogo'
 import { Lock } from 'lucide-react'
 
 const log = createLogger('LoginScreen')
@@ -112,9 +113,8 @@ export const LoginScreen = ({ onLogin }) => {
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-graphite-800 flex items-center justify-center p-4 print:hidden" role="main" aria-label="Pantalla de autenticación">
       <div className="bg-white dark:bg-graphite-800 p-8 rounded-2xl shadow-sm border border-gray-200 dark:border-graphite-700 w-full max-w-md">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center font-bold text-lg">C</div>
-          <h1 className="text-xl font-bold text-gray-800 dark:text-graphite-100">Consulta</h1>
+        <div className="flex justify-center mb-6">
+          <DentikOSLogo variant="stacked" size="lg" opticalSize="display" />
         </div>
 
         <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-graphite-50 mb-1">

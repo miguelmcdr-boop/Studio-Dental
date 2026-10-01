@@ -37,9 +37,10 @@ describe('TopBar (F7-25)', () => {
   })
 
   describe('renderizado básico', () => {
-    it('renderiza el logo', () => {
+    it('renderiza el logo oficial DentikOS', () => {
       render(<TopBar {...defaultProps} />)
-      expect(screen.getByText('Consulta')).toBeInTheDocument()
+      expect(screen.getByText('Dentik')).toBeInTheDocument()
+      expect(screen.getByText('OS')).toBeInTheDocument()
     })
 
     it('renderiza el nombre del usuario', () => {

@@ -210,8 +210,8 @@ function App() {
   const setPacientes = usePacientesStore((state) => state.setPacientes)
 
   useEffect(() => {
-    if (userProfile?.nombreCompleto) document.title = `Consulta — ${userProfile.nombreCompleto}`
-    else document.title = 'Consulta'
+    if (userProfile?.nombreCompleto) document.title = `DentikOS — ${userProfile.nombreCompleto}`
+    else document.title = 'DentikOS'
   }, [userProfile])
 
   const handleLogin = (profile) => {
