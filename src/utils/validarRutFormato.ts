@@ -1,22 +1,24 @@
 /**
- * Funciones de formato y normalización de RUT chileno (F6-G)
+ * Funciones de formato y normalización de RUT chileno (F6-G / Migración TypeScript)
  * Extraídas de validarRut.js para respetar límite arquitectónico de 50 líneas.
  */
 
+export type RutInput = string | null | undefined
+
 /**
- * Normaliza un RUT: quita puntos, guiones y convierte K a mayúscula
+ * Normaliza un RUT: quita puntos, guiones y convierte K a mayúscula.
  */
-export const normalizarRut = (rut) => {
+export const normalizarRut = (rut: RutInput): string => {
   if (!rut || typeof rut !== 'string') return ''
   return rut.replace(/\./g, '').replace(/-/g, '').toUpperCase().trim()
 }
 
 /**
- * Formatea un RUT con puntos y guión para display (XX.XXX.XXX-X)
+ * Formatea un RUT con puntos y guión para display (XX.XXX.XXX-X).
  */
-export const formatearRut = (rut) => {
+export const formatearRut = (rut: RutInput): string => {
   const normalizado = normalizarRut(rut)
-  if (normalizado.length < 2) return rut
+  if (normalizado.length < 2) return typeof rut === 'string' ? rut : ''
   const cuerpo = normalizado.slice(0, -1)
   const dv = normalizado.slice(-1)
   let formateado = ''
