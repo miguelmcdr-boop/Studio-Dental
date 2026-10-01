@@ -1,8 +1,8 @@
 /**
- * Constantes base de RBAC (Role-Based Access Control) — Studio Dental (F3-05)
+ * Constantes base de RBAC (Role-Based Access Control) — Studio Dental (F3-05 / Migración TypeScript)
  * 
  * Este archivo define los roles y permisos disponibles. Se separa de 
- * rbacConstants.js para evitar dependencias circulares con rbacPermisosPorRol.js.
+ * rbacConstants.js para evitar dependencias circulares con rbacPermisosPorRol.ts.
  */
 
 export const ROLES = {
@@ -10,7 +10,9 @@ export const ROLES = {
   DENTISTA: 'dentista',
   ASISTENTE: 'asistente',
   RECEPCION: 'recepcion'
-}
+} as const
+
+export type Rol = typeof ROLES[keyof typeof ROLES]
 
 /**
  * Permisos disponibles en el sistema.
@@ -49,4 +51,6 @@ export const PERMISOS = {
   // Auditoría financiera de pagos (Commit B)
   PURGAR_PAGOS: 'purgar_pagos',
   EXPORTAR_AUDITORIA_PAGOS: 'exportar_auditoria_pagos'
-}
+} as const
+
+export type Permiso = typeof PERMISOS[keyof typeof PERMISOS]
