@@ -26,7 +26,7 @@
 
 import { usePacientesStore } from '../store/pacientesStore'
 import { usePrestacionesStore } from '../store/prestacionesStore'
-import { createLogger } from './logger'
+import { createLogger, type Logger } from './logger'
 
 const log = createLogger('purgarDatosLocales')
 
@@ -38,7 +38,7 @@ const IDB_ADJUNTOS_DB_NAME = 'studio_dental_adjuntos'
 // Prefijos de claves de localStorage que pertenecen a la app.
 // Si una key no empieza con alguno de estos prefijos, NO se toca
 // (por si hay datos de otras apps en el mismo dominio).
-const PREFIJOS_APP = [
+const PREFIJOS_APP: readonly string[] = [
   'studio_dental_',     // claves de servicios de persistencia
   'clinica_',           // sesión activa, sección activa, paciente seleccionado
   'profile_',           // perfiles cacheados por email
@@ -54,31 +54,47 @@ const PREFIJOS_APP = [
   'goTrue-',            // claves legacy de GoTrue (Supabase Auth antiguo)
 ]
 
+export interface PurgarIndexedDBResult {
+  eliminada: boolean
+  razon: string
+}
+
+export interface ResumenPurgaLocal {
+  stores: string[]
+  localStorageKeys: number
+  indexedDB: PurgarIndexedDBResult
+  cacheStorageKeys: number
+}
+
+export interface PurgarDatosLocalesOptions {
+  logger?: Logger | { info: (...args: unknown[]) => void; [key: string]: unknown }
+}
+
 /**
  * Verifica si una clave de localStorage pertenece a la app.
- * @param {string} key
- * @returns {boolean}
  */
-const esClaveDeLaApp = (key) => PREFIJOS_APP.some((prefijo) => key.startsWith(prefijo))
+const esClaveDeLaApp = (key: string): boolean => PREFIJOS_APP.some((prefijo) => key.startsWith(prefijo))
 
 /**
  * Paso 1: resetear stores Zustand en memoria.
  * Limpia los arrays de pacientes y prestaciones para que ningún hook
  * que lea del store vea datos del usuario saliente.
  */
-const purgarStoresZustand = () => {
-  const reseteados = []
+const purgarStoresZustand = (): string[] => {
+  const reseteados: string[] = []
   try {
     usePacientesStore.setState({ pacientes: [] })
     reseteados.push('pacientesStore')
-  } catch (e) {
-    log.warn('No se pudo resetear pacientesStore:', e.message)
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
+    log.warn('No se pudo resetear pacientesStore:', msg)
   }
   try {
     usePrestacionesStore.setState({ prestaciones: [] })
     reseteados.push('prestacionesStore')
-  } catch (e) {
-    log.warn('No se pudo resetear prestacionesStore:', e.message)
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
+    log.warn('No se pudo resetear prestacionesStore:', msg)
   }
   return reseteados
 }
@@ -89,17 +105,18 @@ const purgarStoresZustand = () => {
  * con PREFIJOS_APP. No usa localStorage.clear() para no borrar
  * datos de otras apps en el mismo dominio.
  */
-const purgarLocalStorage = () => {
+const purgarLocalStorage = (): number => {
   if (typeof localStorage === 'undefined') return 0
 
   let borradas = 0
-  const claves = []
+  const claves: (string | null)[] = []
   try {
     for (let i = 0; i < localStorage.length; i++) {
       claves.push(localStorage.key(i))
     }
-  } catch (e) {
-    log.warn('No se pudieron enumerar claves de localStorage:', e.message)
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
+    log.warn('No se pudieron enumerar claves de localStorage:', msg)
     return 0
   }
 
@@ -108,8 +125,9 @@ const purgarLocalStorage = () => {
       try {
         localStorage.removeItem(key)
         borradas++
-      } catch (e) {
-        log.warn(`No se pudo borrar clave ${key}:`, e.message)
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e)
+        log.warn(`No se pudo borrar clave ${key}:`, msg)
       }
     }
   }
@@ -119,10 +137,8 @@ const purgarLocalStorage = () => {
 /**
  * Paso 3: purgar IndexedDB.
  * Usa deleteDatabase para eliminar completamente la base de adjuntos.
- * Es más robusto que abrir y limpiar el store porque garantiza que
- * la DB no quede en estado inconsistente.
  */
-const purgarIndexedDB = async () => {
+const purgarIndexedDB = async (): Promise<PurgarIndexedDBResult> => {
   if (typeof indexedDB === 'undefined') return { eliminada: false, razon: 'indexedDB no disponible' }
 
   return new Promise((resolve) => {
@@ -131,21 +147,17 @@ const purgarIndexedDB = async () => {
       request.onsuccess = () => resolve({ eliminada: true, razon: 'success' })
       request.onerror = () => resolve({ eliminada: false, razon: 'error' })
       request.onblocked = () => resolve({ eliminada: false, razon: 'blocked (otras pestañas abiertas)' })
-    } catch (e) {
-      resolve({ eliminada: false, razon: e.message })
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e)
+      resolve({ eliminada: false, razon: msg })
     }
   })
 }
 
 /**
  * Paso 4: purgar Cache Storage del Service Worker.
- * Borra el contenido de todas las caches pero NO desregistra el SW
- * (desregistrarlo haría que la siguiente carga reinstale el SW y re-cachee
- * desde cero, lo cual no aporta seguridad adicional).
- *
- * Excluye caches que no sean del Service Worker de Vite PWA si es necesario.
  */
-const purgarCacheStorage = async () => {
+const purgarCacheStorage = async (): Promise<number> => {
   if (typeof caches === 'undefined') return 0
 
   let borradas = 0
@@ -155,33 +167,23 @@ const purgarCacheStorage = async () => {
       try {
         await caches.delete(nombre)
         borradas++
-      } catch (e) {
-        log.warn(`No se pudo borrar cache ${nombre}:`, e.message)
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e)
+        log.warn(`No se pudo borrar cache ${nombre}:`, msg)
       }
     }
-  } catch (e) {
-    log.warn('No se pudieron enumerar caches:', e.message)
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
+    log.warn('No se pudieron enumerar caches:', msg)
   }
   return borradas
 }
 
 /**
  * Purga todas las capas de persistencia local.
- *
- * @param {Object} [options]
- * @param {Object} [options.logger] - logger opcional (por defecto usa el del módulo)
- * @returns {Promise<Object>} resumen de lo purgado en cada capa
- *
- * @example
- *   const resultado = await purgarDatosLocales()
- *   logger.info('Datos locales purgados', resultado)
- *   // { stores: ['pacientesStore','prestacionesStore'],
- *   //   localStorageKeys: 24,
- *   //   indexedDB: { eliminada: true, razon: 'success' },
- *   //   cacheStorageKeys: 2 }
  */
-export const purgarDatosLocales = async (options = {}) => {
-  const resultado = {
+export const purgarDatosLocales = async (options: PurgarDatosLocalesOptions = {}): Promise<ResumenPurgaLocal> => {
+  const resultado: ResumenPurgaLocal = {
     stores: [],
     localStorageKeys: 0,
     indexedDB: { eliminada: false, razon: 'no ejecutado' },
@@ -189,15 +191,14 @@ export const purgarDatosLocales = async (options = {}) => {
   }
 
   // Orden: primero memoria (rápido), luego localStorage (síncrono),
-  // luego async (IndexedDB + Cache Storage). Este orden asegura que
-  // los datos visibles en UI se limpien antes de los datos persistentes.
+  // luego async (IndexedDB + Cache Storage).
   resultado.stores = purgarStoresZustand()
   resultado.localStorageKeys = purgarLocalStorage()
   resultado.indexedDB = await purgarIndexedDB()
   resultado.cacheStorageKeys = await purgarCacheStorage()
 
-  const logger = options.logger || log
-  logger.info(
+  const activeLogger = options.logger || log
+  activeLogger.info(
     `[F7-05] Purga completada — stores: ${resultado.stores.length}, ` +
     `localStorage: ${resultado.localStorageKeys} keys, ` +
     `indexedDB: ${resultado.indexedDB.eliminada ? 'OK' : resultado.indexedDB.razon}, ` +
@@ -206,4 +207,3 @@ export const purgarDatosLocales = async (options = {}) => {
 
   return resultado
 }
-
