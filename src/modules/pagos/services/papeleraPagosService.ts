@@ -9,29 +9,29 @@
  *
  * La eliminación definitiva se propaga a Supabase vía guardarPagos().
  */
-import { pagosStorageService } from './pagosStorageService'
+import { pagosStorageService, type Pago } from './pagosStorageService'
 import { createLogger } from '../../../services/logger'
 
 const log = createLogger('papeleraPagosService')
 
-const DIAS_RETENCION = 730
-const MS_POR_DIA = 24 * 60 * 60 * 1000
+export const DIAS_RETENCION = 730
+export const MS_POR_DIA = 24 * 60 * 60 * 1000
 
 /**
  * Convierte fecha chilena DD/MM/YYYY a Date object
  */
-const parseFechaChilena = (fechaStr) => {
+export const parseFechaChilena = (fechaStr?: string | null): Date | null => {
   if (!fechaStr || typeof fechaStr !== 'string') return null
-  const match = fechaStr.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/)
+  const match = fechaStr.match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})$/)
   if (!match) return null
   const [, dd, mm, yyyy] = match
-  return new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd))
+  return new Date(parseInt(yyyy, 10), parseInt(mm, 10) - 1, parseInt(dd, 10))
 }
 
 /**
  * Calcula días transcurridos desde una fecha chilena
  */
-const diasTranscurridos = (fechaStr) => {
+export const diasTranscurridos = (fechaStr?: string | null): number | null => {
   const fecha = parseFechaChilena(fechaStr)
   if (!fecha) return null
   const ahora = new Date()
@@ -42,7 +42,7 @@ const diasTranscurridos = (fechaStr) => {
 /**
  * Calcula días restantes hasta auto-eliminación
  */
-export const diasRestantes = (fechaPurga) => {
+export const diasRestantes = (fechaPurga?: string | null): number | null => {
   const transcurridos = diasTranscurridos(fechaPurga)
   if (transcurridos === null) return null
   return Math.min(DIAS_RETENCION, Math.max(0, DIAS_RETENCION - transcurridos))
@@ -51,7 +51,7 @@ export const diasRestantes = (fechaPurga) => {
 /**
  * Obtiene todos los pagos con estado 'Purgado'
  */
-export const obtenerPagosPurgados = () => {
+export const obtenerPagosPurgados = (): Pago[] => {
   const todos = pagosStorageService.obtenerPagos([])
   return todos.filter(p => p.estado === 'Purgado')
 }
@@ -59,7 +59,7 @@ export const obtenerPagosPurgados = () => {
 /**
  * Restaura un pago purgado (cambia estado a 'Anulado')
  */
-export const restaurarPago = async (pagoId) => {
+export const restaurarPago = async (pagoId: string | number): Promise<boolean> => {
   const todos = pagosStorageService.obtenerPagos([])
   const actualizados = todos.map(p =>
     String(p.id) === String(pagoId) && p.estado === 'Purgado'
@@ -82,11 +82,11 @@ export const restaurarPago = async (pagoId) => {
  * Elimina definitivamente pagos con >730 días desde purga.
  * Job automático al cargar el módulo.
  */
-export const limpiarVencidos = async () => {
+export const limpiarVencidos = async (): Promise<number> => {
   const todos = pagosStorageService.obtenerPagos([])
   const vencidos = todos.filter(p => {
     if (p.estado !== 'Purgado') return false
-    const dias = diasTranscurridos(p.fechaPurga)
+    const dias = diasTranscurridos(p.fechaPurga as string | undefined)
     return dias !== null && dias > DIAS_RETENCION
   })
 
@@ -94,14 +94,14 @@ export const limpiarVencidos = async () => {
 
   const restantes = todos.filter(p => {
     if (p.estado !== 'Purgado') return true
-    const dias = diasTranscurridos(p.fechaPurga)
+    const dias = diasTranscurridos(p.fechaPurga as string | undefined)
     return dias === null || dias <= DIAS_RETENCION
   })
 
   await pagosStorageService.guardarPagos(restantes)
 
   vencidos.forEach(p => {
-    const dias = diasTranscurridos(p.fechaPurga)
+    const dias = diasTranscurridos(p.fechaPurga as string | undefined)
     log.warn(`[AUDITORÍA] Eliminación automática de pago purgado: id=${p.id}, folio=${p.folioComprobante || 's/d'}, monto=${p.monto}, días_desde_purga=${dias}`)
   })
 
@@ -111,9 +111,9 @@ export const limpiarVencidos = async () => {
 /**
  * Vacía la papelera: elimina definitivamente TODOS los pagos purgados.
  * La eliminación se propaga a Supabase vía guardarPagos (hard delete).
- * @returns {number} cantidad de pagos eliminados
+ * @returns cantidad de pagos eliminados
  */
-export const vaciarPapelera = async () => {
+export const vaciarPapelera = async (): Promise<number> => {
   const todos = pagosStorageService.obtenerPagos([])
   const purgados = todos.filter(p => p.estado === 'Purgado')
   if (purgados.length === 0) return 0
