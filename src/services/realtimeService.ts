@@ -34,14 +34,40 @@ import { createLogger } from './logger'
 
 const log = createLogger('realtimeService')
 
+export type RealtimeEventType = 'INSERT' | 'UPDATE' | 'DELETE' | '*'
+
+export interface RealtimeFilter {
+  columna: string
+  valor: string | number | boolean
+}
+
+export interface RealtimeOptions {
+  evento?: RealtimeEventType
+  filtro?: RealtimeFilter
+}
+
+export interface RealtimePayload<T = Record<string, unknown>> {
+  eventType: 'INSERT' | 'UPDATE' | 'DELETE'
+  new: T
+  old: T
+  schema: string
+  table: string
+  commit_timestamp: string
+  [key: string]: unknown
+}
+
+export type RealtimeCallback<T = Record<string, unknown>> = (payload: RealtimePayload<T>) => void
+
+export interface RealtimeSubscription {
+  unsubscribe: () => void
+  channel: unknown
+}
+
 /**
  * Genera un nombre único para el canal de Realtime.
  * Evita colisiones entre múltiples suscripciones a la misma tabla.
- *
- * @param {string} tabla - Nombre de la tabla
- * @returns {string} Nombre único del canal
  */
-const generarNombreCanal = (tabla) => {
+const generarNombreCanal = (tabla: string): string => {
   const timestamp = Date.now()
   const random = Math.random().toString(36).substring(2, 8)
   return `canal_${tabla}_${timestamp}_${random}`
@@ -49,24 +75,12 @@ const generarNombreCanal = (tabla) => {
 
 /**
  * Se suscribe a cambios en una tabla de Supabase.
- *
- * @param {string} tabla - Nombre de la tabla (ej: 'citas', 'pacientes')
- * @param {Function} callback - Función a invocar cuando hay un cambio.
- *                              Recibe el payload con la estructura:
- *                              {
- *                                eventType: 'INSERT' | 'UPDATE' | 'DELETE',
- *                                new: objeto con los datos nuevos (para INSERT/UPDATE),
- *                                old: objeto con los datos anteriores (para UPDATE/DELETE),
- *                                schema: 'public',
- *                                table: nombre de la tabla,
- *                                commit_timestamp: timestamp ISO
- *                              }
- * @param {Object} opciones - Opciones opcionales
- * @param {string} opciones.evento - Tipo de evento a escuchar ('INSERT', 'UPDATE', 'DELETE', '*'). Default: '*'
- * @param {Object} opciones.filtro - Filtro opcional por columna. Ej: { columna: 'paciente_id', valor: 'uuid' }
- * @returns {{ unsubscribe: Function } | null} Objeto con método unsubscribe, o null si Supabase no está configurado
  */
-export const suscribirseATabla = (tabla, callback, opciones = {}) => {
+export const suscribirseATabla = <T = Record<string, unknown>>(
+  tabla: string,
+  callback: RealtimeCallback<T>,
+  opciones: RealtimeOptions = {}
+): RealtimeSubscription | null => {
   if (!USE_SUPABASE || !supabase) {
     console.info(`[realtimeService] Supabase no configurado, omitiendo suscripción a ${tabla}`)
     return null
@@ -89,7 +103,7 @@ export const suscribirseATabla = (tabla, callback, opciones = {}) => {
     const channel = supabase.channel(nombreCanal)
 
     // Construir configuración de postgres_changes
-    const config = {
+    const config: Record<string, unknown> = {
       event: evento,
       schema: 'public',
       table: tabla
@@ -102,14 +116,14 @@ export const suscribirseATabla = (tabla, callback, opciones = {}) => {
 
     // Suscribirse al canal
     const subscription = channel
-      .on('postgres_changes', config, (payload) => {
+      .on('postgres_changes', config, (payload: unknown) => {
         try {
-          callback(payload)
+          callback(payload as RealtimePayload<T>)
         } catch (error) {
           log.error(`Error en callback de ${tabla}:`, error)
         }
       })
-      .subscribe((status) => {
+      .subscribe((status: string) => {
         if (status === 'SUBSCRIBED') {
           log.info(`Suscrito a ${tabla} (evento: ${evento})`)
         } else if (status === 'CHANNEL_ERROR') {
@@ -120,7 +134,7 @@ export const suscribirseATabla = (tabla, callback, opciones = {}) => {
       })
 
     return {
-      unsubscribe: () => {
+      unsubscribe: (): void => {
         try {
           supabase.removeChannel(subscription)
           log.info(`Desuscrito de ${tabla}`)
