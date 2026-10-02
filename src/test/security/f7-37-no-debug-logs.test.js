@@ -40,7 +40,7 @@ describe('F7-37: No debug logs peligrosos', () => {
     const archivosFrontend = [
       'src/modules/pacientes/components/ModalPapeleraCertificados.jsx',
       'src/modules/pacientes/components/CertificadosSection.jsx',
-      'src/modules/pacientes/services/certificadosPDFService.js',
+      'src/modules/pacientes/services/certificadosPDFService.ts',
     ];
 
     archivosFrontend.forEach((archivo) => {

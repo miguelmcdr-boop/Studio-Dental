@@ -5,7 +5,7 @@ import { pagosStorageService } from '../modules/pagos/services/pagosStorageServi
 import { finanzasStorageService } from '../modules/finanzas/services/finanzasStorageService'
 import { vademecumService } from '../services/vademecumService'
 import { escanearYSincronizarAdjuntosPendientes } from '../services/adjuntosStorageService'
-import { createLogger } from '../services/logger.js'
+import { createLogger } from '../services/logger'
 
 const log = createLogger('useSincronizacionInicial')
 

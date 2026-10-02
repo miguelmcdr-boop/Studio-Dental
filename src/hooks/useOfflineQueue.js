@@ -14,7 +14,7 @@ import { procesarColaEvoluciones } from '../modules/pacientes/services/evolucion
 import { procesarColaPagos } from '../modules/pagos/services/pagosStorageService'
 import { procesarColaPresupuestos, procesarPendingDeletesPresupuestos } from '../modules/presupuestos/services/presupuestosStorageService'
 import { notificationService } from '../services/notificationService'
-import { createLogger } from '../services/logger.js'
+import { createLogger } from '../services/logger'
 
 const log = createLogger('useOfflineQueue')
 

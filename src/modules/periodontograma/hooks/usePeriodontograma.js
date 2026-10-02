@@ -4,7 +4,7 @@ import { sanitizarSondaje, sanitizarRecesion } from '../utils/periodontalValidat
 import { calcularEstadisticasPeriodontales, generarResumenClinico, estructurarDatosParaGrafico } from '../utils/periodontalCalculations'
 // F2-07b: acceso centralizado vía servicio
 import { periodontogramaStorageService } from '../services/periodontogramaStorageService'
-import { createLogger } from '../../../services/logger.js'
+import { createLogger } from '../../../services/logger'
 
 const log = createLogger('usePeriodontograma')
 

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ConsentimientoImprimible } from '../components/ConsentimientoImprimible'
-import { generarPDFDesdeComponente, respaldarConsentimientoEnR2, descargarConsentimientoDesdeR2 } from '../services/consentimientosPDFService.jsx'
+import { generarPDFDesdeComponente, respaldarConsentimientoEnR2, descargarConsentimientoDesdeR2 } from '../services/consentimientosPDFService'
 import { imprimirConsentimientoAislado } from '../services/consentimientosPrintService'
 import { createLogger } from '../../../services/logger'
 

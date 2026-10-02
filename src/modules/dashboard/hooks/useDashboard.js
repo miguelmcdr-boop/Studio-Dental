@@ -4,7 +4,7 @@ import { agendaStorageService } from '../../agenda'
 import { pagosStorageService } from '../../pagos/services/pagosStorageService'
 import { obtenerAbonosPorPaciente } from '../../pagos/services/pagosAbonosLegacyService'
 import { presupuestosStorageService } from '../../presupuestos/services/presupuestosStorageService'
-import { createLogger } from '../../../services/logger.js'
+import { createLogger } from '../../../services/logger'
 
 const log = createLogger('useDashboard')
 

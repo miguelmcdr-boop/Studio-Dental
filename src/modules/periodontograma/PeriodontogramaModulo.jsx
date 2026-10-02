@@ -10,7 +10,7 @@ import { calcularIndicesPeriodontales } from './utils/periodontalCalculations'
 import { pacientesStorageService } from '../pacientes/services/pacientesStorageService'
 // F2-07b: acceso centralizado vía servicio (antes localStorage directo)
 import { periodontogramaStorageService } from './services/periodontogramaStorageService'
-import { createLogger } from '../../services/logger.js'
+import { createLogger } from '../../services/logger'
 import { useAppDialog } from '../../hooks/useAppDialog'
 import { RefreshCw, Save } from 'lucide-react'
 

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { supabase, USE_SUPABASE } from '../services/supabaseClient'
-import { createLogger } from '../services/logger.js'
+import { createLogger } from '../services/logger'
 
 const log = createLogger('useAuthStateListener')
 

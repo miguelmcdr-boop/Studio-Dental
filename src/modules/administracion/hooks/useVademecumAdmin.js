@@ -14,7 +14,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { vademecumService } from '../../../services/vademecumService'
 import { notificationService } from '../../../services/notificationService'
 import { REALTIME_EVENTS } from '../../../services/realtimeEvents'
-import { createLogger } from '../../../services/logger.js'
+import { createLogger } from '../../../services/logger'
 import { useDesactivarFarmaco } from './useDesactivarFarmaco'
 
 const log = createLogger('useVademecumAdmin')

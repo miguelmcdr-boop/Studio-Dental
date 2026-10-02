@@ -3,7 +3,7 @@ import { Printer } from 'lucide-react'
 // F6-D-4: usar recetasStorageService en lugar de pacientesStorageService.guardarItem
 import { recetasStorageService } from '../services/recetasStorageService'
 import { FormularioNuevaReceta } from './FormularioNuevaReceta'
-import { createLogger } from '../../../services/logger.js'
+import { createLogger } from '../../../services/logger'
 
 const log = createLogger('RecetasSection')
 

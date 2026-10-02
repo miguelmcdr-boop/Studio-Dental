@@ -17,7 +17,7 @@ import {
   limpiarCachePaciente
 } from '../../../services/datosClinicosSupabase'
 import { procesarColaEvoluciones } from '../services/evolucionesStorageService'
-import { createLogger } from '../../../services/logger.js'
+import { createLogger } from '../../../services/logger'
 
 const log = createLogger('useFichaClinicaSync')
 

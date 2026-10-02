@@ -5,7 +5,7 @@ import { CONVENIOS_DEFAULT } from '../constants/finanzasConstants'
 import { pagosStorageService } from "../../pagos/services/pagosStorageService"
 import { obtenerAbonosPorPaciente, eliminarAbono } from "../../pagos/services/pagosAbonosLegacyService"
 // OLD: import { pagosStorageService } from '../../pagos/services/pagosStorageService'
-import { createLogger } from '../../../services/logger.js'
+import { createLogger } from '../../../services/logger'
 import { useAppDialog } from '../../../hooks/useAppDialog'
 
 const log = createLogger('useFinanzas')

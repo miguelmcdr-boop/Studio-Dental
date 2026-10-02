@@ -3,7 +3,7 @@
  */
 
 import { presupuestosStorageService } from '../../presupuestos/services/presupuestosStorageService'
-import { createLogger } from '../../../services/logger.js'
+import { createLogger } from '../../../services/logger'
 
 const log = createLogger('reportesCalculations')
 

@@ -3,7 +3,7 @@ import { Square, Mic, Calendar, Trash2 } from 'lucide-react'
 // F6-D-5: usar evolucionesStorageService en lugar de pacientesStorageService.guardarItem
 import { evolucionesStorageService } from '../services/evolucionesStorageService'
 import { useDictadoVoz } from '../hooks/useDictadoVoz'
-import { createLogger } from '../../../services/logger.js'
+import { createLogger } from '../../../services/logger'
 import { useAppDialog } from '../../../hooks/useAppDialog'
 import { PenSquare } from 'lucide-react'
 

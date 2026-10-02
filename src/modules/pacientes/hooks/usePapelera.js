@@ -3,7 +3,7 @@ import { pacientesStorageService } from '../services/pacientesStorageService'
 import { obtenerAutoresDeEliminacion } from '../services/pacientesSoftDeleteService';
 import { usePacientesStore } from '../../../store/pacientesStore'
 import { notificationService } from '../../../services/notificationService'
-import { createLogger } from '../../../services/logger.js'
+import { createLogger } from '../../../services/logger'
 import { usePapeleraVaciar } from './usePapelera.vaciar'
 
 const log = createLogger('usePapelera')
