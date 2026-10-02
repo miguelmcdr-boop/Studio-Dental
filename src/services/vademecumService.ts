@@ -20,31 +20,107 @@
  * - Sincronización asíncrona desde Supabase en background
  * - Fallback a localStorage si Supabase no disponible
  * - Datos de respaldo mínimos si todo falla (22 fármacos originales)
- *
- * API pública:
- * - obtenerVademecum() → fármacos regulares activos
- * - obtenerFarmacosPorFamilia(familia) → filtrado por familia
- * - obtenerFarmacoPorNumero(numero) → búsqueda por número
- * - buscarFarmacoPorNombre(texto) → autocompletado
- * - obtenerFarmacosUrgencia() → carro de reanimación
- * - obtenerAntirresortivos() → riesgo MRONJ
- * - obtenerAlergiasCruzadas() → matriz completa
- * - evaluarAlergiaCruzada(familiaAlergia, familiaFarmaco) → consulta específica
- * - obtenerInteracciones() → todas las interacciones
- * - obtenerInteraccionesDeFarmaco(farmaco) → interacciones de un fármaco
- * - obtenerProfilaxisEndocarditis() → protocolo AHA
- * - obtenerManejoAnticoagulantes() → manejo perioperatorio
- * - obtenerMetadataCuracion() → versión, curador, fechas
- * - obtenerDosisAnestesia() → datos para CalculadoraAnestesia
- * - sincronizarDesdeSupabase() → fuerza sincronización
  */
 import { supabase, USE_SUPABASE } from './supabaseClient'
 import { notificationService } from './notificationService'
 import { REALTIME_EVENTS } from './realtimeEvents'
 import { createLogger } from './logger'
 import { obtenerDosisAnestesia } from './vademecumAnestesia'
+import type { Farmaco, FarmacoUrgencia, Antirresortivo } from '../modules/administracion/schemas/vademecumSchema'
+import type { AlergiaCruzada } from '../modules/administracion/schemas/alergiaCruzadaSchema'
+import type { Interaccion } from '../modules/administracion/schemas/interaccionSchema'
+import type { Profilaxis } from '../modules/administracion/schemas/profilaxisSchema'
+import type { Anticoagulante } from '../modules/administracion/schemas/anticoagulanteSchema'
 
 const log = createLogger('vademecumService')
+
+// ═══════════════════════════════════════════════════════════════
+// TIPOS E INTERFACES DEL VADEMÉCUM
+// ═══════════════════════════════════════════════════════════════
+
+export interface FarmacoVademecum extends Omit<Partial<Farmaco>, 'numero' | 'familia' | 'nombre_generico'> {
+  numero: number
+  familia: string
+  nombre_generico: string
+  dosis_max_adulto_mg_por_kg?: number | null
+  dosis_max_pediatrica_mg?: number | null
+  fuente_revision?: string | null
+  fecha_revision?: string | null
+  curado_por?: string | null
+  [key: string]: unknown
+}
+
+export type FarmacoInput = Partial<FarmacoVademecum> & {
+  nombreGenerico?: string
+  nombreComercial?: string | null
+  posologiaAdulto?: string | null
+  posologiaPediatrica?: string | null
+  dosisMaxAdultoMg?: number | null
+  dosisMaxPediatricaMgPorKg?: number | null
+  contenidoPorUnidadMg?: number | null
+  volumenPorUnidadMl?: number | null
+  concentracionMgPorMl?: number | null
+  duracionDias?: string | null
+  alergiasCruzadas?: string[]
+  requiereReceta?: boolean
+  notasEspeciales?: string | null
+  fuenteRevision?: string | null
+  fechaRevision?: string | null
+  curadoPor?: string | null
+  [key: string]: unknown
+}
+
+export interface AlergiaCruzadaItem extends Partial<AlergiaCruzada> {
+  id?: string | number
+  familia_alergia: string
+  familia_farmaco: string
+  severidad: string
+  [key: string]: unknown
+}
+
+export type AlergiaCruzadaInput = Partial<AlergiaCruzadaItem> & {
+  familiaAlergia?: string
+  familiaFarmaco?: string
+  porcentajeCruzado?: string | null
+  notaClinica?: string | null
+  [key: string]: unknown
+}
+
+export type InteraccionInput = Partial<Interaccion> & {
+  farmacoA?: string
+  farmacoB?: string
+  [key: string]: unknown
+}
+
+export interface EvaluacionAlergiaCruzada {
+  hayIncompatibilidad: boolean
+  severidad: string | null
+  porcentaje_cruzado: string | null
+  nota_clinica: string | null
+}
+
+export interface MetadataCuracion {
+  id?: string | number
+  version?: string
+  curado_por?: string
+  fecha_curacion?: string | null
+  fecha_proxima_revision?: string | null
+  fuentes?: string[]
+  total_farmacos?: number
+  [key: string]: unknown
+}
+
+interface CacheVademecum {
+  vademecum: FarmacoVademecum[] | null
+  urgencia: FarmacoUrgencia[] | null
+  antirresortivos: Antirresortivo[] | null
+  alergiasCruzadas: AlergiaCruzadaItem[] | null
+  interacciones: Interaccion[] | null
+  profilaxisEndocarditis: Profilaxis[] | null
+  manejoAnticoagulantes: Anticoagulante[] | null
+  metadata: MetadataCuracion | null
+  sincronizado: boolean
+}
 
 // ═══════════════════════════════════════════════════════════════
 // CLAVES DE LOCALSTORAGE (caché de respaldo)
@@ -59,12 +135,12 @@ const CLAVES = {
   MANEJO_ANTICOAGULANTES: 'studio_dental_manejo_anticoagulantes_v2',
   METADATA: 'studio_dental_vademecum_metadata_v2',
   SINCRONIZADO: 'studio_dental_vademecum_sync_timestamp_v2'
-}
+} as const
 
 // ═══════════════════════════════════════════════════════════════
 // CACHÉ EN MEMORIA
 // ═══════════════════════════════════════════════════════════════
-let cache = {
+let cache: CacheVademecum = {
   vademecum: null,
   urgencia: null,
   antirresortivos: null,
@@ -80,7 +156,7 @@ let cache = {
 // DATOS DE RESPALDO MÍNIMOS (si Supabase no está disponible)
 // Los 22 fármacos originales de src/data/vademecum.js (v1.0)
 // ═══════════════════════════════════════════════════════════════
-const DATOS_RESPALDO_MINIMOS = [
+const DATOS_RESPALDO_MINIMOS: FarmacoVademecum[] = [
   { numero: 1, familia: 'anestesico_amida', nombre_generico: 'Lidocaína 2% + Epinefrina 1:100.000', presentacion: 'Tubos 1.8 ml', posologia_adulto: 'Infiltrativa / Troncular', posologia_pediatrica: '4.4 mg/kg', dosis_max_adulto_mg: 300, dosis_max_pediatrica_mg_por_kg: 4.4, contenido_por_unidad_mg: 36, volumen_por_unidad_ml: 1.8, concentracion_mg_por_ml: 20, dosis_max_adulto_mg_por_kg: 7.0, dosis_max_pediatrica_mg: 300, contraindicaciones: 'Bloqueo AV severo, feocromocitoma, alergia amidas, sulfito-sensibilidad', alergias_cruzadas: ['otras_amidas', 'metabisulfito_sodico'] },
   { numero: 2, familia: 'anestesico_amida', nombre_generico: 'Mepivacaína 3% sin vasoconstrictor', presentacion: 'Tubos 1.8 ml', posologia_adulto: 'Infiltrativa / Troncular', posologia_pediatrica: '4.4 mg/kg', dosis_max_adulto_mg: 400, dosis_max_pediatrica_mg_por_kg: 4.4, contenido_por_unidad_mg: 54, volumen_por_unidad_ml: 1.8, concentracion_mg_por_ml: 30, dosis_max_adulto_mg_por_kg: 4.4, dosis_max_pediatrica_mg: 200, contraindicaciones: 'Bloqueo AV, disfunción hepática severa', alergias_cruzadas: ['otras_amidas'] },
   { numero: 3, familia: 'anestesico_amida', nombre_generico: 'Articaína 4% + Epinefrina 1:100.000', presentacion: 'Tubos 1.7 ml / 1.8 ml', posologia_adulto: 'Infiltrativa / Troncular', posologia_pediatrica: '7.0 mg/kg (≥4 años)', dosis_max_adulto_mg: 500, dosis_max_pediatrica_mg_por_kg: 7.0, contenido_por_unidad_mg: 72, volumen_por_unidad_ml: 1.8, concentracion_mg_por_ml: 40, dosis_max_adulto_mg_por_kg: 7.0, dosis_max_pediatrica_mg: 300, contraindicaciones: 'Metahemoglobinemia, déficit colinesterasa, asma por sulfitos', alergias_cruzadas: ['sulfito_sensibilidad', 'amidas'] },
@@ -109,23 +185,31 @@ const DATOS_RESPALDO_MINIMOS = [
 // FUNCIONES DE LECTURA DESDE LOCALSTORAGE (respaldo)
 // ═══════════════════════════════════════════════════════════════
 
-const leerDesdeLocalStorage = (clave) => {
+const leerDesdeLocalStorage = <T>(clave: string): T | null => {
   try {
     const datos = localStorage.getItem(clave)
     if (!datos) return null
-    return JSON.parse(datos)
-  } catch (e) {
+    return JSON.parse(datos) as T
+  } catch (e: unknown) {
     log.error(`Error leyendo ${clave}:`, e)
     return null
   }
 }
 
-const escribirEnLocalStorage = (clave, datos) => {
+const escribirEnLocalStorage = (clave: string, datos: unknown): void => {
   try {
     localStorage.setItem(clave, JSON.stringify(datos))
-  } catch (e) {
+  } catch (e: unknown) {
     log.error(`Error escribiendo ${clave}:`, e)
   }
+}
+
+const extraerMensajeError = (e: unknown): string => {
+  if (e instanceof Error) return e.message
+  if (typeof e === 'object' && e !== null && 'message' in e) {
+    return String((e as { message: unknown }).message)
+  }
+  return typeof e === 'string' ? e : 'Error desconocido'
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -137,12 +221,12 @@ const escribirEnLocalStorage = (clave, datos) => {
  * Si la caché no está inicializada, intenta leer desde localStorage.
  * Si no hay datos en localStorage, retorna los datos de respaldo mínimos.
  */
-export const obtenerVademecum = () => {
+export const obtenerVademecum = (): FarmacoVademecum[] => {
   if (cache.vademecum) {
     return cache.vademecum.filter(f => f.activo !== false)
   }
 
-  const datosLocal = leerDesdeLocalStorage(CLAVES.VADEMECUM)
+  const datosLocal = leerDesdeLocalStorage<FarmacoVademecum[]>(CLAVES.VADEMECUM)
   if (datosLocal && Array.isArray(datosLocal) && datosLocal.length > 0) {
     cache.vademecum = datosLocal
     return datosLocal.filter(f => f.activo !== false)
@@ -154,9 +238,9 @@ export const obtenerVademecum = () => {
 
 /**
  * Retorna fármacos filtrados por familia.
- * @param {string} familia - Ej: 'penicilina', 'aine', 'anestesico_amida'
+ * @param familia - Ej: 'penicilina', 'aine', 'anestesico_amida'
  */
-export const obtenerFarmacosPorFamilia = (familia) => {
+export const obtenerFarmacosPorFamilia = (familia?: string | null): FarmacoVademecum[] => {
   if (!familia || typeof familia !== 'string') return []
 
   const vademecum = obtenerVademecum()
@@ -167,18 +251,18 @@ export const obtenerFarmacosPorFamilia = (familia) => {
 
 /**
  * Busca un fármaco específico por número.
- * @param {number} numero - Número de registro (ej: 1 para Lidocaína)
+ * @param numero - Número de registro (ej: 1 para Lidocaína)
  */
-export const obtenerFarmacoPorNumero = (numero) => {
+export const obtenerFarmacoPorNumero = (numero: number): FarmacoVademecum | null => {
   const vademecum = obtenerVademecum()
   return vademecum.find(f => f.numero === numero) || null
 }
 
 /**
  * Búsqueda por texto en nombre genérico (autocompletado en RecetasSection).
- * @param {string} texto - Texto a buscar (mínimo 2 caracteres)
+ * @param texto - Texto a buscar (mínimo 2 caracteres)
  */
-export const buscarFarmacoPorNombre = (texto) => {
+export const buscarFarmacoPorNombre = (texto?: string | null): FarmacoVademecum[] => {
   if (!texto || typeof texto !== 'string' || texto.trim().length < 2) {
     return []
   }
@@ -194,12 +278,12 @@ export const buscarFarmacoPorNombre = (texto) => {
 /**
  * Retorna los fármacos del carro de reanimación odontológico.
  */
-export const obtenerFarmacosUrgencia = () => {
+export const obtenerFarmacosUrgencia = (): FarmacoUrgencia[] => {
   if (cache.urgencia) {
     return cache.urgencia.filter(f => f.activo !== false)
   }
 
-  const datosLocal = leerDesdeLocalStorage(CLAVES.URGENCIA)
+  const datosLocal = leerDesdeLocalStorage<FarmacoUrgencia[]>(CLAVES.URGENCIA)
   if (datosLocal && Array.isArray(datosLocal) && datosLocal.length > 0) {
     cache.urgencia = datosLocal
     return datosLocal.filter(f => f.activo !== false)
@@ -211,12 +295,12 @@ export const obtenerFarmacosUrgencia = () => {
 /**
  * Retorna los antirresortivos óseos con riesgo de MRONJ.
  */
-export const obtenerAntirresortivos = () => {
+export const obtenerAntirresortivos = (): Antirresortivo[] => {
   if (cache.antirresortivos) {
     return cache.antirresortivos.filter(f => f.activo !== false)
   }
 
-  const datosLocal = leerDesdeLocalStorage(CLAVES.ANTIRRESORTIVOS)
+  const datosLocal = leerDesdeLocalStorage<Antirresortivo[]>(CLAVES.ANTIRRESORTIVOS)
   if (datosLocal && Array.isArray(datosLocal) && datosLocal.length > 0) {
     cache.antirresortivos = datosLocal
     return datosLocal.filter(f => f.activo !== false)
@@ -228,12 +312,12 @@ export const obtenerAntirresortivos = () => {
 /**
  * Retorna la matriz completa de alergias cruzadas.
  */
-export const obtenerAlergiasCruzadas = () => {
+export const obtenerAlergiasCruzadas = (): AlergiaCruzadaItem[] => {
   if (cache.alergiasCruzadas) {
     return cache.alergiasCruzadas.filter(a => a.activo !== false)
   }
 
-  const datosLocal = leerDesdeLocalStorage(CLAVES.ALERGIAS_CRUZADAS)
+  const datosLocal = leerDesdeLocalStorage<AlergiaCruzadaItem[]>(CLAVES.ALERGIAS_CRUZADAS)
   if (datosLocal && Array.isArray(datosLocal) && datosLocal.length > 0) {
     cache.alergiasCruzadas = datosLocal
     return datosLocal.filter(a => a.activo !== false)
@@ -260,11 +344,13 @@ export const obtenerAlergiasCruzadas = () => {
 
 /**
  * Evalúa si hay alergia cruzada entre dos familias.
- * @param {string} familiaAlergia - Familia a la que el paciente es alérgico
- * @param {string} familiaFarmaco - Familia del fármaco a prescribir
- * @returns {{ hayIncompatibilidad: boolean, severidad: string|null, porcentaje_cruzado: string|null, nota_clinica: string|null }}
+ * @param familiaAlergia - Familia a la que el paciente es alérgico
+ * @param familiaFarmaco - Familia del fármaco a prescribir
  */
-export const evaluarAlergiaCruzada = (familiaAlergia, familiaFarmaco) => {
+export const evaluarAlergiaCruzada = (
+  familiaAlergia?: string | null,
+  familiaFarmaco?: string | null
+): EvaluacionAlergiaCruzada => {
   if (!familiaAlergia || !familiaFarmaco) {
     return { hayIncompatibilidad: false, severidad: null, porcentaje_cruzado: null, nota_clinica: null }
   }
@@ -284,27 +370,27 @@ export const evaluarAlergiaCruzada = (familiaAlergia, familiaFarmaco) => {
       hayIncompatibilidad: false,
       severidad: null,
       porcentaje_cruzado: null,
-      nota_clinica: regla.nota_clinica
+      nota_clinica: regla.nota_clinica || null
     }
   }
 
   return {
     hayIncompatibilidad: true,
     severidad: regla.severidad,
-    porcentaje_cruzado: regla.porcentaje_cruzado,
-    nota_clinica: regla.nota_clinica
+    porcentaje_cruzado: regla.porcentaje_cruzado || null,
+    nota_clinica: regla.nota_clinica || null
   }
 }
 
 /**
  * Retorna todas las interacciones farmacológicas registradas.
  */
-export const obtenerInteracciones = () => {
+export const obtenerInteracciones = (): Interaccion[] => {
   if (cache.interacciones) {
     return cache.interacciones.filter(i => i.activo !== false)
   }
 
-  const datosLocal = leerDesdeLocalStorage(CLAVES.INTERACCIONES)
+  const datosLocal = leerDesdeLocalStorage<Interaccion[]>(CLAVES.INTERACCIONES)
   if (datosLocal && Array.isArray(datosLocal) && datosLocal.length > 0) {
     cache.interacciones = datosLocal
     return datosLocal.filter(i => i.activo !== false)
@@ -315,9 +401,9 @@ export const obtenerInteracciones = () => {
 
 /**
  * Retorna interacciones donde un fármaco específico está involucrado.
- * @param {string} farmaco - Nombre del fármaco a buscar
+ * @param farmaco - Nombre del fármaco a buscar
  */
-export const obtenerInteraccionesDeFarmaco = (farmaco) => {
+export const obtenerInteraccionesDeFarmaco = (farmaco?: string | null): Interaccion[] => {
   if (!farmaco || typeof farmaco !== 'string') return []
 
   const farmacoLower = farmaco.toLowerCase()
@@ -332,12 +418,12 @@ export const obtenerInteraccionesDeFarmaco = (farmaco) => {
 /**
  * Retorna el protocolo completo de profilaxis de endocarditis (AHA 2021).
  */
-export const obtenerProfilaxisEndocarditis = () => {
+export const obtenerProfilaxisEndocarditis = (): Profilaxis[] => {
   if (cache.profilaxisEndocarditis) {
     return cache.profilaxisEndocarditis.filter(p => p.activo !== false)
   }
 
-  const datosLocal = leerDesdeLocalStorage(CLAVES.PROFILAXIS_ENDOCARDITIS)
+  const datosLocal = leerDesdeLocalStorage<Profilaxis[]>(CLAVES.PROFILAXIS_ENDOCARDITIS)
   if (datosLocal && Array.isArray(datosLocal) && datosLocal.length > 0) {
     cache.profilaxisEndocarditis = datosLocal
     return datosLocal.filter(p => p.activo !== false)
@@ -349,12 +435,12 @@ export const obtenerProfilaxisEndocarditis = () => {
 /**
  * Retorna las recomendaciones de manejo perioperatorio de anticoagulantes.
  */
-export const obtenerManejoAnticoagulantes = () => {
+export const obtenerManejoAnticoagulantes = (): Anticoagulante[] => {
   if (cache.manejoAnticoagulantes) {
     return cache.manejoAnticoagulantes.filter(m => m.activo !== false)
   }
 
-  const datosLocal = leerDesdeLocalStorage(CLAVES.MANEJO_ANTICOAGULANTES)
+  const datosLocal = leerDesdeLocalStorage<Anticoagulante[]>(CLAVES.MANEJO_ANTICOAGULANTES)
   if (datosLocal && Array.isArray(datosLocal) && datosLocal.length > 0) {
     cache.manejoAnticoagulantes = datosLocal
     return datosLocal.filter(m => m.activo !== false)
@@ -366,12 +452,12 @@ export const obtenerManejoAnticoagulantes = () => {
 /**
  * Retorna la metadata de la curación clínica.
  */
-export const obtenerMetadataCuracion = () => {
+export const obtenerMetadataCuracion = (): MetadataCuracion => {
   if (cache.metadata) {
     return cache.metadata
   }
 
-  const datosLocal = leerDesdeLocalStorage(CLAVES.METADATA)
+  const datosLocal = leerDesdeLocalStorage<MetadataCuracion>(CLAVES.METADATA)
   if (datosLocal && typeof datosLocal === 'object') {
     cache.metadata = datosLocal
     return datosLocal
@@ -388,12 +474,6 @@ export const obtenerMetadataCuracion = () => {
   }
 }
 
-/**
- * Retorna datos de dosis de anestesia para la CalculadoraAnestesia (F4-03d).
- * Extrae solo los anestésicos del vademécum.
- */
-
-
 // ═══════════════════════════════════════════════════════════════
 // SINCRONIZACIÓN DESDE SUPABASE (F4-02d pattern)
 // ═══════════════════════════════════════════════════════════════
@@ -403,7 +483,7 @@ export const obtenerMetadataCuracion = () => {
  * Actualiza caché en memoria y localStorage como respaldo.
  * No retorna nada (async fire-and-forget).
  */
-export const sincronizarDesdeSupabase = async () => {
+export const sincronizarDesdeSupabase = async (): Promise<void> => {
   if (!USE_SUPABASE || !supabase) {
     console.info('[vademecumService] Supabase no configurado, usando datos locales')
     return
@@ -432,44 +512,52 @@ export const sincronizarDesdeSupabase = async () => {
     ])
 
     // Procesar resultados
-    if (!vademecumRes.error && Array.isArray(vademecumRes.data)) {
-      cache.vademecum = vademecumRes.data
-      escribirEnLocalStorage(CLAVES.VADEMECUM, vademecumRes.data)
+    const vademecumData = vademecumRes.data as FarmacoVademecum[] | null
+    if (!vademecumRes.error && Array.isArray(vademecumData)) {
+      cache.vademecum = vademecumData
+      escribirEnLocalStorage(CLAVES.VADEMECUM, vademecumData)
     }
 
-    if (!urgenciaRes.error && Array.isArray(urgenciaRes.data)) {
-      cache.urgencia = urgenciaRes.data
-      escribirEnLocalStorage(CLAVES.URGENCIA, urgenciaRes.data)
+    const urgenciaData = urgenciaRes.data as FarmacoUrgencia[] | null
+    if (!urgenciaRes.error && Array.isArray(urgenciaData)) {
+      cache.urgencia = urgenciaData
+      escribirEnLocalStorage(CLAVES.URGENCIA, urgenciaData)
     }
 
-    if (!antirresortivosRes.error && Array.isArray(antirresortivosRes.data)) {
-      cache.antirresortivos = antirresortivosRes.data
-      escribirEnLocalStorage(CLAVES.ANTIRRESORTIVOS, antirresortivosRes.data)
+    const antirresortivosData = antirresortivosRes.data as Antirresortivo[] | null
+    if (!antirresortivosRes.error && Array.isArray(antirresortivosData)) {
+      cache.antirresortivos = antirresortivosData
+      escribirEnLocalStorage(CLAVES.ANTIRRESORTIVOS, antirresortivosData)
     }
 
-    if (!alergiasRes.error && Array.isArray(alergiasRes.data)) {
-      cache.alergiasCruzadas = alergiasRes.data
-      escribirEnLocalStorage(CLAVES.ALERGIAS_CRUZADAS, alergiasRes.data)
+    const alergiasData = alergiasRes.data as AlergiaCruzadaItem[] | null
+    if (!alergiasRes.error && Array.isArray(alergiasData)) {
+      cache.alergiasCruzadas = alergiasData
+      escribirEnLocalStorage(CLAVES.ALERGIAS_CRUZADAS, alergiasData)
     }
 
-    if (!interaccionesRes.error && Array.isArray(interaccionesRes.data)) {
-      cache.interacciones = interaccionesRes.data
-      escribirEnLocalStorage(CLAVES.INTERACCIONES, interaccionesRes.data)
+    const interaccionesData = interaccionesRes.data as Interaccion[] | null
+    if (!interaccionesRes.error && Array.isArray(interaccionesData)) {
+      cache.interacciones = interaccionesData
+      escribirEnLocalStorage(CLAVES.INTERACCIONES, interaccionesData)
     }
 
-    if (!profilaxisRes.error && Array.isArray(profilaxisRes.data)) {
-      cache.profilaxisEndocarditis = profilaxisRes.data
-      escribirEnLocalStorage(CLAVES.PROFILAXIS_ENDOCARDITIS, profilaxisRes.data)
+    const profilaxisData = profilaxisRes.data as Profilaxis[] | null
+    if (!profilaxisRes.error && Array.isArray(profilaxisData)) {
+      cache.profilaxisEndocarditis = profilaxisData
+      escribirEnLocalStorage(CLAVES.PROFILAXIS_ENDOCARDITIS, profilaxisData)
     }
 
-    if (!anticoagulantesRes.error && Array.isArray(anticoagulantesRes.data)) {
-      cache.manejoAnticoagulantes = anticoagulantesRes.data
-      escribirEnLocalStorage(CLAVES.MANEJO_ANTICOAGULANTES, anticoagulantesRes.data)
+    const anticoagulantesData = anticoagulantesRes.data as Anticoagulante[] | null
+    if (!anticoagulantesRes.error && Array.isArray(anticoagulantesData)) {
+      cache.manejoAnticoagulantes = anticoagulantesData
+      escribirEnLocalStorage(CLAVES.MANEJO_ANTICOAGULANTES, anticoagulantesData)
     }
 
-    if (!metadataRes.error && Array.isArray(metadataRes.data) && metadataRes.data.length > 0) {
-      cache.metadata = metadataRes.data[0]
-      escribirEnLocalStorage(CLAVES.METADATA, metadataRes.data[0])
+    const metadataData = metadataRes.data as MetadataCuracion[] | null
+    if (!metadataRes.error && Array.isArray(metadataData) && metadataData.length > 0) {
+      cache.metadata = metadataData[0]
+      escribirEnLocalStorage(CLAVES.METADATA, metadataData[0])
     }
 
     // Registrar timestamp de sincronización
@@ -478,7 +566,7 @@ export const sincronizarDesdeSupabase = async () => {
     escribirEnLocalStorage(CLAVES.SINCRONIZADO, timestamp)
 
     log.info('Sincronización completa desde Supabase')
-  } catch (e) {
+  } catch (e: unknown) {
     log.error('Error en sincronización desde Supabase:', e)
     // No rompemos la app — los datos de respaldo siguen disponibles
   }
@@ -487,7 +575,7 @@ export const sincronizarDesdeSupabase = async () => {
 /**
  * Retorna true si la caché fue sincronizada desde Supabase.
  */
-export const estaSincronizado = () => {
+export const estaSincronizado = (): boolean => {
   return cache.sincronizado === true
 }
 
@@ -498,7 +586,7 @@ export const estaSincronizado = () => {
 /**
  * Limpia la caché en memoria (útil para tests).
  */
-export const limpiarCache = () => {
+export const limpiarCache = (): void => {
   cache = {
     vademecum: null,
     urgencia: null,
@@ -512,7 +600,6 @@ export const limpiarCache = () => {
   }
 }
 
-
 // ═══════════════════════════════════════════════════════════════
 // ESCRITURA (CRUD) — F4-03f-1
 // ═══════════════════════════════════════════════════════════════
@@ -520,30 +607,31 @@ export const limpiarCache = () => {
 /**
  * Helper interno: emite evento realtime y notifica al usuario.
  */
-const notificarCambioVademecum = (accion, detalle) => {
+const notificarCambioVademecum = (accion: string, detalle: Record<string, unknown>): void => {
   try {
-    window.dispatchEvent(new CustomEvent(REALTIME_EVENTS.VADEMECUM_CHANGED, { detail: detalle }))
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent(REALTIME_EVENTS.VADEMECUM_CHANGED, { detail: detalle }))
+    }
     notificationService.success(`Vademécum: ${accion}`, { titulo: 'Datos de referencia actualizados' })
-  } catch (e) {
-    log.warn('Error al notificar:', e?.message)
+  } catch (e: unknown) {
+    log.warn('Error al notificar:', extraerMensajeError(e))
   }
 }
 
 /**
  * Guarda (INSERT/UPDATE) un fármaco en la tabla vademecum.
- * 
- * @param {Object} farmaco - Datos del fármaco (debe incluir numero si es update)
- * @returns {Promise<{exito: boolean, error?: string, data?: Object}>}
  */
-export const guardarFarmaco = async (farmaco) => {
+export const guardarFarmaco = async (
+  farmaco?: FarmacoInput | null
+): Promise<{ exito: boolean; error?: string; data?: FarmacoVademecum }> => {
   if (!USE_SUPABASE || !supabase) {
     return { exito: false, error: 'Supabase no configurado' }
   }
-  
+
   if (!farmaco || typeof farmaco !== 'object') {
     return { exito: false, error: 'Datos de fármaco inválidos' }
   }
-  
+
   try {
     // Preparar payload (mapear camelCase a snake_case si es necesario)
     const payload = {
@@ -570,55 +658,58 @@ export const guardarFarmaco = async (farmaco) => {
       fecha_revision: farmaco.fecha_revision || farmaco.fechaRevision || new Date().toISOString().split('T')[0],
       curado_por: farmaco.curado_por || farmaco.curadoPor || 'Odontólogo vía UI'
     }
-    
+
     // UPSERT por número
     const { data, error } = await supabase
       .from('vademecum')
       .upsert(payload, { onConflict: 'numero' })
       .select()
       .single()
-    
+
     if (error) throw error
-    
+
+    const farmacoGuardado = data as FarmacoVademecum
+
     // Actualizar caché local
     if (!cache.vademecum) cache.vademecum = []
-    const idx = cache.vademecum.findIndex(f => f.numero === data.numero)
+    const idx = cache.vademecum.findIndex(f => f.numero === farmacoGuardado.numero)
     if (idx >= 0) {
-      cache.vademecum[idx] = data
+      cache.vademecum[idx] = farmacoGuardado
     } else {
-      cache.vademecum.push(data)
+      cache.vademecum.push(farmacoGuardado)
     }
     escribirEnLocalStorage(CLAVES.VADEMECUM, cache.vademecum)
-    
+
     notificarCambioVademecum(
-      idx >= 0 ? `Fármaco #${data.numero} actualizado` : `Fármaco #${data.numero} creado`,
-      { accion: idx >= 0 ? 'update' : 'insert', numero: data.numero }
+      idx >= 0 ? `Fármaco #${farmacoGuardado.numero} actualizado` : `Fármaco #${farmacoGuardado.numero} creado`,
+      { accion: idx >= 0 ? 'update' : 'insert', numero: farmacoGuardado.numero }
     )
-    
-    return { exito: true, data }
-  } catch (e) {
+
+    return { exito: true, data: farmacoGuardado }
+  } catch (e: unknown) {
+    const errorMsg = extraerMensajeError(e)
     log.error('Error al guardar fármaco:', e)
-    notificationService.error(`Error al guardar fármaco: ${e.message}`, { titulo: 'Error' })
-    return { exito: false, error: e.message }
+    notificationService.error(`Error al guardar fármaco: ${errorMsg}`, { titulo: 'Error' })
+    return { exito: false, error: errorMsg }
   }
 }
 
 /**
  * Desactiva un fármaco (set activo=false). No borra el registro.
  */
-export const desactivarFarmaco = async (numero) => {
+export const desactivarFarmaco = async (numero: number): Promise<{ exito: boolean; error?: string }> => {
   if (!USE_SUPABASE || !supabase) {
     return { exito: false, error: 'Supabase no configurado' }
   }
-  
+
   try {
     const { error } = await supabase
       .from('vademecum')
       .update({ activo: false })
       .eq('numero', numero)
-    
+
     if (error) throw error
-    
+
     // Actualizar caché
     if (cache.vademecum) {
       const idx = cache.vademecum.findIndex(f => f.numero === numero)
@@ -627,32 +718,33 @@ export const desactivarFarmaco = async (numero) => {
         escribirEnLocalStorage(CLAVES.VADEMECUM, cache.vademecum)
       }
     }
-    
+
     notificarCambioVademecum(`Fármaco #${numero} desactivado`, { accion: 'delete', numero })
     return { exito: true }
-  } catch (e) {
+  } catch (e: unknown) {
+    const errorMsg = extraerMensajeError(e)
     log.error('Error al desactivar fármaco:', e)
-    notificationService.error(`Error al desactivar: ${e.message}`, { titulo: 'Error' })
-    return { exito: false, error: e.message }
+    notificationService.error(`Error al desactivar: ${errorMsg}`, { titulo: 'Error' })
+    return { exito: false, error: errorMsg }
   }
 }
 
 /**
  * Reactiva un fármaco previamente desactivado.
  */
-export const reactivarFarmaco = async (numero) => {
+export const reactivarFarmaco = async (numero: number): Promise<{ exito: boolean; error?: string }> => {
   if (!USE_SUPABASE || !supabase) {
     return { exito: false, error: 'Supabase no configurado' }
   }
-  
+
   try {
     const { error } = await supabase
       .from('vademecum')
       .update({ activo: true })
       .eq('numero', numero)
-    
+
     if (error) throw error
-    
+
     if (cache.vademecum) {
       const idx = cache.vademecum.findIndex(f => f.numero === numero)
       if (idx >= 0) {
@@ -660,23 +752,26 @@ export const reactivarFarmaco = async (numero) => {
         escribirEnLocalStorage(CLAVES.VADEMECUM, cache.vademecum)
       }
     }
-    
+
     notificarCambioVademecum(`Fármaco #${numero} reactivado`, { accion: 'update', numero })
     return { exito: true }
-  } catch (e) {
+  } catch (e: unknown) {
+    const errorMsg = extraerMensajeError(e)
     log.error('Error al reactivar:', e)
-    return { exito: false, error: e.message }
+    return { exito: false, error: errorMsg }
   }
 }
 
 /**
  * Guarda una regla de alergia cruzada en la matriz.
  */
-export const guardarAlergiaCruzada = async (regla) => {
+export const guardarAlergiaCruzada = async (
+  regla: AlergiaCruzadaInput
+): Promise<{ exito: boolean; error?: string; data?: AlergiaCruzadaItem }> => {
   if (!USE_SUPABASE || !supabase) {
     return { exito: false, error: 'Supabase no configurado' }
   }
-  
+
   try {
     const payload = {
       familia_alergia: regla.familia_alergia || regla.familiaAlergia,
@@ -686,43 +781,48 @@ export const guardarAlergiaCruzada = async (regla) => {
       nota_clinica: regla.nota_clinica || regla.notaClinica || null,
       activo: regla.activo ?? true
     }
-    
+
     const { data, error } = await supabase
       .from('alergias_cruzadas')
       .upsert(payload, { onConflict: 'familia_alergia,familia_farmaco' })
       .select()
       .single()
-    
+
     if (error) throw error
-    
+
+    const reglaGuardada = data as AlergiaCruzadaItem
+
     if (!cache.alergiasCruzadas) cache.alergiasCruzadas = []
     const idx = cache.alergiasCruzadas.findIndex(a =>
-      a.familia_alergia === data.familia_alergia && a.familia_farmaco === data.familia_farmaco
+      a.familia_alergia === reglaGuardada.familia_alergia && a.familia_farmaco === reglaGuardada.familia_farmaco
     )
     if (idx >= 0) {
-      cache.alergiasCruzadas[idx] = data
+      cache.alergiasCruzadas[idx] = reglaGuardada
     } else {
-      cache.alergiasCruzadas.push(data)
+      cache.alergiasCruzadas.push(reglaGuardada)
     }
     escribirEnLocalStorage(CLAVES.ALERGIAS_CRUZADAS, cache.alergiasCruzadas)
-    
+
     notificarCambioVademecum(`Regla de alergia cruzada actualizada`, { accion: 'update', tabla: 'alergias_cruzadas' })
-    return { exito: true, data }
-  } catch (e) {
+    return { exito: true, data: reglaGuardada }
+  } catch (e: unknown) {
+    const errorMsg = extraerMensajeError(e)
     log.error('Error al guardar alergia cruzada:', e)
-    notificationService.error(`Error: ${e.message}`, { titulo: 'Error' })
-    return { exito: false, error: e.message }
+    notificationService.error(`Error: ${errorMsg}`, { titulo: 'Error' })
+    return { exito: false, error: errorMsg }
   }
 }
 
 /**
  * Guarda una interacción farmacológica.
  */
-export const guardarInteraccion = async (interaccion) => {
+export const guardarInteraccion = async (
+  interaccion: InteraccionInput
+): Promise<{ exito: boolean; error?: string; data?: Interaccion }> => {
   if (!USE_SUPABASE || !supabase) {
     return { exito: false, error: 'Supabase no configurado' }
   }
-  
+
   try {
     const payload = {
       farmaco_a: interaccion.farmaco_a || interaccion.farmacoA,
@@ -732,89 +832,103 @@ export const guardarInteraccion = async (interaccion) => {
       severidad: interaccion.severidad || 'moderada',
       activo: interaccion.activo ?? true
     }
-    
+
     const { data, error } = await supabase
       .from('interacciones_farmacologicas')
       .insert(payload)
       .select()
       .single()
-    
+
     if (error) throw error
-    
+
+    const interaccionGuardada = data as Interaccion
+
     if (!cache.interacciones) cache.interacciones = []
-    cache.interacciones.push(data)
+    cache.interacciones.push(interaccionGuardada)
     escribirEnLocalStorage(CLAVES.INTERACCIONES, cache.interacciones)
-    
+
     notificarCambioVademecum(`Interacción agregada`, { accion: 'insert', tabla: 'interacciones' })
-    return { exito: true, data }
-  } catch (e) {
+    return { exito: true, data: interaccionGuardada }
+  } catch (e: unknown) {
+    const errorMsg = extraerMensajeError(e)
     log.error('Error al guardar interacción:', e)
-    return { exito: false, error: e.message }
+    return { exito: false, error: errorMsg }
   }
 }
 
 /**
  * Guarda un protocolo de profilaxis de endocarditis.
  */
-export const guardarProtocoloEndocarditis = async (protocolo) => {
+export const guardarProtocoloEndocarditis = async (
+  protocolo: Profilaxis & Record<string, unknown>
+): Promise<{ exito: boolean; error?: string; data?: Profilaxis }> => {
   if (!USE_SUPABASE || !supabase) {
     return { exito: false, error: 'Supabase no configurado' }
   }
-  
+
   try {
     const { data, error } = await supabase
       .from('profilaxis_endocarditis')
       .insert(protocolo)
       .select()
       .single()
-    
+
     if (error) throw error
-    
+
+    const protoGuardado = data as Profilaxis
+
     if (!cache.profilaxisEndocarditis) cache.profilaxisEndocarditis = []
-    cache.profilaxisEndocarditis.push(data)
+    cache.profilaxisEndocarditis.push(protoGuardado)
     escribirEnLocalStorage(CLAVES.PROFILAXIS_ENDOCARDITIS, cache.profilaxisEndocarditis)
-    
+
     notificarCambioVademecum(`Protocolo de endocarditis agregado`, { accion: 'insert', tabla: 'profilaxis_endocarditis' })
-    return { exito: true, data }
-  } catch (e) {
+    return { exito: true, data: protoGuardado }
+  } catch (e: unknown) {
+    const errorMsg = extraerMensajeError(e)
     log.error('Error al guardar protocolo:', e)
-    return { exito: false, error: e.message }
+    return { exito: false, error: errorMsg }
   }
 }
 
 /**
  * Guarda un manejo de anticoagulantes.
  */
-export const guardarManejoAnticoagulante = async (manejo) => {
+export const guardarManejoAnticoagulante = async (
+  manejo: Anticoagulante & Record<string, unknown>
+): Promise<{ exito: boolean; error?: string; data?: Anticoagulante }> => {
   if (!USE_SUPABASE || !supabase) {
     return { exito: false, error: 'Supabase no configurado' }
   }
-  
+
   try {
     const { data, error } = await supabase
       .from('manejo_anticoagulantes')
       .insert(manejo)
       .select()
       .single()
-    
+
     if (error) throw error
-    
+
+    const manejoGuardado = data as Anticoagulante
+
     if (!cache.manejoAnticoagulantes) cache.manejoAnticoagulantes = []
-    cache.manejoAnticoagulantes.push(data)
+    cache.manejoAnticoagulantes.push(manejoGuardado)
     escribirEnLocalStorage(CLAVES.MANEJO_ANTICOAGULANTES, cache.manejoAnticoagulantes)
-    
+
     notificarCambioVademecum(`Manejo de anticoagulante agregado`, { accion: 'insert', tabla: 'manejo_anticoagulantes' })
-    return { exito: true, data }
-  } catch (e) {
+    return { exito: true, data: manejoGuardado }
+  } catch (e: unknown) {
+    const errorMsg = extraerMensajeError(e)
     log.error('Error al guardar manejo:', e)
-    return { exito: false, error: e.message }
+    return { exito: false, error: errorMsg }
   }
 }
-
 
 // ═══════════════════════════════════════════════════════════════
 // EXPORTACIÓN DEL SERVICIO
 // ═══════════════════════════════════════════════════════════════
+export { obtenerDosisAnestesia }
+
 export const vademecumService = {
   obtenerVademecum,
   obtenerFarmacosPorFamilia,
