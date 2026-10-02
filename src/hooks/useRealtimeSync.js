@@ -11,7 +11,7 @@ import { USE_SUPABASE } from '../services/supabaseClient'
 import { notificationService } from '../services/notificationService'
 import { TABLAS_REALTIME } from '../services/realtimeEvents'
 import { useSincronizacionInicial } from './useSincronizacionInicial'
-import { createLogger } from '../services/logger.js'
+import { createLogger } from '../services/logger'
 
 const log = createLogger('useRealtimeSync')
 

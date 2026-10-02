@@ -16,7 +16,7 @@
  */
 import { useState, useEffect } from 'react'
 import { presupuestosStorageService } from '../../presupuestos/services/presupuestosStorageService'
-import { createLogger } from '../../../services/logger.js'
+import { createLogger } from '../../../services/logger'
 
 const log = createLogger('usePrestacionesPaciente')
 

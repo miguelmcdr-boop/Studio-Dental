@@ -25,7 +25,7 @@ import { supabase } from '../supabaseClient'
 import { pacientesStorageService } from '../../modules/pacientes'
 import { migrationStorageService } from '../migrationStorageService'
 import { esUuidValido } from './uuidUtils'
-import { createLogger } from '../logger.js'
+import { createLogger } from '../logger'
 
 const log = createLogger('migratePacientesToSupabase')
 

@@ -8,7 +8,7 @@ import {
 import { construirUserProfile } from '../services/userProfileBuilder'
 import { NOMBRES_ROLES, DESCRIPCIONES_ROLES } from '../constants/rbacConstants'
 import { obtenerRolPorDefecto } from '../services/rbacService'
-import { createLogger } from '../services/logger.js'
+import { createLogger } from '../services/logger'
 import { Button } from './ui/Button'
 import { Input } from './ui/Input'
 import { DentikOSLogo } from './brand/DentikOSLogo'

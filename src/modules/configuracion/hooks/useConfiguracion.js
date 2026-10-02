@@ -4,7 +4,7 @@ import { configuracionStorageService } from '../services/configuracionStorageSer
 import { descargarArchivoBackupJSON } from '../utils/configuracionCalculations'
 import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
 import { guardarPerfil } from '../../../services/authService'
-import { createLogger } from '../../../services/logger.js'
+import { createLogger } from '../../../services/logger'
 import { useAppDialog } from '../../../hooks/useAppDialog'
 
 const log = createLogger('useConfiguracion')

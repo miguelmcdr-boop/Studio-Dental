@@ -7,7 +7,7 @@ import { useState } from 'react'
 import { descontarMaterialesSeleccionados, detectarCategoriaTratamiento, PALABRAS_CLAVE_POR_CATEGORIA_DEFAULT } from '../../inventario/utils/inventarioCalculations'
 import { inventarioStorageService } from '../../inventario/services/inventarioStorageService'
 import { evolucionesStorageService } from '../services/evolucionesStorageService'
-import { createLogger } from '../../../services/logger.js'
+import { createLogger } from '../../../services/logger'
 
 const log = createLogger('useDescuentoInventario')
 const STORAGE_KEY_PALABRAS_CLAVE = 'studio_dental_inventario_palabras_clave'

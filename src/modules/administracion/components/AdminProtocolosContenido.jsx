@@ -12,7 +12,7 @@ import { TablaAnticoagulantes } from './TablaAnticoagulantes'
 import { ModalEditarAlergiaCruzada } from './ModalEditarAlergiaCruzada'
 import { ModalEditarInteraccion } from './ModalEditarInteraccion'
 import { ModalEditarProtocolo } from './ModalEditarProtocolo'
-import { createLogger } from '../../../services/logger.js'
+import { createLogger } from '../../../services/logger'
 
 const log = createLogger('AdminProtocolosContenido')
 

@@ -26,7 +26,7 @@ import { ModalEditarFarmaco } from './components/ModalEditarFarmaco'
 import { ModalEditarUrgencia } from './components/ModalEditarUrgencia'
 import { ModalEditarAntirresortivo } from './components/ModalEditarAntirresortivo'
 import { AdminProtocolosContenido } from './components/AdminProtocolosContenido'
-import { createLogger } from '../../services/logger.js'
+import { createLogger } from '../../services/logger'
 import { FlaskConical, Info, Lock, Pill, RefreshCw } from 'lucide-react'
 
 const log = createLogger('AdminVademecumModulo')

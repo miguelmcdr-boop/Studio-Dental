@@ -26,7 +26,7 @@
  * @param {number} version - Número de versión del esquema.
  * @returns {{ schemaVersion: number, data: * }}
  */
-import { createLogger } from './logger.js'
+import { createLogger } from './logger'
 
 const log = createLogger('schemaMigrationService')
 export const wrapWithVersion = (data, version) => ({

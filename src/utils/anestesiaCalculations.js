@@ -20,7 +20,7 @@
  * 2. DOSIS_RESPALDO_V10 (v1.0 hardcodeada, 4 anestésicos originales)
  */
 import { vademecumService } from '../services/vademecumService'
-import { createLogger } from '../services/logger.js'
+import { createLogger } from '../services/logger'
 import { DOSIS_RESPALDO_V10 } from './anestesiaDatos'
 
 const log = createLogger('anestesiaCalculations')

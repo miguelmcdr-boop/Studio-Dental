@@ -18,7 +18,7 @@
  * el mapa en memoria que se sincroniza con Supabase.
  */
 import { leerJSON, escribirJSON } from './localStorageRepository'
-import { createLogger } from './logger.js'
+import { createLogger } from './logger'
 
 const log = createLogger('migrationStorageService')
 

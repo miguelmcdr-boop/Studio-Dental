@@ -28,7 +28,7 @@
  */
 import { useEffect, useRef } from 'react'
 import { suscribirseATabla } from '../services/realtimeService'
-import { createLogger } from '../services/logger.js'
+import { createLogger } from '../services/logger'
 
 const log = createLogger('useRealtimeSubscription')
 

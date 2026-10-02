@@ -1,7 +1,7 @@
 import React, { memo, useEffect, useState } from 'react'
 import { DienteSVG } from '../../../components/DienteSVG'
 import { odontogramaStorageService } from '../../odontograma'
-import { createLogger } from '../../../services/logger.js'
+import { createLogger } from '../../../services/logger'
 import { Printer } from 'lucide-react'
 
 const log = createLogger('DocumentoPresupuestoImprimible')

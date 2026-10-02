@@ -6,7 +6,7 @@ import {
   generarMensajeDinamico,
   evaluarIncompatibilidadLegacy
 } from './pacientesAlergiaCalculations'
-import { createLogger } from '../../../services/logger.js'
+import { createLogger } from '../../../services/logger'
 
 const log = createLogger('pacientesCalculations')
 

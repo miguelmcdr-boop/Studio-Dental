@@ -3,7 +3,7 @@ import { vademecumService } from '../../../services/vademecumService'
 import { VADEMECUM_ODONTOLOGICO } from '../../../data/vademecum'
 import { evaluarIncompatibilidadFarmaco } from '../utils/pacientesCalculations'
 import { AlertaAlergiaMejorada } from './AlertaAlergiaMejorada'
-import { createLogger } from '../../../services/logger.js'
+import { createLogger } from '../../../services/logger'
 
 const log = createLogger('FormularioNuevaReceta')
 

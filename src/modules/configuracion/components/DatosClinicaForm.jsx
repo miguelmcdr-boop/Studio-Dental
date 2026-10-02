@@ -1,6 +1,6 @@
 import React, { memo, useState } from 'react'
 import { convertirImagenADataURL } from '../utils/configuracionCalculations'
-import { createLogger } from '../../../services/logger.js'
+import { createLogger } from '../../../services/logger'
 import { Lock } from 'lucide-react'
 import { Building2 } from 'lucide-react'
 
