@@ -28,20 +28,86 @@ import { createLogger } from './logger'
 
 const log = createLogger('r2ArchivosService')
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
+const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL as string) || ''
+
+export interface SolicitaUrlUploadParams {
+  pacienteId: string
+  categoria: string
+  nombreArchivo: string
+  mimeType: string
+  tamanoBytes: number
+}
+
+export interface R2UploadUrlResponse {
+  archivo_id: string
+  r2_object_key: string
+  upload_url: string
+  upload_headers: Record<string, string>
+  expires_in: number
+  [key: string]: unknown
+}
+
+export interface SubeArchivoAR2Params {
+  uploadUrl: string
+  uploadHeaders: Record<string, string>
+  file: File | Blob
+  onProgress?: (percent: number) => void
+}
+
+export interface R2DownloadUrlResponse {
+  archivo_id: string
+  download_url: string
+  download_headers: Record<string, string>
+  expires_in: number
+  [key: string]: unknown
+}
+
+export interface DescargaArchivoDeR2Params {
+  downloadUrl: string
+  downloadHeaders: Record<string, string>
+  nombreArchivo: string
+}
+
+export interface AbrirArchivoDeR2Params {
+  downloadUrl: string
+  downloadHeaders: Record<string, string>
+  mimeType?: string
+}
+
+export interface ArchivoClinicoRow {
+  id: string
+  paciente_id: string
+  clinica_id?: string | null
+  categoria: string
+  nombre_archivo: string
+  mime_type?: string | null
+  tamano_bytes?: number | null
+  r2_object_key?: string | null
+  estado?: string | null
+  metadata?: Record<string, unknown> | null
+  created_at?: string | null
+  updated_at?: string | null
+  deleted_at?: string | null
+  eliminado_por?: string | null
+  [key: string]: unknown
+}
+
+export interface VaciarPapeleraArchivosResult {
+  purgados: string[]
+  rechazados: Array<{ id: string; razon?: string; [key: string]: unknown }>
+  error?: string
+}
 
 /**
  * Solicita URL firmada para subir archivo a R2.
- *
- * @param {Object} params
- * @param {string} params.pacienteId — UUID del paciente
- * @param {string} params.categoria — 'radiografia' | 'foto_clinica' | 'pdf' | 'documento' | 'otro'
- * @param {string} params.nombreArchivo — nombre original del archivo
- * @param {string} params.mimeType — tipo MIME (ej: 'image/jpeg', 'application/pdf')
- * @param {number} params.tamanoBytes — tamaño en bytes
- * @returns {Promise<{archivo_id, r2_object_key, upload_url, upload_headers, expires_in} | null>}
  */
-export const solicitaUrlUpload = async ({ pacienteId, categoria, nombreArchivo, mimeType, tamanoBytes }) => {
+export const solicitaUrlUpload = async ({
+  pacienteId,
+  categoria,
+  nombreArchivo,
+  mimeType,
+  tamanoBytes
+}: SolicitaUrlUploadParams): Promise<R2UploadUrlResponse | null> => {
   try {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) {
@@ -70,8 +136,8 @@ export const solicitaUrlUpload = async ({ pacienteId, categoria, nombreArchivo, 
       return null
     }
 
-    return await response.json()
-  } catch (error) {
+    return (await response.json()) as R2UploadUrlResponse
+  } catch (error: unknown) {
     log.error('Excepción solicitando URL de upload:', error)
     return null
   }
@@ -79,18 +145,16 @@ export const solicitaUrlUpload = async ({ pacienteId, categoria, nombreArchivo, 
 
 /**
  * Sube archivo directamente a R2 usando URL firmada.
- *
- * @param {Object} params
- * @param {string} params.uploadUrl — URL firmada de R2
- * @param {Record<string, string>} params.uploadHeaders — headers requeridos por R2
- * @param {File|Blob} params.file — archivo a subir
- * @param {Function} [params.onProgress] — callback de progreso (0-100)
- * @returns {Promise<boolean>} true si se subió correctamente
  */
-export const subeArchivoAR2 = async ({ uploadUrl, uploadHeaders, file, onProgress }) => {
+export const subeArchivoAR2 = async ({
+  uploadUrl,
+  uploadHeaders,
+  file,
+  onProgress
+}: SubeArchivoAR2Params): Promise<boolean> => {
   try {
     // Usar XMLHttpRequest para obtener progreso
-    return new Promise((resolve, reject) => {
+    return new Promise<boolean>((resolve) => {
       const xhr = new XMLHttpRequest()
 
       xhr.upload.addEventListener('progress', (event) => {
@@ -123,7 +187,7 @@ export const subeArchivoAR2 = async ({ uploadUrl, uploadHeaders, file, onProgres
 
       xhr.send(file)
     })
-  } catch (error) {
+  } catch (error: unknown) {
     log.error('Excepción subiendo archivo a R2:', error)
     return false
   }
@@ -131,11 +195,8 @@ export const subeArchivoAR2 = async ({ uploadUrl, uploadHeaders, file, onProgres
 
 /**
  * Solicita URL firmada para descargar archivo desde R2.
- *
- * @param {string} archivoId — UUID del archivo en archivos_clinicos
- * @returns {Promise<{archivo_id, download_url, download_headers, expires_in} | null>}
  */
-export const solicitaUrlDownload = async (archivoId) => {
+export const solicitaUrlDownload = async (archivoId: string): Promise<R2DownloadUrlResponse | null> => {
   try {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) {
@@ -160,8 +221,8 @@ export const solicitaUrlDownload = async (archivoId) => {
       return null
     }
 
-    return await response.json()
-  } catch (error) {
+    return (await response.json()) as R2DownloadUrlResponse
+  } catch (error: unknown) {
     log.error('Excepción solicitando URL de download:', error)
     return null
   }
@@ -169,14 +230,12 @@ export const solicitaUrlDownload = async (archivoId) => {
 
 /**
  * Descarga archivo desde R2 usando URL firmada.
- *
- * @param {Object} params
- * @param {string} params.downloadUrl — URL firmada de R2
- * @param {Record<string, string>} params.downloadHeaders — headers requeridos por R2
- * @param {string} params.nombreArchivo — nombre para guardar el archivo
- * @returns {Promise<boolean>} true si se descargó correctamente
  */
-export const descargaArchivoDeR2 = async ({ downloadUrl, downloadHeaders, nombreArchivo }) => {
+export const descargaArchivoDeR2 = async ({
+  downloadUrl,
+  downloadHeaders,
+  nombreArchivo
+}: DescargaArchivoDeR2Params): Promise<boolean> => {
   try {
     const response = await fetch(downloadUrl, {
       headers: downloadHeaders,
@@ -198,12 +257,11 @@ export const descargaArchivoDeR2 = async ({ downloadUrl, downloadHeaders, nombre
     document.body.removeChild(a)
 
     return true
-  } catch (error) {
+  } catch (error: unknown) {
     log.error('Excepción descargando archivo de R2:', error)
     return false
   }
 }
-
 
 /**
  * Abre archivo desde R2 en nueva pestaña usando URL firmada con headers.
@@ -211,14 +269,12 @@ export const descargaArchivoDeR2 = async ({ downloadUrl, downloadHeaders, nombre
  * Importante: las URLs generadas por las Edge Functions usan firma AWS v4
  * en headers, no query params. Por eso NO se puede hacer window.open(downloadUrl)
  * directamente; primero se hace fetch con headers, luego se crea un blob URL.
- *
- * @param {Object} params
- * @param {string} params.downloadUrl — URL firmada de R2
- * @param {Record<string, string>} params.downloadHeaders — headers requeridos por R2
- * @param {string} params.mimeType — tipo MIME del archivo
- * @returns {Promise<boolean>} true si se abrió correctamente
  */
-export const abrirArchivoDeR2 = async ({ downloadUrl, downloadHeaders, mimeType }) => {
+export const abrirArchivoDeR2 = async ({
+  downloadUrl,
+  downloadHeaders,
+  mimeType
+}: AbrirArchivoDeR2Params): Promise<boolean> => {
   try {
     const response = await fetch(downloadUrl, {
       headers: downloadHeaders,
@@ -246,7 +302,7 @@ export const abrirArchivoDeR2 = async ({ downloadUrl, downloadHeaders, mimeType 
     }, 60_000)
 
     return true
-  } catch (error) {
+  } catch (error: unknown) {
     log.error('Excepción abriendo archivo de R2:', error)
     return false
   }
@@ -254,11 +310,8 @@ export const abrirArchivoDeR2 = async ({ downloadUrl, downloadHeaders, mimeType 
 
 /**
  * Elimina archivo de R2 + soft delete en metadata.
- *
- * @param {string} archivoId — UUID del archivo en archivos_clinicos
- * @returns {Promise<boolean>} true si se eliminó correctamente
  */
-export const eliminaArchivo = async (archivoId) => {
+export const eliminaArchivo = async (archivoId: string): Promise<boolean | null> => {
   try {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) {
@@ -283,9 +336,9 @@ export const eliminaArchivo = async (archivoId) => {
       return false
     }
 
-    const result = await response.json()
+    const result = (await response.json()) as { success?: boolean }
     return result.success === true
-  } catch (error) {
+  } catch (error: unknown) {
     log.error('Excepción eliminando archivo:', error)
     return false
   }
@@ -293,12 +346,11 @@ export const eliminaArchivo = async (archivoId) => {
 
 /**
  * Lista archivos clínicos de un paciente desde Supabase.
- *
- * @param {string} pacienteId — UUID del paciente
- * @param {string} [categoria] — filtrar por categoría (opcional)
- * @returns {Promise<Array>} array de archivos (vacío si falla)
  */
-export const listaArchivosDePaciente = async (pacienteId, categoria = null) => {
+export const listaArchivosDePaciente = async (
+  pacienteId: string,
+  categoria: string | null = null
+): Promise<ArchivoClinicoRow[]> => {
   try {
     let query = supabase
       .from('archivos_clinicos')
@@ -318,13 +370,12 @@ export const listaArchivosDePaciente = async (pacienteId, categoria = null) => {
       return []
     }
 
-    return data || []
-  } catch (error) {
+    return (data || []) as ArchivoClinicoRow[]
+  } catch (error: unknown) {
     log.error('Excepción listando archivos:', error)
     return []
   }
 }
-
 
 // ============================================================
 // F7-31: MÉTODOS PARA PAPELERA DE ARCHIVOS
@@ -334,11 +385,8 @@ export const listaArchivosDePaciente = async (pacienteId, categoria = null) => {
  * Lista archivos eliminados (papelera) de un paciente o de toda la clínica.
  *
  * F7-31 Fase 4: papelera de archivos clínicos.
- *
- * @param {string} pacienteId — UUID del paciente (opcional, null para toda la clínica)
- * @returns {Promise<Array>} Array de archivos eliminados
  */
-export const listaArchivosEliminados = async (pacienteId = null) => {
+export const listaArchivosEliminados = async (pacienteId: string | null = null): Promise<ArchivoClinicoRow[]> => {
   try {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) {
@@ -358,14 +406,14 @@ export const listaArchivosEliminados = async (pacienteId = null) => {
     })
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
+      const errorData = (await response.json().catch(() => ({}))) as Record<string, unknown>
       log.error('Error listando papelera:', errorData)
       return []
     }
 
-    const data = await response.json()
+    const data = (await response.json()) as { archivos?: ArchivoClinicoRow[] }
     return data.archivos || []
-  } catch (e) {
+  } catch (e: unknown) {
     log.error('Excepción listando papelera:', e)
     return []
   }
@@ -375,11 +423,8 @@ export const listaArchivosEliminados = async (pacienteId = null) => {
  * Restaura archivo eliminado (papelera → activo).
  *
  * F7-31 Fase 4: papelera de archivos clínicos.
- *
- * @param {string} archivoId — UUID del archivo a restaurar
- * @returns {Promise<boolean>} true si se restauró correctamente
  */
-export const restaurarArchivo = async (archivoId) => {
+export const restaurarArchivo = async (archivoId: string): Promise<boolean> => {
   try {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) {
@@ -397,15 +442,15 @@ export const restaurarArchivo = async (archivoId) => {
     })
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
+      const errorData = (await response.json().catch(() => ({}))) as Record<string, unknown>
       log.error('Error restaurando archivo:', errorData)
       return false
     }
 
-    const data = await response.json()
+    const data = (await response.json()) as { success?: boolean }
     log.info(`Archivo restaurado: ${archivoId}`)
     return data.success === true
-  } catch (e) {
+  } catch (e: unknown) {
     log.error('Excepción restaurando archivo:', e)
     return false
   }
@@ -419,11 +464,8 @@ export const restaurarArchivo = async (archivoId) => {
  * - Elimina blobs R2 + DELETE de fila archivos_clinicos
  * - Registra ADMIN_PURGE_ARCHIVOS en audit_log
  * - Sin restricción de tiempo (libera espacio R2)
- *
- * @param {Array<string>} archivoIds - Lista de UUIDs a purgar
- * @returns {Promise<Object>} { purgados: [...], rechazados: [{id, razon}] }
  */
-export const vaciarPapeleraArchivos = async (archivoIds) => {
+export const vaciarPapeleraArchivos = async (archivoIds: string[]): Promise<VaciarPapeleraArchivosResult> => {
   if (!Array.isArray(archivoIds) || archivoIds.length === 0) {
     log.warn('vaciarPapeleraArchivos: lista vacía')
     return { purgados: [], rechazados: [] }
@@ -446,20 +488,24 @@ export const vaciarPapeleraArchivos = async (archivoIds) => {
     })
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
+      const errorData = (await response.json().catch(() => ({}))) as { error?: string }
       log.error('Error en archivos-purge:', errorData)
       return { purgados: [], rechazados: [], error: errorData.error || 'Error desconocido' }
     }
 
-    const data = await response.json()
-    log.info(`Purga completada: ${data.purgados.length} purgados, ${data.rechazados.length} rechazados`)
+    const data = (await response.json()) as {
+      purgados?: string[]
+      rechazados?: Array<{ id: string; razon?: string }>
+    }
+    log.info(`Purga completada: ${data.purgados?.length || 0} purgados, ${data.rechazados?.length || 0} rechazados`)
     return {
       purgados: data.purgados || [],
       rechazados: data.rechazados || [],
     }
-  } catch (e) {
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
     log.error('Excepción al purgar archivos:', e)
-    return { purgados: [], rechazados: [], error: e.message }
+    return { purgados: [], rechazados: [], error: msg }
   }
 }
 
@@ -472,12 +518,11 @@ export const vaciarPapeleraArchivos = async (archivoIds) => {
  *
  * Uso principal: guardar metadata de consentimientos después del upload.
  * El Edge Function r2-upload-url inserta metadata vacía por defecto.
- *
- * @param {string} archivoId — UUID del archivo en archivos_clinicos
- * @param {Object} metadata — objeto JSON a guardar (ej: {subcategoria, titulo, ...})
- * @returns {Promise<boolean>} true si se actualizó correctamente
  */
-export const actualizarMetadataArchivo = async (archivoId, metadata) => {
+export const actualizarMetadataArchivo = async (
+  archivoId: string,
+  metadata: Record<string, unknown>
+): Promise<boolean> => {
   if (!archivoId || !metadata || typeof metadata !== 'object') {
     log.warn('actualizarMetadataArchivo: parámetros inválidos')
     return false
@@ -503,7 +548,7 @@ export const actualizarMetadataArchivo = async (archivoId, metadata) => {
 
     log.info(`Metadata actualizada para archivo ${archivoId}`)
     return true
-  } catch (e) {
+  } catch (e: unknown) {
     log.error('Excepción al actualizar metadata:', e)
     return false
   }
