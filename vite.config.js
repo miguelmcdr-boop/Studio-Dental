@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import { debeCachearSupabase } from './src/utils/supabaseCacheFilter.ts'
 
 export default defineConfig({
   plugins: [
@@ -45,19 +46,7 @@ export default defineConfig({
         // para ser testeable de forma aislada.
         runtimeCaching: [
           {
-            urlPattern: ({ url }) => {
-              // Replica de src/utils/supabaseCacheFilter.js (inline porque
-              // vite.config.js no puede importar modulos ESM de src/ de forma
-              // confiable al construir el SW). Mantener sincronizado.
-              if (!url.hostname.includes('supabase')) return false
-              const path = url.pathname
-              return !(
-                path.startsWith('/rest/v1/') ||
-                path.startsWith('/storage/v1/') ||
-                path.startsWith('/auth/v1/') ||
-                path.startsWith('/realtime/v1/')
-              )
-            },
+            urlPattern: debeCachearSupabase,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'supabase-cache',

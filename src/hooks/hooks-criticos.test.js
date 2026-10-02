@@ -28,11 +28,8 @@ vi.mock('../services/notificationService', () => ({
   }
 }))
 
-vi.mock('../services/operationQueue', () => ({
-  operationQueue: {
-    processQueue: vi.fn(),
-    enqueue: vi.fn()
-  }
+vi.mock('../modules/pacientes/services/pacientesStorageService', () => ({
+  procesarColaPacientes: vi.fn(() => Promise.resolve({ procesados: 0, fallidos: 0 }))
 }))
 
 vi.mock('../services/logger', () => ({
@@ -117,7 +114,7 @@ import { useOfflineQueue } from './useOfflineQueue'
 import { useSessionGuard } from './useSessionGuard'
 import { useDataMigration } from './useDataMigration'
 import { notificationService } from '../services/notificationService'
-import { operationQueue } from '../services/operationQueue'
+import { procesarColaPacientes } from '../modules/pacientes/services/pacientesStorageService'
 
 describe('useNotifications', () => {
   beforeEach(() => {
@@ -175,7 +172,7 @@ describe('useOfflineQueue', () => {
   it('debe procesar cola si está online al montar', () => {
     Object.defineProperty(navigator, 'onLine', { value: true })
     renderHook(() => useOfflineQueue())
-    expect(operationQueue.processQueue).toHaveBeenCalled()
+    expect(procesarColaPacientes).toHaveBeenCalled()
   })
 
   it('no debe procesar cola si está offline al montar', () => {

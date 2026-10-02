@@ -37,126 +37,29 @@ const log = createLogger('agendaStorageService')
 const STORAGE_KEY_AGENDA = 'studio_dental_agenda_citas_v3'
 // F7-36 FASE 1 (Commit 1.5b): migrado a createTenantRepository para aislamiento multi-tenant.
 // La clave legacy 'studio_dental_agenda_citas_v3' ahora se almacena como sd_<clinicaId>_studio_dental_agenda_citas_v3.
-// notify: true se preserva para sincronización entre pestañas/módulos.
 const citasRepo = createTenantRepository(STORAGE_KEY_AGENDA, [], { notify: true })
+
+// P0-1: Repositorio aislado por tenant para registrar eliminaciones pendientes explícitas
+const STORAGE_KEY_PENDING_DELETES = 'studio_dental_agenda_pending_deletes'
+const pendingDeletesRepo = createTenantRepository(STORAGE_KEY_PENDING_DELETES, [])
+
+const obtenerPendingDeletes = () => pendingDeletesRepo.obtener([])
+const guardarPendingDeletes = (ids) => {
+  if (!ids || ids.length === 0) {
+    return pendingDeletesRepo.eliminar()
+  }
+  return pendingDeletesRepo.guardar(ids)
+}
 
 // Caché en memoria: evita lecturas repetidas de localStorage y permite
 // que la API pública permanezca síncrona.
 let citasCache = null
 let cacheInicializado = false
 
-// ═══════════════════════════════════════════════════════════════════
-// MAPEO DE ESTADOS
-// ═══════════════════════════════════════════════════════════════════
-
-const ESTADO_CODIGO_A_SUPABASE = {
-  'Agendado': 'Agendada',
-  'Confirmado': 'Confirmada',
-  'En Sillón': 'En Curso',
-  'Completado': 'Completada',
-  'Cancelado': 'Cancelada',
-  'No Asistió': 'No Asistió',
-  'Agendada': 'Agendada',
-  'Confirmada': 'Confirmada',
-  'En Curso': 'En Curso',
-  'Completada': 'Completada',
-  'Cancelada': 'Cancelada'
-}
-
-const ESTADO_SUPABASE_A_CODIGO = {
-  'Agendada': 'Agendado',
-  'Confirmada': 'Confirmado',
-  'En Curso': 'En Sillón',
-  'Completada': 'Completado',
-  'Cancelada': 'Cancelado',
-  'No Asistió': 'No Asistió',
-  'Agendado': 'Agendado',
-  'Confirmado': 'Confirmado',
-  'En Sillón': 'En Sillón',
-  'Completado': 'Completado',
-  'Cancelado': 'Cancelado'
-}
-
-const normalizarEstadoParaSupabase = (estado) => {
-  return ESTADO_CODIGO_A_SUPABASE[estado] || 'Agendada'
-}
-
-const desnormalizarEstadoParaCodigo = (estado) => {
-  return ESTADO_SUPABASE_A_CODIGO[estado] || 'Agendado'
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// MAPEO DE CAMPOS (camelCase JS ↔ snake_case SQL)
-// ═══════════════════════════════════════════════════════════════════
-
-const SNAKE_TO_CAMEL_MAP = {
-  paciente_id: 'pacienteId',
-  paciente_nombre: 'pacienteNombre',
-  paciente_telefono: 'pacienteTelefono',
-  paciente_rut: 'pacienteRut',
-  hora_inicio: 'horaInicio',
-  hora_fin: 'horaFin',
-  box_asignado: 'boxAsignado',
-  hora_inicio_atencion: 'horaInicioAtencion',
-  user_id: 'userId',
-  created_at: 'createdAt',
-  updated_at: 'updatedAt'
-}
-
-const CAMEL_TO_SNAKE_MAP = Object.fromEntries(
-  Object.entries(SNAKE_TO_CAMEL_MAP).map(([snake, camel]) => [camel, snake])
-)
-
-/**
- * Convierte una cita de Supabase (snake_case) a formato JS (camelCase).
- * También desnormaliza el estado al formato del código.
- */
-const transformarDesdeSupabase = (citaDb) => {
-  if (!citaDb) return null
-  const resultado = {}
-  for (const [claveDb, valor] of Object.entries(citaDb)) {
-    const claveJs = SNAKE_TO_CAMEL_MAP[claveDb] || claveDb
-    if (claveJs === 'estado') {
-      resultado[claveJs] = desnormalizarEstadoParaCodigo(valor)
-    } else {
-      resultado[claveJs] = valor
-    }
-  }
-  return resultado
-}
-
-/**
- * Convierte una cita de formato JS (camelCase) a Supabase (snake_case).
- * Normaliza el estado al formato esperado por la tabla.
- */
-const transformarParaSupabase = (citaJs) => {
-  if (!citaJs) return null
-  const resultado = {}
-  for (const [claveJs, valor] of Object.entries(citaJs)) {
-    if (claveJs === 'createdAt' || claveJs === 'updatedAt' || claveJs === 'userId') {
-      continue
-    }
-    const claveDb = CAMEL_TO_SNAKE_MAP[claveJs] || claveJs
-    if (claveJs === 'estado') {
-      resultado[claveDb] = normalizarEstadoParaSupabase(valor)
-    } else if (claveJs === 'pacienteId') {
-      // Resolver pacienteId: si es legacy, buscar en el mapa de migración
-      if (esUuidValido(valor)) {
-        resultado.paciente_id = valor
-      } else if (valor !== null && valor !== undefined) {
-        const pacienteUuid = migrationStorageService.obtenerSupabaseId(valor)
-        resultado.paciente_id = pacienteUuid || null
-      } else {
-        resultado.paciente_id = null
-      }
-    } else if (valor === '') {
-      resultado[claveDb] = null
-    } else if (valor !== undefined) {
-      resultado[claveDb] = valor
-    }
-  }
-  return resultado
-}
+import {
+  transformarDesdeSupabase,
+  transformarParaSupabase
+} from './agendaTransformations'
 
 // ═══════════════════════════════════════════════════════════════════
 // INICIALIZACIÓN DE CACHÉ
@@ -198,9 +101,11 @@ const sincronizarDesdeSupabase = async () => {
   }
 
   try {
-    const { data, error } = await supabase
-      .from('citas')
-      .select('*')
+    let query = supabase.from('citas').select('*')
+    if (typeof query.is === 'function') {
+      query = query.is('deleted_at', null)
+    }
+    const { data, error } = await query
       .order('fecha', { ascending: false })
       .order('hora_inicio', { ascending: true })
 
@@ -325,25 +230,36 @@ const guardarCitas = async (citas) => {
       }
     }
 
-    // DELETE citas eliminadas
-    const { data: citasSupabase } = await supabase
-      .from('citas')
-      .select('id')
+    // P0-1: Procesar eliminaciones pendientes explícitas (soft-delete vía UPDATE)
+    // PROHIBIDO el diff destructivo por ausencia de IDs en memoria
+    const pendingDeletes = obtenerPendingDeletes()
+    if (Array.isArray(pendingDeletes) && pendingDeletes.length > 0) {
+      const exitosos = []
+      const timestampEliminacion = new Date().toISOString()
 
-    if (Array.isArray(citasSupabase)) {
-      const idsAEliminar = citasSupabase
-        .map(c => c.id)
-        .filter(id => !idsEnMemoria.has(id))
-
-      if (idsAEliminar.length > 0) {
-        const { error: deleteError } = await supabase
-          .from('citas')
-          .delete()
-          .in('id', idsAEliminar)
-
-        if (deleteError) {
-          log.error('Error al eliminar en Supabase:', deleteError.message)
+      for (const idAEliminar of pendingDeletes) {
+        if (!esUuidValido(idAEliminar)) {
+          exitosos.push(idAEliminar)
+          continue
         }
+
+        const { error: updateError } = await supabase
+          .from('citas')
+          .update({ deleted_at: timestampEliminacion })
+          .eq('id', idAEliminar)
+          .is('deleted_at', null)
+
+        if (!updateError) {
+          exitosos.push(idAEliminar)
+        } else {
+          log.warn(`Error al aplicar soft-delete a cita ${idAEliminar}:`, updateError.message)
+        }
+      }
+
+      if (exitosos.length > 0) {
+        const exitososSet = new Set(exitosos)
+        const restantes = pendingDeletes.filter(id => !exitososSet.has(id))
+        guardarPendingDeletes(restantes)
       }
     }
 
@@ -355,6 +271,59 @@ const guardarCitas = async (citas) => {
     log.error('Excepción al guardar en Supabase:', error)
     return true
   }
+}
+
+/**
+ * Elimina una cita de forma explícita (P0-1).
+ *
+ * 1. Actualiza inmediatamente la caché en memoria y localStorage (UX optimista).
+ * 2. Registra el ID en pendingDeletes (aislado por clínica en tenantRepository).
+ * 3. Si Supabase está disponible, ejecuta el soft-delete vía UPDATE con deleted_at.
+ * 4. Si tiene éxito remoto, lo retira de pendingDeletes; si falla la red, queda encolado.
+ *
+ * @param {string} citaId - ID de la cita a eliminar
+ * @returns {Promise<boolean>}
+ */
+const eliminarCita = async (citaId) => {
+  if (!citaId) return false
+
+  // 1. Actualizar caché local
+  if (!cacheInicializado) {
+    citasCache = citasRepo.obtener([])
+    cacheInicializado = true
+  }
+  citasCache = (citasCache || []).filter(c => c.id !== citaId)
+  citasRepo.guardar(citasCache)
+
+  // 2. Registrar en cola pendingDeletes de la clínica activa
+  const pending = obtenerPendingDeletes()
+  if (!pending.includes(citaId)) {
+    guardarPendingDeletes([...pending, citaId])
+  }
+
+  // 3. Sincronizar soft-delete con Supabase si está disponible
+  if (!USE_SUPABASE || !supabase || !esUuidValido(citaId)) {
+    return true
+  }
+
+  try {
+    const { error } = await supabase
+      .from('citas')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', citaId)
+      .is('deleted_at', null)
+
+    if (!error) {
+      const actualizados = obtenerPendingDeletes().filter(id => id !== citaId)
+      guardarPendingDeletes(actualizados)
+    } else {
+      log.warn(`Error al soft-deletear cita ${citaId}, permanece en pendingDeletes:`, error.message)
+    }
+  } catch (err) {
+    log.warn(`Fallo de red al soft-deletear cita ${citaId}, queda encolado:`, err?.message)
+  }
+
+  return true
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -373,6 +342,8 @@ const resetCache = () => {
 export const agendaStorageService = {
   obtenerCitas,
   guardarCitas,
+  eliminarCita,
   sincronizarDesdeSupabase,
-  resetCache
+  resetCache,
+  obtenerPendingDeletes
 }

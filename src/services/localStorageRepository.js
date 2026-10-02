@@ -155,6 +155,8 @@ export const createLocalStorageRepository = (key, defaultValue, opciones = {}) =
  *   existe: () => boolean
  * }}
  */
+export const createTenantLocalStorageRepository = (...args) => createTenantRepository(...args)
+
 export const createTenantRepository = (baseKey, defaultValue, opciones = {}) => {
   const { notify, eventos, schemaVersion, migrations } = opciones
   const hasVersioning = typeof schemaVersion === 'number'

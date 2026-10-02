@@ -4,6 +4,7 @@ import { presupuestosStorageService } from '../modules/presupuestos/services/pre
 import { pagosStorageService } from '../modules/pagos/services/pagosStorageService'
 import { finanzasStorageService } from '../modules/finanzas/services/finanzasStorageService'
 import { vademecumService } from '../services/vademecumService'
+import { escanearYSincronizarAdjuntosPendientes } from '../services/adjuntosStorageService'
 import { createLogger } from '../services/logger.js'
 
 const log = createLogger('useSincronizacionInicial')
@@ -12,6 +13,7 @@ const log = createLogger('useSincronizacionInicial')
  * Hook de sincronización inicial post-login (F6-C-d.4).
  * Refresca las 4 tablas sin store Zustand desde Supabase al montar.
  * Pacientes se sincroniza en useDataMigration (evita race condition).
+ * P0-2: Escanea IndexedDB y sube adjuntos pendientes a Supabase Storage.
  *
  * @param {boolean} enabled - Si es false, no sincroniza
  */
@@ -37,6 +39,14 @@ export const useSincronizacionInicial = (enabled) => {
         } catch (e) {
           log.warn(`[useRealtimeSync] Error sincronizando ${nombre}:`, e.message)
         }
+      }
+
+      // P0-2: Escanear y subir adjuntos pendientes en IndexedDB
+      try {
+        await escanearYSincronizarAdjuntosPendientes()
+        log.info('[useRealtimeSync] Sincronización inicial de adjuntos: OK')
+      } catch (e) {
+        log.warn('[useRealtimeSync] Error sincronizando adjuntos:', e.message)
       }
     }
 

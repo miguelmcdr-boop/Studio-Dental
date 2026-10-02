@@ -151,10 +151,16 @@ describe('F7-36 FASE 1 — 5 tests obligatorios de aislamiento multi-tenant', ()
   let obtenerAdjuntosPorPaciente
   let invalidarCacheCambioClinica
   let tenantCache
+  let cerrarDB
 
   beforeEach(async () => {
     // F7-36 FIX: Reset AGRESIVO de estado antes de cada test
     clinicaActivaActual = null
+
+    // 0. Cerrar conexiones activas de IndexedDB para evitar bloqueo
+    if (cerrarDB) {
+      await cerrarDB()
+    }
 
     // 1. Limpiar localStorage COMPLETO (incluye claves tenant-aware de tests previos)
     localStorage.clear()
@@ -183,6 +189,7 @@ describe('F7-36 FASE 1 — 5 tests obligatorios de aislamiento multi-tenant', ()
     const adjMod = await import('../../services/adjuntosStorageService.js')
     guardarAdjunto = adjMod.guardarAdjunto
     obtenerAdjuntosPorPaciente = adjMod.obtenerAdjuntosPorPaciente
+    cerrarDB = adjMod.cerrarDB
 
     const invMod = await import('../../services/invalidarCacheCambioClinica.js')
     invalidarCacheCambioClinica = invMod.invalidarCacheCambioClinica
@@ -195,7 +202,10 @@ describe('F7-36 FASE 1 — 5 tests obligatorios de aislamiento multi-tenant', ()
     pacientesStorageService.guardarPacientes([])
   })
 
-  afterEach(() => {
+  afterEach(async () => {
+    if (cerrarDB) {
+      await cerrarDB()
+    }
     vi.restoreAllMocks()
   })
 
@@ -312,19 +322,6 @@ describe('F7-36 FASE 1 — 5 tests obligatorios de aislamiento multi-tenant', ()
       { id: 'p-1', rut: '11111111-1', nombre: 'Test' },
     ])
 
-    // F7-36 FIX: Mockear indexedDB.deleteDatabase para evitar timeout
-    // (en jsdom puede quedar en estado 'blocked' si hay conexiones abiertas)
-    const deleteDbSpy = vi.spyOn(indexedDB, 'deleteDatabase').mockImplementation(() => {
-      const req = {
-        onsuccess: null,
-        onerror: null,
-        onblocked: null,
-      }
-      // Disparar onsuccess async
-      setTimeout(() => req.onsuccess && req.onsuccess({ target: { result: true } }), 0)
-      return req
-    })
-
     // Verificar pre-condición: hay claves tenant-aware de clínica A
     const clavesAntes = tenantCache.listarClavesTenant()
     const clavesDeAAntes = clavesAntes.filter((k) => k.includes('clinica-A'))
@@ -348,10 +345,9 @@ describe('F7-36 FASE 1 — 5 tests obligatorios de aislamiento multi-tenant', ()
     const clavesDeADespues = clavesDespues.filter((k) => k.includes('clinica-A'))
     expect(clavesDeADespues).toEqual([])
 
-    // Assert 3: Se intentó borrar IndexedDB
-    expect(deleteDbSpy).toHaveBeenCalledWith('studio_dental_adjuntos')
-
-    deleteDbSpy.mockRestore()
+    // Assert 3: Se ejecutó invalidación no destructiva de IndexedDB (P0-2)
+    expect(resultado.indexedDB.eliminada).toBe(true)
+    expect(resultado.indexedDB.conservadosPendientes).toBe(true)
   }, 10000)
 
   // ════════════════════════════════════════════════════════════════════

@@ -102,7 +102,9 @@ export const useAgenda = (pacientesProp = null) => {
   const eliminarCita = useCallback((citaId) => {
     setCitas(prev => {
       const actualizadas = prev.filter(c => c.id !== citaId)
-      if (agendaStorageService?.guardarCitas) {
+      if (agendaStorageService?.eliminarCita) {
+        agendaStorageService.eliminarCita(citaId)
+      } else if (agendaStorageService?.guardarCitas) {
         agendaStorageService.guardarCitas(actualizadas)
       }
       return actualizadas

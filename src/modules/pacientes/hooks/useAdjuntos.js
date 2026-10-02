@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   guardarAdjunto,
   obtenerAdjuntosPorPaciente,
-  eliminarAdjunto as eliminarAdjuntoDelServicio
+  eliminarAdjunto as eliminarAdjuntoDelServicio,
+  procesarColaSubidas
 } from '../../../services/adjuntosStorageService'
 import { useSesionStore } from '../../../store/sesionStore'
 
@@ -69,6 +70,9 @@ export const useAdjuntos = (pacienteId) => {
 
   useEffect(() => {
     cargar()
+    if (typeof navigator !== 'undefined' && navigator.onLine) {
+      procesarColaSubidas().catch(() => {})
+    }
     return () => revocarUrlsAnteriores()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cargar])
