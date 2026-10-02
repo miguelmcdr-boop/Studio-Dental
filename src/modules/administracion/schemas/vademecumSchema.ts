@@ -1,6 +1,6 @@
 /**
  * Esquemas Zod para validación de formularios del módulo admin vademécum.
- * F4-03f-3
+ * F4-03f-3 / Migración TypeScript
  * 
  * Tres esquemas principales:
  * - farmacoSchema: para fármacos regulares (tabla vademecum)
@@ -36,16 +36,22 @@ export const FAMILIAS_VADEMECUM = [
   'hemostatico',
   'protector_gastrico',
   'preventivo'
-]
+] as const
+
+export type FamiliaVademecum = typeof FAMILIAS_VADEMECUM[number]
 
 export const FAMILIAS_ANTIRRESORTIVOS = [
   'bifosfonato_oral',
   'bifosfonato_iv',
   'anti_rankl',
   'antiangiogenico'
-]
+] as const
 
-export const NIVELES_RIESGO_MRONG = ['bajo', 'moderado', 'alto']
+export type FamiliaAntirresortivo = typeof FAMILIAS_ANTIRRESORTIVOS[number]
+
+export const NIVELES_RIESGO_MRONG = ['bajo', 'moderado', 'alto'] as const
+
+export type NivelRiesgoMronj = typeof NIVELES_RIESGO_MRONG[number]
 
 export const VIAS_ADMINISTRACION = [
   'Oral',
@@ -61,7 +67,9 @@ export const VIAS_ADMINISTRACION = [
   'IM/IV',
   'IV/Rectal',
   'IM/IV/Intranasal'
-]
+] as const
+
+export type ViaAdministracion = typeof VIAS_ADMINISTRACION[number]
 
 // ═══════════════════════════════════════════════════════════════
 // ESQUEMA: FÁRMACOS REGULARES
@@ -113,6 +121,8 @@ export const farmacoSchema = z.object({
   notas_especiales: z.string().max(2000, 'Máximo 2000 caracteres').optional().or(z.literal(''))
 })
 
+export type Farmaco = z.infer<typeof farmacoSchema>
+
 // ═══════════════════════════════════════════════════════════════
 // ESQUEMA: FÁRMACOS DE URGENCIA
 // ═══════════════════════════════════════════════════════════════
@@ -148,6 +158,8 @@ export const urgenciaSchema = z.object({
   
   activo: z.boolean().default(true)
 })
+
+export type FarmacoUrgencia = z.infer<typeof urgenciaSchema>
 
 // ═══════════════════════════════════════════════════════════════
 // ESQUEMA: ANTIRRESORTIVOS (MRONJ)
@@ -187,24 +199,42 @@ export const antirresortivoSchema = z.object({
   activo: z.boolean().default(true)
 })
 
+export type Antirresortivo = z.infer<typeof antirresortivoSchema>
+
 // ═══════════════════════════════════════════════════════════════
 // HELPERS DE VALIDACIÓN
 // ═══════════════════════════════════════════════════════════════
 
+export interface ValidacionFarmacoResultado {
+  valido: boolean
+  errores: Record<string, string>
+  datos?: Farmaco
+}
+
+export interface ValidacionUrgenciaResultado {
+  valido: boolean
+  errores: Record<string, string>
+  datos?: FarmacoUrgencia
+}
+
+export interface ValidacionAntirresortivoResultado {
+  valido: boolean
+  errores: Record<string, string>
+  datos?: Antirresortivo
+}
+
 /**
  * Valida datos de fármaco regular y retorna errores estructurados.
- * @param {Object} data - Datos del formulario
- * @returns {{valido: boolean, errores: Object, datos?: Object}}
  */
-export const validarFarmaco = (data) => {
+export const validarFarmaco = (data: unknown): ValidacionFarmacoResultado => {
   const resultado = farmacoSchema.safeParse(data)
   if (resultado.success) {
     return { valido: true, errores: {}, datos: resultado.data }
   }
   
-  const errores = {}
+  const errores: Record<string, string> = {}
   resultado.error.issues.forEach(issue => {
-    const campo = issue.path[0]
+    const campo = String(issue.path[0])
     errores[campo] = issue.message
   })
   
@@ -214,15 +244,15 @@ export const validarFarmaco = (data) => {
 /**
  * Valida datos de fármaco de urgencia.
  */
-export const validarUrgencia = (data) => {
+export const validarUrgencia = (data: unknown): ValidacionUrgenciaResultado => {
   const resultado = urgenciaSchema.safeParse(data)
   if (resultado.success) {
     return { valido: true, errores: {}, datos: resultado.data }
   }
   
-  const errores = {}
+  const errores: Record<string, string> = {}
   resultado.error.issues.forEach(issue => {
-    const campo = issue.path[0]
+    const campo = String(issue.path[0])
     errores[campo] = issue.message
   })
   
@@ -232,15 +262,15 @@ export const validarUrgencia = (data) => {
 /**
  * Valida datos de antirresortivo.
  */
-export const validarAntirresortivo = (data) => {
+export const validarAntirresortivo = (data: unknown): ValidacionAntirresortivoResultado => {
   const resultado = antirresortivoSchema.safeParse(data)
   if (resultado.success) {
     return { valido: true, errores: {}, datos: resultado.data }
   }
   
-  const errores = {}
+  const errores: Record<string, string> = {}
   resultado.error.issues.forEach(issue => {
-    const campo = issue.path[0]
+    const campo = String(issue.path[0])
     errores[campo] = issue.message
   })
   

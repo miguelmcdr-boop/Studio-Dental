@@ -48,7 +48,7 @@
     "src/modules/administracion/components/FiltrosVademecum.jsx": 76,
     "src/modules/administracion/components/FilaVademecum.jsx": 98,
     "src/modules/administracion/components/PaginacionVademecum.jsx": 34,
-    "src/modules/administracion/schemas/vademecumSchema.js": 249,
+    "src/modules/administracion/schemas/vademecumSchema.ts": 278,
     "src/modules/administracion/components/ModalEditarFarmaco.jsx": 143,
     "src/modules/administracion/components/ModalEditarUrgencia.jsx": 197,
     "src/modules/administracion/components/ModalEditarAntirresortivo.jsx": 176,
