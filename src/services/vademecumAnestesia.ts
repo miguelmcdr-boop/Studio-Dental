@@ -6,7 +6,24 @@
 
 import { obtenerVademecum } from './vademecumService'
 
-export const obtenerDosisAnestesia = () => {
+export interface DosisAnestesiaItem {
+  id: number
+  nombre: string
+  familia: string
+  presentacion?: string | null
+  dosisMaxAdulto_mgPorKg?: number | null
+  dosisMaxPediatrico_mgPorKg?: number | null
+  topeAbsolutoAdulto_mg?: number | null
+  topeAbsolutoPediatrico_mg?: number | null
+  contenidoPorUnidad_mg?: number | null
+  volumenPorUnidad_ml?: number | null
+  concentracion_mgPorMl?: number | null
+  posologiaPediatrica?: string | null
+  contraindicaciones?: string | null
+  notas?: string | null
+}
+
+export const obtenerDosisAnestesia = (): DosisAnestesiaItem[] => {
   const vademecum = obtenerVademecum()
 
   return vademecum
