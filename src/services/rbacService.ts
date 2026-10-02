@@ -13,7 +13,7 @@
  *   puedeAcceder('admin', PERMISOS.VER_FINANZAS) // true
  */
 
-import { PERMISOS_POR_ROL } from '../constants/rbacConstants'
+import { ROLES, PERMISOS_POR_ROL } from '../constants/rbacConstants'
 import type { RolKey, PermisoValue } from '../constants/rbacConstants'
 
 /**
@@ -73,4 +73,26 @@ export const tieneAlgunPermiso = (rol: unknown, permisos: unknown): boolean => {
 export const tieneTodosLosPermisos = (rol: unknown, permisos: unknown): boolean => {
   if (!Array.isArray(permisos) || permisos.length === 0) return false
   return permisos.every((permiso: unknown) => puedeAcceder(rol, permiso))
+}
+
+/**
+ * Verifica si un rol es válido (existe en la definición del sistema).
+ * Útil para validación de datos de entrada antes de procesarlos.
+ *
+ * @param rol - El rol a validar.
+ * @returns `true` si el rol está definido en ROLES.
+ */
+export const esRolValido = (rol: unknown): rol is RolKey => {
+  if (typeof rol !== 'string') return false
+  return (Object.values(ROLES) as string[]).includes(rol)
+}
+
+/**
+ * Obtiene el rol por defecto para nuevos usuarios.
+ * Centraliza la decisión del rol inicial para evitar inconsistencias.
+ *
+ * @returns El rol por defecto (actualmente RECEPCION, el más restrictivo).
+ */
+export const obtenerRolPorDefecto = (): RolKey => {
+  return ROLES.RECEPCION
 }
