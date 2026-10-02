@@ -14,14 +14,9 @@
  * 4. Retorna un resumen de la migración
  *
  * Es idempotente: puede ejecutarse múltiples veces sin duplicar pagos.
- *
- * Nota: Los métodos de abonos por paciente (obtenerAbonosPorPaciente,
- * sincronizarAbonoConFichaPaciente) siguen usando localStorage en esta fase.
- * Se migrarán completamente en F4-02d cuando refactoricemos los componentes
- * que los usan directamente.
  */
 import { supabase } from '../supabaseClient'
-import { pagosStorageService } from '../../modules/pagos/services/pagosStorageService'
+import { pagosStorageService, type Pago } from '../../modules/pagos/services/pagosStorageService'
 import { migrationStorageService } from '../migrationStorageService'
 import { esUuidValido } from './uuidUtils'
 import { leerJSON } from '../localStorageRepository'
@@ -29,11 +24,59 @@ import { createLogger } from '../logger'
 
 const log = createLogger('migratePagosToSupabase')
 
+export interface MigratePagosError {
+  pagoId?: string | number
+  abonoId?: string | number
+  pacienteId?: string | number
+  folio?: string
+  error: string
+}
+
+export interface MigratePagosResult {
+  success: boolean
+  migrados: number
+  abonosMigrados: number
+  omitidos: number
+  errores: Array<MigratePagosError | string>
+}
+
+export interface VerificarPagosPendientesResult {
+  totalGlobales: number
+  globalesPendientes: number
+  globalesYaMigrados: number
+}
+
+interface AbonoLegacyItem {
+  id: string | number
+  folio?: string
+  folioComprobante?: string
+  monto?: number
+  metodoPago?: string
+  fecha?: string
+  concepto?: string
+  descripcion?: string
+  [key: string]: unknown
+}
+
+interface PagoSupabasePayload {
+  user_id: string
+  paciente_id: string | null
+  folio: string
+  monto: number
+  metodo_pago: string
+  fecha: string
+  concepto: string
+}
+
 /**
  * Convierte un pago de formato localStorage (camelCase) a formato
  * Supabase (snake_case).
  */
-const transformarPagoParaSupabase = (pago, userId, pacienteUuid) => {
+const transformarPagoParaSupabase = (
+  pago: Pago | AbonoLegacyItem,
+  userId: string,
+  pacienteUuid: string | null
+): PagoSupabasePayload => {
   return {
     user_id: userId,
     paciente_id: pacienteUuid || null,
@@ -41,17 +84,17 @@ const transformarPagoParaSupabase = (pago, userId, pacienteUuid) => {
     monto: pago.monto || 0,
     metodo_pago: pago.metodoPago || 'Efectivo',
     fecha: pago.fecha || new Date().toISOString().split('T')[0],
-    concepto: pago.concepto || pago.descripcion || ''
+    concepto: (pago.concepto || (pago as Record<string, unknown>).descripcion || '') as string
   }
 }
 
 /**
  * Ejecuta la migración de pagos de localStorage a Supabase.
  *
- * @param {string} userId - UUID del usuario autenticado en Supabase
- * @returns {Promise<{success: boolean, migrados: number, abonosMigrados: number, omitidos: number, errores: Array}>}
+ * @param userId - UUID del usuario autenticado en Supabase
+ * @returns resumen de migración
  */
-export const migratePagosToSupabase = async (userId) => {
+export const migratePagosToSupabase = async (userId: string): Promise<MigratePagosResult> => {
   if (!supabase) {
     return {
       success: false,
@@ -72,7 +115,7 @@ export const migratePagosToSupabase = async (userId) => {
     }
   }
 
-  const resultado = {
+  const resultado: MigratePagosResult = {
     success: true,
     migrados: 0,
     abonosMigrados: 0,
@@ -121,11 +164,12 @@ export const migratePagosToSupabase = async (userId) => {
       // Registrar mapeo legacyId → supabaseId
       migrationStorageService.registrarMapeo(pago.id, data.id)
       resultado.migrados++
-    } catch (error) {
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error)
       resultado.errores.push({
         pagoId: pago.id,
         folio: pago.folio,
-        error: error.message
+        error: msg
       })
     }
   }
@@ -148,7 +192,7 @@ export const migratePagosToSupabase = async (userId) => {
         if (!legacyId) continue
 
         // Leer abonos de localStorage usando el legacyId
-        const abonos = leerJSON(`abonos_${legacyId}`, [])
+        const abonos = leerJSON<AbonoLegacyItem[]>(`abonos_${legacyId}`, [])
         if (!Array.isArray(abonos) || abonos.length === 0) continue
 
         log.info(`[migratePagos] Migrando ${abonos.length} abonos del paciente ${legacyId}...`)
@@ -182,17 +226,19 @@ export const migratePagosToSupabase = async (userId) => {
             // Registrar mapeo legacyId → supabaseId
             migrationStorageService.registrarMapeo(abono.id, insertado.id)
             resultado.abonosMigrados++
-          } catch (abonoException) {
-            log.error(`[migratePagos] Excepción al migrar abono:`, abonoException.message)
+          } catch (abonoException: unknown) {
+            const msg = abonoException instanceof Error ? abonoException.message : String(abonoException)
+            log.error(`[migratePagos] Excepción al migrar abono:`, msg)
             resultado.errores.push({
               abonoId: abono.id,
               pacienteId: legacyId,
-              error: abonoException.message
+              error: msg
             })
           }
         }
-      } catch (pacienteException) {
-        log.error(`[migratePagos] Error procesando paciente ${paciente.id}:`, pacienteException.message)
+      } catch (pacienteException: unknown) {
+        const msg = pacienteException instanceof Error ? pacienteException.message : String(pacienteException)
+        log.error(`[migratePagos] Error procesando paciente ${paciente.id}:`, msg)
       }
     }
   }
@@ -202,10 +248,8 @@ export const migratePagosToSupabase = async (userId) => {
 
 /**
  * Verifica si hay pagos pendientes de migrar.
- *
- * @returns {{totalGlobales: number, globalesPendientes: number, globalesYaMigrados: number}}
  */
-export const verificarPagosPendientes = () => {
+export const verificarPagosPendientes = (): VerificarPagosPendientesResult => {
   const pagosGlobales = pagosStorageService.obtenerPagos([])
   let globalesYaMigrados = 0
 
