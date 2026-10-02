@@ -16,26 +16,34 @@ import { pacientesStorageService } from '../../pacientes/services/pacientesStora
 import { pagosStorageService } from '../../pagos/services/pagosStorageService'
 import { presupuestosStorageService } from '../../presupuestos/services/presupuestosStorageService'
 import { agendaStorageService } from '../../agenda/services/agendaStorageService'
-import { createLogger } from '../../../services/logger.js'
+import { createLogger } from '../../../services/logger'
+import type { Paciente } from '../../pacientes/schemas/pacienteSchema'
+import type { Cita } from '../../agenda/schemas/citaSchema'
+import type { Presupuesto } from '../../presupuestos/schemas/presupuestoSchema'
 
 const log = createLogger('reportesStorageService')
+
+export interface DatosConsolidadosBI {
+  pacientes: Paciente[]
+  pagos: ReturnType<typeof pagosStorageService.obtenerPagos>
+  presupuestos: Presupuesto[]
+  citas: Cita[]
+}
 
 export const reportesStorageService = {
   /**
    * Obtiene datos consolidados de las 4 fuentes principales para reportes BI.
    * Usa los servicios públicos (tenant-aware) en lugar de leer localStorage directo.
-   *
-   * @returns {Object} { pacientes, pagos, presupuestos, citas }
    */
-  obtenerDatosConsolidados: () => {
+  obtenerDatosConsolidados: (): DatosConsolidadosBI => {
     try {
       return {
-        pacientes: pacientesStorageService.obtenerPacientes(),
+        pacientes: pacientesStorageService.obtenerPacientes() as Paciente[],
         pagos: pagosStorageService.obtenerPagos(),
-        presupuestos: presupuestosStorageService.obtenerPresupuestos(),
-        citas: agendaStorageService.obtenerCitas(),
+        presupuestos: presupuestosStorageService.obtenerPresupuestos() as Presupuesto[],
+        citas: agendaStorageService.obtenerCitas() as Cita[],
       }
-    } catch (e) {
+    } catch (e: unknown) {
       log.error('Error al obtener datos consolidados para BI:', e)
       return { pacientes: [], pagos: [], presupuestos: [], citas: [] }
     }
