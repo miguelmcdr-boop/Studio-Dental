@@ -19,19 +19,47 @@ import { getClinicaActiva } from '../../../services/authService'
 import { esUuidValido } from '../../../services/migrations/uuidUtils'
 import { migrationStorageService } from '../../../services/migrationStorageService'
 import { transformarParaSupabase, transformarDesdeSupabase } from './pacientesTransformations'
-import { validarPaciente } from '../schemas/pacienteSchema'
+import { validarPaciente, type Paciente } from '../schemas/pacienteSchema'
 import { createLogger } from '../../../services/logger'
 
 const log = createLogger('pacientesOfflineQueue')
 
+export interface PendingPacienteItem {
+  id: string | number
+  rut?: string
+  clinicaId?: string | null
+  timestamp?: number
+  [key: string]: unknown
+}
+
+export type PendingPaciente = PendingPacienteItem | string | number
+
+export interface ProcesarColaResult {
+  procesados: number
+  fallidos: number
+  razon?: string
+  offline?: boolean
+}
+
+export interface GuardarPacienteContext {
+  obtenerPacientes: () => Paciente[]
+  actualizarPacientesLocal: (pacientes: Paciente[]) => void
+}
+
+export interface EncolarPacienteParams {
+  id: string | number
+  rut?: string
+  clinicaId?: string | null
+}
+
 // Cola local aislada por clínica/tenant para creaciones/ediciones
-export const pendingPacientesRepo = createTenantRepository('studio_dental_pacientes_pending', [])
+export const pendingPacientesRepo = createTenantRepository<PendingPaciente[]>('studio_dental_pacientes_pending', [])
 
 // P0-1 / P1-3: Repositorio aislado por tenant para registrar eliminaciones pendientes explícitas
 const STORAGE_KEY_PACIENTES_PENDING_DELETES = 'studio_dental_pacientes_pending_deletes'
-export const pendingDeletesPacientesRepo = createTenantRepository(STORAGE_KEY_PACIENTES_PENDING_DELETES, [])
+export const pendingDeletesPacientesRepo = createTenantRepository<string[]>(STORAGE_KEY_PACIENTES_PENDING_DELETES, [])
 
-export const obtenerClinicaId = () => {
+export const obtenerClinicaId = (): string | null => {
   try {
     return getClinicaActiva?.() || null
   } catch {
@@ -39,22 +67,23 @@ export const obtenerClinicaId = () => {
   }
 }
 
-export const obtenerPendingDeletesPacientes = () => {
+export const obtenerPendingDeletesPacientes = (): string[] => {
   return pendingDeletesPacientesRepo.obtener([]) || []
 }
 
-export const guardarPendingDeletesPacientes = (ids) => {
+export const guardarPendingDeletesPacientes = (ids?: string[] | null): void => {
   if (!ids || ids.length === 0) {
-    return pendingDeletesPacientesRepo.eliminar()
+    pendingDeletesPacientesRepo.eliminar()
+  } else {
+    pendingDeletesPacientesRepo.guardar(ids)
   }
-  return pendingDeletesPacientesRepo.guardar(ids)
 }
 
 /**
  * Procesa eliminaciones pendientes explícitas (soft-delete vía UPDATE).
  * PROHIBIDO el diff destructivo por ausencia de IDs en memoria.
  */
-export const procesarPendingDeletesPacientesHelper = async () => {
+export const procesarPendingDeletesPacientesHelper = async (): Promise<void> => {
   if (!USE_SUPABASE || !supabase) return
 
   const pendingDeletes = obtenerPendingDeletesPacientes()
@@ -62,7 +91,7 @@ export const procesarPendingDeletesPacientesHelper = async () => {
     return
   }
 
-  const exitosos = []
+  const exitosos: string[] = []
   const timestampEliminacion = new Date().toISOString()
 
   for (const idAEliminar of pendingDeletes) {
@@ -83,8 +112,9 @@ export const procesarPendingDeletesPacientesHelper = async () => {
       } else {
         log.warn(`Error al aplicar soft-delete a paciente ${idAEliminar}:`, updateError.message)
       }
-    } catch (err) {
-      log.warn(`Excepción al aplicar soft-delete a paciente ${idAEliminar}:`, err?.message || err)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      log.warn(`Excepción al aplicar soft-delete a paciente ${idAEliminar}:`, msg)
     }
   }
 
@@ -98,14 +128,14 @@ export const procesarPendingDeletesPacientesHelper = async () => {
 /**
  * Obtiene la lista de pacientes pendientes de sincronizar para la clínica activa.
  */
-export const obtenerPendingPacientes = () => {
+export const obtenerPendingPacientes = (): PendingPaciente[] => {
   return pendingPacientesRepo.obtener([]) || []
 }
 
 /**
  * Guarda la lista de pacientes pendientes de sincronizar para la clínica activa.
  */
-export const guardarPendingPacientes = (pending) => {
+export const guardarPendingPacientes = (pending?: PendingPaciente[] | null): void => {
   if (!pending || pending.length === 0) {
     pendingPacientesRepo.eliminar()
   } else {
@@ -116,12 +146,12 @@ export const guardarPendingPacientes = (pending) => {
 /**
  * Encola un paciente en pendingPacientes de forma idempotente.
  */
-export const encolarPaciente = ({ id, rut, clinicaId }) => {
+export const encolarPaciente = ({ id, rut, clinicaId }: EncolarPacienteParams): void => {
   try {
     const clinicaIdEfectivo = clinicaId || obtenerClinicaId()
     const pending = obtenerPendingPacientes()
     const yaEncolado = pending.some((item) =>
-      typeof item === 'object' ? item.id === id : item === id
+      typeof item === 'object' && item !== null ? item.id === id : item === id
     )
     if (!yaEncolado) {
       pending.push({
@@ -132,21 +162,25 @@ export const encolarPaciente = ({ id, rut, clinicaId }) => {
       })
       guardarPendingPacientes(pending)
     }
-  } catch (errQueue) {
-    log.warn('Error al encolar en pendingPacientes:', errQueue?.message || errQueue)
+  } catch (errQueue: unknown) {
+    const msg = errQueue instanceof Error ? errQueue.message : String(errQueue)
+    log.warn('Error al encolar en pendingPacientes:', msg)
   }
 }
 
 /**
  * Guarda o actualiza un paciente individual (offline-first).
  */
-export const guardarPacienteHelper = async (paciente, { obtenerPacientes, actualizarPacientesLocal }) => {
+export const guardarPacienteHelper = async (
+  paciente: Paciente,
+  { obtenerPacientes, actualizarPacientesLocal }: GuardarPacienteContext
+): Promise<Paciente | null> => {
   if (!paciente) return null
 
   const id = paciente.id || Date.now()
   const clinicaIdActual = obtenerClinicaId()
 
-  const pacienteLocal = {
+  const pacienteLocal: Paciente = {
     ...paciente,
     id,
     sincronizado: false
@@ -216,8 +250,9 @@ export const guardarPacienteHelper = async (paciente, { obtenerPacientes, actual
           }
         }
       }
-    } catch (e) {
-      log.warn('Fallo al sincronizar paciente con Supabase, encolando offline:', e?.message || e)
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e)
+      log.warn('Fallo al sincronizar paciente con Supabase, encolando offline:', msg)
     }
   }
 
@@ -236,7 +271,10 @@ export const guardarPacienteHelper = async (paciente, { obtenerPacientes, actual
 /**
  * Procesa la cola de pacientes pendientes con drenaje atómico y fail-closed.
  */
-export const procesarColaPacientesHelper = async ({ obtenerPacientes, actualizarPacientesLocal }) => {
+export const procesarColaPacientesHelper = async ({
+  obtenerPacientes,
+  actualizarPacientesLocal
+}: GuardarPacienteContext): Promise<ProcesarColaResult> => {
   const clinicaIdActual = obtenerClinicaId()
   if (!clinicaIdActual) {
     return { procesados: 0, fallidos: 0, razon: 'sin-clinica' }
@@ -253,7 +291,7 @@ export const procesarColaPacientesHelper = async ({ obtenerPacientes, actualizar
 
   let procesados = 0
   let fallidos = 0
-  const procesadosExitososIds = []
+  const procesadosExitososIds: Array<string | number> = []
   const listado = Array.isArray(obtenerPacientes()) ? [...obtenerPacientes()] : []
 
   try {
@@ -263,8 +301,9 @@ export const procesarColaPacientesHelper = async ({ obtenerPacientes, actualizar
     }
 
     for (const item of pending) {
-      const id = typeof item === 'object' ? item.id : item
-      const itemClinicaId = item.clinicaId || clinicaIdActual
+      const id = typeof item === 'object' && item !== null ? item.id : item
+      const itemRut = typeof item === 'object' && item !== null ? item.rut : undefined
+      const itemClinicaId = typeof item === 'object' && item !== null ? (item.clinicaId || clinicaIdActual) : clinicaIdActual
 
       // Aislamiento multi-tenant: procesar solo si pertenece a la clínica activa
       if (itemClinicaId !== clinicaIdActual) {
@@ -272,7 +311,7 @@ export const procesarColaPacientesHelper = async ({ obtenerPacientes, actualizar
       }
 
       try {
-        const idx = listado.findIndex((p) => p.id === id || (item.rut && p.rut === item.rut))
+        const idx = listado.findIndex((p) => p.id === id || (itemRut && p.rut === itemRut))
         if (idx < 0) {
           // Ya no existe localmente, retirar de la cola
           procesadosExitososIds.push(id)
@@ -320,8 +359,9 @@ export const procesarColaPacientesHelper = async ({ obtenerPacientes, actualizar
             fallidos++
           }
         }
-      } catch (err) {
-        log.warn(`Error al procesar paciente pendiente ${id}:`, err?.message || err)
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err)
+        log.warn(`Error al procesar paciente pendiente ${id}:`, msg)
         fallidos++
       }
     }
@@ -333,7 +373,7 @@ export const procesarColaPacientesHelper = async ({ obtenerPacientes, actualizar
     // Drenaje atómico: solo retirar los exitosamente procesados
     if (procesadosExitososIds.length > 0) {
       const colaRestante = pending.filter((item) => {
-        const id = typeof item === 'object' ? item.id : item
+        const id = typeof item === 'object' && item !== null ? item.id : item
         return !procesadosExitososIds.includes(id)
       })
       guardarPendingPacientes(colaRestante)
@@ -341,7 +381,7 @@ export const procesarColaPacientesHelper = async ({ obtenerPacientes, actualizar
 
     // P0-1 / P1-3: Procesar eliminaciones explícitas pendientes al restaurar conexión
     await procesarPendingDeletesPacientesHelper()
-  } catch (errGlobal) {
+  } catch (errGlobal: unknown) {
     log.error('Error global al procesar cola de pacientes:', errGlobal)
     return { procesados, fallidos: fallidos + 1 }
   }
@@ -352,7 +392,10 @@ export const procesarColaPacientesHelper = async ({ obtenerPacientes, actualizar
 /**
  * Refresca pacientes desde Supabase protegiendo pacientes locales offline (P1-3).
  */
-export const sincronizarPacientesDesdeSupabaseHelper = async ({ obtenerPacientes, actualizarPacientesLocal }) => {
+export const sincronizarPacientesDesdeSupabaseHelper = async ({
+  obtenerPacientes,
+  actualizarPacientesLocal
+}: GuardarPacienteContext): Promise<Paciente[]> => {
   log.info('Iniciando sincronización desde Supabase...')
 
   if (!USE_SUPABASE || !supabase) {
@@ -364,10 +407,18 @@ export const sincronizarPacientesDesdeSupabaseHelper = async ({ obtenerPacientes
     const clinicaIdActual = obtenerClinicaId()
     const localesActuales = obtenerPacientes() || []
     const pending = obtenerPendingPacientes()
-    const pendingDelTenant = pending.filter((p) => !p.clinicaId || p.clinicaId === clinicaIdActual)
+    const pendingDelTenant = pending.filter((p) =>
+      typeof p === 'object' && p !== null ? (!p.clinicaId || p.clinicaId === clinicaIdActual) : true
+    )
 
-    const idsPendientes = new Set(pendingDelTenant.map((p) => (typeof p === 'object' ? p.id : p)))
-    const rutsPendientes = new Set(pendingDelTenant.map((p) => (typeof p === 'object' ? p.rut : null)).filter(Boolean))
+    const idsPendientes = new Set(
+      pendingDelTenant.map((p) => (typeof p === 'object' && p !== null ? p.id : p))
+    )
+    const rutsPendientes = new Set(
+      pendingDelTenant
+        .map((p) => (typeof p === 'object' && p !== null ? p.rut : null))
+        .filter((r): r is string => Boolean(r))
+    )
 
     const protegidosLocales = localesActuales.filter(
       (p) => idsPendientes.has(p.id) || (p.rut && rutsPendientes.has(p.rut)) || p.sincronizado === false
@@ -393,14 +444,14 @@ export const sincronizarPacientesDesdeSupabaseHelper = async ({ obtenerPacientes
       log.info('Supabase retornó vacío para este tenant')
     }
 
-    const remotos = data.map(transformarDesdeSupabase).filter(Boolean).map((p) => ({
+    const remotos = (data.map(transformarDesdeSupabase).filter(Boolean) as Paciente[]).map((p) => ({
       ...p,
       sincronizado: true
     }))
 
     // Fusionar remotos con protegidos locales que no existan en Supabase
     const idsRemotos = new Set(remotos.map((p) => p.id))
-    const rutsRemotos = new Set(remotos.map((p) => p.rut).filter(Boolean))
+    const rutsRemotos = new Set(remotos.map((p) => p.rut).filter((r): r is string => Boolean(r)))
 
     const fusionados = [...remotos]
     for (const prot of protegidosLocales) {
@@ -413,7 +464,7 @@ export const sincronizarPacientesDesdeSupabaseHelper = async ({ obtenerPacientes
     actualizarPacientesLocal(fusionados)
 
     return fusionados
-  } catch (error) {
+  } catch (error: unknown) {
     log.error('Excepción al sincronizar desde Supabase:', error)
     return obtenerPacientes()
   }
