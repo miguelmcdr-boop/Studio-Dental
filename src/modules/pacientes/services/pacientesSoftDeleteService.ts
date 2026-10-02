@@ -16,17 +16,36 @@
 import { supabase, USE_SUPABASE } from '../../../services/supabaseClient'
 import { transformarDesdeSupabase } from './pacientesTransformations'
 import { createLogger } from '../../../services/logger'
+import type { Paciente } from '../schemas/pacienteSchema'
 
 const log = createLogger('pacientesSoftDeleteService')
+
+export interface PurgeRechazado {
+  id: string
+  razon?: string
+  [key: string]: unknown
+}
+
+export interface PurgeResult {
+  purgados: string[]
+  rechazados: PurgeRechazado[]
+  error?: string
+}
+
+export interface AuditLogItem {
+  record_id: string
+  user_email: string
+  created_at: string
+}
 
 /**
  * Elimina un paciente (soft delete).
  * Marca deleted_at sin borrar datos; reversible por admin.
  *
- * @param {string} pacienteId — UUID del paciente
- * @returns {Promise<boolean>} true si se eliminó correctamente
+ * @param pacienteId — UUID del paciente
+ * @returns true si se eliminó correctamente
  */
-export const eliminarPaciente = async (pacienteId) => {
+export const eliminarPaciente = async (pacienteId: string | number | null | undefined): Promise<boolean> => {
   if (!pacienteId) return false
 
   if (!USE_SUPABASE || !supabase) {
@@ -38,7 +57,7 @@ export const eliminarPaciente = async (pacienteId) => {
     const { error } = await supabase
       .from('pacientes')
       .update({ deleted_at: new Date().toISOString() })
-      .eq('id', pacienteId)
+      .eq('id', String(pacienteId))
       .is('deleted_at', null)
 
     if (error) {
@@ -48,7 +67,7 @@ export const eliminarPaciente = async (pacienteId) => {
 
     log.info(`[pacientesSoftDelete] Paciente ${pacienteId} marcado como eliminado (soft delete)`)
     return true
-  } catch (e) {
+  } catch (e: unknown) {
     log.error('[pacientesSoftDelete] Excepción al eliminar paciente:', e)
     return false
   }
@@ -58,10 +77,10 @@ export const eliminarPaciente = async (pacienteId) => {
  * Restaura un paciente eliminado (solo admin).
  * Quita la marca deleted_at; el paciente vuelve al directorio activo.
  *
- * @param {string} pacienteId — UUID del paciente
- * @returns {Promise<boolean>} true si se restauró correctamente
+ * @param pacienteId — UUID del paciente
+ * @returns true si se restauró correctamente
  */
-export const restaurarPaciente = async (pacienteId) => {
+export const restaurarPaciente = async (pacienteId: string | number | null | undefined): Promise<boolean> => {
   if (!pacienteId) return false
 
   if (!USE_SUPABASE || !supabase) {
@@ -73,7 +92,7 @@ export const restaurarPaciente = async (pacienteId) => {
     const { error } = await supabase
       .from('pacientes')
       .update({ deleted_at: null })
-      .eq('id', pacienteId)
+      .eq('id', String(pacienteId))
       .not('deleted_at', 'is', null)
 
     if (error) {
@@ -83,7 +102,7 @@ export const restaurarPaciente = async (pacienteId) => {
 
     log.info(`[pacientesSoftDelete] Paciente ${pacienteId} restaurado`)
     return true
-  } catch (e) {
+  } catch (e: unknown) {
     log.error('[pacientesSoftDelete] Excepción al restaurar paciente:', e)
     return false
   }
@@ -93,9 +112,9 @@ export const restaurarPaciente = async (pacienteId) => {
  * Lista pacientes eliminados (papelera de reciclaje, solo admin).
  * Útil para UI de gestión de pacientes eliminados.
  *
- * @returns {Promise<Array>} Lista de pacientes eliminados (ordenados por fecha de eliminación)
+ * @returns Lista de pacientes eliminados (ordenados por fecha de eliminación)
  */
-export const listarPacientesEliminados = async () => {
+export const listarPacientesEliminados = async (): Promise<Paciente[]> => {
   if (!USE_SUPABASE || !supabase) {
     log.warn('[pacientesSoftDelete] Supabase no configurado, no se puede listar papelera')
     return []
@@ -113,10 +132,13 @@ export const listarPacientesEliminados = async () => {
       return []
     }
 
-    const eliminados = (data || []).map(transformarDesdeSupabase).filter(Boolean)
+    const eliminados: Paciente[] = (data || [])
+      .map((row: Record<string, unknown>) => transformarDesdeSupabase<Paciente>(row))
+      .filter((p): p is Paciente => p !== null)
+
     log.info(`[pacientesSoftDelete] ${eliminados.length} pacientes en papelera`)
     return eliminados
-  } catch (e) {
+  } catch (e: unknown) {
     log.error('[pacientesSoftDelete] Excepción al listar eliminados:', e)
     return []
   }
@@ -126,10 +148,10 @@ export const listarPacientesEliminados = async () => {
  * Obtiene el email del usuario que eliminó cada paciente (batch).
  * Consulta audit_log por record_id y filtra por action='UPDATE' + cambio en deleted_at.
  * 
- * @param {Array<string>} pacienteIds - Lista de UUIDs de pacientes eliminados
- * @returns {Promise<Map<string, string>>} Mapa pacienteId → emailUsuario
+ * @param pacienteIds - Lista de UUIDs de pacientes eliminados
+ * @returns Mapa pacienteId → emailUsuario
  */
-export const obtenerAutoresDeEliminacion = async (pacienteIds) => {
+export const obtenerAutoresDeEliminacion = async (pacienteIds: string[]): Promise<Map<string, string>> => {
   if (!Array.isArray(pacienteIds) || pacienteIds.length === 0) {
     return new Map()
   }
@@ -155,10 +177,10 @@ export const obtenerAutoresDeEliminacion = async (pacienteIds) => {
     }
 
     // Crear mapa pacienteId → emailUsuario (tomar el registro más reciente por paciente)
-    const autoresMap = new Map()
-    const registrosPorPaciente = new Map()
+    const autoresMap = new Map<string, string>()
+    const registrosPorPaciente = new Map<string, AuditLogItem>()
 
-    for (const registro of data || []) {
+    for (const registro of (data || []) as AuditLogItem[]) {
       const pacienteId = registro.record_id
       if (!registrosPorPaciente.has(pacienteId)) {
         registrosPorPaciente.set(pacienteId, registro)
@@ -168,7 +190,7 @@ export const obtenerAutoresDeEliminacion = async (pacienteIds) => {
 
     log.info(`[pacientesSoftDelete] Obtenidos ${autoresMap.size} autores de eliminación`)
     return autoresMap
-  } catch (e) {
+  } catch (e: unknown) {
     log.error('[pacientesSoftDelete] Excepción al obtener autores:', e)
     return new Map()
   }
@@ -183,10 +205,10 @@ export const obtenerAutoresDeEliminacion = async (pacienteIds) => {
  * - Elimina blobs R2 + DELETE en cascada
  * - Registra ADMIN_PURGE_PACIENTES en audit_log
  *
- * @param {Array<string>} pacienteIds - Lista de UUIDs a purgar
- * @returns {Promise<Object>} { purgados: [...], rechazados: [{id, razon}] }
+ * @param pacienteIds - Lista de UUIDs a purgar
+ * @returns { purgados: [...], rechazados: [{id, razon}] }
  */
-export const vaciarPapeleraPacientes = async (pacienteIds) => {
+export const vaciarPapeleraPacientes = async (pacienteIds: string[]): Promise<PurgeResult> => {
   if (!Array.isArray(pacienteIds) || pacienteIds.length === 0) {
     log.warn('[pacientesSoftDelete] vaciarPapeleraPacientes: lista vacía')
     return { purgados: [], rechazados: [] }
@@ -215,19 +237,20 @@ export const vaciarPapeleraPacientes = async (pacienteIds) => {
     })
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
+      const errorData = (await response.json().catch(() => ({}))) as { error?: string }
       log.error('[pacientesSoftDelete] Error en pacientes-purge:', errorData)
       return { purgados: [], rechazados: [], error: errorData.error || 'Error desconocido' }
     }
 
-    const data = await response.json()
-    log.info(`[pacientesSoftDelete] Purga completada: ${data.purgados.length} purgados, ${data.rechazados.length} rechazados`)
+    const data = (await response.json()) as { purgados?: string[]; rechazados?: PurgeRechazado[] }
+    log.info(`[pacientesSoftDelete] Purga completada: ${(data.purgados || []).length} purgados, ${(data.rechazados || []).length} rechazados`)
     return {
       purgados: data.purgados || [],
       rechazados: data.rechazados || [],
     }
-  } catch (e) {
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
     log.error('[pacientesSoftDelete] Excepción al purgar pacientes:', e)
-    return { purgados: [], rechazados: [], error: e.message }
+    return { purgados: [], rechazados: [], error: msg }
   }
 }
