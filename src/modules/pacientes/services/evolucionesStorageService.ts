@@ -4,9 +4,10 @@ import {
   guardarEvolucionClinica as guardarEvolucionSupabase,
   obtenerEvolucionesRemotas
 } from '../../../services/datosClinicosSupabase'
+import type { EvolucionClinicaRow } from '../../../services/datosClinicosSupabase'
 import { createTenantRepository } from '../../../services/localStorageRepository'
 import { getClinicaActiva } from '../../../services/authService'
-import { createLogger } from '../../../services/logger.js'
+import { createLogger } from '../../../services/logger'
 
 const log = createLogger('evolucionesStorageService')
 
@@ -22,13 +23,45 @@ const log = createLogger('evolucionesStorageService')
  * - Supabase: { id, fecha_hora: ISO string, texto, tipo: 'evolucion' }
  */
 
+export interface EvolucionClinicaLocal {
+  id: string | number
+  fecha: string
+  texto: string
+  tipo: string
+  sincronizado?: boolean
+  pacienteId?: string
+  clinicaId?: string | null
+  [key: string]: unknown
+}
+
+export interface EvolucionClinicaSupabasePayload {
+  id?: string
+  fecha_hora: string
+  texto: string
+  tipo: string
+  [key: string]: unknown
+}
+
+export interface PendingEvolucionItem {
+  id: string | number
+  pacienteId?: string
+  clinicaId?: string | null
+  fecha?: string
+  texto?: string
+  tipo?: string
+  sincronizado?: boolean
+  [key: string]: unknown
+}
+
+export type PendingEvolucionEntry = PendingEvolucionItem | string | number
+
 // Aliases para cumplimiento arquitectónico
 export const createTenantLocalStorageRepository = createTenantRepository
 
 // P1-3: Cola local de evoluciones pendientes aislada por tenant
-const pendingEvolucionesRepo = createTenantRepository('studio_dental_evoluciones_pending', [])
+const pendingEvolucionesRepo = createTenantRepository<PendingEvolucionEntry[]>('studio_dental_evoluciones_pending', [])
 
-const obtenerClinicaId = () => {
+const obtenerClinicaId = (): string | null => {
   try {
     return getClinicaActiva?.() || null
   } catch {
@@ -39,14 +72,14 @@ const obtenerClinicaId = () => {
 /**
  * Obtiene la lista de evoluciones pendientes de sincronizar para la clínica activa (P1-3).
  */
-export const obtenerPendingEvoluciones = () => {
+export const obtenerPendingEvoluciones = (): PendingEvolucionEntry[] => {
   return pendingEvolucionesRepo.obtener([]) || []
 }
 
 /**
  * Guarda la lista de evoluciones pendientes de sincronizar para la clínica activa (P1-3).
  */
-export const guardarPendingEvoluciones = (pending) => {
+export const guardarPendingEvoluciones = (pending?: PendingEvolucionEntry[] | null): void => {
   if (!pending || pending.length === 0) {
     pendingEvolucionesRepo.eliminar()
   } else {
@@ -58,7 +91,7 @@ export const guardarPendingEvoluciones = (pending) => {
  * Normaliza fecha/hora de múltiples formatos a ISO string
  * Maneja: 'DD-MM-YYYY HH:MM', 'DD/MM/YYYY HH:MM', ISO strings
  */
-const normalizarFechaHora = (fecha) => {
+const normalizarFechaHora = (fecha?: unknown): string => {
   if (!fecha) return new Date().toISOString()
 
   // Si ya es ISO string válido, retornar tal cual
@@ -67,10 +100,12 @@ const normalizarFechaHora = (fecha) => {
   }
 
   // Formato chileno: DD-MM-YYYY HH:MM o DD/MM/YYYY HH:MM
-  const matchChile = fecha.match(/^(\d{2})[-/](\d{2})[-/](\d{4})\s+(\d{2}):(\d{2})$/)
-  if (matchChile) {
-    const [, dia, mes, anio, hora, minuto] = matchChile
-    return `${anio}-${mes}-${dia}T${hora}:${minuto}:00.000Z`
+  if (typeof fecha === 'string') {
+    const matchChile = fecha.match(/^(\d{2})[-/](\d{2})[-/](\d{4})\s+(\d{2}):(\d{2})$/)
+    if (matchChile) {
+      const [, dia, mes, anio, hora, minuto] = matchChile
+      return `${anio}-${mes}-${dia}T${hora}:${minuto}:00.000Z`
+    }
   }
 
   // Si es un número (timestamp), convertir
@@ -79,7 +114,7 @@ const normalizarFechaHora = (fecha) => {
   }
 
   // Fallback: intentar parsear como Date
-  const parsed = new Date(fecha)
+  const parsed = new Date(String(fecha))
   if (!isNaN(parsed.getTime())) {
     return parsed.toISOString()
   }
@@ -91,15 +126,17 @@ const normalizarFechaHora = (fecha) => {
 /**
  * Transforma evolución de formato Supabase a formato local
  */
-export const transformarDesdeSupabase = (evoSupabase) => {
-  const res = {
-    id: evoSupabase.id,
-    fecha: evoSupabase.fecha_hora || evoSupabase.fechaHora || evoSupabase.fecha,
-    texto: evoSupabase.texto,
-    tipo: evoSupabase.tipo || 'evolucion'
+export const transformarDesdeSupabase = (
+  evoSupabase: Partial<EvolucionClinicaRow> & Record<string, unknown>
+): EvolucionClinicaLocal => {
+  const res: EvolucionClinicaLocal = {
+    id: (evoSupabase.id as string | number) || '',
+    fecha: String(evoSupabase.fecha_hora || evoSupabase.fechaHora || evoSupabase.fecha || ''),
+    texto: String(evoSupabase.texto || ''),
+    tipo: String(evoSupabase.tipo || 'evolucion')
   }
   if (evoSupabase.sincronizado !== undefined) {
-    res.sincronizado = evoSupabase.sincronizado
+    res.sincronizado = Boolean(evoSupabase.sincronizado)
   }
   return res
 }
@@ -107,29 +144,43 @@ export const transformarDesdeSupabase = (evoSupabase) => {
 /**
  * Transforma evolución de formato local a formato Supabase
  */
-export const transformarHaciaSupabase = (evoLocal) => ({
-  id: evoLocal.id,
+export const transformarHaciaSupabase = (
+  evoLocal: Partial<EvolucionClinicaLocal> & Record<string, unknown>
+): EvolucionClinicaSupabasePayload => ({
+  id: evoLocal.id !== undefined && evoLocal.id !== null ? String(evoLocal.id) : undefined,
   fecha_hora: normalizarFechaHora(evoLocal.fecha || evoLocal.fecha_hora),
-  texto: evoLocal.texto,
-  tipo: evoLocal.tipo || 'evolucion'
+  texto: String(evoLocal.texto || ''),
+  tipo: String(evoLocal.tipo || 'evolucion')
 })
 
 /**
  * Valida si un ID es UUID válido
  */
-export const esUUIDValido = (id) => {
+export const esUUIDValido = (id: unknown): boolean => {
   return typeof id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
 }
 
 /**
  * Encola una evolución en pendingEvoluciones
  */
-const encolarEvolucion = ({ id, pacienteId, fecha, texto, tipo }) => {
+const encolarEvolucion = ({
+  id,
+  pacienteId,
+  fecha,
+  texto,
+  tipo
+}: {
+  id: string | number
+  pacienteId?: string
+  fecha?: string
+  texto?: string
+  tipo?: string
+}): void => {
   try {
     const clinicaId = obtenerClinicaId()
     const pending = obtenerPendingEvoluciones()
     const yaEncolado = pending.some((item) =>
-      typeof item === 'object' ? item.id === id : item === id
+      typeof item === 'object' && item !== null ? item.id === id : item === id
     )
     if (!yaEncolado) {
       pending.push({
@@ -143,8 +194,9 @@ const encolarEvolucion = ({ id, pacienteId, fecha, texto, tipo }) => {
       })
       guardarPendingEvoluciones(pending)
     }
-  } catch (errQueue) {
-    log.warn('Error al encolar en pendingEvoluciones:', errQueue?.message || errQueue)
+  } catch (errQueue: unknown) {
+    const msg = errQueue instanceof Error ? errQueue.message : String(errQueue)
+    log.warn('Error al encolar en pendingEvoluciones:', msg)
   }
 }
 
@@ -152,31 +204,48 @@ const encolarEvolucion = ({ id, pacienteId, fecha, texto, tipo }) => {
  * Obtiene evoluciones desde Supabase con fallback a localStorage y protección
  * para incluir evoluciones pendientes que aún no están en la nube.
  */
-export const obtenerEvoluciones = (pacienteId, fallback = []) => {
+export const obtenerEvoluciones = (
+  pacienteId?: string | number | null,
+  fallback: EvolucionClinicaLocal[] = []
+): EvolucionClinicaLocal[] => {
   if (!pacienteId) return fallback
 
-  let evos = null
+  let evos: EvolucionClinicaLocal[] | null = null
 
   // 1. Intentar desde caché de Supabase primero (ya transformado)
-  const datoSupabase = obtenerDatoClinico(pacienteId, 'evoluciones_notas', null)
+  const datoSupabase = obtenerDatoClinico<(Partial<EvolucionClinicaRow> & Record<string, unknown>)[]>(
+    pacienteId,
+    'evoluciones_notas',
+    null
+  )
   if (datoSupabase !== null && Array.isArray(datoSupabase)) {
     evos = datoSupabase.map(transformarDesdeSupabase)
   }
 
   // 2. Si no hay dato en Supabase, leer de localStorage
   if (evos === null) {
-    const evosLS = pacientesStorageService.obtenerItem(`evoluciones_notas_${pacienteId}`, fallback)
+    const evosLS = pacientesStorageService.obtenerItem<EvolucionClinicaLocal[]>(
+      `evoluciones_notas_${pacienteId}`,
+      fallback
+    )
     return Array.isArray(evosLS) ? [...evosLS] : fallback
   }
 
   // 3. P1-3: Proteger visibilidad de evoluciones offline solo si hay operaciones pendientes en cola
   const pending = obtenerPendingEvoluciones()
-  const pendingDelPaciente = pending.filter((p) => !p.pacienteId || p.pacienteId === pacienteId)
+  const pendingDelPaciente = pending.filter(
+    (p) => typeof p === 'object' && p !== null && (!p.pacienteId || String(p.pacienteId) === String(pacienteId))
+  )
 
   if (pendingDelPaciente.length > 0) {
-    const evosLocales = pacientesStorageService.obtenerItem(`evoluciones_notas_${pacienteId}`, [])
+    const evosLocales = pacientesStorageService.obtenerItem<EvolucionClinicaLocal[]>(
+      `evoluciones_notas_${pacienteId}`,
+      []
+    )
     if (Array.isArray(evosLocales) && evosLocales.length > 0) {
-      const pendingIds = new Set(pendingDelPaciente.map((p) => (typeof p === 'object' ? p.id : p)))
+      const pendingIds = new Set(
+        pendingDelPaciente.map((p) => (typeof p === 'object' && p !== null ? p.id : p))
+      )
       const noSincronizadas = evosLocales.filter(
         (e) => e.sincronizado === false || pendingIds.has(e.id)
       )
@@ -204,16 +273,15 @@ export const obtenerEvoluciones = (pacienteId, fallback = []) => {
  * 2. Intenta subir a Supabase
  * 3. Si tiene éxito: marca sincronizado: true y actualiza con UUID si correspondía
  * 4. Si falla: encola ID en pendingEvoluciones para reintento diferido
- *
- * @param {string} pacienteId - UUID del paciente
- * @param {Object} evolucion - Objeto evolución ({ id, fecha, texto, tipo })
- * @returns {Promise<Object|null>}
  */
-export const guardarEvolucionClinica = async (pacienteId, evolucion) => {
+export const guardarEvolucionClinica = async (
+  pacienteId: string,
+  evolucion?: Partial<EvolucionClinicaLocal> | null
+): Promise<EvolucionClinicaLocal | null> => {
   if (!pacienteId || !evolucion) return null
 
   const id = evolucion.id || Date.now()
-  const registroLocal = {
+  const registroLocal: EvolucionClinicaLocal = {
     ...evolucion,
     id,
     fecha: evolucion.fecha || new Date().toISOString(),
@@ -223,7 +291,10 @@ export const guardarEvolucionClinica = async (pacienteId, evolucion) => {
   }
 
   // 1. Obtener y actualizar listado en localStorage (offline-first inmediato)
-  const evosLocales = pacientesStorageService.obtenerItem(`evoluciones_notas_${pacienteId}`, [])
+  const evosLocales = pacientesStorageService.obtenerItem<EvolucionClinicaLocal[]>(
+    `evoluciones_notas_${pacienteId}`,
+    []
+  )
   const listado = Array.isArray(evosLocales) ? [...evosLocales] : []
   const idx = listado.findIndex((e) => e.id === id)
   if (idx >= 0) {
@@ -235,7 +306,7 @@ export const guardarEvolucionClinica = async (pacienteId, evolucion) => {
 
   // 2. Intentar subir a Supabase
   let subidoExitoso = false
-  let resultadoRemoto = null
+  let resultadoRemoto: EvolucionClinicaRow | null = null
 
   try {
     const evoSupabase = transformarHaciaSupabase(registroLocal)
@@ -250,14 +321,15 @@ export const guardarEvolucionClinica = async (pacienteId, evolucion) => {
       registroLocal.sincronizado = true
 
       // Actualizar listado local con UUID remoto y estado sincronizado
-      const idxAct = listado.findIndex((e) => e.id === id || e.id === resultadoRemoto.id)
+      const idxAct = listado.findIndex((e) => e.id === id || e.id === resultadoRemoto?.id)
       if (idxAct >= 0) {
         listado[idxAct] = registroLocal
       }
       pacientesStorageService.guardarItem(`evoluciones_notas_${pacienteId}`, listado)
     }
-  } catch (err) {
-    log.warn('Fallo al subir evolución a Supabase, encolando en pendingEvoluciones:', err?.message || err)
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    log.warn('Fallo al subir evolución a Supabase, encolando en pendingEvoluciones:', msg)
   }
 
   // 3. Si no se subió con éxito, asegurar encolado en pendingEvoluciones
@@ -278,7 +350,10 @@ export const guardarEvolucionClinica = async (pacienteId, evolucion) => {
  * Guarda lote de evoluciones en Supabase + localStorage (F6-D-5)
  * Compatible con BitacoraSection y suites existentes.
  */
-export const guardarEvoluciones = async (pacienteId, evoluciones) => {
+export const guardarEvoluciones = async (
+  pacienteId: string,
+  evoluciones: EvolucionClinicaLocal[]
+): Promise<boolean> => {
   if (!pacienteId || !Array.isArray(evoluciones)) return false
 
   // F6-D-5: escribir localStorage PRIMERO (síncrono, inmediato)
@@ -299,16 +374,18 @@ export const guardarEvoluciones = async (pacienteId, evoluciones) => {
         } else {
           encolarEvolucion({ ...evo, pacienteId })
         }
-      } catch (errEvo) {
-        log.warn('Error guardando evolución en Supabase, encolando offline:', errEvo?.message || errEvo)
+      } catch (errEvo: unknown) {
+        const msg = errEvo instanceof Error ? errEvo.message : String(errEvo)
+        log.warn('Error guardando evolución en Supabase, encolando offline:', msg)
         encolarEvolucion({ ...evo, pacienteId })
       }
     })
     await Promise.all(promesas)
     // Refrescar listado con estados sincronizados
     pacientesStorageService.guardarItem(`evoluciones_notas_${pacienteId}`, evoluciones)
-  } catch (e) {
-    log.warn('Error guardando evoluciones en Supabase:', e?.message)
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
+    log.warn('Error guardando evoluciones en Supabase:', msg)
   }
 
   return result
@@ -317,10 +394,12 @@ export const guardarEvoluciones = async (pacienteId, evoluciones) => {
 /**
  * Procesa la cola de evoluciones pendientes para la clínica activa (P1-3).
  * Drenaje atómico y fail-closed: solo se retiran los elementos confirmados por Supabase.
- *
- * @returns {Promise<{procesados: number, fallidos: number}>}
  */
-export const procesarColaEvoluciones = async () => {
+export const procesarColaEvoluciones = async (): Promise<{
+  procesados: number
+  fallidos: number
+  razon?: string
+}> => {
   const clinicaIdActual = obtenerClinicaId()
   if (!clinicaIdActual) {
     return { procesados: 0, fallidos: 0, razon: 'sin-clinica' }
@@ -333,12 +412,12 @@ export const procesarColaEvoluciones = async () => {
 
   let procesados = 0
   let fallidos = 0
-  const procesadosExitososIds = []
+  const procesadosExitososIds: (string | number)[] = []
 
   for (const item of pending) {
-    const id = typeof item === 'object' ? item.id : item
-    const pacienteId = item.pacienteId
-    const itemClinicaId = item.clinicaId || clinicaIdActual
+    const id = typeof item === 'object' && item !== null ? item.id : item
+    const pacienteId = typeof item === 'object' && item !== null ? item.pacienteId : undefined
+    const itemClinicaId = (typeof item === 'object' && item !== null ? item.clinicaId : null) || clinicaIdActual
 
     // Aislamiento multi-tenant: procesar solo si pertenece a la clínica activa
     if (itemClinicaId !== clinicaIdActual) {
@@ -347,9 +426,12 @@ export const procesarColaEvoluciones = async () => {
 
     try {
       // 1. Obtener evolución local
-      const evosLocales = pacientesStorageService.obtenerItem(`evoluciones_notas_${pacienteId}`, [])
+      const evosLocales = pacientesStorageService.obtenerItem<EvolucionClinicaLocal[]>(
+        `evoluciones_notas_${pacienteId}`,
+        []
+      )
       const idx = (Array.isArray(evosLocales) ? evosLocales : []).findIndex((e) => e.id === id)
-      const evoLocal = idx >= 0 ? evosLocales[idx] : item
+      const evoLocal = idx >= 0 ? evosLocales[idx] : (typeof item === 'object' && item !== null ? (item as EvolucionClinicaLocal) : null)
 
       if (!evoLocal) {
         // Ya no existe localmente, retirar de la cola
@@ -368,6 +450,11 @@ export const procesarColaEvoluciones = async () => {
         delete evoSupabase.id
       }
 
+      if (!pacienteId) {
+        fallidos++
+        continue
+      }
+
       const res = await guardarEvolucionSupabase(pacienteId, evoSupabase)
       if (res && res.id) {
         // 3. Actualizar registro local con UUID definitivo y sincronizado: true
@@ -384,8 +471,9 @@ export const procesarColaEvoluciones = async () => {
       } else {
         fallidos++
       }
-    } catch (err) {
-      log.warn(`Error al procesar evolución pendiente ${id}:`, err?.message || err)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      log.warn(`Error al procesar evolución pendiente ${id}:`, msg)
       fallidos++
     }
   }
@@ -393,7 +481,7 @@ export const procesarColaEvoluciones = async () => {
   // Drenaje selectivo (anti-race condition y fail-closed)
   if (procesadosExitososIds.length > 0) {
     const colaRestante = pending.filter((item) => {
-      const id = typeof item === 'object' ? item.id : item
+      const id = typeof item === 'object' && item !== null ? item.id : item
       return !procesadosExitososIds.includes(id)
     })
     guardarPendingEvoluciones(colaRestante)
@@ -406,20 +494,22 @@ export const procesarColaEvoluciones = async () => {
  * Sincroniza evoluciones desde Supabase protegiendo contra la purga de datos offline (P1-3).
  * Descarga las evoluciones remotas, pero nunca sobreescribe ni descarta evoluciones locales
  * con sincronizado: false o registradas en pendingEvoluciones.
- *
- * @param {string} pacienteId - UUID del paciente
- * @returns {Promise<Array>} Lista de evoluciones fusionadas
  */
-export const sincronizarDesdeSupabase = async (pacienteId) => {
+export const sincronizarDesdeSupabase = async (
+  pacienteId: string
+): Promise<EvolucionClinicaLocal[]> => {
   if (!pacienteId) return []
 
   // 1. Identificar evoluciones locales protegidas
-  const evosLocales = pacientesStorageService.obtenerItem(`evoluciones_notas_${pacienteId}`, [])
+  const evosLocales = pacientesStorageService.obtenerItem<EvolucionClinicaLocal[]>(
+    `evoluciones_notas_${pacienteId}`,
+    []
+  )
   const pending = obtenerPendingEvoluciones()
   const pendingIds = new Set(
     pending
-      .filter((p) => !p.pacienteId || p.pacienteId === pacienteId)
-      .map((p) => (typeof p === 'object' ? p.id : p))
+      .filter((p) => typeof p === 'object' && p !== null && (!p.pacienteId || p.pacienteId === pacienteId))
+      .map((p) => (typeof p === 'object' && p !== null ? p.id : p))
   )
 
   const protegidasLocales = (Array.isArray(evosLocales) ? evosLocales : []).filter(
@@ -427,16 +517,17 @@ export const sincronizarDesdeSupabase = async (pacienteId) => {
   )
 
   // 2. Descargar evoluciones desde Supabase
-  let remotas = []
+  let remotas: EvolucionClinicaRow[] = []
   try {
     remotas = await obtenerEvolucionesRemotas(pacienteId)
-  } catch (err) {
-    log.warn('Error al descargar evoluciones remotas en sincronizarDesdeSupabase:', err?.message || err)
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    log.warn('Error al descargar evoluciones remotas en sincronizarDesdeSupabase:', msg)
     return evosLocales
   }
 
   // 3. Transformar remotas al formato local con sincronizado: true
-  const remotasTransformadas = (remotas || []).map((r) => ({
+  const remotasTransformadas: EvolucionClinicaLocal[] = (remotas || []).map((r) => ({
     ...transformarDesdeSupabase(r),
     sincronizado: true
   }))
@@ -460,9 +551,9 @@ export const sincronizarDesdeSupabase = async (pacienteId) => {
 /**
  * Elimina evoluciones de un paciente (solo localStorage, F2-07d)
  */
-export const eliminarEvolucionesDePaciente = (pacienteId) => {
+export const eliminarEvolucionesDePaciente = (pacienteId?: string | number | null): void => {
   if (!pacienteId) return
-  pacientesStorageService.eliminarItem(`evoluciones_notas_${pacienteId}`)
+  pacientesStorageService.eliminarItem?.(`evoluciones_notas_${pacienteId}`)
 }
 
 export const evolucionesStorageService = {
