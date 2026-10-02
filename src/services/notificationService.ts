@@ -20,17 +20,42 @@
  * Límite: máximo 3 toasts visibles simultáneamente.
  */
 
-import { createLogger } from './logger.js'
+import { createLogger } from './logger'
 
 const log = createLogger('notificationService')
 const MAX_VISIBLES = 3
 
+export type NotificationType = 'info' | 'success' | 'warning' | 'error'
+
+export interface NotificationOptions {
+  tipo?: NotificationType
+  duracion?: number
+  titulo?: string | null
+  dismissable?: boolean
+}
+
+export interface NotificationItem {
+  id: string
+  tipo: NotificationType
+  mensaje: string
+  titulo: string | null
+  dismissable: boolean
+  timestamp: number
+}
+
+export interface ShowNotificationResult {
+  id: string
+  dismiss: () => void
+}
+
+export type NotificationListener = (notifications: NotificationItem[]) => void
+
 // Estado interno
-let notificaciones = []
-const listeners = new Set()
+let notificaciones: NotificationItem[] = []
+const listeners: Set<NotificationListener> = new Set()
 
 // Duraciones por tipo (ms)
-const DURACION_POR_TIPO = {
+const DURACION_POR_TIPO: Record<NotificationType, number> = {
   info: 3000,
   success: 3000,
   warning: 5000,
@@ -40,14 +65,14 @@ const DURACION_POR_TIPO = {
 /**
  * Genera ID único para cada notificación.
  */
-const generarId = () => {
+const generarId = (): string => {
   return `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
 }
 
 /**
  * Notifica a todos los suscriptores del cambio de estado.
  */
-const notificar = () => {
+const notificar = (): void => {
   const copia = [...notificaciones]
   listeners.forEach((cb) => {
     try {
@@ -60,16 +85,8 @@ const notificar = () => {
 
 /**
  * Agrega una notificación al sistema.
- *
- * @param {string} mensaje - Texto principal del toast
- * @param {Object} opciones - Opciones adicionales
- * @param {'info'|'success'|'warning'|'error'} opciones.tipo - Tipo de toast (default: 'info')
- * @param {number} opciones.duracion - Duración en ms (default: según tipo)
- * @param {string} opciones.titulo - Título opcional
- * @param {boolean} opciones.dismissable - Si se puede cerrar manualmente (default: true)
- * @returns {{ id: string, dismiss: Function }} Objeto con ID y función dismiss
  */
-export const mostrar = (mensaje, opciones = {}) => {
+export const mostrar = (mensaje: string, opciones: NotificationOptions = {}): ShowNotificationResult => {
   const {
     tipo = 'info',
     duracion = DURACION_POR_TIPO[tipo] || 3000,
@@ -79,7 +96,7 @@ export const mostrar = (mensaje, opciones = {}) => {
 
   const id = generarId()
 
-  const nuevaNotificacion = {
+  const nuevaNotificacion: NotificationItem = {
     id,
     tipo,
     mensaje,
@@ -111,10 +128,8 @@ export const mostrar = (mensaje, opciones = {}) => {
 
 /**
  * Remueve una notificación por ID.
- *
- * @param {string} id - ID de la notificación a remover
  */
-export const ocultar = (id) => {
+export const ocultar = (id: string): void => {
   const largoAntes = notificaciones.length
   notificaciones = notificaciones.filter((n) => n.id !== id)
 
@@ -126,7 +141,7 @@ export const ocultar = (id) => {
 /**
  * Remueve todas las notificaciones.
  */
-export const limpiar = () => {
+export const limpiar = (): void => {
   if (notificaciones.length > 0) {
     notificaciones = []
     notificar()
@@ -136,17 +151,14 @@ export const limpiar = () => {
 /**
  * Retorna una copia de las notificaciones actuales.
  */
-export const listar = () => {
+export const listar = (): NotificationItem[] => {
   return [...notificaciones]
 }
 
 /**
  * Suscribe un callback a cambios de estado.
- *
- * @param {Function} callback - Función a invocar con la lista de notificaciones
- * @returns {Function} Función para desuscribirse
  */
-export const suscribir = (callback) => {
+export const suscribir = (callback: NotificationListener): (() => void) => {
   listeners.add(callback)
   return () => {
     listeners.delete(callback)
@@ -156,16 +168,16 @@ export const suscribir = (callback) => {
 /**
  * Atajos para tipos comunes.
  */
-export const notificarInfo = (mensaje, opciones = {}) =>
+export const notificarInfo = (mensaje: string, opciones: NotificationOptions = {}): ShowNotificationResult =>
   mostrar(mensaje, { ...opciones, tipo: 'info' })
 
-export const notificarExito = (mensaje, opciones = {}) =>
+export const notificarExito = (mensaje: string, opciones: NotificationOptions = {}): ShowNotificationResult =>
   mostrar(mensaje, { ...opciones, tipo: 'success' })
 
-export const notificarAdvertencia = (mensaje, opciones = {}) =>
+export const notificarAdvertencia = (mensaje: string, opciones: NotificationOptions = {}): ShowNotificationResult =>
   mostrar(mensaje, { ...opciones, tipo: 'warning' })
 
-export const notificarError = (mensaje, opciones = {}) =>
+export const notificarError = (mensaje: string, opciones: NotificationOptions = {}): ShowNotificationResult =>
   mostrar(mensaje, { ...opciones, tipo: 'error' })
 
 /**
