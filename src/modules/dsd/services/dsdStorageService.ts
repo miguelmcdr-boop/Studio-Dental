@@ -7,25 +7,42 @@
  * Cumple Cap. VII.4 de la Constitución (try/catch obligatorio).
  */
 import { leerJSON, escribirJSON } from '../../../services/localStorageRepository'
-import { createLogger } from '../../../services/logger.js'
+import { createLogger } from '../../../services/logger'
 
 const log = createLogger('dsdStorageService')
 
-const construirKeyDsd = (pacienteId) => `dsd_config_${pacienteId}`
+export interface DsdConfig {
+  anchoCentral?: number
+  altoCentral?: number
+  tonoActual?: string
+  tonoDeseado?: string
+  formaDeseada?: string
+  lineaSonrisa?: string
+  observacionEstetica?: string
+  [key: string]: unknown
+}
+
+const construirKeyDsd = (pacienteId: string | number): string => `dsd_config_${pacienteId}`
 
 export const dsdStorageService = {
-  obtenerConfigDePaciente: (pacienteId, fallback = {}) => {
+  obtenerConfigDePaciente: <T extends DsdConfig = DsdConfig>(
+    pacienteId: string | number | null | undefined,
+    fallback: T = {} as T
+  ): T => {
     if (!pacienteId) return fallback
-    return leerJSON(construirKeyDsd(pacienteId), fallback)
+    return leerJSON<T>(construirKeyDsd(pacienteId), fallback)
   },
 
-  guardarConfigDePaciente: (pacienteId, data) => {
+  guardarConfigDePaciente: (
+    pacienteId: string | number | null | undefined,
+    data: DsdConfig
+  ): boolean => {
     if (!pacienteId) return false
     return escribirJSON(construirKeyDsd(pacienteId), data)
   },
 
   // Eliminar configuración DSD de un paciente
-  eliminarConfigDePaciente: (pacienteId) => {
+  eliminarConfigDePaciente: (pacienteId: string | number | null | undefined): void => {
     if (!pacienteId) return
     try {
       localStorage.removeItem(construirKeyDsd(pacienteId))
