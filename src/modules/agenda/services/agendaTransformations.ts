@@ -4,8 +4,9 @@
  */
 import { migrationStorageService } from '../../../services/migrationStorageService'
 import { esUuidValido } from '../../../services/migrations/uuidUtils'
+import type { Cita } from '../schemas/citaSchema'
 
-export const ESTADO_CODIGO_A_SUPABASE = {
+export const ESTADO_CODIGO_A_SUPABASE: Readonly<Record<string, string>> = {
   'Agendado': 'Agendada',
   'Confirmado': 'Confirmada',
   'En Sillón': 'En Curso',
@@ -19,7 +20,7 @@ export const ESTADO_CODIGO_A_SUPABASE = {
   'Cancelada': 'Cancelada'
 }
 
-export const ESTADO_SUPABASE_A_CODIGO = {
+export const ESTADO_SUPABASE_A_CODIGO: Readonly<Record<string, string>> = {
   'Agendada': 'Agendado',
   'Confirmada': 'Confirmado',
   'En Curso': 'En Sillón',
@@ -33,15 +34,17 @@ export const ESTADO_SUPABASE_A_CODIGO = {
   'Cancelado': 'Cancelado'
 }
 
-export const normalizarEstadoParaSupabase = (estado) => {
+export const normalizarEstadoParaSupabase = (estado: unknown): string => {
+  if (typeof estado !== 'string') return 'Agendada'
   return ESTADO_CODIGO_A_SUPABASE[estado] || 'Agendada'
 }
 
-export const desnormalizarEstadoParaCodigo = (estado) => {
+export const desnormalizarEstadoParaCodigo = (estado: unknown): string => {
+  if (typeof estado !== 'string') return 'Agendado'
   return ESTADO_SUPABASE_A_CODIGO[estado] || 'Agendado'
 }
 
-export const SNAKE_TO_CAMEL_MAP = {
+export const SNAKE_TO_CAMEL_MAP: Readonly<Record<string, string>> = {
   paciente_id: 'pacienteId',
   paciente_nombre: 'pacienteNombre',
   paciente_telefono: 'pacienteTelefono',
@@ -55,16 +58,18 @@ export const SNAKE_TO_CAMEL_MAP = {
   updated_at: 'updatedAt'
 }
 
-export const CAMEL_TO_SNAKE_MAP = Object.fromEntries(
+export const CAMEL_TO_SNAKE_MAP: Readonly<Record<string, string>> = Object.fromEntries(
   Object.entries(SNAKE_TO_CAMEL_MAP).map(([snake, camel]) => [camel, snake])
 )
 
 /**
  * Convierte una cita de Supabase (snake_case) a formato JS (camelCase).
  */
-export const transformarDesdeSupabase = (citaDb) => {
+export const transformarDesdeSupabase = <T extends Record<string, unknown> = Cita>(
+  citaDb: Record<string, unknown> | null | undefined
+): T | null => {
   if (!citaDb) return null
-  const resultado = {}
+  const resultado: Record<string, unknown> = {}
   for (const [claveDb, valor] of Object.entries(citaDb)) {
     const claveJs = SNAKE_TO_CAMEL_MAP[claveDb] || claveDb
     if (claveJs === 'estado') {
@@ -73,15 +78,17 @@ export const transformarDesdeSupabase = (citaDb) => {
       resultado[claveJs] = valor
     }
   }
-  return resultado
+  return resultado as T
 }
 
 /**
  * Convierte una cita de formato JS (camelCase) a Supabase (snake_case).
  */
-export const transformarParaSupabase = (citaJs) => {
+export const transformarParaSupabase = (
+  citaJs: Record<string, unknown> | null | undefined
+): Record<string, unknown> | null => {
   if (!citaJs) return null
-  const resultado = {}
+  const resultado: Record<string, unknown> = {}
   for (const [claveJs, valor] of Object.entries(citaJs)) {
     if (claveJs === 'createdAt' || claveJs === 'updatedAt' || claveJs === 'userId') {
       continue
@@ -90,10 +97,10 @@ export const transformarParaSupabase = (citaJs) => {
     if (claveJs === 'estado') {
       resultado[claveDb] = normalizarEstadoParaSupabase(valor)
     } else if (claveJs === 'pacienteId') {
-      if (esUuidValido(valor)) {
+      if (typeof valor === 'string' && esUuidValido(valor)) {
         resultado.paciente_id = valor
       } else if (valor !== null && valor !== undefined) {
-        const pacienteUuid = migrationStorageService.obtenerSupabaseId(valor)
+        const pacienteUuid = migrationStorageService.obtenerSupabaseId(String(valor))
         resultado.paciente_id = pacienteUuid || null
       } else {
         resultado.paciente_id = null

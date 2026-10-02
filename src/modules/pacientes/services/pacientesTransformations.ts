@@ -2,11 +2,12 @@
  * Funciones de transformación de datos de pacientes
  * Extraído de pacientesStorageService.js para respetar límite arquitectónico
  */
+import type { Paciente } from '../schemas/pacienteSchema'
 
 /**
  * Mapeo de campos snake_case (Supabase) a camelCase (JS)
  */
-export const SNAKE_TO_CAMEL_MAP = {
+export const SNAKE_TO_CAMEL_MAP: Readonly<Record<string, string>> = {
   contacto_emergencia: 'contactoEmergencia',
   examen_extraoral: 'examenExtraoral',
   examen_intraoral: 'examenIntraoral',
@@ -24,33 +25,33 @@ export const SNAKE_TO_CAMEL_MAP = {
 /**
  * Mapeo inverso: camelCase (JS) a snake_case (Supabase)
  */
-export const CAMEL_TO_SNAKE_MAP = Object.fromEntries(
+export const CAMEL_TO_SNAKE_MAP: Readonly<Record<string, string>> = Object.fromEntries(
   Object.entries(SNAKE_TO_CAMEL_MAP).map(([snake, camel]) => [camel, snake])
 )
 
 /**
  * Transforma un paciente desde formato Supabase (snake_case) a JS (camelCase)
- * @param {Object} pacienteDb - Paciente en formato Supabase
- * @returns {Object|null} Paciente en formato JS o null si es inválido
  */
-export const transformarDesdeSupabase = (pacienteDb) => {
+export const transformarDesdeSupabase = <T extends Record<string, unknown> = Paciente>(
+  pacienteDb: Record<string, unknown> | null | undefined
+): T | null => {
   if (!pacienteDb) return null
-  const resultado = {}
+  const resultado: Record<string, unknown> = {}
   for (const [claveDb, valor] of Object.entries(pacienteDb)) {
     const claveJs = SNAKE_TO_CAMEL_MAP[claveDb] || claveDb
     resultado[claveJs] = valor
   }
-  return resultado
+  return resultado as T
 }
 
 /**
  * Transforma un paciente desde formato JS (camelCase) a Supabase (snake_case)
- * @param {Object} pacienteJs - Paciente en formato JS
- * @returns {Object|null} Paciente en formato Supabase o null si es inválido
  */
-export const transformarParaSupabase = (pacienteJs) => {
+export const transformarParaSupabase = (
+  pacienteJs: Record<string, unknown> | null | undefined
+): Record<string, unknown> | null => {
   if (!pacienteJs) return null
-  const resultado = {}
+  const resultado: Record<string, unknown> = {}
   for (const [claveJs, valor] of Object.entries(pacienteJs)) {
     if (claveJs === 'createdAt' || claveJs === 'updatedAt' || claveJs === 'userId') {
       continue
