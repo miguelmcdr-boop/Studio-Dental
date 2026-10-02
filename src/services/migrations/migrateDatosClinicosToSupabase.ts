@@ -29,12 +29,66 @@ import { createLogger } from '../logger'
 
 const log = createLogger('migrateDatosClinicosToSupabase')
 
+export interface MigrateDatosClinicosError {
+  tipo: string
+  id?: string | number
+  pacienteId?: string | number
+  error: string
+}
+
+export interface MigrateDatosClinicosResult {
+  success: boolean
+  evolucionesMigradas: number
+  recetasMigradas: number
+  otrosMigrados: number
+  errores: Array<MigrateDatosClinicosError | string>
+}
+
+export interface VerificarDatosClinicosPendientesResult {
+  totalPacientes: number
+  conDatos: number
+}
+
+interface EvolucionLegacy {
+  id?: string | number
+  fechaHora?: string
+  fecha?: string
+  texto?: string
+  nota?: string
+  tipo?: string
+  [key: string]: unknown
+}
+
+interface RecetaLegacy {
+  id?: string | number
+  fecha?: string
+  medicamentos?: unknown[]
+  diagnostico?: string
+  indicaciones?: string
+  firma?: string
+  [key: string]: unknown
+}
+
+interface MigrarColeccionResult {
+  migradas: number
+  errores: MigrateDatosClinicosError[]
+}
+
+interface MigrarDatoSingularResult {
+  migrado: boolean
+  error: string | null
+}
+
 /**
  * Migraciones específicas para cada tipo de dato clínico.
  */
-const migrarEvoluciones = async (pacienteUuid, userId, evoluciones) => {
+const migrarEvoluciones = async (
+  pacienteUuid: string,
+  userId: string,
+  evoluciones: EvolucionLegacy[]
+): Promise<MigrarColeccionResult> => {
   let migradas = 0
-  let errores = []
+  const errores: MigrateDatosClinicosError[] = []
 
   if (!Array.isArray(evoluciones) || evoluciones.length === 0) {
     return { migradas: 0, errores: [] }
@@ -56,6 +110,8 @@ const migrarEvoluciones = async (pacienteUuid, userId, evoluciones) => {
         tipo: evolucion.tipo || 'evolucion'
       }
 
+      if (!supabase) throw new Error('Supabase no configurado')
+
       const { error } = await supabase
         .from('evoluciones_clinicas')
         .insert(evolucionSupabase)
@@ -67,17 +123,22 @@ const migrarEvoluciones = async (pacienteUuid, userId, evoluciones) => {
 
       migrationStorageService.registrarMapeo(evolucionId, `${pacienteUuid}_evolucion`)
       migradas++
-    } catch (error) {
-      errores.push({ tipo: 'evolucion', error: error.message })
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error)
+      errores.push({ tipo: 'evolucion', error: msg })
     }
   }
 
   return { migradas, errores }
 }
 
-const migrarRecetas = async (pacienteUuid, userId, recetas) => {
+const migrarRecetas = async (
+  pacienteUuid: string,
+  userId: string,
+  recetas: RecetaLegacy[]
+): Promise<MigrarColeccionResult> => {
   let migradas = 0
-  let errores = []
+  const errores: MigrateDatosClinicosError[] = []
 
   if (!Array.isArray(recetas) || recetas.length === 0) {
     return { migradas: 0, errores: [] }
@@ -99,6 +160,8 @@ const migrarRecetas = async (pacienteUuid, userId, recetas) => {
         firma: receta.firma || ''
       }
 
+      if (!supabase) throw new Error('Supabase no configurado')
+
       const { error } = await supabase
         .from('recetas')
         .insert(recetaSupabase)
@@ -110,15 +173,21 @@ const migrarRecetas = async (pacienteUuid, userId, recetas) => {
 
       migrationStorageService.registrarMapeo(recetaId, `${pacienteUuid}_receta`)
       migradas++
-    } catch (error) {
-      errores.push({ tipo: 'receta', error: error.message })
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error)
+      errores.push({ tipo: 'receta', error: msg })
     }
   }
 
   return { migradas, errores }
 }
 
-const migrarOdontograma = async (pacienteUuid, userId, odontograma, tipo) => {
+const migrarOdontograma = async (
+  pacienteUuid: string,
+  userId: string,
+  odontograma: Record<string, unknown>,
+  tipo: string
+): Promise<MigrarDatoSingularResult> => {
   try {
     if (!odontograma || Object.keys(odontograma).length === 0) {
       return { migrado: false, error: null }
@@ -127,10 +196,12 @@ const migrarOdontograma = async (pacienteUuid, userId, odontograma, tipo) => {
     const odontogramaSupabase = {
       user_id: userId,
       paciente_id: pacienteUuid,
-      tipo: tipo,
+      tipo,
       datos: odontograma,
       fecha_registro: new Date().toISOString().split('T')[0]
     }
+
+    if (!supabase) throw new Error('Supabase no configurado')
 
     const { error } = await supabase
       .from('odontogramas')
@@ -141,12 +212,18 @@ const migrarOdontograma = async (pacienteUuid, userId, odontograma, tipo) => {
     }
 
     return { migrado: true, error: null }
-  } catch (error) {
-    return { migrado: false, error: error.message }
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error)
+    return { migrado: false, error: msg }
   }
 }
 
-const migrarPeriodontograma = async (pacienteUuid, userId, periodontograma, tipo) => {
+const migrarPeriodontograma = async (
+  pacienteUuid: string,
+  userId: string,
+  periodontograma: Record<string, unknown>,
+  tipo: string
+): Promise<MigrarDatoSingularResult> => {
   try {
     if (!periodontograma || Object.keys(periodontograma).length === 0) {
       return { migrado: false, error: null }
@@ -155,10 +232,12 @@ const migrarPeriodontograma = async (pacienteUuid, userId, periodontograma, tipo
     const periodontogramaSupabase = {
       user_id: userId,
       paciente_id: pacienteUuid,
-      tipo: tipo,
+      tipo,
       datos: periodontograma,
       fecha_registro: new Date().toISOString().split('T')[0]
     }
+
+    if (!supabase) throw new Error('Supabase no configurado')
 
     const { error } = await supabase
       .from('periodontogramas')
@@ -169,23 +248,31 @@ const migrarPeriodontograma = async (pacienteUuid, userId, periodontograma, tipo
     }
 
     return { migrado: true, error: null }
-  } catch (error) {
-    return { migrado: false, error: error.message }
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error)
+    return { migrado: false, error: msg }
   }
 }
 
-const migrarDatosGenericos = async (pacienteUuid, userId, datos, tabla) => {
+const migrarDatosGenericos = async (
+  pacienteUuid: string,
+  userId: string,
+  datos: unknown,
+  tabla: string
+): Promise<MigrarDatoSingularResult> => {
   try {
     if (!datos || (Array.isArray(datos) && datos.length === 0) || 
-        (!Array.isArray(datos) && Object.keys(datos).length === 0)) {
+        (!Array.isArray(datos) && typeof datos === 'object' && Object.keys(datos as Record<string, unknown>).length === 0)) {
       return { migrado: false, error: null }
     }
 
     const datosSupabase = {
       user_id: userId,
       paciente_id: pacienteUuid,
-      datos: datos
+      datos
     }
+
+    if (!supabase) throw new Error('Supabase no configurado')
 
     const { error } = await supabase
       .from(tabla)
@@ -196,18 +283,19 @@ const migrarDatosGenericos = async (pacienteUuid, userId, datos, tabla) => {
     }
 
     return { migrado: true, error: null }
-  } catch (error) {
-    return { migrado: false, error: error.message }
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error)
+    return { migrado: false, error: msg }
   }
 }
 
 /**
  * Ejecuta la migración de datos clínicos de localStorage a Supabase.
  *
- * @param {string} userId - UUID del usuario autenticado en Supabase
- * @returns {Promise<{success: boolean, evolucionesMigradas: number, recetasMigradas: number, otrosMigrados: number, errores: Array}>}
+ * @param userId - UUID del usuario autenticado en Supabase
+ * @returns resumen de migración
  */
-export const migrateDatosClinicosToSupabase = async (userId) => {
+export const migrateDatosClinicosToSupabase = async (userId: string): Promise<MigrateDatosClinicosResult> => {
   if (!supabase) {
     return {
       success: false,
@@ -228,7 +316,7 @@ export const migrateDatosClinicosToSupabase = async (userId) => {
     }
   }
 
-  const resultado = {
+  const resultado: MigrateDatosClinicosResult = {
     success: true,
     evolucionesMigradas: 0,
     recetasMigradas: 0,
@@ -257,74 +345,75 @@ export const migrateDatosClinicosToSupabase = async (userId) => {
       log.info(`[migrateDatosClinicos] Migrando datos del paciente ${legacyId}...`)
 
       // 1. Evoluciones clínicas
-      const evoluciones = leerJSON(`evoluciones_notas_${legacyId}`, [])
+      const evoluciones = leerJSON<EvolucionLegacy[]>(`evoluciones_notas_${legacyId}`, [])
       const resultadoEvoluciones = await migrarEvoluciones(paciente.id, userId, evoluciones)
       resultado.evolucionesMigradas += resultadoEvoluciones.migradas
       resultado.errores.push(...resultadoEvoluciones.errores)
 
       // 2. Recetas
-      const recetas = leerJSON(`recetas_${legacyId}`, [])
+      const recetas = leerJSON<RecetaLegacy[]>(`recetas_${legacyId}`, [])
       const resultadoRecetas = await migrarRecetas(paciente.id, userId, recetas)
       resultado.recetasMigradas += resultadoRecetas.migradas
       resultado.errores.push(...resultadoRecetas.errores)
 
       // 3. Odontograma inicial
-      const odontoInicial = leerJSON(`odonto_inicial_${legacyId}`, {})
+      const odontoInicial = leerJSON<Record<string, unknown>>(`odonto_inicial_${legacyId}`, {})
       const resultadoOdontoInicial = await migrarOdontograma(paciente.id, userId, odontoInicial, 'inicial')
       if (resultadoOdontoInicial.migrado) resultado.otrosMigrados++
       if (resultadoOdontoInicial.error) resultado.errores.push({ tipo: 'odontograma_inicial', error: resultadoOdontoInicial.error })
 
       // 4. Odontograma evolución
-      const odontoEvolucion = leerJSON(`odonto_evolucion_${legacyId}`, {})
+      const odontoEvolucion = leerJSON<Record<string, unknown>>(`odonto_evolucion_${legacyId}`, {})
       const resultadoOdontoEvolucion = await migrarOdontograma(paciente.id, userId, odontoEvolucion, 'evolucion')
       if (resultadoOdontoEvolucion.migrado) resultado.otrosMigrados++
       if (resultadoOdontoEvolucion.error) resultado.errores.push({ tipo: 'odontograma_evolucion', error: resultadoOdontoEvolucion.error })
 
       // 5. Periodontograma inicial
-      const periodontoInicial = leerJSON(`periodontograma_${legacyId}`, {})
+      const periodontoInicial = leerJSON<Record<string, unknown>>(`periodontograma_${legacyId}`, {})
       const resultadoPeriodontoInicial = await migrarPeriodontograma(paciente.id, userId, periodontoInicial, 'inicial')
       if (resultadoPeriodontoInicial.migrado) resultado.otrosMigrados++
       if (resultadoPeriodontoInicial.error) resultado.errores.push({ tipo: 'periodontograma_inicial', error: resultadoPeriodontoInicial.error })
 
       // 6. Periodontograma control
-      const periodontoControl = leerJSON(`periodontograma_control_${legacyId}`, {})
+      const periodontoControl = leerJSON<Record<string, unknown>>(`periodontograma_control_${legacyId}`, {})
       const resultadoPeriodontoControl = await migrarPeriodontograma(paciente.id, userId, periodontoControl, 'control')
       if (resultadoPeriodontoControl.migrado) resultado.otrosMigrados++
       if (resultadoPeriodontoControl.error) resultado.errores.push({ tipo: 'periodontograma_control', error: resultadoPeriodontoControl.error })
 
       // 7. Historial periodontal
-      const periodontoHistorial = leerJSON(`periodonto_historial_${legacyId}`, {})
+      const periodontoHistorial = leerJSON<Record<string, unknown>>(`periodonto_historial_${legacyId}`, {})
       const resultadoPeriodontoHistorial = await migrarDatosGenericos(paciente.id, userId, periodontoHistorial, 'periodontogramas_historial')
       if (resultadoPeriodontoHistorial.migrado) resultado.otrosMigrados++
       if (resultadoPeriodontoHistorial.error) resultado.errores.push({ tipo: 'periodonto_historial', error: resultadoPeriodontoHistorial.error })
 
       // 8. DSD config
-      const dsdConfig = leerJSON(`dsd_config_${legacyId}`, {})
+      const dsdConfig = leerJSON<Record<string, unknown>>(`dsd_config_${legacyId}`, {})
       const resultadoDsd = await migrarDatosGenericos(paciente.id, userId, dsdConfig, 'dsd_configs')
       if (resultadoDsd.migrado) resultado.otrosMigrados++
       if (resultadoDsd.error) resultado.errores.push({ tipo: 'dsd_config', error: resultadoDsd.error })
 
       // 9. Odontopediatría
-      const pediatria = leerJSON(`pediatria_${legacyId}`, {})
+      const pediatria = leerJSON<Record<string, unknown>>(`pediatria_${legacyId}`, {})
       const resultadoPediatria = await migrarDatosGenericos(paciente.id, userId, pediatria, 'odontopediatria')
       if (resultadoPediatria.migrado) resultado.otrosMigrados++
       if (resultadoPediatria.error) resultado.errores.push({ tipo: 'pediatria', error: resultadoPediatria.error })
 
       // 10. Quirúrgico implantes
-      const implantes = leerJSON(`quirurgico_implantes_${legacyId}`, [])
+      const implantes = leerJSON<unknown[]>(`quirurgico_implantes_${legacyId}`, [])
       const resultadoImplantes = await migrarDatosGenericos(paciente.id, userId, implantes, 'quirurgico_implantes')
       if (resultadoImplantes.migrado) resultado.otrosMigrados++
       if (resultadoImplantes.error) resultado.errores.push({ tipo: 'implantes', error: resultadoImplantes.error })
 
       // 11. Quirúrgico endodoncia
-      const endodoncia = leerJSON(`quirurgico_endodoncia_${legacyId}`, [])
+      const endodoncia = leerJSON<unknown[]>(`quirurgico_endodoncia_${legacyId}`, [])
       const resultadoEndodoncia = await migrarDatosGenericos(paciente.id, userId, endodoncia, 'quirurgico_endodoncia')
       if (resultadoEndodoncia.migrado) resultado.otrosMigrados++
       if (resultadoEndodoncia.error) resultado.errores.push({ tipo: 'endodoncia', error: resultadoEndodoncia.error })
 
-    } catch (error) {
-      log.error(`[migrateDatosClinicos] Error procesando paciente ${paciente.id}:`, error.message)
-      resultado.errores.push({ tipo: 'paciente', pacienteId: paciente.id, error: error.message })
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error)
+      log.error(`[migrateDatosClinicos] Error procesando paciente ${paciente.id}:`, msg)
+      resultado.errores.push({ tipo: 'paciente', pacienteId: paciente.id, error: msg })
     }
   }
 
@@ -333,29 +422,21 @@ export const migrateDatosClinicosToSupabase = async (userId) => {
 
 /**
  * Verifica si hay datos clínicos pendientes de migrar.
- * Esta es una verificación simple que cuenta pacientes con datos.
- *
- * @returns {{totalPacientes: number, conDatos: number}}
  */
-export const verificarDatosClinicosPendientes = () => {
-  // Esta verificación es simplificada porque los datos clínicos están
-  // distribuidos en muchas claves dinámicas. Solo contamos pacientes
-  // que podrían tener datos.
-  
-  // Obtener pacientes de localStorage (fuente de verdad para esta verificación)
+export const verificarDatosClinicosPendientes = (): VerificarDatosClinicosPendientesResult => {
   const pacientesRaw = localStorage.getItem('studio_dental_pacientes_v3')
-  let pacientes = []
+  let pacientes: Array<{ id: string | number }> = []
   try {
-    pacientes = pacientesRaw ? JSON.parse(pacientesRaw) : []
+    pacientes = pacientesRaw ? (JSON.parse(pacientesRaw) as Array<{ id: string | number }>) : []
   } catch {
     pacientes = []
   }
 
   let conDatos = 0
   for (const paciente of pacientes) {
-    const evoluciones = leerJSON(`evoluciones_notas_${paciente.id}`, [])
-    const recetas = leerJSON(`recetas_${paciente.id}`, [])
-    const odontoInicial = leerJSON(`odonto_inicial_${paciente.id}`, {})
+    const evoluciones = leerJSON<unknown[]>(`evoluciones_notas_${paciente.id}`, [])
+    const recetas = leerJSON<unknown[]>(`recetas_${paciente.id}`, [])
+    const odontoInicial = leerJSON<Record<string, unknown>>(`odonto_inicial_${paciente.id}`, {})
     
     if (evoluciones.length > 0 || recetas.length > 0 || Object.keys(odontoInicial).length > 0) {
       conDatos++
