@@ -25,71 +25,90 @@ import {
   obtenerDatoClinico
 } from '../../../services/datosClinicosSupabase'
 import { createLogger } from '../../../services/logger'
+import type { ControlPeriodontal, PiezaPeriodontal } from '../schemas/periodontalSchema'
 
 const log = createLogger('periodontogramaStorageService')
 
-export const periodontogramaStorageService = {
+export type PeriodontogramaData = {
+  piezas?: Record<string, PiezaPeriodontal>
+  [key: string]: unknown
+}
+
+export interface PeriodontogramaStorageServiceAPI {
+  obtenerPeriodontogramaDePaciente: <T = PeriodontogramaData>(pacienteId: string | number | null | undefined, fallback?: T) => T
+  obtenerControlDePaciente: <T = PeriodontogramaData>(pacienteId: string | number | null | undefined, fallback?: T) => T
+  obtenerHistorialControles: <T = ControlPeriodontal[]>(pacienteId: string | number | null | undefined, fallback?: T) => T
+  guardarPeriodontogramaDePaciente: (pacienteId: string | number | null | undefined, data: PeriodontogramaData) => Promise<boolean>
+  guardarControlDePaciente: (pacienteId: string | number | null | undefined, data: PeriodontogramaData) => Promise<boolean>
+  guardarHistorialControles: (pacienteId: string | number | null | undefined, historial: ControlPeriodontal[]) => Promise<boolean>
+  eliminarDatosDePaciente: (pacienteId: string | number | null | undefined) => void
+}
+
+export const periodontogramaStorageService: PeriodontogramaStorageServiceAPI = {
   // ─────────────────────────────────────────────────────────────
   // F6-D-3: Lectura con prioridad Supabase → fallback localStorage
   // ─────────────────────────────────────────────────────────────
 
-  obtenerPeriodontogramaDePaciente: (pacienteId, fallback = {}) => {
+  obtenerPeriodontogramaDePaciente: <T = PeriodontogramaData>(pacienteId: string | number | null | undefined, fallback: T = {} as T): T => {
     if (!pacienteId) return fallback
-    const datoSupabase = obtenerDatoClinico(pacienteId, 'periodontograma', null)
-    return datoSupabase !== null ? datoSupabase : leerJSON(`periodontograma_${pacienteId}`, fallback)
+    const datoSupabase = obtenerDatoClinico(String(pacienteId), 'periodontograma', null)
+    return (datoSupabase !== null ? datoSupabase : leerJSON<T>(`periodontograma_${pacienteId}`, fallback)) as T
   },
 
-  obtenerControlDePaciente: (pacienteId, fallback = {}) => {
+  obtenerControlDePaciente: <T = PeriodontogramaData>(pacienteId: string | number | null | undefined, fallback: T = {} as T): T => {
     if (!pacienteId) return fallback
-    const datoSupabase = obtenerDatoClinico(pacienteId, 'periodontograma_control', null)
-    return datoSupabase !== null ? datoSupabase : leerJSON(`periodontograma_control_${pacienteId}`, fallback)
+    const datoSupabase = obtenerDatoClinico(String(pacienteId), 'periodontograma_control', null)
+    return (datoSupabase !== null ? datoSupabase : leerJSON<T>(`periodontograma_control_${pacienteId}`, fallback)) as T
   },
 
-  obtenerHistorialControles: (pacienteId, fallback = []) => {
+  obtenerHistorialControles: <T = ControlPeriodontal[]>(pacienteId: string | number | null | undefined, fallback: T = [] as unknown as T): T => {
     if (!pacienteId) return fallback
-    const datoSupabase = obtenerDatoClinico(pacienteId, 'periodonto_historial', null)
-    return datoSupabase !== null ? datoSupabase : leerJSON(`periodonto_historial_${pacienteId}`, fallback)
+    const datoSupabase = obtenerDatoClinico(String(pacienteId), 'periodonto_historial', null)
+    return (datoSupabase !== null ? datoSupabase : leerJSON<T>(`periodonto_historial_${pacienteId}`, fallback)) as T
   },
 
   // ─────────────────────────────────────────────────────────────
   // F6-D-3: Escritura en Supabase + localStorage
   // ─────────────────────────────────────────────────────────────
 
-  guardarPeriodontogramaDePaciente: async (pacienteId, data) => {
+  guardarPeriodontogramaDePaciente: async (pacienteId: string | number | null | undefined, data: PeriodontogramaData): Promise<boolean> => {
     if (!pacienteId) return false
     // F6-D-3 fix: escribir localStorage PRIMERO (síncrono, inmediato)
-    const result = escribirJSON(`periodontograma_${pacienteId}`, data)
+    const result = Boolean(escribirJSON(`periodontograma_${pacienteId}`, data))
     // Luego sincronizar con Supabase (async, puede fallar sin perder datos)
     try {
-      await guardarPeriodontogramaSupabase(pacienteId, data, 'inicial')
-    } catch (e) {
-      log.warn('Error guardando periodontograma inicial en Supabase:', e?.message)
+      await guardarPeriodontogramaSupabase(String(pacienteId), data, 'inicial')
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e)
+      log.warn('Error guardando periodontograma inicial en Supabase:', msg)
     }
     return result
   },
 
-  guardarControlDePaciente: async (pacienteId, data) => {
+  guardarControlDePaciente: async (pacienteId: string | number | null | undefined, data: PeriodontogramaData): Promise<boolean> => {
     if (!pacienteId) return false
     // F6-D-3 fix: escribir localStorage PRIMERO (síncrono, inmediato)
-    const result = escribirJSON(`periodontograma_control_${pacienteId}`, data)
+    const result = Boolean(escribirJSON(`periodontograma_control_${pacienteId}`, data))
     // Luego sincronizar con Supabase (async, puede fallar sin perder datos)
     try {
-      await guardarPeriodontogramaSupabase(pacienteId, data, 'control')
-    } catch (e) {
-      log.warn('Error guardando control en Supabase:', e?.message)
+      await guardarPeriodontogramaSupabase(String(pacienteId), data, 'control')
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e)
+      log.warn('Error guardando control en Supabase:', msg)
     }
     return result
   },
 
-  guardarHistorialControles: async (pacienteId, historial) => {
+  guardarHistorialControles: async (pacienteId: string | number | null | undefined, historial: ControlPeriodontal[]): Promise<boolean> => {
     if (!pacienteId) return false
     // F6-D-3 fix: escribir localStorage PRIMERO (síncrono, inmediato)
-    const result = escribirJSON(`periodonto_historial_${pacienteId}`, historial)
+    const result = Boolean(escribirJSON(`periodonto_historial_${pacienteId}`, historial))
     // Luego sincronizar con Supabase (async, puede fallar sin perder datos)
     try {
-      await guardarPeriodontogramaHistorialSupabase(pacienteId, historial)
-    } catch (e) {
-      log.warn('Error guardando historial en Supabase:', e?.message)
+      await guardarPeriodontogramaHistorialSupabase(String(pacienteId), historial)
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e)
+      log.warn('Error guardando historial en Supabase:', msg)
     }
     return result
   },
@@ -98,13 +117,13 @@ export const periodontogramaStorageService = {
   // F2-07d: Eliminación bidireccional
   // ─────────────────────────────────────────────────────────────
 
-  eliminarDatosDePaciente: (pacienteId) => {
+  eliminarDatosDePaciente: (pacienteId: string | number | null | undefined): void => {
     if (!pacienteId) return
     try {
       localStorage.removeItem(`periodontograma_${pacienteId}`)
       localStorage.removeItem(`periodontograma_control_${pacienteId}`)
       localStorage.removeItem(`periodonto_historial_${pacienteId}`)
-    } catch (e) {
+    } catch (e: unknown) {
       log.error(`Error al eliminar datos periodontales del paciente ${pacienteId}:`, e)
     }
   }
