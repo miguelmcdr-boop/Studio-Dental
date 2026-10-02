@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { validarRut, normalizarRut, obtenerErrorRut } from '../../../utils/validarRut'
+import { validarRut, normalizarRut } from '../../../utils/validarRut'
 
 /**
  * Esquema de validación del paciente (F2-04 — MASTER_ROADMAP).
@@ -27,7 +27,7 @@ export const pacienteSchema = z.object({
     .trim()
     .min(1, 'El RUT es obligatorio')
     .refine(
-      (val) => {
+      (val: string): boolean => {
         const normalizado = normalizarRut(val)
         // RUT chileno mínimo: 7 dígitos + DV = 8 caracteres
         if (normalizado.length < 8) return false
@@ -65,7 +65,21 @@ export const pacienteSchema = z.object({
   notas: z.string().nullable().optional()
 }).passthrough()
 
+export type Paciente = z.infer<typeof pacienteSchema>
+
 export const listaPacientesSchema = z.array(pacienteSchema)
+
+export type ValidacionListaPacientes = {
+  valido: boolean
+  datos: Paciente[] | null
+  error: z.ZodError | null
+}
+
+export type ValidacionPaciente = {
+  valido: boolean
+  datos: Paciente | null
+  error: z.ZodError | null
+}
 
 /**
  * Valida un arreglo de pacientes. No lanza excepción — retorna un resultado
@@ -73,10 +87,8 @@ export const listaPacientesSchema = z.array(pacienteSchema)
  * corrupto tumbe la app entera con una excepción no capturada a mitad de un
  * guardado (Cap. V.2 Constitución: nunca fallar en silencio, pero tampoco
  * de forma descontrolada).
- * @param {Array} pacientes
- * @returns {{ valido: boolean, datos: Array|null, error: import('zod').ZodError|null }}
  */
-export const validarListaPacientes = (pacientes) => {
+export const validarListaPacientes = (pacientes: unknown): ValidacionListaPacientes => {
   const resultado = listaPacientesSchema.safeParse(pacientes)
   if (resultado.success) {
     return { valido: true, datos: resultado.data, error: null }
@@ -86,10 +98,8 @@ export const validarListaPacientes = (pacientes) => {
 
 /**
  * Valida un único objeto paciente.
- * @param {Object} paciente
- * @returns {{ valido: boolean, datos: Object|null, error: import('zod').ZodError|null }}
  */
-export const validarPaciente = (paciente) => {
+export const validarPaciente = (paciente: unknown): ValidacionPaciente => {
   const resultado = pacienteSchema.safeParse(paciente)
   if (resultado.success) {
     return { valido: true, datos: resultado.data, error: null }
@@ -101,16 +111,22 @@ export const validarPaciente = (paciente) => {
  * Valida que un RUT no exista ya en la clínica (unicidad por clínica).
  * F6-G: verificación de duplicados antes de guardar.
  *
- * @param {string} rut - RUT a verificar
- * @param {Array} pacientes - Lista actual de pacientes
- * @param {string} [pacienteId] - ID del paciente actual (para excluir de la comparación en edición)
- * @returns {boolean} true si el RUT está duplicado
+ * @param rut - RUT a verificar
+ * @param pacientes - Lista actual de pacientes
+ * @param pacienteId - ID del paciente actual (para excluir de la comparación en edición)
+ * @returns true si el RUT está duplicado
  */
-export const rutDuplicado = (rut, pacientes, pacienteId = null) => {
+export const rutDuplicado = (
+  rut: string | null | undefined,
+  pacientes: unknown,
+  pacienteId: string | number | null = null
+): boolean => {
   if (!rut || !Array.isArray(pacientes)) return false
   const normalizado = normalizarRut(rut)
-  return pacientes.some((p) => {
-    if (pacienteId && p.id === pacienteId) return false
-    return p.rut && normalizarRut(p.rut) === normalizado
+  return pacientes.some((p: unknown) => {
+    if (typeof p !== 'object' || p === null) return false
+    const pac = p as { id?: string | number; rut?: string }
+    if (pacienteId != null && pac.id === pacienteId) return false
+    return Boolean(pac.rut && normalizarRut(pac.rut) === normalizado)
   })
 }
