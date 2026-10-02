@@ -18,16 +18,117 @@ import { getClinicaActiva } from '../../../services/authService'
 import { esUuidValido } from '../../../services/migrations/uuidUtils'
 import { migrationStorageService } from '../../../services/migrationStorageService'
 import { createLogger } from '../../../services/logger'
+import type { Presupuesto } from '../schemas/presupuestoSchema'
 
 const log = createLogger('presupuestosOfflineQueue')
 
-// Repositorios aislados por clínica/tenant
-export const pendingPresupuestosRepo = createTenantRepository('studio_dental_presupuestos_pending', [])
-export const pendingPresupuestoItemsRepo = createTenantRepository('studio_dental_presupuesto_items_pending', [])
-export const pendingDeletesPresupuestosRepo = createTenantRepository('studio_dental_presupuestos_pending_deletes', [])
-export const pendingDeletesPresupuestoItemsRepo = createTenantRepository('studio_dental_presupuesto_items_pending_deletes', [])
+// ──────────────────────────────────────────────────────────────────
+// TIPOS E INTERFACES DE PRESUPUESTOS Y COLAS
+// ──────────────────────────────────────────────────────────────────
 
-export const obtenerClinicaId = () => {
+export interface PresupuestoItemLocal {
+  id?: string | number
+  presupuestoId?: string | number
+  pacienteId?: string | number | null
+  prestacionId?: string | number | null
+  prestacionNombre?: string
+  nombre?: string
+  prestacion?: string
+  valor?: number | string
+  precio?: number | string
+  convenio?: string
+  estado?: string
+  clinicaId?: string | null
+  sincronizado?: boolean
+  timestamp?: number
+  [key: string]: unknown
+}
+
+export interface PresupuestoLocal extends Partial<Presupuesto> {
+  id: string | number
+  folio?: string
+  pacienteId?: string | number | null
+  pacienteNombre?: string
+  pacienteRut?: string | null
+  fechaEmision?: string
+  convenio?: string
+  montoTotal?: number
+  total?: number
+  montoAbonado?: number
+  estado?: string
+  observacion?: string
+  createdAt?: string
+  updatedAt?: string
+  sincronizado?: boolean
+  clinicaId?: string | null
+  items?: PresupuestoItemLocal[]
+  [key: string]: unknown
+}
+
+export interface PendingPresupuestoEntry {
+  id: string | number
+  folio?: string
+  clinicaId?: string | null
+  timestamp?: number
+  [key: string]: unknown
+}
+
+export type PendingPresupuesto = PendingPresupuestoEntry | string | number
+
+export interface PendingPresupuestoItemEntry extends PresupuestoItemLocal {
+  id: string | number
+  presupuestoId?: string | number
+  clinicaId?: string | null
+  timestamp?: number
+}
+
+export type PendingPresupuestoItem = PendingPresupuestoItemEntry | string | number
+
+export interface PresupuestoSupabaseRow {
+  id?: string
+  user_id: string
+  clinica_id?: string | null
+  paciente_id?: string | null
+  folio: string
+  paciente_nombre: string
+  paciente_rut?: string | null
+  fecha_emision: string
+  convenio: string
+  monto_total: number
+  monto_abonado: number
+  estado: string
+  observacion: string
+  created_at?: string
+  updated_at?: string
+  [key: string]: unknown
+}
+
+export interface PresupuestoItemSupabaseRow {
+  id?: string
+  presupuesto_id?: string | null
+  paciente_id?: string | null
+  prestacion_id?: string | number | null
+  prestacion_nombre: string
+  valor: number
+  convenio: string
+  estado: string
+  clinica_id?: string | null
+  [key: string]: unknown
+}
+
+export interface PresupuestoHelpersContext {
+  obtenerPresupuestos: () => PresupuestoLocal[]
+  actualizarPresupuestosLocal: (presupuestos: PresupuestoLocal[]) => void
+  presupuestosRepo?: unknown
+}
+
+// Repositorios aislados por clínica/tenant
+export const pendingPresupuestosRepo = createTenantRepository<PendingPresupuesto[]>('studio_dental_presupuestos_pending', [])
+export const pendingPresupuestoItemsRepo = createTenantRepository<PendingPresupuestoItem[]>('studio_dental_presupuesto_items_pending', [])
+export const pendingDeletesPresupuestosRepo = createTenantRepository<(string | number)[]>('studio_dental_presupuestos_pending_deletes', [])
+export const pendingDeletesPresupuestoItemsRepo = createTenantRepository<(string | number)[]>('studio_dental_presupuesto_items_pending_deletes', [])
+
+export const obtenerClinicaId = (): string | null => {
   try {
     return getClinicaActiva?.() || null
   } catch {
@@ -39,11 +140,11 @@ export const obtenerClinicaId = () => {
 // GETTERS Y SETTERS DE COLAS
 // ──────────────────────────────────────────────────────────────────
 
-export const obtenerPendingPresupuestos = () => {
+export const obtenerPendingPresupuestos = (): PendingPresupuesto[] => {
   return pendingPresupuestosRepo.obtener([]) || []
 }
 
-export const guardarPendingPresupuestos = (pending) => {
+export const guardarPendingPresupuestos = (pending?: PendingPresupuesto[] | null): void => {
   if (!pending || pending.length === 0) {
     pendingPresupuestosRepo.eliminar()
   } else {
@@ -51,11 +152,11 @@ export const guardarPendingPresupuestos = (pending) => {
   }
 }
 
-export const obtenerPendingPresupuestoItems = () => {
+export const obtenerPendingPresupuestoItems = (): PendingPresupuestoItem[] => {
   return pendingPresupuestoItemsRepo.obtener([]) || []
 }
 
-export const guardarPendingPresupuestoItems = (pending) => {
+export const guardarPendingPresupuestoItems = (pending?: PendingPresupuestoItem[] | null): void => {
   if (!pending || pending.length === 0) {
     pendingPresupuestoItemsRepo.eliminar()
   } else {
@@ -63,34 +164,40 @@ export const guardarPendingPresupuestoItems = (pending) => {
   }
 }
 
-export const obtenerPendingDeletesPresupuestos = () => {
+export const obtenerPendingDeletesPresupuestos = (): (string | number)[] => {
   return pendingDeletesPresupuestosRepo.obtener([]) || []
 }
 
-export const guardarPendingDeletesPresupuestos = (ids) => {
+export const guardarPendingDeletesPresupuestos = (ids?: (string | number)[] | null): void => {
   if (!ids || ids.length === 0) {
-    return pendingDeletesPresupuestosRepo.eliminar()
+    pendingDeletesPresupuestosRepo.eliminar()
+  } else {
+    pendingDeletesPresupuestosRepo.guardar(ids)
   }
-  return pendingDeletesPresupuestosRepo.guardar(ids)
 }
 
-export const obtenerPendingDeletesPresupuestoItems = () => {
+export const obtenerPendingDeletesPresupuestoItems = (): (string | number)[] => {
   return pendingDeletesPresupuestoItemsRepo.obtener([]) || []
 }
 
-export const guardarPendingDeletesPresupuestoItems = (ids) => {
+export const guardarPendingDeletesPresupuestoItems = (ids?: (string | number)[] | null): void => {
   if (!ids || ids.length === 0) {
-    return pendingDeletesPresupuestoItemsRepo.eliminar()
+    pendingDeletesPresupuestoItemsRepo.eliminar()
+  } else {
+    pendingDeletesPresupuestoItemsRepo.guardar(ids)
   }
-  return pendingDeletesPresupuestoItemsRepo.guardar(ids)
 }
 
 // ──────────────────────────────────────────────────────────────────
 // TRANSFORMACIONES PARA SUPABASE
 // ──────────────────────────────────────────────────────────────────
 
-export const transformarPresupuestoParaSupabase = (p, userId, clinicaId) => {
-  const out = {
+export const transformarPresupuestoParaSupabase = (
+  p: PresupuestoLocal,
+  userId: string,
+  clinicaId?: string | null
+): PresupuestoSupabaseRow => {
+  const out: PresupuestoSupabaseRow = {
     user_id: userId,
     folio: p.folio || `PRES-${Date.now()}`,
     paciente_nombre: p.pacienteNombre || 'Sin nombre',
@@ -105,7 +212,7 @@ export const transformarPresupuestoParaSupabase = (p, userId, clinicaId) => {
 
   if (p.pacienteId) {
     if (esUuidValido(p.pacienteId)) {
-      out.paciente_id = p.pacienteId
+      out.paciente_id = String(p.pacienteId)
     } else {
       const pacienteUuid = migrationStorageService.obtenerSupabaseId(p.pacienteId)
       out.paciente_id = pacienteUuid || null
@@ -115,23 +222,28 @@ export const transformarPresupuestoParaSupabase = (p, userId, clinicaId) => {
   }
 
   if (clinicaId) out.clinica_id = clinicaId
-  if (esUuidValido(p.id)) out.id = p.id
+  if (esUuidValido(p.id)) out.id = String(p.id)
 
   return out
 }
 
-export const transformarItemParaSupabase = (item, presupuestoUuid, pacienteUuid, clinicaId) => {
-  const itemOut = {
+export const transformarItemParaSupabase = (
+  item: PresupuestoItemLocal,
+  presupuestoUuid?: string | null,
+  pacienteUuid?: string | null,
+  clinicaId?: string | null
+): PresupuestoItemSupabaseRow => {
+  const itemOut: PresupuestoItemSupabaseRow = {
     presupuesto_id: presupuestoUuid || null,
     paciente_id: pacienteUuid || null,
     prestacion_id: item.prestacionId || null,
     prestacion_nombre: item.prestacionNombre || item.nombre || item.prestacion || 'Sin nombre',
-    valor: parseInt(item.valor || item.precio || 0),
+    valor: parseInt(String(item.valor || item.precio || 0), 10) || 0,
     convenio: item.convenio || 'Particular',
     estado: item.estado || 'Pendiente'
   }
   if (clinicaId) itemOut.clinica_id = clinicaId
-  if (esUuidValido(item.id)) itemOut.id = item.id
+  if (esUuidValido(item.id)) itemOut.id = String(item.id)
   return itemOut
 }
 
@@ -139,12 +251,20 @@ export const transformarItemParaSupabase = (item, presupuestoUuid, pacienteUuid,
 // ENCOLADO DE OPERACIONES
 // ──────────────────────────────────────────────────────────────────
 
-export const encolarPresupuesto = ({ id, folio, clinicaId }) => {
+export const encolarPresupuesto = ({
+  id,
+  folio,
+  clinicaId
+}: {
+  id: string | number
+  folio?: string
+  clinicaId?: string | null
+}): void => {
   try {
     const clinicaIdEfectivo = clinicaId || obtenerClinicaId()
     const pending = obtenerPendingPresupuestos()
     const yaEncolado = pending.some((item) =>
-      typeof item === 'object' ? item.id === id : item === id
+      typeof item === 'object' && item !== null ? item.id === id : item === id
     )
     if (!yaEncolado) {
       pending.push({
@@ -155,19 +275,25 @@ export const encolarPresupuesto = ({ id, folio, clinicaId }) => {
       })
       guardarPendingPresupuestos(pending)
     }
-  } catch (err) {
-    log.warn('Error al encolar en pendingPresupuestos:', err?.message || err)
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    log.warn('Error al encolar en pendingPresupuestos:', msg)
   }
 }
 
-export const encolarPresupuestoItem = ({ id, presupuestoId, clinicaId, ...itemData }) => {
+export const encolarPresupuestoItem = ({
+  id,
+  presupuestoId,
+  clinicaId,
+  ...itemData
+}: PresupuestoItemLocal & { id: string | number; presupuestoId?: string | number; clinicaId?: string | null }): void => {
   try {
     const clinicaIdEfectivo = clinicaId || obtenerClinicaId()
     const pending = obtenerPendingPresupuestoItems()
     const idx = pending.findIndex((item) =>
-      typeof item === 'object' ? item.id === id : item === id
+      typeof item === 'object' && item !== null ? item.id === id : item === id
     )
-    const entry = {
+    const entry: PendingPresupuestoItemEntry = {
       id,
       presupuestoId,
       clinicaId: clinicaIdEfectivo,
@@ -180,8 +306,9 @@ export const encolarPresupuestoItem = ({ id, presupuestoId, clinicaId, ...itemDa
       pending.push(entry)
     }
     guardarPendingPresupuestoItems(pending)
-  } catch (err) {
-    log.warn('Error al encolar en pendingPresupuestoItems:', err?.message || err)
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    log.warn('Error al encolar en pendingPresupuestoItems:', msg)
   }
 }
 
@@ -192,13 +319,16 @@ export const encolarPresupuestoItem = ({ id, presupuestoId, clinicaId, ...itemDa
 /**
  * Guarda o actualiza un presupuesto padre con sus items (offline-first).
  */
-export const guardarPresupuestoHelper = async (presupuesto, { obtenerPresupuestos, actualizarPresupuestosLocal }) => {
+export const guardarPresupuestoHelper = async (
+  presupuesto: PresupuestoLocal,
+  { obtenerPresupuestos, actualizarPresupuestosLocal }: PresupuestoHelpersContext
+): Promise<PresupuestoLocal | null> => {
   if (!presupuesto) return null
 
   const id = presupuesto.id || Date.now()
   const clinicaIdActual = obtenerClinicaId()
 
-  const presupuestoLocal = {
+  const presupuestoLocal: PresupuestoLocal = {
     ...presupuesto,
     id,
     sincronizado: false,
@@ -222,7 +352,7 @@ export const guardarPresupuestoHelper = async (presupuesto, { obtenerPresupuesto
     clinicaId: clinicaIdActual
   })
 
-  if (presupuestoLocal.items.length > 0) {
+  if (presupuestoLocal.items && presupuestoLocal.items.length > 0) {
     for (const item of presupuestoLocal.items) {
       encolarPresupuestoItem({
         id: item.id || Date.now() + Math.random(),
@@ -238,7 +368,7 @@ export const guardarPresupuestoHelper = async (presupuesto, { obtenerPresupuesto
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        let uuidPadre = null
+        let uuidPadre: string | null = null
         let padreSubido = false
 
         const paraSupabase = transformarPresupuestoParaSupabase(presupuestoLocal, user.id, clinicaIdActual)
@@ -248,7 +378,7 @@ export const guardarPresupuestoHelper = async (presupuesto, { obtenerPresupuesto
             .from('presupuestos')
             .upsert(paraSupabase, { onConflict: 'id' })
           if (!upsertErr) {
-            uuidPadre = presupuestoLocal.id
+            uuidPadre = String(presupuestoLocal.id)
             padreSubido = true
           }
         } else {
@@ -274,7 +404,7 @@ export const guardarPresupuestoHelper = async (presupuesto, { obtenerPresupuesto
 
           // Subir items si existen
           let itemsOk = true
-          if (presupuestoLocal.items.length > 0) {
+          if (presupuestoLocal.items && presupuestoLocal.items.length > 0) {
             for (const item of presupuestoLocal.items) {
               const itemParaSupabase = transformarItemParaSupabase(item, uuidPadre, paraSupabase.paciente_id, clinicaIdActual)
               if (!esUuidValido(item.id)) delete itemParaSupabase.id
@@ -292,13 +422,18 @@ export const guardarPresupuestoHelper = async (presupuesto, { obtenerPresupuesto
 
           // Drenar de colas
           const pendingP = obtenerPendingPresupuestos().filter((p) => {
-            const pid = typeof p === 'object' ? p.id : p
+            const pid = typeof p === 'object' && p !== null ? p.id : p
             return pid !== id && pid !== uuidPadre
           })
           guardarPendingPresupuestos(pendingP)
 
           if (itemsOk) {
-            const pendingI = obtenerPendingPresupuestoItems().filter((i) => i.presupuestoId !== id && i.presupuestoId !== uuidPadre)
+            const pendingI = obtenerPendingPresupuestoItems().filter((i) => {
+              if (typeof i === 'object' && i !== null) {
+                return i.presupuestoId !== id && i.presupuestoId !== uuidPadre
+              }
+              return true
+            })
             guardarPendingPresupuestoItems(pendingI)
           }
 
@@ -310,8 +445,9 @@ export const guardarPresupuestoHelper = async (presupuesto, { obtenerPresupuesto
           }
         }
       }
-    } catch (errSync) {
-      log.warn('Fallo al sincronizar presupuesto con Supabase, queda en cola offline:', errSync?.message || errSync)
+    } catch (errSync: unknown) {
+      const msg = errSync instanceof Error ? errSync.message : String(errSync)
+      log.warn('Fallo al sincronizar presupuesto con Supabase, queda en cola offline:', msg)
     }
   }
 
@@ -321,7 +457,10 @@ export const guardarPresupuestoHelper = async (presupuesto, { obtenerPresupuesto
 /**
  * Guarda o edita un item individual dentro de un presupuesto existente.
  */
-export const guardarItemPresupuestoHelper = async (item, { obtenerPresupuestos, actualizarPresupuestosLocal }) => {
+export const guardarItemPresupuestoHelper = async (
+  item: PresupuestoItemLocal,
+  { obtenerPresupuestos, actualizarPresupuestosLocal }: PresupuestoHelpersContext
+): Promise<PresupuestoItemLocal | null> => {
   if (!item || !item.presupuestoId) return null
 
   const clinicaIdActual = obtenerClinicaId()
@@ -346,6 +485,7 @@ export const guardarItemPresupuestoHelper = async (item, { obtenerPresupuestos, 
   // Encolar item y marcar padre como pendiente
   encolarPresupuestoItem({
     ...item,
+    id: item.id || Date.now(),
     clinicaId: clinicaIdActual
   })
   encolarPresupuesto({
@@ -356,7 +496,7 @@ export const guardarItemPresupuestoHelper = async (item, { obtenerPresupuestos, 
   // Intentar sincronizar si online
   if (USE_SUPABASE && supabase && esUuidValido(item.presupuestoId)) {
     try {
-      const itemParaSupabase = transformarItemParaSupabase(item, item.presupuestoId, null, clinicaIdActual)
+      const itemParaSupabase = transformarItemParaSupabase(item, String(item.presupuestoId), null, clinicaIdActual)
       if (!esUuidValido(item.id)) delete itemParaSupabase.id
 
       const { error } = await supabase
@@ -364,10 +504,13 @@ export const guardarItemPresupuestoHelper = async (item, { obtenerPresupuestos, 
         .upsert(itemParaSupabase, { onConflict: 'id' })
 
       if (!error) {
-        const pendingI = obtenerPendingPresupuestoItems().filter((i) => i.id !== item.id)
+        const pendingI = obtenerPendingPresupuestoItems().filter((i) => {
+          const iid = typeof i === 'object' && i !== null ? i.id : i
+          return iid !== item.id
+        })
         guardarPendingPresupuestoItems(pendingI)
       }
-    } catch (e) {
+    } catch (e: unknown) {
       log.warn('Error al sincronizar item individual, queda en cola:', e)
     }
   }
@@ -378,7 +521,10 @@ export const guardarItemPresupuestoHelper = async (item, { obtenerPresupuestos, 
 /**
  * Elimina un presupuesto completo y sus items asociados.
  */
-export const eliminarPresupuestoHelper = async (presupuestoId, { obtenerPresupuestos, actualizarPresupuestosLocal }) => {
+export const eliminarPresupuestoHelper = async (
+  presupuestoId: string | number,
+  { obtenerPresupuestos, actualizarPresupuestosLocal }: PresupuestoHelpersContext
+): Promise<boolean> => {
   const actuales = obtenerPresupuestos() || []
   const target = actuales.find((p) => String(p.id) === String(presupuestoId))
   const actualizados = actuales.filter((p) => String(p.id) !== String(presupuestoId))
@@ -393,7 +539,7 @@ export const eliminarPresupuestoHelper = async (presupuestoId, { obtenerPresupue
   // Encolar items asociados en pendingDeletesPresupuestoItems
   if (target?.items && Array.isArray(target.items)) {
     const pendingDelI = obtenerPendingDeletesPresupuestoItems()
-    const itemIds = target.items.map((i) => i.id).filter(Boolean)
+    const itemIds = target.items.map((i) => i.id).filter((id): id is string | number => id !== undefined && id !== null)
     const nuevos = itemIds.filter((id) => !pendingDelI.includes(id))
     if (nuevos.length > 0) {
       guardarPendingDeletesPresupuestoItems([...pendingDelI, ...nuevos])
@@ -412,7 +558,7 @@ export const eliminarPresupuestoHelper = async (presupuestoId, { obtenerPresupue
         const restantesP = obtenerPendingDeletesPresupuestos().filter((id) => id !== presupuestoId)
         guardarPendingDeletesPresupuestos(restantesP)
       }
-    } catch (err) {
+    } catch (err: unknown) {
       log.warn('Error al eliminar presupuesto remoto, queda en cola de deletes:', err)
     }
   }
@@ -423,7 +569,11 @@ export const eliminarPresupuestoHelper = async (presupuestoId, { obtenerPresupue
 /**
  * Elimina un item individual de un presupuesto.
  */
-export const eliminarItemPresupuestoHelper = async (itemId, presupuestoId, { obtenerPresupuestos, actualizarPresupuestosLocal }) => {
+export const eliminarItemPresupuestoHelper = async (
+  itemId: string | number,
+  presupuestoId: string | number,
+  { obtenerPresupuestos, actualizarPresupuestosLocal }: PresupuestoHelpersContext
+): Promise<boolean> => {
   const actuales = obtenerPresupuestos() || []
   const pIndex = actuales.findIndex((p) => String(p.id) === String(presupuestoId))
 
@@ -454,7 +604,7 @@ export const eliminarItemPresupuestoHelper = async (itemId, presupuestoId, { obt
         const restantes = obtenerPendingDeletesPresupuestoItems().filter((id) => id !== itemId)
         guardarPendingDeletesPresupuestoItems(restantes)
       }
-    } catch (err) {
+    } catch (err: unknown) {
       log.warn('Error al eliminar item en Supabase, queda en cola:', err)
     }
   }
@@ -465,13 +615,13 @@ export const eliminarItemPresupuestoHelper = async (itemId, presupuestoId, { obt
 /**
  * Procesa eliminaciones pendientes en Supabase (DELETE físico).
  */
-export const procesarPendingDeletesPresupuestosHelper = async () => {
+export const procesarPendingDeletesPresupuestosHelper = async (): Promise<void> => {
   if (!USE_SUPABASE || !supabase) return
 
   // 1. Eliminar presupuestos padre
   const pendingDelP = obtenerPendingDeletesPresupuestos()
   if (Array.isArray(pendingDelP) && pendingDelP.length > 0) {
-    const exitososP = []
+    const exitososP: (string | number)[] = []
     for (const id of pendingDelP) {
       if (!esUuidValido(id)) {
         exitososP.push(id)
@@ -480,7 +630,7 @@ export const procesarPendingDeletesPresupuestosHelper = async () => {
       try {
         const { error } = await supabase.from('presupuestos').delete().eq('id', id)
         if (!error) exitososP.push(id)
-      } catch (err) {
+      } catch (err: unknown) {
         log.warn(`Error al ejecutar delete de presupuesto ${id}:`, err)
       }
     }
@@ -493,7 +643,7 @@ export const procesarPendingDeletesPresupuestosHelper = async () => {
   // 2. Eliminar items individuales
   const pendingDelI = obtenerPendingDeletesPresupuestoItems()
   if (Array.isArray(pendingDelI) && pendingDelI.length > 0) {
-    const exitososI = []
+    const exitososI: (string | number)[] = []
     for (const id of pendingDelI) {
       if (!esUuidValido(id)) {
         exitososI.push(id)
@@ -502,7 +652,7 @@ export const procesarPendingDeletesPresupuestosHelper = async () => {
       try {
         const { error } = await supabase.from('presupuesto_items').delete().eq('id', id)
         if (!error) exitososI.push(id)
-      } catch (err) {
+      } catch (err: unknown) {
         log.warn(`Error al ejecutar delete de item ${id}:`, err)
       }
     }
@@ -517,7 +667,15 @@ export const procesarPendingDeletesPresupuestosHelper = async () => {
  * Procesa la cola de presupuestos e items pendientes con orden transaccional:
  * Padre primero -> items hijos después.
  */
-export const procesarColaPresupuestosHelper = async ({ obtenerPresupuestos, actualizarPresupuestosLocal }) => {
+export const procesarColaPresupuestosHelper = async ({
+  obtenerPresupuestos,
+  actualizarPresupuestosLocal
+}: PresupuestoHelpersContext): Promise<{
+  procesados: number
+  fallidos: number
+  razon?: string
+  offline?: boolean
+}> => {
   const clinicaIdActual = obtenerClinicaId()
   if (!clinicaIdActual) {
     return { procesados: 0, fallidos: 0, razon: 'sin-clinica' }
@@ -535,7 +693,7 @@ export const procesarColaPresupuestosHelper = async ({ obtenerPresupuestos, actu
 
   let procesados = 0
   let fallidos = 0
-  const procesadosExitososIds = []
+  const procesadosExitososIds: (string | number)[] = []
   const listado = Array.isArray(obtenerPresupuestos()) ? [...obtenerPresupuestos()] : []
   const pendingItems = obtenerPendingPresupuestoItems()
 
@@ -546,8 +704,8 @@ export const procesarColaPresupuestosHelper = async ({ obtenerPresupuestos, actu
     }
 
     for (const item of pending) {
-      const id = typeof item === 'object' ? item.id : item
-      const itemClinicaId = item.clinicaId || clinicaIdActual
+      const id = typeof item === 'object' && item !== null ? item.id : item
+      const itemClinicaId = (typeof item === 'object' && item !== null ? item.clinicaId : null) || clinicaIdActual
 
       // Aislamiento multi-tenant: procesar solo clínica activa
       if (itemClinicaId !== clinicaIdActual) {
@@ -555,7 +713,8 @@ export const procesarColaPresupuestosHelper = async ({ obtenerPresupuestos, actu
       }
 
       try {
-        const idx = listado.findIndex((p) => p.id === id || (item.folio && p.folio === item.folio))
+        const itemFolio = typeof item === 'object' && item !== null ? item.folio : undefined
+        const idx = listado.findIndex((p) => p.id === id || (itemFolio && p.folio === itemFolio))
         if (idx < 0) {
           // Ya no existe localmente, retirar de la cola
           procesadosExitososIds.push(id)
@@ -565,7 +724,7 @@ export const procesarColaPresupuestosHelper = async ({ obtenerPresupuestos, actu
         const pLocal = listado[idx]
         const paraSupabase = transformarPresupuestoParaSupabase(pLocal, user.id, clinicaIdActual)
 
-        let uuidPadre = null
+        let uuidPadre: string | null = null
 
         // 1. Subir presupuesto padre primero
         if (esUuidValido(pLocal.id)) {
@@ -574,7 +733,7 @@ export const procesarColaPresupuestosHelper = async ({ obtenerPresupuestos, actu
             .upsert(paraSupabase, { onConflict: 'id' })
 
           if (upsertErr) throw upsertErr
-          uuidPadre = pLocal.id
+          uuidPadre = String(pLocal.id)
         } else {
           delete paraSupabase.id
           const { data: insertado, error: insertErr } = await supabase
@@ -599,8 +758,13 @@ export const procesarColaPresupuestosHelper = async ({ obtenerPresupuestos, actu
         procesados++
 
         // 2. Transaccional: Buscar items asociados en pendingPresupuestoItems y subirlos
-        const itemsDeEstePadre = pendingItems.filter((i) => i.presupuestoId === id || i.presupuestoId === uuidPadre)
-        const itemsExitososIds = []
+        const itemsDeEstePadre = pendingItems.filter((i) => {
+          if (typeof i === 'object' && i !== null) {
+            return i.presupuestoId === id || i.presupuestoId === uuidPadre
+          }
+          return false
+        }) as PendingPresupuestoItemEntry[]
+        const itemsExitososIds: (string | number)[] = []
 
         if (itemsDeEstePadre.length > 0) {
           for (const itemPending of itemsDeEstePadre) {
@@ -617,18 +781,22 @@ export const procesarColaPresupuestosHelper = async ({ obtenerPresupuestos, actu
               } else {
                 log.warn(`Error al subir item ${itemPending.id}:`, itemErr.message)
               }
-            } catch (errItem) {
+            } catch (errItem: unknown) {
               log.warn(`Excepción al subir item ${itemPending.id}:`, errItem)
             }
           }
 
           if (itemsExitososIds.length > 0) {
-            const restantes = pendingItems.filter((i) => !itemsExitososIds.includes(i.id))
+            const restantes = pendingItems.filter((i) => {
+              const iid = typeof i === 'object' && i !== null ? i.id : i
+              return !itemsExitososIds.includes(iid)
+            })
             guardarPendingPresupuestoItems(restantes)
           }
         }
-      } catch (errPadre) {
-        log.warn(`Fallo al procesar presupuesto padre ${id} (items no se subirán):`, errPadre?.message || errPadre)
+      } catch (errPadre: unknown) {
+        const msg = errPadre instanceof Error ? errPadre.message : String(errPadre)
+        log.warn(`Fallo al procesar presupuesto padre ${id} (items no se subirán):`, msg)
         fallidos++
       }
     }
@@ -640,7 +808,7 @@ export const procesarColaPresupuestosHelper = async ({ obtenerPresupuestos, actu
     // Drenaje atómico: retirar solo exitosos
     if (procesadosExitososIds.length > 0) {
       const colaRestante = pending.filter((item) => {
-        const id = typeof item === 'object' ? item.id : item
+        const id = typeof item === 'object' && item !== null ? item.id : item
         return !procesadosExitososIds.includes(id)
       })
       guardarPendingPresupuestos(colaRestante)
@@ -648,7 +816,7 @@ export const procesarColaPresupuestosHelper = async ({ obtenerPresupuestos, actu
 
     // Procesar eliminaciones pendientes
     await procesarPendingDeletesPresupuestosHelper()
-  } catch (errGlobal) {
+  } catch (errGlobal: unknown) {
     log.error('Error global al procesar cola de presupuestos:', errGlobal)
     return { procesados, fallidos: fallidos + 1 }
   }
@@ -659,7 +827,10 @@ export const procesarColaPresupuestosHelper = async ({ obtenerPresupuestos, actu
 /**
  * Refresca presupuestos desde Supabase protegiendo presupuestos locales pendientes.
  */
-export const sincronizarPresupuestosDesdeSupabaseHelper = async ({ obtenerPresupuestos, actualizarPresupuestosLocal, presupuestosRepo }) => {
+export const sincronizarPresupuestosDesdeSupabaseHelper = async ({
+  obtenerPresupuestos,
+  actualizarPresupuestosLocal
+}: PresupuestoHelpersContext): Promise<PresupuestoLocal[]> => {
   log.info('Iniciando sincronización de presupuestos desde Supabase...')
 
   if (!USE_SUPABASE || !supabase) {
@@ -671,10 +842,21 @@ export const sincronizarPresupuestosDesdeSupabaseHelper = async ({ obtenerPresup
     const clinicaIdActual = obtenerClinicaId()
     const localesActuales = obtenerPresupuestos() || []
     const pending = obtenerPendingPresupuestos()
-    const pendingDelTenant = pending.filter((p) => !p.clinicaId || p.clinicaId === clinicaIdActual)
+    const pendingDelTenant = pending.filter((p) => {
+      if (typeof p === 'object' && p !== null) {
+        return !p.clinicaId || p.clinicaId === clinicaIdActual
+      }
+      return true
+    })
 
-    const idsPendientes = new Set(pendingDelTenant.map((p) => (typeof p === 'object' ? p.id : p)))
-    const foliosPendientes = new Set(pendingDelTenant.map((p) => (typeof p === 'object' ? p.folio : null)).filter(Boolean))
+    const idsPendientes = new Set(
+      pendingDelTenant.map((p) => (typeof p === 'object' && p !== null ? p.id : p))
+    )
+    const foliosPendientes = new Set(
+      pendingDelTenant
+        .map((p) => (typeof p === 'object' && p !== null ? p.folio : null))
+        .filter((f): f is string => Boolean(f))
+    )
 
     const protegidosLocales = localesActuales.filter(
       (p) => idsPendientes.has(p.id) || (p.folio && foliosPendientes.has(p.folio)) || p.sincronizado === false
@@ -693,20 +875,20 @@ export const sincronizarPresupuestosDesdeSupabaseHelper = async ({ obtenerPresup
     if (!Array.isArray(data)) return localesActuales
 
     // Mapeo básico snake_case -> camelCase
-    const desdeSupabase = data.map((p) => ({
-      id: p.id,
-      folio: p.folio,
-      pacienteId: p.paciente_id,
-      pacienteNombre: p.paciente_nombre,
-      pacienteRut: p.paciente_rut,
-      fechaEmision: p.fecha_emision,
-      convenio: p.convenio,
-      montoTotal: p.monto_total,
-      montoAbonado: p.monto_abonado,
-      estado: p.estado,
-      observacion: p.observacion,
-      createdAt: p.created_at,
-      updatedAt: p.updated_at,
+    const desdeSupabase: PresupuestoLocal[] = data.map((p: Record<string, unknown>) => ({
+      id: (p.id as string | number) || '',
+      folio: String(p.folio || ''),
+      pacienteId: p.paciente_id as string | number | null,
+      pacienteNombre: String(p.paciente_nombre || ''),
+      pacienteRut: p.paciente_rut as string | null,
+      fechaEmision: String(p.fecha_emision || ''),
+      convenio: String(p.convenio || ''),
+      montoTotal: Number(p.monto_total || 0),
+      montoAbonado: Number(p.monto_abonado || 0),
+      estado: String(p.estado || ''),
+      observacion: String(p.observacion || ''),
+      createdAt: p.created_at as string | undefined,
+      updatedAt: p.updated_at as string | undefined,
       sincronizado: true
     }))
 
@@ -721,7 +903,7 @@ export const sincronizarPresupuestosDesdeSupabaseHelper = async ({ obtenerPresup
     const listaFinal = [...protegidosNoPresentes, ...desdeSupabase]
     actualizarPresupuestosLocal(listaFinal)
     return listaFinal
-  } catch (error) {
+  } catch (error: unknown) {
     log.error('Excepción al sincronizar presupuestos desde Supabase:', error)
     return obtenerPresupuestos()
   }
