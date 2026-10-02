@@ -9,24 +9,49 @@
  */
 import { leerJSON, escribirJSON } from '../../../services/localStorageRepository'
 import { obtenerDatoClinico, guardarDatoGenerico } from '../../../services/datosClinicosSupabase'
-import { createLogger } from '../../../services/logger.js'
+import { createLogger } from '../../../services/logger'
 
 const log = createLogger('quirurgicoStorageService')
 
-const construirKeyImplantes = (pacienteId) => `quirurgico_implantes_${pacienteId}`
-const construirKeyEndodoncia = (pacienteId) => `quirurgico_endodoncia_${pacienteId}`
+export interface ImplanteItem {
+  id: number | string
+  fecha?: string
+  pieza?: string
+  marca?: string
+  diametro?: string
+  longitud?: string
+  torque?: number | null
+  isq?: number | null
+  notas?: string
+  [key: string]: unknown
+}
+
+export interface EndodonciaItem {
+  id: number | string
+  fecha?: string
+  pieza?: string
+  conductos?: number | string
+  longitudConducto?: string
+  tecnica?: string
+  obturacion?: string
+  notas?: string
+  [key: string]: unknown
+}
+
+const construirKeyImplantes = (pacienteId: string | number): string => `quirurgico_implantes_${pacienteId}`
+const construirKeyEndodoncia = (pacienteId: string | number): string => `quirurgico_endodoncia_${pacienteId}`
 
 export const quirurgicoStorageService = {
   // Implantes
   // F4-02d-1: Intenta leer desde Supabase primero
-  obtenerImplantesDePaciente: (pacienteId, fallback = []) => {
+  obtenerImplantesDePaciente: <T = ImplanteItem[]>(pacienteId?: string | number | null, fallback: T = [] as unknown as T): T => {
     if (!pacienteId) return fallback
-    const datoClinico = obtenerDatoClinico(pacienteId, 'quirurgico_implantes', null)
-    return datoClinico !== null ? datoClinico : leerJSON(construirKeyImplantes(pacienteId), fallback)
+    const datoClinico = obtenerDatoClinico<T>(pacienteId, 'quirurgico_implantes', null)
+    return datoClinico !== null ? datoClinico : leerJSON<T>(construirKeyImplantes(pacienteId), fallback)
   },
 
   // F4-02d-2: Escribe en Supabase + localStorage
-  guardarImplantesDePaciente: async (pacienteId, implantes) => {
+  guardarImplantesDePaciente: async (pacienteId?: string | number | null, implantes: unknown = []): Promise<boolean> => {
     if (!pacienteId) return false
     
     // Escribir en Supabase
@@ -38,14 +63,14 @@ export const quirurgicoStorageService = {
 
   // Endodoncias
   // F4-02d-1: Intenta leer desde Supabase primero
-  obtenerEndodonciasDePaciente: (pacienteId, fallback = []) => {
+  obtenerEndodonciasDePaciente: <T = EndodonciaItem[]>(pacienteId?: string | number | null, fallback: T = [] as unknown as T): T => {
     if (!pacienteId) return fallback
-    const datoClinico = obtenerDatoClinico(pacienteId, 'quirurgico_endodoncia', null)
-    return datoClinico !== null ? datoClinico : leerJSON(construirKeyEndodoncia(pacienteId), fallback)
+    const datoClinico = obtenerDatoClinico<T>(pacienteId, 'quirurgico_endodoncia', null)
+    return datoClinico !== null ? datoClinico : leerJSON<T>(construirKeyEndodoncia(pacienteId), fallback)
   },
 
   // F4-02d-2: Escribe en Supabase + localStorage
-  guardarEndodonciasDePaciente: async (pacienteId, endodoncias) => {
+  guardarEndodonciasDePaciente: async (pacienteId?: string | number | null, endodoncias: unknown = []): Promise<boolean> => {
     if (!pacienteId) return false
     
     // Escribir en Supabase
@@ -56,12 +81,12 @@ export const quirurgicoStorageService = {
   },
 
   // Eliminar todos los datos quirúrgicos de un paciente
-  eliminarDatosDePaciente: (pacienteId) => {
+  eliminarDatosDePaciente: (pacienteId?: string | number | null): void => {
     if (!pacienteId) return
     try {
       localStorage.removeItem(construirKeyImplantes(pacienteId))
       localStorage.removeItem(construirKeyEndodoncia(pacienteId))
-    } catch (e) {
+    } catch (e: unknown) {
       log.error(`Error al eliminar datos quirúrgicos del paciente ${pacienteId}:`, e)
     }
   }
