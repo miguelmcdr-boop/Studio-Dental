@@ -20,26 +20,37 @@
  */
 
 import { getClinicaActiva } from './authService'
-import { createLogger } from './logger.js'
+import { createLogger } from './logger'
 
 const log = createLogger('tenantCache')
 const PREFIX = 'sd'
+
+export interface TenantCacheInstance {
+  claveTenant: (baseKey: string) => string
+  leerTenant: <T>(baseKey: string, fallback?: T) => T
+  escribirTenant: (baseKey: string, value: unknown) => boolean
+  existeTenant: (baseKey: string) => boolean
+  eliminarTenant: (baseKey: string) => boolean
+  invalidarClinica: (clinicaId: string) => number
+  invalidarTodas: () => number
+  listarClavesTenant: () => string[]
+}
 
 /**
  * Crea una instancia de tenantCache con un getter de clinicaId inyectable.
  * Permite testing sin depender de authService real.
  *
- * @param {() => string | null} getClinicaId - Función que retorna el clinica_id activo
- * @returns {Object} API de tenantCache
+ * @param getClinicaId - Función que retorna el clinica_id activo
+ * @returns API de tenantCache
  */
-export const createTenantCache = (getClinicaId) => {
+export const createTenantCache = (getClinicaId: () => string | null): TenantCacheInstance => {
   /**
    * Genera la clave de localStorage para un tenant específico.
-   * @param {string} baseKey - Clave base del servicio (ej: 'pacientes_v3')
-   * @returns {string} Clave completa con tenant (ej: 'sd_<clinicaId>_pacientes_v3')
-   * @throws {Error} Si no hay clínica activa
+   * @param baseKey - Clave base del servicio (ej: 'pacientes_v3')
+   * @returns Clave completa con tenant (ej: 'sd_<clinicaId>_pacientes_v3')
+   * @throws Si no hay clínica activa
    */
-  const claveTenant = (baseKey) => {
+  const claveTenant = (baseKey: string): string => {
     const clinicaId = getClinicaId()
     if (!clinicaId) {
       throw new Error(
@@ -52,16 +63,16 @@ export const createTenantCache = (getClinicaId) => {
 
   /**
    * Lee datos de cache tenant-aware de forma segura.
-   * @param {string} baseKey - Clave base
-   * @param {*} fallback - Valor a retornar si no existe o falla parseo
-   * @returns {*} Datos parseados o fallback
+   * @param baseKey - Clave base
+   * @param fallback - Valor a retornar si no existe o falla parseo
+   * @returns Datos parseados o fallback
    */
-  const leerTenant = (baseKey, fallback = null) => {
+  const leerTenant = <T>(baseKey: string, fallback: T = null as unknown as T): T => {
     try {
       const clave = claveTenant(baseKey)
       const saved = localStorage.getItem(clave)
-      return saved !== null ? JSON.parse(saved) : fallback
-    } catch (e) {
+      return saved !== null ? (JSON.parse(saved) as T) : fallback
+    } catch (e: unknown) {
       log.error(`Error leyendo cache tenant para "${baseKey}":`, e)
       return fallback
     }
@@ -69,16 +80,16 @@ export const createTenantCache = (getClinicaId) => {
 
   /**
    * Escribe datos en cache tenant-aware de forma segura.
-   * @param {string} baseKey - Clave base
-   * @param {*} value - Valor serializable a guardar
-   * @returns {boolean} true si fue exitoso, false si falló
+   * @param baseKey - Clave base
+   * @param value - Valor serializable a guardar
+   * @returns true si fue exitoso, false si falló
    */
-  const escribirTenant = (baseKey, value) => {
+  const escribirTenant = (baseKey: string, value: unknown): boolean => {
     try {
       const clave = claveTenant(baseKey)
       localStorage.setItem(clave, JSON.stringify(value))
       return true
-    } catch (e) {
+    } catch (e: unknown) {
       log.error(`Error escribiendo cache tenant para "${baseKey}":`, e)
       return false
     }
@@ -86,30 +97,30 @@ export const createTenantCache = (getClinicaId) => {
 
   /**
    * Verifica si existe una clave tenant-aware en localStorage.
-   * @param {string} baseKey - Clave base
-   * @returns {boolean}
+   * @param baseKey - Clave base
+   * @returns true si existe
    */
-  const existeTenant = (baseKey) => {
+  const existeTenant = (baseKey: string): boolean => {
     try {
       const clave = claveTenant(baseKey)
       return localStorage.getItem(clave) !== null
-    } catch (e) {
+    } catch {
       return false
     }
   }
 
   /**
    * Elimina una clave tenant-aware específica.
-   * @param {string} baseKey - Clave base
-   * @returns {boolean} true si fue eliminada, false si no existía
+   * @param baseKey - Clave base
+   * @returns true si fue eliminada, false si no existía
    */
-  const eliminarTenant = (baseKey) => {
+  const eliminarTenant = (baseKey: string): boolean => {
     try {
       const clave = claveTenant(baseKey)
       const existia = localStorage.getItem(clave) !== null
       localStorage.removeItem(clave)
       return existia
-    } catch (e) {
+    } catch (e: unknown) {
       log.error(`Error eliminando cache tenant para "${baseKey}":`, e)
       return false
     }
@@ -118,10 +129,10 @@ export const createTenantCache = (getClinicaId) => {
   /**
    * Invalida todas las claves de una clínica específica.
    * Usado al cambiar de clínica activa.
-   * @param {string} clinicaId - ID de la clínica a invalidar
-   * @returns {number} Cantidad de claves eliminadas
+   * @param clinicaId - ID de la clínica a invalidar
+   * @returns Cantidad de claves eliminadas
    */
-  const invalidarClinica = (clinicaId) => {
+  const invalidarClinica = (clinicaId: string): number => {
     const patron = `${PREFIX}_${clinicaId}_`
     let eliminadas = 0
     try {
@@ -132,7 +143,7 @@ export const createTenantCache = (getClinicaId) => {
         }
       })
       log.info(`Invalidadas ${eliminadas} claves de clínica ${clinicaId}`)
-    } catch (e) {
+    } catch (e: unknown) {
       log.error(`Error invalidando clínica ${clinicaId}:`, e)
     }
     return eliminadas
@@ -141,9 +152,9 @@ export const createTenantCache = (getClinicaId) => {
   /**
    * Invalida TODAS las claves tenant-aware de TODAS las clínicas.
    * Usado en logout completo.
-   * @returns {number} Cantidad de claves eliminadas
+   * @returns Cantidad de claves eliminadas
    */
-  const invalidarTodas = () => {
+  const invalidarTodas = (): number => {
     const patron = `${PREFIX}_`
     let eliminadas = 0
     try {
@@ -154,7 +165,7 @@ export const createTenantCache = (getClinicaId) => {
         }
       })
       log.info(`Invalidadas ${eliminadas} claves tenant (logout)`)
-    } catch (e) {
+    } catch (e: unknown) {
       log.error('Error invalidando todas las claves tenant:', e)
     }
     return eliminadas
@@ -163,12 +174,12 @@ export const createTenantCache = (getClinicaId) => {
   /**
    * Lista todas las claves tenant-aware actualmente en localStorage.
    * Útil para debugging y auditoría.
-   * @returns {string[]} Array de claves
+   * @returns Array de claves
    */
-  const listarClavesTenant = () => {
+  const listarClavesTenant = (): string[] => {
     try {
       return Object.keys(localStorage).filter((key) => key.startsWith(`${PREFIX}_`))
-    } catch (e) {
+    } catch {
       return []
     }
   }
@@ -181,7 +192,7 @@ export const createTenantCache = (getClinicaId) => {
     eliminarTenant,
     invalidarClinica,
     invalidarTodas,
-    listarClavesTenant,
+    listarClavesTenant
   }
 }
 
