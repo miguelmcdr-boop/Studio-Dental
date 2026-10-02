@@ -15,20 +15,61 @@ import { createLogger } from '../../../services/logger'
 
 const log = createLogger('configuracionStorageService')
 
-const KEY_CLINICA = 'studio_dental_config_clinica'
-const KEY_PARAMETROS_AGENDA = 'studio_dental_config_agenda'
+export const KEY_CLINICA = 'studio_dental_config_clinica'
+export const KEY_PARAMETROS_AGENDA = 'studio_dental_config_agenda'
+
+export interface DatosClinicaConfig {
+  nombreClinica?: string
+  razonSocial?: string
+  rutClinica?: string
+  telefono?: string
+  emailContacto?: string
+  direccion?: string
+  ciudad?: string
+  logoUrl?: string
+  colorPrimario?: string
+  colorSecundario?: string
+  [key: string]: unknown
+}
+
+export interface ParametrosAgendaConfig {
+  duracionMinutosDefault?: number
+  horaInicio?: string
+  horaFin?: string
+  diasLaborables?: number[]
+  [key: string]: unknown
+}
+
+export interface BackupBaseDeDatos {
+  versionSystem: string
+  fechaExportacion: string
+  localStorageData: Record<string, string | null>
+}
+
+export interface ConfiguracionStorageServiceAPI {
+  obtenerClinica: (defaults?: DatosClinicaConfig) => DatosClinicaConfig | undefined
+  guardarClinica: (datos: DatosClinicaConfig) => void
+  guardarClinicaCompleta: (clinicaId: string, datos: DatosClinicaConfig) => Promise<void>
+  sincronizarClinicaDesdeSupabase: (clinicaId: string) => Promise<DatosClinicaConfig | null>
+  migrarClinicaSiNecesario: (clinicaId: string) => Promise<boolean>
+  obtenerParametrosAgenda: (defaults?: ParametrosAgendaConfig) => ParametrosAgendaConfig | undefined
+  guardarParametrosAgenda: (parametros: ParametrosAgendaConfig) => void
+  exportarBaseDeDatosCompleta: () => BackupBaseDeDatos
+  importarBaseDeDatosCompleta: (jsonBackup: BackupBaseDeDatos) => void
+  limpiarBaseDeDatosCompleta: () => boolean
+}
 
 // F7-36 FASE 1 (Commit 1.5e): migrados a createTenantRepository para aislamiento multi-tenant.
 // Claves legacy ahora: sd_<clinicaId>_studio_dental_config_clinica, sd_<clinicaId>_studio_dental_config_agenda
 // clinicaRepo preserva notify: true para sincronización entre pestañas/módulos.
-const clinicaRepo = createTenantRepository(KEY_CLINICA, undefined, { notify: true })
-const parametrosAgendaRepo = createTenantRepository(KEY_PARAMETROS_AGENDA, undefined)
+const clinicaRepo = createTenantRepository<DatosClinicaConfig>(KEY_CLINICA, undefined, { notify: true })
+const parametrosAgendaRepo = createTenantRepository<ParametrosAgendaConfig>(KEY_PARAMETROS_AGENDA, undefined)
 
 // ═══════════════════════════════════════════════════════════════════
 // TRANSFORMACIÓN camelCase ↔ snake_case (F6-C-e)
 // ═══════════════════════════════════════════════════════════════════
 
-const CAMEL_TO_SNAKE_MAP = {
+const CAMEL_TO_SNAKE_MAP: Record<string, string> = {
   nombreClinica: 'nombre',
   razonSocial: 'razon_social',
   rutClinica: 'rut_empresa',
@@ -41,13 +82,13 @@ const CAMEL_TO_SNAKE_MAP = {
   colorSecundario: 'color_secundario',
 }
 
-const SNAKE_TO_CAMEL_MAP = Object.fromEntries(
+const SNAKE_TO_CAMEL_MAP: Record<string, string> = Object.fromEntries(
   Object.entries(CAMEL_TO_SNAKE_MAP).map(([camel, snake]) => [snake, camel])
 )
 
-const transformarDesdeSupabase = (filaDb) => {
+const transformarDesdeSupabase = (filaDb?: Record<string, unknown> | null): DatosClinicaConfig | null => {
   if (!filaDb) return null
-  const resultado = {}
+  const resultado: DatosClinicaConfig = {}
   for (const [claveDb, valor] of Object.entries(filaDb)) {
     if (claveDb === 'id' || claveDb === 'created_at' || claveDb === 'updated_at') continue
     const claveJs = SNAKE_TO_CAMEL_MAP[claveDb] || claveDb
@@ -56,9 +97,9 @@ const transformarDesdeSupabase = (filaDb) => {
   return resultado
 }
 
-const transformarParaSupabase = (datosJs) => {
+const transformarParaSupabase = (datosJs?: DatosClinicaConfig | null): Record<string, unknown> | null => {
   if (!datosJs) return null
-  const resultado = {}
+  const resultado: Record<string, unknown> = {}
   for (const [claveJs, valor] of Object.entries(datosJs)) {
     const claveDb = CAMEL_TO_SNAKE_MAP[claveJs]
     if (claveDb && valor !== undefined) {
@@ -77,7 +118,7 @@ const transformarParaSupabase = (datosJs) => {
  * del usuario actual. Retorna null si Supabase no está configurado, si no hay
  * sesión, o si el usuario no tiene clinicaId.
  */
-const obtenerClinicaDesdeSupabase = async (clinicaId) => {
+const obtenerClinicaDesdeSupabase = async (clinicaId?: string | null): Promise<DatosClinicaConfig | null> => {
   if (!USE_SUPABASE || !supabase || !clinicaId) return null
 
   try {
@@ -92,8 +133,8 @@ const obtenerClinicaDesdeSupabase = async (clinicaId) => {
       return null
     }
 
-    return transformarDesdeSupabase(data)
-  } catch (e) {
+    return transformarDesdeSupabase(data as Record<string, unknown> | null)
+  } catch (e: unknown) {
     log.error('Excepción leyendo clínica:', e)
     return null
   }
@@ -103,11 +144,13 @@ const obtenerClinicaDesdeSupabase = async (clinicaId) => {
  * Guarda la configuración de la clínica en Supabase. Solo el admin puede
  * escribir (RLS: admin_actualiza_su_clinica). Retorna boolean de éxito.
  */
-const guardarClinicaEnSupabase = async (clinicaId, datos) => {
+const guardarClinicaEnSupabase = async (clinicaId: string, datos: DatosClinicaConfig): Promise<boolean> => {
   if (!USE_SUPABASE || !supabase || !clinicaId) return false
 
   try {
     const paraInsert = transformarParaSupabase(datos)
+    if (!paraInsert) return false
+
     const { error } = await supabase
       .from('clinicas')
       .update(paraInsert)
@@ -119,7 +162,7 @@ const guardarClinicaEnSupabase = async (clinicaId, datos) => {
     }
 
     return true
-  } catch (e) {
+  } catch (e: unknown) {
     log.error('Excepción guardando clínica:', e)
     return false
   }
@@ -135,7 +178,7 @@ const guardarClinicaEnSupabase = async (clinicaId, datos) => {
  *
  * Retorna true si se migró, false si no había nada que migrar.
  */
-const migrarClinicaASupabase = async (clinicaId) => {
+const migrarClinicaASupabase = async (clinicaId: string): Promise<boolean> => {
   if (!USE_SUPABASE || !supabase || !clinicaId) return false
 
   try {
@@ -155,7 +198,7 @@ const migrarClinicaASupabase = async (clinicaId) => {
       log.info('Datos de clínica migrados a Supabase')
     }
     return ok
-  } catch (e) {
+  } catch (e: unknown) {
     log.error('Error migrando clínica:', e)
     return false
   }
@@ -165,7 +208,7 @@ const migrarClinicaASupabase = async (clinicaId) => {
 // API PÚBLICA (mantiene compatibilidad con useConfiguracion.js)
 // ═══════════════════════════════════════════════════════════════════
 
-export const configuracionStorageService = {
+export const configuracionStorageService: ConfiguracionStorageServiceAPI = {
   // SÍNCRONO: lee desde localStorage (caché rápida para uso en useState inicial)
   obtenerClinica: (defaults) => clinicaRepo.obtener(defaults),
 
@@ -202,8 +245,8 @@ export const configuracionStorageService = {
   // Backup/restore completo: opera sobre TODA la base de LocalStorage, no
   // sobre una clave individual — no encaja en el patrón de repositorio de
   // clave fija y se deja fuera del alcance de F2-03 intencionalmente.
-  exportarBaseDeDatosCompleta: () => {
-    const backupObj = {
+  exportarBaseDeDatosCompleta: (): BackupBaseDeDatos => {
+    const backupObj: BackupBaseDeDatos = {
       versionSystem: '3.0.0',
       fechaExportacion: new Date().toISOString(),
       localStorageData: {}
@@ -211,31 +254,35 @@ export const configuracionStorageService = {
 
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i)
-      backupObj.localStorageData[key] = localStorage.getItem(key)
+      if (key !== null) {
+        backupObj.localStorageData[key] = localStorage.getItem(key)
+      }
     }
 
     return backupObj
   },
 
-  importarBaseDeDatosCompleta: (jsonBackup) => {
+  importarBaseDeDatosCompleta: (jsonBackup: BackupBaseDeDatos): void => {
     if (!jsonBackup || !jsonBackup.localStorageData) {
       throw new Error('El archivo de respaldo no tiene un formato válido de Studio Dental OS.')
     }
 
     localStorage.clear()
     Object.entries(jsonBackup.localStorageData).forEach(([key, val]) => {
-      localStorage.setItem(key, val)
+      if (val !== null) {
+        localStorage.setItem(key, val)
+      }
     })
     window.dispatchEvent(new Event('storage'))
   },
 
   // Limpieza total de la base de datos local (F2-07 — migración desde RespaldoDatosSection.jsx).
-  limpiarBaseDeDatosCompleta: () => {
+  limpiarBaseDeDatosCompleta: (): boolean => {
     try {
       localStorage.clear()
       window.dispatchEvent(new Event('storage'))
       return true
-    } catch (e) {
+    } catch (e: unknown) {
       log.error('Error al limpiar base de datos:', e)
       return false
     }
