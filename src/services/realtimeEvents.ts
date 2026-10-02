@@ -37,13 +37,15 @@ export const REALTIME_EVENTS = {
 
   // Eventos de datos de referencia (vademécum, alergias cruzadas, etc.)
   VADEMECUM_CHANGED: 'realtime:vademecum_changed'
-}
+} as const
+
+export type RealtimeEventName = typeof REALTIME_EVENTS[keyof typeof REALTIME_EVENTS]
 
 /**
  * Tablas críticas que requieren sincronización en tiempo real.
  * Mapea nombre de tabla → nombre de evento a emitir.
  */
-export const TABLAS_REALTIME = {
+export const TABLAS_REALTIME: Readonly<Record<string, RealtimeEventName | null>> = {
   pacientes: null, // Usa pacientesStore.refrescarDesdeSupabase()
   citas: REALTIME_EVENTS.CITAS_CHANGED,
   presupuestos: REALTIME_EVENTS.PRESUPUESTOS_CHANGED,

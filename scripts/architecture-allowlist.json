@@ -37,7 +37,7 @@
     "src/modules/pacientes/utils/pacientesAlergiaCalculations.js": 144,
     "src/services/vademecumService.js": 867,
     "src/services/vademecumService.test.js": 495,
-    "src/services/realtimeEvents.js": 66,
+    "src/services/realtimeEvents.ts": 67,
     "src/modules/administracion/hooks/useVademecumAdmin.js": 194,
     "src/modules/administracion/hooks/useVademecumAdmin.test.js": 65,
     "src/modules/administracion/index.js": 92,
