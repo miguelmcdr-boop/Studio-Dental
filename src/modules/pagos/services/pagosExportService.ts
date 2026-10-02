@@ -14,7 +14,41 @@ import { createLogger } from '../../../services/logger'
 
 const log = createLogger('pagosExportService')
 
-const COLUMNAS = [
+export interface ColumnaAuditoriaPago {
+  header: string
+  key: string
+  width: number
+}
+
+export interface PagoAuditoriaItem {
+  id?: string | number
+  folioComprobante?: string
+  folioDTE?: string
+  fecha?: string
+  hora?: string
+  pacienteNombre?: string
+  pacienteRut?: string
+  monto?: number | string
+  metodoPago?: string
+  concepto?: string
+  estado?: string
+  motivoAnulacion?: string
+  fechaAnulacion?: string
+  emitidoPor?: string
+  observacion?: string
+  motivoPurga?: string
+  fechaPurga?: string
+  purgadoPor?: string
+  [key: string]: unknown
+}
+
+export interface ExportarAuditoriaPagosResult {
+  ok: boolean
+  total: number
+  nombreArchivo: string
+}
+
+export const COLUMNAS: readonly ColumnaAuditoriaPago[] = [
   { header: 'ID', key: 'id', width: 10 },
   { header: 'Folio Comprobante', key: 'folioComprobante', width: 18 },
   { header: 'Folio DTE', key: 'folioDTE', width: 15 },
@@ -35,13 +69,13 @@ const COLUMNAS = [
   { header: 'Purgado por', key: 'purgadoPor', width: 25 }
 ]
 
-const generarTimestamp = () => {
+const generarTimestamp = (): string => {
   const d = new Date()
-  const pad = (n) => String(n).padStart(2, '0')
+  const pad = (n: number): string => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`
 }
 
-const estilizarEncabezado = (hoja) => {
+const estilizarEncabezado = (hoja: ExcelJS.Worksheet): void => {
   const fila = hoja.getRow(1)
   fila.font = { bold: true, color: { argb: 'FFFFFFFF' } }
   fila.fill = {
@@ -53,7 +87,7 @@ const estilizarEncabezado = (hoja) => {
   fila.height = 22
 }
 
-const formatearFilas = (hoja) => {
+const formatearFilas = (hoja: ExcelJS.Worksheet): void => {
   hoja.eachRow((fila, numFila) => {
     if (numFila === 1) return
     const estado = fila.getCell(11).value
@@ -77,27 +111,30 @@ const formatearFilas = (hoja) => {
 
 /**
  * Exporta todos los pagos a XLSX y dispara la descarga del archivo.
- * @param {Array} pagos - Array de pagos (vigentes + anulados)
- * @returns {Promise<{ok: boolean, total: number, nombreArchivo: string}>}
+ * @param pagos - Array de pagos (vigentes + anulados)
+ * @returns resultado de la exportación
  */
-export const exportarAuditoriaPagosXLSX = async (pagos = []) => {
+export const exportarAuditoriaPagosXLSX = async (
+  pagos: unknown = []
+): Promise<ExportarAuditoriaPagosResult> => {
   try {
     if (!Array.isArray(pagos)) {
       log.error('exportarAuditoriaPagosXLSX: pagos no es array')
       return { ok: false, total: 0, nombreArchivo: '' }
     }
+    const listaPagos = pagos as PagoAuditoriaItem[]
     const workbook = new ExcelJS.Workbook()
     workbook.creator = 'DentikOS'
     workbook.created = new Date()
     const hoja = workbook.addWorksheet('Auditoría Pagos')
-    hoja.columns = COLUMNAS
-    pagos.forEach(p => hoja.addRow(p))
+    hoja.columns = COLUMNAS as ExcelJS.Column[]
+    listaPagos.forEach(p => hoja.addRow(p))
     estilizarEncabezado(hoja)
     formatearFilas(hoja)
     // Auto-filtrar por encabezado
     hoja.autoFilter = {
       from: { row: 1, column: 1 },
-      to: { row: Math.max(1, pagos.length + 1), column: COLUMNAS.length }
+      to: { row: Math.max(1, listaPagos.length + 1), column: COLUMNAS.length }
     }
     const buffer = await workbook.xlsx.writeBuffer()
     const nombreArchivo = `auditoria_pagos_${generarTimestamp()}.xlsx`
@@ -112,9 +149,9 @@ export const exportarAuditoriaPagosXLSX = async (pagos = []) => {
     link.click()
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
-    log.info(`Auditoría exportada: ${pagos.length} pagos → ${nombreArchivo}`)
-    return { ok: true, total: pagos.length, nombreArchivo }
-  } catch (e) {
+    log.info(`Auditoría exportada: ${listaPagos.length} pagos → ${nombreArchivo}`)
+    return { ok: true, total: listaPagos.length, nombreArchivo }
+  } catch (e: unknown) {
     log.error('Error al exportar auditoría XLSX:', e)
     return { ok: false, total: 0, nombreArchivo: '' }
   }
