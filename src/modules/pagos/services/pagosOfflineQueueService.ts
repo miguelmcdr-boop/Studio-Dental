@@ -21,18 +21,48 @@ import { getClinicaActiva } from '../../../services/authService'
 import { esUuidValido } from '../../../services/migrations/uuidUtils'
 import { migrationStorageService } from '../../../services/migrationStorageService'
 import { transformarParaSupabase, transformarDesdeSupabase, mergeCamposLocales } from './pagosTransformations'
+import type { Pago } from './pagosStorageService'
 import { createLogger } from '../../../services/logger'
 
 const log = createLogger('pagosOfflineQueue')
 
+export interface PendingPagoItem {
+  id: string | number
+  folio?: string
+  clinicaId?: string | null
+  timestamp?: number
+  [key: string]: unknown
+}
+
+export type PendingPago = PendingPagoItem | string | number
+
+export interface ProcesarColaPagosResult {
+  procesados: number
+  fallidos: number
+  razon?: string
+  offline?: boolean
+}
+
+export interface GuardarPagoContext {
+  obtenerPagos: () => Pago[]
+  actualizarPagosLocal: (pagos: Pago[]) => void
+  pagosRepo?: unknown
+}
+
+export interface EncolarPagoParams {
+  id: string | number
+  folio?: string
+  clinicaId?: string | null
+}
+
 // Cola local aislada por clínica/tenant para registros de pagos pendientes
-export const pendingPagosRepo = createTenantRepository('studio_dental_pagos_pending', [])
+export const pendingPagosRepo = createTenantRepository<PendingPago[]>('studio_dental_pagos_pending', [])
 
 // Cola local aislada por tenant para registrar eliminaciones pendientes explícitas
 const STORAGE_KEY_PAGOS_PENDING_DELETES = 'studio_dental_pagos_pending_deletes'
-export const pendingDeletesPagosRepo = createTenantRepository(STORAGE_KEY_PAGOS_PENDING_DELETES, [])
+export const pendingDeletesPagosRepo = createTenantRepository<Array<string | number>>(STORAGE_KEY_PAGOS_PENDING_DELETES, [])
 
-export const obtenerClinicaId = () => {
+export const obtenerClinicaId = (): string | null => {
   try {
     return getClinicaActiva?.() || null
   } catch {
@@ -40,21 +70,22 @@ export const obtenerClinicaId = () => {
   }
 }
 
-export const obtenerPendingDeletesPagos = () => {
+export const obtenerPendingDeletesPagos = (): Array<string | number> => {
   return pendingDeletesPagosRepo.obtener([]) || []
 }
 
-export const guardarPendingDeletesPagos = (ids) => {
+export const guardarPendingDeletesPagos = (ids?: Array<string | number> | null): void => {
   if (!ids || ids.length === 0) {
-    return pendingDeletesPagosRepo.eliminar()
+    pendingDeletesPagosRepo.eliminar()
+  } else {
+    pendingDeletesPagosRepo.guardar(ids)
   }
-  return pendingDeletesPagosRepo.guardar(ids)
 }
 
 /**
  * Procesa eliminaciones pendientes explícitas diferidas.
  */
-export const procesarPendingDeletesPagosHelper = async () => {
+export const procesarPendingDeletesPagosHelper = async (): Promise<void> => {
   if (!USE_SUPABASE || !supabase) return
 
   const pendingDeletes = obtenerPendingDeletesPagos()
@@ -62,7 +93,7 @@ export const procesarPendingDeletesPagosHelper = async () => {
     return
   }
 
-  const exitosos = []
+  const exitosos: Array<string | number> = []
 
   for (const idAEliminar of pendingDeletes) {
     if (!esUuidValido(idAEliminar)) {
@@ -81,8 +112,9 @@ export const procesarPendingDeletesPagosHelper = async () => {
       } else {
         log.warn(`Error al aplicar eliminación diferida a pago ${idAEliminar}:`, deleteError.message)
       }
-    } catch (err) {
-      log.warn(`Excepción al aplicar eliminación diferida a pago ${idAEliminar}:`, err?.message || err)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      log.warn(`Excepción al aplicar eliminación diferida a pago ${idAEliminar}:`, msg)
     }
   }
 
@@ -96,14 +128,14 @@ export const procesarPendingDeletesPagosHelper = async () => {
 /**
  * Obtiene la lista de pagos pendientes de sincronizar para la clínica activa.
  */
-export const obtenerPendingPagos = () => {
+export const obtenerPendingPagos = (): PendingPago[] => {
   return pendingPagosRepo.obtener([]) || []
 }
 
 /**
  * Guarda la lista de pagos pendientes de sincronizar para la clínica activa.
  */
-export const guardarPendingPagos = (pending) => {
+export const guardarPendingPagos = (pending?: PendingPago[] | null): void => {
   if (!pending || pending.length === 0) {
     pendingPagosRepo.eliminar()
   } else {
@@ -114,12 +146,12 @@ export const guardarPendingPagos = (pending) => {
 /**
  * Encola un pago en pendingPagos de forma idempotente.
  */
-export const encolarPago = ({ id, folio, clinicaId }) => {
+export const encolarPago = ({ id, folio, clinicaId }: EncolarPagoParams): void => {
   try {
     const clinicaIdEfectivo = clinicaId || obtenerClinicaId()
     const pending = obtenerPendingPagos()
     const yaEncolado = pending.some((item) =>
-      typeof item === 'object' ? item.id === id : item === id
+      typeof item === 'object' && item !== null ? item.id === id : item === id
     )
     if (!yaEncolado) {
       pending.push({
@@ -130,21 +162,25 @@ export const encolarPago = ({ id, folio, clinicaId }) => {
       })
       guardarPendingPagos(pending)
     }
-  } catch (errQueue) {
-    log.warn('Error al encolar en pendingPagos:', errQueue?.message || errQueue)
+  } catch (errQueue: unknown) {
+    const msg = errQueue instanceof Error ? errQueue.message : String(errQueue)
+    log.warn('Error al encolar en pendingPagos:', msg)
   }
 }
 
 /**
  * Registra un pago individual (offline-first).
  */
-export const registrarPagoHelper = async (pago, { obtenerPagos, actualizarPagosLocal }) => {
+export const registrarPagoHelper = async (
+  pago: Pago,
+  { obtenerPagos, actualizarPagosLocal }: GuardarPagoContext
+): Promise<Pago | null> => {
   if (!pago) return null
 
   const id = pago.id || Date.now()
   const clinicaIdActual = obtenerClinicaId()
 
-  const pagoLocal = {
+  const pagoLocal: Pago = {
     ...pago,
     id,
     sincronizado: false
@@ -207,8 +243,9 @@ export const registrarPagoHelper = async (pago, { obtenerPagos, actualizarPagosL
           }
         }
       }
-    } catch (e) {
-      log.warn('Fallo al sincronizar pago con Supabase, encolando offline:', e?.message || e)
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e)
+      log.warn('Fallo al sincronizar pago con Supabase, encolando offline:', msg)
     }
   }
 
@@ -216,7 +253,7 @@ export const registrarPagoHelper = async (pago, { obtenerPagos, actualizarPagosL
   if (!subidoExitoso) {
     encolarPago({
       id,
-      folio: pagoLocal.folioComprobante || pagoLocal.folio,
+      folio: pagoLocal.folioComprobante || (pagoLocal.folio as string | undefined),
       clinicaId: clinicaIdActual
     })
   }
@@ -227,7 +264,10 @@ export const registrarPagoHelper = async (pago, { obtenerPagos, actualizarPagosL
 /**
  * Procesa la cola de pagos pendientes con drenaje atómico y aislamiento multi-tenant.
  */
-export const procesarColaPagosHelper = async ({ obtenerPagos, actualizarPagosLocal }) => {
+export const procesarColaPagosHelper = async ({
+  obtenerPagos,
+  actualizarPagosLocal
+}: GuardarPagoContext): Promise<ProcesarColaPagosResult> => {
   const clinicaIdActual = obtenerClinicaId()
   if (!clinicaIdActual) {
     return { procesados: 0, fallidos: 0, razon: 'sin-clinica' }
@@ -245,7 +285,7 @@ export const procesarColaPagosHelper = async ({ obtenerPagos, actualizarPagosLoc
 
   let procesados = 0
   let fallidos = 0
-  const procesadosExitososIds = []
+  const procesadosExitososIds: Array<string | number> = []
   const listado = Array.isArray(obtenerPagos()) ? [...obtenerPagos()] : []
 
   try {
@@ -255,8 +295,9 @@ export const procesarColaPagosHelper = async ({ obtenerPagos, actualizarPagosLoc
     }
 
     for (const item of pending) {
-      const id = typeof item === 'object' ? item.id : item
-      const itemClinicaId = item.clinicaId || clinicaIdActual
+      const id = typeof item === 'object' && item !== null ? item.id : item
+      const itemFolio = typeof item === 'object' && item !== null ? item.folio : undefined
+      const itemClinicaId = typeof item === 'object' && item !== null ? (item.clinicaId || clinicaIdActual) : clinicaIdActual
 
       // Aislamiento multi-tenant: procesar solo si pertenece a la clínica activa
       if (itemClinicaId !== clinicaIdActual) {
@@ -264,7 +305,7 @@ export const procesarColaPagosHelper = async ({ obtenerPagos, actualizarPagosLoc
       }
 
       try {
-        const idx = listado.findIndex((p) => p.id === id || (item.folio && p.folioComprobante === item.folio))
+        const idx = listado.findIndex((p) => p.id === id || (itemFolio && p.folioComprobante === itemFolio))
         if (idx < 0) {
           // Ya no existe localmente, retirar de la cola
           procesadosExitososIds.push(id)
@@ -312,8 +353,9 @@ export const procesarColaPagosHelper = async ({ obtenerPagos, actualizarPagosLoc
             fallidos++
           }
         }
-      } catch (err) {
-        log.warn(`Error al procesar pago pendiente ${id}:`, err?.message || err)
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err)
+        log.warn(`Error al procesar pago pendiente ${id}:`, msg)
         fallidos++
       }
     }
@@ -325,7 +367,7 @@ export const procesarColaPagosHelper = async ({ obtenerPagos, actualizarPagosLoc
     // Drenaje atómico: solo retirar los exitosamente procesados
     if (procesadosExitososIds.length > 0) {
       const colaRestante = pending.filter((item) => {
-        const id = typeof item === 'object' ? item.id : item
+        const id = typeof item === 'object' && item !== null ? item.id : item
         return !procesadosExitososIds.includes(id)
       })
       guardarPendingPagos(colaRestante)
@@ -333,7 +375,7 @@ export const procesarColaPagosHelper = async ({ obtenerPagos, actualizarPagosLoc
 
     // Procesar eliminaciones explícitas pendientes al restaurar conexión
     await procesarPendingDeletesPagosHelper()
-  } catch (errGlobal) {
+  } catch (errGlobal: unknown) {
     log.error('Error global al procesar cola de pagos:', errGlobal)
     return { procesados, fallidos: fallidos + 1 }
   }
@@ -344,7 +386,10 @@ export const procesarColaPagosHelper = async ({ obtenerPagos, actualizarPagosLoc
 /**
  * Refresca pagos desde Supabase protegiendo pagos locales offline (P1-3).
  */
-export const sincronizarPagosDesdeSupabaseHelper = async ({ obtenerPagos, actualizarPagosLocal, pagosRepo }) => {
+export const sincronizarPagosDesdeSupabaseHelper = async ({
+  obtenerPagos,
+  actualizarPagosLocal
+}: GuardarPagoContext): Promise<Pago[]> => {
   log.info('Iniciando sincronización de pagos desde Supabase...')
 
   if (!USE_SUPABASE || !supabase) {
@@ -356,10 +401,18 @@ export const sincronizarPagosDesdeSupabaseHelper = async ({ obtenerPagos, actual
     const clinicaIdActual = obtenerClinicaId()
     const localesActuales = obtenerPagos() || []
     const pending = obtenerPendingPagos()
-    const pendingDelTenant = pending.filter((p) => !p.clinicaId || p.clinicaId === clinicaIdActual)
+    const pendingDelTenant = pending.filter((p) =>
+      typeof p === 'object' && p !== null ? (!p.clinicaId || p.clinicaId === clinicaIdActual) : true
+    )
 
-    const idsPendientes = new Set(pendingDelTenant.map((p) => (typeof p === 'object' ? p.id : p)))
-    const foliosPendientes = new Set(pendingDelTenant.map((p) => (typeof p === 'object' ? p.folio : null)).filter(Boolean))
+    const idsPendientes = new Set(
+      pendingDelTenant.map((p) => (typeof p === 'object' && p !== null ? p.id : p))
+    )
+    const foliosPendientes = new Set(
+      pendingDelTenant
+        .map((p) => (typeof p === 'object' && p !== null ? p.folio : null))
+        .filter((f): f is string => Boolean(f))
+    )
 
     const protegidosLocales = localesActuales.filter(
       (p) => idsPendientes.has(p.id) || (p.folioComprobante && foliosPendientes.has(p.folioComprobante)) || p.sincronizado === false
@@ -377,12 +430,12 @@ export const sincronizarPagosDesdeSupabaseHelper = async ({ obtenerPagos, actual
 
     if (!Array.isArray(data)) return localesActuales
 
-    const desdeSupabaseTransformados = data.map(transformarDesdeSupabase).filter(Boolean)
+    const desdeSupabaseTransformados = (data.map(transformarDesdeSupabase).filter(Boolean) as Pago[])
     const combinados = mergeCamposLocales(desdeSupabaseTransformados, localesActuales)
 
     // Fusionar respetando los pagos offline protegidos que aún no están en Supabase
     const idsRemotos = new Set(combinados.map((p) => p.id))
-    const foliosRemotos = new Set(combinados.map((p) => p.folioComprobante).filter(Boolean))
+    const foliosRemotos = new Set(combinados.map((p) => p.folioComprobante).filter((f): f is string => Boolean(f)))
 
     const protegidosNoPresentes = protegidosLocales.filter(
       (p) => !idsRemotos.has(p.id) && (!p.folioComprobante || !foliosRemotos.has(p.folioComprobante))
@@ -391,7 +444,7 @@ export const sincronizarPagosDesdeSupabaseHelper = async ({ obtenerPagos, actual
     const listaFinal = [...protegidosNoPresentes, ...combinados]
     actualizarPagosLocal(listaFinal)
     return listaFinal
-  } catch (error) {
+  } catch (error: unknown) {
     log.error('Excepción al sincronizar pagos desde Supabase:', error)
     return obtenerPagos()
   }
@@ -400,7 +453,10 @@ export const sincronizarPagosDesdeSupabaseHelper = async ({ obtenerPagos, actual
 /**
  * Elimina un pago encolando su ID para soft-delete o eliminación remota diferida.
  */
-export const eliminarPagoHelper = async (pagoId, { obtenerPagos, actualizarPagosLocal }) => {
+export const eliminarPagoHelper = async (
+  pagoId: string | number,
+  { obtenerPagos, actualizarPagosLocal }: GuardarPagoContext
+): Promise<boolean> => {
   const actuales = obtenerPagos() || []
   const actualizados = actuales.filter((p) => String(p.id) !== String(pagoId))
   actualizarPagosLocal(actualizados)
@@ -420,8 +476,9 @@ export const eliminarPagoHelper = async (pagoId, { obtenerPagos, actualizarPagos
       } else {
         log.warn('Error al eliminar pago en Supabase, queda en cola:', error.message)
       }
-    } catch (err) {
-      log.warn('Excepción al eliminar pago en Supabase, queda en cola:', err?.message || err)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      log.warn('Excepción al eliminar pago en Supabase, queda en cola:', msg)
     }
   }
 
