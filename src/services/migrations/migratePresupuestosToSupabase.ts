@@ -14,10 +14,6 @@
  * 5. Retorna un resumen de la migración
  *
  * Es idempotente: puede ejecutarse múltiples veces sin duplicar presupuestos.
- *
- * Nota: Los métodos de items (obtenerItemsPorPaciente, sincronizarConFichaPaciente)
- * siguen usando localStorage en esta fase. Se migrarán completamente en F4-02d
- * cuando refactoricemos los componentes que los usan directamente.
  */
 import { supabase } from '../supabaseClient'
 import { presupuestosStorageService } from '../../modules/presupuestos/services/presupuestosStorageService'
@@ -28,11 +24,85 @@ import { createLogger } from '../logger'
 
 const log = createLogger('migratePresupuestosToSupabase')
 
+export interface MigratePresupuestosError {
+  presupuestoId: string | number
+  folio?: string
+  error: string
+}
+
+export interface MigratePresupuestosResult {
+  success: boolean
+  migrados: number
+  itemsMigrados: number
+  omitidos: number
+  errores: Array<MigratePresupuestosError | string>
+}
+
+export interface VerificarPresupuestosPendientesResult {
+  total: number
+  pendientes: number
+  yaMigrados: number
+}
+
+interface ItemPresupuestoLegacy {
+  id?: string | number
+  prestacionNombre?: string
+  nombre?: string
+  valor?: number
+  convenio?: string
+  estado?: string
+  [key: string]: unknown
+}
+
+interface PresupuestoLegacy {
+  id: string | number
+  pacienteId?: string | number | null
+  folio?: string
+  pacienteNombre?: string
+  pacienteRut?: string | null
+  fechaEmision?: string
+  convenio?: string
+  montoTotal?: number
+  montoAbonado?: number
+  estado?: string
+  observacion?: string
+  items?: ItemPresupuestoLegacy[]
+  [key: string]: unknown
+}
+
+interface PresupuestoSupabasePayload {
+  user_id: string
+  paciente_id: string | null
+  folio: string
+  paciente_nombre: string
+  paciente_rut: string | null
+  fecha_emision: string
+  convenio: string
+  monto_total: number
+  monto_abonado: number
+  estado: string
+  observacion: string
+}
+
+interface ItemSupabasePayload {
+  presupuesto_id: string | null
+  paciente_id: string | null
+  prestacion_id: null
+  prestacion_nombre: string
+  valor: number
+  convenio: string
+  estado: string
+}
+
 /**
  * Convierte un presupuesto de formato localStorage (camelCase) a formato
  * Supabase (snake_case).
  */
-const transformarPresupuestoParaSupabase = (presupuesto, userId, pacienteUuid) => {
+const transformarPresupuestoParaSupabase = (
+  presupuesto: PresupuestoLegacy,
+  userId: string,
+  pacienteUuid: string | null
+): PresupuestoSupabasePayload => {
   return {
     user_id: userId,
     paciente_id: pacienteUuid || null,
@@ -44,14 +114,18 @@ const transformarPresupuestoParaSupabase = (presupuesto, userId, pacienteUuid) =
     monto_total: presupuesto.montoTotal || 0,
     monto_abonado: presupuesto.montoAbonado || 0,
     estado: presupuesto.estado || 'Emitido',
-    observacion: presupuesto.observacion || ''
+    observacion: (presupuesto.observacion as string | undefined) || ''
   }
 }
 
 /**
  * Convierte un item de presupuesto de formato localStorage a Supabase.
  */
-const transformarItemParaSupabase = (item, presupuestoUuid, pacienteUuid) => {
+const transformarItemParaSupabase = (
+  item: ItemPresupuestoLegacy,
+  presupuestoUuid: string | null,
+  pacienteUuid: string | null
+): ItemSupabasePayload => {
   return {
     presupuesto_id: presupuestoUuid || null,
     paciente_id: pacienteUuid || null,
@@ -66,10 +140,10 @@ const transformarItemParaSupabase = (item, presupuestoUuid, pacienteUuid) => {
 /**
  * Ejecuta la migración de presupuestos de localStorage a Supabase.
  *
- * @param {string} userId - UUID del usuario autenticado en Supabase
- * @returns {Promise<{success: boolean, migrados: number, itemsMigrados: number, omitidos: number, errores: Array}>}
+ * @param userId - UUID del usuario autenticado en Supabase
+ * @returns resumen de migración
  */
-export const migratePresupuestosToSupabase = async (userId) => {
+export const migratePresupuestosToSupabase = async (userId: string): Promise<MigratePresupuestosResult> => {
   if (!supabase) {
     return {
       success: false,
@@ -90,8 +164,8 @@ export const migratePresupuestosToSupabase = async (userId) => {
     }
   }
 
-  const presupuestos = presupuestosStorageService.obtenerPresupuestos([])
-  const resultado = {
+  const presupuestos = presupuestosStorageService.obtenerPresupuestos([]) as PresupuestoLegacy[]
+  const resultado: MigratePresupuestosResult = {
     success: true,
     migrados: 0,
     itemsMigrados: 0,
@@ -117,10 +191,10 @@ export const migratePresupuestosToSupabase = async (userId) => {
       }
 
       // Resolver paciente_id
-      let pacienteUuid = null
+      let pacienteUuid: string | null = null
       if (presupuesto.pacienteId) {
         if (esUuidValido(presupuesto.pacienteId)) {
-          pacienteUuid = presupuesto.pacienteId
+          pacienteUuid = String(presupuesto.pacienteId)
         } else {
           // Intentar obtener UUID del mapa de migración
           pacienteUuid = migrationStorageService.obtenerSupabaseId(presupuesto.pacienteId)
@@ -173,16 +247,18 @@ export const migratePresupuestosToSupabase = async (userId) => {
             }
 
             resultado.itemsMigrados++
-          } catch (itemException) {
-            log.error(`[migratePresupuestos] Excepción al migrar item:`, itemException.message)
+          } catch (itemException: unknown) {
+            const msg = itemException instanceof Error ? itemException.message : String(itemException)
+            log.error(`[migratePresupuestos] Excepción al migrar item:`, msg)
           }
         }
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error)
       resultado.errores.push({
         presupuestoId: presupuesto.id,
         folio: presupuesto.folio,
-        error: error.message
+        error: msg
       })
     }
   }
@@ -190,8 +266,6 @@ export const migratePresupuestosToSupabase = async (userId) => {
   // ═══════════════════════════════════════════════════
   // PASO 3: Migrar items "huérfanos" (sin presupuesto global)
   // ═══════════════════════════════════════════════════
-  // Estos son items que están en presupuesto_items_${pacienteId} pero no
-  // tienen un presupuesto global asociado. Se migran sin presupuesto_id.
   log.info('[migratePresupuestos] Buscando items huérfanos...')
   
   // Obtener todos los pacientes migrados para buscar sus items
@@ -207,7 +281,7 @@ export const migratePresupuestosToSupabase = async (userId) => {
         if (!legacyId) continue
 
         // Leer items de localStorage usando el legacyId
-        const items = leerJSON(`presupuesto_items_${legacyId}`, [])
+        const items = leerJSON<ItemPresupuestoLegacy[]>(`presupuesto_items_${legacyId}`, [])
         if (!Array.isArray(items) || items.length === 0) continue
 
         log.info(`[migratePresupuestos] Migrando ${items.length} items huérfanos del paciente ${legacyId}...`)
@@ -215,7 +289,7 @@ export const migratePresupuestosToSupabase = async (userId) => {
         for (const item of items) {
           try {
             // Si el item ya tiene UUID, omitir
-            if (esUuidValido(item.id)) continue
+            if (item.id && esUuidValido(item.id)) continue
 
             const itemSupabase = transformarItemParaSupabase(item, null, paciente.id)
 
@@ -229,12 +303,14 @@ export const migratePresupuestosToSupabase = async (userId) => {
             }
 
             resultado.itemsMigrados++
-          } catch (itemException) {
-            log.error(`[migratePresupuestos] Excepción al migrar item huérfano:`, itemException.message)
+          } catch (itemException: unknown) {
+            const msg = itemException instanceof Error ? itemException.message : String(itemException)
+            log.error(`[migratePresupuestos] Excepción al migrar item huérfano:`, msg)
           }
         }
-      } catch (pacienteException) {
-        log.error(`[migratePresupuestos] Error procesando paciente ${paciente.id}:`, pacienteException.message)
+      } catch (pacienteException: unknown) {
+        const msg = pacienteException instanceof Error ? pacienteException.message : String(pacienteException)
+        log.error(`[migratePresupuestos] Error procesando paciente ${paciente.id}:`, msg)
       }
     }
   }
@@ -244,11 +320,9 @@ export const migratePresupuestosToSupabase = async (userId) => {
 
 /**
  * Verifica si hay presupuestos pendientes de migrar.
- *
- * @returns {{total: number, pendientes: number, yaMigrados: number}}
  */
-export const verificarPresupuestosPendientes = () => {
-  const presupuestos = presupuestosStorageService.obtenerPresupuestos([])
+export const verificarPresupuestosPendientes = (): VerificarPresupuestosPendientesResult => {
+  const presupuestos = presupuestosStorageService.obtenerPresupuestos([]) as PresupuestoLegacy[]
   let yaMigrados = 0
 
   for (const presupuesto of presupuestos) {
