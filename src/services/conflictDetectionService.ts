@@ -20,15 +20,38 @@ import { createLogger } from './logger'
 
 const log = createLogger('conflictDetectionService')
 
+export interface ResultadoConflicto<T = Record<string, unknown>> {
+  hayConflicto: boolean
+  versionRemota: T | null
+  updatedAtRemoto: string | null
+}
+
+export type EstrategiaResolucion = 'last_write_wins' | 'manual_local' | 'manual_remote' | 'auto' | string
+
+export interface LogEntryAuditoria {
+  user_id: string
+  table_name: string
+  record_id: string
+  action: string
+  old_data: unknown
+  new_data: unknown
+  resolution_strategy: EstrategiaResolucion | null
+  user_email: string | undefined
+}
+
 /**
  * Detecta si hay conflicto entre versión local y remota.
  *
- * @param {string} tabla - Nombre de la tabla
- * @param {string} recordId - ID del registro
- * @param {string|number} updatedAtLocal - Timestamp de la versión local (ISO string o ms)
- * @returns {Promise<{hayConflicto: boolean, versionRemota: object|null, updatedAtRemoto: string|null}>}
+ * @param tabla - Nombre de la tabla
+ * @param recordId - ID del registro
+ * @param updatedAtLocal - Timestamp de la versión local (ISO string o ms)
+ * @returns {hayConflicto, versionRemota, updatedAtRemoto}
  */
-export const detectarConflicto = async (tabla, recordId, updatedAtLocal) => {
+export const detectarConflicto = async <T extends { updated_at?: string } = Record<string, unknown> & { updated_at?: string }>(
+  tabla: string,
+  recordId: string | number,
+  updatedAtLocal?: string | number | null
+): Promise<ResultadoConflicto<T>> => {
   if (!USE_SUPABASE || !supabase) {
     return { hayConflicto: false, versionRemota: null, updatedAtRemoto: null }
   }
@@ -50,9 +73,9 @@ export const detectarConflicto = async (tabla, recordId, updatedAtLocal) => {
       return { hayConflicto: false, versionRemota: null, updatedAtRemoto: null }
     }
 
-    const updatedAtRemoto = data.updated_at
+    const updatedAtRemoto: string | null = (data as T).updated_at || null
     if (!updatedAtRemoto || !updatedAtLocal) {
-      return { hayConflicto: false, versionRemota: data, updatedAtRemoto }
+      return { hayConflicto: false, versionRemota: data as T, updatedAtRemoto }
     }
 
     // Normalizar a timestamps numéricos para comparar
@@ -67,10 +90,10 @@ export const detectarConflicto = async (tabla, recordId, updatedAtLocal) => {
 
     return {
       hayConflicto,
-      versionRemota: data,
+      versionRemota: data as T,
       updatedAtRemoto
     }
-  } catch (e) {
+  } catch (e: unknown) {
     log.error(`[conflictDetection] Error inesperado en ${tabla}:`, e)
     return { hayConflicto: false, versionRemota: null, updatedAtRemoto: null }
   }
@@ -79,15 +102,15 @@ export const detectarConflicto = async (tabla, recordId, updatedAtLocal) => {
 /**
  * Registra una entrada en la tabla audit_log.
  * Falla silenciosamente si hay error (no rompe flujo principal).
- *
- * @param {string} tabla - Nombre de la tabla
- * @param {string} recordId - ID del registro
- * @param {string} accion - Tipo de acción: INSERT, UPDATE, DELETE, CONFLICT_RESOLVED
- * @param {object|null} oldData - Datos anteriores (para UPDATE/DELETE)
- * @param {object|null} newData - Datos nuevos (para INSERT/UPDATE)
- * @param {string|null} estrategia - last_write_wins, manual_local, manual_remote, auto
  */
-export const registrarAuditoria = async (tabla, recordId, accion, oldData = null, newData = null, estrategia = null) => {
+export const registrarAuditoria = async (
+  tabla: string,
+  recordId: string | number,
+  accion: string,
+  oldData: unknown = null,
+  newData: unknown = null,
+  estrategia: EstrategiaResolucion | null = null
+): Promise<void> => {
   if (!USE_SUPABASE || !supabase) {
     return
   }
@@ -99,7 +122,7 @@ export const registrarAuditoria = async (tabla, recordId, accion, oldData = null
       return
     }
 
-    const logEntry = {
+    const logEntry: LogEntryAuditoria = {
       user_id: user.id,
       table_name: tabla,
       record_id: String(recordId),
@@ -117,22 +140,21 @@ export const registrarAuditoria = async (tabla, recordId, accion, oldData = null
     if (error) {
       log.error('[conflictDetection] Error registrando auditoría:', error)
     }
-  } catch (e) {
+  } catch (e: unknown) {
     log.error('[conflictDetection] Error inesperado en auditoría:', e)
   }
 }
 
 /**
  * Aplica la resolución del conflicto según la decisión del usuario.
- *
- * @param {string} tabla - Nombre de la tabla
- * @param {string} recordId - ID del registro
- * @param {'local'|'remote'} decision - Decisión del usuario
- * @param {object} datosLocales - Datos locales del usuario
- * @param {object} datosRemotos - Datos remotos de Supabase
- * @returns {Promise<object>} Datos finales a usar
  */
-export const resolverConflicto = async (tabla, recordId, decision, datosLocales, datosRemotos) => {
+export const resolverConflicto = async <T>(
+  tabla: string,
+  recordId: string | number,
+  decision: 'local' | 'remote',
+  datosLocales: T,
+  datosRemotos: T
+): Promise<T> => {
   const estrategia = decision === 'local' ? 'manual_local' : 'manual_remote'
   const datosFinales = decision === 'local' ? datosLocales : datosRemotos
 
