@@ -4,7 +4,7 @@ const log = createLogger('consentimientosPrintService')
 
 // Reutiliza la misma clase de aislamiento que certificados
 // (CSS compartido en index.css)
-const CLASE_AISLAMIENTO = 'print-cert-activo'
+export const CLASE_AISLAMIENTO = 'print-cert-activo'
 
 /**
  * Imprime el consentimiento de forma aislada (M4a).
@@ -15,8 +15,8 @@ const CLASE_AISLAMIENTO = 'print-cert-activo'
  * terminar la impresión (evento afterprint) o si window.print
  * lanza error.
  */
-export const imprimirConsentimientoAislado = () => {
-  const limpiar = () => {
+export const imprimirConsentimientoAislado = (): void => {
+  const limpiar = (): void => {
     document.body.classList.remove(CLASE_AISLAMIENTO)
     window.removeEventListener('afterprint', limpiar)
   }
@@ -26,7 +26,7 @@ export const imprimirConsentimientoAislado = () => {
 
   try {
     window.print()
-  } catch (e) {
+  } catch (e: unknown) {
     log.error('Error al imprimir consentimiento:', e)
     limpiar()
   }
