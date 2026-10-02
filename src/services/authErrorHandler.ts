@@ -12,14 +12,22 @@
  *   }
  */
 
+import { createLogger } from './logger'
+
+export interface AuthErrorLike {
+  status?: number
+  code?: string
+  message?: string
+  [key: string]: unknown
+}
+
+const log = createLogger('authErrorHandler')
+
 /**
  * Palabras clave que identifican errores de autenticación en mensajes de Supabase.
  * Supabase usa mensajes en inglés; se cubren las variantes más comunes.
  */
-import { createLogger } from './logger.js'
-
-const log = createLogger('authErrorHandler')
-const AUTH_ERROR_PATTERNS = [
+const AUTH_ERROR_PATTERNS: readonly string[] = [
   'jwt expired',
   'jwt Expired',
   'token has expired',
@@ -43,20 +51,23 @@ const AUTH_ERROR_PATTERNS = [
 
 /**
  * Determina si un error de Supabase está relacionado con autenticación.
- * @param {Object|null} error - Objeto de error de Supabase
- * @returns {boolean} true si el error es de autenticación
+ *
+ * @param error - Objeto de error de Supabase
+ * @returns true si el error es de autenticación
  */
-export const esErrorAutenticacion = (error) => {
-  if (!error) return false
+export const esErrorAutenticacion = (error: unknown): boolean => {
+  if (!error || typeof error !== 'object') return false
+
+  const err = error as AuthErrorLike
 
   // Códigos HTTP específicos de autenticación
-  if (error.status === 401 || error.status === 403) return true
+  if (err.status === 401 || err.status === 403) return true
 
   // Código de error específico de Supabase
-  if (error.code === 'PGRST301') return true // JWT expired en PostgREST
+  if (err.code === 'PGRST301') return true // JWT expired en PostgREST
 
   // Buscar patrones en el mensaje
-  const mensaje = (error.message || '').toLowerCase()
+  const mensaje = (typeof err.message === 'string' ? err.message : '').toLowerCase()
   return AUTH_ERROR_PATTERNS.some((pattern) =>
     mensaje.includes(pattern.toLowerCase())
   )
@@ -66,22 +77,26 @@ export const esErrorAutenticacion = (error) => {
  * Maneja un error de autenticación ejecutando logout forzado.
  * Loguea el error para trazabilidad antes de disparar el callback.
  *
- * @param {Object} error - Objeto de error de Supabase
- * @param {Function} onLogout - Callback para logout forzado (debe ser async)
- * @returns {Promise<boolean>} true si se ejecutó logout, false si el error no era de auth
+ * @param error - Objeto de error de Supabase
+ * @param onLogout - Callback para logout forzado (debe ser async o sync)
+ * @returns true si se ejecutó logout, false si el error no era de auth
  */
-export const manejarErrorAuth = async (error, onLogout) => {
+export const manejarErrorAuth = async (
+  error: unknown,
+  onLogout?: (() => Promise<void> | void) | null
+): Promise<boolean> => {
   if (!esErrorAutenticacion(error)) return false
 
+  const err = error as AuthErrorLike
   log.warn(
     '[authErrorHandler] Error de autenticación detectado, iniciando logout forzado:',
-    error.message || error
+    err?.message || error
   )
 
   if (typeof onLogout === 'function') {
     try {
       await onLogout()
-    } catch (e) {
+    } catch (e: unknown) {
       log.error('Error ejecutando logout forzado:', e)
     }
   }
@@ -93,18 +108,21 @@ export const manejarErrorAuth = async (error, onLogout) => {
  * Wrapper para queries de Supabase con manejo automático de errores de auth.
  * Si la query falla con error de autenticación, ejecuta logout forzado.
  *
- * @param {Promise} queryPromise - Promesa de la query de Supabase
- * @param {Function} onLogout - Callback para logout forzado
- * @returns {Promise<Object>} Resultado de la query ({ data, error })
+ * @param queryPromise - Promesa de la query de Supabase
+ * @param onLogout - Callback para logout forzado
+ * @returns Resultado de la query ({ data, error })
  */
-export const conManejoAuth = async (queryPromise, onLogout) => {
+export const conManejoAuth = async <T extends { error?: unknown }>(
+  queryPromise: Promise<T>,
+  onLogout?: (() => Promise<void> | void) | null
+): Promise<T> => {
   try {
     const resultado = await queryPromise
     if (resultado?.error && esErrorAutenticacion(resultado.error)) {
       await manejarErrorAuth(resultado.error, onLogout)
     }
     return resultado
-  } catch (e) {
+  } catch (e: unknown) {
     if (esErrorAutenticacion(e)) {
       await manejarErrorAuth(e, onLogout)
     }
