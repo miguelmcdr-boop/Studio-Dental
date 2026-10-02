@@ -36,8 +36,23 @@ import { createLogger } from './logger'
 
 const log = createLogger('invalidarCacheCambioClinica')
 
-// Nombre de la base de datos IndexedDB (debe coincidir con adjuntosStorageService.js)
-const IDB_ADJUNTOS_DB_NAME = 'studio_dental_adjuntos'
+export interface IndexedDBInvalidationResult {
+  eliminada: boolean
+  eliminados?: number
+  razon?: string
+  conservadosPendientes?: boolean
+}
+
+export interface ResumenInvalidacionCache {
+  tenantKeys: number
+  storageServices: number
+  stores: string[]
+  legacyKeys: number
+  patientKeys: number
+  explicitKeys: number
+  indexedDB: IndexedDBInvalidationResult
+  errores: number
+}
 
 // F7-36 FASE 1 (Commit 1.5a): Lista completa de prefijos de claves clínicas que deben
 // eliminarse al cambiar de clínica. Incluye:
@@ -49,7 +64,7 @@ const IDB_ADJUNTOS_DB_NAME = 'studio_dental_adjuntos'
 //   - profile_* (perfil del usuario, es global entre clínicas)
 //   - sb-*, goTrue-* (tokens de Supabase Auth, la sesión es del usuario)
 //   - clinica_active_user (email del usuario logueado)
-const PREFIJOS_CLINICA = [
+const PREFIJOS_CLINICA: readonly string[] = [
   'studio_dental_',      // Servicios con createLocalStorageRepository
   'recetas_',            // Recetas por pacienteId
   'evoluciones_notas_',  // Evoluciones por pacienteId
@@ -63,34 +78,32 @@ const PREFIJOS_CLINICA = [
 ]
 
 // Claves específicas que deben eliminarse (no siguen patrón de prefijo)
-const CLAVES_CLINICA_EXPLICITAS = [
+const CLAVES_CLINICA_EXPLICITAS: readonly string[] = [
   'clinica_paciente_seleccionado_id',  // PHI: paciente actualmente seleccionado
   'clinica_active_section',            // UI: sección activa (no es crítico, se resetea)
 ]
 
 /**
  * Paso 1: Invalidar claves tenant-aware de la clínica anterior.
- * @param {string|null} clinicaAnterior - ID de la clínica anterior o null
- * @returns {number} Cantidad de claves eliminadas
  */
-const invalidarTenant = (clinicaAnterior) => {
+const invalidarTenant = (clinicaAnterior: string | null): number => {
   try {
     if (clinicaAnterior) {
       return tenantCache.invalidarClinica(clinicaAnterior)
     }
     return tenantCache.invalidarTodas()
-  } catch (e) {
-    log.error('Paso 1 falló (invalidarTenant):', e.message)
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
+    log.error('Paso 1 falló (invalidarTenant):', msg)
     return 0
   }
 }
 
 /**
  * Paso 2: Resetear cache en memoria de los 4 storage services principales.
- * @returns {number} Cantidad de servicios reseteados exitosamente
  */
-const resetearStorageServices = () => {
-  const servicios = [
+const resetearStorageServices = (): number => {
+  const servicios: Array<{ nombre: string; instancia: { resetCache?: () => void } }> = [
     { nombre: 'finanzasStorageService', instancia: finanzasStorageService },
     { nombre: 'agendaStorageService', instancia: agendaStorageService },
     { nombre: 'pagosStorageService', instancia: pagosStorageService },
@@ -104,8 +117,9 @@ const resetearStorageServices = () => {
         instancia.resetCache()
         reseteados++
       }
-    } catch (e) {
-      log.warn(`No se pudo resetear ${nombre}:`, e.message)
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e)
+      log.warn(`No se pudo resetear ${nombre}:`, msg)
     }
   }
   return reseteados
@@ -113,42 +127,30 @@ const resetearStorageServices = () => {
 
 /**
  * Paso 3: Resetear stores Zustand.
- * @returns {string[]} Nombres de stores reseteados
  */
-const resetearStoresZustand = () => {
-  const reseteados = []
+const resetearStoresZustand = (): string[] => {
+  const reseteados: string[] = []
   try {
     usePacientesStore.setState({ pacientes: [] })
     reseteados.push('pacientesStore')
-  } catch (e) {
-    log.warn('No se pudo resetear pacientesStore:', e.message)
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
+    log.warn('No se pudo resetear pacientesStore:', msg)
   }
   try {
     usePrestacionesStore.setState({ prestacionesArancel: [] })
     reseteados.push('prestacionesStore')
-  } catch (e) {
-    log.warn('No se pudo resetear prestacionesStore:', e.message)
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
+    log.warn('No se pudo resetear prestacionesStore:', msg)
   }
   return reseteados
 }
 
 /**
  * Paso 4: Limpiar TODAS las claves clínicas (no solo legacy).
- *
- * Elimina:
- *   - Claves legacy de servicios (studio_dental_*)
- *   - Claves por pacienteId (recetas_, evoluciones_notas_, certificados_, etc.)
- *   - Claves específicas de estado clínico (paciente seleccionado, sección activa)
- *
- * NO elimina (preservadas intencionalmente):
- *   - profile_* (perfil del usuario, es global entre clínicas)
- *   - sb-*, goTrue-* (tokens de Supabase Auth, la sesión es del usuario)
- *   - clinica_active_user (email del usuario logueado)
- *
- * @returns {{legacy: number, porPaciente: number, explicitas: number}}
- *   Conteos separados para observabilidad
  */
-const limpiarClavesClinicas = () => {
+const limpiarClavesClinicas = (): { legacy: number; porPaciente: number; explicitas: number } => {
   const conteo = { legacy: 0, porPaciente: 0, explicitas: 0 }
   try {
     const claves = Object.keys(localStorage)
@@ -174,23 +176,17 @@ const limpiarClavesClinicas = () => {
         conteo.explicitas++
       }
     }
-  } catch (e) {
-    log.error('Paso 4 falló (limpiarClavesClinicas):', e.message)
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
+    log.error('Paso 4 falló (limpiarClavesClinicas):', msg)
   }
   return conteo
 }
 
 /**
  * Paso 5: Invalidar caché de adjuntos en IndexedDB de forma segura y no destructiva (P0-2).
- * En lugar de borrar la base completa con deleteDatabase (destruyendo adjuntos offline
- * pendientes de subida), ahora invoca invalidarCacheAdjuntos(clinicaAnterior),
- * preservando los registros con sincronizado: false y eliminando solo la caché
- * ya respaldada en la nube.
- *
- * @param {string|null} clinicaAnterior - ID de la clínica que deja de estar activa
- * @returns {Promise<{eliminada: boolean, eliminados?: number, razon?: string}>}
  */
-const invalidarIndexedDB = async (clinicaAnterior = null) => {
+const invalidarIndexedDB = async (clinicaAnterior: string | null = null): Promise<IndexedDBInvalidationResult> => {
   try {
     if (typeof indexedDB === 'undefined') {
       return { eliminada: false, razon: 'indexedDB no disponible' }
@@ -204,27 +200,20 @@ const invalidarIndexedDB = async (clinicaAnterior = null) => {
       eliminados: resultado?.eliminados ?? 0,
       conservadosPendientes: true
     }
-  } catch (e) {
-    log.error('Paso 5 falló (invalidarIndexedDB):', e.message)
-    return { eliminada: false, razon: e.message }
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
+    log.error('Paso 5 falló (invalidarIndexedDB):', msg)
+    return { eliminada: false, razon: msg }
   }
 }
 
 /**
  * Orquesta la invalidación completa de cache al cambiar de clínica.
- *
- * @param {string|null} clinicaAnterior - ID de la clínica anterior, o null si no se conoce
- * @returns {Promise<{
- *   tenantKeys: number,
- *   storageServices: number,
- *   stores: string[],
- *   legacyKeys: number,
- *   indexedDB: {eliminada: boolean, razon?: string},
- *   errores: number
- * }>} Resumen de lo invalidado
  */
-export const invalidarCacheCambioClinica = async (clinicaAnterior = null) => {
-  const resumen = {
+export const invalidarCacheCambioClinica = async (
+  clinicaAnterior: string | null = null
+): Promise<ResumenInvalidacionCache> => {
+  const resumen: ResumenInvalidacionCache = {
     tenantKeys: 0,
     storageServices: 0,
     stores: [],
