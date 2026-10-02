@@ -40,81 +40,112 @@ import {
   guardarPendingDeletesPresupuestos,
   obtenerPendingDeletesPresupuestoItems,
   guardarPendingDeletesPresupuestoItems,
-  transformarPresupuestoParaSupabase
+  transformarPresupuestoParaSupabase,
+  type PresupuestoLocal,
+  type PresupuestoItemLocal,
+  type PendingPresupuesto,
+  type PendingPresupuestoItem
 } from './presupuestosOfflineQueueService'
+
+export type { PresupuestoLocal, PresupuestoItemLocal, PendingPresupuesto, PendingPresupuestoItem }
+
+export interface PacienteRefPresupuesto {
+  id: string | number
+  nombre?: string
+  rut?: string
+  prevision?: string
+  [key: string]: unknown
+}
+
+export interface AbonoLocalRef {
+  id?: string | number
+  monto?: number | string
+  [key: string]: unknown
+}
+
+export interface ProcesarColaPresupuestosResult {
+  procesados: number
+  fallidos: number
+  razon?: string
+  offline?: boolean
+  [key: string]: unknown
+}
 
 const log = createLogger('presupuestosStorageService')
 
 const STORAGE_KEY_PRESUPUESTOS = 'studio_dental_presupuestos_globales'
-const presupuestosRepo = createTenantRepository(STORAGE_KEY_PRESUPUESTOS, [], {
+const presupuestosRepo = createTenantRepository<PresupuestoLocal[]>(STORAGE_KEY_PRESUPUESTOS, [], {
   notify: true,
   eventos: ['presupuestos_actualizados']
 })
 
 // Caché en memoria
-let presupuestosCache = null
+let presupuestosCache: PresupuestoLocal[] | null = null
 let cacheInicializado = false
 
-const inicializarCache = (defaults) => {
+const inicializarCache = (defaults: PresupuestoLocal[]): void => {
   if (cacheInicializado) return
   const datos = presupuestosRepo.obtener(defaults)
   presupuestosCache = Array.isArray(datos) ? datos : defaults
   cacheInicializado = true
 }
 
-export const obtenerPresupuestos = (defaults = []) => {
+export const obtenerPresupuestos = (defaults: PresupuestoLocal[] = []): PresupuestoLocal[] => {
   if (!cacheInicializado) {
     inicializarCache(defaults)
   }
-  return presupuestosCache
+  return presupuestosCache || defaults
 }
 
-const actualizarPresupuestosLocal = (nuevos) => {
+const actualizarPresupuestosLocal = (nuevos: PresupuestoLocal[]): void => {
   presupuestosCache = nuevos
   cacheInicializado = true
   presupuestosRepo.guardar(nuevos)
 }
 
-export const guardarPresupuesto = async (presupuesto) => {
+export const guardarPresupuesto = async (presupuesto: PresupuestoLocal): Promise<PresupuestoLocal | null> => {
   return guardarPresupuestoHelper(presupuesto, {
     obtenerPresupuestos,
     actualizarPresupuestosLocal
   })
 }
 
-export const guardarItemPresupuesto = async (item) => {
+export const guardarItemPresupuesto = async (item: PresupuestoItemLocal): Promise<PresupuestoItemLocal | null> => {
   return guardarItemPresupuestoHelper(item, {
     obtenerPresupuestos,
     actualizarPresupuestosLocal
   })
 }
 
-export const eliminarPresupuesto = async (presupuestoId) => {
+export const eliminarPresupuesto = async (presupuestoId: string | number): Promise<boolean> => {
   return eliminarPresupuestoHelper(presupuestoId, {
     obtenerPresupuestos,
     actualizarPresupuestosLocal
   })
 }
 
-export const eliminarItemPresupuesto = async (itemId, presupuestoId) => {
+export const eliminarItemPresupuesto = async (
+  itemId: string | number,
+  presupuestoId?: string | number | null
+): Promise<boolean> => {
   return eliminarItemPresupuestoHelper(itemId, presupuestoId, {
     obtenerPresupuestos,
     actualizarPresupuestosLocal
   })
 }
 
-export const procesarColaPresupuestos = async () => {
+export const procesarColaPresupuestos = async (): Promise<ProcesarColaPresupuestosResult> => {
   return procesarColaPresupuestosHelper({
     obtenerPresupuestos,
     actualizarPresupuestosLocal
   })
 }
 
-export const procesarPendingDeletesPresupuestos = async () => {
+export const procesarPendingDeletesPresupuestos = async (): Promise<void> => {
   return procesarPendingDeletesPresupuestosHelper()
 }
 
-export const sincronizarDesdeSupabase = async () => {
+export const sincronizarDesdeSupabase = async (): Promise<PresupuestoLocal[]> => {
   return sincronizarPresupuestosDesdeSupabaseHelper({
     obtenerPresupuestos,
     actualizarPresupuestosLocal,
@@ -133,13 +164,13 @@ export {
   guardarPendingDeletesPresupuestoItems
 }
 
-export const guardarPresupuestos = async (presupuestos) => {
+export const guardarPresupuestos = async (presupuestos: PresupuestoLocal[]): Promise<boolean> => {
   const validacion = validarListaPresupuestos(presupuestos)
-  if (!validacion.valido) {
+  if (!validacion.valido || !validacion.datos) {
     log.error('Error de validación al guardar presupuestos (F2-04e):', validacion.error)
     return false
   }
-  const datos = validacion.datos
+  const datos = validacion.datos as PresupuestoLocal[]
 
   presupuestosCache = datos
   cacheInicializado = true
@@ -155,8 +186,8 @@ export const guardarPresupuestos = async (presupuestos) => {
       return true
     }
 
-    const aInsertar = []
-    const aActualizar = []
+    const aInsertar: PresupuestoLocal[] = []
+    const aActualizar: PresupuestoLocal[] = []
 
     for (const presupuesto of datos) {
       if (esUuidValido(presupuesto.id)) {
@@ -194,19 +225,22 @@ export const guardarPresupuestos = async (presupuestos) => {
         continue
       }
 
-      const index = presupuestosCache.findIndex((p) => !esUuidValido(p.id) &&
-        p.folio === presupuesto.folio && p.pacienteId === presupuesto.pacienteId)
-      if (index >= 0) {
-        const legacyId = presupuestosCache[index].id
-        presupuestosCache[index] = { ...presupuestosCache[index], id: insertado.id }
-        migrationStorageService.registrarMapeo(legacyId, insertado.id)
+      if (presupuestosCache && insertado?.id) {
+        const index = presupuestosCache.findIndex((p) => !esUuidValido(p.id) &&
+          p.folio === presupuesto.folio && p.pacienteId === presupuesto.pacienteId)
+        if (index >= 0) {
+          const legacyId = presupuestosCache[index].id
+          presupuestosCache[index] = { ...presupuestosCache[index], id: insertado.id }
+          migrationStorageService.registrarMapeo(legacyId, insertado.id)
+        }
       }
     }
 
     // P1-3: SE REMOVIÓ EL BLOQUE DESTRUCTIVO DE DIFF DELETE (idsAEliminar)
     // Las eliminaciones deben realizarse explícitamente vía pendingDeletesPresupuestos
-
-    presupuestosRepo.guardar(presupuestosCache)
+    if (presupuestosCache) {
+      presupuestosRepo.guardar(presupuestosCache)
+    }
     return true
   } catch (error) {
     log.error('Excepción al guardar en Supabase:', error)
@@ -214,7 +248,7 @@ export const guardarPresupuestos = async (presupuestos) => {
   }
 }
 
-export const resetCache = () => {
+export const resetCache = (): void => {
   presupuestosCache = null
   cacheInicializado = false
 }
@@ -239,15 +273,19 @@ export const presupuestosStorageService = {
   obtenerPendingDeletesPresupuestoItems,
   guardarPendingDeletesPresupuestoItems,
 
-  obtenerItemsPorPaciente: (pacienteId) => {
+  obtenerItemsPorPaciente: (pacienteId: string | number | null | undefined): PresupuestoItemLocal[] => {
     if (!pacienteId) return []
-    return leerJSON(`presupuesto_items_${pacienteId}`, [])
+    return leerJSON<PresupuestoItemLocal[]>(`presupuesto_items_${pacienteId}`, [])
   },
 
-  sincronizarConFichaPaciente: (pacienteId, items, convenio = 'Particular') => {
+  sincronizarConFichaPaciente: (
+    pacienteId: string | number | null | undefined,
+    items: PresupuestoItemLocal[],
+    convenio: string = 'Particular'
+  ): void => {
     if (!pacienteId) return
     const keyItems = `presupuesto_items_${pacienteId}`
-    const existentes = leerJSON(keyItems, [])
+    const existentes = leerJSON<PresupuestoItemLocal[]>(keyItems, [])
 
     const idsExistentes = new Set(existentes.map((i) => i.id))
     const nuevosAjustados = items.map((it) => ({
@@ -260,12 +298,16 @@ export const presupuestosStorageService = {
     escribirJSON(keyItems, consolidados, { notify: true })
   },
 
-  eliminarPresupuestoYFicha: (presupuestoId, pacienteId, itemsABorrar = []) => {
+  eliminarPresupuestoYFicha: (
+    presupuestoId: string | number,
+    pacienteId?: string | number | null,
+    itemsABorrar: PresupuestoItemLocal[] = []
+  ): void => {
     eliminarPresupuesto(presupuestoId)
 
     if (pacienteId) {
       const keyItems = `presupuesto_items_${pacienteId}`
-      const existentes = leerJSON(keyItems, null)
+      const existentes = leerJSON<PresupuestoItemLocal[] | null>(keyItems, null)
       if (existentes !== null) {
         if (itemsABorrar.length > 0) {
           const idsABorrar = new Set(itemsABorrar.map((i) => i.id))
@@ -282,7 +324,7 @@ export const presupuestosStorageService = {
     }
   },
 
-  actualizarEstadoPresupuesto: (presupuestoId, nuevoEstado) => {
+  actualizarEstadoPresupuesto: (presupuestoId: string | number, nuevoEstado: string): void => {
     const guardados = presupuestosCache || presupuestosRepo.obtener([])
     const actualizados = guardados.map((p) =>
       p.id === presupuestoId ? { ...p, estado: nuevoEstado } : p
@@ -292,11 +334,13 @@ export const presupuestosStorageService = {
 
     if (USE_SUPABASE && supabase && esUuidValido(presupuestoId)) {
       supabase.from('presupuestos').update({ estado: nuevoEstado }).eq('id', presupuestoId)
-        .then(({ error }) => { if (error) log.error('Error al actualizar estado en Supabase:', error) })
+        .then(({ error }: { error: { message: string } | null }) => {
+          if (error) log.error('Error al actualizar estado en Supabase:', error)
+        })
     }
   },
 
-  eliminarItemsDePaciente: (pacienteId) => {
+  eliminarItemsDePaciente: (pacienteId: string | number | null | undefined): void => {
     if (!pacienteId) return
     try {
       localStorage.removeItem(`presupuesto_items_${pacienteId}`)
@@ -305,15 +349,15 @@ export const presupuestosStorageService = {
     }
   },
 
-  consolidarPresupuestosDesdePacientes: (pacientes = []) => {
-    const consolidados = []
+  consolidarPresupuestosDesdePacientes: (pacientes: PacienteRefPresupuesto[] = []): PresupuestoLocal[] => {
+    const consolidados: PresupuestoLocal[] = []
     pacientes.forEach((p) => {
-      const items = leerJSON(`presupuesto_items_${p.id}`, [])
-      const abonos = leerJSON(`abonos_${p.id}`, [])
+      const items = leerJSON<PresupuestoItemLocal[]>(`presupuesto_items_${p.id}`, [])
+      const abonos = leerJSON<AbonoLocalRef[]>(`abonos_${p.id}`, [])
 
       if (items.length > 0) {
-        const total = items.reduce((acc, curr) => acc + (parseFloat(curr.valor) || 0), 0)
-        const abonado = abonos.reduce((acc, curr) => acc + (parseFloat(curr.monto) || 0), 0)
+        const total = items.reduce((acc, curr) => acc + (parseFloat(String(curr.valor || curr.precio || 0)) || 0), 0)
+        const abonado = abonos.reduce((acc, curr) => acc + (parseFloat(String(curr.monto || 0)) || 0), 0)
         const todosRealizados = items.every((i) => i.estado === 'Realizado')
         const saldoRestante = total - abonado
 
