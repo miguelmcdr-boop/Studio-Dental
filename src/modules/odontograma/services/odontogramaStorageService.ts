@@ -22,53 +22,73 @@ import {
   guardarOdontograma as guardarOdontogramaSupabase,
   obtenerDatoClinico
 } from '../../../services/datosClinicosSupabase'
-import { createLogger } from '../../../services/logger.js'
+import { createLogger } from '../../../services/logger'
 
 const log = createLogger('odontogramaStorageService')
 
-export const odontogramaStorageService = {
+export interface DienteEstado {
+  general?: string
+  caras?: Record<string, string>
+  [key: string]: unknown
+}
+
+export type OdontogramaDatos = Record<string, DienteEstado | unknown>
+
+export interface OdontogramaStorageServiceAPI {
+  obtenerOdontogramaInicial: <T = OdontogramaDatos>(pacienteId: string | number | null | undefined, fallback?: T) => T
+  obtenerOdontogramaEvolucion: <T = OdontogramaDatos>(pacienteId: string | number | null | undefined, fallback?: T) => T
+  guardarOdontogramaInicial: (pacienteId: string | number | null | undefined, data: OdontogramaDatos) => Promise<boolean>
+  guardarOdontogramaEvolucion: (pacienteId: string | number | null | undefined, data: OdontogramaDatos) => Promise<boolean>
+  eliminarOdontogramasDePaciente: (pacienteId: string | number | null | undefined) => void
+  obtenerOdontograma: <T = OdontogramaDatos>(key: string, fallback?: T) => T
+  guardarOdontograma: (key: string, data: unknown) => boolean
+}
+
+export const odontogramaStorageService: OdontogramaStorageServiceAPI = {
   // ─────────────────────────────────────────────────────────────
   // F6-D-2: Lectura con prioridad Supabase → fallback localStorage
   // ─────────────────────────────────────────────────────────────
 
-  obtenerOdontogramaInicial: (pacienteId, fallback = {}) => {
+  obtenerOdontogramaInicial: <T = OdontogramaDatos>(pacienteId: string | number | null | undefined, fallback: T = {} as T): T => {
     if (!pacienteId) return fallback
-    const datoSupabase = obtenerDatoClinico(pacienteId, 'odonto_inicial', null)
-    return datoSupabase !== null ? datoSupabase : leerJSON(`odonto_inicial_${pacienteId}`, fallback)
+    const datoSupabase = obtenerDatoClinico(String(pacienteId), 'odonto_inicial', null)
+    return (datoSupabase !== null ? datoSupabase : leerJSON<T>(`odonto_inicial_${pacienteId}`, fallback)) as T
   },
 
-  obtenerOdontogramaEvolucion: (pacienteId, fallback = {}) => {
+  obtenerOdontogramaEvolucion: <T = OdontogramaDatos>(pacienteId: string | number | null | undefined, fallback: T = {} as T): T => {
     if (!pacienteId) return fallback
-    const datoSupabase = obtenerDatoClinico(pacienteId, 'odonto_evolucion', null)
-    return datoSupabase !== null ? datoSupabase : leerJSON(`odonto_evolucion_${pacienteId}`, fallback)
+    const datoSupabase = obtenerDatoClinico(String(pacienteId), 'odonto_evolucion', null)
+    return (datoSupabase !== null ? datoSupabase : leerJSON<T>(`odonto_evolucion_${pacienteId}`, fallback)) as T
   },
 
   // ─────────────────────────────────────────────────────────────
   // F6-D-2: Escritura en Supabase + localStorage
   // ─────────────────────────────────────────────────────────────
 
-  guardarOdontogramaInicial: async (pacienteId, data) => {
+  guardarOdontogramaInicial: async (pacienteId: string | number | null | undefined, data: OdontogramaDatos): Promise<boolean> => {
     if (!pacienteId) return false
     // F6-D-3 fix: escribir localStorage PRIMERO (síncrono, inmediato)
-    const result = escribirJSON(`odonto_inicial_${pacienteId}`, data)
+    const result = Boolean(escribirJSON(`odonto_inicial_${pacienteId}`, data))
     // Luego sincronizar con Supabase (async, puede fallar sin perder datos)
     try {
-      await guardarOdontogramaSupabase(pacienteId, data, 'inicial')
-    } catch (e) {
-      log.warn('Error guardando en Supabase:', e?.message)
+      await guardarOdontogramaSupabase(String(pacienteId), data, 'inicial')
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e)
+      log.warn('Error guardando en Supabase:', msg)
     }
     return result
   },
 
-  guardarOdontogramaEvolucion: async (pacienteId, data) => {
+  guardarOdontogramaEvolucion: async (pacienteId: string | number | null | undefined, data: OdontogramaDatos): Promise<boolean> => {
     if (!pacienteId) return false
     // F6-D-3 fix: escribir localStorage PRIMERO (síncrono, inmediato)
-    const result = escribirJSON(`odonto_evolucion_${pacienteId}`, data)
+    const result = Boolean(escribirJSON(`odonto_evolucion_${pacienteId}`, data))
     // Luego sincronizar con Supabase (async, puede fallar sin perder datos)
     try {
-      await guardarOdontogramaSupabase(pacienteId, data, 'evolucion')
-    } catch (e) {
-      log.warn('Error guardando en Supabase:', e?.message)
+      await guardarOdontogramaSupabase(String(pacienteId), data, 'evolucion')
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e)
+      log.warn('Error guardando en Supabase:', msg)
     }
     return result
   },
@@ -77,12 +97,12 @@ export const odontogramaStorageService = {
   // F2-07d: Eliminación bidireccional (legacy)
   // ─────────────────────────────────────────────────────────────
 
-  eliminarOdontogramasDePaciente: (pacienteId) => {
+  eliminarOdontogramasDePaciente: (pacienteId: string | number | null | undefined): void => {
     if (!pacienteId) return
     try {
       localStorage.removeItem(`odonto_inicial_${pacienteId}`)
       localStorage.removeItem(`odonto_evolucion_${pacienteId}`)
-    } catch (e) {
+    } catch (e: unknown) {
       log.error(`Error al eliminar odontogramas del paciente ${pacienteId}:`, e)
     }
   },
@@ -91,6 +111,6 @@ export const odontogramaStorageService = {
   // API legacy (mantenida para compatibilidad con código que pasa keys)
   // ─────────────────────────────────────────────────────────────
 
-  obtenerOdontograma: (key, fallback = {}) => leerJSON(key, fallback),
-  guardarOdontograma: (key, data) => escribirJSON(key, data)
+  obtenerOdontograma: <T = OdontogramaDatos>(key: string, fallback: T = {} as T): T => leerJSON<T>(key, fallback),
+  guardarOdontograma: (key: string, data: unknown): boolean => Boolean(escribirJSON(key, data))
 }
