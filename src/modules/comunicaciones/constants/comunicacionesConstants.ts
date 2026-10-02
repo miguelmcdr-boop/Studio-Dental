@@ -2,20 +2,57 @@
  * Constantes Gold Standard para Comunicaciones y Confirmaciones
  */
 
-export const CANALES_COMUNICACION = [
+export interface CanalComunicacion {
+  id: string
+  nombre: string
+  icono: string
+}
+
+export interface EstadoConfirmacionCita {
+  id: string
+  nombre: string
+  colorBg: string
+  colorText: string
+  colorBorder: string
+}
+
+export interface PlantillaComunicacion {
+  id: number | string
+  nombre: string
+  canal: string
+  asunto: string
+  cuerpo: string
+}
+
+export interface MensajeHistorial {
+  id: number | string
+  pacienteId: number | string
+  pacienteNombre: string
+  pacienteTelefono: string
+  pacienteEmail: string
+  canal: string
+  plantillaNombre: string
+  mensajeEnviado: string
+  fechaEnvio: string
+  horaEnvio: string
+  estado: string
+  notaBitacora: string
+}
+
+export const CANALES_COMUNICACION: readonly CanalComunicacion[] = [
   { id: 'whatsapp', nombre: 'WhatsApp Web / App', icono: 'MessageCircle' },
   { id: 'email', nombre: 'Correo Electrónico', icono: 'Mail' },
   { id: 'sms', nombre: 'Mensaje SMS', icono: 'Smartphone' }
 ]
 
-export const ESTADOS_CONFIRMACION_CITA = [
+export const ESTADOS_CONFIRMACION_CITA: readonly EstadoConfirmacionCita[] = [
   { id: 'Enviado', nombre: 'Enviado / Esperando Respuesta', colorBg: 'bg-blue-50', colorText: 'text-blue-800', colorBorder: 'border-blue-300' },
   { id: 'Confirmado', nombre: 'Cita Confirmada por Paciente', colorBg: 'bg-emerald-50', colorText: 'text-emerald-800', colorBorder: 'border-emerald-300' },
   { id: 'Reprogramar', nombre: 'Pide Reprogramar Hora', colorBg: 'bg-amber-50', colorText: 'text-amber-800', colorBorder: 'border-amber-300' },
   { id: 'Cancelado', nombre: 'Cita Cancelada', colorBg: 'bg-red-50', colorText: 'text-red-800', colorBorder: 'border-red-300' }
 ]
 
-export const PLANTILLAS_DEFAULT = [
+export const PLANTILLAS_DEFAULT: readonly PlantillaComunicacion[] = [
   {
     id: 1,
     nombre: 'Confirmación Cita Próxima',
@@ -46,7 +83,7 @@ export const PLANTILLAS_DEFAULT = [
   }
 ]
 
-export const MENSAJES_HISTORIAL_DEFAULT = [
+export const MENSAJES_HISTORIAL_DEFAULT: readonly MensajeHistorial[] = [
   {
     id: 1001,
     pacienteId: 1,
@@ -56,7 +93,7 @@ export const MENSAJES_HISTORIAL_DEFAULT = [
     canal: 'whatsapp',
     plantillaNombre: 'Confirmación Cita Próxima',
     mensajeEnviado: 'Hola Camila Silva Morales, le recordamos su cita para el 04/08/2026 a las 10:30 hrs con Dr. Miguel Díaz en DentikOS.\n\nDentikOS Clinical Gateway • Notificación Asistencial Oficial',
-    fechaEnvio: new Date().toLocaleDateString('es-CL'),
+    fechaEnvio: '03/08/2026',
     horaEnvio: '09:15',
     estado: 'Confirmado',
     notaBitacora: 'Respondió por WhatsApp confirmando su asistencia.'
