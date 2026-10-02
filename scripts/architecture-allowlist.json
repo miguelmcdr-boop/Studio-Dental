@@ -25,7 +25,7 @@
     "src/utils/anestesiaCalc.ts": 22,
     "src/components/LoginScreen.jsx": 343,
     "src/hooks/useAuth.js": 191,
-    "src/modules/pacientes/services/pacientesStorageService.js": 463,
+    "src/modules/pacientes/services/pacientesStorageService.ts": 310,
     "src/modules/agenda/services/agendaStorageService.ts": 379,
     "src/hooks/useDataMigration.js": 269,
     "src/modules/presupuestos/services/presupuestosStorageService.js": 462,
