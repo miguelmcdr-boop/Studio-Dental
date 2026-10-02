@@ -1,7 +1,3 @@
-import { supabase, USE_SUPABASE } from './supabaseClient'
-import { createLogger } from './logger'
-
-const log = createLogger('authService')
 /**
  * Servicio de Autenticación — Studio Dental
  * Tarea MASTER_ROADMAP: F1-01 (original), F7-16 (eliminación modo local)
@@ -14,15 +10,85 @@ const log = createLogger('authService')
  * en producción (VITE_USE_SUPABASE=true siempre). Reduce superficie de
  * ataque y simplifica mantenimiento.
  */
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { supabase, USE_SUPABASE } from './supabaseClient'
+import { createLogger } from './logger'
 
-// F7-16: Constantes y helpers PBKDF2 eliminados (modo local legacy)
+const log = createLogger('authService')
 
-// F7-16: crearCredencial eliminado (modo local legacy)
+// ---------------------------------------------------------------------------
+// Tipos e Interfaces
+// ---------------------------------------------------------------------------
 
-// F7-16: verificarPassword eliminado (modo local legacy)
+export interface PerfilUsuario {
+  email?: string
+  nombre?: string
+  nombreCompleto?: string
+  especialidad?: string
+  telefono?: string
+  rol?: string
+  [key: string]: unknown
+}
 
-// F7-16: Funciones de bloqueo por intentos fallidos eliminadas (modo local legacy)
-// (estaBloqueado, registrarIntentoFallido, limpiarIntentosFallidos, attemptsKey, obtenerEstadoIntentos, MAX_INTENTOS_FALLIDOS)
+export interface AuthUserMetadata {
+  role?: string
+  clinicaId?: string | null
+  full_name?: string
+  nombreCompleto?: string
+  [key: string]: unknown
+}
+
+export interface AuthResult {
+  success: boolean
+  error?: string
+  userMetadata?: AuthUserMetadata
+}
+
+export interface ClinicaMembresiaItem {
+  clinica_id: string
+  nombre: string
+  rol: string
+}
+
+export interface InvitacionItem {
+  id: string
+  email: string
+  rol: string
+  estado: string
+  token?: string
+  created_at?: string
+  expira_en?: string
+  [key: string]: unknown
+}
+
+export interface MiembroItem {
+  id: string
+  user_id: string
+  email: string
+  rol: string
+  activo: boolean
+  fecha_invitacion?: string
+  invitado_por?: string
+}
+
+export interface BootstrapClinicaDatos {
+  nombre: string
+  rutEmpresa?: string | null
+  direccion?: string | null
+  telefono?: string | null
+  emailContacto?: string | null
+}
+
+export interface BootstrapVerificacionResult {
+  necesario: boolean
+  error?: string
+}
+
+export interface BootstrapClinicaResult {
+  success: boolean
+  clinicaId?: string
+  error?: string
+}
 
 // ---------------------------------------------------------------------------
 // Gestión de perfiles de usuario (F2-07c)
@@ -36,20 +102,19 @@ const log = createLogger('authService')
 // authService es el dueño natural de la clave — no se crea un servicio
 // separado, se extiende este.
 
-const profileKey = (email) => `profile_${email.trim().toLowerCase()}`
+const profileKey = (email: string): string => `profile_${email.trim().toLowerCase()}`
 
 /**
  * Lee el perfil de usuario persistido para un email dado.
- * @param {string} email - Email del profesional (se normaliza a minúsculas).
- * @returns {object|null} El perfil parseado, o `null` si no existe o el JSON
- *   está corrupto. Nunca lanza excepción (Cap. VII.4 de la Constitución).
+ * @param email - Email del profesional (se normaliza a minúsculas).
+ * @returns El perfil parseado, o `null` si no existe o el JSON está corrupto.
  */
-export const obtenerPerfil = (email) => {
+export const obtenerPerfil = <T extends Record<string, unknown> = PerfilUsuario>(email: string): T | null => {
   if (!email) return null
   try {
     const raw = localStorage.getItem(profileKey(email))
-    return raw ? JSON.parse(raw) : null
-  } catch (e) {
+    return raw ? (JSON.parse(raw) as T) : null
+  } catch (e: unknown) {
     log.error(`Error al leer perfil "${email}" desde localStorage:`, e)
     return null
   }
@@ -57,17 +122,16 @@ export const obtenerPerfil = (email) => {
 
 /**
  * Persiste el perfil de usuario para un email dado.
- * @param {string} email - Email del profesional (se normaliza a minúsculas).
- * @param {object} perfil - Objeto de perfil completo a persistir.
- * @returns {boolean} `true` si la escritura fue exitosa, `false` si falló
- *   (ej. localStorage lleno). Nunca lanza excepción.
+ * @param email - Email del profesional (se normaliza a minúsculas).
+ * @param perfil - Objeto de perfil completo a persistir.
+ * @returns `true` si la escritura fue exitosa, `false` si falló.
  */
-export const guardarPerfil = (email, perfil) => {
+export const guardarPerfil = (email: string, perfil: unknown): boolean => {
   if (!email || !perfil) return false
   try {
     localStorage.setItem(profileKey(email), JSON.stringify(perfil))
     return true
-  } catch (e) {
+  } catch (e: unknown) {
     log.error(`Error al guardar perfil "${email}" en localStorage:`, e)
     return false
   }
@@ -77,10 +141,8 @@ export const guardarPerfil = (email, perfil) => {
  * Indica si existe un perfil persistido para un email dado.
  * Útil para la UI de LoginScreen que necesita saber si es primera vez
  * sin cargar el perfil completo.
- * @param {string} email
- * @returns {boolean}
  */
-export const existePerfil = (email) => {
+export const existePerfil = (email: string): boolean => {
   if (!email) return false
   try {
     return localStorage.getItem(profileKey(email)) !== null
@@ -99,11 +161,8 @@ export const existePerfil = (email) => {
  * Iniciar sesión con Supabase Auth.
  * F6-C-d.2: Consulta miembros_clinica post-login para obtener clinica_id y rol
  * autoritativo (RFC §4.6). Fail-safe a app_metadata si la query falla.
- * @param {string} email - Email del usuario
- * @param {string} password - Contraseña en texto plano
- * @returns {Promise<{success: boolean, error?: string, userMetadata?: object}>}
  */
-export const supabaseSignIn = async (email, password) => {
+export const supabaseSignIn = async (email: string, password: string): Promise<AuthResult> => {
   if (!USE_SUPABASE || !supabase) {
     return { success: false, error: 'Supabase no configurado' }
   }
@@ -123,11 +182,11 @@ export const supabaseSignIn = async (email, password) => {
   const { data: { user } } = await supabase.auth.getUser()
 
   // F6-B4: leer rol de app_metadata (JWT firmado, no editable por el usuario)
-  const appRole = user?.app_metadata?.role || 'recepcion'
+  const appRole = (user?.app_metadata?.role as string) || 'recepcion'
   
   // F6-C-d.2: Consultar miembros_clinica para obtener clinica_id y rol autoritativo
-  let clinicaId = null
-  let rolDesdeMiembros = null
+  let clinicaId: string | null = null
+  let rolDesdeMiembros: string | null = null
   
   if (user?.id) {
     try {
@@ -139,12 +198,12 @@ export const supabaseSignIn = async (email, password) => {
         .single()
       
       if (!errorMembresia && membresia) {
-        clinicaId = membresia.clinica_id
-        rolDesdeMiembros = membresia.rol
+        clinicaId = membresia.clinica_id as string
+        rolDesdeMiembros = membresia.rol as string
       } else {
         log.warn(`No se encontró membresía activa para user ${user.id}, usando app_metadata como fallback`)
       }
-    } catch (err) {
+    } catch (err: unknown) {
       log.error('Error consultando miembros_clinica:', err)
     }
   }
@@ -152,7 +211,7 @@ export const supabaseSignIn = async (email, password) => {
   // D37: Fail-safe — si la query falló, usar app_metadata.role
   const rolFinal = rolDesdeMiembros || appRole
   
-  const userMetadata = { 
+  const userMetadata: AuthUserMetadata = { 
     ...(user?.user_metadata || {}), 
     role: rolFinal,
     clinicaId: clinicaId  // F6-C-d.2: propagar clinicaId al perfil
@@ -168,12 +227,12 @@ export const supabaseSignIn = async (email, password) => {
  * Registrar nuevo usuario con Supabase Auth.
  * F6-C-d.2: NO consulta miembros_clinica (D38 — usuario nuevo no tiene membresía).
  * El admin la asigna después (flujo híbrido RFC Decisión #1).
- * @param {string} email - Email del usuario
- * @param {string} password - Contraseña en texto plano
- * @param {object} metadata - Datos adicionales (nombreCompleto, rol, etc.)
- * @returns {Promise<{success: boolean, error?: string, userMetadata?: object}>}
  */
-export const supabaseSignUp = async (email, password, metadata = {}) => {
+export const supabaseSignUp = async (
+  email: string,
+  password: string,
+  metadata: { nombreCompleto?: string; [key: string]: unknown } = {}
+): Promise<AuthResult> => {
   if (!USE_SUPABASE || !supabase) {
     return { success: false, error: 'Supabase no configurado' }
   }
@@ -198,8 +257,8 @@ export const supabaseSignUp = async (email, password, metadata = {}) => {
 
   // F6-B4 + F7-09: leer rol de app_metadata (siempre 'recepcion' por defecto)
   const { data: { user } } = await supabase.auth.getUser()
-  const appRole = user?.app_metadata?.role || 'recepcion'
-  const userMetadata = { ...(user?.user_metadata || {}), role: appRole }
+  const appRole = (user?.app_metadata?.role as string) || 'recepcion'
+  const userMetadata: AuthUserMetadata = { ...(user?.user_metadata || {}), role: appRole }
 
   return {
     success: true,
@@ -213,13 +272,16 @@ export const supabaseSignUp = async (email, password, metadata = {}) => {
  * Si falla la consulta de membresía o el rol no es válido,
  * degrada a 'recepcion' (rol no privilegiado), nunca a 'admin'.
  * 
- * @param {string} userId - ID del usuario autenticado
- * @param {object} [supabaseClient] - Cliente Supabase (default: supabase global)
- * @returns {Promise<string>} Rol del usuario (fallback garantizado a 'recepcion')
+ * @param userId - ID del usuario autenticado
+ * @param supabaseClient - Cliente Supabase (default: supabase global)
+ * @returns Rol del usuario (fallback garantizado a 'recepcion')
  */
-export const obtenerRolConFailClosed = async (userId, supabaseClient = supabase) => {
+export const obtenerRolConFailClosed = async (
+  userId: string | null | undefined,
+  supabaseClient: SupabaseClient | null = supabase
+): Promise<string> => {
   const ROL_FALLBACK = 'recepcion'
-  const ROLES_VALIDOS = ['admin', 'dentista', 'asistente', 'recepcion']
+  const ROLES_VALIDOS: readonly string[] = ['admin', 'dentista', 'asistente', 'recepcion']
 
   if (!userId) {
     log.warn('F7-09: userId vacío, degradando a recepcion')
@@ -256,18 +318,18 @@ export const obtenerRolConFailClosed = async (userId, supabaseClient = supabase)
       return ROL_FALLBACK
     }
 
-    return data.rol
-  } catch (error) {
-    log.error('F7-09: Excepción en obtenerRolConFailClosed, degradando a recepcion:', error.message)
+    return data.rol as string
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error)
+    log.error('F7-09: Excepción en obtenerRolConFailClosed, degradando a recepcion:', msg)
     return ROL_FALLBACK
   }
 }
 
 /**
  * Cerrar sesión con Supabase Auth.
- * @returns {Promise<void>}
  */
-export const supabaseSignOut = async () => {
+export const supabaseSignOut = async (): Promise<void> => {
   if (!USE_SUPABASE || !supabase) {
     return
   }
@@ -280,10 +342,9 @@ export const supabaseSignOut = async () => {
  * Actualiza user_metadata.clinica_id y recarga la sesión para que el JWT
  * incluya el nuevo valor. clinica_actual() (server-side) leerá este selector.
  *
- * @param {string} clinicaId - UUID de la clínica a activar
- * @returns {Promise<{success: boolean, error?: string}>}
+ * @param clinicaId - UUID de la clínica a activar
  */
-export const setClinicaActiva = async (clinicaId) => {
+export const setClinicaActiva = async (clinicaId: string): Promise<{ success: boolean; error?: string }> => {
   if (!USE_SUPABASE || !supabase) {
     return { success: false, error: 'Supabase no configurado' }
   }
@@ -303,47 +364,49 @@ export const setClinicaActiva = async (clinicaId) => {
     }
 
     // Forzar refresh del JWT para que incluya el nuevo clinica_id
-    const { data, error: refreshError } = await supabase.auth.refreshSession()
-    if (refreshError) {
-      log.warn('F7-10: No se pudo refrescar sesión:', refreshError.message)
-    } else if (data.session) {
-      log.info('F7-10: JWT refrescado, clinica_id en user_metadata:', 
-        data.session.user.user_metadata?.clinica_id)
+    if (typeof supabase.auth.refreshSession === 'function') {
+      const { data, error: refreshError } = await supabase.auth.refreshSession()
+      if (refreshError) {
+        log.warn('F7-10: No se pudo refrescar sesión:', refreshError.message)
+      } else if (data?.session) {
+        log.info('F7-10: JWT refrescado, clinica_id en user_metadata:', 
+          data.session.user.user_metadata?.clinica_id)
+      }
     }
 
     log.info('F7-10: Clínica activa establecida:', clinicaId)
     return { success: true }
-  } catch (error) {
-    log.error('F7-10: Excepción en setClinicaActiva:', error.message)
-    return { success: false, error: error.message }
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error)
+    log.error('F7-10: Excepción en setClinicaActiva:', msg)
+    return { success: false, error: msg }
   }
 }
 
 /**
  * F7-10: Obtiene la clínica activa del usuario desde user_metadata.
  *
- * @returns {string|null} UUID de la clínica activa, o null si no está seteada
+ * @returns UUID de la clínica activa, o null si no está seteada
  */
-export const getClinicaActiva = async () => {
+export const getClinicaActiva = async (): Promise<string | null> => {
   if (!USE_SUPABASE || !supabase) return null
 
   try {
     const { data: { user }, error } = await supabase.auth.getUser()
     if (error || !user) return null
 
-    return user.user_metadata?.clinica_id || null
-  } catch (error) {
-    log.error('F7-10: Error en getClinicaActiva:', error.message)
+    return (user.user_metadata?.clinica_id as string) || null
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error)
+    log.error('F7-10: Error en getClinicaActiva:', msg)
     return null
   }
 }
 
 /**
  * F7-10: Lista las clínicas donde el usuario tiene membresía activa.
- *
- * @returns {Promise<Array<{clinica_id: string, nombre: string, rol: string}>>}
  */
-export const listarMisClinicas = async () => {
+export const listarMisClinicas = async (): Promise<ClinicaMembresiaItem[]> => {
   if (!USE_SUPABASE || !supabase) return []
 
   try {
@@ -362,13 +425,23 @@ export const listarMisClinicas = async () => {
       return []
     }
 
-    return (data || []).map(m => ({
-      clinica_id: m.clinica_id,
-      nombre: m.clinicas?.nombre || 'Clínica',
-      rol: m.rol
-    }))
-  } catch (error) {
-    log.error('F7-10: Excepción en listarMisClinicas:', error.message)
+    return (data || []).map((m: {
+      clinica_id: string
+      rol: string
+      clinicas?: { nombre?: string } | { nombre?: string }[] | null
+    }) => {
+      const nombreClinica = Array.isArray(m.clinicas)
+        ? m.clinicas[0]?.nombre
+        : m.clinicas?.nombre
+      return {
+        clinica_id: m.clinica_id,
+        nombre: nombreClinica || 'Clínica',
+        rol: m.rol
+      }
+    })
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error)
+    log.error('F7-10: Excepción en listarMisClinicas:', msg)
     return []
   }
 }
@@ -379,9 +452,9 @@ export const listarMisClinicas = async () => {
  * Consulta miembros_clinica filtrada por clinica_actual() para obtener
  * el rol contextual (no el rol global de user_metadata).
  *
- * @returns {Promise<string|null>} Rol en la clínica activa, o null si no tiene membresía
+ * @returns Rol en la clínica activa, o null si no tiene membresía
  */
-export const obtenerRolEnClinicaActual = async () => {
+export const obtenerRolEnClinicaActual = async (): Promise<string | null> => {
   if (!USE_SUPABASE || !supabase) return null
 
   try {
@@ -389,8 +462,8 @@ export const obtenerRolEnClinicaActual = async () => {
     if (!user) return null
 
     // Query a miembros_clinica filtrada por la clínica activa
-    const { data, error } = await supabase.rpc('clinica_actual').then(async ({ data: clinicaId }) => {
-      if (!clinicaId) return { data: null, error: null }
+    const { data, error } = await supabase.rpc('clinica_actual').then(async ({ data: clinicaId }: { data: string | null }) => {
+      if (!clinicaId || !supabase) return { data: null, error: null }
 
       const { data: membresia, error: membresiaError } = await supabase
         .from('miembros_clinica')
@@ -408,9 +481,10 @@ export const obtenerRolEnClinicaActual = async () => {
       return null
     }
 
-    return data?.rol || null
-  } catch (error) {
-    log.error('F7-10b: Excepción en obtenerRolEnClinicaActual:', error.message)
+    return (data as { rol?: string } | null)?.rol || null
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error)
+    log.error('F7-10b: Excepción en obtenerRolEnClinicaActual:', msg)
     return null
   }
 }
@@ -423,11 +497,13 @@ export const obtenerRolEnClinicaActual = async () => {
  * F7-11: Invita a un nuevo miembro a la clínica activa.
  * Solo admins de la clínica activa pueden invitar.
  *
- * @param {string} email - Email del invitado
- * @param {string} rol - Rol a asignar: 'admin' | 'dentista' | 'asistente' | 'recepcion'
- * @returns {Promise<{success: boolean, invitacionId?: string, error?: string}>}
+ * @param email - Email del invitado
+ * @param rol - Rol a asignar: 'admin' | 'dentista' | 'asistente' | 'recepcion'
  */
-export const invitarMiembro = async (email, rol) => {
+export const invitarMiembro = async (
+  email: string,
+  rol: string
+): Promise<{ success: boolean; invitacionId?: string; error?: string }> => {
   if (!USE_SUPABASE || !supabase) {
     return { success: false, error: 'Supabase no configurado' }
   }
@@ -462,19 +538,18 @@ export const invitarMiembro = async (email, rol) => {
     }
 
     log.info('F7-11: Invitación creada:', { email, rol, id: data })
-    return { success: true, invitacionId: data }
-  } catch (error) {
-    log.error('F7-11: Excepción en invitarMiembro:', error.message)
-    return { success: false, error: error.message }
+    return { success: true, invitacionId: data as string }
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error)
+    log.error('F7-11: Excepción en invitarMiembro:', msg)
+    return { success: false, error: msg }
   }
 }
 
 /**
  * F7-11: Lista invitaciones de la clínica activa (admin) o del propio email (otros roles).
- *
- * @returns {Promise<{success: boolean, invitaciones?: Array, error?: string}>}
  */
-export const listarInvitaciones = async () => {
+export const listarInvitaciones = async (): Promise<{ success: boolean; invitaciones?: InvitacionItem[]; error?: string }> => {
   if (!USE_SUPABASE || !supabase) {
     return { success: false, error: 'Supabase no configurado' }
   }
@@ -487,20 +562,19 @@ export const listarInvitaciones = async () => {
       return { success: false, error: error.message }
     }
 
-    return { success: true, invitaciones: data || [] }
-  } catch (error) {
-    log.error('F7-11: Excepción en listarInvitaciones:', error.message)
-    return { success: false, error: error.message }
+    return { success: true, invitaciones: (data || []) as InvitacionItem[] }
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error)
+    log.error('F7-11: Excepción en listarInvitaciones:', msg)
+    return { success: false, error: msg }
   }
 }
 
 /**
  * F7-11: Lista miembros actuales de la clínica activa.
  * Consulta miembros_clinica JOIN auth.users para obtener emails.
- *
- * @returns {Promise<{success: boolean, miembros?: Array, error?: string}>}
  */
-export const listarMiembros = async () => {
+export const listarMiembros = async (): Promise<{ success: boolean; miembros?: MiembroItem[]; error?: string }> => {
   if (!USE_SUPABASE || !supabase) {
     return { success: false, error: 'Supabase no configurado' }
   }
@@ -532,20 +606,34 @@ export const listarMiembros = async () => {
     }
 
     // Transformar para incluir email de auth.users
-    const miembros = (data || []).map(m => ({
-      id: m.id,
-      user_id: m.user_id,
-      email: m.users?.email || 'N/A',
-      rol: m.rol,
-      activo: m.activo,
-      fecha_invitacion: m.fecha_invitacion,
-      invitado_por: m.invitado_por
-    }))
+    const miembros: MiembroItem[] = (data || []).map((m: {
+      id: string
+      user_id: string
+      rol: string
+      activo: boolean
+      fecha_invitacion?: string
+      invitado_por?: string
+      users?: { email?: string } | { email?: string }[] | null
+    }) => {
+      const emailUser = Array.isArray(m.users)
+        ? m.users[0]?.email
+        : m.users?.email
+      return {
+        id: m.id,
+        user_id: m.user_id,
+        email: emailUser || 'N/A',
+        rol: m.rol,
+        activo: m.activo,
+        fecha_invitacion: m.fecha_invitacion,
+        invitado_por: m.invitado_por
+      }
+    })
 
     return { success: true, miembros }
-  } catch (error) {
-    log.error('F7-11: Excepción en listarMiembros:', error.message)
-    return { success: false, error: error.message }
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error)
+    log.error('F7-11: Excepción en listarMiembros:', msg)
+    return { success: false, error: msg }
   }
 }
 
@@ -553,10 +641,9 @@ export const listarMiembros = async () => {
  * F7-11: Revoca una invitación pendiente.
  * Solo admins de la clínica de la invitación pueden revocar.
  *
- * @param {string} invitacionId - UUID de la invitación
- * @returns {Promise<{success: boolean, error?: string}>}
+ * @param invitacionId - UUID de la invitación
  */
-export const revocarInvitacion = async (invitacionId) => {
+export const revocarInvitacion = async (invitacionId: string): Promise<{ success: boolean; error?: string }> => {
   if (!USE_SUPABASE || !supabase) {
     return { success: false, error: 'Supabase no configurado' }
   }
@@ -566,7 +653,7 @@ export const revocarInvitacion = async (invitacionId) => {
       return { success: false, error: 'ID de invitación requerido' }
     }
 
-    const { data, error } = await supabase.rpc('revocar_invitacion', {
+    const { error } = await supabase.rpc('revocar_invitacion', {
       p_invitacion_id: invitacionId
     })
 
@@ -580,9 +667,10 @@ export const revocarInvitacion = async (invitacionId) => {
 
     log.info('F7-11: Invitación revocada:', invitacionId)
     return { success: true }
-  } catch (error) {
-    log.error('F7-11: Excepción en revocarInvitacion:', error.message)
-    return { success: false, error: error.message }
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error)
+    log.error('F7-11: Excepción en revocarInvitacion:', msg)
+    return { success: false, error: msg }
   }
 }
 
@@ -590,10 +678,9 @@ export const revocarInvitacion = async (invitacionId) => {
  * F7-11: Acepta una invitación con token.
  * Valida que el email del usuario autenticado coincida con la invitación.
  *
- * @param {string} token - Token único de la invitación
- * @returns {Promise<{success: boolean, clinicaId?: string, error?: string}>}
+ * @param token - Token único de la invitación
  */
-export const aceptarInvitacion = async (token) => {
+export const aceptarInvitacion = async (token: string): Promise<{ success: boolean; clinicaId?: string; error?: string }> => {
   if (!USE_SUPABASE || !supabase) {
     return { success: false, error: 'Supabase no configurado' }
   }
@@ -629,21 +716,22 @@ export const aceptarInvitacion = async (token) => {
     }
 
     log.info('F7-11: Invitación aceptada. Clinica ID:', data)
-    return { success: true, clinicaId: data }
-  } catch (error) {
-    log.error('F7-11: Excepción en aceptarInvitacion:', error.message)
-    return { success: false, error: error.message }
+    return { success: true, clinicaId: data as string }
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error)
+    log.error('F7-11: Excepción en aceptarInvitacion:', msg)
+    return { success: false, error: msg }
   }
 }
 
 /**
  * F7-11: Genera URL de invitación para compartir.
  *
- * @param {string} token - Token de la invitación
- * @returns {string} URL completa para aceptar la invitación
+ * @param token - Token de la invitación
+ * @returns URL completa para aceptar la invitación
  */
-export const generarUrlInvitacion = (token) => {
-  const baseUrl = window.location.origin
+export const generarUrlInvitacion = (token: string): string => {
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
   return `${baseUrl}/#/aceptar-invita?token=${encodeURIComponent(token)}`
 }
 
@@ -654,10 +742,8 @@ export const generarUrlInvitacion = (token) => {
 /**
  * F7-11b: Verifica si el usuario actual necesita crear una clínica.
  * Retorna true si el usuario no tiene membresía activa en ninguna clínica.
- *
- * @returns {Promise<{necesario: boolean, error?: string}>}
  */
-export const verificarBootstrapNecesario = async () => {
+export const verificarBootstrapNecesario = async (): Promise<BootstrapVerificacionResult> => {
   if (!USE_SUPABASE || !supabase) {
     return { necesario: false, error: 'Supabase no configurado' }
   }
@@ -671,9 +757,10 @@ export const verificarBootstrapNecesario = async () => {
     }
 
     return { necesario: data === true }
-  } catch (error) {
-    log.error('F7-11b: Excepción en verificarBootstrapNecesario:', error.message)
-    return { necesario: false, error: error.message }
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error)
+    log.error('F7-11b: Excepción en verificarBootstrapNecesario:', msg)
+    return { necesario: false, error: msg }
   }
 }
 
@@ -681,15 +768,9 @@ export const verificarBootstrapNecesario = async () => {
  * F7-11b: Crea una nueva clínica y asigna al usuario como admin.
  * El usuario no debe tener clínica activa (validado en server).
  *
- * @param {Object} datos - Datos de la clínica
- * @param {string} datos.nombre - Nombre de la clínica (requerido, 3-100 chars)
- * @param {string} [datos.rutEmpresa] - RUT de la empresa (opcional, único)
- * @param {string} [datos.direccion] - Dirección (opcional)
- * @param {string} [datos.telefono] - Teléfono (opcional)
- * @param {string} [datos.emailContacto] - Email de contacto (opcional)
- * @returns {Promise<{success: boolean, clinicaId?: string, error?: string}>}
+ * @param datos - Datos de la clínica
  */
-export const bootstrapClinica = async (datos) => {
+export const bootstrapClinica = async (datos: BootstrapClinicaDatos): Promise<BootstrapClinicaResult> => {
   if (!USE_SUPABASE || !supabase) {
     return { success: false, error: 'Supabase no configurado' }
   }
@@ -744,15 +825,16 @@ export const bootstrapClinica = async (datos) => {
     log.info('F7-11b: Clínica creada:', { clinicaId: data, nombre: datos.nombre })
 
     // Después de crear la clínica, establecerla como activa
-    const setResult = await setClinicaActiva(data)
+    const setResult = await setClinicaActiva(data as string)
     if (!setResult.success) {
       log.warn('F7-11b: Clínica creada pero no se pudo activar:', setResult.error)
       // No fallar el bootstrap, solo advertir
     }
 
-    return { success: true, clinicaId: data }
-  } catch (error) {
-    log.error('F7-11b: Excepción en bootstrapClinica:', error.message)
-    return { success: false, error: error.message }
+    return { success: true, clinicaId: data as string }
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error)
+    log.error('F7-11b: Excepción en bootstrapClinica:', msg)
+    return { success: false, error: msg }
   }
 }
