@@ -11,38 +11,49 @@
  * futura si se requiere).
  */
 import { createTenantRepository } from '../../../services/localStorageRepository'
-import { validarListaPrestaciones } from '../schemas/prestacionSchema'
-import { createLogger } from '../../../services/logger.js'
+import { validarListaPrestaciones, type Prestacion } from '../schemas/prestacionSchema'
+import { createLogger } from '../../../services/logger'
 
 const log = createLogger('prestacionesStorageService')
+
+export type { Prestacion }
+
+export interface PaqueteClinico {
+  id: number | string
+  nombre: string
+  descripcion?: string
+  precioCombo?: number
+  ahorroEstimado?: string
+  [key: string]: unknown
+}
 
 const STORAGE_KEY_ARANCEL = 'clinica_arancel_prestaciones'
 const STORAGE_KEY_PAQUETES = 'clinica_paquetes_clinicos_promos'
 
 // F7-36 FASE 1 (Commit 1.5e): migrados a createTenantRepository para aislamiento multi-tenant.
 // Claves con prefijo clinica_ ahora: sd_<clinicaId>_clinica_arancel_prestaciones, sd_<clinicaId>_clinica_paquetes_clinicos_promos
-const arancelRepo = createTenantRepository(STORAGE_KEY_ARANCEL, undefined)
-const paquetesRepo = createTenantRepository(STORAGE_KEY_PAQUETES, undefined)
+const arancelRepo = createTenantRepository<Prestacion[] | undefined>(STORAGE_KEY_ARANCEL, undefined)
+const paquetesRepo = createTenantRepository<PaqueteClinico[] | undefined>(STORAGE_KEY_PAQUETES, undefined)
 
 export const prestacionesStorageService = {
   // Arancel — con validación F2-04d
-  obtenerPrestaciones: (defaults) => arancelRepo.obtener(defaults),
+  obtenerPrestaciones: (defaults?: Prestacion[]): Prestacion[] | undefined => arancelRepo.obtener(defaults),
 
   /**
    * Valida la lista de prestaciones con prestacionSchema antes de persistir.
    * Si la validación falla, NO escribe en localStorage y retorna false.
    * Si la validación pasa, persiste los datos validados y retorna true.
    *
-   * @param {Array} prestaciones - Lista de prestaciones a persistir.
+   * @param {Prestacion[] | null | undefined} prestaciones - Lista de prestaciones a persistir.
    * @returns {boolean} true si se guardó exitosamente, false si la validación falló.
    */
-  guardarPrestaciones: (prestaciones) => {
+  guardarPrestaciones: (prestaciones?: Prestacion[] | null): boolean => {
     // Si es undefined o null, permite guardar (caso inicial sin arancel)
     if (prestaciones == null) {
-      return arancelRepo.guardar(prestaciones)
+      return arancelRepo.guardar(prestaciones ?? undefined)
     }
     const validacion = validarListaPrestaciones(prestaciones)
-    if (!validacion.valido) {
+    if (!validacion.valido || !validacion.datos) {
       log.error(
         'Error de validación al guardar arancel de prestaciones (F2-04d):',
         validacion.error
@@ -53,6 +64,6 @@ export const prestacionesStorageService = {
   },
 
   // Paquetes clínicos (sin validación por ahora, posible tarea futura)
-  obtenerPaquetes: (defaults) => paquetesRepo.obtener(defaults),
-  guardarPaquetes: (paquetes) => paquetesRepo.guardar(paquetes)
+  obtenerPaquetes: (defaults?: PaqueteClinico[]): PaqueteClinico[] | undefined => paquetesRepo.obtener(defaults),
+  guardarPaquetes: (paquetes?: PaqueteClinico[] | null): boolean => paquetesRepo.guardar(paquetes ?? undefined)
 }
