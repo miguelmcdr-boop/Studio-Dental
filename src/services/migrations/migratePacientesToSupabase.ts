@@ -22,53 +22,99 @@
  * - fechaIngreso → fecha_ingreso
  */
 import { supabase } from '../supabaseClient'
-import { pacientesStorageService } from '../../modules/pacientes'
+import { pacientesStorageService, type Paciente } from '../../modules/pacientes'
 import { migrationStorageService } from '../migrationStorageService'
 import { esUuidValido } from './uuidUtils'
 import { createLogger } from '../logger'
 
 const log = createLogger('migratePacientesToSupabase')
 
+export interface MigratePacientesError {
+  pacienteId: string | number
+  nombre?: string
+  error: string
+}
+
+export interface MigratePacientesResult {
+  success: boolean
+  migrados: number
+  omitidos: number
+  errores: Array<MigratePacientesError | string>
+}
+
+export interface VerificarPacientesPendientesResult {
+  total: number
+  pendientes: number
+  yaMigrados: number
+}
+
+interface PacienteSupabasePayload {
+  user_id: string
+  nombre: string
+  rut: string
+  telefono: string | null
+  edad: string | null
+  prevision: string | null
+  email: string | null
+  direccion: string | null
+  ocupacion: string | null
+  contacto_emergencia: string | null
+  peso: string | null
+  alergias: unknown
+  enfermedades: unknown
+  medicamentos: unknown
+  habitos: unknown
+  examen_extraoral: string | null
+  examen_intraoral: string | null
+  presion_arterial: string | null
+  riesgo_cariogenico: string | null
+  riesgo_periodontal: string | null
+  motivo_consulta: string | null
+  anamnesis_proxima: string | null
+  fecha_ingreso: string
+  notas: string
+}
+
 /**
  * Convierte un paciente de formato localStorage (camelCase) a formato
  * Supabase (snake_case).
  */
-const transformarPacienteParaSupabase = (paciente, userId) => {
+const transformarPacienteParaSupabase = (paciente: Paciente, userId: string): PacienteSupabasePayload => {
   return {
     user_id: userId,
     nombre: paciente.nombre,
     rut: paciente.rut,
-    telefono: paciente.telefono || null,
+    telefono: paciente.telefono ? String(paciente.telefono) : null,
     edad: paciente.edad ? String(paciente.edad) : null,
     prevision: paciente.prevision || null,
     email: paciente.email || null,
     direccion: paciente.direccion || null,
     ocupacion: paciente.ocupacion || null,
-    contacto_emergencia: paciente.contactoEmergencia || null,
+    contacto_emergencia: (paciente.contactoEmergencia as string | undefined) || null,
     peso: paciente.peso ? String(paciente.peso) : null,
     alergias: paciente.alergias || null,
     enfermedades: paciente.enfermedades || null,
     medicamentos: paciente.medicamentos || null,
     habitos: paciente.habitos || null,
-    examen_extraoral: paciente.examenExtraoral || null,
-    examen_intraoral: paciente.examenIntraoral || null,
-    presion_arterial: paciente.presionArterial || null,
-    riesgo_cariogenico: paciente.riesgoCariogenico || null,
-    riesgo_periodontal: paciente.riesgoPeriodontal || null,
-    motivo_consulta: paciente.motivoConsulta || null,
-    anamnesis_proxima: paciente.anamnesisProxima || null,
-    fecha_ingreso: paciente.fechaIngreso ? new Date(paciente.fechaIngreso).toISOString() : new Date().toISOString(),
-    notas: paciente.notas || ''
+    examen_extraoral: (paciente.examenExtraoral as string | undefined) || null,
+    examen_intraoral: (paciente.examenIntraoral as string | undefined) || null,
+    presion_arterial: (paciente.presionArterial as string | undefined) || null,
+    riesgo_cariogenico: (paciente.riesgoCariogenico as string | undefined) || null,
+    riesgo_periodontal: (paciente.riesgoPeriodontal as string | undefined) || null,
+    motivo_consulta: (paciente.motivoConsulta as string | undefined) || null,
+    anamnesis_proxima: (paciente.anamnesisProxima as string | undefined) || null,
+    fecha_ingreso: paciente.fechaIngreso ? new Date(paciente.fechaIngreso as string | Date).toISOString() : new Date().toISOString(),
+    notas: (paciente.notas as string | undefined) || ''
   }
 }
 
 /**
  * Ejecuta la migración de pacientes de localStorage a Supabase.
  *
- * @param {string} userId - UUID del usuario autenticado en Supabase
- * @returns {Promise<{success: boolean, migrados: number, omitidos: number, errores: Array}>}
+ * @param userId - UUID del usuario autenticado en Supabase
+ * @returns resultado de la migración
  */
-export const migratePacientesToSupabase = async (userId) => {
+export const migratePacientesToSupabase = async (userId: string): Promise<MigratePacientesResult> => {
   if (!supabase) {
     return {
       success: false,
@@ -88,7 +134,7 @@ export const migratePacientesToSupabase = async (userId) => {
   }
 
   const pacientes = pacientesStorageService.obtenerPacientes([])
-  const resultado = {
+  const resultado: MigratePacientesResult = {
     success: true,
     migrados: 0,
     omitidos: 0,
@@ -142,11 +188,12 @@ export const migratePacientesToSupabase = async (userId) => {
       // Registrar mapeo legacyId → supabaseId
       migrationStorageService.registrarMapeo(paciente.id, data.id)
       resultado.migrados++
-    } catch (error) {
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error)
       resultado.errores.push({
         pacienteId: paciente.id,
         nombre: paciente.nombre,
-        error: error.message
+        error: msg
       })
     }
   }
@@ -154,16 +201,13 @@ export const migratePacientesToSupabase = async (userId) => {
   return resultado
 }
 
-
 /**
  * Verifica si hay pacientes pendientes de migrar.
  * Un paciente NO necesita migración si:
  * - Ya tiene un UUID de Supabase (ya está en Supabase)
  * - Tiene una entrada legacyId → uuid en el mapa de migración
- *
- * @returns {{total: number, pendientes: number, yaMigrados: number}}
  */
-export const verificarPacientesPendientes = () => {
+export const verificarPacientesPendientes = (): VerificarPacientesPendientesResult => {
   const pacientes = pacientesStorageService.obtenerPacientes([])
   let yaMigrados = 0
   for (const paciente of pacientes) {
