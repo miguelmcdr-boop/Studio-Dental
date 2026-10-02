@@ -8,7 +8,11 @@
  *   useOfflineQueue()  // en App.jsx
  */
 import { useEffect } from 'react'
-import { operationQueue } from '../services/operationQueue'
+import { procesarColaPacientes } from '../modules/pacientes/services/pacientesStorageService'
+import { procesarColaSubidas } from '../services/adjuntosStorageService'
+import { procesarColaEvoluciones } from '../modules/pacientes/services/evolucionesStorageService'
+import { procesarColaPagos } from '../modules/pagos/services/pagosStorageService'
+import { procesarColaPresupuestos, procesarPendingDeletesPresupuestos } from '../modules/presupuestos/services/presupuestosStorageService'
 import { notificationService } from '../services/notificationService'
 import { createLogger } from '../services/logger.js'
 
@@ -17,8 +21,13 @@ const log = createLogger('useOfflineQueue')
 export const useOfflineQueue = () => {
   useEffect(() => {
     const handleOnline = () => {
-      log.info('[App] Conexión restaurada, procesando cola offline...')
-      operationQueue.processQueue()
+      log.info('[App] Conexión restaurada, procesando colas offline...')
+      procesarColaPacientes().catch((e) => log.warn('[App] Error procesando pacientes pendientes:', e))
+      procesarColaSubidas().catch((e) => log.warn('[App] Error procesando subidas:', e))
+      procesarColaEvoluciones().catch((e) => log.warn('[App] Error procesando evoluciones pendientes:', e))
+      procesarColaPagos().catch((e) => log.warn('[App] Error procesando pagos pendientes:', e))
+      procesarColaPresupuestos().catch((e) => log.warn('[App] Error procesando presupuestos pendientes:', e))
+      procesarPendingDeletesPresupuestos().catch((e) => log.warn('[App] Error procesando deletes de presupuestos:', e))
     }
 
     const handleOffline = () => {
@@ -35,7 +44,12 @@ export const useOfflineQueue = () => {
 
     // Procesar cola al iniciar si está online
     if (navigator.onLine) {
-      operationQueue.processQueue()
+      procesarColaPacientes().catch((e) => log.warn('[App] Error procesando pacientes iniciales:', e))
+      procesarColaSubidas().catch((e) => log.warn('[App] Error procesando subidas iniciales:', e))
+      procesarColaEvoluciones().catch((e) => log.warn('[App] Error procesando evoluciones iniciales:', e))
+      procesarColaPagos().catch((e) => log.warn('[App] Error procesando pagos iniciales:', e))
+      procesarColaPresupuestos().catch((e) => log.warn('[App] Error procesando presupuestos iniciales:', e))
+      procesarPendingDeletesPresupuestos().catch((e) => log.warn('[App] Error procesando deletes iniciales de presupuestos:', e))
     }
 
     return () => {

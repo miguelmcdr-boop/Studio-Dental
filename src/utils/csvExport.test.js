@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { formatearCitaParaCSV, exportarCitasCSV } from './csvExport'
 
 describe('csvExport', () => {
@@ -20,6 +20,11 @@ describe('csvExport', () => {
       expect(formateada.Hora).toBe('10:00')
       expect(formateada.Paciente).toBe('Juan Pérez')
       expect(formateada.RUT).toBe('12.345.678-9')
+      expect(formateada.Teléfono).toBe('+56912345678')
+      expect(formateada.Tratamiento).toBe('Limpieza dental')
+      expect(formateada.Box).toBe('Box 1')
+      expect(formateada.Estado).toBe('Agendada')
+      expect(formateada.ID).toBe('cita_123')
     })
 
     it('maneja campos faltantes con valores por defecto', () => {
@@ -28,6 +33,10 @@ describe('csvExport', () => {
       expect(formateada.Paciente).toBe('Sin nombre')
       expect(formateada.RUT).toBe('')
       expect(formateada.Box).toBe('')
+      expect(formateada.Teléfono).toBe('')
+      expect(formateada.Tratamiento).toBe('')
+      expect(formateada.Estado).toBe('')
+      expect(formateada.ID).toBe('')
     })
   })
 
@@ -42,8 +51,8 @@ describe('csvExport', () => {
         { fecha: '2026-09-24', horaInicio: '11:00', pacienteNombre: 'María López' },
       ]
       // Mock de document.createElement y URL.createObjectURL
-      global.URL.createObjectURL = () => 'blob:test'
-      global.URL.revokeObjectURL = () => {}
+      global.URL.createObjectURL = vi.fn(() => 'blob:test')
+      global.URL.revokeObjectURL = vi.fn()
       expect(() => exportarCitasCSV(citas, 'test')).not.toThrow()
     })
   })

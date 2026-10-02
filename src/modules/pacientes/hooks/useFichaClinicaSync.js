@@ -16,6 +16,7 @@ import {
   sincronizarPaciente,
   limpiarCachePaciente
 } from '../../../services/datosClinicosSupabase'
+import { procesarColaEvoluciones } from '../services/evolucionesStorageService'
 import { createLogger } from '../../../services/logger.js'
 
 const log = createLogger('useFichaClinicaSync')
@@ -40,6 +41,12 @@ export const useFichaClinicaSync = (pacienteId) => {
       setSincronizando(true)
       setError(null)
       try {
+        // P1-3: Si hay conexión, intentar procesar cola de evoluciones diferidas
+        if (typeof navigator === 'undefined' || navigator.onLine) {
+          procesarColaEvoluciones?.().catch((e) =>
+            log.warn('Error procesando evoluciones diferidas al montar ficha:', e?.message || e)
+          )
+        }
         await sincronizarPaciente(pacienteId)
       } catch (err) {
         // F6-D-1: si Supabase falla, no romper la ficha — el fallback

@@ -42,6 +42,9 @@ export const usePacientesStore = create((set) => ({
    */
   refrescarDesdeSupabase: async () => {
     try {
+      if (typeof pacientesStorageService.procesarColaPacientes === 'function') {
+        await pacientesStorageService.procesarColaPacientes().catch((e) => log.warn('Error procesando cola pacientes:', e))
+      }
       const datos = await pacientesStorageService.sincronizarDesdeSupabase()
       if (Array.isArray(datos)) {
         set({ pacientes: datos })

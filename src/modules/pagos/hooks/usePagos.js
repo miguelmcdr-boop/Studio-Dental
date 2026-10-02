@@ -38,16 +38,10 @@ export const usePagos = () => {
   const agregarOActualizarPago = useCallback((pagoData) => {
     if (!pagoData?.folioComprobante || !pagoData?.pacienteNombre) { alert({ title: 'Pago inválido', description: 'El pago requiere folio y paciente.', variant: 'error' }); return false }
     setPagos(prev => {
-      let actualizados = []
       const existe = prev.some(p => String(p.id) === String(pagoData.id))
-
-      if (existe) {
-        actualizados = prev.map(p => String(p.id) === String(pagoData.id) ? { ...p, ...pagoData } : p)
-      } else {
-        actualizados = [pagoData, ...prev]
-      }
-
+      const actualizados = existe ? prev.map(p => String(p.id) === String(pagoData.id) ? { ...p, ...pagoData } : p) : [pagoData, ...prev]
       pagosStorageService.guardarPagos(actualizados)
+      if (typeof pagosStorageService.registrarPago === 'function') pagosStorageService.registrarPago(pagoData).catch(() => {})
       sincronizarAbonoConFichaPaciente(pagoData.pacienteId, pagoData)
       return actualizados
     })

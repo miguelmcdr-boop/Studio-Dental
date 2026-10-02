@@ -241,6 +241,31 @@ export const limpiarCachePaciente = (pacienteId) => {
   cache.delete(pacienteId)
 }
 
+/**
+ * Obtiene las evoluciones clínicas de un paciente directamente desde Supabase.
+ *
+ * @param {string} pacienteId - UUID del paciente
+ * @returns {Promise<Array>} Lista de evoluciones remotas
+ */
+export const obtenerEvolucionesRemotas = async (pacienteId) => {
+  if (!USE_SUPABASE || !supabase || !pacienteId) {
+    return []
+  }
+  try {
+    const { data, error } = await supabase
+      .from('evoluciones_clinicas')
+      .select('*')
+      .eq('paciente_id', pacienteId)
+      .order('fecha_hora', { ascending: false })
+
+    if (error) throw error
+    return data || []
+  } catch (error) {
+    log.error('Error al obtener evoluciones remotas desde Supabase:', error)
+    return []
+  }
+}
+
 
 
 /**

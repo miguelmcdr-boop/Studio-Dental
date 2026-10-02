@@ -23,4 +23,12 @@ describe('formatoMoneda (Commit G2)', () => {
   it('formatea cero', () => {
     expect(formatearCLP(0)).toBe('$0 CLP')
   })
+
+  it('maneja string vacío como $0 CLP', () => {
+    expect(formatearCLP('')).toBe('$0 CLP')
+  })
+
+  it('formatea montos negativos correctamente', () => {
+    expect(formatearCLP(-15000)).toBe('$-15.000 CLP')
+  })
 })
