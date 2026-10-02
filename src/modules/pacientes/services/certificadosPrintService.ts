@@ -2,7 +2,7 @@ import { createLogger } from '../../../services/logger'
 
 const log = createLogger('certificadosPrintService')
 
-const CLASE_AISLAMIENTO = 'print-cert-activo'
+export const CLASE_AISLAMIENTO = 'print-cert-activo'
 
 /**
  * Imprime el certificado de forma aislada (M2a).
@@ -12,8 +12,8 @@ const CLASE_AISLAMIENTO = 'print-cert-activo'
  * certificado. La clase se remueve automáticamente al terminar
  * la impresión (evento afterprint) o si window.print lanza error.
  */
-export const imprimirCertificadoAislado = () => {
-  const limpiar = () => {
+export const imprimirCertificadoAislado = (): void => {
+  const limpiar = (): void => {
     document.body.classList.remove(CLASE_AISLAMIENTO)
     window.removeEventListener('afterprint', limpiar)
   }
@@ -23,7 +23,7 @@ export const imprimirCertificadoAislado = () => {
 
   try {
     window.print()
-  } catch (e) {
+  } catch (e: unknown) {
     log.error('Error al imprimir certificado:', e)
     limpiar()
   }
