@@ -26,25 +26,29 @@
  * - Al escribir a Supabase: normalizar al formato esperado
  */
 import { createTenantRepository } from '../../../services/localStorageRepository'
-import { validarListaCitas } from '../schemas/citaSchema'
+import { validarListaCitas, type Cita } from '../schemas/citaSchema'
 import { supabase, USE_SUPABASE } from '../../../services/supabaseClient'
 import { migrationStorageService } from '../../../services/migrationStorageService'
 import { esUuidValido } from '../../../services/migrations/uuidUtils'
 import { createLogger } from '../../../services/logger'
+import {
+  transformarDesdeSupabase,
+  transformarParaSupabase
+} from './agendaTransformations'
 
 const log = createLogger('agendaStorageService')
 
 const STORAGE_KEY_AGENDA = 'studio_dental_agenda_citas_v3'
 // F7-36 FASE 1 (Commit 1.5b): migrado a createTenantRepository para aislamiento multi-tenant.
 // La clave legacy 'studio_dental_agenda_citas_v3' ahora se almacena como sd_<clinicaId>_studio_dental_agenda_citas_v3.
-const citasRepo = createTenantRepository(STORAGE_KEY_AGENDA, [], { notify: true })
+const citasRepo = createTenantRepository<Cita[]>(STORAGE_KEY_AGENDA, [], { notify: true })
 
 // P0-1: Repositorio aislado por tenant para registrar eliminaciones pendientes explícitas
 const STORAGE_KEY_PENDING_DELETES = 'studio_dental_agenda_pending_deletes'
-const pendingDeletesRepo = createTenantRepository(STORAGE_KEY_PENDING_DELETES, [])
+const pendingDeletesRepo = createTenantRepository<string[]>(STORAGE_KEY_PENDING_DELETES, [])
 
-const obtenerPendingDeletes = () => pendingDeletesRepo.obtener([])
-const guardarPendingDeletes = (ids) => {
+const obtenerPendingDeletes = (): string[] => pendingDeletesRepo.obtener([])
+const guardarPendingDeletes = (ids: string[]) => {
   if (!ids || ids.length === 0) {
     return pendingDeletesRepo.eliminar()
   }
@@ -53,19 +57,14 @@ const guardarPendingDeletes = (ids) => {
 
 // Caché en memoria: evita lecturas repetidas de localStorage y permite
 // que la API pública permanezca síncrona.
-let citasCache = null
+let citasCache: Cita[] | null = null
 let cacheInicializado = false
-
-import {
-  transformarDesdeSupabase,
-  transformarParaSupabase
-} from './agendaTransformations'
 
 // ═══════════════════════════════════════════════════════════════════
 // INICIALIZACIÓN DE CACHÉ
 // ═══════════════════════════════════════════════════════════════════
 
-const inicializarCache = (defaults) => {
+const inicializarCache = (defaults: Cita[]): void => {
   if (cacheInicializado) return
   const datos = citasRepo.obtener(defaults)
   citasCache = Array.isArray(datos) ? datos : defaults
@@ -80,28 +79,38 @@ const inicializarCache = (defaults) => {
  * Obtiene la lista de citas desde la caché en memoria.
  * SIEMPRE SÍNCRONO: nunca bloquea la UI.
  */
-const obtenerCitas = (defaults = []) => {
+const obtenerCitas = (defaults: Cita[] = []): Cita[] => {
   if (!cacheInicializado) {
     inicializarCache(defaults)
   }
-  return citasCache
+  return citasCache ?? defaults
 }
 
 // ═══════════════════════════════════════════════════════════════════
 // SINCRONIZAR DESDE SUPABASE (ASYNC)
 // ═══════════════════════════════════════════════════════════════════
 
+interface QueryBuilderLike {
+  is?: (col: string, val: unknown) => QueryBuilderLike
+  order: (col: string, opts?: { ascending?: boolean }) => {
+    order: (col: string, opts?: { ascending?: boolean }) => Promise<{
+      data: Record<string, unknown>[] | null
+      error: { message: string } | null
+    }>
+  }
+}
+
 /**
  * Refresca la caché de citas desde Supabase.
  * Útil después del login, después de migración, o al recibir eventos Realtime.
  */
-const sincronizarDesdeSupabase = async () => {
+const sincronizarDesdeSupabase = async (): Promise<Cita[] | null> => {
   if (!USE_SUPABASE || !supabase) {
     return citasCache
   }
 
   try {
-    let query = supabase.from('citas').select('*')
+    let query = supabase.from('citas').select('*') as unknown as QueryBuilderLike
     if (typeof query.is === 'function') {
       query = query.is('deleted_at', null)
     }
@@ -121,12 +130,14 @@ const sincronizarDesdeSupabase = async () => {
       log.info('Supabase retornó []: clínica sin citas, cache limpiada')
     }
 
-    const nuevas = data.map(transformarDesdeSupabase).filter(Boolean)
+    const nuevas: Cita[] = data
+      .map((row: Record<string, unknown>) => transformarDesdeSupabase(row))
+      .filter((c): c is Cita => c !== null)
     citasCache = nuevas
     citasRepo.guardar(nuevas)
 
     return nuevas
-  } catch (error) {
+  } catch (error: unknown) {
     log.error('Excepción al sincronizar desde Supabase:', error)
     return citasCache
   }
@@ -143,10 +154,10 @@ const sincronizarDesdeSupabase = async () => {
  * 2. Persiste en localStorage como caché persistente
  * 3. Si Supabase activo, sincroniza en background (no bloquea)
  */
-const guardarCitas = async (citas) => {
+const guardarCitas = async (citas: unknown): Promise<boolean> => {
   // (F2-04b) — validación Zod antes de persistir
   const validacion = validarListaCitas(citas)
-  if (!validacion.valido) {
+  if (!validacion.valido || !validacion.datos) {
     log.error('Error de validación al guardar citas (F2-04b):', validacion.error)
     return false
   }
@@ -170,14 +181,14 @@ const guardarCitas = async (citas) => {
       return true
     }
 
-    const aInsertar = []
-    const aActualizar = []
-    const idsEnMemoria = new Set()
+    const aInsertar: Cita[] = []
+    const aActualizar: Cita[] = []
+    const idsEnMemoria = new Set<string>()
 
     for (const cita of datos) {
       if (esUuidValido(cita.id)) {
         aActualizar.push(cita)
-        idsEnMemoria.add(cita.id)
+        idsEnMemoria.add(String(cita.id))
       } else {
         aInsertar.push(cita)
       }
@@ -185,7 +196,7 @@ const guardarCitas = async (citas) => {
 
     // UPDATE en batch
     if (aActualizar.length > 0) {
-      const paraUpdate = aActualizar.map(c => ({
+      const paraUpdate = aActualizar.map((c: Cita) => ({
         ...transformarParaSupabase(c),
         user_id: user.id
       }))
@@ -201,7 +212,7 @@ const guardarCitas = async (citas) => {
 
     // INSERT uno por uno (INSERT directo sin verificación de duplicados)
     for (const cita of aInsertar) {
-      const paraInsert = {
+      const paraInsert: Record<string, unknown> = {
         ...transformarParaSupabase(cita),
         user_id: user.id
       }
@@ -220,13 +231,15 @@ const guardarCitas = async (citas) => {
       }
 
       // Actualizar la cita en caché con el nuevo UUID
-      const index = citasCache.findIndex(c => !esUuidValido(c.id) &&
-        c.fecha === cita.fecha && c.horaInicio === cita.horaInicio &&
-        c.pacienteId === cita.pacienteId)
-      if (index >= 0) {
-        const legacyId = citasCache[index].id
-        citasCache[index] = { ...citasCache[index], id: insertado.id }
-        migrationStorageService.registrarMapeo(legacyId, insertado.id)
+      if (citasCache && insertado) {
+        const index = citasCache.findIndex(c => !esUuidValido(c.id) &&
+          c.fecha === cita.fecha && c.horaInicio === cita.horaInicio &&
+          c.pacienteId === cita.pacienteId)
+        if (index >= 0) {
+          const legacyId = citasCache[index].id
+          citasCache[index] = { ...citasCache[index], id: insertado.id }
+          migrationStorageService.registrarMapeo(String(legacyId), String(insertado.id))
+        }
       }
     }
 
@@ -234,7 +247,7 @@ const guardarCitas = async (citas) => {
     // PROHIBIDO el diff destructivo por ausencia de IDs en memoria
     const pendingDeletes = obtenerPendingDeletes()
     if (Array.isArray(pendingDeletes) && pendingDeletes.length > 0) {
-      const exitosos = []
+      const exitosos: string[] = []
       const timestampEliminacion = new Date().toISOString()
 
       for (const idAEliminar of pendingDeletes) {
@@ -264,10 +277,12 @@ const guardarCitas = async (citas) => {
     }
 
     // Persistir la caché actualizada (con UUIDs nuevos)
-    citasRepo.guardar(citasCache)
+    if (citasCache) {
+      citasRepo.guardar(citasCache)
+    }
 
     return true
-  } catch (error) {
+  } catch (error: unknown) {
     log.error('Excepción al guardar en Supabase:', error)
     return true
   }
@@ -281,28 +296,29 @@ const guardarCitas = async (citas) => {
  * 3. Si Supabase está disponible, ejecuta el soft-delete vía UPDATE con deleted_at.
  * 4. Si tiene éxito remoto, lo retira de pendingDeletes; si falla la red, queda encolado.
  *
- * @param {string} citaId - ID de la cita a eliminar
- * @returns {Promise<boolean>}
+ * @param citaId - ID de la cita a eliminar
+ * @returns Promise<boolean>
  */
-const eliminarCita = async (citaId) => {
+const eliminarCita = async (citaId: unknown): Promise<boolean> => {
   if (!citaId) return false
+  const idStr = String(citaId)
 
   // 1. Actualizar caché local
   if (!cacheInicializado) {
     citasCache = citasRepo.obtener([])
     cacheInicializado = true
   }
-  citasCache = (citasCache || []).filter(c => c.id !== citaId)
+  citasCache = (citasCache || []).filter(c => String(c.id) !== idStr)
   citasRepo.guardar(citasCache)
 
   // 2. Registrar en cola pendingDeletes de la clínica activa
   const pending = obtenerPendingDeletes()
-  if (!pending.includes(citaId)) {
-    guardarPendingDeletes([...pending, citaId])
+  if (!pending.includes(idStr)) {
+    guardarPendingDeletes([...pending, idStr])
   }
 
   // 3. Sincronizar soft-delete con Supabase si está disponible
-  if (!USE_SUPABASE || !supabase || !esUuidValido(citaId)) {
+  if (!USE_SUPABASE || !supabase || !esUuidValido(idStr)) {
     return true
   }
 
@@ -310,17 +326,18 @@ const eliminarCita = async (citaId) => {
     const { error } = await supabase
       .from('citas')
       .update({ deleted_at: new Date().toISOString() })
-      .eq('id', citaId)
+      .eq('id', idStr)
       .is('deleted_at', null)
 
     if (!error) {
-      const actualizados = obtenerPendingDeletes().filter(id => id !== citaId)
+      const actualizados = obtenerPendingDeletes().filter(id => id !== idStr)
       guardarPendingDeletes(actualizados)
     } else {
-      log.warn(`Error al soft-deletear cita ${citaId}, permanece en pendingDeletes:`, error.message)
+      log.warn(`Error al soft-deletear cita ${idStr}, permanece en pendingDeletes:`, error.message)
     }
-  } catch (err) {
-    log.warn(`Fallo de red al soft-deletear cita ${citaId}, queda encolado:`, err?.message)
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    log.warn(`Fallo de red al soft-deletear cita ${idStr}, queda encolado:`, msg)
   }
 
   return true
@@ -330,7 +347,7 @@ const eliminarCita = async (citaId) => {
 // RESET CACHE (para tests)
 // ═══════════════════════════════════════════════════════════════════
 
-const resetCache = () => {
+const resetCache = (): void => {
   citasCache = null
   cacheInicializado = false
 }
@@ -339,7 +356,16 @@ const resetCache = () => {
 // API PÚBLICA
 // ═══════════════════════════════════════════════════════════════════
 
-export const agendaStorageService = {
+export interface AgendaStorageServiceAPI {
+  obtenerCitas: (defaults?: Cita[]) => Cita[]
+  guardarCitas: (citas: unknown) => Promise<boolean>
+  eliminarCita: (citaId: unknown) => Promise<boolean>
+  sincronizarDesdeSupabase: () => Promise<Cita[] | null>
+  resetCache: () => void
+  obtenerPendingDeletes: () => string[]
+}
+
+export const agendaStorageService: AgendaStorageServiceAPI = {
   obtenerCitas,
   guardarCitas,
   eliminarCita,
