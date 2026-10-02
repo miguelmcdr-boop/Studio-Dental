@@ -16,15 +16,47 @@
  * en localStorage). Se migrarán en F4-02d si es necesario.
  */
 import { supabase } from '../supabaseClient'
-import { finanzasStorageService } from '../../modules/finanzas/services/finanzasStorageService'
+import { finanzasStorageService, type MovimientoFinanciero } from '../../modules/finanzas/services/finanzasStorageService'
 import { migrationStorageService } from '../migrationStorageService'
 import { esUuidValido } from './uuidUtils'
+
+export interface MigrateMovimientosError {
+  movimientoId: string | number
+  tipo?: string
+  error: string
+}
+
+export interface MigrateMovimientosResult {
+  success: boolean
+  migrados: number
+  omitidos: number
+  errores: Array<MigrateMovimientosError | string>
+}
+
+export interface VerificarMovimientosPendientesResult {
+  total: number
+  pendientes: number
+  yaMigrados: number
+}
+
+interface MovimientoSupabasePayload {
+  user_id: string
+  fecha: string
+  tipo: string
+  categoria: string
+  monto: number
+  metodo_pago: string
+  descripcion: string
+}
 
 /**
  * Convierte un movimiento financiero de formato localStorage (camelCase) a formato
  * Supabase (snake_case).
  */
-const transformarMovimientoParaSupabase = (movimiento, userId) => {
+const transformarMovimientoParaSupabase = (
+  movimiento: MovimientoFinanciero,
+  userId: string
+): MovimientoSupabasePayload => {
   return {
     user_id: userId,
     fecha: movimiento.fecha || new Date().toISOString().split('T')[0],
@@ -39,10 +71,12 @@ const transformarMovimientoParaSupabase = (movimiento, userId) => {
 /**
  * Ejecuta la migración de movimientos financieros de localStorage a Supabase.
  *
- * @param {string} userId - UUID del usuario autenticado en Supabase
- * @returns {Promise<{success: boolean, migrados: number, omitidos: number, errores: Array}>}
+ * @param userId - UUID del usuario autenticado en Supabase
+ * @returns resumen de migración
  */
-export const migrateMovimientosFinancierosToSupabase = async (userId) => {
+export const migrateMovimientosFinancierosToSupabase = async (
+  userId: string
+): Promise<MigrateMovimientosResult> => {
   if (!supabase) {
     return {
       success: false,
@@ -62,7 +96,7 @@ export const migrateMovimientosFinancierosToSupabase = async (userId) => {
   }
 
   const movimientos = finanzasStorageService.obtenerMovimientos([])
-  const resultado = {
+  const resultado: MigrateMovimientosResult = {
     success: true,
     migrados: 0,
     omitidos: 0,
@@ -105,11 +139,12 @@ export const migrateMovimientosFinancierosToSupabase = async (userId) => {
       // Registrar mapeo legacyId → supabaseId
       migrationStorageService.registrarMapeo(movimiento.id, data.id)
       resultado.migrados++
-    } catch (error) {
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error)
       resultado.errores.push({
         movimientoId: movimiento.id,
         tipo: movimiento.tipo,
-        error: error.message
+        error: msg
       })
     }
   }
@@ -119,10 +154,8 @@ export const migrateMovimientosFinancierosToSupabase = async (userId) => {
 
 /**
  * Verifica si hay movimientos financieros pendientes de migrar.
- *
- * @returns {{total: number, pendientes: number, yaMigrados: number}}
  */
-export const verificarMovimientosPendientes = () => {
+export const verificarMovimientosPendientes = (): VerificarMovimientosPendientesResult => {
   const movimientos = finanzasStorageService.obtenerMovimientos([])
   let yaMigrados = 0
 
