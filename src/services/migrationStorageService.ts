@@ -22,52 +22,58 @@ import { createLogger } from './logger'
 
 const log = createLogger('migrationStorageService')
 
-const MIGRATION_MAP_KEY = 'studio_dental_migration_id_map_v1'
+export const MIGRATION_MAP_KEY = 'studio_dental_migration_id_map_v1'
 
-export const migrationStorageService = {
+export type MigrationMap = Record<string, string>
+
+export interface MigrationStorageServiceAPI {
+  obtenerMapa: () => MigrationMap
+  guardarMapa: (mapa: MigrationMap) => void
+  registrarMapeo: (legacyId: string | number, supabaseId: string) => void
+  obtenerSupabaseId: (legacyId: string | number) => string | null
+  obtenerLegacyId: (supabaseId: string) => string | null
+  yaFueMigrado: (legacyId: string | number) => boolean
+  limpiarMapa: () => void
+}
+
+export const migrationStorageService: MigrationStorageServiceAPI = {
   /**
    * Obtiene el mapa completo de IDs legacy → Supabase.
-   * @returns {Object} Mapa de legacyId a supabaseId
+   * @returns Mapa de legacyId a supabaseId
    */
-  obtenerMapa: () => {
-    return leerJSON(MIGRATION_MAP_KEY, {})
+  obtenerMapa: (): MigrationMap => {
+    return leerJSON<MigrationMap>(MIGRATION_MAP_KEY, {})
   },
 
   /**
    * Guarda el mapa completo.
-   * @param {Object} mapa - Mapa de legacyId a supabaseId
+   * @param mapa - Mapa de legacyId a supabaseId
    */
-  guardarMapa: (mapa) => {
-    return escribirJSON(MIGRATION_MAP_KEY, mapa)
+  guardarMapa: (mapa: MigrationMap): void => {
+    escribirJSON(MIGRATION_MAP_KEY, mapa)
   },
 
   /**
    * Registra un mapeo legacyId → supabaseId.
-   * @param {string|number} legacyId
-   * @param {string} supabaseId (UUID)
    */
-  registrarMapeo: (legacyId, supabaseId) => {
+  registrarMapeo: (legacyId: string | number, supabaseId: string): void => {
     const mapa = migrationStorageService.obtenerMapa()
     mapa[`legacy_${legacyId}`] = supabaseId
-    return migrationStorageService.guardarMapa(mapa)
+    migrationStorageService.guardarMapa(mapa)
   },
 
   /**
    * Obtiene el UUID de Supabase correspondiente a un legacyId.
-   * @param {string|number} legacyId
-   * @returns {string|null} UUID o null si no existe
    */
-  obtenerSupabaseId: (legacyId) => {
+  obtenerSupabaseId: (legacyId: string | number): string | null => {
     const mapa = migrationStorageService.obtenerMapa()
     return mapa[`legacy_${legacyId}`] || null
   },
 
   /**
    * Obtiene el legacyId correspondiente a un UUID de Supabase.
-   * @param {string} supabaseId
-   * @returns {string|null} legacyId (sin prefijo) o null si no existe
    */
-  obtenerLegacyId: (supabaseId) => {
+  obtenerLegacyId: (supabaseId: string): string | null => {
     const mapa = migrationStorageService.obtenerMapa()
     for (const [legacyKey, uuid] of Object.entries(mapa)) {
       if (uuid === supabaseId) {
@@ -79,20 +85,18 @@ export const migrationStorageService = {
 
   /**
    * Verifica si un legacyId ya fue migrado.
-   * @param {string|number} legacyId
-   * @returns {boolean}
    */
-  yaFueMigrado: (legacyId) => {
+  yaFueMigrado: (legacyId: string | number): boolean => {
     return migrationStorageService.obtenerSupabaseId(legacyId) !== null
   },
 
   /**
    * Limpia el mapa de migración (útil para pruebas o rollback).
    */
-  limpiarMapa: () => {
+  limpiarMapa: (): void => {
     try {
       localStorage.removeItem(MIGRATION_MAP_KEY)
-    } catch (e) {
+    } catch (e: unknown) {
       log.error('Error al limpiar mapa de migración:', e)
     }
   }
