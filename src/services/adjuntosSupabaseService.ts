@@ -21,12 +21,46 @@ const log = createLogger('adjuntosSupabaseService')
 const BUCKET_ID = 'adjuntos-clinicos'
 const DEFAULT_URL_TTL_SEGUNDOS = 3600 // 1 hora
 
+export interface SubirAdjuntoParams {
+  clinicaId?: string | null
+  pacienteId?: string | number | null
+  tipo?: string | null
+  blob?: Blob | File | null
+  nombre?: string | null
+}
+
+export interface SubirAdjuntoResult {
+  path: string
+  idArchivo: string
+}
+
+export interface ArchivoStorageItem {
+  name: string
+  path: string
+  tipo: string
+  id?: string | null
+  size?: number | null
+  created_at?: string | null
+  updated_at?: string | null
+  last_accessed_at?: string | null
+  metadata?: Record<string, unknown> | null
+  [key: string]: unknown
+}
+
+interface ConstruirPathParams {
+  clinicaId: string
+  pacienteId: string | number
+  tipo: string
+  idArchivo: string
+  nombre?: string | null
+}
+
 /**
  * Genera un ID único para el archivo dentro del bucket.
  * Evita colisiones aunque dos archivos con el mismo nombre
  * se suban en el mismo milisegundo.
  */
-const generarIdArchivo = () =>
+const generarIdArchivo = (): string =>
   `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
 
 /**
@@ -35,7 +69,7 @@ const generarIdArchivo = () =>
  * ya maneja caracteres especiales; solo sanitizamos el nombre para
  * evitar rutas rotas por `/` o `\`.
  */
-const construirPath = ({ clinicaId, pacienteId, tipo, idArchivo, nombre }) => {
+const construirPath = ({ clinicaId, pacienteId, tipo, idArchivo, nombre }: ConstruirPathParams): string => {
   const nombreSanitizado = (nombre || 'sin-nombre')
     .replace(/[/\\]/g, '_')
     .replace(/\s+/g, '-')
@@ -46,17 +80,15 @@ const construirPath = ({ clinicaId, pacienteId, tipo, idArchivo, nombre }) => {
 /**
  * Sube un adjunto a Supabase Storage.
  *
- * @param {Object} params
- * @param {string} params.clinicaId — UUID de la clínica (de userProfile)
- * @param {string} params.pacienteId — UUID del paciente
- * @param {string} params.tipo — 'foto' | 'rx' | 'consentimiento'
- * @param {Blob|File} params.blob — archivo binario
- * @param {string} params.nombre — nombre original del archivo
- * @returns {Promise<{path: string, publicUrl: null} | null>}
- *          path usado en el bucket (necesario para descarga y borrado);
- *          null si Supabase no está configurado o la subida falla.
+ * @returns path usado en el bucket y idArchivo; null si Supabase no está configurado o la subida falla.
  */
-export const subirAdjunto = async ({ clinicaId, pacienteId, tipo, blob, nombre }) => {
+export const subirAdjunto = async ({
+  clinicaId,
+  pacienteId,
+  tipo,
+  blob,
+  nombre
+}: SubirAdjuntoParams): Promise<SubirAdjuntoResult | null> => {
   if (!USE_SUPABASE || !supabase) return null
   if (!clinicaId || !pacienteId || !tipo || !blob) {
     log.warn('subirAdjunto: faltan parámetros obligatorios')
@@ -82,7 +114,7 @@ export const subirAdjunto = async ({ clinicaId, pacienteId, tipo, blob, nombre }
     }
 
     return { path, idArchivo }
-  } catch (e) {
+  } catch (e: unknown) {
     log.error('Excepción subiendo adjunto:', e)
     return null
   }
@@ -91,11 +123,14 @@ export const subirAdjunto = async ({ clinicaId, pacienteId, tipo, blob, nombre }
 /**
  * Genera una URL firmada temporal para descargar un adjunto.
  *
- * @param {string} path — path completo en el bucket (lo retornado por subirAdjunto)
- * @param {number} [ttlSegundos=3600] — tiempo de vida de la URL
- * @returns {Promise<string|null>} URL firmada o null si falla
+ * @param path — path completo en el bucket (lo retornado por subirAdjunto)
+ * @param ttlSegundos — tiempo de vida de la URL (por defecto 3600s)
+ * @returns URL firmada o null si falla
  */
-export const obtenerUrlFirmada = async (path, ttlSegundos = DEFAULT_URL_TTL_SEGUNDOS) => {
+export const obtenerUrlFirmada = async (
+  path?: string | null,
+  ttlSegundos: number = DEFAULT_URL_TTL_SEGUNDOS
+): Promise<string | null> => {
   if (!USE_SUPABASE || !supabase || !path) return null
 
   try {
@@ -109,7 +144,7 @@ export const obtenerUrlFirmada = async (path, ttlSegundos = DEFAULT_URL_TTL_SEGU
     }
 
     return data.signedUrl
-  } catch (e) {
+  } catch (e: unknown) {
     log.error('Excepción generando URL firmada:', e)
     return null
   }
@@ -118,10 +153,10 @@ export const obtenerUrlFirmada = async (path, ttlSegundos = DEFAULT_URL_TTL_SEGU
 /**
  * Elimina un adjunto de Supabase Storage.
  *
- * @param {string} path — path del archivo a eliminar
- * @returns {Promise<boolean>} true si se eliminó (o Supabase no está configurado)
+ * @param path — path del archivo a eliminar
+ * @returns true si se eliminó (o Supabase no está configurado / path vacío)
  */
-export const eliminarAdjuntoDeStorage = async (path) => {
+export const eliminarAdjuntoDeStorage = async (path?: string | null): Promise<boolean> => {
   if (!USE_SUPABASE || !supabase || !path) return true
 
   try {
@@ -134,7 +169,7 @@ export const eliminarAdjuntoDeStorage = async (path) => {
       return false
     }
     return true
-  } catch (e) {
+  } catch (e: unknown) {
     log.error('Excepción eliminando adjunto:', e)
     return false
   }
@@ -143,17 +178,16 @@ export const eliminarAdjuntoDeStorage = async (path) => {
 /**
  * Lista todos los archivos de un paciente en el bucket.
  * Útil para la migración de adjuntos existentes y para diagnóstico.
- *
- * @param {string} clinicaId
- * @param {string} pacienteId
- * @returns {Promise<Array<{name, path, size, created_at}>>} array vacío si falla
  */
-export const listarArchivosDePaciente = async (clinicaId, pacienteId) => {
+export const listarArchivosDePaciente = async (
+  clinicaId?: string | null,
+  pacienteId?: string | number | null
+): Promise<ArchivoStorageItem[]> => {
   if (!USE_SUPABASE || !supabase || !clinicaId || !pacienteId) return []
 
   try {
     const tipos = ['foto', 'rx', 'consentimiento']
-    const resultados = []
+    const resultados: ArchivoStorageItem[] = []
 
     for (const tipo of tipos) {
       const { data, error } = await supabase.storage
@@ -181,7 +215,7 @@ export const listarArchivosDePaciente = async (clinicaId, pacienteId) => {
     }
 
     return resultados
-  } catch (e) {
+  } catch (e: unknown) {
     log.error('Excepción listando archivos:', e)
     return []
   }
@@ -191,4 +225,4 @@ export const listarArchivosDePaciente = async (clinicaId, pacienteId) => {
  * Verifica si Supabase Storage está disponible.
  * Útil para que useAdjuntos decida si mostrar indicador de sincronización.
  */
-export const storageDisponible = () => USE_SUPABASE && supabase !== null
+export const storageDisponible = (): boolean => USE_SUPABASE && supabase !== null
