@@ -2,7 +2,49 @@
  * Constantes y Parámetros Sugeridos para el Módulo de Laboratorio
  */
 
-export const ETAPAS_LABORATORIO = [
+export interface EtapaLaboratorio {
+  id: string
+  nombre: string
+  colorBg: string
+  colorText: string
+  colorBorder: string
+}
+
+export interface TarifaLaboratorio {
+  trabajo: string
+  precio: number
+}
+
+export interface LaboratorioBase {
+  id: number | string
+  nombre: string
+  contacto: string
+  telefono: string
+  email: string
+  direccion: string
+  tarifas: readonly TarifaLaboratorio[]
+}
+
+export interface OrdenLaboratorio {
+  id: number | string
+  codigoOrden: string
+  pacienteId: number | string
+  pacienteNombre: string
+  pacienteRut: string
+  laboratorioId: number | string
+  laboratorioNombre: string
+  tipoTrabajo: string
+  piezaDientaria: string
+  colorGuia: string
+  fechaEnvio: string
+  fechaEntregaPrometida: string
+  etapa: string
+  costoLaboratorio: number
+  estadoPagoLab: string
+  indicacionesTecnicas: string
+}
+
+export const ETAPAS_LABORATORIO: readonly EtapaLaboratorio[] = [
   { id: 'Enviado', nombre: 'Enviado al Lab', colorBg: 'bg-blue-50', colorText: 'text-blue-800', colorBorder: 'border-blue-300' },
   { id: 'PruebaMetal', nombre: 'Prueba de Metal / Estructura', colorBg: 'bg-purple-50', colorText: 'text-purple-800', colorBorder: 'border-purple-300' },
   { id: 'PruebaBizcocho', nombre: 'Prueba de Bizcocho / Color', colorBg: 'bg-amber-50', colorText: 'text-amber-800', colorBorder: 'border-amber-300' },
@@ -12,7 +54,7 @@ export const ETAPAS_LABORATORIO = [
 ]
 
 // Sugerencias para autocompletado (el usuario puede escribir cualquier otra cosa)
-export const TIPOS_TRABAJO_SUGERIDOS = [
+export const TIPOS_TRABAJO_SUGERIDOS: readonly string[] = [
   'Corona de Zirconio Monolítico',
   'Corona de Porcelana sobre Metal (PFM)',
   'Carilla Estética de Disilicato de Litio (E-Max)',
@@ -27,7 +69,7 @@ export const TIPOS_TRABAJO_SUGERIDOS = [
   'Reparación de Prótesis / Agregado de Diente'
 ]
 
-export const LABORATORIOS_BASE = [
+export const LABORATORIOS_BASE: readonly LaboratorioBase[] = [
   {
     id: 1,
     nombre: 'Laboratorio Oral Art & Cerámica',
@@ -56,7 +98,7 @@ export const LABORATORIOS_BASE = [
   }
 ]
 
-export const ORDENES_DEFAULT = [
+export const ORDENES_DEFAULT: readonly OrdenLaboratorio[] = [
   {
     id: 101,
     codigoOrden: 'LAB-2026-101',
