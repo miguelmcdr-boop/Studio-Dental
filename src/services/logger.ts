@@ -23,7 +23,19 @@
  *   Ejemplo: [useDataMigration] Migrando pacientes... { pendientes: 5 }
  */
 
-const LOG_LEVELS = {
+declare global {
+  // eslint-disable-next-line no-var
+  var __LOG_LEVEL__: string | undefined
+}
+
+export interface Logger {
+  debug: (...args: unknown[]) => void
+  info: (...args: unknown[]) => void
+  warn: (...args: unknown[]) => void
+  error: (...args: unknown[]) => void
+}
+
+export const LOG_LEVELS: Readonly<Record<string, number>> = {
   DEBUG: 0,
   INFO: 1,
   WARN: 2,
@@ -31,7 +43,7 @@ const LOG_LEVELS = {
   NONE: 4,
 }
 
-const getLogLevel = () => {
+const getLogLevel = (): number => {
   // Prioridad 1: Override explícito para tests (globalThis)
   if (typeof globalThis !== 'undefined' && globalThis.__LOG_LEVEL__) {
     const level = String(globalThis.__LOG_LEVEL__).toUpperCase()
@@ -65,31 +77,31 @@ const getLogLevel = () => {
   return LOG_LEVELS.WARN
 }
 
-const shouldLog = (level) => level >= getLogLevel()
+const shouldLog = (level: number): boolean => level >= getLogLevel()
 
-export const createLogger = (moduleName) => {
+export const createLogger = (moduleName: string): Logger => {
   const prefix = `[${moduleName}]`
   
   return {
-    debug: (...args) => {
+    debug: (...args: unknown[]): void => {
       if (shouldLog(LOG_LEVELS.DEBUG)) {
         console.debug(prefix, ...args)
       }
     },
     
-    info: (...args) => {
+    info: (...args: unknown[]): void => {
       if (shouldLog(LOG_LEVELS.INFO)) {
         console.log(prefix, ...args)
       }
     },
     
-    warn: (...args) => {
+    warn: (...args: unknown[]): void => {
       if (shouldLog(LOG_LEVELS.WARN)) {
         console.warn(prefix, ...args)
       }
     },
     
-    error: (...args) => {
+    error: (...args: unknown[]): void => {
       if (shouldLog(LOG_LEVELS.ERROR)) {
         console.error(prefix, ...args)
       }
@@ -98,7 +110,7 @@ export const createLogger = (moduleName) => {
 }
 
 // Logger por defecto para uso simple (sin módulo específico)
-export const logger = createLogger('app')
+export const logger: Logger = createLogger('app')
 
 /**
  * Sanitiza objetos para logging, enmascarando campos sensibles (PHI).
@@ -108,11 +120,8 @@ export const logger = createLogger('app')
  *   // { id: 'abc-123', nombre: '***REDACTED***', rut: '***REDACTED***' }
  * 
  * F7-23: Previene fuga accidental de PHI (Protected Health Information).
- * 
- * @param {Object|Array|any} data - Datos a sanitizar
- * @returns {Object|Array|any} - Datos con campos sensibles enmascarados
  */
-export const sanitizePHI = (data) => {
+export const sanitizePHI = <T>(data: T): T => {
   if (data === null || data === undefined) return data
   if (typeof data !== 'object') return data
   
@@ -130,11 +139,11 @@ export const sanitizePHI = (data) => {
   
   // Manejar arrays
   if (Array.isArray(data)) {
-    return data.map(item => sanitizePHI(item))
+    return data.map(item => sanitizePHI(item)) as unknown as T
   }
   
   // Clonar para no mutar el original
-  const sanitized = { ...data }
+  const sanitized = { ...(data as Record<string, unknown>) }
   
   sensitiveFields.forEach(field => {
     if (sanitized[field] !== undefined && sanitized[field] !== null) {
@@ -142,5 +151,5 @@ export const sanitizePHI = (data) => {
     }
   })
   
-  return sanitized
+  return sanitized as T
 }
