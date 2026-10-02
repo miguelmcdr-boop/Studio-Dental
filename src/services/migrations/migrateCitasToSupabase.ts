@@ -21,12 +21,75 @@ import { createLogger } from '../logger'
 
 const log = createLogger('migrateCitasToSupabase')
 
+export interface MigrateCitasError {
+  citaId: string | number
+  pacienteNombre?: string | null
+  error: string
+  details?: unknown
+  hint?: unknown
+  code?: string
+}
+
+export interface MigrateCitasResult {
+  success: boolean
+  migradas: number
+  omitidas: number
+  errores: Array<MigrateCitasError | string>
+}
+
+export interface VerificarCitasPendientesResult {
+  total: number
+  pendientes: number
+  yaMigradas: number
+  sinPacienteMigrado: number
+}
+
+interface CitaLegacyItem {
+  id: string | number
+  pacienteId?: string | number | null
+  pacienteNombre?: string | null
+  pacienteTelefono?: string | number | null
+  pacienteRut?: string | null
+  fecha?: string | null
+  fechaIso?: string | null
+  horaInicio?: string | null
+  horaFin?: string | null
+  estado?: string | null
+  trataMiento?: string | null
+  motivo?: string | null
+  boxAsignado?: string | number | null
+  horaInicioAtencion?: string | null
+  horaLlegadaEspera?: string | null
+  notas?: string | null
+  observacion?: string | null
+  observaciones?: string | null
+  esBloqueo?: boolean
+  [key: string]: unknown
+}
+
+interface CitaSupabasePayload {
+  user_id: string
+  paciente_id: string | null
+  paciente_nombre: string | null
+  paciente_telefono: string | null
+  paciente_rut: string | null
+  fecha: string | null
+  hora_inicio: string | null
+  hora_fin: string | null
+  estado: string
+  motivo: string | null
+  box_asignado: string | number | null
+  hora_inicio_atencion: string | null
+  notas: string
+}
+
 /**
  * Normaliza el estado de la cita al formato esperado por Supabase.
  * El código usa 'Agendado' (masculino) pero la tabla espera 'Agendada' (femenino).
  */
-const normalizarEstado = (estado) => {
-  const mapeo = {
+const normalizarEstado = (estado?: string | null): string => {
+  if (!estado) return 'Agendada'
+  const mapeo: Record<string, string> = {
     'Agendado': 'Agendada',
     'Confirmado': 'Confirmada',
     'En Sillón': 'En Curso',
@@ -44,17 +107,21 @@ const normalizarEstado = (estado) => {
  * IMPORTANTE: usa `fechaIso` como fallback si `fecha` está vacío.
  * Algunas citas legacy pueden tener solo uno de los dos campos.
  */
-const transformarCitaParaSupabase = (cita, userId, pacienteUuid) => {
+const transformarCitaParaSupabase = (
+  cita: CitaLegacyItem,
+  userId: string,
+  pacienteUuid: string | null
+): CitaSupabasePayload => {
   // Resolver fecha: usar fecha o fechaIso (algunas citas legacy tienen solo uno)
   const fecha = cita.fecha || cita.fechaIso || null
-  
+
   return {
     user_id: userId,
     paciente_id: pacienteUuid || null,
     paciente_nombre: cita.pacienteNombre || null,
     paciente_telefono: cita.pacienteTelefono ? String(cita.pacienteTelefono) : null,
     paciente_rut: cita.pacienteRut || null,
-    fecha: fecha,
+    fecha,
     hora_inicio: cita.horaInicio || null,
     hora_fin: cita.horaFin || null,
     estado: normalizarEstado(cita.estado || 'Agendado'),
@@ -72,12 +139,14 @@ const transformarCitaParaSupabase = (cita, userId, pacienteUuid) => {
  * Las citas que son "bloqueos de agenda" (esBloqueo: true) se omiten
  * porque no son citas reales de pacientes.
  */
-const validarCitaParaMigracion = (cita) => {
+const validarCitaParaMigracion = (
+  cita: CitaLegacyItem
+): { valido: boolean; razon: string; esBloqueo: boolean } => {
   // Si es un bloqueo de agenda, omitir
   if (cita.esBloqueo === true) {
     return { valido: false, razon: 'es un bloqueo de agenda (no es cita real)', esBloqueo: true }
   }
-  
+
   // Validar fecha (puede estar en fecha o fechaIso)
   const fecha = cita.fecha || cita.fechaIso
   if (!fecha) {
@@ -95,10 +164,10 @@ const validarCitaParaMigracion = (cita) => {
 /**
  * Ejecuta la migración de citas de localStorage a Supabase.
  *
- * @param {string} userId - UUID del usuario autenticado en Supabase
- * @returns {Promise<{success: boolean, migradas: number, omitidas: number, errores: Array}>}
+ * @param userId - UUID del usuario autenticado en Supabase
+ * @returns resultado de la migración
  */
-export const migrateCitasToSupabase = async (userId) => {
+export const migrateCitasToSupabase = async (userId: string): Promise<MigrateCitasResult> => {
   if (!supabase) {
     return {
       success: false,
@@ -117,8 +186,8 @@ export const migrateCitasToSupabase = async (userId) => {
     }
   }
 
-  const citas = agendaStorageService.obtenerCitas([])
-  const resultado = {
+  const citas = agendaStorageService.obtenerCitas([]) as CitaLegacyItem[]
+  const resultado: MigrateCitasResult = {
     success: true,
     migradas: 0,
     omitidas: 0,
@@ -140,10 +209,10 @@ export const migrateCitasToSupabase = async (userId) => {
       }
 
       // Resolver paciente_id
-      let pacienteUuid = null
+      let pacienteUuid: string | null = null
       if (cita.pacienteId) {
         if (esUuidValido(cita.pacienteId)) {
-          pacienteUuid = cita.pacienteId
+          pacienteUuid = String(cita.pacienteId)
         } else {
           // Intentar obtener UUID del mapa de migración
           pacienteUuid = migrationStorageService.obtenerSupabaseId(cita.pacienteId)
@@ -185,7 +254,6 @@ export const migrateCitasToSupabase = async (userId) => {
       })
 
       // Insertar en Supabase
-      log.info(`Insertando cita ${cita.id}...`, citaSupabase)
       const { data, error } = await supabase
         .from('citas')
         .insert(citaSupabase)
@@ -213,11 +281,12 @@ export const migrateCitasToSupabase = async (userId) => {
       // Registrar mapeo legacyId → supabaseId
       migrationStorageService.registrarMapeo(cita.id, data.id)
       resultado.migradas++
-    } catch (error) {
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error)
       resultado.errores.push({
         citaId: cita.id,
         pacienteNombre: cita.pacienteNombre,
-        error: error.message
+        error: msg
       })
     }
   }
@@ -227,11 +296,9 @@ export const migrateCitasToSupabase = async (userId) => {
 
 /**
  * Verifica si hay citas pendientes de migrar.
- *
- * @returns {{total: number, pendientes: number, yaMigradas: number, sinPacienteMigrado: number}}
  */
-export const verificarCitasPendientes = () => {
-  const citas = agendaStorageService.obtenerCitas([])
+export const verificarCitasPendientes = (): VerificarCitasPendientesResult => {
+  const citas = agendaStorageService.obtenerCitas([]) as CitaLegacyItem[]
   let yaMigradas = 0
   let sinPacienteMigrado = 0
 
