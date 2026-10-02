@@ -6,30 +6,57 @@
  * transformación de userMetadata de Supabase Auth a userProfile del sistema.
  */
 
-import { obtenerRolEnClinicaActual } from './authService.js'
+import { obtenerRolEnClinicaActual } from './authService'
 import { createLogger } from './logger'
+
+export interface UserProfile {
+  email: string
+  nombreCompleto: string | null | undefined
+  rut: string | null | undefined
+  especialidad: string | null | undefined
+  rol: string | null | undefined
+  clinicaId: string | null
+  supabaseAuth: boolean
+}
+
+export interface SupabaseUserMetadata {
+  role?: string
+  full_name?: string
+  rut?: string
+  especialidad?: string
+  clinicaId?: string | null
+  [key: string]: unknown
+}
+
+export interface FormMetadataFallback {
+  rol?: string
+  nombreCompleto?: string
+  rut?: string
+  especialidad?: string
+  [key: string]: unknown
+}
+
+const log = createLogger('userProfileBuilder')
 
 /**
  * F7-10b: Construye el objeto userProfile desde los datos de Supabase Auth.
  *
  * Consulta el rol contextual en la clínica activa (miembros_clinica.rol)
  * en lugar de usar el rol global de user_metadata.
- *
- * @param {string} email - Email del usuario (normalizado a minúsculas)
- * @param {Object} userMetadata - Datos retornados por Supabase Auth
- * @param {Object} metadata - Datos del formulario (fallback si userMetadata está incompleto)
- * @returns {Promise<Object>} userProfile listo para pasar a sesionStore
  */
-const log = createLogger('userProfileBuilder')
-
-export const construirUserProfile = async (email, userMetadata, metadata) => {
+export const construirUserProfile = async (
+  email: string,
+  userMetadata: SupabaseUserMetadata = {},
+  metadata: FormMetadataFallback = {}
+): Promise<UserProfile> => {
   // Obtener rol contextual de la clínica activa
-  let rolContextual = null
+  let rolContextual: string | null = null
   try {
     rolContextual = await obtenerRolEnClinicaActual()
-  } catch (error) {
+  } catch (error: unknown) {
     // F7-10b: si falla la consulta, degradar al rol global sin romper la app
-    log.warn('Error obteniendo rol contextual, usando fallback:', error.message)
+    const msg = error instanceof Error ? error.message : String(error)
+    log.warn('Error obteniendo rol contextual, usando fallback:', msg)
   }
 
   // Fallback: usar rol global de user_metadata si no hay membresía
@@ -42,6 +69,6 @@ export const construirUserProfile = async (email, userMetadata, metadata) => {
     especialidad: userMetadata.especialidad || metadata.especialidad,
     rol,
     clinicaId: userMetadata.clinicaId || null,
-    supabaseAuth: true,
+    supabaseAuth: true
   }
 }
