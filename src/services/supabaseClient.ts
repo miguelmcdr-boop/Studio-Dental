@@ -13,24 +13,27 @@
  * las políticas de Row Level Security (RLS) configuradas en Supabase.
  * NUNCA exponer la service_role key en el frontend.
  */
-import { createClient } from '@supabase/supabase-js'
-import { createLogger } from './logger.js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { createLogger } from './logger'
 
 const log = createLogger('supabaseClient')
 
+// Re-exportar tipo SupabaseClient para uso en toda la aplicación
+export type { SupabaseClient }
+
 // Cargar variables de entorno de Vite
 // F7-37 v4 H-12: exportar para que papeleraCertificadosService pueda llamar a archivos-purge
-export const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+export const supabaseUrl: string | undefined = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey: string | undefined = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 // Feature flag para activar/desactivar Supabase (estrategia de reversibilidad)
-export const USE_SUPABASE = import.meta.env.VITE_USE_SUPABASE === 'true'
+export const USE_SUPABASE: boolean = import.meta.env.VITE_USE_SUPABASE === 'true'
 
 /**
  * Valida que las variables de entorno estén configuradas correctamente.
  * Retorna true si Supabase está listo para usarse.
  */
-export const isSupabaseConfigured = () => {
+export const isSupabaseConfigured = (): boolean => {
   if (!USE_SUPABASE) return false
   if (!supabaseUrl || !supabaseAnonKey) {
     log.warn(
@@ -47,7 +50,7 @@ export const isSupabaseConfigured = () => {
  * Si las variables no están configuradas, retorna null para permitir
  * fallback a localStorage sin romper la app.
  */
-export const supabase = isSupabaseConfigured()
+export const supabase: SupabaseClient | null = (isSupabaseConfigured() && supabaseUrl && supabaseAnonKey)
   ? createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
         // Persistir sesión en localStorage (necesario para mantener login tras refresh)
@@ -70,14 +73,14 @@ export const supabase = isSupabaseConfigured()
  * Verifica la conexión a Supabase haciendo una query simple.
  * Útil para el indicador de estado de conexión.
  *
- * @returns {Promise<boolean>} true si la conexión funciona
+ * @returns true si la conexión funciona
  */
-export const verificarConexionSupabase = async () => {
+export const verificarConexionSupabase = async (): Promise<boolean> => {
   if (!supabase) return false
   try {
     const { error } = await supabase.auth.getSession()
     return !error
-  } catch (e) {
+  } catch (e: unknown) {
     log.error('Error verificando conexión:', e)
     return false
   }
@@ -87,9 +90,9 @@ export const verificarConexionSupabase = async () => {
  * Verifica si la app está online (F5-03).
  * Usa navigator.onLine como verificación rápida + ping a Supabase como fallback.
  *
- * @returns {Promise<boolean>} true si hay conexión operativa
+ * @returns true si hay conexión operativa
  */
-export const estaOnline = async () => {
+export const estaOnline = async (): Promise<boolean> => {
   // Verificación rápida
   if (typeof navigator !== 'undefined' && !navigator.onLine) {
     return false
@@ -104,7 +107,7 @@ export const estaOnline = async () => {
   try {
     const { error } = await supabase.from('pacientes').select('id').limit(1)
     return !error
-  } catch (e) {
+  } catch (e: unknown) {
     log.error('Error verificando conexión:', e)
     return false
   }
