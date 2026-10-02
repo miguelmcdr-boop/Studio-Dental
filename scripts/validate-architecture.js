@@ -202,8 +202,8 @@ function verificarCapasServices() {
   for (const archivo of archivos) {
     const rel = rutaRelativa(archivo)
     
-    // Excepciones legítimas: migraciones (F4-02) y cola de operaciones (F5-03)
-    if (rel.startsWith('src/services/migrations/') || rel === 'src/services/operationQueue.js') {
+    // Excepciones legítimas: migraciones (F4-02)
+    if (rel.startsWith('src/services/migrations/')) {
       continue
     }
     

@@ -9697,6 +9697,320 @@ Esperado: Paciente SIGUE en BD (no fue eliminado).
 - 11 tests Vitest nuevos (validacion estatica del fail-safe y hardening)
 - Principio del brief cumplido: "Minimizar estados inconsistentes y hacer fallos recuperables"
 
-**PR:** #174 (pendiente de merge)
 
 ---
+
+## [2026-10-01] Migración Gradual a TypeScript — src/utils/csvExport.ts (Prioridad 1)
+
+### Contexto y Alcance
+- Inicio de la migración gradual a TypeScript (Prioridad 1) según protocolo de trabajo.
+- Archivo seleccionado: `src/utils/csvExport.js` -> `src/utils/csvExport.ts` (función utilitaria de exportación de citas a formato CSV).
+- Rama creada: `feat/migracion-typescript-csvExport`.
+
+### Tipos agregados y justificación
+1. **`CitaCSVInput`**:
+   - Modela la estructura esperada de cada cita odontológica procesada para exportación: `id`, `fecha`, `horaInicio`, `pacienteNombre`, `pacienteRut`, `pacienteTelefono`, `trataMiento`, `boxAsignado`, `estado` (todos `string | null | undefined`).
+   - Incluye `[key: string]: unknown` para permitir interoperabilidad sin fricción con los objetos de cita completos provistos por los stores/servicios de agenda.
+2. **`CitaCSVFormateada`**:
+   - Modela el registro tabular exacto con cabeceras en español: `Fecha`, `Hora`, `Paciente`, `RUT`, `Teléfono`, `Tratamiento`, `Box`, `Estado`, `ID` (todos `string`).
+   - Proporciona seguridad de tipos al iterar y mapear columnas para la construcción del archivo CSV.
+3. **Firmas de funciones**:
+   - `escaparValorCSV(valor: unknown): string`
+   - `formatearCitaParaCSV(cita: CitaCSVInput): CitaCSVFormateada`
+   - `exportarCitasCSV(citas: CitaCSVInput[], filename?: string): void`
+
+### Archivos involucrados
+- `src/utils/csvExport.ts`: Nuevo archivo tipado (85 líneas, reducción de 11 líneas vs original).
+- `src/utils/csvExport.js`: Eliminado (reemplazado por `.ts`).
+- `src/utils/csvExport.test.js`: Adaptado con aserciones extendidas y mocks de `vi` (4/4 tests pasando).
+- `scripts/architecture-allowlist.json`: Actualizado para apuntar a `src/utils/csvExport.ts` con límite congelado de 85 líneas.
+
+### Verificación y Evidencia
+- `npm run validate:architecture`: ✅ Todas las reglas arquitectónicas se cumplen (74 archivos en allowlist, 0 violaciones).
+- `npm run test`: ✅ 135/135 archivos pasaron, 1766/1766 tests unitarios pasaron (0 regresiones).
+- `npm run build`: ✅ Build de producción con Vite completado en 1.38s sin errores.
+- `npm run lint`: ✅ 0 errores con Oxlint.
+
+---
+
+## [2026-10-01] Migración Gradual a TypeScript — src/utils/formatoMoneda.ts (Prioridad 1)
+
+### Contexto y Alcance
+- Continuación de la migración gradual a TypeScript (Prioridad 1) según protocolo de trabajo.
+- Archivo seleccionado: `src/utils/formatoMoneda.js` -> `src/utils/formatoMoneda.ts` (fuente única de verdad para formateo CLP en toda la aplicación, 17 líneas, <50 líneas constitucionales).
+- Rama creada: `feat/migracion-typescript-formatoMoneda`.
+
+### Tipos agregados y justificación
+1. **`MontoMoneda`**:
+   - `export type MontoMoneda = number | string | null | undefined`
+   - Tipado estricto que acepta números, strings numéricos, o valores potencialmente nulos/indefinidos provenientes de formularios y respuestas de base de datos/API sin lanzar errores en tiempo de ejecución.
+2. **Firma de función**:
+   - `export const formatearCLP = (monto: MontoMoneda): string`
+   - Manejo seguro mediante `parseInt(String(monto), 10)` con fallback explícito a `0` ante `NaN`, truncando decimales y formateando con `toLocaleString('es-CL')`.
+
+### Archivos involucrados
+- `src/utils/formatoMoneda.ts`: Nuevo archivo tipado (19 líneas, estrictamente dentro del límite de 50 líneas sin requerir allowlist).
+- `src/utils/formatoMoneda.js`: Eliminado (reemplazado por `.ts`).
+- `src/utils/formatoMoneda.test.js`: Adaptado con 2 tests adicionales para montos negativos y strings vacíos (7/7 tests pasando).
+
+### Verificación y Evidencia
+- `npm run validate:architecture`: ✅ Todas las reglas arquitectónicas se cumplen (74 archivos en allowlist, 0 violaciones).
+- `npm run test`: ✅ 135/135 suites pasaron, 1768/1768 tests unitarios pasaron (0 regresiones).
+- `npm run build`: ✅ Build de producción con Vite completado en 1.43s sin errores.
+- `npm run lint`: ✅ 0 errores con Oxlint.
+
+---
+
+## [2026-10-01] Migración Gradual a TypeScript — src/utils/stringUtils.ts (Prioridad 1)
+
+### Contexto y Alcance
+- Continuación de la migración gradual a TypeScript (Prioridad 1) en rama unificada `feat/migracion-typescript`.
+- Archivo seleccionado: `src/utils/stringUtils.js` -> `src/utils/stringUtils.ts` (función pura para saneamiento de emojis y espacios en textos clínicos y de agenda, 27 líneas, <50 líneas constitucionales).
+
+### Tipos agregados y justificación
+1. **`StringInput`**:
+   - `export type StringInput = string | null | undefined`
+   - Modela entradas de texto potencialmente opcionales o incompletas provenientes de títulos de citas, notas clínicas y eventos de agenda, garantizando que `stripEmojis` no lance excepciones cuando el valor es nulo o indefinido.
+2. **Firma de función**:
+   - `export const stripEmojis = (text: StringInput): string`
+   - Sanitización robusta contra emojis Unicode (bloques principales, símbolos misceláneos, dingbats, variation selectors y emojis extendidos), colapsando espacios múltiples y aplicando `.trim()`.
+
+### Archivos involucrados
+- `src/utils/stringUtils.ts`: Nuevo archivo tipado (27 líneas, dentro del límite de 50 líneas sin requerir allowlist).
+- `src/utils/stringUtils.js`: Eliminado (reemplazado por `.ts`).
+- `src/utils/stringUtils.test.js`: Adaptado con 2 tests adicionales para textos con solo emojis y espacios en los extremos (10/10 tests pasando).
+
+### Verificación y Evidencia
+- `npm run validate:architecture`: ✅ Todas las reglas arquitectónicas se cumplen (74 archivos en allowlist, 0 violaciones).
+- `npm run test`: ✅ 135/135 suites pasaron, 1770/1770 tests unitarios pasaron (0 regresiones).
+- `npm run build`: ✅ Build de producción con Vite completado en 1.44s sin errores.
+- `npm run lint`: ✅ 0 errores con Oxlint.
+
+---
+
+## [2026-10-01] Migración Gradual a TypeScript — Lote Autónomo de Bajo Riesgo (Prioridad 1)
+
+### Contexto y Alcance
+- Activación de **Modo Operativo: Migración Autónoma por Lotes** para acelerar la adopción de TypeScript sin fricción burocrática, respetando la Constitución de Arquitectura v3.0.0.
+- Ejecución en rama unificada `feat/migracion-typescript` con commits atómicos por archivo.
+- Lote completado: 7 archivos de bajo riesgo migrados (<50 líneas, funciones puras, sin dependencias de React ni Supabase, con tests exhaustivos).
+
+### Archivos Migrados en este Lote
+1. **`src/utils/validarRutFormato.ts`** (Commit `edfafcc` / `P1-TS-04`):
+   - Tipos: `RutInput = string | null | undefined`.
+   - Funciones: `normalizarRut(rut: RutInput): string`, `formatearRut(rut: RutInput): string`.
+   - 27 líneas (<50).
+2. **`src/utils/validarRut.ts`** (Commit `0fe7e51` / `P1-TS-05`):
+   - Funciones: `validarRut(rut: RutInput): boolean`, `obtenerErrorRut(rut: RutInput): string | null`.
+   - Re-export de `normalizarRut`, `formatearRut`, `type RutInput`.
+   - 38 líneas (<50).
+3. **`src/modules/periodontograma/schemas/periodontalSchema.ts`** (Commit `fcba8e7` / `P1-TS-06`):
+   - Tipos: `MedidasSitiosString`, `MedidasSitiosBoolean`, `KeratinizedGingiva`, `PiezaPeriodontal`, `ControlPeriodontal`.
+   - Funciones: `crearPiezaVaciaSchema(): PiezaPeriodontal`, `crearControlPeriodontalSchema(id, observacion): ControlPeriodontal`.
+   - Creado test unitario dedicado: `src/modules/periodontograma/schemas/periodontalSchema.test.js` (3 tests).
+4. **`src/modules/administracion/schemas/anticoagulanteSchema.ts`** (Commit `56d5308` / `P1-TS-07`):
+   - Inferencia Zod: `Anticoagulante = z.infer<typeof anticoagulanteSchema>`.
+   - Tipos: `ValidacionAnticoagulanteResultado`.
+   - Función: `validarAnticoagulante(data: unknown): ValidacionAnticoagulanteResultado`.
+   - Allowlist actualizada a 44 líneas.
+5. **`src/modules/administracion/schemas/profilaxisSchema.ts`** (Commit `5540d22` / `P1-TS-08`):
+   - Inferencia Zod: `Profilaxis = z.infer<typeof profilaxisSchema>`.
+   - Tipos: `ValidacionProfilaxisResultado`.
+   - Función: `validarProfilaxis(data: unknown): ValidacionProfilaxisResultado`.
+   - Allowlist actualizada a 46 líneas.
+6. **`src/constants/rbacPermisosPorRol.ts`** (Commit `c97bb29` / `P1-TS-09`):
+   - Tipos: `RolKey = typeof ROLES[keyof typeof ROLES]`, `PermisoValue = typeof PERMISOS[keyof typeof PERMISOS]`.
+   - Matriz: `PERMISOS_POR_ROL: Record<RolKey, readonly PermisoValue[]>`.
+7. **`src/constants/rbacConstants.ts`** (Commit `9bdd912` / `P1-TS-10`):
+   - Tipos: `NOMBRES_ROLES: Record<RolKey, string>`, `DESCRIPCIONES_ROLES: Record<RolKey, string>`.
+   - Re-exports de tipos `RolKey`, `PermisoValue`.
+   - Allowlist reducida de 118 a 37 líneas.
+
+### Verificación y Evidencia del Lote
+- `npm run validate:architecture`: ✅ **0 violaciones** (todas las reglas constitucionales cumplidas).
+- `npm run test`: ✅ **136/136 suites pasadas, 1773/1773 tests unitarios pasados** (0 regresiones).
+- `npm run test:security`: ✅ **15/15 suites pasadas, 149/149 tests pasados**.
+- `npm run build`: ✅ **Vite build completado en 1.58s sin errores**.
+- `npm run lint`: ✅ **0 errores** con Oxlint.
+
+---
+
+## [2026-10-01] Migración Gradual a TypeScript — Lote 2 Autónomo de Bajo Riesgo (Prioridad 1)
+
+### Contexto y Alcance
+- Ejecución del **Lote 2** de migración en modo batch autónomo sobre la rama unificada `feat/migracion-typescript`.
+- 5 archivos migrados cubriendo constantes RBAC, navegación agrupada y esquemas clínicos/financieros esenciales.
+
+### Archivos Migrados en Lote 2
+1. **`src/constants/rbacConstantsBase.ts`** (Commit `eaa2ede` / `P1-TS-11`):
+   - Definición `as const` de `ROLES` y `PERMISOS`.
+   - Tipos de unión de literales: `Rol = typeof ROLES[keyof typeof ROLES]`, `Permiso = typeof PERMISOS[keyof typeof PERMISOS]`.
+2. **`src/constants/sidebarConstants.ts`** (Commit `b077d91` / `P1-TS-12`):
+   - Tipos: `CounterVariant = 'info' | 'warning' | 'error' | 'success'`, `SidebarItem`, `SidebarSeccion`.
+   - Creado test unitario: `src/constants/sidebarConstants.test.js` (3 tests verificando secciones y permisos).
+3. **`src/modules/administracion/schemas/interaccionSchema.ts`** (Commit `4f24c6e` / `P1-TS-13`):
+   - Tipos: `NIVELES_SEVERIDAD_INTERACCION = ['mayor', 'moderada', 'menor'] as const`, `NivelSeveridadInteraccion`, `Interaccion = z.infer<typeof interaccionSchema>`, `ValidacionInteraccionResultado`.
+   - Allowlist actualizada a 60 líneas.
+4. **`src/modules/finanzas/schemas/movimientoFinancieroSchema.ts`** (Commit `d75a8ee` / `P1-TS-14`):
+   - Inferencia Zod: `MovimientoFinanciero`, `ListaMovimientos`.
+   - Tipos: `ValidacionListaMovimientosResultado`.
+   - Función tipada `validarListaMovimientos`.
+5. **`src/modules/administracion/schemas/alergiaCruzadaSchema.ts`** (Commit `4166120` / `P1-TS-15`):
+   - Tipos: `FAMILIAS_ALERGIAS as const` (16 familias), `NIVELES_SEVERIDAD as const` (3 niveles), `FamiliaAlergia`, `NivelSeveridadAlergia`, `AlergiaCruzada`, `ValidacionAlergiaCruzadaResultado`.
+   - Allowlist actualizada a 82 líneas.
+
+### Verificación y Evidencia del Lote 2
+- `npm run validate:architecture`: ✅ **0 violaciones** (todas las reglas constitucionales cumplidas).
+- `npm run test`: ✅ **137/137 suites pasadas, 1776/1776 tests unitarios pasados** (0 regresiones).
+- `npm run build`: ✅ **Vite build completado en 1.42s sin errores**.
+- `npm run lint`: ✅ **0 errores** con Oxlint.
+
+---
+
+## [2026-10-01] Migración Gradual a TypeScript — Lote 3 Autónomo de Bajo Riesgo (Prioridad 1)
+
+### Contexto y Alcance
+- Ejecución del **Lote 3** de migración en modo batch autónomo sobre la rama unificada `feat/migracion-typescript`.
+- 5 archivos migrados cubriendo utilidades críticas de anestesia y fecha, además de esquemas clínicos y administrativos principales (prestaciones, citas, presupuestos).
+
+### Archivos Migrados en Lote 3
+1. **`src/utils/anestesiaCalc.ts`** (Commit `b0b8065` / `P1-TS-16`):
+   - Re-export delgado y tipado del módulo `anestesiaCalculations.js`.
+   - Preserva compatibilidad API legada F1-03 y enriquecida F4-03d.
+2. **`src/modules/prestaciones/schemas/prestacionSchema.ts`** (Commit `6f48c64` / `P1-TS-17`):
+   - Tipos inferidos: `Prestacion = z.infer<typeof prestacionSchema>`.
+   - Tipo de resultado: `ValidacionListaPrestaciones`.
+   - Función segura tipada `validarListaPrestaciones(prestaciones: unknown): ValidacionListaPrestaciones`.
+3. **`src/utils/dateUtils.ts`** (Commit `1aae41b` / `P1-TS-18`):
+   - Tipado estricto de funciones de fecha local e intervalos de tiempo relativo.
+   - Creada suite unitaria `src/utils/dateUtils.test.js` (11 tests cubriendo cálculo local, padding de ceros y tiempos relativos).
+   - Longitud final de 43 líneas (cumple límite constitucional de utils ≤50 líneas).
+4. **`src/modules/agenda/schemas/citaSchema.ts`** (Commit `5c02f20` / `P1-TS-19`):
+   - Tipos inferidos: `Cita = z.infer<typeof citaSchema>`.
+   - Tipo de resultado: `ValidacionListaCitas`.
+   - Función segura tipada `validarListaCitas(citas: unknown): ValidacionListaCitas`.
+5. **`src/modules/presupuestos/schemas/presupuestoSchema.ts`** (Commit `704ae0a` / `P1-TS-20`):
+   - Tipos inferidos: `Presupuesto = z.infer<typeof presupuestoSchema>`.
+   - Tipo de resultado: `ValidacionListaPresupuestos`.
+   - Función segura tipada `validarListaPresupuestos(presupuestos: unknown): ValidacionListaPresupuestos`.
+
+### Verificación y Evidencia del Lote 3
+- `npm run validate:architecture`: ✅ **0 violaciones** (todas las reglas constitucionales cumplidas).
+- `npm run test`: ✅ **138/138 suites pasadas, 1787/1787 tests unitarios pasados** (0 regresiones).
+- `npm run test:security`: ✅ **15/15 suites pasadas, 149/149 tests pasados**.
+- `npm run build`: ✅ **Vite build completado en 1.36s sin errores**.
+- `npm run lint`: ✅ **0 errores** con Oxlint.
+
+---
+
+## [2026-10-01] Migración Gradual a TypeScript — Bloque Continuo 10 Archivos (Prioridad 1: P1-TS-21 a P1-TS-30)
+
+### Contexto y Alcance
+- Ejecución en **modo continuo autónomo sin puertas de aprobación** sobre la rama unificada `feat/migracion-typescript`.
+- 10 módulos de bajo riesgo migrados cubriendo constantes y utilidades de cálculo clínico/administrativo (Urgencias GES, Odontopediatría, Periodoncia, Agenda, Cirugía Quirúrgica, DSD Estético y Configuración).
+
+### Archivos Migrados (P1-TS-21 a P1-TS-30)
+1. **`src/modules/urgenciasGes/utils/urgenciasGesCalculations.ts`** (Commit `625b23c` / `P1-TS-21`): Folios y fechas normadas GES con tipado estricto.
+2. **`src/modules/urgenciasGes/constants/urgenciasGesConstants.ts`** (Commit `5ade9f5` / `P1-TS-22`): Interfaces `PatologiaGes`, `CategoriaTriage` y diagnósticos normados.
+3. **`src/modules/odontopediatria/constants/pediatriaConstants.ts`** (Commit `e76600b` / `P1-TS-23`): Interfaces `GradoFrankl` y colecciones tipadas de piezas temporales.
+4. **`src/modules/odontopediatria/utils/pediatriaCalculations.ts`** (Commit `3b33f01` / `P1-TS-24`): Tipos `MapaPlaca`, `CarasPlaca` y cálculo del índice O'Leary.
+5. **`src/modules/periodontograma/utils/periodontalValidation.ts`** (Commit `447a3e1` / `P1-TS-25`): Sanitización de sondaje/recesión, saquimetría y test suite unitaria dedicada (10 tests).
+6. **`src/modules/agenda/utils/agendaConflictos.ts`** (Commit `57f8288` / `P1-TS-26`): Interfaces `CitaParaConflicto`, `ResultadoConflicto` y solapamiento horario (49 líneas).
+7. **`src/modules/quirurgico/utils/quirurgicoValidation.ts`** (Commit `ee98ffb` / `P1-TS-27`): Sanitización fail-safe de torque de inserción e ISQ (27 líneas).
+8. **`src/modules/dsd/utils/dsdCalculations.ts`** (Commit `d8df3b1` / `P1-TS-28`): Interfaz `VisibilidadDoradaResultado`, ratios estéticos y proporción dorada (43 líneas).
+9. **`src/modules/configuracion/utils/configuracionCalculations.ts`** (Commit `3dbfb06` / `P1-TS-29`): Exportación JSON segura, dataURL y tests unitarios asociados.
+10. **`src/modules/configuracion/constants/configuracionConstants.ts`** (Commit `ada8f7a` / `P1-TS-30`): Interfaces `ClinicaConfig`, `ParametrosAgendaConfig` y test suite unitaria dedicada.
+
+### Verificación y Evidencia del Bloque
+- `npm run validate:architecture`: ✅ **0 violaciones** (JSX ≤250, Hooks ≤150, Utils ≤50).
+- `npm run test`: ✅ **141/141 suites pasadas, 1802/1802 tests unitarios pasados** (0 regresiones).
+- `npm run test:security`: ✅ **15/15 suites pasadas, 149/149 tests pasados**.
+- `npm run build`: ✅ **Vite build exitoso en ~1.3s**.
+- `npm run lint`: ✅ **0 errores** con Oxlint.
+
+---
+
+## [2026-10-01] Migración Gradual a TypeScript — Bloque Continuo 10 Archivos (Prioridad 1: P1-TS-31 a P1-TS-40)
+
+### Contexto y Alcance
+- Ejecución en **modo continuo autónomo sin puertas de aprobación** sobre la rama unificada `feat/migracion-typescript`.
+- 10 módulos de constantes clínicas, estéticas, quirúrgicas, gerenciales y de pacientes migrados a TypeScript con interfaces y tipos inmutables exportados.
+
+### Archivos Migrados (P1-TS-31 a P1-TS-40)
+1. **`src/modules/dashboard/constants/dashboardConstants.ts`** (Commit `3b3bc00` / `P1-TS-31`): Interface `AccesoRapido`, accesos rápidos y test suite dedicada.
+2. **`src/modules/odontograma/constants/odontogramaConstants.ts`** (Commit `93380ce` / `P1-TS-32`): Interface `HerramientaOdontograma`, nomenclaturas permanentes y temporales FDI.
+3. **`src/modules/pacientes/constants/pacientesConstants.ts`** (Commit `a121b16` / `P1-TS-33`): Pestañas clínicas `TABS_FICHA_PACIENTE` y arcadas permanentes.
+4. **`src/modules/pacientes/constants/plantillasConsentimiento.ts`** (Commit `0ca968c` / `P1-TS-34`): Interface `PlantillaConsentimiento` para cirugías, endodoncia e implantes.
+5. **`src/modules/pacientes/constants/anestesiaConstants.ts`** (Commit `bc46635` / `P1-TS-35`): Interface `EstadoVisualConfig`, tipo `TipoEstadoCalculo` y configuración visual de la calculadora de anestesia.
+6. **`src/modules/dsd/constants/dsdConstants.ts`** (Commit `05eace7` / `P1-TS-36`): Interfaces `TonoVita`, `FormaDentaria`, `ProporcionDoradaTeorica` y guía VITA.
+7. **`src/modules/quirurgico/constants/quirurgicoConstants.ts`** (Commit `bb50723` / `P1-TS-37`): Marcas de implantes, plataformas, conexiones, conductometría y selladores endodónticos.
+8. **`src/modules/reportes/constants/reportesConstants.ts`** (Commit `4897c0c` / `P1-TS-38`): Interface `PeriodoReporte`, periodos y colores de especialidades para BI.
+9. **`src/modules/finanzas/constants/finanzasConstants.ts`** (Commit `564fd63` / `P1-TS-39`): Interfaces `ConvenioConfig`, `MetodoPagoOpcion`, retención honorarios 13.75%.
+10. **`src/modules/presupuestos/constants/presupuestosConstants.ts`** (Commit `d87ddc8` / `P1-TS-40`): Interfaces `EstadoPresupuestoConfig`, `OpcionCuota`, `PresupuestoDefault` y catálogo de estados.
+
+### Verificación y Evidencia del Bloque
+- `npm run validate:architecture`: ✅ **0 violaciones** (todas las reglas constitucionales cumplidas).
+- `npm run test`: ✅ **149/149 suites pasadas, 1818/1818 tests unitarios pasados** (0 regresiones).
+- `npm run test:security`: ✅ **15/15 suites pasadas, 149/149 tests pasados**.
+- `npm run build`: ✅ **Vite build completado en ~1.3s sin errores**.
+- `npm run lint`: ✅ **0 errores** con Oxlint.
+
+---
+
+## [2026-10-01] Migración Gradual a TypeScript — Bloque Continuo 10 Archivos (Prioridad 1: P1-TS-41 a P1-TS-50)
+
+### Contexto y Alcance
+- Ejecución en **modo continuo autónomo sin puertas de aprobación** sobre la rama unificada `feat/migracion-typescript`.
+- 10 módulos de utilidades de cálculo y constantes del sistema (Prestaciones/Arancel, Esterilización, Agenda, Pagos/Caja, Periodoncia, Anestesia e Inventario) migrados con tipado estricto.
+
+### Archivos Migrados (P1-TS-41 a P1-TS-50)
+1. **`src/modules/prestaciones/constants/prestacionesConstants.ts`** (Commit `43aff20` / `P1-TS-41`): Interfaces `ArancelItemDefault`, `PaqueteClinicoDefault` y especialidades odontológicas.
+2. **`src/modules/prestaciones/utils/prestacionesCalculations.ts`** (Commit `dccc7b9` / `P1-TS-42`): Resumen de aranceles, promedios y especialidad más frecuente (48 líneas).
+3. **`src/modules/esterilizacion/utils/esterilizacionCalculations.ts`** (Commit `9f7eafe` / `P1-TS-43`): Lotes de esterilización y cálculo de conformidad biosegura (49 líneas).
+4. **`src/modules/agenda/constants/agendaConstants.ts`** (Commit `ea0f19e` / `P1-TS-44`): Interfaces `SillonDental`, `TipoBloqueoAgenda`, `EstadoCitaConfig` y estados gold.
+5. **`src/modules/agenda/utils/agendaCalculations.ts`** (Commit `2e7f6ab` / `P1-TS-45`): Verificación de disponibilidad de Box y resumen de agenda del día (49 líneas).
+6. **`src/modules/pagos/constants/pagosConstants.ts`** (Commit `00a04cf` / `P1-TS-46`): Interfaces `TipoDocumentoTributario`, `MetodoPagoGold`, `PagoDefault`.
+7. **`src/modules/pagos/utils/pagosCalculations.ts`** (Commit `7224bab` / `P1-TS-47`): Generación de folios de recibo y cálculo de recaudación tributaria/POS (49 líneas).
+8. **`src/modules/periodontograma/constants/periodontalConstants.ts`** (Commit `deaa044` / `P1-TS-48`): Nomenclaturas anatómicas, límites clínicos de sondaje y piezas multirradiculares.
+9. **`src/modules/pacientes/utils/anestesiaHelpers.ts`** (Commit `5c4ab3c` / `P1-TS-49`): Detección clínica de cardiopatías, paciente pediátrico y parseo seguro de edad (29 líneas).
+10. **`src/modules/inventario/constants/inventarioConstants.ts`** (Commit `60afd61` / `P1-TS-50`): Interface `ItemInventarioDefault`, categorías y unidades de insumos odontológicos.
+
+### Verificación y Evidencia del Bloque
+- `npm run validate:architecture`: ✅ **0 violaciones** (JSX ≤250, Hooks ≤150, Utils ≤50).
+- `npm run test`: ✅ **157/157 suites pasadas, 1840/1840 tests unitarios pasados** (0 regresiones).
+- `npm run test:security`: ✅ **15/15 suites pasadas, 149/149 tests pasados**.
+- `npm run build`: ✅ **Vite build completado en ~1.3s sin errores**.
+- `npm run lint`: ✅ **0 errores** con Oxlint.
+
+---
+
+## [2026-10-01] Migración Gradual a TypeScript — Cierre de Capa de Bajo Riesgo (Prioridad 1: P1-TS-51 a P1-TS-56)
+
+### Contexto y Alcance
+- Ejecución en **modo continuo autónomo sin puertas de aprobación** sobre la rama unificada `feat/migracion-typescript`.
+- 6 módulos de utilidades de cálculo y validación interactiva migrados a TypeScript.
+- **Refactorización y reducción constitucional**: 3 módulos (`laboratorioCalculations`, `comunicacionesCalculations` y `presupuestosCalculations`) fueron refactorizados a ≤50 líneas, eliminando 3 excepciones históricas de la `architecture-allowlist.json` (que bajó de 74 a 71 archivos).
+
+### Archivos Migrados (P1-TS-51 a P1-TS-56)
+1. **`src/modules/agenda/utils/confirmarConDialogo.ts`** (Commit `c9e20a4` / `P1-TS-51`): Helper tipado para diálogos modales de confirmación con fallback seguro a `window.confirm`.
+2. **`src/modules/agenda/utils/validarConflictoCitaUnica.ts`** (Commit `effec77` / `P1-TS-52`): Interfaces `ConflictoCitaDetalle`, `ResultadoValidacionCita` y validación de conflicto de cita individual.
+3. **`src/modules/agenda/utils/validarConflictosRecurrencia.ts`** (Commit `54e321e` / `P1-TS-53`): Validación agregada de múltiples citas recurrentes con resumen de conflictos.
+4. **`src/modules/laboratorio/utils/laboratorioCalculations.ts`** (Commit `dd65f10` / `P1-TS-54`): Generador de folios, tarifario sugerido y resumen de laboratorio. Refactorizado a 49 líneas (allowlist reducida).
+5. **`src/modules/comunicaciones/utils/comunicacionesCalculations.ts`** (Commit `d09efe3` / `P1-TS-55`): Interpolación de plantillas, enlaces WhatsApp y tasa de confirmación. Refactorizado a 49 líneas (allowlist reducida).
+6. **`src/modules/presupuestos/utils/presupuestosCalculations.ts`** (Commit `b763e0e` / `P1-TS-56`): Simulación de cuotas, folios y resumen financiero. Refactorizado a 49 líneas (allowlist reducida).
+
+### Verificación y Evidencia Final de la Capa de Bajo Riesgo
+- `npm run validate:architecture`: ✅ **0 violaciones** (Allowlist reducida a 71 archivos).
+- `npm run test`: ✅ **163/163 suites pasadas, 1855/1855 tests unitarios pasados** (0 regresiones).
+- `npm run test:security`: ✅ **15/15 suites pasadas, 149/149 tests pasados**.
+- `npm run build`: ✅ **Vite build exitoso en ~1.3s**.
+- `npm run lint`: ✅ **0 errores** con Oxlint.
+
+
+
+
+
+
+
+
+

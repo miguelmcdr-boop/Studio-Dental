@@ -24,7 +24,7 @@
  * - false: usa localStorage como fuente de verdad (legacy)
  */
 import { createTenantRepository, leerJSON, escribirJSON } from '../../../services/localStorageRepository'
-import { validarListaPacientes } from '../schemas/pacienteSchema'
+import { validarListaPacientes, validarPaciente } from '../schemas/pacienteSchema'
 import { supabase, USE_SUPABASE } from '../../../services/supabaseClient'
 import { transformarDesdeSupabase, transformarParaSupabase } from './pacientesTransformations.js'
 import { migrationStorageService } from '../../../services/migrationStorageService'
@@ -35,15 +35,42 @@ import {
   vaciarPapeleraPacientes as softDeleteVaciarPacientes
 } from './pacientesSoftDeleteService'
 import { esUuidValido } from '../../../services/migrations/uuidUtils'
+import { getClinicaActiva } from '../../../services/authService'
 import { createLogger } from '../../../services/logger'
 
 const log = createLogger('pacientesStorageService')
+
+export const createTenantLocalStorageRepository = createTenantRepository
 
 const STORAGE_KEY_PACIENTES = 'studio_dental_pacientes_v3'
 // F7-36 FASE 1 (Commit 1.5b): migrado a createTenantRepository para aislamiento multi-tenant.
 // La clave legacy 'studio_dental_pacientes_v3' ahora se almacena como sd_<clinicaId>_studio_dental_pacientes_v3.
 // Fail-safe: si no hay clínica activa, obtenerPacientes() retorna defaultValue (SEED_PACIENTES_DEMO o []).
 const pacientesRepo = createTenantRepository(STORAGE_KEY_PACIENTES, [])
+
+import {
+  pendingPacientesRepo,
+  obtenerPendingPacientes,
+  guardarPendingPacientes,
+  encolarPaciente,
+  guardarPacienteHelper,
+  procesarColaPacientesHelper,
+  sincronizarPacientesDesdeSupabaseHelper,
+  pendingDeletesPacientesRepo,
+  obtenerPendingDeletesPacientes,
+  guardarPendingDeletesPacientes,
+  procesarPendingDeletesPacientesHelper
+} from './pacientesOfflineQueueService'
+
+export {
+  pendingPacientesRepo,
+  obtenerPendingPacientes,
+  guardarPendingPacientes,
+  encolarPaciente,
+  pendingDeletesPacientesRepo,
+  obtenerPendingDeletesPacientes,
+  guardarPendingDeletesPacientes
+}
 
 // Caché en memoria: evita lecturas repetidas de localStorage y permite
 // que la API pública permanezca síncrona.
@@ -93,55 +120,21 @@ const obtenerPacientes = (defaults = []) => {
 // ═══════════════════════════════════════════════════════════════════
 
 /**
- * Refresca la caché de pacientes desde Supabase.
- * Útil después del login, al recibir eventos Realtime, o manualmente.
+ * Refresca la caché de pacientes desde Supabase protegiendo pacientes locales offline (P1-3).
+ * Descarga los pacientes remotos pero preserva pacientes locales con sincronizado: false
+ * o que estén en pendingPacientes.
  *
  * @returns {Promise<Array>} Lista actualizada de pacientes
  */
 const sincronizarDesdeSupabase = async () => {
-  log.info('Iniciando sincronización desde Supabase...')
-  
-  if (!USE_SUPABASE || !supabase) {
-    log.info('Supabase no configurado, retornando caché')
-    return pacientesCache
-  }
-
-  try {
-    // F6-F: filtrar pacientes eliminados (soft delete)
-    const { data, error } = await supabase
-      .from('pacientes')
-      .select('*')
-      .is('deleted_at', null)
-      .order('created_at', { ascending: false })
-
-    if (error) {
-      log.warn('Error al sincronizar desde Supabase:', error.message)
-      return pacientesCache
+  return sincronizarPacientesDesdeSupabaseHelper({
+    obtenerPacientes,
+    actualizarPacientesLocal: (fusionados) => {
+      pacientesCache = fusionados
+      cacheInicializado = true
+      pacientesRepo.guardar(fusionados)
     }
-
-    log.info(`Supabase retornó ${data?.length || 0} pacientes`)
-
-    if (!Array.isArray(data)) return pacientesCache
-
-    // F6-C-f: NO usar caché como fallback si Supabase retorna vacío.
-    // Esto rompería el aislamiento multi-clínica. Si Supabase retorna vacío,
-    // la clínica no tiene pacientes (o el RLS está funcionando correctamente).
-    if (data.length === 0) {
-      log.info('Supabase retornó vacío, actualizando caché vacía')
-    }
-
-    const nuevos = data.map(transformarDesdeSupabase).filter(Boolean)
-    log.info(`Actualizando caché con ${nuevos.length} pacientes`)
-    pacientesCache = nuevos
-
-    // Actualizar también localStorage como caché persistente
-    pacientesRepo.guardar(nuevos)
-
-    return nuevos
-  } catch (error) {
-    log.error('Excepción al sincronizar desde Supabase:', error)
-    return pacientesCache
-  }
+  })
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -311,32 +304,9 @@ const guardarPacientes = async (pacientes) => {
       }
     }
 
-    // F6-F: SOFT DELETE pacientes eliminados
-    // El trigger trg_pacientes_audit registra la acción en audit_log.
-    const { data: pacientesSupabase } = await supabase
-      .from('pacientes')
-      .select('id')
-      .is('deleted_at', null)
-
-    if (Array.isArray(pacientesSupabase)) {
-      const idsASoftDelete = pacientesSupabase
-        .map(p => p.id)
-        .filter(id => !idsEnMemoria.has(id))
-
-      if (idsASoftDelete.length > 0) {
-        const { error: deleteError } = await supabase
-          .from('pacientes')
-          .update({ deleted_at: new Date().toISOString() })
-          .in('id', idsASoftDelete)
-          .is('deleted_at', null)
-
-        if (deleteError) {
-          log.error('Error al soft delete:', deleteError.message)
-        } else {
-          log.info(`${idsASoftDelete.length} pacientes marcados eliminados (soft delete)`)
-        }
-      }
-    }
+    // P0-1 / P1-3: Procesar eliminaciones pendientes explícitas (soft-delete vía UPDATE)
+    // PROHIBIDO el diff destructivo por ausencia de IDs en memoria
+    await procesarPendingDeletesPacientesHelper()
 
     // Persistir la caché actualizada (con UUIDs nuevos)
     pacientesRepo.guardar(pacientesCache)
@@ -348,6 +318,39 @@ const guardarPacientes = async (pacientes) => {
   }
 }
 
+/**
+ * Guarda o actualiza un único paciente con soporte dual offline-first y encolado (P1-3).
+ *
+ * @param {Object} paciente - Datos del paciente
+ * @returns {Promise<Object|null>} El paciente guardado o null si falla la validación
+ */
+export const guardarPaciente = async (paciente) => {
+  return guardarPacienteHelper(paciente, {
+    obtenerPacientes,
+    actualizarPacientesLocal: (listado) => {
+      pacientesCache = listado
+      cacheInicializado = true
+      pacientesRepo.guardar(listado)
+    }
+  })
+}
+
+/**
+ * Procesa la cola de pacientes pendientes de sincronizar con Supabase (P1-3).
+ * Drenaje atómico y fail-closed: solo se retiran los confirmados por Supabase.
+ *
+ * @returns {Promise<{procesados: number, fallidos: number}>}
+ */
+export const procesarColaPacientes = async () => {
+  return procesarColaPacientesHelper({
+    obtenerPacientes,
+    actualizarPacientesLocal: (listado) => {
+      pacientesCache = listado
+      pacientesRepo.guardar(listado)
+    }
+  })
+}
+
 // ═══════════════════════════════════════════════════════════════════
 // API PÚBLICA
 // ═══════════════════════════════════════════════════════════════════
@@ -357,7 +360,7 @@ const guardarPacientes = async (pacientes) => {
  * Después de llamar esto, el próximo obtenerPacientes() volverá a
  * inicializar la caché desde localStorage.
  */
-const resetCache = () => {
+export const resetCache = () => {
   pacientesCache = null
   cacheInicializado = false
 }
@@ -365,6 +368,12 @@ const resetCache = () => {
 export const pacientesStorageService = {
   obtenerPacientes,
   guardarPacientes,
+  guardarPaciente,
+  procesarColaPacientes,
+  obtenerPendingPacientes,
+  guardarPendingPacientes,
+  obtenerPendingDeletesPacientes,
+  guardarPendingDeletesPacientes,
   sincronizarDesdeSupabase,
   resetCache,
 
@@ -377,8 +386,19 @@ export const pacientesStorageService = {
    * F6-N: Delega a pacientesSoftDeleteService (elimina duplicación).
    */
   eliminarPaciente: async (pacienteId) => {
+    // P0-1 / P1-3: Registrar en cola pendingDeletes para retry offline
+    const pending = obtenerPendingDeletesPacientes()
+    if (!pending.includes(pacienteId)) {
+      guardarPendingDeletesPacientes([...pending, pacienteId])
+    }
+
     const resultado = await softDeleteEliminar(pacienteId)
     
+    if (resultado) {
+      const actualizados = obtenerPendingDeletesPacientes().filter(id => id !== pacienteId)
+      guardarPendingDeletesPacientes(actualizados)
+    }
+
     // Mantener cache local sincronizado (solo en modo localStorage)
     if (resultado && (!USE_SUPABASE || !supabase)) {
       pacientesCache = pacientesCache.filter(p => p.id !== pacienteId)
@@ -429,4 +449,10 @@ export const pacientesStorageService = {
       log.error(`Error al eliminar recetas del paciente ${pacienteId}:`, e)
     }
   }
+}
+
+export {
+  obtenerPacientes,
+  guardarPacientes,
+  sincronizarDesdeSupabase
 }

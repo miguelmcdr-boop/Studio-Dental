@@ -20,6 +20,19 @@
 
 import 'fake-indexeddb/auto'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+// Polyfill de localStorage para entorno Node (requerido por pendingUploadsRepo)
+if (typeof global.localStorage === 'undefined') {
+  const store = new Map()
+  global.localStorage = {
+    getItem: (k) => store.get(k) ?? null,
+    setItem: (k, v) => store.set(k, String(v)),
+    removeItem: (k) => store.delete(k),
+    clear: () => store.clear(),
+    get length() { return store.size },
+    key: (i) => Array.from(store.keys())[i] ?? null
+  }
+}
 import {
   guardarAdjunto,
   obtenerAdjuntosPorPaciente,

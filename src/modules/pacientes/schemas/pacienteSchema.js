@@ -85,6 +85,19 @@ export const validarListaPacientes = (pacientes) => {
 }
 
 /**
+ * Valida un único objeto paciente.
+ * @param {Object} paciente
+ * @returns {{ valido: boolean, datos: Object|null, error: import('zod').ZodError|null }}
+ */
+export const validarPaciente = (paciente) => {
+  const resultado = pacienteSchema.safeParse(paciente)
+  if (resultado.success) {
+    return { valido: true, datos: resultado.data, error: null }
+  }
+  return { valido: false, datos: null, error: resultado.error }
+}
+
+/**
  * Valida que un RUT no exista ya en la clínica (unicidad por clínica).
  * F6-G: verificación de duplicados antes de guardar.
  *

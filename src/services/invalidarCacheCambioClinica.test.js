@@ -41,6 +41,10 @@ vi.mock('../store/prestacionesStore', () => ({
   usePrestacionesStore: { setState: vi.fn() },
 }))
 
+vi.mock('./adjuntosStorageService', () => ({
+  invalidarCacheAdjuntos: vi.fn(async () => ({ eliminados: 3, conservadosPendientes: true })),
+}))
+
 // Importar mocks y servicio
 import { tenantCache } from './tenantCache'
 import { finanzasStorageService } from '../modules/finanzas/services/finanzasStorageService'
@@ -49,6 +53,7 @@ import { pagosStorageService } from '../modules/pagos/services/pagosStorageServi
 import { presupuestosStorageService } from '../modules/presupuestos/services/presupuestosStorageService'
 import { usePacientesStore } from '../store/pacientesStore'
 import { usePrestacionesStore } from '../store/prestacionesStore'
+import { invalidarCacheAdjuntos } from './adjuntosStorageService'
 import { invalidarCacheCambioClinica } from './invalidarCacheCambioClinica'
 
 /**
@@ -262,10 +267,10 @@ describe('invalidarCacheCambioClinica', () => {
   })
 
   describe('Paso 5: IndexedDB', () => {
-    it('elimina la base de datos studio_dental_adjuntos', async () => {
+    it('invoca invalidarCacheAdjuntos con la clínica anterior de forma no destructiva', async () => {
       const result = await invalidarCacheCambioClinica('clinica-uuid-123')
 
-      expect(global.indexedDB.deleteDatabase).toHaveBeenCalledWith('studio_dental_adjuntos')
+      expect(invalidarCacheAdjuntos).toHaveBeenCalledWith('clinica-uuid-123')
       expect(result.indexedDB.eliminada).toBe(true)
     })
 
@@ -278,23 +283,13 @@ describe('invalidarCacheCambioClinica', () => {
       expect(result.indexedDB.razon).toBe('indexedDB no disponible')
     })
 
-    it('cuenta como error si indexedDB falla', async () => {
-      mockIndexedDB('error')
+    it('cuenta como error si invalidarCacheAdjuntos falla', async () => {
+      invalidarCacheAdjuntos.mockRejectedValueOnce(new Error('IDB error'))
 
       const result = await invalidarCacheCambioClinica('clinica-uuid-123')
 
       expect(result.indexedDB.eliminada).toBe(false)
       expect(result.errores).toBe(1)
-    })
-
-    it('maneja correctamente el estado blocked', async () => {
-      mockIndexedDB('blocked')
-
-      const result = await invalidarCacheCambioClinica('clinica-uuid-123')
-
-      // Blocked no es un error crítico, se resuelve exitosamente
-      expect(result.indexedDB.eliminada).toBe(true)
-      expect(result.errores).toBe(0)
     })
   })
 

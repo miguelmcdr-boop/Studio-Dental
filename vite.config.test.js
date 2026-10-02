@@ -12,7 +12,7 @@
  * el SW de forma confiable.
  */
 import { describe, it, expect } from 'vitest'
-import { debeCachearSupabase } from './src/utils/supabaseCacheFilter.js'
+import { debeCachearSupabase } from './src/utils/supabaseCacheFilter.ts'
 
 describe('F7-06: filtro de caching de Supabase (debeCachearSupabase)', () => {
   describe('Exclusiones de PHI (debe retornar false)', () => {
@@ -46,6 +46,14 @@ describe('F7-06: filtro de caching de Supabase (debeCachearSupabase)', () => {
     it('rechaza dominios que no contienen supabase', () => {
       expect(debeCachearSupabase({ url: new URL('https://cdn.jsdelivr.net/npm/react.js') })).toBe(false)
       expect(debeCachearSupabase({ url: new URL('https://api.github.com/repos') })).toBe(false)
+    })
+  })
+
+  describe('Soporte de URL como string', () => {
+    it('soporta parámetro url como string además de instancia URL', () => {
+      expect(debeCachearSupabase({ url: 'https://xxx.supabase.co/rest/v1/pacientes' })).toBe(false)
+      expect(debeCachearSupabase({ url: 'https://xxx.supabase.co/favicon.ico' })).toBe(true)
+      expect(debeCachearSupabase({ url: 'https://google.com/test' })).toBe(false)
     })
   })
 })

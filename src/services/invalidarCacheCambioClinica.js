@@ -31,6 +31,7 @@ import { pagosStorageService } from '../modules/pagos/services/pagosStorageServi
 import { presupuestosStorageService } from '../modules/presupuestos/services/presupuestosStorageService'
 import { usePacientesStore } from '../store/pacientesStore'
 import { usePrestacionesStore } from '../store/prestacionesStore'
+import { invalidarCacheAdjuntos } from './adjuntosStorageService'
 import { createLogger } from './logger'
 
 const log = createLogger('invalidarCacheCambioClinica')
@@ -180,24 +181,29 @@ const limpiarClavesClinicas = () => {
 }
 
 /**
- * Paso 5: Invalidar IndexedDB completa (base 'studio_dental_adjuntos').
- * @returns {Promise<{eliminada: boolean, razon?: string}>}
+ * Paso 5: Invalidar caché de adjuntos en IndexedDB de forma segura y no destructiva (P0-2).
+ * En lugar de borrar la base completa con deleteDatabase (destruyendo adjuntos offline
+ * pendientes de subida), ahora invoca invalidarCacheAdjuntos(clinicaAnterior),
+ * preservando los registros con sincronizado: false y eliminando solo la caché
+ * ya respaldada en la nube.
+ *
+ * @param {string|null} clinicaAnterior - ID de la clínica que deja de estar activa
+ * @returns {Promise<{eliminada: boolean, eliminados?: number, razon?: string}>}
  */
-const invalidarIndexedDB = async () => {
+const invalidarIndexedDB = async (clinicaAnterior = null) => {
   try {
     if (typeof indexedDB === 'undefined') {
       return { eliminada: false, razon: 'indexedDB no disponible' }
     }
-    await new Promise((resolve, reject) => {
-      const request = indexedDB.deleteDatabase(IDB_ADJUNTOS_DB_NAME)
-      request.onsuccess = () => resolve()
-      request.onerror = () => reject(new Error('Error eliminando IndexedDB'))
-      request.onblocked = () => {
-        log.warn('IndexedDB bloqueado al intentar eliminar (otras pestañas abiertas)')
-        resolve() // No es un error crítico, continuar
-      }
-    })
-    return { eliminada: true }
+    if (!clinicaAnterior) {
+      return { eliminada: true, eliminados: 0, razon: 'sin clínica anterior' }
+    }
+    const resultado = await invalidarCacheAdjuntos(clinicaAnterior)
+    return {
+      eliminada: true,
+      eliminados: resultado?.eliminados ?? 0,
+      conservadosPendientes: true
+    }
   } catch (e) {
     log.error('Paso 5 falló (invalidarIndexedDB):', e.message)
     return { eliminada: false, razon: e.message }
@@ -246,8 +252,8 @@ export const invalidarCacheCambioClinica = async (clinicaAnterior = null) => {
   resumen.patientKeys = conteoClaves.porPaciente
   resumen.explicitKeys = conteoClaves.explicitas
 
-  // Paso 5: IndexedDB (async)
-  resumen.indexedDB = await invalidarIndexedDB()
+  // Paso 5: IndexedDB seguro (async)
+  resumen.indexedDB = await invalidarIndexedDB(clinicaAnterior)
 
   // Contar errores
   if (resumen.indexedDB.eliminada === false && resumen.indexedDB.razon !== 'indexedDB no disponible') {

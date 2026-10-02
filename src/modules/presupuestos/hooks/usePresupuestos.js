@@ -34,6 +34,9 @@ export const usePresupuestos = (pacientes = [], _prestaciones = []) => {
     const directos = presupuestosStorageService.obtenerPresupuestos([])
     const actualizados = [nuevoPresupuesto, ...directos]
     presupuestosStorageService.guardarPresupuestos(actualizados)
+    if (typeof presupuestosStorageService.guardarPresupuesto === 'function') {
+      presupuestosStorageService.guardarPresupuesto(nuevoPresupuesto).catch(() => {})
+    }
     cargarPresupuestos()
   }, [cargarPresupuestos])
 
