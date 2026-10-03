@@ -14,41 +14,53 @@
  *     <OdontogramaModulo />
  *   </ErrorBoundary>
  */
-import React from 'react'
-import { ErrorFallback } from './ErrorFallback'
+import React, { Component, ErrorInfo, ReactNode } from 'react'
+import { ErrorFallback, ErrorFallbackProps } from './ErrorFallback'
 import { createLogger } from '../services/logger'
 
 const log = createLogger('ErrorBoundary')
 
-export class ErrorBoundary extends React.Component {
-  constructor(props) {
+export interface ErrorBoundaryProps {
+  children?: ReactNode
+  modulo?: string
+  fallback?: React.ComponentType<ErrorFallbackProps>
+  onReset?: () => void
+}
+
+export interface ErrorBoundaryState {
+  hasError: boolean
+  error: Error | null
+}
+
+export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
     super(props)
     this.state = { hasError: false, error: null }
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return { hasError: true, error }
   }
 
-  componentDidCatch(error, errorInfo) {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     // Registro estructurado (F6-03 — logger centralizado)
     log.error({
       modulo: this.props.modulo || 'global',
       mensaje: error?.message,
       stack: error?.stack,
       componentStack: errorInfo?.componentStack,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     })
   }
 
-  handleReset = () => {
+  handleReset = (): void => {
     this.setState({ hasError: false, error: null })
     if (typeof this.props.onReset === 'function') {
       this.props.onReset()
     }
   }
 
-  render() {
+  render(): ReactNode {
     if (this.state.hasError) {
       const FallbackComponent = this.props.fallback || ErrorFallback
       return (

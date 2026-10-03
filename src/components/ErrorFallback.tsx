@@ -12,7 +12,13 @@
  */
 import React from 'react'
 
-export function ErrorFallback({ error, onReset, modulo }) {
+export interface ErrorFallbackProps {
+  error: Error | null
+  onReset?: () => void
+  modulo?: string
+}
+
+export const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, onReset, modulo }) => {
   const titulo = modulo
     ? `Error en el módulo "${modulo}"`
     : 'Error inesperado'
@@ -93,3 +99,5 @@ export function ErrorFallback({ error, onReset, modulo }) {
     </div>
   )
 }
+
+ErrorFallback.displayName = 'ErrorFallback'
