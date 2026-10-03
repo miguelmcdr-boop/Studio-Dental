@@ -3,23 +3,33 @@ import { TrendingUp, ClipboardList, Gift } from 'lucide-react'
 import { Icon } from '../../components/Icon'
 import { Tooth } from '../../components/icons/Tooth'
 import { ESPECIALIDADES_ODONTOLOGICAS } from './constants/prestacionesConstants'
-import { usePrestaciones } from './hooks/usePrestaciones'
+import { usePrestaciones, type PrestacionInput } from './hooks/usePrestaciones'
 import { PrestacionesSummaryCards } from './components/PrestacionesSummaryCards'
 import { TablaArancelPrestaciones } from './components/TablaArancelPrestaciones'
 import { PaquetesClinicosManager } from './components/PaquetesClinicosManager'
 import { ModalNuevaPrestacion } from './components/ModalNuevaPrestacion'
 import { ReajusteMasivoModal } from './components/ReajusteMasivoModal'
 import { usePrestacionesStore } from '../../store/prestacionesStore'
+import type { Prestacion } from './services/prestacionesStorageService'
 
-export const PrestacionesModulo = memo(() => {
+interface PrestacionesStoreState {
+  prestacionesArancel: Prestacion[]
+  setPrestacionesArancel: (prestaciones: Prestacion[]) => void
+}
+
+export const PrestacionesModulo: React.FC = memo(() => {
   // (F2-02) — prestacionesArancel/setPrestacionesArancel ya no llegan como prop desde App.jsx: se leen directo del store.
-  const prestacionesProp = usePrestacionesStore((state) => state.prestacionesArancel)
-  const setPrestacionesProp = usePrestacionesStore((state) => state.setPrestacionesArancel)
+  const prestacionesProp = usePrestacionesStore(
+    (state: PrestacionesStoreState) => state.prestacionesArancel
+  )
+  const setPrestacionesProp = usePrestacionesStore(
+    (state: PrestacionesStoreState) => state.setPrestacionesArancel
+  )
 
-  const [tabActual, setTabActual] = useState('arancel')
-  const [modalAbierto, setModalAbierto] = useState(false)
-  const [modalReajusteAbierto, setModalReajusteAbierto] = useState(false)
-  const [prestacionEditar, setPrestacionEditar] = useState(null)
+  const [tabActual, setTabActual] = useState<'arancel' | 'paquetes'>('arancel')
+  const [modalAbierto, setModalAbierto] = useState<boolean>(false)
+  const [modalReajusteAbierto, setModalReajusteAbierto] = useState<boolean>(false)
+  const [prestacionEditar, setPrestacionEditar] = useState<Prestacion | null>(null)
 
   const {
     prestaciones,
@@ -36,12 +46,12 @@ export const PrestacionesModulo = memo(() => {
     eliminarPaquete
   } = usePrestaciones(prestacionesProp, setPrestacionesProp)
 
-  const handleAbrirNuevo = () => {
+  const handleAbrirNuevo = (): void => {
     setPrestacionEditar(null)
     setModalAbierto(true)
   }
 
-  const handleAbrirEditar = (prestacion) => {
+  const handleAbrirEditar = (prestacion: Prestacion): void => {
     setPrestacionEditar(prestacion)
     setModalAbierto(true)
   }
@@ -51,10 +61,12 @@ export const PrestacionesModulo = memo(() => {
       <div className="flex justify-between items-center flex-wrap gap-3 print:hidden">
         <div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-graphite-50 uppercase tracking-wider flex items-center gap-2">
-          <Icon icon={Tooth} size="md" />
-          Arancel de Prestaciones & Paquetes Clínicos
-        </h2>
-          <p className="text-xs text-gray-500 dark:text-graphite-400">Catálogo oficial de procedimientos, convenios y promociones de la clínica.</p>
+            <Icon icon={Tooth} size="md" />
+            Arancel de Prestaciones & Paquetes Clínicos
+          </h2>
+          <p className="text-xs text-gray-500 dark:text-graphite-400">
+            Catálogo oficial de procedimientos, convenios y promociones de la clínica.
+          </p>
         </div>
 
         <div className="flex gap-2">
@@ -62,9 +74,11 @@ export const PrestacionesModulo = memo(() => {
             <>
               <button
                 onClick={() => setModalReajusteAbierto(true)}
-                className="bg-gray-100 dark:bg-graphite-800 text-gray-800 dark:text-graphite-100 text-xs font-bold px-3 py-2.5 rounded-xl hover:bg-gray-200 transition-colors border"
+                className="bg-gray-100 dark:bg-graphite-800 text-gray-800 dark:text-graphite-100 text-xs font-bold px-3 py-2.5 rounded-xl hover:bg-gray-200 transition-colors border cursor-pointer"
               >
-                <span className="inline-flex items-center gap-1"><TrendingUp size={12} />Reajuste %</span>
+                <span className="inline-flex items-center gap-1">
+                  <TrendingUp size={12} />Reajuste %
+                </span>
               </button>
               <button
                 onClick={handleAbrirNuevo}
@@ -84,20 +98,28 @@ export const PrestacionesModulo = memo(() => {
       <div className="flex gap-2 border-b pb-1 print:hidden text-xs">
         <button
           onClick={() => setTabActual('arancel')}
-          className={`px-4 py-2 rounded-xl font-bold transition-all ${
-            tabActual === 'arancel' ? 'bg-black text-white shadow-xs' : 'bg-gray-100 dark:bg-graphite-800 text-gray-600 dark:text-graphite-400 hover:bg-gray-200'
+          className={`px-4 py-2 rounded-xl font-bold transition-all cursor-pointer ${
+            tabActual === 'arancel'
+              ? 'bg-black text-white shadow-xs'
+              : 'bg-gray-100 dark:bg-graphite-800 text-gray-600 dark:text-graphite-400 hover:bg-gray-200'
           }`}
         >
-          <span className="inline-flex items-center gap-1"><ClipboardList size={12} />Arancel General (Particular / Fonasa)</span>
+          <span className="inline-flex items-center gap-1">
+            <ClipboardList size={12} />Arancel General (Particular / Fonasa)
+          </span>
         </button>
 
         <button
           onClick={() => setTabActual('paquetes')}
-          className={`px-4 py-2 rounded-xl font-bold transition-all ${
-            tabActual === 'paquetes' ? 'bg-black text-white shadow-xs' : 'bg-gray-100 dark:bg-graphite-800 text-gray-600 dark:text-graphite-400 hover:bg-gray-200'
+          className={`px-4 py-2 rounded-xl font-bold transition-all cursor-pointer ${
+            tabActual === 'paquetes'
+              ? 'bg-black text-white shadow-xs'
+              : 'bg-gray-100 dark:bg-graphite-800 text-gray-600 dark:text-graphite-400 hover:bg-gray-200'
           }`}
         >
-          <span className="inline-flex items-center gap-1"><Gift size={12} />Packs y Promociones Clínicas</span>
+          <span className="inline-flex items-center gap-1">
+            <Gift size={12} />Packs y Promociones Clínicas
+          </span>
         </button>
       </div>
 
@@ -112,7 +134,11 @@ export const PrestacionesModulo = memo(() => {
                 className="p-2 border rounded-xl bg-white dark:bg-graphite-800 font-semibold flex-1 sm:flex-initial"
               >
                 <option value="Todas">Todas las especialidades</option>
-                {ESPECIALIDADES_ODONTOLOGICAS.map(e => <option key={e} value={e}>{e}</option>)}
+                {ESPECIALIDADES_ODONTOLOGICAS.map((e) => (
+                  <option key={e} value={e}>
+                    {e}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -144,7 +170,7 @@ export const PrestacionesModulo = memo(() => {
       {modalAbierto && (
         <ModalNuevaPrestacion
           prestacionEditar={prestacionEditar}
-          alGuardar={agregarOActualizarPrestacion}
+          alGuardar={(p: PrestacionInput) => agregarOActualizarPrestacion(p)}
           alCerrar={() => setModalAbierto(false)}
         />
       )}

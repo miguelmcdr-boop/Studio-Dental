@@ -2,25 +2,43 @@ import React, { memo, useState } from 'react'
 import { Pencil, Plus, Gift, Trash2 } from 'lucide-react'
 import { formatearCLP } from '../../../utils/formatoMoneda'
 import { useAppDialog } from '../../../hooks/useAppDialog'
+import type { PaqueteClinico } from '../services/prestacionesStorageService'
+import type { PaqueteInput } from '../hooks/usePrestaciones'
 
-export const PaquetesClinicosManager = memo(({ paquetes, alGuardarPaquete, alEliminarPaquete }) => {
-  const [packEditar, setPackEditar] = useState(null)
+export interface PaquetesClinicosManagerProps {
+  paquetes: PaqueteClinico[]
+  alGuardarPaquete: (paquete: PaqueteInput) => void
+  alEliminarPaquete: (id: string | number) => void
+}
+
+export const PaquetesClinicosManager: React.FC<PaquetesClinicosManagerProps> = memo(({
+  paquetes,
+  alGuardarPaquete,
+  alEliminarPaquete
+}) => {
+  const [packEditar, setPackEditar] = useState<PaqueteClinico | null>(null)
   const { alert: dialogAlert } = useAppDialog()
-  const [nombre, setNombre] = useState('')
-  const [descripcion, setDescripcion] = useState('')
-  const [precioCombo, setPrecioCombo] = useState('')
-  const [ahorroEstimado, setAhorroEstimado] = useState('15%')
+  const [nombre, setNombre] = useState<string>('')
+  const [descripcion, setDescripcion] = useState<string>('')
+  const [precioCombo, setPrecioCombo] = useState<string>('')
+  const [ahorroEstimado, setAhorroEstimado] = useState<string>('15%')
 
-  const handleAbrirEditar = (pk) => {
+  const handleAbrirEditar = (pk: PaqueteClinico): void => {
     setPackEditar(pk)
     // Limpiar el prefijo de emoji si existe para editar solo el texto
     setNombre(pk.nombre ? pk.nombre : '')
     setDescripcion(pk.descripcion || '')
-    setPrecioCombo(pk.precioCombo || pk.precio || '')
+    setPrecioCombo(
+      pk.precioCombo != null
+        ? String(pk.precioCombo)
+        : pk.precio != null
+        ? String(pk.precio)
+        : ''
+    )
     setAhorroEstimado(pk.ahorroEstimado || '15%')
   }
 
-  const handleCancelarEdicion = () => {
+  const handleCancelarEdicion = (): void => {
     setPackEditar(null)
     setNombre('')
     setDescripcion('')
@@ -28,7 +46,7 @@ export const PaquetesClinicosManager = memo(({ paquetes, alGuardarPaquete, alEli
     setAhorroEstimado('15%')
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault()
     if (!nombre.trim() || !precioCombo) return
 
@@ -54,16 +72,27 @@ export const PaquetesClinicosManager = memo(({ paquetes, alGuardarPaquete, alEli
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
-      <form onSubmit={handleSubmit} className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-6 shadow-xs space-y-3">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-6 shadow-xs space-y-3"
+      >
         <div className="flex justify-between items-center border-b pb-2">
           <h3 className="font-bold text-sm text-gray-900 dark:text-graphite-50 uppercase">
-            {packEditar ? <span className='inline-flex items-center gap-1'><Pencil size={12} />Editar Pack / Promoción</span> : <span className='inline-flex items-center gap-1'><Plus size={12} />Crear Pack / Promoción</span>}
+            {packEditar ? (
+              <span className="inline-flex items-center gap-1">
+                <Pencil size={12} />Editar Pack / Promoción
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1">
+                <Plus size={12} />Crear Pack / Promoción
+              </span>
+            )}
           </h3>
           {packEditar && (
             <button
               type="button"
               onClick={handleCancelarEdicion}
-              className="text-gray-400 dark:text-graphite-500 font-bold hover:text-black text-xs"
+              className="text-gray-400 dark:text-graphite-500 font-bold hover:text-black text-xs cursor-pointer"
             >
               ✕ Cancelar
             </button>
@@ -71,7 +100,9 @@ export const PaquetesClinicosManager = memo(({ paquetes, alGuardarPaquete, alEli
         </div>
 
         <div>
-          <label htmlFor="pack-nombre" className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Nombre del Pack *</label>
+          <label htmlFor="pack-nombre" className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">
+            Nombre del Pack *
+          </label>
           <input
             id="pack-nombre"
             type="text"
@@ -84,10 +115,12 @@ export const PaquetesClinicosManager = memo(({ paquetes, alGuardarPaquete, alEli
         </div>
 
         <div>
-          <label htmlFor="pack-descripcion" className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Descripción de lo que Incluye</label>
+          <label htmlFor="pack-descripcion" className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">
+            Descripción de lo que Incluye
+          </label>
           <textarea
             id="pack-descripcion"
-            rows="2"
+            rows={2}
             placeholder="Ej: Incluye instalación de aparatos + primeros 3 controles..."
             value={descripcion}
             onChange={(e) => setDescripcion(e.target.value)}
@@ -97,7 +130,9 @@ export const PaquetesClinicosManager = memo(({ paquetes, alGuardarPaquete, alEli
 
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <label htmlFor="pack-precio" className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Precio Combo ($)</label>
+            <label htmlFor="pack-precio" className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">
+              Precio Combo ($)
+            </label>
             <input
               id="pack-precio"
               type="text"
@@ -109,7 +144,9 @@ export const PaquetesClinicosManager = memo(({ paquetes, alGuardarPaquete, alEli
             />
           </div>
           <div>
-            <label htmlFor="pack-ahorro" className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">% Ahorro</label>
+            <label htmlFor="pack-ahorro" className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">
+              % Ahorro
+            </label>
             <input
               id="pack-ahorro"
               type="text"
@@ -123,7 +160,7 @@ export const PaquetesClinicosManager = memo(({ paquetes, alGuardarPaquete, alEli
 
         <button
           type="submit"
-          className="w-full bg-black text-white font-bold py-2.5 rounded-xl hover:bg-gray-800 transition-colors shadow-xs"
+          className="w-full bg-black text-white font-bold py-2.5 rounded-xl hover:bg-gray-800 transition-colors shadow-xs cursor-pointer"
         >
           {packEditar ? 'Guardar Cambios del Pack' : 'Guardar Paquete Clínico'}
         </button>
@@ -135,32 +172,37 @@ export const PaquetesClinicosManager = memo(({ paquetes, alGuardarPaquete, alEli
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {paquetes.map(pk => {
-            const precioMostrar = parseFloat(pk.precioCombo ?? pk.precio) || 0
+          {paquetes.map((pk) => {
+            const precioMostrar = parseFloat(String(pk.precioCombo ?? pk.precio ?? 0)) || 0
 
             return (
-              <div key={pk.id} className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-5 shadow-xs flex flex-col justify-between space-y-3">
+              <div
+                key={String(pk.id)}
+                className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-5 shadow-xs flex flex-col justify-between space-y-3"
+              >
                 <div>
                   <div className="flex justify-between items-start border-b pb-2">
                     <h4 className="font-black text-sm text-gray-900 dark:text-graphite-50">{pk.nombre}</h4>
                     <div className="flex gap-1">
                       <button
                         onClick={() => handleAbrirEditar(pk)}
-                        className="text-gray-600 dark:text-graphite-400 font-bold hover:text-black p-1 hover:bg-gray-100 dark:hover:bg-graphite-700 rounded"
+                        className="text-gray-600 dark:text-graphite-400 font-bold hover:text-black p-1 hover:bg-gray-100 dark:hover:bg-graphite-700 rounded cursor-pointer"
                         title="Editar Pack"
                       >
                         <Pencil size={12} />
                       </button>
                       <button
-                        onClick={() => alEliminarPaquete(pk.id)}
-                        className="text-red-500 font-bold hover:text-red-700 p-1 hover:bg-red-50 rounded"
+                        onClick={() => pk.id && alEliminarPaquete(pk.id)}
+                        className="text-red-500 font-bold hover:text-red-700 p-1 hover:bg-red-50 rounded cursor-pointer"
                         title="Eliminar Pack"
                       >
                         <Trash2 size={12} />
                       </button>
                     </div>
                   </div>
-                  <p className="text-gray-600 dark:text-graphite-400 mt-2 text-[11px] leading-relaxed">{pk.descripcion}</p>
+                  <p className="text-gray-600 dark:text-graphite-400 mt-2 text-[11px] leading-relaxed">
+                    {pk.descripcion}
+                  </p>
                 </div>
 
                 <div className="flex justify-between items-center pt-3 border-t">

@@ -1,8 +1,19 @@
 import React, { memo } from 'react'
 import { Pencil, Trash2 } from 'lucide-react'
 import { formatearCLP } from '../../../utils/formatoMoneda'
+import type { Prestacion } from '../services/prestacionesStorageService'
 
-export const TablaArancelPrestaciones = memo(({ prestaciones, onEditar, onEliminar }) => {
+export interface TablaArancelPrestacionesProps {
+  prestaciones: Prestacion[]
+  onEditar: (prestacion: Prestacion) => void
+  onEliminar: (id: string | number) => void
+}
+
+export const TablaArancelPrestaciones: React.FC<TablaArancelPrestacionesProps> = memo(({
+  prestaciones,
+  onEditar,
+  onEliminar
+}) => {
   if (prestaciones.length === 0) {
     return (
       <div className="p-10 text-center text-xs text-gray-400 dark:text-graphite-500 bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl">
@@ -26,10 +37,15 @@ export const TablaArancelPrestaciones = memo(({ prestaciones, onEditar, onElimin
         </thead>
         <tbody className="divide-y divide-gray-100 dark:divide-graphite-800">
           {prestaciones.map((p) => (
-            <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-graphite-700 dark:hover:bg-graphite-700 transition-colors">
+            <tr
+              key={String(p.id)}
+              className="hover:bg-gray-50 dark:hover:bg-graphite-700 transition-colors"
+            >
               <td className="p-3 font-mono font-bold text-gray-500 dark:text-graphite-400">
                 {p.codigoFonasa ? (
-                  <span className="bg-gray-100 dark:bg-graphite-800 px-2 py-0.5 rounded border border-gray-300 dark:border-graphite-600">{p.codigoFonasa}</span>
+                  <span className="bg-gray-100 dark:bg-graphite-800 px-2 py-0.5 rounded border border-gray-300 dark:border-graphite-600">
+                    {p.codigoFonasa}
+                  </span>
                 ) : (
                   <span className="text-gray-300">N/A</span>
                 )}
@@ -44,24 +60,24 @@ export const TablaArancelPrestaciones = memo(({ prestaciones, onEditar, onElimin
               </td>
 
               <td className="p-3 text-right font-black text-emerald-900 text-sm">
-                {formatearCLP(p.precioParticular)}
+                {formatearCLP(Number(p.precioParticular ?? p.precio ?? 0))}
               </td>
 
               <td className="p-3 text-right font-bold text-blue-900">
-                {formatearCLP(p.precioFonasa)}
+                {formatearCLP(Number(p.precioFonasa ?? 0))}
               </td>
 
               <td className="p-3 text-right print:hidden space-x-1">
                 <button
                   onClick={() => onEditar(p)}
-                  className="p-1.5 text-gray-600 dark:text-graphite-400 hover:text-black font-semibold rounded-lg hover:bg-gray-100 dark:hover:bg-graphite-700"
+                  className="p-1.5 text-gray-600 dark:text-graphite-400 hover:text-black font-semibold rounded-lg hover:bg-gray-100 dark:hover:bg-graphite-700 cursor-pointer"
                   title="Editar prestación"
                 >
                   <Pencil size={12} />
                 </button>
                 <button
                   onClick={() => onEliminar(p.id)}
-                  className="p-1.5 text-red-500 hover:text-red-700 font-semibold rounded-lg hover:bg-red-50"
+                  className="p-1.5 text-red-500 hover:text-red-700 font-semibold rounded-lg hover:bg-red-50 cursor-pointer"
                   title="Eliminar prestación"
                 >
                   <Trash2 size={12} />
