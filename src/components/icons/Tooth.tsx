@@ -17,7 +17,14 @@
  */
 import React, { forwardRef } from 'react'
 
-export const Tooth = forwardRef(({
+export interface ToothProps extends React.SVGProps<SVGSVGElement> {
+  size?: number | string
+  color?: string
+  strokeWidth?: number | string
+  className?: string
+}
+
+export const Tooth = forwardRef<SVGSVGElement, ToothProps>(({
   size = 24,
   color = 'currentColor',
   strokeWidth = 1.75,

@@ -15,13 +15,23 @@ import React from 'react'
 const MOLAR_PATH =
   'M 18 36 C 18 16, 36 16, 46 20 C 50 22, 58 22, 62 20 C 72 16, 90 16, 90 36 C 90 54, 82 66, 78 82 C 76 86, 70 86, 68 80 C 62 62, 58 54, 54 54 C 50 54, 46 62, 40 80 C 38 86, 32 86, 30 82 C 26 66, 18 54, 18 36 Z'
 
-const OPTICAL_STROKES = {
+export type DentikOSLogoVariant = 'horizontal' | 'stacked' | 'icon-only'
+export type DentikOSOpticalSize = 'micro' | 'standard' | 'display'
+export type DentikOSLogoSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | number
+
+const OPTICAL_STROKES: Record<DentikOSOpticalSize, number> = {
   micro: 10.0,
   standard: 7.5,
   display: 5.5,
 }
 
-const SIZE_MAP = {
+interface SizeDimensions {
+  icon: number
+  text: string
+  gap: string
+}
+
+const SIZE_MAP: Record<'xs' | 'sm' | 'md' | 'lg' | 'xl', SizeDimensions> = {
   xs: { icon: 20, text: 'text-xs', gap: 'gap-1.5' },
   sm: { icon: 28, text: 'text-sm', gap: 'gap-2' },
   md: { icon: 36, text: 'text-lg', gap: 'gap-2.5' },
@@ -29,7 +39,16 @@ const SIZE_MAP = {
   xl: { icon: 64, text: 'text-3xl', gap: 'gap-3.5' },
 }
 
-export const DentikOSLogo = ({
+export interface DentikOSLogoProps extends React.HTMLAttributes<HTMLDivElement> {
+  variant?: DentikOSLogoVariant
+  opticalSize?: DentikOSOpticalSize
+  size?: DentikOSLogoSize
+  dark?: boolean
+  className?: string
+  accessibleTitle?: string
+}
+
+export const DentikOSLogo: React.FC<DentikOSLogoProps> = ({
   variant = 'horizontal',
   opticalSize = 'standard',
   size = 'md',
@@ -40,7 +59,7 @@ export const DentikOSLogo = ({
 }) => {
   const strokeWidth = OPTICAL_STROKES[opticalSize] || OPTICAL_STROKES.standard
 
-  const dimensions = typeof size === 'number'
+  const dimensions: SizeDimensions = typeof size === 'number'
     ? { icon: size, text: 'text-base', gap: 'gap-2' }
     : (SIZE_MAP[size] || SIZE_MAP.md)
 
@@ -128,3 +147,5 @@ export const DentikOSLogo = ({
     </div>
   )
 }
+
+DentikOSLogo.displayName = 'DentikOSLogo'

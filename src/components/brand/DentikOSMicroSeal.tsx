@@ -14,7 +14,11 @@ import React from 'react'
 const MOLAR_PATH =
   'M 18 36 C 18 16, 36 16, 46 20 C 50 22, 58 22, 62 20 C 72 16, 90 16, 90 36 C 90 54, 82 66, 78 82 C 76 86, 70 86, 68 80 C 62 62, 58 54, 54 54 C 50 54, 46 62, 40 80 C 38 86, 32 86, 30 82 C 26 66, 18 54, 18 36 Z'
 
-export const DentikOSMicroSeal = ({ className = '', ...props }) => {
+export interface DentikOSMicroSealProps extends React.HTMLAttributes<HTMLElement> {
+  className?: string
+}
+
+export const DentikOSMicroSeal: React.FC<DentikOSMicroSealProps> = ({ className = '', ...props }) => {
   return (
     <footer
       data-testid="dentikos-micro-seal"
