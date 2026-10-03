@@ -4,7 +4,9 @@ import {
   listarInvitaciones,
   revocarInvitacion,
   generarUrlInvitacion,
-  listarMiembros
+  listarMiembros,
+  type MiembroItem,
+  type InvitacionItem
 } from '../../services/authService'
 import { ROLES, NOMBRES_ROLES, DESCRIPCIONES_ROLES } from '../../constants/rbacConstants'
 import { createLogger } from '../../services/logger'
@@ -12,28 +14,54 @@ import { useAppDialog } from '../../hooks/useAppDialog'
 
 const log = createLogger('useGestionMiembros')
 
+export interface RolDisponible {
+  key: string
+  value: string
+  nombre: string
+  descripcion: string
+}
+
+export interface UseGestionMiembrosReturn {
+  miembros: MiembroItem[]
+  invitaciones: InvitacionItem[]
+  loading: boolean
+  error: string | null
+  mensajeExito: string
+  emailInvitar: string
+  setEmailInvitar: React.Dispatch<React.SetStateAction<string>>
+  rolInvitar: string
+  setRolInvitar: React.Dispatch<React.SetStateAction<string>>
+  invitando: boolean
+  urlCopiada: string | null
+  rolesDisponibles: RolDisponible[]
+  handleInvitar: (e: React.FormEvent<HTMLFormElement>) => Promise<void>
+  handleRevocar: (invitacionId: string) => Promise<void>
+  handleCopiarLink: (token: string) => void
+}
+
 /**
  * F7-11: Hook que maneja la lógica de gestión de miembros.
  * Extraído de GestionMiembrosModulo.jsx para cumplir con límite de 250 líneas JSX.
  */
-export const useGestionMiembros = () => {
+export const useGestionMiembros = (): UseGestionMiembrosReturn => {
   const { confirm } = useAppDialog()
-  const [miembros, setMiembros] = useState([])
-  const [invitaciones, setInvitaciones] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [emailInvitar, setEmailInvitar] = useState('')
-  const [rolInvitar, setRolInvitar] = useState(ROLES.RECEPCION)
-  const [invitando, setInvitando] = useState(false)
-  const [mensajeExito, setMensajeExito] = useState('')
-  const [urlCopiada, setUrlCopiada] = useState(null)
+  const [miembros, setMiembros] = useState<MiembroItem[]>([])
+  const [invitaciones, setInvitaciones] = useState<InvitacionItem[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
+  const [error, setError] = useState<string | null>(null)
+  const [emailInvitar, setEmailInvitar] = useState<string>('')
+  const [rolInvitar, setRolInvitar] = useState<string>(ROLES.RECEPCION)
+  const [invitando, setInvitando] = useState<boolean>(false)
+  const [mensajeExito, setMensajeExito] = useState<string>('')
+  const [urlCopiada, setUrlCopiada] = useState<string | null>(null)
 
-  const cargarDatos = async () => {
+  const cargarDatos = async (): Promise<void> => {
     setLoading(true)
     setError(null)
     try {
       const [resultMiembros, resultInvitaciones] = await Promise.all([
-        listarMiembros(), listarInvitaciones()
+        listarMiembros(),
+        listarInvitaciones()
       ])
       if (resultMiembros.success) setMiembros(resultMiembros.miembros || [])
       if (resultInvitaciones.success) setInvitaciones(resultInvitaciones.invitaciones || [])
@@ -45,9 +73,11 @@ export const useGestionMiembros = () => {
     }
   }
 
-  useEffect(() => { cargarDatos() }, [])
+  useEffect(() => {
+    cargarDatos()
+  }, [])
 
-  const handleInvitar = async (e) => {
+  const handleInvitar = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault()
     setInvitando(true)
     setError(null)
@@ -70,7 +100,7 @@ export const useGestionMiembros = () => {
     }
   }
 
-  const handleRevocar = async (invitacionId) => {
+  const handleRevocar = async (invitacionId: string): Promise<void> => {
     const ok = await confirm({
       title: 'Revocar invitación',
       description: '¿Revocar esta invitación?',
@@ -92,26 +122,37 @@ export const useGestionMiembros = () => {
     }
   }
 
-  const handleCopiarLink = (token) => {
+  const handleCopiarLink = (token: string): void => {
     const url = generarUrlInvitacion(token)
     navigator.clipboard.writeText(url)
     setUrlCopiada(token)
     setTimeout(() => setUrlCopiada(null), 2000)
   }
 
-  const rolesDisponibles = useMemo(() => {
+  const rolesDisponibles = useMemo<RolDisponible[]>(() => {
     return Object.entries(ROLES).map(([key, value]) => ({
-      key, value,
-      nombre: NOMBRES_ROLES[value],
-      descripcion: DESCRIPCIONES_ROLES[value]
+      key,
+      value,
+      nombre: NOMBRES_ROLES[value] || value,
+      descripcion: DESCRIPCIONES_ROLES[value] || ''
     }))
   }, [])
 
   return {
-    miembros, invitaciones, loading, error, mensajeExito,
-    emailInvitar, setEmailInvitar,
-    rolInvitar, setRolInvitar,
-    invitando, urlCopiada, rolesDisponibles,
-    handleInvitar, handleRevocar, handleCopiarLink
+    miembros,
+    invitaciones,
+    loading,
+    error,
+    mensajeExito,
+    emailInvitar,
+    setEmailInvitar,
+    rolInvitar,
+    setRolInvitar,
+    invitando,
+    urlCopiada,
+    rolesDisponibles,
+    handleInvitar,
+    handleRevocar,
+    handleCopiarLink
   }
 }

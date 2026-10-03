@@ -2,22 +2,34 @@ import React, { useMemo } from 'react'
 import { UsersRound } from 'lucide-react'
 import { useGestionMiembros } from './useGestionMiembros'
 import { NOMBRES_ROLES } from '../../constants/rbacConstants'
+import type { MiembroItem, InvitacionItem } from '../../services/authService'
 
 /**
  * F7-11: Módulo de gestión de miembros de la clínica.
  * Componente puramente presentacional — toda la lógica está en useGestionMiembros.
  */
-export const GestionMiembrosModulo = () => {
+export const GestionMiembrosModulo: React.FC = () => {
   const {
-    miembros, invitaciones, loading, error, mensajeExito,
-    emailInvitar, setEmailInvitar, rolInvitar, setRolInvitar,
-    invitando, urlCopiada, rolesDisponibles,
-    handleInvitar, handleRevocar, handleCopiarLink
+    miembros,
+    invitaciones,
+    loading,
+    error,
+    mensajeExito,
+    emailInvitar,
+    setEmailInvitar,
+    rolInvitar,
+    setRolInvitar,
+    invitando,
+    urlCopiada,
+    rolesDisponibles,
+    handleInvitar,
+    handleRevocar,
+    handleCopiarLink
   } = useGestionMiembros()
 
   // BUG-GESTION-MIEMBROS: Filtrar solo invitaciones pendientes
-  const invitacionesPendientes = useMemo(() => {
-    return invitaciones.filter(i => i.status === 'pending')
+  const invitacionesPendientes = useMemo<InvitacionItem[]>(() => {
+    return invitaciones.filter((i) => i.status === 'pending')
   }, [invitaciones])
 
   if (loading) {
@@ -57,24 +69,48 @@ export const GestionMiembrosModulo = () => {
       )}
 
       <div className="bg-surface rounded-lg shadow-sm border border-surface p-6 mb-8">
-        <h2 className="text-xl font-semibold text-graphite-900 dark:text-graphite-50 surgical:text-black mb-4">Invitar Nuevo Miembro</h2>
+        <h2 className="text-xl font-semibold text-graphite-900 dark:text-graphite-50 surgical:text-black mb-4">
+          Invitar Nuevo Miembro
+        </h2>
         <form onSubmit={handleInvitar} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-graphite-700 dark:text-graphite-300 surgical:text-graphite-900 mb-1">Email</label>
-              <input type="email" id="email" value={emailInvitar} onChange={(e) => setEmailInvitar(e.target.value)}
-                placeholder="ejemplo@clinica.com" required
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-graphite-700 dark:text-graphite-300 surgical:text-graphite-900 mb-1"
+              >
+                Email
+              </label>
+              <input
+                type="email"
+                id="email"
+                value={emailInvitar}
+                onChange={(e) => setEmailInvitar(e.target.value)}
+                placeholder="ejemplo@clinica.com"
+                required
                 className="w-full px-3 py-2 border border-surface bg-white dark:bg-graphite-950 surgical:bg-graphite-200 text-graphite-900 dark:text-graphite-100 surgical:text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
-                disabled={invitando} />
+                disabled={invitando}
+              />
             </div>
 
             <div>
-              <label htmlFor="rol" className="block text-sm font-medium text-graphite-700 dark:text-graphite-300 surgical:text-graphite-900 mb-1">Rol</label>
-              <select id="rol" value={rolInvitar} onChange={(e) => setRolInvitar(e.target.value)}
+              <label
+                htmlFor="rol"
+                className="block text-sm font-medium text-graphite-700 dark:text-graphite-300 surgical:text-graphite-900 mb-1"
+              >
+                Rol
+              </label>
+              <select
+                id="rol"
+                value={rolInvitar}
+                onChange={(e) => setRolInvitar(e.target.value)}
                 className="w-full px-3 py-2 border border-surface bg-white dark:bg-graphite-950 surgical:bg-graphite-200 text-graphite-900 dark:text-graphite-100 surgical:text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
-                disabled={invitando}>
+                disabled={invitando}
+              >
                 {rolesDisponibles.map((rol) => (
-                  <option key={rol.key} value={rol.value}>{rol.nombre}</option>
+                  <option key={rol.key} value={rol.value}>
+                    {rol.nombre}
+                  </option>
                 ))}
               </select>
             </div>
@@ -82,10 +118,13 @@ export const GestionMiembrosModulo = () => {
 
           <div className="flex items-center justify-between">
             <div className="text-sm text-graphite-600 dark:text-graphite-400 surgical:text-graphite-800">
-              {rolesDisponibles.find(r => r.value === rolInvitar)?.descripcion}
+              {rolesDisponibles.find((r) => r.value === rolInvitar)?.descripcion}
             </div>
-            <button type="submit" disabled={invitando || !emailInvitar}
-              className="px-6 py-2 bg-primary hover:bg-champagne-600 dark:bg-gold-satin dark:hover:bg-primary text-white dark:text-graphite-950 font-medium rounded-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+            <button
+              type="submit"
+              disabled={invitando || !emailInvitar}
+              className="px-6 py-2 bg-primary hover:bg-champagne-600 dark:bg-gold-satin dark:hover:bg-primary text-white dark:text-graphite-950 font-medium rounded-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            >
               {invitando ? 'Invitando...' : 'Enviar Invitación'}
             </button>
           </div>
@@ -100,32 +139,47 @@ export const GestionMiembrosModulo = () => {
         </div>
 
         {miembros.length === 0 ? (
-          <div className="p-8 text-center text-graphite-500 dark:text-graphite-400">No hay miembros en esta clínica</div>
+          <div className="p-8 text-center text-graphite-500 dark:text-graphite-400">
+            No hay miembros en esta clínica
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-surface-elevated border-b border-surface">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-graphite-600 dark:text-graphite-300 surgical:text-graphite-900 uppercase tracking-wider">Email</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-graphite-600 dark:text-graphite-300 surgical:text-graphite-900 uppercase tracking-wider">Rol</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-graphite-600 dark:text-graphite-300 surgical:text-graphite-900 uppercase tracking-wider">Estado</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-graphite-600 dark:text-graphite-300 surgical:text-graphite-900 uppercase tracking-wider">
+                    Email
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-graphite-600 dark:text-graphite-300 surgical:text-graphite-900 uppercase tracking-wider">
+                    Rol
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-graphite-600 dark:text-graphite-300 surgical:text-graphite-900 uppercase tracking-wider">
+                    Estado
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-surface divide-y divide-surface">
-                {miembros.map((miembro) => (
-                  <tr key={miembro.id || miembro.user_id} className="hover:bg-slate-50 dark:hover:bg-graphite-800/60 surgical:hover:bg-graphite-200">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-graphite-900 dark:text-graphite-50 surgical:text-black">{miembro.email || 'N/A'}</td>
+                {miembros.map((miembro: MiembroItem) => (
+                  <tr
+                    key={miembro.id || miembro.user_id}
+                    className="hover:bg-slate-50 dark:hover:bg-graphite-800/60 surgical:hover:bg-graphite-200"
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-graphite-900 dark:text-graphite-50 surgical:text-black">
+                      {miembro.email || 'N/A'}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/50">
-                        {NOMBRES_ROLES[miembro.rol] || miembro.rol}
+                        {NOMBRES_ROLES[miembro.rol as keyof typeof NOMBRES_ROLES] || miembro.rol}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full border ${
-                        miembro.activo 
-                          ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/50' 
-                          : 'bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 border-rose-200 dark:border-rose-800/50'
-                      }`}>
+                      <span
+                        className={`px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full border ${
+                          miembro.activo
+                            ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/50'
+                            : 'bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 border-rose-200 dark:border-rose-800/50'
+                        }`}
+                      >
                         {miembro.activo ? 'Activo' : 'Inactivo'}
                       </span>
                     </td>
@@ -145,26 +199,43 @@ export const GestionMiembrosModulo = () => {
         </div>
 
         {invitacionesPendientes.length === 0 ? (
-          <div className="p-8 text-center text-graphite-500 dark:text-graphite-400">No hay invitaciones pendientes</div>
+          <div className="p-8 text-center text-graphite-500 dark:text-graphite-400">
+            No hay invitaciones pendientes
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-surface-elevated border-b border-surface">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-graphite-600 dark:text-graphite-300 surgical:text-graphite-900 uppercase tracking-wider">Email</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-graphite-600 dark:text-graphite-300 surgical:text-graphite-900 uppercase tracking-wider">Rol</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-graphite-600 dark:text-graphite-300 surgical:text-graphite-900 uppercase tracking-wider">Estado</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-graphite-600 dark:text-graphite-300 surgical:text-graphite-900 uppercase tracking-wider">Enviada</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-graphite-600 dark:text-graphite-300 surgical:text-graphite-900 uppercase tracking-wider">Acciones</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-graphite-600 dark:text-graphite-300 surgical:text-graphite-900 uppercase tracking-wider">
+                    Email
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-graphite-600 dark:text-graphite-300 surgical:text-graphite-900 uppercase tracking-wider">
+                    Rol
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-graphite-600 dark:text-graphite-300 surgical:text-graphite-900 uppercase tracking-wider">
+                    Estado
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-graphite-600 dark:text-graphite-300 surgical:text-graphite-900 uppercase tracking-wider">
+                    Enviada
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-graphite-600 dark:text-graphite-300 surgical:text-graphite-900 uppercase tracking-wider">
+                    Acciones
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-surface divide-y divide-surface">
-                {invitacionesPendientes.map((invitacion) => (
-                  <tr key={invitacion.id} className="hover:bg-slate-50 dark:hover:bg-graphite-800/60 surgical:hover:bg-graphite-200">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-graphite-900 dark:text-graphite-50 surgical:text-black">{invitacion.email}</td>
+                {invitacionesPendientes.map((invitacion: InvitacionItem) => (
+                  <tr
+                    key={invitacion.id}
+                    className="hover:bg-slate-50 dark:hover:bg-graphite-800/60 surgical:hover:bg-graphite-200"
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-graphite-900 dark:text-graphite-50 surgical:text-black">
+                      {invitacion.email}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/50">
-                        {NOMBRES_ROLES[invitacion.rol] || invitacion.rol}
+                        {NOMBRES_ROLES[invitacion.rol as keyof typeof NOMBRES_ROLES] || String(invitacion.rol)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -173,17 +244,19 @@ export const GestionMiembrosModulo = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm tabular-nums text-graphite-600 dark:text-graphite-300 surgical:text-graphite-900">
-                      {new Date(invitacion.creada_en).toLocaleDateString('es-CL')}
+                      {invitacion.creada_en ? new Date(String(invitacion.creada_en)).toLocaleDateString('es-CL') : 'N/A'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
-                      <button onClick={() => handleCopiarLink(invitacion.token)} 
-                        className="text-primary hover:text-champagne-600 dark:text-gold-satin transition-colors"
-                        title="Copiar link de invitación">
+                      <button
+                        onClick={() => invitacion.token && handleCopiarLink(invitacion.token)}
+                        className="text-primary hover:text-champagne-600 dark:text-gold-satin transition-colors cursor-pointer"
+                        title="Copiar link de invitación"
+                      >
                         {urlCopiada === invitacion.token ? '✓ Copiado' : 'Copiar Link'}
                       </button>
-                      <button 
-                        onClick={() => handleRevocar(invitacion.id)} 
-                        className="text-rose-600 hover:text-rose-800 dark:text-rose-400 transition-colors"
+                      <button
+                        onClick={() => handleRevocar(invitacion.id)}
+                        className="text-rose-600 hover:text-rose-800 dark:text-rose-400 transition-colors cursor-pointer"
                         title="Revocar invitación"
                       >
                         Revocar
