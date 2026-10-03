@@ -3,7 +3,11 @@ import { useSmileDesign } from './hooks/useSmileDesign'
 import { SimuladorCarillas } from './components/SimuladorCarillas'
 import { ProporcionesCanino } from './components/ProporcionesCanino'
 
-export const SmileDesignModulo = memo(({ pacienteId }) => {
+export interface SmileDesignModuloProps {
+  pacienteId?: string | number | null
+}
+
+export const SmileDesignModulo: React.FC<SmileDesignModuloProps> = memo(({ pacienteId }) => {
   const {
     dsdData,
     ratioAnchoAlto,
