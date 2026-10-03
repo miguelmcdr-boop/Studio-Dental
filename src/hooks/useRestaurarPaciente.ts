@@ -10,17 +10,41 @@
 import { useEffect } from 'react'
 import { supabase, USE_SUPABASE } from '../services/supabaseClient'
 import { createLogger } from '../services/logger'
+import type { Paciente } from '../modules/pacientes/schemas/pacienteSchema'
 
 const log = createLogger('useRestaurarPaciente')
 
-export const useRestaurarPaciente = (userProfile, pacienteSeleccionado, setPacienteSeleccionadoState, setActiveSection) => {
+interface PacienteRow {
+  id: string
+  rut: string
+  nombre: string
+  edad?: number | string | null
+  telefono?: string | null
+  email?: string | null
+  ocupacion?: string | null
+  prevision?: string | null
+  alergias?: string | null
+  fecha_nacimiento?: string | null
+  direccion?: string | null
+  created_at?: string | null
+  updated_at?: string | null
+  [key: string]: unknown
+}
+
+export const useRestaurarPaciente = (
+  userProfile: unknown,
+  pacienteSeleccionado: Paciente | null,
+  setPacienteSeleccionadoState: (paciente: Paciente) => void,
+  setActiveSection: (seccion: string) => void
+): void => {
   useEffect(() => {
     // Solo ejecutar si el usuario está autenticado y aún no hay paciente cargado
     if (!userProfile || !USE_SUPABASE || !supabase || pacienteSeleccionado !== null) {
       return
     }
 
-    const restaurarPacienteSeleccionado = async () => {
+    const restaurarPacienteSeleccionado = async (): Promise<void> => {
+      if (!supabase) return
       try {
         const pacienteIdGuardado = localStorage.getItem('clinica_paciente_seleccionado_id')
         if (!pacienteIdGuardado) return
@@ -51,32 +75,34 @@ export const useRestaurarPaciente = (userProfile, pacienteSeleccionado, setPacie
           return
         }
 
+        const pacienteData = data as PacienteRow
+
         // Transformar de snake_case a camelCase
-        const pacienteRestaurado = {
-          id: data.id,
-          rut: data.rut,
-          nombre: data.nombre,
-          edad: data.edad,
-          telefono: data.telefono,
-          email: data.email,
-          ocupacion: data.ocupacion,
-          prevision: data.prevision,
-          alergias: data.alergias,
-          fechaNacimiento: data.fecha_nacimiento,
-          direccion: data.direccion,
-          createdAt: data.created_at,
-          updatedAt: data.updated_at
+        const pacienteRestaurado: Paciente = {
+          id: pacienteData.id,
+          rut: pacienteData.rut,
+          nombre: pacienteData.nombre,
+          edad: pacienteData.edad ?? undefined,
+          telefono: pacienteData.telefono ?? undefined,
+          email: pacienteData.email ?? undefined,
+          ocupacion: pacienteData.ocupacion ?? undefined,
+          prevision: pacienteData.prevision ?? undefined,
+          alergias: pacienteData.alergias ?? undefined,
+          fechaNacimiento: pacienteData.fecha_nacimiento ?? undefined,
+          direccion: pacienteData.direccion ?? undefined,
+          createdAt: pacienteData.created_at ?? undefined,
+          updatedAt: pacienteData.updated_at ?? undefined
         }
 
         // Asegurar que estamos en la sección correcta
         setPacienteSeleccionadoState(pacienteRestaurado)
         setActiveSection('Pacientes')
         log.info('Ficha de paciente restaurada:', pacienteRestaurado.nombre)
-      } catch (e) {
+      } catch (e: unknown) {
         log.error('Error inesperado al restaurar paciente:', e)
       }
     }
 
-    restaurarPacienteSeleccionado()
+    void restaurarPacienteSeleccionado()
   }, [userProfile, pacienteSeleccionado, setPacienteSeleccionadoState, setActiveSection])
 }
