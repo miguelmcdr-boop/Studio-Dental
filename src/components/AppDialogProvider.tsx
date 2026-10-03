@@ -13,13 +13,22 @@ import React from 'react'
 import { ConfirmDialog } from './ui/ConfirmDialog'
 import { useDialogStore } from '../store/dialogStore'
 
-export const AppDialogProvider = () => {
-  const dialog = useDialogStore((state) => state.dialog)
-  const closeDialog = useDialogStore((state) => state.closeDialog)
+interface DialogState {
+  type: 'confirm' | 'alert'
+  title: string
+  description?: string
+  variant?: 'info' | 'warning' | 'danger'
+  confirmText?: string
+  cancelText?: string
+}
+
+export const AppDialogProvider: React.FC = () => {
+  const dialog = useDialogStore((state: unknown) => (state as { dialog: DialogState | null }).dialog)
+  const closeDialog = useDialogStore((state: unknown) => (state as { closeDialog: (result: unknown) => void }).closeDialog)
 
   if (!dialog) return null
 
-  const handleConfirm = () => {
+  const handleConfirm = (): void => {
     if (dialog.type === 'confirm') {
       closeDialog(true)
     } else {
@@ -28,7 +37,7 @@ export const AppDialogProvider = () => {
     }
   }
 
-  const handleCancel = () => {
+  const handleCancel = (): void => {
     // confirm: false. alert: nunca debería llegar aquí (no tiene botón cancelar)
     closeDialog(dialog.type === 'confirm' ? false : undefined)
   }
