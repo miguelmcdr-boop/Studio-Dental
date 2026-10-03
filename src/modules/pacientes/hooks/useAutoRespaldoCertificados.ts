@@ -1,9 +1,16 @@
 import { useEffect, useState, useRef } from 'react'
 import { generarPDFCertificado, respaldarCertificadoEnR2 } from '../services/certificadosPDFService'
 import { certificadosStorageService } from '../services/certificadosStorageService'
+import type { CertificadoPapelera } from '../services/papeleraCertificadosService'
 import { createLogger } from '../../../services/logger'
 
 const log = createLogger('useAutoRespaldoCertificados')
+
+export interface UseAutoRespaldoCertificadosReturn {
+  respaldandoIds: Set<string | number>
+  idsConError: Set<string | number>
+  reintentarRespaldo: (certId: string | number) => void
+}
 
 /**
  * Hook para auto-respaldar certificados en R2 Cloudflare (M2c).
@@ -11,15 +18,19 @@ const log = createLogger('useAutoRespaldoCertificados')
  * FIX: Removido useCallback que causaba error de hooks.
  * reintentarRespaldo es una función simple que no necesita memoización.
  */
-export const useAutoRespaldoCertificados = (listaCertificados, pacienteId, setCertificados) => {
-  const [respaldandoIds, setRespaldandoIds] = useState(new Set())
-  const [idsConError, setIdsConError] = useState(new Set())
+export const useAutoRespaldoCertificados = (
+  listaCertificados: CertificadoPapelera[] = [],
+  pacienteId: string | number,
+  setCertificados: (actualizados: CertificadoPapelera[]) => void
+): UseAutoRespaldoCertificadosReturn => {
+  const [respaldandoIds, setRespaldandoIds] = useState<Set<string | number>>(new Set())
+  const [idsConError, setIdsConError] = useState<Set<string | number>>(new Set())
 
-  const respaldandoRef = useRef(new Set())
-  const erroresRef = useRef(new Set())
-  const enProgresoRef = useRef(false)
-  const isMountedRef = useRef(true)
-  const listaActualRef = useRef(listaCertificados)
+  const respaldandoRef = useRef<Set<string | number>>(new Set())
+  const erroresRef = useRef<Set<string | number>>(new Set())
+  const enProgresoRef = useRef<boolean>(false)
+  const isMountedRef = useRef<boolean>(true)
+  const listaActualRef = useRef<CertificadoPapelera[]>(listaCertificados)
 
   // Actualizar ref en cada render (sin useEffect para evitar problemas de hooks)
   listaActualRef.current = listaCertificados
@@ -42,7 +53,7 @@ export const useAutoRespaldoCertificados = (listaCertificados, pacienteId, setCe
     
     if (pendientes.length === 0) return
 
-    const respaldar = async () => {
+    const respaldar = async (): Promise<void> => {
       enProgresoRef.current = true
       const cert = pendientes[0]
 
@@ -71,7 +82,7 @@ export const useAutoRespaldoCertificados = (listaCertificados, pacienteId, setCe
         const nombreArchivo = `certificado-${cert.tipo}-${(cert.fechaEmision || '').replace(/\//g, '-')}-${cert.id}.pdf`
         const respaldo = await respaldarCertificadoEnR2({
           blob,
-          pacienteId,
+          pacienteId: String(pacienteId),
           nombreArchivo
         })
         if (!isMountedRef.current) return
@@ -127,7 +138,7 @@ export const useAutoRespaldoCertificados = (listaCertificados, pacienteId, setCe
     respaldar()
   }, [listaCertificados, pacienteId, setCertificados])
 
-  const reintentarRespaldo = (certId) => {
+  const reintentarRespaldo = (certId: string | number): void => {
     erroresRef.current = new Set([...erroresRef.current].filter(id => id !== certId))
     setIdsConError(new Set(erroresRef.current))
   }
