@@ -2,21 +2,35 @@ import React, { memo } from 'react'
 import { TEMPORAL_SUPERIOR, TEMPORAL_INFERIOR, CARAS_OLEARY } from '../constants/pediatriaConstants'
 import { BarChart3 } from 'lucide-react'
 
-export const IndiceOLeary = memo(({ mapaOleary, porcentaje, piezasPresentes, onToggleCara, onCambiarPiezasPresentes }) => {
-  const getSemaforoColor = (pct) => {
+export interface IndiceOLearyProps {
+  mapaOleary?: Record<string, Record<string, boolean>>
+  porcentaje: number
+  piezasPresentes?: number
+  onToggleCara: (piezaId: string | number, cara: string) => void
+  onCambiarPiezasPresentes: (campo: string, valor: unknown) => void
+}
+
+export const IndiceOLeary = memo<IndiceOLearyProps>(({
+  mapaOleary,
+  porcentaje,
+  piezasPresentes,
+  onToggleCara,
+  onCambiarPiezasPresentes
+}) => {
+  const getSemaforoColor = (pct: number): string => {
     if (pct <= 15) return 'bg-emerald-100 border-emerald-300 text-emerald-900'
     if (pct <= 30) return 'bg-yellow-100 border-yellow-300 text-yellow-900'
     return 'bg-red-100 border-red-300 text-red-900'
   }
 
-  const renderFilaPiezas = (piezas) => (
+  const renderFilaPiezas = (piezas: readonly string[]): React.ReactElement => (
     <div className="flex flex-wrap gap-2 justify-center">
       {piezas.map(piezaId => (
         <div key={piezaId} className="border rounded-xl p-2 bg-white dark:bg-graphite-800 text-center w-16 shadow-2xs">
           <span className="font-bold text-[11px] block border-b pb-0.5 mb-1 text-gray-800 dark:text-graphite-100">P.{piezaId}</span>
           <div className="grid grid-cols-2 gap-1 text-[8px]">
             {CARAS_OLEARY.map(cara => {
-              const activa = !!mapaOleary?.[piezaId]?.[cara]
+              const activa = Boolean(mapaOleary?.[piezaId]?.[cara])
               return (
                 <button
                   key={cara}
@@ -52,8 +66,8 @@ export const IndiceOLeary = memo(({ mapaOleary, porcentaje, piezasPresentes, onT
             <span className="text-xs font-bold text-gray-600 dark:text-graphite-400">Piezas evaluadas:</span>
             <input
               type="number"
-              min="1"
-              max="32"
+              min={1}
+              max={32}
               value={piezasPresentes || 20}
               onChange={(e) => onCambiarPiezasPresentes('piezasPresentesOleary', parseInt(e.target.value, 10) || 1)}
               className="w-14 px-2 py-1 border rounded-lg font-bold text-center text-xs"

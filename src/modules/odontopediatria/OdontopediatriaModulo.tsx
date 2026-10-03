@@ -4,7 +4,11 @@ import { EscalaFrankl } from './components/EscalaFrankl'
 import { IndiceOLeary } from './components/IndiceOLeary'
 import { OdontogramaTemporal } from './components/OdontogramaTemporal'
 
-export const OdontopediatriaModulo = memo(({ pacienteId }) => {
+export interface OdontopediatriaModuloProps {
+  pacienteId?: string | number | null
+}
+
+export const OdontopediatriaModulo = memo<OdontopediatriaModuloProps>(({ pacienteId }) => {
   const {
     datosPediatria,
     porcentajeOLeary,

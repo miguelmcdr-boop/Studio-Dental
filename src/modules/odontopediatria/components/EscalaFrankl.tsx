@@ -3,7 +3,19 @@ import { Baby } from 'lucide-react'
 import { Icon } from '../../../components/Icon'
 import { ESCALA_FRANKL } from '../constants/pediatriaConstants'
 
-export const EscalaFrankl = memo(({ gradoSeleccionado, onCambiarGrado, observacion, onCambiarObservacion }) => {
+export interface EscalaFranklProps {
+  gradoSeleccionado: number
+  onCambiarGrado: (grado: number) => void
+  observacion?: string
+  onCambiarObservacion: (campo: string, valor: unknown) => void
+}
+
+export const EscalaFrankl = memo<EscalaFranklProps>(({
+  gradoSeleccionado,
+  onCambiarGrado,
+  observacion,
+  onCambiarObservacion
+}) => {
   return (
     <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-6 shadow-xs space-y-4">
       <h3 className="font-bold text-sm text-gray-900 dark:text-graphite-50 border-b pb-2 uppercase tracking-wider">

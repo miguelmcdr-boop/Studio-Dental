@@ -3,18 +3,29 @@ import { Icon } from '../../../components/Icon'
 import { Tooth } from '../../../components/icons/Tooth'
 import { TEMPORAL_SUPERIOR, TEMPORAL_INFERIOR } from '../constants/pediatriaConstants'
 
-export const OdontogramaTemporal = memo(({ datosDentosana = {}, onToggleEstadoPieza }) => {
-  const ESTADOS_DISPONIBLES = [
-    { id: 'sano', label: 'Sano', color: 'bg-emerald-500 text-white' },
-    { id: 'caries', label: 'Caries', color: 'bg-[var(--chart-caries)] text-white' },
-    { id: 'obturado', label: 'Obturado', color: 'bg-[var(--chart-sound)] text-white' },
-    { id: 'extraido', label: 'Extraído', color: 'bg-[var(--chart-missing)] text-white' }
-  ]
+export interface EstadoDentosanaOption {
+  id: string
+  label: string
+  color: string
+}
 
-  const renderFila = (piezas) => (
+export interface OdontogramaTemporalProps {
+  datosDentosana?: Record<string, unknown>
+  onToggleEstadoPieza: (piezaId: string | number, estado: string) => void
+}
+
+const ESTADOS_DISPONIBLES: readonly EstadoDentosanaOption[] = [
+  { id: 'sano', label: 'Sano', color: 'bg-emerald-500 text-white' },
+  { id: 'caries', label: 'Caries', color: 'bg-[var(--chart-caries)] text-white' },
+  { id: 'obturado', label: 'Obturado', color: 'bg-[var(--chart-sound)] text-white' },
+  { id: 'extraido', label: 'Extraído', color: 'bg-[var(--chart-missing)] text-white' }
+]
+
+export const OdontogramaTemporal = memo<OdontogramaTemporalProps>(({ datosDentosana = {}, onToggleEstadoPieza }) => {
+  const renderFila = (piezas: readonly string[]): React.ReactElement => (
     <div className="flex flex-wrap gap-2 justify-center">
       {piezas.map(piezaId => {
-        const estadoActual = datosDentosana[piezaId] || 'sano'
+        const estadoActual = (datosDentosana[piezaId] as string) || 'sano'
         return (
           <div key={piezaId} className="border rounded-xl p-2 bg-white dark:bg-graphite-800 text-center w-20 shadow-2xs space-y-1">
             <span className="font-bold text-xs block border-b pb-0.5 text-gray-900 dark:text-graphite-50">P.{piezaId}</span>
