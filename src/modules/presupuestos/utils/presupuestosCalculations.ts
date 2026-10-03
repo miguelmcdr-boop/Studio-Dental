@@ -12,7 +12,6 @@ export interface PresupuestoParaResumen {
   montoTotal?: number | string
   montoAbonado?: number | string
   estado?: string
-  [key: string]: unknown
 }
 
 export interface ResumenPresupuestos {
