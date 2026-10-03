@@ -5,11 +5,11 @@ import { verificarBootstrapNecesario } from '../services/authService'
  * F7-11b: Hook que detecta si el usuario necesita crear una clínica.
  * Extraído de App.jsx para cumplir con límite constitucional.
  *
- * @param {Object} userProfile - Perfil del usuario actual (null si no autenticado)
- * @returns {boolean|null} bootstrapNecesario - null=verificando, true/false=resultado
+ * @param userProfile - Perfil del usuario actual (null si no autenticado)
+ * @returns bootstrapNecesario - null=verificando, true/false=resultado
  */
-export const useBootstrapDetection = (userProfile) => {
-  const [bootstrapNecesario, setBootstrapNecesario] = useState(null)
+export const useBootstrapDetection = (userProfile: unknown): boolean | null => {
+  const [bootstrapNecesario, setBootstrapNecesario] = useState<boolean | null>(null)
 
   useEffect(() => {
     if (!userProfile) {
@@ -17,12 +17,12 @@ export const useBootstrapDetection = (userProfile) => {
       return
     }
 
-    const verificar = async () => {
+    const verificar = async (): Promise<void> => {
       const result = await verificarBootstrapNecesario()
       setBootstrapNecesario(result.necesario)
     }
 
-    verificar()
+    void verificar()
   }, [userProfile])
 
   return bootstrapNecesario
