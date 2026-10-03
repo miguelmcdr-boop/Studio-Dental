@@ -7,16 +7,41 @@ import { createLogger } from '../../../services/logger'
 
 const log = createLogger('reportesCalculations')
 
-export const calcularEstadisticasAvanzadas = (pacientes = [], pagos = [], presupuestos = [], _citas = []) => {
+export interface TopPrestacion {
+  nombre: string
+  cantidad: number
+  montoTotal: number
+  [key: string]: unknown
+}
+
+export interface EstadisticasAvanzadasResultado {
+  totalPacientes: number
+  totalRecaudado: number
+  totalPresupuestado: number
+  totalProcedimientos: number
+  tasaConversionPresupuestos: number
+  ticketPromedio: number
+  topPrestaciones: TopPrestacion[]
+  desgloseEspecialidad: Record<string, number>
+  recaudacionPorMetodo: Record<string, number>
+  [key: string]: unknown
+}
+
+export const calcularEstadisticasAvanzadas = (
+  pacientes: Array<{ id: string | number; [key: string]: unknown }> = [],
+  pagos: Array<{ estado?: string; monto?: number | string; metodoPago?: string; [key: string]: unknown }> = [],
+  presupuestos: Array<{ montoTotal?: number | string; estado?: string; [key: string]: unknown }> = [],
+  _citas: unknown[] = []
+): EstadisticasAvanzadasResultado => {
   let totalRecaudado = 0
   let totalPresupuestado = 0
   let presupuestosAprobadosCount = 0
 
   // 1. Cálculos de Pagos y Recaudación
-  const recaudacionPorMetodo = {}
-  pagos.forEach(p => {
+  const recaudacionPorMetodo: Record<string, number> = {}
+  pagos.forEach((p) => {
     if (p.estado === 'Anulado') return
-    const monto = parseFloat(p.monto) || 0
+    const monto = parseFloat(String(p.monto)) || 0
     totalRecaudado += monto
 
     const metodo = p.metodoPago || 'Efectivo'
@@ -24,31 +49,32 @@ export const calcularEstadisticasAvanzadas = (pacientes = [], pagos = [], presup
   })
 
   // 2. Cálculos de Presupuestos y Conversión
-  presupuestos.forEach(p => {
-    const total = parseFloat(p.montoTotal) || 0
+  presupuestos.forEach((p) => {
+    const total = parseFloat(String(p.montoTotal)) || 0
     totalPresupuestado += total
     if (p.estado === 'Aprobado' || p.estado === 'EnTratamiento') {
       presupuestosAprobadosCount++
     }
   })
 
-  const tasaConversionPresupuestos = presupuestos.length > 0 
-    ? Math.round((presupuestosAprobadosCount / presupuestos.length) * 100) 
-    : 0
+  const tasaConversionPresupuestos =
+    presupuestos.length > 0
+      ? Math.round((presupuestosAprobadosCount / presupuestos.length) * 100)
+      : 0
 
   // 3. Desglose de Tratamientos por Paciente (vía presupuestosStorageService, F2-07a)
   let totalProcedimientos = 0
-  const rankingPrestaciones = {}
-  const desgloseEspecialidad = {}
+  const rankingPrestaciones: Record<string, { cantidad: number; montoTotal: number }> = {}
+  const desgloseEspecialidad: Record<string, number> = {}
 
-  pacientes.forEach(p => {
+  pacientes.forEach((p) => {
     try {
       const items = presupuestosStorageService.obtenerItemsPorPaciente(p.id)
       if (Array.isArray(items) && items.length > 0) {
-        items.forEach(it => {
+        items.forEach((it: { prestacion?: string; valor?: number | string; especialidad?: string }) => {
           totalProcedimientos++
           const nombre = it.prestacion || 'Consulta General'
-          const valor = parseFloat(it.valor) || 0
+          const valor = parseFloat(String(it.valor)) || 0
           const especialidad = it.especialidad || 'General'
 
           if (!rankingPrestaciones[nombre]) {
@@ -57,7 +83,8 @@ export const calcularEstadisticasAvanzadas = (pacientes = [], pagos = [], presup
           rankingPrestaciones[nombre].cantidad++
           rankingPrestaciones[nombre].montoTotal += valor
 
-          desgloseEspecialidad[especialidad] = (desgloseEspecialidad[especialidad] || 0) + valor
+          desgloseEspecialidad[especialidad] =
+            (desgloseEspecialidad[especialidad] || 0) + valor
         })
       }
     } catch (e) {
@@ -65,13 +92,14 @@ export const calcularEstadisticasAvanzadas = (pacientes = [], pagos = [], presup
     }
   })
 
-  const topPrestaciones = Object.entries(rankingPrestaciones)
+  const topPrestaciones: TopPrestacion[] = Object.entries(rankingPrestaciones)
     .map(([nombre, datos]) => ({ nombre, ...datos }))
     .sort((a, b) => b.montoTotal - a.montoTotal)
     .slice(0, 7)
 
   // 4. Indicadores Clave
-  const ticketPromedio = pacientes.length > 0 ? Math.round(totalRecaudado / pacientes.length) : 0
+  const ticketPromedio =
+    pacientes.length > 0 ? Math.round(totalRecaudado / pacientes.length) : 0
 
   return {
     totalPacientes: pacientes.length,

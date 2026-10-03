@@ -13,9 +13,10 @@ export interface MetricasReportes {
   totalProcedimientos: number
   tasaConversionPresupuestos: number
   ticketPromedio: number
-  topPrestaciones: { nombre: string; cantidad: number; montoTotal: number }[]
+  topPrestaciones: { nombre: string; cantidad: number; montoTotal: number; [key: string]: unknown }[]
   desgloseEspecialidad: Record<string, number>
   recaudacionPorMetodo: Record<string, number>
+  [key: string]: unknown
 }
 
 export interface UseReportesReturn {
