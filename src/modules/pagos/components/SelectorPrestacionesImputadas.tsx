@@ -1,4 +1,11 @@
 import React, { memo } from 'react'
+import type { PresupuestoItemLocal } from '../../presupuestos/services/presupuestosStorageService'
+
+export interface SelectorPrestacionesImputadasProps {
+  prestaciones?: PresupuestoItemLocal[]
+  seleccionadas: string[]
+  onToggle: (labelItem: string) => void
+}
 
 /**
  * SelectorPrestacionesImputadas — Lista de checkboxes para imputar pago a prestaciones (Commit G1)
@@ -6,7 +13,11 @@ import React, { memo } from 'react'
  * Extraído de ModalNuevoPago.jsx para reducir su tamaño.
  * Renderiza condicionalmente solo si hay prestaciones disponibles.
  */
-export const SelectorPrestacionesImputadas = memo(({ prestaciones, seleccionadas, onToggle }) => {
+export const SelectorPrestacionesImputadas: React.FC<SelectorPrestacionesImputadasProps> = memo(({
+  prestaciones,
+  seleccionadas,
+  onToggle
+}) => {
   if (!prestaciones || prestaciones.length === 0) return null
 
   return (
@@ -15,12 +26,17 @@ export const SelectorPrestacionesImputadas = memo(({ prestaciones, seleccionadas
         Imputar Abono a Tratamientos Específicos del Paciente:
       </label>
       <div className="space-y-1 max-h-28 overflow-y-auto">
-        {prestaciones.map(p => {
-          const labelItem = `${p.prestacion} (${p.pieza}) - $${(parseFloat(p.valor) || 0).toLocaleString('es-CL')}`
+        {prestaciones.map((p) => {
+          const labelItem = `${p.prestacion || 'Tratamiento'} (${p.pieza || 'General'}) - $${(
+            parseFloat(String(p.valor ?? 0)) || 0
+          ).toLocaleString('es-CL')}`
           const estaCheck = seleccionadas.includes(labelItem)
 
           return (
-            <label key={p.id} className="flex items-center gap-2 p-1.5 bg-white dark:bg-graphite-800 border rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-graphite-700 transition-colors duration-150">
+            <label
+              key={String(p.id)}
+              className="flex items-center gap-2 p-1.5 bg-white dark:bg-graphite-800 border rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-graphite-700 transition-colors duration-150"
+            >
               <input
                 type="checkbox"
                 checked={estaCheck}

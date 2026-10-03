@@ -4,6 +4,13 @@ import { Button } from '../../../components/ui/Button'
 import { useAppDialog } from '../../../hooks/useAppDialog'
 import { diasRestantes, obtenerPagosPurgados, vaciarPapelera } from '../services/papeleraPagosService'
 import { Trash2 } from 'lucide-react'
+import type { Pago } from '../services/pagosStorageService'
+
+export interface ModalPapeleraPagosProps {
+  alCerrar: () => void
+  onRestaurar: (pagoId: string | number) => Promise<unknown>
+  onAccionCompletada?: () => void
+}
 
 /**
  * Modal de Papelera de Pagos (Commit K)
@@ -12,13 +19,17 @@ import { Trash2 } from 'lucide-react'
  * vaciar + reload + alert). Garantiza secuencia atómica sin timing
  * conflicts con el padre.
  */
-export const ModalPapeleraPagos = memo(({ alCerrar, onRestaurar, onAccionCompletada }) => {
+export const ModalPapeleraPagos: React.FC<ModalPapeleraPagosProps> = memo(({
+  alCerrar,
+  onRestaurar,
+  onAccionCompletada
+}) => {
   const { confirm, alert } = useAppDialog()
-  const [pagos, setPagos] = useState(() => obtenerPagosPurgados())
+  const [pagos, setPagos] = useState<Pago[]>(() => obtenerPagosPurgados())
 
-  const reload = () => setPagos(obtenerPagosPurgados())
+  const reload = (): void => setPagos(obtenerPagosPurgados())
 
-  const handleRestaurar = async (pagoId) => {
+  const handleRestaurar = async (pagoId: string | number): Promise<void> => {
     try {
       await onRestaurar(pagoId)
     } finally {
@@ -29,7 +40,7 @@ export const ModalPapeleraPagos = memo(({ alCerrar, onRestaurar, onAccionComplet
     }
   }
 
-  const handleVaciar = async () => {
+  const handleVaciar = async (): Promise<void> => {
     const ok = await confirm({
       title: 'Vaciar papelera',
       description: `Esto eliminará definitivamente los ${pagos.length} pagos de la papelera. Esta acción no se puede deshacer.`,
@@ -54,16 +65,12 @@ export const ModalPapeleraPagos = memo(({ alCerrar, onRestaurar, onAccionComplet
   }
 
   return (
-    <Modal
-      isOpen={true}
-      onClose={alCerrar}
-      title="Papelera de Pagos"
-      size="lg"
-    >
+    <Modal isOpen={true} onClose={alCerrar} title="Papelera de Pagos" size="lg">
       <div className="space-y-3">
         <div className="flex justify-between items-start gap-3">
           <p className="text-xs text-gray-600 dark:text-graphite-400 flex-1">
-            Pagos purgados. Pueden restaurarse (volver a estado "Anulado") o serán eliminados automáticamente después de 730 días.
+            Pagos purgados. Pueden restaurarse (volver a estado "Anulado") o serán eliminados
+            automáticamente después de 730 días.
           </p>
           {pagos.length > 0 && (
             <Button
@@ -72,7 +79,9 @@ export const ModalPapeleraPagos = memo(({ alCerrar, onRestaurar, onAccionComplet
               size="sm"
               className="shrink-0"
             >
-              <span className="inline-flex items-center gap-1"><Trash2 size={12} />Vaciar papelera</span>
+              <span className="inline-flex items-center gap-1">
+                <Trash2 size={12} />Vaciar papelera
+              </span>
             </Button>
           )}
         </div>
@@ -83,31 +92,41 @@ export const ModalPapeleraPagos = memo(({ alCerrar, onRestaurar, onAccionComplet
           </div>
         ) : (
           <div className="space-y-2 max-h-96 overflow-y-auto">
-            {pagos.map(pago => {
+            {pagos.map((pago) => {
               const dias = diasRestantes(pago.fechaPurga)
               return (
                 <div
-                  key={pago.id}
+                  key={String(pago.id)}
                   className="bg-gray-50 dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-xl p-3 space-y-2"
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-bold text-gray-900 dark:text-graphite-50">{pago.folioComprobante}</span>
+                        <span className="font-bold text-gray-900 dark:text-graphite-50">
+                          {pago.folioComprobante}
+                        </span>
                         <span className="text-xs bg-gray-200 dark:bg-graphite-700 text-gray-700 dark:text-graphite-300 px-2 py-0.5 rounded-full">
-                          {dias !== null ? `${dias} días restantes` : 'Sin fecha registrada (no se auto-elimina)'}
+                          {dias !== null
+                            ? `${dias} días restantes`
+                            : 'Sin fecha registrada (no se auto-elimina)'}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-700 dark:text-graphite-300 font-semibold">{pago.pacienteNombre || 'Paciente sin nombre'}</p>
+                      <p className="text-sm text-gray-700 dark:text-graphite-300 font-semibold">
+                        {pago.pacienteNombre || 'Paciente sin nombre'}
+                      </p>
                       <p className="text-xs text-gray-600 dark:text-graphite-400">
-                        <span className="font-bold">${(pago.monto || 0).toLocaleString('es-CL')} CLP</span> · {pago.metodoPago}
+                        <span className="font-bold">
+                          ${(pago.monto || 0).toLocaleString('es-CL')} CLP
+                        </span>{' '}
+                        · {pago.metodoPago}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-graphite-400 mt-1">
-                        Purgado: {pago.fechaPurga || 'sin fecha'} por {pago.purgadoPor || 'sin registro'}
+                        Purgado: {pago.fechaPurga || 'sin fecha'} por{' '}
+                        {pago.purgadoPor || 'sin registro'}
                       </p>
                       {pago.motivoPurga && (
                         <p className="text-xs text-gray-600 dark:text-graphite-400 mt-1 italic">
-                          Motivo: "{pago.motivoPurga}"
+                          Motivo: &quot;{pago.motivoPurga}&quot;
                         </p>
                       )}
                     </div>
@@ -116,7 +135,7 @@ export const ModalPapeleraPagos = memo(({ alCerrar, onRestaurar, onAccionComplet
                       onClick={() => handleRestaurar(pago.id)}
                       variant="ghost"
                       size="sm"
-                      className="text-blue-600 hover:bg-blue-50 transition-colors duration-150"
+                      className="text-blue-600 hover:bg-blue-50 transition-colors duration-150 cursor-pointer"
                     >
                       Restaurar
                     </Button>

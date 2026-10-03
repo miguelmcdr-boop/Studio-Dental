@@ -1,8 +1,24 @@
 import React, { memo } from 'react'
-import { Receipt, Ban } from 'lucide-react'
-import { Pencil, Trash2 } from 'lucide-react'
+import { Receipt, Ban, Pencil, Trash2 } from 'lucide-react'
+import type { Pago } from '../services/pagosStorageService'
 
-export const TablaHistorialPagos = memo(({ pagos, onVerComprobante, onEditar, onAnular, onPurgar, puedePurgar }) => {
+export interface TablaHistorialPagosProps {
+  pagos: Pago[]
+  onVerComprobante: (pago: Pago) => void
+  onEditar: (pago: Pago) => void
+  onAnular: (idPago: string | number) => void
+  onPurgar?: (pago: Pago) => void
+  puedePurgar?: boolean
+}
+
+export const TablaHistorialPagos: React.FC<TablaHistorialPagosProps> = memo(({
+  pagos,
+  onVerComprobante,
+  onEditar,
+  onAnular,
+  onPurgar,
+  puedePurgar
+}) => {
   if (pagos.length === 0) {
     return (
       <div className="p-10 text-center text-xs text-gray-400 dark:text-graphite-500 bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl">
@@ -32,7 +48,16 @@ export const TablaHistorialPagos = memo(({ pagos, onVerComprobante, onEditar, on
             const esPurgado = p.estado === 'Purgado'
 
             return (
-              <tr key={p.id} className={`hover:bg-slate-50 dark:hover:bg-graphite-800/50 surgical:hover:bg-graphite-200 transition-colors ${esPurgado ? 'bg-slate-100/60 dark:bg-graphite-950/60 surgical:bg-graphite-300/60' : esAnulado ? 'bg-red-50/40 dark:bg-red-950/20' : ''}`}>
+              <tr
+                key={String(p.id)}
+                className={`hover:bg-slate-50 dark:hover:bg-graphite-800/50 surgical:hover:bg-graphite-200 transition-colors ${
+                  esPurgado
+                    ? 'bg-slate-100/60 dark:bg-graphite-950/60 surgical:bg-graphite-300/60'
+                    : esAnulado
+                    ? 'bg-red-50/40 dark:bg-red-950/20'
+                    : ''
+                }`}
+              >
                 <td className="p-3">
                   <span className="bg-slate-100 dark:bg-graphite-800 surgical:bg-graphite-200 px-2 py-0.5 rounded border border-surface font-mono text-[11px] font-bold block w-max tabular-nums text-graphite-800 dark:text-graphite-200 surgical:text-black">
                     {p.folioComprobante}
@@ -45,16 +70,25 @@ export const TablaHistorialPagos = memo(({ pagos, onVerComprobante, onEditar, on
                 </td>
 
                 <td className="p-3">
-                  <span className="font-extrabold text-graphite-900 dark:text-graphite-50 surgical:text-black block">{p.pacienteNombre}</span>
-                  <span className="text-[10px] text-graphite-500 dark:text-graphite-400 surgical:text-black tabular-nums">RUT: {p.pacienteRut}</span>
+                  <span className="font-extrabold text-graphite-900 dark:text-graphite-50 surgical:text-black block">
+                    {p.pacienteNombre}
+                  </span>
+                  <span className="text-[10px] text-graphite-500 dark:text-graphite-400 surgical:text-black tabular-nums">
+                    RUT: {p.pacienteRut}
+                  </span>
                 </td>
 
                 <td className="p-3 font-semibold text-graphite-700 dark:text-graphite-300 surgical:text-black tabular-nums">
-                  {p.fecha} <span className="text-graphite-400 dark:text-graphite-500 font-normal block">{p.hora} hrs</span>
+                  {p.fecha}{' '}
+                  <span className="text-graphite-400 dark:text-graphite-500 font-normal block">
+                    {p.hora} hrs
+                  </span>
                 </td>
 
                 <td className="p-3">
-                  <span className="font-bold text-graphite-800 dark:text-graphite-100 surgical:text-black block">{p.concepto}</span>
+                  <span className="font-bold text-graphite-800 dark:text-graphite-100 surgical:text-black block">
+                    {p.concepto}
+                  </span>
                   {p.prestacionesImputadas && p.prestacionesImputadas.length > 0 && (
                     <span className="text-[10px] text-indigo-900 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/40 px-1.5 py-0.5 rounded border border-indigo-200 dark:border-indigo-800 inline-block mt-0.5">
                       {p.prestacionesImputadas.join(', ')}
@@ -69,15 +103,29 @@ export const TablaHistorialPagos = memo(({ pagos, onVerComprobante, onEditar, on
                 </td>
 
                 <td className="p-3 text-center">
-                  <span className={`px-2 py-0.5 rounded-lg font-bold text-[10px] border ${
-                    esPurgado ? 'bg-slate-200 dark:bg-graphite-800 text-slate-600 dark:text-slate-400 border-slate-400 dark:border-slate-700' : esAnulado ? 'bg-red-100 dark:bg-red-950/60 text-red-900 dark:text-red-300 border-red-300 dark:border-red-800' : 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
-                  }`}>
+                  <span
+                    className={`px-2 py-0.5 rounded-lg font-bold text-[10px] border ${
+                      esPurgado
+                        ? 'bg-slate-200 dark:bg-graphite-800 text-slate-600 dark:text-slate-400 border-slate-400 dark:border-slate-700'
+                        : esAnulado
+                        ? 'bg-red-100 dark:bg-red-950/60 text-red-900 dark:text-red-300 border-red-300 dark:border-red-800'
+                        : 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
+                    }`}
+                  >
                     {esPurgado ? 'Purgado' : esAnulado ? 'Anulado' : 'Vigente'}
                   </span>
                 </td>
 
-                <td className={`p-3 text-right font-black text-sm tabular-nums ${esPurgado ? 'line-through text-graphite-500 opacity-60' : esAnulado ? 'line-through text-graphite-400' : 'text-graphite-900 dark:text-graphite-50 surgical:text-black'}`}>
-                  ${(parseFloat(p.monto) || 0).toLocaleString('es-CL')} CLP
+                <td
+                  className={`p-3 text-right font-black text-sm tabular-nums ${
+                    esPurgado
+                      ? 'line-through text-graphite-500 opacity-60'
+                      : esAnulado
+                      ? 'line-through text-graphite-400'
+                      : 'text-graphite-900 dark:text-graphite-50 surgical:text-black'
+                  }`}
+                >
+                  ${(parseFloat(String(p.monto ?? 0)) || 0).toLocaleString('es-CL')} CLP
                 </td>
 
                 <td className="p-3 text-right print:hidden space-x-1 whitespace-nowrap">
@@ -86,7 +134,9 @@ export const TablaHistorialPagos = memo(({ pagos, onVerComprobante, onEditar, on
                     className="p-1.5 bg-primary hover:bg-champagne-600 dark:bg-gold-satin dark:hover:bg-primary text-white dark:text-graphite-950 surgical:bg-black surgical:text-white text-[10px] font-bold rounded-lg transition-micro cursor-pointer"
                     title="Ver / Imprimir Comprobante Oficial"
                   >
-                    <span className="inline-flex items-center gap-1"><Receipt size={14} />Recibo</span>
+                    <span className="inline-flex items-center gap-1">
+                      <Receipt size={14} />Recibo
+                    </span>
                   </button>
 
                   {!esAnulado && !esPurgado && (
@@ -114,7 +164,9 @@ export const TablaHistorialPagos = memo(({ pagos, onVerComprobante, onEditar, on
                       className="p-1.5 bg-red-900 hover:bg-red-950 text-white text-[10px] font-bold rounded-lg transition-micro cursor-pointer"
                       title="Purgar definitivamente (solo admin)"
                     >
-                      <span className="inline-flex items-center gap-1"><Trash2 size={12} />Purgar</span>
+                      <span className="inline-flex items-center gap-1">
+                        <Trash2 size={12} />Purgar
+                      </span>
                     </button>
                   )}
                 </td>
