@@ -9,7 +9,7 @@ export interface TarifaLab {
 
 export interface LaboratorioConTarifas {
   id?: number | string
-  tarifas?: TarifaLab[]
+  tarifas?: readonly TarifaLab[] | TarifaLab[]
 }
 
 export interface OrdenLabCalc {
@@ -34,7 +34,7 @@ export const generarCodigoOrdenLab = (): string => {
 }
 
 export const buscarTarifaSugerida = (
-  laboratorios: LaboratorioConTarifas[] = [],
+  laboratorios: readonly LaboratorioConTarifas[] | LaboratorioConTarifas[] = [],
   labId: number | string,
   trabajoNombre: string
 ): number => {

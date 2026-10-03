@@ -1,26 +1,26 @@
 import React, { memo, useState } from 'react'
-import { FlaskConical } from 'lucide-react'
+import { FlaskConical, ClipboardList, Folder } from 'lucide-react'
 import { Icon } from '../../components/Icon'
-import { ETAPAS_LABORATORIO } from './constants/laboratorioConstants'
+import { ETAPAS_LABORATORIO, type OrdenLaboratorio } from './constants/laboratorioConstants'
 import { useLaboratorio } from './hooks/useLaboratorio'
 import { LaboratorioSummaryCards } from './components/LaboratorioSummaryCards'
 import { TablaOrdenesLaboratorio } from './components/TablaOrdenesLaboratorio'
 import { DirectorioLaboratorios } from './components/DirectorioLaboratorios'
-import { ModalNuevaOrden } from './components/ModalNuevaOrden'
-import { OrdenImprimible } from './components/OrdenImprimible'
+import { ModalNuevaOrden, type PacienteParaLab } from './components/ModalNuevaOrden'
+import { OrdenImprimible, type UserProfileLab } from './components/OrdenImprimible'
 import { usePacientesStore } from '../../store/pacientesStore'
 import { useSesionStore } from '../../store/sesionStore'
-import { ClipboardList } from 'lucide-react'
-import { Folder } from 'lucide-react'
 
-export const LaboratorioModulo = memo(() => {
+type TabLaboratorio = 'ordenes' | 'directorio'
+
+export const LaboratorioModulo: React.FC = memo(() => {
   // (F2-02) — pacientes y userProfile ya no llegan como prop desde App.jsx: se leen directo de los stores.
-  const pacientes = usePacientesStore((state) => state.pacientes)
-  const userProfile = useSesionStore((state) => state.userProfile)
+  const pacientes = usePacientesStore((state: { pacientes: PacienteParaLab[] }) => state.pacientes)
+  const userProfile = useSesionStore((state: { userProfile: UserProfileLab | null }) => state.userProfile)
 
-  const [tabActual, setTabActual] = useState('ordenes') // 'ordenes' | 'directorio'
-  const [modalAbierto, setModalAbierto] = useState(false)
-  const [ordenImprimir, setOrdenImprimir] = useState(null)
+  const [tabActual, setTabActual] = useState<TabLaboratorio>('ordenes')
+  const [modalAbierto, setModalAbierto] = useState<boolean>(false)
+  const [ordenImprimir, setOrdenImprimir] = useState<OrdenLaboratorio | null>(null)
 
   const {
     ordenes,
@@ -46,7 +46,9 @@ export const LaboratorioModulo = memo(() => {
             <Icon icon={FlaskConical} size="md" />
             Control de Trabajos de Laboratorio Dental
           </h2>
-          <p className="text-xs text-gray-500 dark:text-graphite-400">Gestión de etapas prótesicas, proveedores y tarifarios por laboratorio.</p>
+          <p className="text-xs text-gray-500 dark:text-graphite-400">
+            Gestión de etapas prótesicas, proveedores y tarifarios por laboratorio.
+          </p>
         </div>
 
         {tabActual === 'ordenes' && (
@@ -63,28 +65,38 @@ export const LaboratorioModulo = memo(() => {
         <LaboratorioSummaryCards resumen={resumen} />
       </div>
 
-      <div className="flex gap-2 border-b pb-1 print:hidden text-xs">
+      <div className="flex gap-2 border-b border-gray-200 dark:border-graphite-700 pb-1 print:hidden text-xs">
         <button
           onClick={() => setTabActual('ordenes')}
-          className={`px-4 py-2 rounded-xl font-bold transition-all ${
-            tabActual === 'ordenes' ? 'bg-black text-white shadow-xs' : 'bg-gray-100 dark:bg-graphite-800 text-gray-600 dark:text-graphite-400 hover:bg-gray-200'
+          className={`px-4 py-2 rounded-xl font-bold transition-all cursor-pointer ${
+            tabActual === 'ordenes'
+              ? 'bg-black text-white shadow-xs'
+              : 'bg-gray-100 dark:bg-graphite-800 text-gray-600 dark:text-graphite-400 hover:bg-gray-200'
           }`}
         >
-          <span className="inline-flex items-center gap-1"><ClipboardList size={12} />Órdenes de Trabajo Activas</span>
+          <span className="inline-flex items-center gap-1">
+            <ClipboardList size={12} />
+            Órdenes de Trabajo Activas
+          </span>
         </button>
 
         <button
           onClick={() => setTabActual('directorio')}
-          className={`px-4 py-2 rounded-xl font-bold transition-all ${
-            tabActual === 'directorio' ? 'bg-black text-white shadow-xs' : 'bg-gray-100 dark:bg-graphite-800 text-gray-600 dark:text-graphite-400 hover:bg-gray-200'
+          className={`px-4 py-2 rounded-xl font-bold transition-all cursor-pointer ${
+            tabActual === 'directorio'
+              ? 'bg-black text-white shadow-xs'
+              : 'bg-gray-100 dark:bg-graphite-800 text-gray-600 dark:text-graphite-400 hover:bg-gray-200'
           }`}
         >
-          <span className="inline-flex items-center gap-1"><Folder size={12} />Directorio y Tarifarios de Labs</span>
+          <span className="inline-flex items-center gap-1">
+            <Folder size={12} />
+            Directorio y Tarifarios de Labs
+          </span>
         </button>
       </div>
 
-      {tabActual === 'ordenes' && (
-        ordenImprimir ? (
+      {tabActual === 'ordenes' &&
+        (ordenImprimir ? (
           <OrdenImprimible
             orden={ordenImprimir}
             userProfile={userProfile}
@@ -98,10 +110,14 @@ export const LaboratorioModulo = memo(() => {
                 <select
                   value={etapaFiltro}
                   onChange={(e) => setEtapaFiltro(e.target.value)}
-                  className="p-2 border rounded-xl bg-white dark:bg-graphite-800 font-semibold flex-1 sm:flex-initial"
+                  className="p-2 border border-gray-300 dark:border-graphite-600 rounded-xl bg-white dark:bg-graphite-800 font-semibold flex-1 sm:flex-initial"
                 >
                   <option value="Todas">Todas las etapas</option>
-                  {ETAPAS_LABORATORIO.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
+                  {ETAPAS_LABORATORIO.map((e) => (
+                    <option key={e.id} value={e.id}>
+                      {e.nombre}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -110,7 +126,7 @@ export const LaboratorioModulo = memo(() => {
                 placeholder="Buscar orden, paciente o trabajo..."
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
-                className="p-2 border rounded-xl bg-white dark:bg-graphite-800 w-full sm:w-64"
+                className="p-2 border border-gray-300 dark:border-graphite-600 rounded-xl bg-white dark:bg-graphite-800 w-full sm:w-64"
               />
             </div>
 
@@ -119,17 +135,16 @@ export const LaboratorioModulo = memo(() => {
               onActualizarEtapa={actualizarEtapaOrden}
               onCambiarPago={cambiarEstadoPagoOrden}
               onSeleccionarImprimir={setOrdenImprimir}
-              onEliminar={eliminarOrden}
+              onEliminar={(id) => void eliminarOrden(id)}
             />
           </>
-        )
-      )}
+        ))}
 
       {tabActual === 'directorio' && (
         <DirectorioLaboratorios
           laboratorios={laboratorios}
           alGuardarLab={guardarOActualizarLaboratorio}
-          alEliminarLab={eliminarLaboratorio}
+          alEliminarLab={(id) => void eliminarLaboratorio(id)}
         />
       )}
 
@@ -146,3 +161,4 @@ export const LaboratorioModulo = memo(() => {
 })
 
 LaboratorioModulo.displayName = 'LaboratorioModulo'
+export default LaboratorioModulo
