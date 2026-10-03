@@ -16,7 +16,6 @@ export interface HabitosNocivos {
   succionDigital?: boolean
   deglucionAtipica?: boolean
   respiradorBucal?: boolean
-  [key: string]: unknown
 }
 
 export interface DatosPediatria {
@@ -27,7 +26,6 @@ export interface DatosPediatria {
   habitosNocivos?: HabitosNocivos
   dentosanaRegistrada?: boolean
   mapaDentosana?: Record<string, unknown>
-  [key: string]: unknown
 }
 
 const construirKeyPediatria = (pacienteId: string | number): string => `pediatria_${pacienteId}`
