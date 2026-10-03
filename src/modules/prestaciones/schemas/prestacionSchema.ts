@@ -27,8 +27,8 @@ export const prestacionSchema = z.object({
   id: z.union([z.number(), z.string()]),
   nombre: z.string().trim().min(1, 'El nombre de la prestación es obligatorio'),
   especialidad: z.string().trim().min(1, 'La especialidad es obligatoria'),
-  precioParticular: z.number({ required_error: 'El precio particular es obligatorio' }),
-  precioFonasa: z.number({ required_error: 'El precio Fonasa es obligatorio' }),
+  precioParticular: z.number({ message: 'El precio particular es obligatorio' }),
+  precioFonasa: z.number({ message: 'El precio Fonasa es obligatorio' }),
   codigoFonasa: z.string().trim().min(1, 'El código Fonasa es obligatorio'),
 
   // Campos opcionales

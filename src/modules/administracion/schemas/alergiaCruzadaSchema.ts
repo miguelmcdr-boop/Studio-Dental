@@ -41,18 +41,15 @@ export type NivelSeveridadAlergia = typeof NIVELES_SEVERIDAD[number]
  */
 export const alergiaCruzadaSchema = z.object({
   familia_alergia: z.enum(FAMILIAS_ALERGIAS, {
-    required_error: 'Seleccione una familia de alergia',
-    errorMap: () => ({ message: 'Seleccione una familia válida' })
+    message: 'Seleccione una familia de alergia'
   }),
   
   familia_farmaco: z.enum(FAMILIAS_ALERGIAS, {
-    required_error: 'Seleccione una familia de fármaco',
-    errorMap: () => ({ message: 'Seleccione una familia válida' })
+    message: 'Seleccione una familia de fármaco'
   }),
   
   severidad: z.enum(NIVELES_SEVERIDAD, {
-    required_error: 'Seleccione el nivel de severidad',
-    errorMap: () => ({ message: 'Seleccione un nivel válido' })
+    message: 'Seleccione el nivel de severidad'
   }),
   
   porcentaje_cruzado: z.string().max(20, 'Máximo 20 caracteres').optional().nullable(),

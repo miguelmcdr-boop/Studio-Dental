@@ -16,22 +16,21 @@ export type NivelSeveridadInteraccion = typeof NIVELES_SEVERIDAD_INTERACCION[num
  */
 export const interaccionSchema = z.object({
   farmaco_a: z.string({
-    required_error: 'Ingrese el nombre del fármaco A'
+    message: 'Ingrese el nombre del fármaco A'
   }).min(2, 'Mínimo 2 caracteres').max(200, 'Máximo 200 caracteres'),
   
   farmaco_b: z.string({
-    required_error: 'Ingrese el nombre del fármaco B o grupo'
+    message: 'Ingrese el nombre del fármaco B o grupo'
   }).min(2, 'Mínimo 2 caracteres').max(200, 'Máximo 200 caracteres'),
   
   efecto: z.string({
-    required_error: 'Describa el efecto de la interacción'
+    message: 'Describa el efecto de la interacción'
   }).min(2, 'Mínimo 2 caracteres').max(1000, 'Máximo 1000 caracteres'),
   
   manejo: z.string().max(1000, 'Máximo 1000 caracteres').optional().nullable(),
   
   severidad: z.enum(NIVELES_SEVERIDAD_INTERACCION, {
-    required_error: 'Seleccione el nivel de severidad',
-    errorMap: () => ({ message: 'Seleccione un nivel válido' })
+    message: 'Seleccione el nivel de severidad'
   }),
   
   activo: z.boolean().default(true)

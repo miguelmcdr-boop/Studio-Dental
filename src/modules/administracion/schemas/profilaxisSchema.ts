@@ -6,15 +6,15 @@ import { z } from 'zod'
 
 export const profilaxisSchema = z.object({
   situacion: z.string({
-    required_error: 'La situación clínica es obligatoria'
+    message: 'La situación clínica es obligatoria'
   }).min(2, 'Mínimo 2 caracteres').max(200, 'Máximo 200 caracteres'),
   
   farmaco: z.string({
-    required_error: 'El fármaco es obligatorio'
+    message: 'El fármaco es obligatorio'
   }).min(2, 'Mínimo 2 caracteres').max(200, 'Máximo 200 caracteres'),
   
   dosis_adulto: z.string({
-    required_error: 'La dosis adulto es obligatoria'
+    message: 'La dosis adulto es obligatoria'
   }).min(2, 'Mínimo 2 caracteres').max(200, 'Máximo 200 caracteres'),
   
   dosis_pediatrica: z.string().max(200, 'Máximo 200 caracteres').optional().nullable(),
