@@ -9,15 +9,15 @@
  *   return <ToastContainer notificaciones={notificaciones} />
  */
 import { useState, useEffect } from 'react'
-import { notificationService } from '../services/notificationService'
+import { notificationService, type NotificationItem } from '../services/notificationService'
 
-export const useNotifications = () => {
-  const [notificaciones, setNotificaciones] = useState(() =>
+export const useNotifications = (): NotificationItem[] => {
+  const [notificaciones, setNotificaciones] = useState<NotificationItem[]>(() =>
     notificationService.listar()
   )
 
   useEffect(() => {
-    const unsubscribe = notificationService.suscribir((lista) => {
+    const unsubscribe = notificationService.suscribir((lista: NotificationItem[]) => {
       setNotificaciones(lista)
     })
     return unsubscribe
