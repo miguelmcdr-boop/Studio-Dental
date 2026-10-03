@@ -167,3 +167,18 @@ export const calcularIndicesPeriodontales = (piezasData = {}, factoresRiesgo = {
     dientesAusentes
   }
 }
+
+export const calcularEstadisticasPeriodontales = (piezasData = {}) => {
+  return calcularIndicesPeriodontales(piezasData)
+}
+
+export const generarResumenClinico = (metricas = {}, piezasData = {}) => {
+  return {
+    diagnostico: metricas?.diagnosticoSugerido || 'Periodonto sano',
+    recomendaciones: []
+  }
+}
+
+export const estructurarDatosParaGrafico = (piezasData = {}) => {
+  return []
+}
