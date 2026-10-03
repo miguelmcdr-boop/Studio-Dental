@@ -3,7 +3,7 @@ import { Baby, Columns3, Eraser } from 'lucide-react'
 import { Icon } from '../../components/Icon'
 import { Tooth } from '../../components/icons/Tooth'
 import { Button } from '../../components/ui/Button'
-import { DienteSVG } from '../../components/DienteSVG'
+import { DienteSVG, type CaraDiente } from '../../components/DienteSVG'
 import {
   PERMANENTE_SUPERIOR,
   PERMANENTE_INFERIOR,
@@ -11,10 +11,17 @@ import {
   TEMPORAL_INFERIOR,
   HERRAMIENTAS_ODONTOGRAMA
 } from './constants/odontogramaConstants'
-import { useOdontograma } from './hooks/useOdontograma'
+import { useOdontograma, type OdontogramaData } from './hooks/useOdontograma'
 import { CpodSummaryCard } from './components/CpodSummaryCard'
 
-export const OdontogramaModulo = memo(({
+export interface OdontogramaModuloProps {
+  odontograma?: OdontogramaData
+  odontogramaComparar?: OdontogramaData | null
+  guardarOdontograma?: (odonto: OdontogramaData) => void
+  esEvolucion?: boolean
+}
+
+export const OdontogramaModulo = memo<OdontogramaModuloProps>(({
   odontograma: odontogramaProp = {},
   odontogramaComparar = null,
   guardarOdontograma = () => {},
@@ -39,6 +46,14 @@ export const OdontogramaModulo = memo(({
 
   const piezasSuperiores = tipoDenticion === 'permanente' ? PERMANENTE_SUPERIOR : TEMPORAL_SUPERIOR
   const piezasInferiores = tipoDenticion === 'permanente' ? PERMANENTE_INFERIOR : TEMPORAL_INFERIOR
+
+  const onCaraClickWrapper = (numero: number | string, cara: CaraDiente, modo?: string): void => {
+    handleCaraClick(String(numero), cara, modo || modoSeleccionado)
+  }
+
+  const onSelectPiezaWrapper = (numero: number | string): void => {
+    setPiezaActiva(String(numero))
+  }
 
   return (
     <div className="space-y-6 w-full max-w-full">
@@ -139,8 +154,8 @@ export const OdontogramaModulo = memo(({
                         numero={num}
                         estadosPieza={odontograma[num]}
                         modoSeleccionado={modoSeleccionado}
-                        alHacerClicCara={handleCaraClick}
-                        alSeleccionarPieza={setPiezaActiva}
+                        alHacerClicCara={onCaraClickWrapper}
+                        alSeleccionarPieza={onSelectPiezaWrapper}
                         piezaActiva={piezaActiva}
                       />
                     </div>
@@ -162,8 +177,8 @@ export const OdontogramaModulo = memo(({
                         numero={num}
                         estadosPieza={odontograma[num]}
                         modoSeleccionado={modoSeleccionado}
-                        alHacerClicCara={handleCaraClick}
-                        alSeleccionarPieza={setPiezaActiva}
+                        alHacerClicCara={onCaraClickWrapper}
+                        alSeleccionarPieza={onSelectPiezaWrapper}
                         piezaActiva={piezaActiva}
                       />
                     </div>
@@ -225,7 +240,7 @@ export const OdontogramaModulo = memo(({
           <Button type="button" onClick={handleLimpiarPieza} variant="ghost" size="sm" className="text-red-600 font-bold"><span className="flex items-center gap-1.5"><Icon icon={Eraser} size="sm" />Limpiar Pieza</span></Button>
         </div>
         <textarea
-          rows="2"
+          rows={2}
           value={odontograma[piezaActiva]?.observacion || ''}
           onChange={(e) => handleObservacionChange(e.target.value)}
           placeholder="Añadir hallazgos u observaciones específicas para esta pieza dental..."

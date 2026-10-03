@@ -1,14 +1,21 @@
 import React, { memo } from 'react'
 import { BarChart3 } from 'lucide-react'
+import type { IndiceCPODResultado } from '../utils/odontogramaCalculations'
 
-export const CpodSummaryCard = memo(({ cpodStats }) => {
+export interface CpodSummaryCardProps {
+  cpodStats?: IndiceCPODResultado | null
+}
+
+export const CpodSummaryCard = memo<CpodSummaryCardProps>(({ cpodStats }) => {
   if (!cpodStats) return null
 
   return (
     <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-4 shadow-xs mb-6 text-xs space-y-3 print:hidden">
       <div className="flex justify-between items-center border-b pb-2 flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <span className="font-bold text-gray-900 dark:text-graphite-50 uppercase tracking-wider inline-flex items-center gap-2"><BarChart3 size={14} />Índice Epidemiológico OMS (CPO-D)</span>
+          <span className="font-bold text-gray-900 dark:text-graphite-50 uppercase tracking-wider inline-flex items-center gap-2">
+            <BarChart3 size={14} />Índice Epidemiológico OMS (CPO-D)
+          </span>
           <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${cpodStats.colorBadge}`}>
             Riesgo OMS: {cpodStats.nivelRiesgoOMS}
           </span>

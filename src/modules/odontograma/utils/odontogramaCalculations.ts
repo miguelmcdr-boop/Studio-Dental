@@ -3,7 +3,25 @@
  * Estándar de la Organización Mundial de la Salud (OMS)
  */
 
-export const calcularIndiceCPOD = (odontograma = {}) => {
+export interface PiezaCPOD {
+  general?: string
+  caras?: Record<string, string>
+  [key: string]: unknown
+}
+
+export type OdontogramaCPOD = Record<string, PiezaCPOD>
+
+export interface IndiceCPODResultado {
+  cariados: number
+  perdidos: number
+  obturados: number
+  sanos: number
+  cpodTotal: number
+  nivelRiesgoOMS: string
+  colorBadge: string
+}
+
+export const calcularIndiceCPOD = (odontograma: OdontogramaCPOD = {}): IndiceCPODResultado => {
   let cariados = 0
   let perdidos = 0
   let obturados = 0
