@@ -5,20 +5,17 @@
 export interface TarifaLab {
   trabajo?: string
   precio?: number | string
-  [key: string]: unknown
 }
 
 export interface LaboratorioConTarifas {
   id?: number | string
   tarifas?: TarifaLab[]
-  [key: string]: unknown
 }
 
 export interface OrdenLabCalc {
   costoLaboratorio?: number | string
   etapa?: string
   estadoPagoLab?: string
-  [key: string]: unknown
 }
 
 export interface ResumenLaboratorio {
