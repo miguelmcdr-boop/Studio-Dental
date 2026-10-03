@@ -1,8 +1,32 @@
 import React, { memo } from 'react'
 import { Button } from '../../../components/ui/Button'
 
-export const TarjetaPieza = memo(({ numero, piezaData = {}, onChange }) => {
-  const ausente = !!piezaData.ausente
+export interface PiezaDataCara {
+  sondaje?: (number | string | null)[]
+  recesion?: (number | string | null)[]
+  sangrado?: boolean[]
+  placa?: boolean[]
+  supuracion?: boolean[]
+  [key: string]: unknown
+}
+
+export interface PiezaDataModel {
+  ausente?: boolean
+  vestibular?: PiezaDataCara
+  palatino?: PiezaDataCara
+  movilidad?: string
+  furca?: string
+  [key: string]: unknown
+}
+
+export interface TarjetaPiezaProps {
+  numero: number | string
+  piezaData?: PiezaDataModel
+  onChange: (numero: number | string, cara: string | null, campo: string, valor: unknown) => void
+}
+
+export const TarjetaPieza = memo<TarjetaPiezaProps>(({ numero, piezaData = {}, onChange }) => {
+  const ausente = Boolean(piezaData.ausente)
 
   // Fail-Safe Clinical Default (Constitución, Cap. V.2): un sitio de sondaje
   // que el profesional aún no ha registrado debe quedar en `null`, nunca en
@@ -10,24 +34,33 @@ export const TarjetaPieza = memo(({ numero, piezaData = {}, onChange }) => {
   // sitios con 0 de inmediato, y ese 0 se mostraba en el input como si fuera
   // una medición real (0mm = sitio sano), disfrazando un examen incompleto
   // como uno completo y sano.
-  const handleSondajeChange = (cara, campo, idx, valor) => {
+  const handleSondajeChange = (
+    cara: 'vestibular' | 'palatino',
+    campo: 'sondaje' | 'recesion',
+    idx: number,
+    valor: string
+  ): void => {
     const actual = [...(piezaData[cara]?.[campo] || [null, null, null])]
     const parsed = parseInt(valor, 10)
     actual[idx] = Number.isNaN(parsed) ? null : parsed
     onChange(numero, cara, campo, actual)
   }
 
-  const handleToggleFlag = (cara, idx, flagName) => {
+  const handleToggleFlag = (
+    cara: 'vestibular' | 'palatino',
+    idx: number,
+    flagName: 'sangrado' | 'placa' | 'supuracion'
+  ): void => {
     const actualFlags = [...(piezaData[cara]?.[flagName] || [false, false, false])]
     actualFlags[idx] = !actualFlags[idx]
     onChange(numero, cara, flagName, actualFlags)
   }
 
-  const handleSelectChange = (campo, valor) => {
+  const handleSelectChange = (campo: string, valor: string): void => {
     onChange(numero, null, campo, valor)
   }
 
-  const secciones = [
+  const secciones: { cara: 'vestibular' | 'palatino'; titulo: string; sitios: string[] }[] = [
     { cara: 'vestibular', titulo: 'VESTIBULAR', sitios: ['MV', 'V', 'DV'] },
     { cara: 'palatino', titulo: 'PALATINO / LINGUAL', sitios: ['MP', 'P', 'DP'] }
   ]
@@ -62,9 +95,9 @@ export const TarjetaPieza = memo(({ numero, piezaData = {}, onChange }) => {
                 {sitios.map((labelSitio, idx) => {
                   const valP = piezaData[cara]?.sondaje?.[idx] ?? ''
                   const valR = piezaData[cara]?.recesion?.[idx] ?? ''
-                  const bop = piezaData[cara]?.sangrado?.[idx] || false
-                  const placa = piezaData[cara]?.placa?.[idx] || false
-                  const sup = piezaData[cara]?.supuracion?.[idx] || false
+                  const bop = Boolean(piezaData[cara]?.sangrado?.[idx])
+                  const placa = Boolean(piezaData[cara]?.placa?.[idx])
+                  const sup = Boolean(piezaData[cara]?.supuracion?.[idx])
 
                   return (
                     <div key={idx} className="bg-gray-50/80 p-1 rounded-lg border border-gray-200 dark:border-graphite-700 space-y-1">
@@ -75,8 +108,8 @@ export const TarjetaPieza = memo(({ numero, piezaData = {}, onChange }) => {
                         <span className="absolute left-0.5 top-0.5 text-[7px] font-bold text-gray-400 dark:text-graphite-500">P</span>
                         <input
                           type="number"
-                          min="0"
-                          max="15"
+                          min={0}
+                          max={15}
                           value={valP}
                           onChange={(e) => handleSondajeChange(cara, 'sondaje', idx, e.target.value)}
                           className="w-full text-center font-extrabold text-[11px] pl-2 pr-0.5 py-0.5 border rounded bg-white dark:bg-graphite-800 focus:border-black focus:outline-none"
@@ -88,8 +121,8 @@ export const TarjetaPieza = memo(({ numero, piezaData = {}, onChange }) => {
                         <span className="absolute left-0.5 top-0.5 text-[7px] font-bold text-gray-400 dark:text-graphite-500">R</span>
                         <input
                           type="number"
-                          min="0"
-                          max="15"
+                          min={0}
+                          max={15}
                           value={valR}
                           onChange={(e) => handleSondajeChange(cara, 'recesion', idx, e.target.value)}
                           className="w-full text-center font-extrabold text-[11px] pl-2 pr-0.5 py-0.5 border rounded bg-white dark:bg-graphite-800 focus:border-black focus:outline-none"

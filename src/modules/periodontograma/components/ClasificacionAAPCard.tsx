@@ -1,8 +1,19 @@
 import React, { memo } from 'react'
-import { Cigarette, Stethoscope } from 'lucide-react'
-import { Trophy } from 'lucide-react'
+import { Cigarette, Stethoscope, Trophy } from 'lucide-react'
+import type { IndicesPeriodontalesResultado } from '../utils/periodontalCalculations'
 
-export const ClasificacionAAPCard = memo(({ indices, factoresRiesgo, setFactoresRiesgo }) => {
+export interface FactoresRiesgoState {
+  fumador: boolean
+  diabetes: boolean
+}
+
+export interface ClasificacionAAPCardProps {
+  indices: Partial<IndicesPeriodontalesResultado>
+  factoresRiesgo: FactoresRiesgoState
+  setFactoresRiesgo: React.Dispatch<React.SetStateAction<FactoresRiesgoState>>
+}
+
+export const ClasificacionAAPCard = memo<ClasificacionAAPCardProps>(({ indices, factoresRiesgo, setFactoresRiesgo }) => {
   return (
     <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-5 shadow-xs space-y-4 text-xs mb-6 print:hidden">
       <div className="flex justify-between items-center border-b pb-2 flex-wrap gap-2">
@@ -42,7 +53,7 @@ export const ClasificacionAAPCard = memo(({ indices, factoresRiesgo, setFactores
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className={`p-4 rounded-xl border ${indices.colorEtapa} space-y-1`}>
+        <div className={`p-4 rounded-xl border ${indices.colorEtapa || 'border-gray-200'} space-y-1`}>
           <span className="text-[10px] font-extrabold uppercase tracking-wider block opacity-75">Estadificación (Severidad / Extensión)</span>
           <span className="text-base font-black block">{indices.diagnosticoSugerido}</span>
           <span className="text-[10px] block opacity-80">Calculado en base a sondaje máximo ({indices.maxSondaje}mm) y porcentaje BOP ({indices.porcentajeSangrado}%).</span>

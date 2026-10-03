@@ -1,5 +1,19 @@
 import React, { memo } from 'react'
 import { TrendingUp } from 'lucide-react'
+import type { PiezasDataCalculo, PiezaPeriodontalCalculo } from '../utils/periodontalCalculations'
+
+export interface GraficoPerfilLongitudinalProps {
+  periodontoData?: PiezasDataCalculo
+}
+
+interface PuntoSVG {
+  x: number
+  y: number
+  maxVal: number
+  num: string
+  ausente?: boolean
+  sinDatos?: boolean
+}
 
 /**
  * Gráfico de Perfil Longitudinal de Sondaje Periodontal.
@@ -10,13 +24,13 @@ import { TrendingUp } from 'lucide-react'
  * (punto azul/rojo), piezas sin datos (punto gris discontinuo), y
  * piezas ausentes (punto gris simple).
  */
-export const GraficoPerfilLongitudinal = memo(({ periodontoData = {} }) => {
+export const GraficoPerfilLongitudinal = memo<GraficoPerfilLongitudinalProps>(({ periodontoData = {} }) => {
   const PIEZAS_SUPERIORES = ['1.8', '1.7', '1.6', '1.5', '1.4', '1.3', '1.2', '1.1', '2.1', '2.2', '2.3', '2.4', '2.5', '2.6', '2.7', '2.8']
   const PIEZAS_INFERIORES = ['4.8', '4.7', '4.6', '4.5', '4.4', '4.3', '4.2', '4.1', '3.1', '3.2', '3.3', '3.4', '3.5', '3.6', '3.7', '3.8']
 
-  const generarPuntosSVG = (piezas) => {
+  const generarPuntosSVG = (piezas: string[]): PuntoSVG[] => {
     return piezas.map((num, i) => {
-      const pData = periodontoData[num]
+      const pData = periodontoData[num] as PiezaPeriodontalCalculo | undefined
 
       // Caso 1: Pieza ausente
       if (pData?.ausente) {
@@ -32,13 +46,13 @@ export const GraficoPerfilLongitudinal = memo(({ periodontoData = {} }) => {
       }
 
       // Caso 3: Pieza con datos de sondaje válidos
-      const maxVal = Math.max(...sondaje.map(v => parseInt(v, 10) || 0))
+      const maxVal = Math.max(...sondaje.map(v => parseInt(String(v), 10) || 0))
       const yVal = 10 + (maxVal * 6)
       return { x: i * 40 + 20, y: Math.min(yVal, 80), maxVal, num }
     })
   }
 
-  const renderSvgArcada = (piezas, titulo) => {
+  const renderSvgArcada = (piezas: string[], titulo: string): React.ReactElement => {
     const puntos = generarPuntosSVG(piezas)
     const pathD = puntos.reduce((acc, p, i) => `${acc} ${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`, '')
 
@@ -72,7 +86,7 @@ export const GraficoPerfilLongitudinal = memo(({ periodontoData = {} }) => {
                     r="4"
                     fill={fillColor}
                     stroke={p.sinDatos ? '#9CA3AF' : '#FFFFFF'}
-                    strokeWidth="1.5"
+                    strokeWidth={1.5}
                     strokeDasharray={p.sinDatos ? '2 2' : undefined}
                     opacity={esSinDatos ? 0.6 : 1}
                   />

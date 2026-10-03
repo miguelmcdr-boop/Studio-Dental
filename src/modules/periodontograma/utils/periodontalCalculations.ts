@@ -8,14 +8,72 @@
  * - dientesAusentes (piezas marcadas como ausentes)
  */
 
-export const calcularCAL = (sondaje, recesion) => {
-  const pb = parseInt(sondaje, 10)
+export interface FactoresRiesgoAAP {
+  fumador?: boolean
+  diabetes?: boolean
+}
+
+export interface ClasificacionAAPResultado {
+  etapa: string
+  grado: string
+  colorEtapa: string
+}
+
+export interface CaraPeriodontalCalculo {
+  sondaje?: readonly (number | string | null | undefined)[]
+  sangrado?: readonly boolean[]
+  placa?: readonly boolean[]
+  supuracion?: readonly boolean[]
+  [key: string]: unknown
+}
+
+export interface PiezaPeriodontalCalculo {
+  ausente?: boolean
+  vestibular?: CaraPeriodontalCalculo
+  palatino?: CaraPeriodontalCalculo
+  [key: string]: unknown
+}
+
+export type PiezasDataCalculo = Record<string, unknown>
+
+export interface IndicesPeriodontalesResultado {
+  sitiosTotales: number
+  sitiosRegistrados: number
+  sitiosSinRegistrar: number
+  sitiosSangrado: number
+  sitiosPlaca: number
+  porcentajeSangrado: number
+  indiceOLeary: number
+  maxSondaje: number
+  diagnosticoSugerido: string
+  gradoAAP: string
+  colorEtapa: string
+  diagnosticoConcluyente: boolean
+  sacosModerados: number
+  sacosSeveros: number
+  sitiosSupuracion: number
+  porcentajeSupuracion: number
+  promedioSondaje: string
+  dientesAusentes: number
+}
+
+export interface ResumenClinicoPeriodontal {
+  diagnostico: string
+  recomendaciones: string[]
+}
+
+export const calcularCAL = (sondaje: number | string, recesion: number | string): number | string => {
+  const pb = parseInt(String(sondaje), 10)
   if (isNaN(pb)) return ''
-  const rec = parseInt(recesion, 10) || 0
+  const rec = parseInt(String(recesion), 10) || 0
   return pb + rec
 }
 
-export const calcularClasificacionAAP = (maxSondaje = 0, bopPct = 0, factoresRiesgo = { fumador: false, diabetes: false }) => {
+export const calcularClasificacionAAP = (
+  maxSondaje: number = 0,
+  bopPct: number = 0,
+  factoresRiesgo: FactoresRiesgoAAP = { fumador: false, diabetes: false }
+): ClasificacionAAPResultado => {
   let etapa = 'Salud Periodontal'
   let grado = 'Grado A (Bajo Riesgo)'
   let colorEtapa = 'bg-emerald-100 text-emerald-900 border-emerald-300'
@@ -43,26 +101,10 @@ export const calcularClasificacionAAP = (maxSondaje = 0, bopPct = 0, factoresRie
   return { etapa, grado, colorEtapa }
 }
 
-/**
- * Calcula los índices periodontales agregados (BOP%, O'Leary, sondaje máximo)
- * y sugiere una clasificación AAP/EFP en base a las piezas evaluadas.
- *
- * F1-04e: También calcula sacos moderados/severos, porcentaje de supuración,
- * promedio de sondaje y conteo de dientes ausentes.
- *
- * REGLA DE SEGURIDAD CLÍNICA (Constitución, Cap. V.2 — "Fail-Safe Clinical
- * Default"): un sitio de sondaje sin registrar NUNCA se cuenta como sitio
- * sano (0mm). Se excluye de los promedios y se contabiliza aparte en
- * `sitiosSinRegistrar`. Si la cobertura de sondaje registrado es demasiado
- * baja, la función NO emite una etapa AAP normal — retorna un estado
- * explícito de diagnóstico no concluyente, para que nadie interprete un
- * examen incompleto como "Salud Periodontal".
- *
- * @param {object} piezasData - Datos de sondaje por pieza/cara.
- * @param {{fumador: boolean, diabetes: boolean}} factoresRiesgo - Factores
- *        moduladores de riesgo del paciente, para el Grado AAP.
- */
-export const calcularIndicesPeriodontales = (piezasData = {}, factoresRiesgo = { fumador: false, diabetes: false }) => {
+export const calcularIndicesPeriodontales = (
+  piezasData: PiezasDataCalculo = {},
+  factoresRiesgo: FactoresRiesgoAAP = { fumador: false, diabetes: false }
+): IndicesPeriodontalesResultado => {
   const UMBRAL_COBERTURA_MINIMA = 0.8 // 80% de los sitios esperados deben estar registrados
 
   let sitiosTotales = 0
@@ -77,24 +119,27 @@ export const calcularIndicesPeriodontales = (piezasData = {}, factoresRiesgo = {
   let maxSondaje = 0
   let dientesAusentes = 0
 
-  Object.values(piezasData || {}).forEach(pieza => {
+  Object.values(piezasData || {}).forEach(piezaRaw => {
+    const pieza = piezaRaw as PiezaPeriodontalCalculo | undefined
     // F1-04e: Contar piezas ausentes (antes del return)
     if (pieza?.ausente) {
       dientesAusentes++
       return
     }
 
-    ;['vestibular', 'palatino'].forEach(cara => {
-      if (pieza?.[cara]) {
-        const sondajes = pieza[cara].sondaje || [null, null, null]
-        const sangrados = pieza[cara].sangrado || [false, false, false]
-        const placas = pieza[cara].placa || [false, false, false]
-        const supuraciones = pieza[cara].supuracion || [false, false, false]
+    const caras: ('vestibular' | 'palatino')[] = ['vestibular', 'palatino']
+    caras.forEach(cara => {
+      const caraData = pieza?.[cara]
+      if (caraData) {
+        const sondajes = caraData.sondaje || [null, null, null]
+        const sangrados = caraData.sangrado || [false, false, false]
+        const placas = caraData.placa || [false, false, false]
+        const supuraciones = caraData.supuracion || [false, false, false]
 
         sondajes.forEach((prof, idx) => {
           sitiosTotales++
 
-          const pVal = parseInt(prof, 10)
+          const pVal = parseInt(String(prof), 10)
           if (Number.isNaN(pVal)) {
             // Sitio no registrado: se excluye de promedios y de maxSondaje,
             // NUNCA se cuenta como sitio sano.
@@ -132,7 +177,9 @@ export const calcularIndicesPeriodontales = (piezasData = {}, factoresRiesgo = {
   const hayPiezasEvaluables = sitiosTotales > 0
   const diagnosticoConcluyente = !hayPiezasEvaluables || cobertura >= UMBRAL_COBERTURA_MINIMA
 
-  let etapa, grado, colorEtapa
+  let etapa: string
+  let grado: string
+  let colorEtapa: string
 
   if (hayPiezasEvaluables && !diagnosticoConcluyente) {
     etapa = 'Sondaje Incompleto — Diagnóstico No Concluyente'
@@ -168,17 +215,20 @@ export const calcularIndicesPeriodontales = (piezasData = {}, factoresRiesgo = {
   }
 }
 
-export const calcularEstadisticasPeriodontales = (piezasData = {}) => {
+export const calcularEstadisticasPeriodontales = (piezasData: PiezasDataCalculo = {}): IndicesPeriodontalesResultado => {
   return calcularIndicesPeriodontales(piezasData)
 }
 
-export const generarResumenClinico = (metricas = {}, piezasData = {}) => {
+export const generarResumenClinico = (
+  metricas: Partial<IndicesPeriodontalesResultado> = {},
+  _piezasData: PiezasDataCalculo = {}
+): ResumenClinicoPeriodontal => {
   return {
     diagnostico: metricas?.diagnosticoSugerido || 'Periodonto sano',
     recomendaciones: []
   }
 }
 
-export const estructurarDatosParaGrafico = (piezasData = {}) => {
+export const estructurarDatosParaGrafico = (_piezasData: PiezasDataCalculo = {}): unknown[] => {
   return []
 }

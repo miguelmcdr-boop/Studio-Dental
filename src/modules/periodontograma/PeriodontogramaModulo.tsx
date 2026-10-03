@@ -1,48 +1,66 @@
 import React, { memo, useState, useEffect } from 'react'
-import { Droplet } from 'lucide-react'
+import { Droplet, RefreshCw, Save } from 'lucide-react'
 import { Icon } from '../../components/Icon'
 import { ArcadaSuperior } from './components/ArcadaSuperior'
 import { ArcadaInferior } from './components/ArcadaInferior'
 import { HeaderPeriodontal } from './components/HeaderPeriodontal'
 import { GraficoPerfilLongitudinal } from './components/GraficoPerfilLongitudinal'
-import { ClasificacionAAPCard } from './components/ClasificacionAAPCard'
-import { calcularIndicesPeriodontales } from './utils/periodontalCalculations'
+import { ClasificacionAAPCard, type FactoresRiesgoState } from './components/ClasificacionAAPCard'
+import {
+  calcularIndicesPeriodontales,
+  type IndicesPeriodontalesResultado,
+  type PiezasDataCalculo
+} from './utils/periodontalCalculations'
 import { pacientesStorageService } from '../pacientes/services/pacientesStorageService'
 // F2-07b: acceso centralizado vía servicio (antes localStorage directo)
-import { periodontogramaStorageService } from './services/periodontogramaStorageService'
+import {
+  periodontogramaStorageService,
+  type PeriodontogramaData
+} from './services/periodontogramaStorageService'
 import { createLogger } from '../../services/logger'
 import { useAppDialog } from '../../hooks/useAppDialog'
-import { RefreshCw, Save } from 'lucide-react'
 
 const log = createLogger('PeriodontogramaModulo')
 
-export const PeriodontogramaModulo = memo(({ pacienteId }) => {
+export interface PeriodontogramaModuloProps {
+  pacienteId?: string | number | null
+}
+
+export const PeriodontogramaModulo = memo<PeriodontogramaModuloProps>(({ pacienteId }) => {
   const { alert: dialogAlert } = useAppDialog()
   
-  const [periodontoData, setPeriodontoData] = useState(() => {
-    const saved = periodontogramaStorageService.obtenerPeriodontogramaDePaciente(pacienteId, {})
+  const [periodontoData, setPeriodontoData] = useState<PiezasDataCalculo>(() => {
+    const saved = periodontogramaStorageService.obtenerPeriodontogramaDePaciente<PiezasDataCalculo>(pacienteId, {})
     return saved
   })
 
-  const [periodontoControl, setPeriodontoControl] = useState(() => {
-    const saved = periodontogramaStorageService.obtenerControlDePaciente(pacienteId, {})
+  const [periodontoControl, setPeriodontoControl] = useState<PiezasDataCalculo>(() => {
+    const saved = periodontogramaStorageService.obtenerControlDePaciente<PiezasDataCalculo>(pacienteId, {})
     return saved
   })
 
-  const [modoComparativoReeval, setModoComparativoReeval] = useState(false)
-  const [factoresRiesgo, setFactoresRiesgo] = useState({ fumador: false, diabetes: false })
+  const [modoComparativoReeval, setModoComparativoReeval] = useState<boolean>(false)
+  const [factoresRiesgo, setFactoresRiesgo] = useState<FactoresRiesgoState>({ fumador: false, diabetes: false })
 
-  const [indices, setIndices] = useState({
+  const [indices, setIndices] = useState<IndicesPeriodontalesResultado>({
     sitiosTotales: 0,
     sitiosRegistrados: 0,
     sitiosSinRegistrar: 0,
+    sitiosSangrado: 0,
+    sitiosPlaca: 0,
     porcentajeSangrado: 0,
     indiceOLeary: 0,
     maxSondaje: 0,
     diagnosticoSugerido: 'Salud Periodontal',
     gradoAAP: 'Grado A',
     colorEtapa: 'bg-emerald-100 text-emerald-900 border-emerald-300',
-    diagnosticoConcluyente: true
+    diagnosticoConcluyente: true,
+    sacosModerados: 0,
+    sacosSeveros: 0,
+    sitiosSupuracion: 0,
+    porcentajeSupuracion: 0,
+    promedioSondaje: '0.0',
+    dientesAusentes: 0
   })
 
   useEffect(() => {
@@ -58,7 +76,7 @@ export const PeriodontogramaModulo = memo(({ pacienteId }) => {
 
     // Persistir periodontoData automáticamente
     if (periodontoData && Object.keys(periodontoData).length > 0) {
-      periodontogramaStorageService.guardarPeriodontogramaDePaciente(pacienteId, periodontoData)
+      periodontogramaStorageService.guardarPeriodontogramaDePaciente(pacienteId, periodontoData as PeriodontogramaData)
         .catch(err => log.warn('Error guardando periodontograma:', err))
     }
   }, [periodontoData, pacienteId])
@@ -68,22 +86,22 @@ export const PeriodontogramaModulo = memo(({ pacienteId }) => {
 
     // Persistir periodontoControl automáticamente
     if (periodontoControl && Object.keys(periodontoControl).length > 0) {
-      periodontogramaStorageService.guardarControlDePaciente(pacienteId, periodontoControl)
+      periodontogramaStorageService.guardarControlDePaciente(pacienteId, periodontoControl as PeriodontogramaData)
         .catch(err => log.warn('Error guardando control:', err))
     }
   }, [periodontoControl, pacienteId])
 
-  const handleGuardarPeriodontograma = async () => {
-    const dataToSave = modoComparativoReeval ? periodontoControl : periodontoData
+  const handleGuardarPeriodontograma = async (): Promise<void> => {
+    const dataToSave = (modoComparativoReeval ? periodontoControl : periodontoData) as PeriodontogramaData
 
     if (modoComparativoReeval) {
-      periodontogramaStorageService.guardarControlDePaciente(pacienteId, dataToSave)
+      await periodontogramaStorageService.guardarControlDePaciente(pacienteId, dataToSave)
     } else {
-      periodontogramaStorageService.guardarPeriodontogramaDePaciente(pacienteId, dataToSave)
+      await periodontogramaStorageService.guardarPeriodontogramaDePaciente(pacienteId, dataToSave)
     }
 
     // Cohesión Clínica: Auto-escribano en la Bitácora
-    const evolucionesPrevias = pacientesStorageService.obtenerItem(`evoluciones_notas_${pacienteId}`, [])
+    const evolucionesPrevias = pacientesStorageService.obtenerItem<Record<string, unknown>[]>(`evoluciones_notas_${pacienteId}`, [])
     const fechaHora = new Date().toLocaleDateString('es-CL') + ' ' + new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })
 
     const notaPeriodontal = {
@@ -109,9 +127,9 @@ export const PeriodontogramaModulo = memo(({ pacienteId }) => {
       <div className="flex justify-between items-center flex-wrap gap-3">
         <div>
           <h3 className="text-base font-bold text-gray-900 dark:text-graphite-50 uppercase tracking-wider flex items-center gap-2">
-          <Icon icon={Droplet} size="md" />
-          Periodontograma Clínico & Sondaje AAP
-        </h3>
+            <Icon icon={Droplet} size="md" />
+            Periodontograma Clínico & Sondaje AAP
+          </h3>
           <p className="text-xs text-gray-500 dark:text-graphite-400">Evaluación de profundidades de bolsa, recesiones, CAL y sangrado al sondaje (BOP).</p>
         </div>
 
@@ -123,7 +141,7 @@ export const PeriodontogramaModulo = memo(({ pacienteId }) => {
               modoComparativoReeval ? 'bg-purple-700 text-white border-purple-800' : 'bg-purple-50 text-purple-900 border-purple-300'
             }`}
           >
-            <span className='inline-flex items-center gap-1'><RefreshCw size={12} />{modoComparativoReeval ? 'Modo: Reevaluación / Control (Activo)' : 'Cambiar a Reevaluación / Control'}</span>
+            <span className="inline-flex items-center gap-1"><RefreshCw size={12} />{modoComparativoReeval ? 'Modo: Reevaluación / Control (Activo)' : 'Cambiar a Reevaluación / Control'}</span>
           </button>
 
           <button

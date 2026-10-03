@@ -1,7 +1,21 @@
 import React, { memo } from 'react'
 import { Printer, ClipboardList } from 'lucide-react'
+import type { IndicesPeriodontalesResultado } from '../utils/periodontalCalculations'
 
-export const HeaderPeriodontal = memo(({ metricas, indices, resumenClinico }) => {
+export interface HeaderPeriodontalData extends Partial<IndicesPeriodontalesResultado> {
+  porcentajeBop?: number
+  porcentajePlaca?: number
+  profundidadMaxima?: number
+  dientesEvaluados?: number
+}
+
+export interface HeaderPeriodontalProps {
+  metricas?: HeaderPeriodontalData
+  indices?: HeaderPeriodontalData
+  resumenClinico?: string
+}
+
+export const HeaderPeriodontal = memo<HeaderPeriodontalProps>(({ metricas, indices, resumenClinico }) => {
   // Unificar metricas e indices para compatibilidad total de llamadas
   const m = metricas || indices || {}
 
