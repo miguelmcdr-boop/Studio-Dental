@@ -20,29 +20,41 @@
  *     variant: 'success',
  *     confirmText: 'Entendido'
  *   })
- *
- * Variantes soportadas:
- *   - 'info': azul clínico (confirmaciones informativas)
- *   - 'warning': ámbar clínico (acciones reversibles con cuidado)
- *   - 'danger': rojo clínico (acciones destructivas)
- *   - 'success': verde clínico (mensajes de éxito)
- *   - 'error': rojo clínico (errores)
  */
 import { useCallback } from 'react'
 import { useDialogStore } from '../store/dialogStore'
 
-export const useAppDialog = () => {
-  const openDialog = useDialogStore((state) => state.openDialog)
+export type DialogVariant = 'info' | 'warning' | 'danger' | 'success' | 'error'
+
+export interface ConfirmDialogConfig {
+  title: string
+  description?: string
+  variant?: 'info' | 'warning' | 'danger'
+  confirmText?: string
+  cancelText?: string
+}
+
+export interface AlertDialogConfig {
+  title: string
+  description?: string
+  variant?: DialogVariant
+  confirmText?: string
+}
+
+export interface UseAppDialogReturn {
+  confirm: (config: ConfirmDialogConfig) => Promise<boolean>
+  alert: (config: AlertDialogConfig) => Promise<void>
+}
+
+interface DialogStoreState {
+  openDialog: (config: Record<string, unknown>) => Promise<unknown>
+}
+
+export const useAppDialog = (): UseAppDialogReturn => {
+  const openDialog = useDialogStore((state: unknown) => (state as DialogStoreState).openDialog)
 
   /**
    * Muestra un diálogo de confirmación (similar a window.confirm pero con UI del DS).
-   * @param {Object} config
-   * @param {string} config.title - Título del diálogo
-   * @param {string} [config.description] - Descripción opcional
-   * @param {'info'|'warning'|'danger'} [config.variant='warning'] - Variante visual
-   * @param {string} [config.confirmText='Confirmar'] - Texto del botón confirmar
-   * @param {string} [config.cancelText='Cancelar'] - Texto del botón cancelar
-   * @returns {Promise<boolean>} - true si confirmó, false si canceló (o cerró con ESC/overlay)
    */
   const confirm = useCallback(
     ({
@@ -51,7 +63,7 @@ export const useAppDialog = () => {
       variant = 'warning',
       confirmText = 'Confirmar',
       cancelText = 'Cancelar',
-    }) => {
+    }: ConfirmDialogConfig): Promise<boolean> => {
       return openDialog({
         type: 'confirm',
         title,
@@ -59,19 +71,13 @@ export const useAppDialog = () => {
         variant,
         confirmText,
         cancelText,
-      })
+      }) as Promise<boolean>
     },
     [openDialog]
   )
 
   /**
    * Muestra un diálogo de alerta (similar a window.alert pero con UI del DS).
-   * @param {Object} config
-   * @param {string} config.title - Título del diálogo
-   * @param {string} [config.description] - Descripción opcional
-   * @param {'info'|'warning'|'danger'|'success'|'error'} [config.variant='info'] - Variante visual
-   * @param {string} [config.confirmText='Entendido'] - Texto del botón
-   * @returns {Promise<void>} - Se resuelve cuando el usuario cierra
    */
   const alert = useCallback(
     ({
@@ -79,14 +85,14 @@ export const useAppDialog = () => {
       description,
       variant = 'info',
       confirmText = 'Entendido',
-    }) => {
+    }: AlertDialogConfig): Promise<void> => {
       return openDialog({
         type: 'alert',
         title,
         description,
         variant,
         confirmText,
-      })
+      }) as Promise<void>
     },
     [openDialog]
   )
