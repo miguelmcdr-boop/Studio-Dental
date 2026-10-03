@@ -54,7 +54,7 @@ export const usePacientesActions = (
 
     try {
       // F6-F: soft delete en Supabase (marca deleted_at)
-      const eliminado = await pacientesStorageService.eliminarPaciente(String(idPaciente))
+      const eliminado = await pacientesStorageService.eliminarPaciente(idPaciente)
 
       if (eliminado) {
         // Actualizar lista local (paciente desaparece de la vista normal)

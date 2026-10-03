@@ -260,29 +260,30 @@ export const pacientesStorageService = {
     }
   },
 
-  eliminarPaciente: async (pacienteId: string): Promise<boolean> => {
+  eliminarPaciente: async (pacienteId: string | number): Promise<boolean> => {
+    const idStr = String(pacienteId)
     const pending = obtenerPendingDeletesPacientes()
-    if (!pending.includes(pacienteId)) {
-      guardarPendingDeletesPacientes([...pending, pacienteId])
+    if (!pending.includes(idStr)) {
+      guardarPendingDeletesPacientes([...pending, idStr])
     }
 
     const resultado = await softDeleteEliminar(pacienteId)
     
     if (resultado) {
-      const actualizados = obtenerPendingDeletesPacientes().filter(id => id !== pacienteId)
+      const actualizados = obtenerPendingDeletesPacientes().filter(id => id !== idStr)
       guardarPendingDeletesPacientes(actualizados)
     }
 
     if (resultado && (!USE_SUPABASE || !supabase) && pacientesCache) {
-      pacientesCache = pacientesCache.filter(p => p.id !== pacienteId)
+      pacientesCache = pacientesCache.filter(p => String(p.id) !== idStr)
       pacientesRepo.guardar(pacientesCache)
     }
     
     return resultado
   },
 
-  restaurarPaciente: async (pacienteId: string): Promise<boolean> => {
-    return await softDeleteRestaurar(pacienteId)
+  restaurarPaciente: async (pacienteId: string | number): Promise<boolean> => {
+    return await softDeleteRestaurar(String(pacienteId))
   },
 
   listarPacientesEliminados: async (): Promise<Paciente[]> => {
