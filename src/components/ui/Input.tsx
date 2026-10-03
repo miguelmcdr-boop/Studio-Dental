@@ -3,47 +3,35 @@
  *
  * Input reutilizable con label, error states, helper text, tamaños e iconos.
  * Usa Graphite & Champagne tokens y soporta dark mode automático.
- *
- * Uso:
- *   import { Input } from '../components/ui/Input'
- *   import { User, Mail } from 'lucide-react'
- *
- *   <Input
- *     label="Nombre del paciente"
- *     value={nombre}
- *     onChange={(e) => setNombre(e.target.value)}
- *     error="Nombre es requerido"
- *     helperText="Mínimo 3 caracteres"
- *     required
- *   />
- *
- *   <Input
- *     label="Email"
- *     type="email"
- *     icon={Mail}
- *     iconPosition="left"
- *     size="md"
- *   />
- *
- * Tamaños: sm, md (default), lg
- * Estados: default, focus, error, disabled
  */
 import React, { forwardRef, useId } from 'react'
-import { Icon } from '../Icon'
+import { Icon, type IconSize } from '../Icon'
 
-const SIZE_STYLES = {
+export type InputSize = 'sm' | 'md' | 'lg'
+export type InputIconPosition = 'left' | 'right'
+
+const SIZE_STYLES: Record<InputSize, string> = {
   sm: 'px-2.5 py-1.5 text-xs',
   md: 'px-3 py-2 text-sm',
   lg: 'px-4 py-2.5 text-base',
 }
 
-const ICON_SIZES = {
+const ICON_SIZES: Record<InputSize, IconSize> = {
   sm: 'xs',
   md: 'sm',
   lg: 'md',
 }
 
-export const Input = forwardRef(({
+export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
+  label?: React.ReactNode
+  error?: React.ReactNode
+  helperText?: React.ReactNode
+  size?: InputSize
+  icon?: React.ElementType
+  iconPosition?: InputIconPosition
+}
+
+export const Input = forwardRef<HTMLInputElement, InputProps>(({
   label,
   error,
   helperText,
