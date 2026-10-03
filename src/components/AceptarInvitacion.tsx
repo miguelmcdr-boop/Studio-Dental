@@ -6,7 +6,11 @@ import { useAceptarInvitacion } from '../hooks/useAceptarInvitacion'
  * F7-11: Pantalla para aceptar invitaciones de miembros.
  * Componente puramente presentacional — toda la lógica está en useAceptarInvitacion.
  */
-export const AceptarInvitacion = ({ onAceptarExitoso }) => {
+export interface AceptarInvitacionProps {
+  onAceptarExitoso?: () => void
+}
+
+export const AceptarInvitacion: React.FC<AceptarInvitacionProps> = ({ onAceptarExitoso }) => {
   // Extraer token de URL hash (antes del hook para evitar llamada condicional)
   const hash = typeof window !== 'undefined' ? window.location.hash : ''
   const params = new URLSearchParams(hash.split('?')[1] || '')
@@ -14,10 +18,20 @@ export const AceptarInvitacion = ({ onAceptarExitoso }) => {
 
   // Hook debe llamarse incondicionalmente (React Hooks rules)
   const {
-    estado, error, exito,
-    email, setEmail, password, setPassword, nombreCompleto, setNombreCompleto,
-    modoRegistro, procesando, handleSubmitAuth, toggleModo
-  } = useAceptarInvitacion(token, onAceptarExitoso)
+    estado,
+    error,
+    exito,
+    email,
+    setEmail,
+    password,
+    setPassword,
+    nombreCompleto,
+    setNombreCompleto,
+    modoRegistro,
+    procesando,
+    handleSubmitAuth,
+    toggleModo,
+  } = useAceptarInvitacion(token || '', onAceptarExitoso)
 
   // Early return DESPUÉS del hook si no hay token
   if (!token) {
@@ -95,25 +109,50 @@ export const AceptarInvitacion = ({ onAceptarExitoso }) => {
           {modoRegistro && (
             <div>
               <label htmlFor="nombre" className="block text-sm font-medium text-gray-700 dark:text-graphite-300 mb-1">Nombre Completo</label>
-              <input type="text" id="nombre" value={nombreCompleto} onChange={(e) => setNombreCompleto(e.target.value)} required
-                className="w-full px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" disabled={procesando} />
+              <input
+                type="text"
+                id="nombre"
+                value={nombreCompleto}
+                onChange={(e) => setNombreCompleto(e.target.value)}
+                required
+                className="w-full px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={procesando}
+              />
             </div>
           )}
 
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-graphite-300 mb-1">Email</label>
-            <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} required
-              className="w-full px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" disabled={procesando} />
+            <input
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={procesando}
+            />
           </div>
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-graphite-300 mb-1">Contraseña</label>
-            <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" disabled={procesando} />
+            <input
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={procesando}
+            />
           </div>
 
-          <button type="submit" disabled={procesando || !email || !password}
-            className="w-full px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors">
+          <button
+            type="submit"
+            disabled={procesando || !email || !password}
+            className="w-full px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+          >
             {procesando ? 'Procesando...' : (modoRegistro ? 'Crear Cuenta y Aceptar' : 'Iniciar Sesión y Aceptar')}
           </button>
         </form>
@@ -127,3 +166,5 @@ export const AceptarInvitacion = ({ onAceptarExitoso }) => {
     </div>
   )
 }
+
+AceptarInvitacion.displayName = 'AceptarInvitacion'
