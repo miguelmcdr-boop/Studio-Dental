@@ -1,9 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Eraser } from 'lucide-react'
 
-export const FirmaDigitalCanvas = ({ alGuardarFirma, alLimpiarFirma, resetSignal = 0 }) => {
-  const canvasRef = useRef(null)
-  const [dibujando, setDibujando] = useState(false)
+export interface FirmaDigitalCanvasProps {
+  alGuardarFirma?: (dataUrl: string) => void
+  alLimpiarFirma?: () => void
+  resetSignal?: number
+}
+
+export const FirmaDigitalCanvas: React.FC<FirmaDigitalCanvasProps> = ({
+  alGuardarFirma,
+  alLimpiarFirma,
+  resetSignal = 0,
+}) => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const [dibujando, setDibujando] = useState<boolean>(false)
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -25,16 +35,20 @@ export const FirmaDigitalCanvas = ({ alGuardarFirma, alLimpiarFirma, resetSignal
     if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height)
   }, [resetSignal])
 
-  const obtenerCoordenadas = (e) => {
+  const obtenerCoordenadas = (
+    e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>
+  ): { x: number; y: number } => {
     const canvas = canvasRef.current
     if (!canvas) return { x: 0, y: 0 }
     const rect = canvas.getBoundingClientRect()
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY
+    const clientX = 'touches' in e && e.touches.length > 0 ? e.touches[0].clientX : (e as React.MouseEvent).clientX
+    const clientY = 'touches' in e && e.touches.length > 0 ? e.touches[0].clientY : (e as React.MouseEvent).clientY
     return { x: clientX - rect.left, y: clientY - rect.top }
   }
 
-  const iniciarDibujo = (e) => {
+  const iniciarDibujo = (
+    e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>
+  ): void => {
     setDibujando(true)
     const { x, y } = obtenerCoordenadas(e)
     const ctx = canvasRef.current?.getContext('2d')
@@ -44,9 +58,13 @@ export const FirmaDigitalCanvas = ({ alGuardarFirma, alLimpiarFirma, resetSignal
     }
   }
 
-  const dibujar = (e) => {
+  const dibujar = (
+    e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>
+  ): void => {
     if (!dibujando) return
-    e.preventDefault()
+    if ('cancelable' in e && e.cancelable) {
+      e.preventDefault()
+    }
     const { x, y } = obtenerCoordenadas(e)
     const ctx = canvasRef.current?.getContext('2d')
     if (ctx) {
@@ -55,7 +73,7 @@ export const FirmaDigitalCanvas = ({ alGuardarFirma, alLimpiarFirma, resetSignal
     }
   }
 
-  const detenerDibujo = () => {
+  const detenerDibujo = (): void => {
     if (dibujando && canvasRef.current) {
       setDibujando(false)
       const dataUrl = canvasRef.current.toDataURL('image/png')
@@ -63,7 +81,7 @@ export const FirmaDigitalCanvas = ({ alGuardarFirma, alLimpiarFirma, resetSignal
     }
   }
 
-  const limpiarCanvas = () => {
+  const limpiarCanvas = (): void => {
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')
@@ -103,3 +121,5 @@ export const FirmaDigitalCanvas = ({ alGuardarFirma, alLimpiarFirma, resetSignal
     </div>
   )
 }
+
+FirmaDigitalCanvas.displayName = 'FirmaDigitalCanvas'

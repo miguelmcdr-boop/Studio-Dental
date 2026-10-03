@@ -1,6 +1,6 @@
 import React from 'react'
 
-const ESTADOS_COLORES = {
+const ESTADOS_COLORES: Record<string, string> = {
   sano: 'fill-white dark:fill-graphite-900 stroke-gray-400 dark:stroke-graphite-600',
   caries: 'fill-[var(--chart-caries)] stroke-[var(--chart-caries)]',
   restauracion: 'fill-[var(--chart-sound)] stroke-[var(--chart-sound)]',
@@ -10,25 +10,42 @@ const ESTADOS_COLORES = {
   endodoncia: 'fill-[var(--chart-endo)] stroke-[var(--chart-endo)]',
 }
 
-export const DienteSVG = ({
+export type CaraDiente = 'vestibular' | 'distal' | 'palatino' | 'mesial' | 'oclusal'
+
+export interface EstadosPiezaDental {
+  general?: string
+  caras?: Record<string, string | undefined>
+  [key: string]: unknown
+}
+
+export interface DienteSVGProps {
+  numero: number | string
+  estadosPieza?: EstadosPiezaDental | null
+  modoSeleccionado?: string
+  alHacerClicCara?: (numero: number | string, cara: CaraDiente, modo?: string) => void
+  alSeleccionarPieza?: (numero: number | string) => void
+  piezaActiva?: number | string | null
+}
+
+export const DienteSVG: React.FC<DienteSVGProps> = ({
   numero,
   estadosPieza,
   modoSeleccionado,
   alHacerClicCara,
   alSeleccionarPieza,
-  piezaActiva
+  piezaActiva,
 }) => {
   const esActivo = piezaActiva === numero
   const estadoGeneral = estadosPieza?.general || 'sano'
 
-  const obtenerColorCara = (cara) => {
+  const obtenerColorCara = (cara: CaraDiente): string => {
     if (estadoGeneral !== 'sano') return ESTADOS_COLORES[estadoGeneral] || 'fill-gray-100 stroke-gray-300'
     const estadoCara = estadosPieza?.caras?.[cara] || 'sano'
     return ESTADOS_COLORES[estadoCara] || 'fill-white dark:fill-graphite-900 stroke-gray-400 dark:stroke-graphite-600'
   }
 
   return (
-    <div 
+    <div
       onClick={() => alSeleccionarPieza?.(numero)}
       className={`flex flex-col items-center cursor-pointer p-1.5 rounded-xl transition-all ${
         esActivo ? 'bg-blue-50 dark:bg-graphite-800 border-2 border-[var(--chart-sound)] shadow-md scale-105' : 'hover:bg-gray-100 dark:hover:bg-graphite-700 border border-transparent'
@@ -46,7 +63,7 @@ export const DienteSVG = ({
           <div className="absolute inset-0 flex items-center justify-center z-10 text-[var(--chart-implant)] dark:text-graphite-100 font-extrabold text-[9px] bg-slate-200/90 dark:bg-slate-800/90 rounded px-1 border border-[var(--chart-implant)]">IMP</div>
         )}
 
-        {/* 💡 SVG Ampliado de 30px a 44px x 44px para máxima comodidad al hacer clic */}
+        {/* SVG Ampliado de 30px a 44px x 44px para máxima comodidad al hacer clic */}
         <svg width="44" height="44" viewBox="0 0 100 100" className="drop-shadow-xs">
           <polygon
             points="15,15 85,15 70,30 30,30"
@@ -78,3 +95,5 @@ export const DienteSVG = ({
     </div>
   )
 }
+
+DienteSVG.displayName = 'DienteSVG'
