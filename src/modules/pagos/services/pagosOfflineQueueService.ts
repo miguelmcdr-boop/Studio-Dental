@@ -41,6 +41,7 @@ export interface ProcesarColaPagosResult {
   fallidos: number
   razon?: string
   offline?: boolean
+  [key: string]: unknown
 }
 
 export interface GuardarPagoContext {

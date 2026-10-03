@@ -22,5 +22,5 @@ const gesRepo = createTenantRepository<AtencionGes[]>(STORAGE_KEY_GES, [])
 
 export const urgenciasGesStorageService = {
   obtenerAtenciones: (): AtencionGes[] => gesRepo.obtener([]) || [],
-  guardarAtenciones: (atenciones: AtencionGes[]): void => gesRepo.guardar(atenciones)
+  guardarAtenciones: (atenciones: AtencionGes[]): boolean => gesRepo.guardar(atenciones)
 }

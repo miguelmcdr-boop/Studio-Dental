@@ -200,4 +200,4 @@ export const createTenantCache = (getClinicaId: () => string | null): TenantCach
  * Instancia por defecto de tenantCache que usa authService.getClinicaActiva().
  * Esta es la instancia que deben usar todos los servicios de la aplicación.
  */
-export const tenantCache = createTenantCache(getClinicaActiva)
+export const tenantCache = createTenantCache(getClinicaActiva as unknown as () => string | null)

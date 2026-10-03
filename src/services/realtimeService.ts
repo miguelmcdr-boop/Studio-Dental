@@ -115,7 +115,7 @@ export const suscribirseATabla = <T = Record<string, unknown>>(
     }
 
     // Suscribirse al canal
-    const subscription = channel
+    const subscription = (channel as any)
       .on('postgres_changes', config, (payload: unknown) => {
         try {
           callback(payload as RealtimePayload<T>)
@@ -136,7 +136,9 @@ export const suscribirseATabla = <T = Record<string, unknown>>(
     return {
       unsubscribe: (): void => {
         try {
-          supabase.removeChannel(subscription)
+          if (supabase) {
+            supabase.removeChannel(subscription)
+          }
           log.info(`Desuscrito de ${tabla}`)
         } catch (error) {
           log.error(`Error al desuscribir de ${tabla}:`, error)

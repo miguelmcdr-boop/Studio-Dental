@@ -16,6 +16,7 @@ import {
   listarPacientesEliminados as softDeleteListar,
   vaciarPapeleraPacientes as softDeleteVaciarPacientes
 } from './pacientesSoftDeleteService'
+import type { PurgeResult } from './pacientesSoftDeleteService'
 import { esUuidValido } from '../../../services/migrations/uuidUtils'
 import { createLogger } from '../../../services/logger'
 import {
@@ -210,7 +211,7 @@ const guardarPacientes = async (pacientes: Paciente[]): Promise<boolean> => {
   }
 }
 
-export const guardarPaciente = async (paciente: unknown): Promise<Paciente | null> => {
+export const guardarPaciente = async (paciente: Paciente): Promise<Paciente | null> => {
   return guardarPacienteHelper(paciente, {
     obtenerPacientes,
     actualizarPacientesLocal: (listado: Paciente[]) => {
@@ -250,6 +251,14 @@ export const pacientesStorageService = {
 
   obtenerItem: <T>(key: string, fallback: T = [] as unknown as T): T => leerJSON<T>(key, fallback),
   guardarItem: (key: string, data: unknown): boolean => escribirJSON(key, data),
+  eliminarItem: (key: string): void => {
+    if (!key) return
+    try {
+      localStorage.removeItem(key)
+    } catch (e: unknown) {
+      log.error(`Error al eliminar item ${key}:`, e)
+    }
+  },
 
   eliminarPaciente: async (pacienteId: string): Promise<boolean> => {
     const pending = obtenerPendingDeletesPacientes()
@@ -280,8 +289,8 @@ export const pacientesStorageService = {
     return await softDeleteListar()
   },
 
-  vaciarPapeleraPacientes: async (pacienteIds?: string[]): Promise<boolean> => {
-    return await softDeleteVaciarPacientes(pacienteIds)
+  vaciarPapeleraPacientes: async (pacienteIds?: string[]): Promise<PurgeResult> => {
+    return await softDeleteVaciarPacientes(pacienteIds || [])
   },
 
   eliminarEvolucionesDePaciente: (pacienteId?: string | number | null): void => {

@@ -20,11 +20,11 @@ const testDiariosRepo = createTenantRepository<TestBowieDick[]>(STORAGE_KEY_TEST
 
 export const esterilizacionStorageService = {
   obtenerCargas: (defaults?: CargaEsterilizacion[]): CargaEsterilizacion[] => cargasRepo.obtener(defaults),
-  guardarCargas: (cargas: CargaEsterilizacion[]): void => cargasRepo.guardar(cargas),
+  guardarCargas: (cargas: CargaEsterilizacion[]): boolean => cargasRepo.guardar(cargas),
 
   obtenerBiologicos: (defaults?: PruebaBiologica[]): PruebaBiologica[] => biologicosRepo.obtener(defaults),
-  guardarBiologicos: (biologicos: PruebaBiologica[]): void => biologicosRepo.guardar(biologicos),
+  guardarBiologicos: (biologicos: PruebaBiologica[]): boolean => biologicosRepo.guardar(biologicos),
 
   obtenerTestDiarios: (defaults?: TestBowieDick[]): TestBowieDick[] => testDiariosRepo.obtener(defaults),
-  guardarTestDiarios: (tests: TestBowieDick[]): void => testDiariosRepo.guardar(tests)
+  guardarTestDiarios: (tests: TestBowieDick[]): boolean => testDiariosRepo.guardar(tests)
 }
