@@ -6,9 +6,39 @@
 import React from 'react'
 import { FAMILIAS_VADEMECUM } from '../schemas/vademecumSchema'
 
-export const CamposFormularioFarmaco = ({ form, onChange, onNumberChange, errores, esEdicion }) => {
-  const campoError = (campo) => errores[campo] ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-graphite-600'
-  const mensajeError = (campo) => errores[campo] && (
+export interface FarmacoFormState {
+  numero: number | string
+  familia: string
+  nombre_generico: string
+  nombre_comercial?: string
+  presentacion: string
+  posologia_adulto: string
+  posologia_pediatrica?: string
+  dosis_max_adulto_mg?: number | null
+  dosis_max_pediatrica_mg_por_kg?: number | null
+  contenido_por_unidad_mg?: number | null
+  volumen_por_unidad_ml?: number | null
+  concentracion_mg_por_ml?: number | null
+  duracion_dias?: string
+  contraindicaciones?: string
+  alergias_cruzadas?: string[]
+  indicaciones?: string
+  requiere_receta?: boolean
+  notas_especiales?: string
+  [key: string]: unknown
+}
+
+export interface CamposFormularioFarmacoProps {
+  form: FarmacoFormState
+  onChange: (campo: string, valor: unknown) => void
+  onNumberChange: (campo: string, valor: string) => void
+  errores: Record<string, string>
+  esEdicion?: boolean
+}
+
+export const CamposFormularioFarmaco: React.FC<CamposFormularioFarmacoProps> = ({ form, onChange, onNumberChange, errores, esEdicion }) => {
+  const campoError = (campo: string) => errores[campo] ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-graphite-600'
+  const mensajeError = (campo: string) => errores[campo] && (
     <p className="text-xs text-red-600 mt-1">{errores[campo]}</p>
   )
 
@@ -23,7 +53,7 @@ export const CamposFormularioFarmaco = ({ form, onChange, onNumberChange, errore
           <input
             type="number"
             value={form.numero}
-            onChange={(e) => onChange('numero', parseInt(e.target.value) || '')}
+            onChange={(e) => onChange('numero', parseInt(e.target.value, 10) || '')}
             className={`w-full px-3 py-2 border rounded-lg text-sm ${campoError('numero')}`}
             disabled={esEdicion}
           />
@@ -68,7 +98,7 @@ export const CamposFormularioFarmaco = ({ form, onChange, onNumberChange, errore
           </label>
           <input
             type="text"
-            value={form.nombre_comercial}
+            value={form.nombre_comercial || ''}
             onChange={(e) => onChange('nombre_comercial', e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg text-sm"
             placeholder="Ej: Amoxal"
@@ -111,7 +141,7 @@ export const CamposFormularioFarmaco = ({ form, onChange, onNumberChange, errore
             Posología pediátrica
           </label>
           <textarea
-            value={form.posologia_pediatrica}
+            value={form.posologia_pediatrica || ''}
             onChange={(e) => onChange('posologia_pediatrica', e.target.value)}
             rows={2}
             className="w-full px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg text-sm"
@@ -184,7 +214,7 @@ export const CamposFormularioFarmaco = ({ form, onChange, onNumberChange, errore
           <label className="block text-sm font-semibold text-gray-700 dark:text-graphite-300 mb-1">Duración (días)</label>
           <input
             type="text"
-            value={form.duracion_dias}
+            value={form.duracion_dias || ''}
             onChange={(e) => onChange('duracion_dias', e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg text-sm"
             placeholder="Ej: 5-7 días"
@@ -194,7 +224,7 @@ export const CamposFormularioFarmaco = ({ form, onChange, onNumberChange, errore
           <label className="flex items-center gap-2 text-sm cursor-pointer">
             <input
               type="checkbox"
-              checked={form.requiere_receta}
+              checked={form.requiere_receta ?? true}
               onChange={(e) => onChange('requiere_receta', e.target.checked)}
               className="rounded border-gray-300 dark:border-graphite-600 text-blue-600"
             />
@@ -207,7 +237,7 @@ export const CamposFormularioFarmaco = ({ form, onChange, onNumberChange, errore
       <div>
         <label className="block text-sm font-semibold text-gray-700 dark:text-graphite-300 mb-1">Contraindicaciones</label>
         <textarea
-          value={form.contraindicaciones}
+          value={form.contraindicaciones || ''}
           onChange={(e) => onChange('contraindicaciones', e.target.value)}
           rows={3}
           className="w-full px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg text-sm"
@@ -220,7 +250,7 @@ export const CamposFormularioFarmaco = ({ form, onChange, onNumberChange, errore
         <div>
           <label className="block text-sm font-semibold text-gray-700 dark:text-graphite-300 mb-1">Indicaciones</label>
           <textarea
-            value={form.indicaciones}
+            value={form.indicaciones || ''}
             onChange={(e) => onChange('indicaciones', e.target.value)}
             rows={2}
             className="w-full px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg text-sm"
@@ -229,7 +259,7 @@ export const CamposFormularioFarmaco = ({ form, onChange, onNumberChange, errore
         <div>
           <label className="block text-sm font-semibold text-gray-700 dark:text-graphite-300 mb-1">Notas especiales</label>
           <textarea
-            value={form.notas_especiales}
+            value={form.notas_especiales || ''}
             onChange={(e) => onChange('notas_especiales', e.target.value)}
             rows={2}
             className="w-full px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg text-sm"

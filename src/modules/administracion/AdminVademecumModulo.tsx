@@ -26,11 +26,20 @@ import { ModalEditarFarmaco } from './components/ModalEditarFarmaco'
 import { ModalEditarUrgencia } from './components/ModalEditarUrgencia'
 import { ModalEditarAntirresortivo } from './components/ModalEditarAntirresortivo'
 import { AdminProtocolosContenido } from './components/AdminProtocolosContenido'
+import type { FarmacoVademecum, FarmacoInput } from '../../services/vademecumService'
+import type { FarmacoUrgencia, Antirresortivo } from './schemas/vademecumSchema'
 import { createLogger } from '../../services/logger'
-import { FlaskConical, Info, Lock, Pill, RefreshCw } from 'lucide-react'
+import { Lock, Pill, RefreshCw } from 'lucide-react'
 
 const log = createLogger('AdminVademecumModulo')
-const TABS = [
+
+interface TabConfig {
+  id: string
+  nombre: string
+  descripcion: string
+}
+
+const TABS: TabConfig[] = [
   { id: 'vademecum', nombre: 'Vademécum', descripcion: '94 fármacos regulares' },
   { id: 'urgencia', nombre: 'Urgencia', descripcion: 'Carro de reanimación' },
   { id: 'antirresortivos', nombre: 'Antirresortivos', descripcion: 'Riesgo MRONJ' },
@@ -41,20 +50,38 @@ const TABS = [
   { id: 'metadata', nombre: 'Metadata', descripcion: 'Info de curación' }
 ]
 
-export const AdminVademecumModulo = () => {
+interface ModalFarmacoState {
+  abierto: boolean
+  farmaco: FarmacoVademecum | null
+}
+
+interface ModalUrgenciaState {
+  abierto: boolean
+  farmaco: FarmacoUrgencia | null
+}
+
+interface ModalAntirresortivoState {
+  abierto: boolean
+  farmaco: Antirresortivo | null
+}
+
+export const AdminVademecumModulo: React.FC = () => {
   const { puede } = useRBAC()
   const admin = useVademecumAdmin()
-  const [tabActivo, setTabActivo] = useState('vademecum')
+  const [tabActivo, setTabActivo] = useState<string>('vademecum')
 
-  const [modalFarmaco, setModalFarmaco] = useState({ abierto: false, farmaco: null })
-  const [modalUrgencia, setModalUrgencia] = useState({ abierto: false, farmaco: null })
-  const [modalAntirresortivo, setModalAntirresortivo] = useState({ abierto: false, farmaco: null })
-  const [guardando, setGuardando] = useState(false)
+  const [modalFarmaco, setModalFarmaco] = useState<ModalFarmacoState>({ abierto: false, farmaco: null })
+  const [modalUrgencia, setModalUrgencia] = useState<ModalUrgenciaState>({ abierto: false, farmaco: null })
+  const [modalAntirresortivo, setModalAntirresortivo] = useState<ModalAntirresortivoState>({ abierto: false, farmaco: null })
+  const [guardando, setGuardando] = useState<boolean>(false)
 
   // Handlers vademécum regular
-  const handleCrearFarmaco = () => setModalFarmaco({ abierto: true, farmaco: null })
-  const handleEditarFarmaco = useCallback((farmaco) => setModalFarmaco({ abierto: true, farmaco }), [])
-  const handleGuardarFarmaco = useCallback(async (datos) => {
+  const handleCrearFarmaco = (): void => setModalFarmaco({ abierto: true, farmaco: null })
+  const handleEditarFarmaco = useCallback((farmaco: FarmacoVademecum): void => {
+    setModalFarmaco({ abierto: true, farmaco })
+  }, [])
+
+  const handleGuardarFarmaco = useCallback(async (datos: FarmacoInput): Promise<void> => {
     setGuardando(true)
     try {
       await admin.crearOFarmacoActualizar(datos)
@@ -62,14 +89,27 @@ export const AdminVademecumModulo = () => {
     } finally {
       setGuardando(false)
     }
-  }, [admin, log])
-  const handleDesactivarFarmaco = async (farmaco) => { await admin.desactivar(farmaco.numero) }
-  const handleReactivarFarmaco = async (farmaco) => { await admin.reactivar(farmaco.numero) }
+  }, [admin])
+
+  const handleDesactivarFarmaco = async (farmaco: FarmacoVademecum): Promise<void> => {
+    if (farmaco.numero !== undefined) {
+      await admin.desactivar(farmaco.numero)
+    }
+  }
+
+  const handleReactivarFarmaco = async (farmaco: FarmacoVademecum): Promise<void> => {
+    if (farmaco.numero !== undefined) {
+      await admin.reactivar(farmaco.numero)
+    }
+  }
 
   // Handlers urgencia
-  const handleCrearUrgencia = () => setModalUrgencia({ abierto: true, farmaco: null })
-  const handleEditarUrgencia = useCallback((farmaco) => setModalUrgencia({ abierto: true, farmaco }), [])
-  const handleGuardarUrgencia = useCallback(async (datos) => {
+  const handleCrearUrgencia = (): void => setModalUrgencia({ abierto: true, farmaco: null })
+  const handleEditarUrgencia = useCallback((farmaco: FarmacoUrgencia): void => {
+    setModalUrgencia({ abierto: true, farmaco })
+  }, [])
+
+  const handleGuardarUrgencia = useCallback(async (datos: unknown): Promise<void> => {
     setGuardando(true)
     try {
       log.info('Guardar urgencia:', datos)
@@ -77,12 +117,15 @@ export const AdminVademecumModulo = () => {
     } finally {
       setGuardando(false)
     }
-  }, [admin, log])
+  }, [])
 
   // Handlers antirresortivos
-  const handleCrearAntirresortivo = () => setModalAntirresortivo({ abierto: true, farmaco: null })
-  const handleEditarAntirresortivo = useCallback((farmaco) => setModalAntirresortivo({ abierto: true, farmaco }), [])
-  const handleGuardarAntirresortivo = useCallback(async (datos) => {
+  const handleCrearAntirresortivo = (): void => setModalAntirresortivo({ abierto: true, farmaco: null })
+  const handleEditarAntirresortivo = useCallback((farmaco: Antirresortivo): void => {
+    setModalAntirresortivo({ abierto: true, farmaco })
+  }, [])
+
+  const handleGuardarAntirresortivo = useCallback(async (datos: unknown): Promise<void> => {
     setGuardando(true)
     try {
       log.info('Guardar antirresortivo:', datos)
@@ -90,7 +133,7 @@ export const AdminVademecumModulo = () => {
     } finally {
       setGuardando(false)
     }
-  }, [admin, log])
+  }, [])
 
   // Validación de acceso
   if (!puede(PERMISOS.ADMINISTRAR_VADEMECUM)) {
@@ -113,13 +156,19 @@ export const AdminVademecumModulo = () => {
       {/* Header del módulo */}
       <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-xl p-6">
         <div className="flex items-center justify-between mb-2">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-graphite-50 inline-flex items-center gap-2"><Pill size={24} />Vademécum Odontológico</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-graphite-50 inline-flex items-center gap-2">
+            <Pill size={24} />
+            Vademécum Odontológico
+          </h1>
           <button
-            onClick={admin.refrescar}
+            onClick={() => void admin.refrescar()}
             disabled={admin.cargando}
             className="px-3 py-1.5 text-sm font-semibold text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 disabled:opacity-50"
           >
-            <span className="inline-flex items-center gap-1"><RefreshCw size={14} />Refrescar</span>
+            <span className="inline-flex items-center gap-1">
+              <RefreshCw size={14} />
+              Refrescar
+            </span>
           </button>
         </div>
         <p className="text-sm text-gray-600 dark:text-graphite-400">
@@ -148,7 +197,11 @@ export const AdminVademecumModulo = () => {
         </div>
 
         <div className="p-6">
-          {admin.cargando && <div className="text-center py-8 text-gray-500 dark:text-graphite-400">Cargando datos...</div>}
+          {admin.cargando && (
+            <div className="text-center py-8 text-gray-500 dark:text-graphite-400">
+              Cargando datos...
+            </div>
+          )}
           {admin.error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 mb-4">
               Error: {admin.error}
@@ -178,7 +231,6 @@ export const AdminVademecumModulo = () => {
               urgencia={admin.urgencia}
               onEditar={handleEditarUrgencia}
               onCrearNuevo={handleCrearUrgencia}
-              onDesactivar={null}
             />
           )}
 
@@ -187,19 +239,19 @@ export const AdminVademecumModulo = () => {
               antirresortivos={admin.antirresortivos}
               onEditar={handleEditarAntirresortivo}
               onCrearNuevo={handleCrearAntirresortivo}
-              onDesactivar={null}
             />
           )}
 
           {/* Tabs de protocolos clínicos (F4-03f-5d) */}
-          {!admin.cargando && ['alergias', 'interacciones', 'profilaxis', 'anticoagulantes'].includes(tabActivo) && (
-            <AdminProtocolosContenido
-              admin={admin}
-              tabActivo={tabActivo}
-              guardando={guardando}
-              setGuardando={setGuardando}
-            />
-          )}
+          {!admin.cargando &&
+            ['alergias', 'interacciones', 'profilaxis', 'anticoagulantes'].includes(tabActivo) && (
+              <AdminProtocolosContenido
+                admin={admin}
+                tabActivo={tabActivo}
+                guardando={guardando}
+                setGuardando={setGuardando}
+              />
+            )}
 
           {!admin.cargando && tabActivo === 'metadata' && (
             <MetadataCuracion metadata={admin.metadata} />
@@ -235,3 +287,4 @@ export const AdminVademecumModulo = () => {
     </div>
   )
 }
+export default AdminVademecumModulo

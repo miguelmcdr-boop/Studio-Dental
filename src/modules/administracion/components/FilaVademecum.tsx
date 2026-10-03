@@ -3,8 +3,10 @@
  * F4-03f-2 (refactorización)
  */
 import React from 'react'
+import type { Farmaco } from '../schemas/vademecumSchema'
+import type { FarmacoVademecum } from '../../../services/vademecumService'
 
-const FAMILIA_COLORS = {
+const FAMILIA_COLORS: Record<string, string> = {
   anestesico_amida: 'bg-purple-100 text-purple-800 border-purple-300',
   anestesico_ester: 'bg-purple-100 text-purple-800 border-purple-300',
   anestesico_topico: 'bg-purple-100 text-purple-800 border-purple-300',
@@ -30,9 +32,16 @@ const FAMILIA_COLORS = {
   preventivo: 'bg-cyan-100 text-cyan-800 border-cyan-300'
 }
 
-export const FilaVademecum = ({ farmaco, onEditar, onDesactivar, onReactivar }) => {
+export interface FilaVademecumProps {
+  farmaco: Farmaco | FarmacoVademecum
+  onEditar?: (farmaco: Farmaco | FarmacoVademecum) => void
+  onDesactivar?: (farmaco: Farmaco | FarmacoVademecum) => void
+  onReactivar?: (farmaco: Farmaco | FarmacoVademecum) => void
+}
+
+export const FilaVademecum: React.FC<FilaVademecumProps> = ({ farmaco, onEditar, onDesactivar, onReactivar }) => {
   return (
-    <tr className={`hover:bg-gray-50 dark:hover:bg-graphite-700 dark:hover:bg-graphite-700 ${farmaco.activo === false ? 'opacity-50' : ''}`}>
+    <tr className={`hover:bg-gray-50 dark:hover:bg-graphite-700 ${farmaco.activo === false ? 'opacity-50' : ''}`}>
       <td className="px-3 py-3 text-sm text-gray-700 dark:text-graphite-300 font-mono">
         {farmaco.numero}
       </td>
@@ -50,7 +59,7 @@ export const FilaVademecum = ({ farmaco, onEditar, onDesactivar, onReactivar }) 
       <td className="px-3 py-3 text-sm text-gray-700 dark:text-graphite-300 max-w-[180px] truncate" title={farmaco.posologia_adulto}>
         {farmaco.posologia_adulto || '-'}
       </td>
-      <td className="px-3 py-3 text-sm text-gray-700 dark:text-graphite-300 max-w-[180px] truncate" title={farmaco.posologia_pediatrica}>
+      <td className="px-3 py-3 text-sm text-gray-700 dark:text-graphite-300 max-w-[180px] truncate" title={farmaco.posologia_pediatrica || undefined}>
         {farmaco.posologia_pediatrica || '-'}
       </td>
       <td className="px-3 py-3 text-sm">

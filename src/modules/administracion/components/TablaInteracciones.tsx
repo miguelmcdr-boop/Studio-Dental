@@ -4,26 +4,37 @@
  * F4-03f-5b
  */
 import React, { memo, useState, useMemo } from 'react'
-import { NIVELES_SEVERIDAD_INTERACCION } from '../schemas/interaccionSchema'
-import { FlaskConical } from 'lucide-react'
-import { FileText } from 'lucide-react'
+import { NIVELES_SEVERIDAD_INTERACCION, type Interaccion } from '../schemas/interaccionSchema'
+import { FlaskConical, FileText } from 'lucide-react'
 
-const SEVERIDAD_CONFIG = {
+interface SeveridadConfigItem {
+  label: string
+  color: string
+}
+
+const SEVERIDAD_CONFIG: Record<string, SeveridadConfigItem> = {
   mayor: {
     label: 'Mayor',
     color: 'bg-red-100 text-red-800 border-red-300',
-      },
+  },
   moderada: {
     label: 'Moderada',
     color: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-      },
+  },
   menor: {
     label: 'Menor',
     color: 'bg-green-100 text-green-800 border-green-300',
-      }
+  }
 }
 
-export const TablaInteracciones = memo(({ interacciones, onEditar, onEliminar, onCrearNueva }) => {
+export interface TablaInteraccionesProps {
+  interacciones: (Interaccion & { id?: string | number })[]
+  onEditar?: (interaccion: Interaccion) => void
+  onEliminar?: (interaccion: Interaccion) => void
+  onCrearNueva?: () => void
+}
+
+export const TablaInteracciones: React.FC<TablaInteraccionesProps> = memo(({ interacciones, onEditar, onEliminar, onCrearNueva }) => {
   const [textoBusqueda, setTextoBusqueda] = useState('')
   const [filtroSeveridad, setFiltroSeveridad] = useState('')
 
@@ -91,7 +102,7 @@ export const TablaInteracciones = memo(({ interacciones, onEditar, onEliminar, o
           <option value="">Todas las severidades</option>
           {NIVELES_SEVERIDAD_INTERACCION.map(s => (
             <option key={s} value={s}>
-              {SEVERIDAD_CONFIG[s].label}
+              {SEVERIDAD_CONFIG[s]?.label || s}
             </option>
           ))}
         </select>
@@ -125,7 +136,7 @@ export const TablaInteracciones = memo(({ interacciones, onEditar, onEliminar, o
               {datosFiltrados.map((interaccion, idx) => {
                 const config = SEVERIDAD_CONFIG[interaccion.severidad] || SEVERIDAD_CONFIG.menor
                 return (
-                  <tr key={interaccion.id || idx} className="hover:bg-gray-50 dark:hover:bg-graphite-700 dark:hover:bg-graphite-700 transition-colors duration-150">
+                  <tr key={interaccion.id || idx} className="hover:bg-gray-50 dark:hover:bg-graphite-700 transition-colors duration-150">
                     <td className="px-4 py-3 text-sm text-gray-700 dark:text-graphite-300 font-mono">{idx + 1}</td>
                     <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-graphite-50 max-w-[200px]">
                       {interaccion.farmaco_a}
@@ -136,7 +147,7 @@ export const TablaInteracciones = memo(({ interacciones, onEditar, onEliminar, o
                     <td className="px-4 py-3 text-sm text-gray-700 dark:text-graphite-300 max-w-[300px]" title={interaccion.efecto}>
                       {interaccion.efecto}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-graphite-400 max-w-[250px]" title={interaccion.manejo}>
+                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-graphite-400 max-w-[250px]" title={interaccion.manejo || undefined}>
                       {interaccion.manejo || '-'}
                     </td>
                     <td className="px-4 py-3 text-sm">

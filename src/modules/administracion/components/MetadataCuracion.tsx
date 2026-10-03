@@ -5,15 +5,31 @@
  */
 import React from 'react'
 import { AlertTriangle } from 'lucide-react'
-const diasHasta = (fechaStr) => {
+
+export interface MetadataCuracionData {
+  version?: string
+  curado_por?: string
+  fecha_curacion?: string
+  total_farmacos?: number
+  fecha_proxima_revision?: string
+  fuentes?: string[]
+  notas?: string
+  [key: string]: unknown
+}
+
+export interface MetadataCuracionProps {
+  metadata?: MetadataCuracionData | null
+}
+
+const diasHasta = (fechaStr?: string): number | null => {
   if (!fechaStr) return null
   const fecha = new Date(fechaStr)
   const hoy = new Date()
-  const diffMs = fecha - hoy
+  const diffMs = fecha.getTime() - hoy.getTime()
   return Math.ceil(diffMs / (1000 * 60 * 60 * 24))
 }
 
-export const MetadataCuracion = ({ metadata }) => {
+export const MetadataCuracion: React.FC<MetadataCuracionProps> = ({ metadata }) => {
   if (!metadata) {
     return (
       <div className="bg-gray-50 dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-lg p-4 text-center text-gray-500 dark:text-graphite-400 text-sm">

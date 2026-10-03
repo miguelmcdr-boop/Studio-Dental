@@ -4,14 +4,14 @@
  * F4-03f-5c — Migrado a <Modal> base + CamposFormularioProtocolo (F7-25)
  */
 import React, { useState, useEffect } from 'react'
-import { validarProfilaxis } from '../schemas/profilaxisSchema'
-import { validarAnticoagulante } from '../schemas/anticoagulanteSchema'
+import { validarProfilaxis, type Profilaxis } from '../schemas/profilaxisSchema'
+import { validarAnticoagulante, type Anticoagulante } from '../schemas/anticoagulanteSchema'
 import { Modal } from '../../../components/ui/Modal'
 import { Button } from '../../../components/ui/Button'
-import { CamposFormularioProtocolo } from './CamposFormularioProtocolo'
+import { CamposFormularioProtocolo, type ProtocoloFormState } from './CamposFormularioProtocolo'
 import { AlertTriangle } from 'lucide-react'
 
-const VALOR_INICIAL_PROFILAXIS = {
+const VALOR_INICIAL_PROFILAXIS: ProtocoloFormState = {
   situacion: '',
   farmaco: '',
   dosis_adulto: '',
@@ -19,35 +19,45 @@ const VALOR_INICIAL_PROFILAXIS = {
   nota: ''
 }
 
-const VALOR_INICIAL_ANTICOAGULANTE = {
+const VALOR_INICIAL_ANTICOAGULANTE: ProtocoloFormState = {
   farmaco_o_grupo: '',
   recomendacion: '',
   medidas_hemostasia: ''
 }
 
-export const ModalEditarProtocolo = ({ tipo, protocolo, onGuardar, onClose, guardando }) => {
+export interface ModalEditarProtocoloProps {
+  tipo: 'profilaxis' | 'anticoagulante' | string
+  protocolo: (Profilaxis | Anticoagulante) | null
+  onGuardar: (datos: Profilaxis | Anticoagulante) => void
+  onClose: () => void
+  guardando?: boolean
+}
+
+export const ModalEditarProtocolo: React.FC<ModalEditarProtocoloProps> = ({ tipo, protocolo, onGuardar, onClose, guardando = false }) => {
   const esEdicion = !!protocolo
   const esProfilaxis = tipo === 'profilaxis'
 
-  const [form, setForm] = useState(esProfilaxis ? VALOR_INICIAL_PROFILAXIS : VALOR_INICIAL_ANTICOAGULANTE)
-  const [errores, setErrores] = useState({})
+  const [form, setForm] = useState<ProtocoloFormState>(esProfilaxis ? VALOR_INICIAL_PROFILAXIS : VALOR_INICIAL_ANTICOAGULANTE)
+  const [errores, setErrores] = useState<Record<string, string>>({})
   const [haIntentadoGuardar, setHaIntentadoGuardar] = useState(false)
 
   useEffect(() => {
     if (protocolo) {
       if (esProfilaxis) {
+        const prof = protocolo as Profilaxis
         setForm({
-          situacion: protocolo.situacion || '',
-          farmaco: protocolo.farmaco || '',
-          dosis_adulto: protocolo.dosis_adulto || '',
-          dosis_pediatrica: protocolo.dosis_pediatrica || '',
-          nota: protocolo.nota || ''
+          situacion: prof.situacion || '',
+          farmaco: prof.farmaco || '',
+          dosis_adulto: prof.dosis_adulto || '',
+          dosis_pediatrica: prof.dosis_pediatrica || '',
+          nota: prof.nota || ''
         })
       } else {
+        const anti = protocolo as Anticoagulante
         setForm({
-          farmaco_o_grupo: protocolo.farmaco_o_grupo || '',
-          recomendacion: protocolo.recomendacion || '',
-          medidas_hemostasia: protocolo.medidas_hemostasia || ''
+          farmaco_o_grupo: anti.farmaco_o_grupo || '',
+          recomendacion: anti.recomendacion || '',
+          medidas_hemostasia: anti.medidas_hemostasia || ''
         })
       }
     } else {
@@ -57,19 +67,19 @@ export const ModalEditarProtocolo = ({ tipo, protocolo, onGuardar, onClose, guar
     setHaIntentadoGuardar(false)
   }, [protocolo, esProfilaxis])
 
-  const handleChange = (campo, valor) => {
-    const nuevoForm = { ...form, [campo]: valor }
+  const handleChange = (campo: string, valor: unknown) => {
+    const nuevoForm: ProtocoloFormState = { ...form, [campo]: valor }
     setForm(nuevoForm)
 
     if (haIntentadoGuardar) {
       const resultado = esProfilaxis
         ? validarProfilaxis(nuevoForm)
         : validarAnticoagulante(nuevoForm)
-      setErrores(resultado.errores)
+      setErrores(resultado.errores || {})
     }
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setHaIntentadoGuardar(true)
 
@@ -77,9 +87,9 @@ export const ModalEditarProtocolo = ({ tipo, protocolo, onGuardar, onClose, guar
       ? validarProfilaxis(form)
       : validarAnticoagulante(form)
 
-    setErrores(resultado.errores)
+    setErrores(resultado.errores || {})
 
-    if (resultado.valido) {
+    if (resultado.valido && resultado.datos) {
       onGuardar(resultado.datos)
     }
   }
@@ -130,7 +140,6 @@ export const ModalEditarProtocolo = ({ tipo, protocolo, onGuardar, onClose, guar
           >
             Cancelar
           </Button>
-          {/* Nativo: color clínico dinámico cyan/rosé no garantizado con <Button> */}
           <button
             type="submit"
             className={`px-6 py-2 text-sm font-semibold text-white rounded-lg disabled:opacity-50 ${

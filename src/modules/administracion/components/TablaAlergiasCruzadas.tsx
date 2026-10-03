@@ -4,16 +4,29 @@
  * F4-03f-5a
  */
 import React, { memo } from 'react'
-import { FAMILIAS_ALERGIAS } from '../schemas/alergiaCruzadaSchema'
+import { FAMILIAS_ALERGIAS, type AlergiaCruzada, type FamiliaAlergia } from '../schemas/alergiaCruzadaSchema'
+import type { AlergiaCruzadaItem } from '../../../services/vademecumService'
 import { Icon } from '../../../components/Icon'
 import { Dna, AlertTriangle, FileText } from 'lucide-react'
+
+export interface CeldaAlergiaInfo {
+  familia_alergia: FamiliaAlergia | string
+  familia_farmaco: FamiliaAlergia | string
+  regla: AlergiaCruzada | AlergiaCruzadaItem | null
+}
+
+export interface TablaAlergiasCruzadasProps {
+  alergiasCruzadas: (AlergiaCruzada | AlergiaCruzadaItem)[]
+  onEditarCelda?: (info: CeldaAlergiaInfo) => void
+  onCrearNueva?: () => void
+}
 
 /**
  * Convierte el array de reglas en un mapa para acceso rápido por celda.
  * Clave: "familia_alergia|familia_farmaco"
  */
-const construirMapaReglas = (alergiasCruzadas) => {
-  const mapa = new Map()
+const construirMapaReglas = (alergiasCruzadas: (AlergiaCruzada | AlergiaCruzadaItem)[]) => {
+  const mapa = new Map<string, AlergiaCruzada | AlergiaCruzadaItem>()
   if (!Array.isArray(alergiasCruzadas)) return mapa
   alergiasCruzadas.forEach(regla => {
     const clave = `${regla.familia_alergia}|${regla.familia_farmaco}`
@@ -25,7 +38,7 @@ const construirMapaReglas = (alergiasCruzadas) => {
 /**
  * Determina el contenido visual de una celda según la severidad
  */
-const renderCelda = (regla) => {
+const renderCelda = (regla?: AlergiaCruzada | AlergiaCruzadaItem | null) => {
   if (!regla || regla.severidad === 'sin_relacion') {
     return <span className="text-gray-300">—</span>
   }
@@ -53,11 +66,11 @@ const renderCelda = (regla) => {
 /**
  * Formatea el nombre de la familia para mostrar en la UI
  */
-const formatearFamilia = (familia) => {
+const formatearFamilia = (familia: string) => {
   return familia.replace(/_/g, ' ')
 }
 
-export const TablaAlergiasCruzadas = memo(({ alergiasCruzadas, onEditarCelda, onCrearNueva }) => {
+export const TablaAlergiasCruzadas: React.FC<TablaAlergiasCruzadasProps> = memo(({ alergiasCruzadas, onEditarCelda, onCrearNueva }) => {
   const mapaReglas = construirMapaReglas(alergiasCruzadas)
 
   return (
@@ -117,7 +130,7 @@ export const TablaAlergiasCruzadas = memo(({ alergiasCruzadas, onEditarCelda, on
           </thead>
           <tbody>
             {FAMILIAS_ALERGIAS.map(familiaAlergia => (
-              <tr key={familiaAlergia} className="hover:bg-gray-50 dark:hover:bg-graphite-700 dark:hover:bg-graphite-700">
+              <tr key={familiaAlergia} className="hover:bg-gray-50 dark:hover:bg-graphite-700">
                 <td className="px-2 py-2 text-sm font-medium text-gray-900 dark:text-graphite-50 border border-gray-200 dark:border-graphite-700 sticky left-0 bg-white dark:bg-graphite-800">
                   {formatearFamilia(familiaAlergia)}
                 </td>
@@ -162,3 +175,5 @@ export const TablaAlergiasCruzadas = memo(({ alergiasCruzadas, onEditarCelda, on
     </div>
   )
 })
+
+TablaAlergiasCruzadas.displayName = 'TablaAlergiasCruzadas'

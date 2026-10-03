@@ -6,12 +6,33 @@
 import React from 'react'
 import { FAMILIAS_ANTIRRESORTIVOS, NIVELES_RIESGO_MRONG } from '../schemas/vademecumSchema'
 
-const campoError = (errores, campo) => errores[campo] ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-graphite-600'
-const mensajeError = (errores, campo) => errores[campo] && (
-  <p className="text-xs text-red-600 mt-1">{errores[campo]}</p>
-)
+export interface AntirresortivoFormState {
+  numero: number | string
+  familia: string
+  nombre_generico: string
+  via_administracion?: string
+  indicacion: string
+  riesgo_mronj: string
+  manejo_odontologico: string
+  activo?: boolean
+  [key: string]: unknown
+}
 
-export const CamposFormularioAntirresortivo = ({ form, errores, esEdicion, handleChange }) => {
+export interface CamposFormularioAntirresortivoProps {
+  form: AntirresortivoFormState
+  errores: Record<string, string>
+  esEdicion?: boolean
+  handleChange: (campo: string, valor: unknown) => void
+}
+
+const campoError = (errores: Record<string, string>, campo: string) =>
+  errores[campo] ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-graphite-600'
+const mensajeError = (errores: Record<string, string>, campo: string) =>
+  errores[campo] && (
+    <p className="text-xs text-red-600 mt-1">{errores[campo]}</p>
+  )
+
+export const CamposFormularioAntirresortivo: React.FC<CamposFormularioAntirresortivoProps> = ({ form, errores, esEdicion, handleChange }) => {
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -20,7 +41,7 @@ export const CamposFormularioAntirresortivo = ({ form, errores, esEdicion, handl
           <input
             type="number"
             value={form.numero}
-            onChange={(e) => handleChange('numero', parseInt(e.target.value) || '')}
+            onChange={(e) => handleChange('numero', parseInt(e.target.value, 10) || '')}
             className={`w-full px-3 py-2 border rounded-lg text-sm ${campoError(errores, 'numero')}`}
             disabled={esEdicion}
           />
@@ -57,7 +78,7 @@ export const CamposFormularioAntirresortivo = ({ form, errores, esEdicion, handl
           <label className="block text-sm font-semibold text-gray-700 dark:text-graphite-300 mb-1">Vía / Dosis habitual</label>
           <input
             type="text"
-            value={form.via_administracion}
+            value={form.via_administracion || ''}
             onChange={(e) => handleChange('via_administracion', e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg text-sm"
             placeholder="Ej: VO, 1 vez/semana"

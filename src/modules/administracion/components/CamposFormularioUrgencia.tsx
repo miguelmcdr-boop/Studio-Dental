@@ -6,12 +6,35 @@
 import React from 'react'
 import { VIAS_ADMINISTRACION } from '../schemas/vademecumSchema'
 
-const campoError = (errores, campo) => errores[campo] ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-graphite-600'
-const mensajeError = (errores, campo) => errores[campo] && (
-  <p className="text-xs text-red-600 mt-1">{errores[campo]}</p>
-)
+export interface UrgenciaFormState {
+  numero: number | string
+  nombre_generico: string
+  concentracion?: string
+  presentacion: string
+  indicacion: string
+  posologia_adulto?: string
+  posologia_pediatrica?: string
+  via_administracion: string
+  advertencias?: string
+  activo?: boolean
+  [key: string]: unknown
+}
 
-export const CamposFormularioUrgencia = ({ form, errores, esEdicion, handleChange }) => {
+export interface CamposFormularioUrgenciaProps {
+  form: UrgenciaFormState
+  errores: Record<string, string>
+  esEdicion?: boolean
+  handleChange: (campo: string, valor: unknown) => void
+}
+
+const campoError = (errores: Record<string, string>, campo: string) =>
+  errores[campo] ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-graphite-600'
+const mensajeError = (errores: Record<string, string>, campo: string) =>
+  errores[campo] && (
+    <p className="text-xs text-red-600 mt-1">{errores[campo]}</p>
+  )
+
+export const CamposFormularioUrgencia: React.FC<CamposFormularioUrgenciaProps> = ({ form, errores, esEdicion, handleChange }) => {
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -20,7 +43,7 @@ export const CamposFormularioUrgencia = ({ form, errores, esEdicion, handleChang
           <input
             type="number"
             value={form.numero}
-            onChange={(e) => handleChange('numero', parseInt(e.target.value) || '')}
+            onChange={(e) => handleChange('numero', parseInt(e.target.value, 10) || '')}
             className={`w-full px-3 py-2 border rounded-lg text-sm ${campoError(errores, 'numero')}`}
             disabled={esEdicion}
           />
@@ -44,7 +67,7 @@ export const CamposFormularioUrgencia = ({ form, errores, esEdicion, handleChang
           <label className="block text-sm font-semibold text-gray-700 dark:text-graphite-300 mb-1">Concentración</label>
           <input
             type="text"
-            value={form.concentracion}
+            value={form.concentracion || ''}
             onChange={(e) => handleChange('concentracion', e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg text-sm"
             placeholder="Ej: 1:1000 (1 mg/ml)"
@@ -79,7 +102,7 @@ export const CamposFormularioUrgencia = ({ form, errores, esEdicion, handleChang
         <div>
           <label className="block text-sm font-semibold text-gray-700 dark:text-graphite-300 mb-1">Posología adulto</label>
           <textarea
-            value={form.posologia_adulto}
+            value={form.posologia_adulto || ''}
             onChange={(e) => handleChange('posologia_adulto', e.target.value)}
             rows={2}
             className="w-full px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg text-sm"
@@ -88,7 +111,7 @@ export const CamposFormularioUrgencia = ({ form, errores, esEdicion, handleChang
         <div>
           <label className="block text-sm font-semibold text-gray-700 dark:text-graphite-300 mb-1">Posología pediátrica</label>
           <textarea
-            value={form.posologia_pediatrica}
+            value={form.posologia_pediatrica || ''}
             onChange={(e) => handleChange('posologia_pediatrica', e.target.value)}
             rows={2}
             className="w-full px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg text-sm"
@@ -112,7 +135,7 @@ export const CamposFormularioUrgencia = ({ form, errores, esEdicion, handleChang
       <div>
         <label className="block text-sm font-semibold text-gray-700 dark:text-graphite-300 mb-1">Advertencias</label>
         <textarea
-          value={form.advertencias}
+          value={form.advertencias || ''}
           onChange={(e) => handleChange('advertencias', e.target.value)}
           rows={2}
           className="w-full px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg text-sm"

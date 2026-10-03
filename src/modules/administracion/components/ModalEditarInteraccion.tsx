@@ -5,11 +5,11 @@
 import React, { useState, useEffect } from 'react'
 import { Modal } from '../../../components/ui/Modal'
 import { Button } from '../../../components/ui/Button'
-import { CamposFormularioInteraccion } from './CamposFormularioInteraccion'
-import { validarInteraccion, NIVELES_SEVERIDAD_INTERACCION } from '../schemas/interaccionSchema'
+import { CamposFormularioInteraccion, type InteraccionFormState } from './CamposFormularioInteraccion'
+import { validarInteraccion, type Interaccion } from '../schemas/interaccionSchema'
 import { AlertTriangle } from 'lucide-react'
 
-const VALOR_INICIAL = {
+const VALOR_INICIAL: InteraccionFormState = {
   farmaco_a: '',
   farmaco_b: '',
   efecto: '',
@@ -17,10 +17,17 @@ const VALOR_INICIAL = {
   severidad: ''
 }
 
-export const ModalEditarInteraccion = ({ interaccion, onGuardar, onClose, guardando }) => {
+export interface ModalEditarInteraccionProps {
+  interaccion: Interaccion | null
+  onGuardar: (datos: Interaccion) => void
+  onClose: () => void
+  guardando?: boolean
+}
+
+export const ModalEditarInteraccion: React.FC<ModalEditarInteraccionProps> = ({ interaccion, onGuardar, onClose, guardando = false }) => {
   const esEdicion = !!interaccion
-  const [form, setForm] = useState(VALOR_INICIAL)
-  const [errores, setErrores] = useState({})
+  const [form, setForm] = useState<InteraccionFormState>(VALOR_INICIAL)
+  const [errores, setErrores] = useState<Record<string, string>>({})
   const [haIntentadoGuardar, setHaIntentadoGuardar] = useState(false)
 
   useEffect(() => {
@@ -39,32 +46,27 @@ export const ModalEditarInteraccion = ({ interaccion, onGuardar, onClose, guarda
     setHaIntentadoGuardar(false)
   }, [interaccion])
 
-  const handleChange = (campo, valor) => {
-    const nuevoForm = { ...form, [campo]: valor }
+  const handleChange = (campo: string, valor: unknown) => {
+    const nuevoForm: InteraccionFormState = { ...form, [campo]: valor }
     setForm(nuevoForm)
     
     if (haIntentadoGuardar) {
       const resultado = validarInteraccion(nuevoForm)
-      setErrores(resultado.errores)
+      setErrores(resultado.errores || {})
     }
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setHaIntentadoGuardar(true)
     
     const resultado = validarInteraccion(form)
-    setErrores(resultado.errores)
+    setErrores(resultado.errores || {})
     
-    if (resultado.valido) {
+    if (resultado.valido && resultado.datos) {
       onGuardar(resultado.datos)
     }
   }
-
-  const campoError = (campo) => errores[campo] ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-graphite-600'
-  const mensajeError = (campo) => errores[campo] && (
-    <p className="text-xs text-red-600 mt-1">{errores[campo]}</p>
-  )
 
   return (
     <Modal
@@ -82,33 +84,32 @@ export const ModalEditarInteraccion = ({ interaccion, onGuardar, onClose, guarda
         </p>
       </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <CamposFormularioInteraccion
-            form={form}
-            errores={errores}
-            handleChange={handleChange}
-          />
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <CamposFormularioInteraccion
+          form={form}
+          errores={errores}
+          handleChange={handleChange}
+        />
 
-          {/* Botones */}
-          <div className="flex justify-end gap-3 pt-4 border-t">
-            <Button
-              type="button"
-              onClick={onClose}
-              variant="ghost"
-              disabled={guardando}
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              disabled={guardando}
-              className="bg-orange-600 hover:bg-orange-700 transition-colors duration-150"
-            >
-              {guardando ? 'Guardando...' : (esEdicion ? 'Actualizar' : 'Crear')}
-            </Button>
-          </div>
-        </form>
+        {/* Botones */}
+        <div className="flex justify-end gap-3 pt-4 border-t">
+          <Button
+            type="button"
+            onClick={onClose}
+            variant="ghost"
+            disabled={guardando}
+          >
+            Cancelar
+          </Button>
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={guardando}
+          >
+            {guardando ? 'Guardando...' : (esEdicion ? 'Actualizar' : 'Crear')}
+          </Button>
+        </div>
+      </form>
     </Modal>
   )
 }

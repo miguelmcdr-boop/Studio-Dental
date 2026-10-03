@@ -4,7 +4,13 @@
  */
 import React from 'react'
 
-export const PaginacionVademecum = ({ paginaActual, totalPaginas, setPaginaActual }) => {
+export interface PaginacionVademecumProps {
+  paginaActual: number
+  totalPaginas: number
+  setPaginaActual: (pagina: number) => void
+}
+
+export const PaginacionVademecum: React.FC<PaginacionVademecumProps> = ({ paginaActual, totalPaginas, setPaginaActual }) => {
   if (totalPaginas <= 1) return null
 
   return (
@@ -16,14 +22,14 @@ export const PaginacionVademecum = ({ paginaActual, totalPaginas, setPaginaActua
         <button
           onClick={() => setPaginaActual(paginaActual - 1)}
           disabled={paginaActual === 1}
-          className="px-3 py-1 text-sm font-medium text-gray-700 dark:text-graphite-300 bg-white dark:bg-graphite-800 border border-gray-300 dark:border-graphite-600 rounded hover:bg-gray-50 dark:hover:bg-graphite-700 dark:hover:bg-graphite-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+          className="px-3 py-1 text-sm font-medium text-gray-700 dark:text-graphite-300 bg-white dark:bg-graphite-800 border border-gray-300 dark:border-graphite-600 rounded hover:bg-gray-50 dark:hover:bg-graphite-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
         >
           ← Anterior
         </button>
         <button
           onClick={() => setPaginaActual(paginaActual + 1)}
           disabled={paginaActual === totalPaginas}
-          className="px-3 py-1 text-sm font-medium text-gray-700 dark:text-graphite-300 bg-white dark:bg-graphite-800 border border-gray-300 dark:border-graphite-600 rounded hover:bg-gray-50 dark:hover:bg-graphite-700 dark:hover:bg-graphite-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+          className="px-3 py-1 text-sm font-medium text-gray-700 dark:text-graphite-300 bg-white dark:bg-graphite-800 border border-gray-300 dark:border-graphite-600 rounded hover:bg-gray-50 dark:hover:bg-graphite-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
         >
           Siguiente →
         </button>

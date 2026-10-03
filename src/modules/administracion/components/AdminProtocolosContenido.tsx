@@ -9,22 +9,73 @@ import { TablaAlergiasCruzadas } from './TablaAlergiasCruzadas'
 import { TablaInteracciones } from './TablaInteracciones'
 import { TablaProfilaxis } from './TablaProfilaxis'
 import { TablaAnticoagulantes } from './TablaAnticoagulantes'
-import { ModalEditarAlergiaCruzada } from './ModalEditarAlergiaCruzada'
+import { ModalEditarAlergiaCruzada, type CeldaAlergia } from './ModalEditarAlergiaCruzada'
 import { ModalEditarInteraccion } from './ModalEditarInteraccion'
 import { ModalEditarProtocolo } from './ModalEditarProtocolo'
+import type { UseVademecumAdminReturn } from '../hooks/useVademecumAdmin'
+import type { AlergiaCruzada } from '../schemas/alergiaCruzadaSchema'
+import type { Interaccion } from '../schemas/interaccionSchema'
+import type { Profilaxis } from '../schemas/profilaxisSchema'
+import type { Anticoagulante } from '../schemas/anticoagulanteSchema'
 import { createLogger } from '../../../services/logger'
 
 const log = createLogger('AdminProtocolosContenido')
 
-export const AdminProtocolosContenido = ({ admin, tabActivo, guardando, setGuardando }) => {
-  const [modalAlergiaCruzada, setModalAlergiaCruzada] = useState({ abierto: false, celda: null })
-  const [modalInteraccion, setModalInteraccion] = useState({ abierto: false, interaccion: null })
-  const [modalProfilaxis, setModalProfilaxis] = useState({ abierto: false, protocolo: null })
-  const [modalAnticoagulante, setModalAnticoagulante] = useState({ abierto: false, protocolo: null })
+export interface AdminProtocolosContenidoProps {
+  admin: UseVademecumAdminReturn
+  tabActivo: string
+  guardando: boolean
+  setGuardando: React.Dispatch<React.SetStateAction<boolean>>
+}
+
+interface ModalAlergiaState {
+  abierto: boolean
+  celda: CeldaAlergia | null
+}
+
+interface ModalInteraccionState {
+  abierto: boolean
+  interaccion: Interaccion | null
+}
+
+interface ModalProfilaxisState {
+  abierto: boolean
+  protocolo: Profilaxis | null
+}
+
+interface ModalAnticoagulanteState {
+  abierto: boolean
+  protocolo: Anticoagulante | null
+}
+
+export const AdminProtocolosContenido: React.FC<AdminProtocolosContenidoProps> = ({
+  admin,
+  tabActivo,
+  guardando,
+  setGuardando
+}) => {
+  const [modalAlergiaCruzada, setModalAlergiaCruzada] = useState<ModalAlergiaState>({
+    abierto: false,
+    celda: null
+  })
+  const [modalInteraccion, setModalInteraccion] = useState<ModalInteraccionState>({
+    abierto: false,
+    interaccion: null
+  })
+  const [modalProfilaxis, setModalProfilaxis] = useState<ModalProfilaxisState>({
+    abierto: false,
+    protocolo: null
+  })
+  const [modalAnticoagulante, setModalAnticoagulante] = useState<ModalAnticoagulanteState>({
+    abierto: false,
+    protocolo: null
+  })
 
   // Handlers alergias cruzadas
-  const handleEditarCeldaAlergia = (celda) => setModalAlergiaCruzada({ abierto: true, celda })
-  const handleGuardarAlergiaCruzada = async (datos) => {
+  const handleEditarCeldaAlergia = (celda: CeldaAlergia): void =>
+    setModalAlergiaCruzada({ abierto: true, celda })
+
+  const handleGuardarAlergiaCruzada = async (datos: AlergiaCruzada): Promise<void> => {
     setGuardando(true)
     try {
       await admin.guardarAlergia(datos)
@@ -35,9 +86,13 @@ export const AdminProtocolosContenido = ({ admin, tabActivo, guardando, setGuard
   }
 
   // Handlers interacciones
-  const handleCrearInteraccion = () => setModalInteraccion({ abierto: true, interaccion: null })
-  const handleEditarInteraccion = (interaccion) => setModalInteraccion({ abierto: true, interaccion })
-  const handleGuardarInteraccion = async (datos) => {
+  const handleCrearInteraccion = (): void =>
+    setModalInteraccion({ abierto: true, interaccion: null })
+
+  const handleEditarInteraccion = (interaccion: Interaccion): void =>
+    setModalInteraccion({ abierto: true, interaccion })
+
+  const handleGuardarInteraccion = async (datos: Interaccion): Promise<void> => {
     setGuardando(true)
     try {
       await admin.guardarInteraccion(datos)
@@ -48,9 +103,13 @@ export const AdminProtocolosContenido = ({ admin, tabActivo, guardando, setGuard
   }
 
   // Handlers profilaxis endocarditis
-  const handleCrearProfilaxis = () => setModalProfilaxis({ abierto: true, protocolo: null })
-  const handleEditarProfilaxis = (protocolo) => setModalProfilaxis({ abierto: true, protocolo })
-  const handleGuardarProfilaxis = async (datos) => {
+  const handleCrearProfilaxis = (): void =>
+    setModalProfilaxis({ abierto: true, protocolo: null })
+
+  const handleEditarProfilaxis = (protocolo: Profilaxis): void =>
+    setModalProfilaxis({ abierto: true, protocolo })
+
+  const handleGuardarProfilaxis = async (datos: unknown): Promise<void> => {
     setGuardando(true)
     try {
       log.info('Guardar profilaxis:', datos)
@@ -61,9 +120,13 @@ export const AdminProtocolosContenido = ({ admin, tabActivo, guardando, setGuard
   }
 
   // Handlers anticoagulantes
-  const handleCrearAnticoagulante = () => setModalAnticoagulante({ abierto: true, protocolo: null })
-  const handleEditarAnticoagulante = (protocolo) => setModalAnticoagulante({ abierto: true, protocolo })
-  const handleGuardarAnticoagulante = async (datos) => {
+  const handleCrearAnticoagulante = (): void =>
+    setModalAnticoagulante({ abierto: true, protocolo: null })
+
+  const handleEditarAnticoagulante = (protocolo: Anticoagulante): void =>
+    setModalAnticoagulante({ abierto: true, protocolo })
+
+  const handleGuardarAnticoagulante = async (datos: unknown): Promise<void> => {
     setGuardando(true)
     try {
       log.info('Guardar anticoagulante:', datos)
@@ -80,7 +143,9 @@ export const AdminProtocolosContenido = ({ admin, tabActivo, guardando, setGuard
         <TablaAlergiasCruzadas
           alergiasCruzadas={admin.alergiasCruzadas}
           onEditarCelda={handleEditarCeldaAlergia}
-          onCrearNueva={() => handleEditarCeldaAlergia({ familia_alergia: '', familia_farmaco: '', regla: null })}
+          onCrearNueva={() =>
+            handleEditarCeldaAlergia({ familia_alergia: '', familia_farmaco: '', regla: null })
+          }
         />
       )}
 

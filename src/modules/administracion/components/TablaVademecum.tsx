@@ -10,10 +10,28 @@ import React, { memo, useState, useMemo } from 'react'
 import { FiltrosVademecum } from './FiltrosVademecum'
 import { FilaVademecum } from './FilaVademecum'
 import { PaginacionVademecum } from './PaginacionVademecum'
+import type { Farmaco } from '../schemas/vademecumSchema'
+import type { FarmacoVademecum } from '../../../services/vademecumService'
 
 const ITEMS_POR_PAGINA = 20
 
-export const TablaVademecum = memo(({
+export interface TablaVademecumProps {
+  vademecum: (Farmaco | FarmacoVademecum)[]
+  vademecumCompleto?: (Farmaco | FarmacoVademecum)[]
+  familiasDisponibles: string[]
+  familiaSeleccionada: string
+  setFamiliaSeleccionada: (familia: string) => void
+  textoBusqueda: string
+  setTextoBusqueda: (texto: string) => void
+  soloActivos: boolean
+  setSoloActivos: (activos: boolean) => void
+  onEditar?: (farmaco: Farmaco | FarmacoVademecum) => void
+  onDesactivar?: (farmaco: Farmaco | FarmacoVademecum) => void
+  onReactivar?: (farmaco: Farmaco | FarmacoVademecum) => void
+  onCrearNuevo?: () => void
+}
+
+export const TablaVademecum: React.FC<TablaVademecumProps> = memo(({
   vademecum,
   vademecumCompleto,
   familiasDisponibles,
@@ -31,12 +49,12 @@ export const TablaVademecum = memo(({
   const [paginaActual, setPaginaActual] = useState(1)
 
   // Resetear página cuando cambian los filtros
-  const handleFamiliaChange = (value) => {
+  const handleFamiliaChange = (value: string) => {
     setFamiliaSeleccionada(value)
     setPaginaActual(1)
   }
 
-  const handleTextoChange = (value) => {
+  const handleTextoChange = (value: string) => {
     setTextoBusqueda(value)
     setPaginaActual(1)
   }
@@ -100,7 +118,7 @@ export const TablaVademecum = memo(({
             <tbody className="bg-white dark:bg-graphite-800 divide-y divide-gray-200 dark:divide-graphite-700">
               {datosPaginados.map((farmaco) => (
                 <FilaVademecum
-                  key={farmaco.id || farmaco.numero}
+                  key={'id' in farmaco && farmaco.id ? String(farmaco.id) : farmaco.numero}
                   farmaco={farmaco}
                   onEditar={onEditar}
                   onDesactivar={onDesactivar}
@@ -121,3 +139,5 @@ export const TablaVademecum = memo(({
     </div>
   )
 })
+
+TablaVademecum.displayName = 'TablaVademecum'

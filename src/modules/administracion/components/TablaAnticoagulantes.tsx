@@ -6,8 +6,16 @@
 import React, { memo } from 'react'
 import { Icon } from '../../../components/Icon'
 import { Droplet, AlertTriangle, FileText } from 'lucide-react'
+import type { Anticoagulante } from '../schemas/anticoagulanteSchema'
 
-export const TablaAnticoagulantes = memo(({ anticoagulantes, onEditar, onEliminar, onCrearNueva }) => {
+export interface TablaAnticoagulantesProps {
+  anticoagulantes: (Anticoagulante & { id?: string | number })[]
+  onEditar?: (item: Anticoagulante) => void
+  onEliminar?: (item: Anticoagulante) => void
+  onCrearNueva?: () => void
+}
+
+export const TablaAnticoagulantes: React.FC<TablaAnticoagulantesProps> = memo(({ anticoagulantes, onEditar, onEliminar, onCrearNueva }) => {
   const datos = Array.isArray(anticoagulantes) ? anticoagulantes : []
   return (
     <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-lg overflow-hidden">
@@ -53,7 +61,7 @@ export const TablaAnticoagulantes = memo(({ anticoagulantes, onEditar, onElimina
             </thead>
             <tbody className="bg-white dark:bg-graphite-800 divide-y divide-gray-200 dark:divide-graphite-700">
               {datos.map((item, idx) => (
-                <tr key={item.id || idx} className="hover:bg-gray-50 dark:hover:bg-graphite-700 dark:hover:bg-graphite-700 transition-colors duration-150">
+                <tr key={item.id || idx} className="hover:bg-gray-50 dark:hover:bg-graphite-700 transition-colors duration-150">
                   <td className="px-4 py-3 text-sm text-gray-700 dark:text-graphite-300 font-mono">{idx + 1}</td>
                   <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-graphite-50 max-w-[250px]">
                     {item.farmaco_o_grupo}
@@ -61,7 +69,7 @@ export const TablaAnticoagulantes = memo(({ anticoagulantes, onEditar, onElimina
                   <td className="px-4 py-3 text-sm text-gray-700 dark:text-graphite-300 max-w-[400px]">
                     {item.recomendacion}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-600 dark:text-graphite-400 max-w-[350px]" title={item.medidas_hemostasia}>
+                  <td className="px-4 py-3 text-sm text-gray-600 dark:text-graphite-400 max-w-[350px]" title={item.medidas_hemostasia || undefined}>
                     {item.medidas_hemostasia || '-'}
                   </td>
                   <td className="px-4 py-3 text-sm">
@@ -98,10 +106,9 @@ export const TablaAnticoagulantes = memo(({ anticoagulantes, onEditar, onElimina
           <li>1-3 exodoncias no complejas, curetaje, cirugía de tejido blando limitado → <strong>rara vez amerita suspensión</strong> de antitrombóticos.</li>
           <li>Reservar la interrupción de terapia para: cirugías extensas, múltiples extracciones simultáneas, o antecedente personal de sangrado difícil de controlar.</li>
           <li><strong>Warfarina/Acenocumarol:</strong> verificar INR el día del procedimiento (rango terapéutico 2.0 - 3.5-4.0 para exodoncias simples).</li>
-          <li><strong>DOACs:</strong> para procedimientos de bajo riesgo, programar en el valle de acción (omitir dosis de la mañana si es de toma matinal).</li>
-          <li><strong>Analgesia preferida:</strong> Paracetamol o Tramadol. Evitar AINEs clásicos por riesgo de sangrado.</li>
         </ul>
       </div>
     </div>
   )
 })
+TablaAnticoagulantes.displayName = 'TablaAnticoagulantes'

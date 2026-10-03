@@ -6,8 +6,16 @@
 import React, { memo } from 'react'
 import { Icon } from '../../../components/Icon'
 import { Siren, AlertTriangle } from 'lucide-react'
+import type { FarmacoUrgencia } from '../schemas/vademecumSchema'
 
-export const TablaUrgencia = memo(({ urgencia, onEditar, onDesactivar, onCrearNuevo }) => {
+export interface TablaUrgenciaProps {
+  urgencia: (FarmacoUrgencia & { id?: string | number })[]
+  onEditar?: (farmaco: FarmacoUrgencia) => void
+  onDesactivar?: (farmaco: FarmacoUrgencia) => void
+  onCrearNuevo?: () => void
+}
+
+export const TablaUrgencia: React.FC<TablaUrgenciaProps> = memo(({ urgencia, onEditar, onDesactivar, onCrearNuevo }) => {
   const datos = Array.isArray(urgencia) ? urgencia : []
   return (
     <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-lg overflow-hidden">
@@ -50,7 +58,7 @@ export const TablaUrgencia = memo(({ urgencia, onEditar, onDesactivar, onCrearNu
             </thead>
             <tbody className="bg-white dark:bg-graphite-800 divide-y divide-gray-200 dark:divide-graphite-700">
               {datos.map((farmaco) => (
-                <tr key={farmaco.id || farmaco.numero} className="hover:bg-gray-50 dark:hover:bg-graphite-700 dark:hover:bg-graphite-700 transition-colors duration-150">
+                <tr key={farmaco.id || farmaco.numero} className="hover:bg-gray-50 dark:hover:bg-graphite-700 transition-colors duration-150">
                   <td className="px-4 py-3 text-sm text-gray-700 dark:text-graphite-300 font-mono">
                     {farmaco.numero}
                   </td>

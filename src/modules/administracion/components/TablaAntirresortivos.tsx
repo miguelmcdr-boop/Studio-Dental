@@ -4,14 +4,22 @@
  * F4-03f-2
  */
 import React, { memo } from 'react'
+import type { Antirresortivo } from '../schemas/vademecumSchema'
 
-const RIESGO_COLORS = {
+const RIESGO_COLORS: Record<string, string> = {
   bajo: 'bg-green-100 text-green-800 border-green-300',
   moderado: 'bg-yellow-100 text-yellow-800 border-yellow-300',
   alto: 'bg-red-100 text-red-800 border-red-300'
 }
 
-export const TablaAntirresortivos = memo(({ antirresortivos, onEditar, onDesactivar, onCrearNuevo }) => {
+export interface TablaAntirresortivosProps {
+  antirresortivos: (Antirresortivo & { id?: string | number })[]
+  onEditar?: (farmaco: Antirresortivo) => void
+  onDesactivar?: (farmaco: Antirresortivo) => void
+  onCrearNuevo?: () => void
+}
+
+export const TablaAntirresortivos: React.FC<TablaAntirresortivosProps> = memo(({ antirresortivos, onEditar, onDesactivar, onCrearNuevo }) => {
   const datos = Array.isArray(antirresortivos) ? antirresortivos : []
 
   return (
@@ -57,7 +65,7 @@ export const TablaAntirresortivos = memo(({ antirresortivos, onEditar, onDesacti
               {datos.map((farmaco) => (
                 <tr
                   key={farmaco.id || farmaco.numero}
-                  className="hover:bg-gray-50 dark:hover:bg-graphite-700 dark:hover:bg-graphite-700 transition-colors duration-150"
+                  className="hover:bg-gray-50 dark:hover:bg-graphite-700 transition-colors duration-150"
                 >
                   <td className="px-4 py-3 text-sm text-gray-700 dark:text-graphite-300 font-mono">
                     {farmaco.numero}
@@ -108,3 +116,5 @@ export const TablaAntirresortivos = memo(({ antirresortivos, onEditar, onDesacti
     </div>
   )
 })
+
+TablaAntirresortivos.displayName = 'TablaAntirresortivos'

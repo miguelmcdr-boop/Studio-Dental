@@ -5,7 +5,18 @@
  */
 import React from 'react'
 
-export const FiltrosVademecum = ({
+export interface FiltrosVademecumProps {
+  familiasDisponibles: string[]
+  familiaSeleccionada: string
+  setFamiliaSeleccionada: (familia: string) => void
+  textoBusqueda: string
+  setTextoBusqueda: (texto: string) => void
+  soloActivos: boolean
+  setSoloActivos: (activos: boolean) => void
+  onCrearNuevo?: () => void
+}
+
+export const FiltrosVademecum: React.FC<FiltrosVademecumProps> = ({
   familiasDisponibles,
   familiaSeleccionada,
   setFamiliaSeleccionada,

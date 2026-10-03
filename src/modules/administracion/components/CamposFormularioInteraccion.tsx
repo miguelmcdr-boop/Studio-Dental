@@ -4,35 +4,60 @@
  * F4-03f-5b
  */
 import React from 'react'
-import { NIVELES_SEVERIDAD_INTERACCION } from '../schemas/interaccionSchema'
+import { NIVELES_SEVERIDAD_INTERACCION, type NivelSeveridadInteraccion } from '../schemas/interaccionSchema'
 
-const SEVERIDAD_CONFIG = {
+export interface InteraccionFormState {
+  farmaco_a: string
+  farmaco_b: string
+  efecto: string
+  manejo?: string | null
+  severidad: string
+  activo?: boolean
+  [key: string]: unknown
+}
+
+export interface CamposFormularioInteraccionProps {
+  form: InteraccionFormState
+  errores: Record<string, string>
+  handleChange: (campo: string, valor: unknown) => void
+}
+
+interface SeveridadConfigItem {
+  label: string
+  descripcion: string
+  color: string
+  badge: string
+}
+
+const SEVERIDAD_CONFIG: Record<NivelSeveridadInteraccion, SeveridadConfigItem> = {
   mayor: {
     label: 'Mayor',
     descripcion: 'Riesgo grave — evitar combinación o monitorizar estrechamente',
     color: 'border-red-400 bg-red-50',
     badge: 'bg-red-100 text-red-800',
-      },
+  },
   moderada: {
     label: 'Moderada',
     descripcion: 'Precaución — evaluar riesgo/beneficio y considerar alternativas',
     color: 'border-yellow-400 bg-yellow-50',
     badge: 'bg-yellow-100 text-yellow-800',
-      },
+  },
   menor: {
     label: 'Menor',
     descripcion: 'Interacción leve — generalmente no requiere intervención',
     color: 'border-green-400 bg-green-50',
     badge: 'bg-green-100 text-green-800',
-      }
+  }
 }
 
-const campoError = (errores, campo) => errores[campo] ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-graphite-600'
-const mensajeError = (errores, campo) => errores[campo] && (
-  <p className="text-xs text-red-600 mt-1">{errores[campo]}</p>
-)
+const campoError = (errores: Record<string, string>, campo: string) =>
+  errores[campo] ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-graphite-600'
+const mensajeError = (errores: Record<string, string>, campo: string) =>
+  errores[campo] && (
+    <p className="text-xs text-red-600 mt-1">{errores[campo]}</p>
+  )
 
-export const CamposFormularioInteraccion = ({ form, errores, handleChange }) => {
+export const CamposFormularioInteraccion: React.FC<CamposFormularioInteraccionProps> = ({ form, errores, handleChange }) => {
   return (
     <>
       {/* Fila 1: Fármaco A y B */}
@@ -86,7 +111,7 @@ export const CamposFormularioInteraccion = ({ form, errores, handleChange }) => 
           Manejo sugerido
         </label>
         <textarea
-          value={form.manejo}
+          value={form.manejo || ''}
           onChange={(e) => handleChange('manejo', e.target.value)}
           rows={3}
           className="w-full px-3 py-2 border border-gray-300 dark:border-graphite-600 rounded-lg text-sm"
@@ -107,7 +132,7 @@ export const CamposFormularioInteraccion = ({ form, errores, handleChange }) => 
               <label
                 key={nivel}
                 className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition-all ${
-                  seleccionado ? config.color : 'border-gray-200 dark:border-graphite-700 hover:bg-gray-50 dark:hover:bg-graphite-700 dark:hover:bg-graphite-700'
+                  seleccionado ? config.color : 'border-gray-200 dark:border-graphite-700 hover:bg-gray-50 dark:hover:bg-graphite-700'
                 }`}
               >
                 <input
