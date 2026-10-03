@@ -15,17 +15,50 @@
  * - presupuestoPendiente: total - pagado
  * - progresoTratamiento: % de items realizados vs total
  * - alertasActivas: array de strings de alertas (alergias, enfermedades, medicamentos)
- *
- * Contrato:
- * - Todas las métricas son derivadas (useMemo) — cero efectos secundarios
- * - Null-safe: todo funciona aunque no haya datos
- * - No depende de stores globales (recibe datos por props)
  */
 import { useMemo } from 'react'
 import { agendaStorageService } from '../../agenda/services/agendaStorageService'
 import { formatearCLP } from '../../../utils/formatoMoneda'
+import type { EvolucionClinicaLocal } from '../services/evolucionesStorageService'
+import type { ItemPresupuesto, AbonoItem } from './usePresupuestoForm'
+import type { Paciente } from '../schemas/pacienteSchema'
 
-const parseFecha = (fecha) => {
+export interface AlertaClinica {
+  tipo: 'alergia' | 'enfermedad' | 'medicamento'
+  texto: string
+}
+
+export interface ProximaCitaResumen {
+  fecha: string
+  hora: string | null
+  box: string | null
+  motivo: string | null
+}
+
+export interface UseMetricasClinicasOptions {
+  paciente?: Paciente | { id: string | number; alergias?: string | null; enfermedades?: string | null; medicamentos?: string | null; [key: string]: unknown } | null
+  evolucionesNotas?: EvolucionClinicaLocal[]
+  itemsPresupuesto?: ItemPresupuesto[]
+  abonos?: AbonoItem[]
+}
+
+export interface UseMetricasClinicasReturn {
+  ultimaVisita: Date | null
+  diasDesdeUltimaVisita: number | null
+  totalVisitas: number
+  proximaCita: ProximaCitaResumen | null
+  presupuestoTotal: number
+  presupuestoPagado: number
+  presupuestoPendiente: number
+  presupuestoTotalFormateado: string
+  presupuestoPendienteFormateado: string
+  progresoTratamiento: number
+  itemsRealizados: number
+  totalItems: number
+  alertasActivas: AlertaClinica[]
+}
+
+const parseFecha = (fecha?: string | Date | null): Date | null => {
   if (!fecha) return null
   if (fecha instanceof Date) return fecha
   // Manejar formato "DD-MM-YYYY HH:MM" y ISO string
@@ -37,7 +70,7 @@ const parseFecha = (fecha) => {
   return null
 }
 
-const diasEntre = (fecha1, fecha2) => {
+const diasEntre = (fecha1: Date | null, fecha2: Date | null): number | null => {
   if (!fecha1 || !fecha2) return null
   const ms = fecha2.getTime() - fecha1.getTime()
   return Math.floor(ms / (1000 * 60 * 60 * 24))
@@ -48,14 +81,14 @@ export const useMetricasClinicas = ({
   evolucionesNotas = [],
   itemsPresupuesto = [],
   abonos = [],
-}) => {
+}: UseMetricasClinicasOptions): UseMetricasClinicasReturn => {
   return useMemo(() => {
     const hoy = new Date()
 
     // 1. Métricas de visitas (desde evolucionesNotas)
     const fechasEvoluciones = evolucionesNotas
       .map((e) => parseFecha(e.fecha))
-      .filter(Boolean)
+      .filter((d): d is Date => d !== null)
       .sort((a, b) => b.getTime() - a.getTime())
 
     const ultimaVisita = fechasEvoluciones[0] || null
@@ -63,7 +96,7 @@ export const useMetricasClinicas = ({
     const totalVisitas = evolucionesNotas.length
 
     // 2. Próxima cita (desde agenda)
-    let proximaCita = null
+    let proximaCita: ProximaCitaResumen | null = null
     try {
       if (paciente?.id && agendaStorageService?.obtenerCitas) {
         const todasCitas = agendaStorageService.obtenerCitas() || []
@@ -75,15 +108,16 @@ export const useMetricasClinicas = ({
               c.fecha
           )
           .map((c) => ({ ...c, _fechaObj: parseFecha(c.fecha) }))
-          .filter((c) => c._fechaObj && c._fechaObj >= new Date(hoy.toDateString()))
+          .filter((c): c is typeof c & { _fechaObj: Date } => c._fechaObj !== null && c._fechaObj >= new Date(hoy.toDateString()))
           .sort((a, b) => a._fechaObj.getTime() - b._fechaObj.getTime())
 
         if (citasPaciente[0]) {
+          const c0 = citasPaciente[0] as unknown as Record<string, unknown>
           proximaCita = {
-            fecha: citasPaciente[0].fecha,
-            hora: citasPaciente[0].hora || null,
-            box: citasPaciente[0].boxAsignado || null,
-            motivo: citasPaciente[0].motivo || null,
+            fecha: String(c0.fecha || ''),
+            hora: (c0.horaInicio as string) || (c0.hora as string) || null,
+            box: (c0.boxAsignado as string) || null,
+            motivo: (c0.trataMiento as string) || (c0.motivo as string) || null,
           }
         }
       }
@@ -103,7 +137,7 @@ export const useMetricasClinicas = ({
       totalItems > 0 ? Math.round((itemsRealizados / totalItems) * 100) : 0
 
     // 5. Alertas activas (clínica)
-    const alertasActivas = []
+    const alertasActivas: AlertaClinica[] = []
     if (paciente?.alergias && paciente.alergias.trim() && paciente.alergias !== 'Ninguna') {
       alertasActivas.push({ tipo: 'alergia', texto: paciente.alergias })
     }
