@@ -42,9 +42,9 @@ let migracionCompletada = false
  * Hook que ejecuta la migración de datos al primer login con Supabase.
  * Debe usarse en App.jsx o en el componente raíz autenticado.
  *
- * @param {Object} userProfile - Perfil del usuario autenticado (de sesionStore)
+ * @param userProfile - Perfil del usuario autenticado (de sesionStore)
  */
-export const useDataMigration = (userProfile) => {
+export const useDataMigration = (userProfile: unknown): void => {
   useEffect(() => {
     // Solo ejecutar si:
     // 1. Supabase está activo
@@ -59,7 +59,8 @@ export const useDataMigration = (userProfile) => {
       return
     }
 
-    const ejecutarMigracion = async () => {
+    const ejecutarMigracion = async (): Promise<void> => {
+      if (!supabase) return
       // Marcar lock ANTES de hacer cualquier operación async
       // para que la segunda ejecución de StrictMode no entre
       migracionEnProgreso = true
@@ -254,7 +255,7 @@ export const useDataMigration = (userProfile) => {
         log.info('Migración completada y caché sincronizada')
 
         migracionCompletada = true
-      } catch (error) {
+      } catch (error: unknown) {
         log.error('Error inesperado durante la migración:', error)
         migracionEnProgreso = false // Permitir reintentar si hubo error
       } finally {
@@ -263,6 +264,6 @@ export const useDataMigration = (userProfile) => {
       }
     }
 
-    ejecutarMigracion()
+    void ejecutarMigracion()
   }, [userProfile])
 }
