@@ -10,8 +10,8 @@ import type { AtencionGes } from './services/urgenciasGesStorageService'
 
 export const UrgenciasGesModulo: React.FC = memo(() => {
   // (F2-02) — pacientes y userProfile ya no llegan como prop desde App.jsx: se leen directo de los stores.
-  const pacientes = usePacientesStore((state: { pacientes: PacienteUrgenciaMinimo[] }) => state.pacientes)
-  const userProfile = useSesionStore((state: { userProfile: UserProfileGes }) => state.userProfile)
+  const pacientes = usePacientesStore((state) => state.pacientes)
+  const userProfile = useSesionStore((state) => state.userProfile)
 
   const {
     atenciones,

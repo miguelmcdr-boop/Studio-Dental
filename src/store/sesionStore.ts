@@ -10,21 +10,42 @@ const ACTIVE_USER_KEY = 'clinica_active_user'
 const MAX_PACIENTES_RECIENTES = 5 // F7-26: historial de navegación clínica
 
 // F7-05 FIX: flag para prevenir recursión de logout.
-// Cuando logout() llama a supabase.auth.signOut(), Supabase dispara el evento
-// SIGNED_OUT que vuelve a invocar logout() desde los listeners de auth
-// (useAuthStateListener, useSessionGuard). Este flag previene que se ejecute
-// logout() recursivamente, evitando stack overflow y operaciones duplicadas.
 let estaCerrandoSesion = false
+
+export interface UserProfileSession {
+  email: string
+  nombreCompleto?: string
+  rut?: string
+  especialidad?: string
+  rol?: string
+  clinicaId?: string | null
+  supabaseAuth?: boolean
+  [key: string]: unknown
+}
+
+export interface PacienteReciente {
+  id: string | number
+  nombre?: string
+  rut?: string
+  timestamp?: number
+  [key: string]: unknown
+}
+
+export interface SesionStore {
+  userProfile: UserProfileSession | null
+  login: (profile: UserProfileSession) => void
+  logout: () => Promise<void>
+  actualizarPerfil: (profile: Partial<UserProfileSession> & Record<string, unknown>) => void
+  agregarPacienteReciente: (paciente?: { id?: string | number; nombre?: string; rut?: string; [key: string]: unknown } | null) => void
+  obtenerPacientesRecientes: () => PacienteReciente[]
+}
 
 /**
  * Carga el perfil activo desde localStorage y garantiza que tenga un rol válido.
  * Si el perfil existe pero no tiene rol válido (campo faltante o valor inválido),
  * se le asigna el rol por defecto (RECEPCION, fail-safe) en memoria.
- *
- * Nota: no modifica el perfil en localStorage — solo normaliza en memoria
- * para que el hook useRBAC tenga un rol válido garantizado.
  */
-const cargarPerfilActivo = () => {
+const cargarPerfilActivo = (): UserProfileSession | null => {
   // F10-B4 fix: guardia para contextos sin DOM (SSR/SSG/testing)
   if (typeof localStorage === 'undefined') return null
 
@@ -34,7 +55,7 @@ const cargarPerfilActivo = () => {
     const saved = localStorage.getItem(`profile_${activeEmail}`)
     if (!saved) return null
 
-    const perfil = JSON.parse(saved)
+    const perfil = JSON.parse(saved) as UserProfileSession
 
     // F3-05: garantizar que el perfil tenga un rol válido en memoria.
     // Si no tiene rol o es inválido, usar el rol por defecto (RECEPCION).
@@ -43,7 +64,7 @@ const cargarPerfilActivo = () => {
     }
 
     return perfil
-  } catch (e) {
+  } catch (e: unknown) {
     log.error('Error al leer la sesión activa:', e)
     return null
   }
@@ -51,42 +72,27 @@ const cargarPerfilActivo = () => {
 
 /**
  * Store global de sesión/perfil de usuario (F2-01 — MASTER_ROADMAP).
- * Sustituye el useState(null) + useEffect de carga inicial que vivían en
- * App.jsx. La persistencia del perfil editado (ej. desde Configuración)
- * sigue ocurriendo donde ya ocurría (useConfiguracion.js) — este store no
- * la duplica, solo mantiene el estado en memoria y la sesión activa.
- *
- * F3-05: garantiza que el campo `rol` siempre esté presente y válido
- * en el userProfile en memoria, con fallback seguro a RECEPCION.
- *
- * F4-02c-3: logout() ahora cierra AMBAS sesiones:
- * - Sesión local (localStorage)
- * - Sesión de Supabase Auth (cuando VITE_USE_SUPABASE=true)
- * Esto previene el bug donde el useEffect de App.jsx restaura la sesión
- * inmediatamente después del logout porque Supabase Auth sigue activo.
  */
-export const useSesionStore = create((set) => ({
+export const useSesionStore = create<SesionStore>((set) => ({
   userProfile: cargarPerfilActivo(),
 
-  login: (profile) => {
+  login: (profile: UserProfileSession): void => {
     try {
       localStorage.setItem(ACTIVE_USER_KEY, profile.email)
       
       // F4-02b FIX: En modo Supabase, también guardar el perfil completo
       // en localStorage para que persista entre recargas.
-      // Sin esto, al recargar en incógnito, cargarPerfilActivo() no encuentra
-      // el perfil y muestra LoginScreen.
       if (profile.supabaseAuth) {
         const profileKey = `profile_${profile.email.trim().toLowerCase()}`
         localStorage.setItem(profileKey, JSON.stringify(profile))
       }
-    } catch (e) {
+    } catch (e: unknown) {
       log.error('Error al guardar la sesión activa:', e)
     }
 
     // F3-05: garantizar rol válido en memoria. Si el perfil entrante no
     // tiene rol válido, asignar el rol por defecto (RECEPCION).
-    const perfilNormalizado = {
+    const perfilNormalizado: UserProfileSession = {
       ...profile,
       rol: profile.rol && esRolValido(profile.rol)
         ? profile.rol
@@ -96,10 +102,8 @@ export const useSesionStore = create((set) => ({
     set({ userProfile: perfilNormalizado })
   },
 
-  logout: async () => {
+  logout: async (): Promise<void> => {
     // F7-05 FIX: prevenir recursión de logout
-    // Si ya estamos cerrando sesión, no hacer nada (evita stack overflow
-    // cuando los listeners de Supabase vuelven a llamar logout).
     if (estaCerrandoSesion) {
       log.warn('Logout ya está en progreso, ignorando llamada recursiva')
       return
@@ -109,27 +113,23 @@ export const useSesionStore = create((set) => ({
 
     try {
       // 1. Cerrar sesión de Supabase Auth (si está activa) PRIMERO
-      // F4-02c-3: esto previene que el useEffect de App.jsx restaure la sesión
-      // inmediatamente después del logout porque detecta session activa.
       if (USE_SUPABASE && supabase) {
         try {
           await supabase.auth.signOut()
           log.info('Sesión de Supabase Auth cerrada')
-        } catch (e) {
+        } catch (e: unknown) {
           log.error('Error al cerrar sesión de Supabase:', e)
         }
       }
 
-      // 2. F7-05: purgar todas las capas de persistencia local (stores Zustand,
-      // localStorage, IndexedDB de adjuntos, Cache Storage del Service Worker).
-      // Fail-safe: cada paso es independiente y no aborta si uno falla.
+      // 2. F7-05: purgar todas las capas de persistencia local
       try {
         await purgarDatosLocales({ logger: log })
-      } catch (e) {
+      } catch (e: unknown) {
         log.error('Error durante la purga de datos locales (F7-05):', e)
       }
 
-      // 3. Limpiar estado de sesión en memoria (el resto ya se limpió en paso 2)
+      // 3. Limpiar estado de sesión en memoria
       set({ userProfile: null })
     } finally {
       // Siempre liberar el flag, incluso si hay error
@@ -137,11 +137,10 @@ export const useSesionStore = create((set) => ({
     }
   },
 
-  // Actualiza el perfil en memoria sin tocar localStorage — quien llama
-  // (ej. useConfiguracion.js) ya se encarga de persistir.
-  // F3-05: preserva la normalización del rol si viene uno nuevo.
-  actualizarPerfil: (profile) => {
-    const perfilNormalizado = {
+  // Actualiza el perfil en memoria sin tocar localStorage
+  actualizarPerfil: (profile: Partial<UserProfileSession> & Record<string, unknown>): void => {
+    const perfilNormalizado: UserProfileSession = {
+      email: '',
       ...profile,
       rol: profile.rol && esRolValido(profile.rol)
         ? profile.rol
@@ -151,40 +150,37 @@ export const useSesionStore = create((set) => ({
   },
 
   // F7-26: Agrega un paciente al historial de recientes (últimos 5).
-  // Persiste en localStorage por usuario activo para aislamiento entre clínicas.
-  // No expone el historial en el store (se lee directamente desde localStorage
-  // en useCommandPalette para evitar re-renders globales).
-  agregarPacienteReciente: (paciente) => {
+  agregarPacienteReciente: (paciente?: { id?: string | number; nombre?: string; rut?: string; [key: string]: unknown } | null): void => {
     try {
       const activeEmail = localStorage.getItem(ACTIVE_USER_KEY)
       if (!activeEmail || !paciente?.id) return
       
       const key = `clinica_pacientes_recientes_${activeEmail}`
-      const existentes = JSON.parse(localStorage.getItem(key) || '[]')
+      const existentes = JSON.parse(localStorage.getItem(key) || '[]') as PacienteReciente[]
       
       // Remover si ya existe (para moverlo al frente)
-      const filtrados = existentes.filter(p => p.id !== paciente.id)
+      const filtrados = existentes.filter((p) => p.id !== paciente.id)
       
       // Agregar al frente con timestamp
-      const actualizado = [
+      const actualizado: PacienteReciente[] = [
         { id: paciente.id, nombre: paciente.nombre, rut: paciente.rut, timestamp: Date.now() },
         ...filtrados,
       ].slice(0, MAX_PACIENTES_RECIENTES)
       
       localStorage.setItem(key, JSON.stringify(actualizado))
-    } catch (e) {
+    } catch (e: unknown) {
       log.error('Error al guardar paciente reciente:', e)
     }
   },
 
   // F7-26: Obtiene el historial de pacientes recientes (lectura directa).
-  obtenerPacientesRecientes: () => {
+  obtenerPacientesRecientes: (): PacienteReciente[] => {
     try {
       const activeEmail = localStorage.getItem(ACTIVE_USER_KEY)
       if (!activeEmail) return []
       const key = `clinica_pacientes_recientes_${activeEmail}`
-      return JSON.parse(localStorage.getItem(key) || '[]')
-    } catch (e) {
+      return JSON.parse(localStorage.getItem(key) || '[]') as PacienteReciente[]
+    } catch {
       return []
     }
   }

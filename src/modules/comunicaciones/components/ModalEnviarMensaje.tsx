@@ -17,7 +17,7 @@ import { useAppDialog } from '../../../hooks/useAppDialog'
 export interface PacienteParaMensaje {
   id: string | number
   nombre: string
-  telefono?: string | null
+  telefono?: string | number | null
   email?: string | null
   [key: string]: unknown
 }
@@ -82,7 +82,7 @@ export const ModalEnviarMensaje: React.FC<ModalEnviarMensajeProps> = memo(({
       id: Date.now(),
       pacienteId: pac?.id ?? '',
       pacienteNombre: pac?.nombre || 'Paciente',
-      pacienteTelefono: pac?.telefono || 'N/I',
+      pacienteTelefono: pac?.telefono ? String(pac.telefono) : 'N/I',
       pacienteEmail: pac?.email || 'N/I',
       canal,
       plantillaNombre: pl?.nombre || 'Mensaje Personalizado',

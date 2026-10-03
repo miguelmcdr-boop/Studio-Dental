@@ -6,7 +6,7 @@ export interface PacienteRecall {
   id: string | number
   nombre: string
   rut?: string
-  telefono?: string | null
+  telefono?: string | number | null
   email?: string | null
   prevision?: string | null
   [key: string]: unknown

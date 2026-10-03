@@ -16,10 +16,8 @@ import { Trash2, CreditCard, Download } from 'lucide-react'
 import type { Pago } from './services/pagosStorageService'
 
 export const PagosModulo: React.FC = memo(() => {
-  const pacientes = usePacientesStore((state: { pacientes: PacienteRefPago[] }) => state.pacientes)
-  const userProfile = useSesionStore(
-    (state: { userProfile: UserProfileRefPago }) => state.userProfile
-  )
+  const pacientes = usePacientesStore((state) => state.pacientes)
+  const userProfile = useSesionStore((state) => state.userProfile)
 
   const { puede } = useRBAC()
   const puedeExportar = puede(PERMISOS.EXPORTAR_AUDITORIA_PAGOS)

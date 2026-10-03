@@ -19,7 +19,7 @@ type TabComunicaciones = 'historial' | 'plantillas' | 'recall'
 
 export const ComunicacionesModulo: React.FC = memo(() => {
   // (F2-02) — pacientes y userProfile ya no llegan como prop desde App.jsx: se leen directo de los stores.
-  const pacientes = usePacientesStore((state: { pacientes: PacienteRecall[] }) => state.pacientes)
+  const pacientes = usePacientesStore((state) => state.pacientes)
   const userProfile = useSesionStore((state: { userProfile: { nombreCompleto?: string } | null }) => state.userProfile)
 
   const [tabActual, setTabActual] = useState<TabComunicaciones>('historial')
@@ -48,7 +48,7 @@ export const ComunicacionesModulo: React.FC = memo(() => {
       id: Date.now(),
       pacienteId: paciente.id,
       pacienteNombre: paciente.nombre,
-      pacienteTelefono: paciente.telefono || 'N/I',
+      pacienteTelefono: String(paciente.telefono || 'N/I'),
       pacienteEmail: paciente.email || 'N/I',
       canal: 'whatsapp',
       plantillaNombre: 'Recall / Control 6 Meses',

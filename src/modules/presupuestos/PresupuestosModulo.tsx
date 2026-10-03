@@ -26,13 +26,9 @@ export const PresupuestosModulo: React.FC<PresupuestosModuloProps> = memo(({
   // desde App.jsx: se leen directo de los stores. setPacienteSeleccionado y
   // setActiveSection son navegación local de App.jsx, fuera del alcance de F2-01,
   // así que se quedan como props.
-  const pacientes = usePacientesStore((state: { pacientes: PacienteFormRef[] }) => state.pacientes)
-  const prestaciones = usePrestacionesStore(
-    (state: { prestacionesArancel: PrestacionFormRef[] }) => state.prestacionesArancel
-  )
-  const userProfile = useSesionStore(
-    (state: { userProfile: UserProfilePresupuesto }) => state.userProfile
-  )
+  const pacientes = usePacientesStore((state) => state.pacientes)
+  const prestaciones = usePrestacionesStore((state) => state.prestacionesArancel)
+  const userProfile = useSesionStore((state) => state.userProfile)
 
   const [modalAbierto, setModalAbierto] = useState<boolean>(false)
   const { alert: dialogAlert } = useAppDialog()

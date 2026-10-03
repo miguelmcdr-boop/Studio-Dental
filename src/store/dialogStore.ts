@@ -23,23 +23,39 @@ const log = createLogger('dialogStore')
 
 let dialogIdCounter = 0
 
-export const useDialogStore = create((set, get) => ({
+export type DialogType = 'confirm' | 'alert'
+export type DialogVariant = 'info' | 'warning' | 'danger' | 'success' | 'error'
+
+export interface DialogConfig {
+  type: DialogType
+  title: string
+  description?: string
+  variant?: DialogVariant
+  confirmText?: string
+  cancelText?: string
+  [key: string]: unknown
+}
+
+export interface DialogActive extends DialogConfig {
+  id: number
+  resolve: (value: boolean | void) => void
+}
+
+export interface DialogStore {
+  dialog: DialogActive | null
+  openDialog: (config: DialogConfig) => Promise<boolean | void>
+  closeDialog: (result?: boolean | void) => void
+}
+
+export const useDialogStore = create<DialogStore>((set, get) => ({
   // Estado: diálogo abierto actualmente (o null)
   dialog: null,
 
   /**
    * Abre un diálogo y devuelve una Promise que se resuelve cuando el usuario confirma o cancela.
-   * @param {Object} config - Configuración del diálogo
-   * @param {'confirm'|'alert'} config.type - Tipo de diálogo
-   * @param {string} config.title - Título del diálogo
-   * @param {string} config.description - Descripción del diálogo
-   * @param {'info'|'warning'|'danger'|'success'|'error'} config.variant - Variante visual
-   * @param {string} config.confirmText - Texto del botón confirmar
-   * @param {string} [config.cancelText] - Texto del botón cancelar (solo para confirm)
-   * @returns {Promise<boolean|void>} - true si confirmó, false si canceló, void para alert
    */
-  openDialog: (config) => {
-    return new Promise((resolve) => {
+  openDialog: (config: DialogConfig): Promise<boolean | void> => {
+    return new Promise<boolean | void>((resolve) => {
       const id = ++dialogIdCounter
       log.debug('Abriendo diálogo', { id, type: config.type, title: config.title })
       set({
@@ -54,9 +70,8 @@ export const useDialogStore = create((set, get) => ({
 
   /**
    * Cierra el diálogo actual resolviendo la Promise con el valor dado.
-   * @param {any} result - Valor con el que se resuelve la Promise
    */
-  closeDialog: (result) => {
+  closeDialog: (result?: boolean | void): void => {
     const { dialog } = get()
     if (!dialog) {
       log.warn('Intento de cerrar diálogo cuando no hay ninguno abierto')

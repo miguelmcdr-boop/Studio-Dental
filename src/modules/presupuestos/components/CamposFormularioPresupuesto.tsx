@@ -20,7 +20,7 @@ export interface PacienteFormRef {
   id: string | number
   nombre?: string
   rut?: string
-  prevision?: string
+  prevision?: string | null
   [key: string]: unknown
 }
 
