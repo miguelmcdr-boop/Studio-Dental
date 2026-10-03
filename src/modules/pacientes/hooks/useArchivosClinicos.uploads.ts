@@ -1,20 +1,24 @@
 import { useCallback } from 'react'
 import { solicitaUrlUpload, subeArchivoAR2 } from '../../../services/r2ArchivosService'
-import { validarArchivo } from './useArchivosClinicos.helpers'
+import { validarArchivo, type PermisosArchivos, type CategoriaArchivo } from './useArchivosClinicos.helpers'
+
+export interface UseArchivosClinicosUploadsReturn {
+  subirArchivos: (files: FileList | File[]) => Promise<void>
+}
 
 /**
  * Hook interno para lógica de subida de archivos a R2.
  */
 export const useArchivosClinicosUploads = (
-  pacienteId,
-  categoriaR2,
-  permisos,
-  setSubiendo,
-  setProgreso,
-  setError,
-  recargar
-) => {
-  const subirArchivos = useCallback(async (files) => {
+  pacienteId: string,
+  categoriaR2: CategoriaArchivo,
+  permisos: PermisosArchivos,
+  setSubiendo: (subiendo: boolean) => void,
+  setProgreso: (progreso: number) => void,
+  setError: (error: string | null) => void,
+  recargar: () => Promise<void>
+): UseArchivosClinicosUploadsReturn => {
+  const subirArchivos = useCallback(async (files: FileList | File[]): Promise<void> => {
     if (!pacienteId || !permisos.puedeSubir) return
 
     const archivosArray = Array.from(files)
@@ -54,7 +58,7 @@ export const useArchivosClinicosUploads = (
           uploadUrl: uploadData.upload_url,
           uploadHeaders: uploadData.upload_headers,
           file,
-          onProgress: (percent) => {
+          onProgress: (percent: number) => {
             const progresoTotal = progresoBase + (percent / 100) * progresoIncremento
             setProgreso(Math.round(progresoTotal))
           },
@@ -68,7 +72,8 @@ export const useArchivosClinicosUploads = (
       setProgreso(100)
       await recargar()
     } catch (e) {
-      setError(e?.message || 'Error subiendo archivos.')
+      const err = e as Error
+      setError(err?.message || 'Error subiendo archivos.')
     } finally {
       setSubiendo(false)
       setTimeout(() => setProgreso(0), 1000)
