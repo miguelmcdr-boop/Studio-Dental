@@ -1,19 +1,21 @@
 import React, { memo, useState } from 'react'
 import { Button } from '../../components/ui/Button'
-import { useConfiguracion } from './hooks/useConfiguracion'
-import { PerfilProfesionalForm } from './components/PerfilProfesionalForm'
+import { useConfiguracion, type UserProfileConfigInput } from './hooks/useConfiguracion'
+import { PerfilProfesionalForm, type PerfilProfesionalData } from './components/PerfilProfesionalForm'
 import { DatosClinicaForm } from './components/DatosClinicaForm'
 import { ParametrosAgendaForm } from './components/ParametrosAgendaForm'
 import { RespaldoDatosSection } from './components/RespaldoDatosSection'
 import { useSesionStore } from '../../store/sesionStore'
 import { Zap, User, Building2, Calendar, Save } from 'lucide-react'
 
-export const ConfiguracionModulo = memo(() => {
-  // (F2-02) — userProfile/setUserProfile ya no llegan como prop desde App.jsx: se leen directo del store.
-  const userProfile = useSesionStore((state) => state.userProfile)
-  const setUserProfile = useSesionStore((state) => state.actualizarPerfil)
+type TabConfig = 'perfil' | 'clinica' | 'agenda' | 'respaldo'
 
-  const [tabActual, setTabActual] = useState('perfil')
+export const ConfiguracionModulo: React.FC = memo(() => {
+  // (F2-02) — userProfile/setUserProfile ya no llegan como prop desde App.jsx: se leen directo del store.
+  const userProfile = useSesionStore((state) => state.userProfile) as (UserProfileConfigInput & PerfilProfesionalData) | null
+  const setUserProfile = useSesionStore((state) => state.actualizarPerfil) as ((nuevoPerfil: unknown) => void) | null
+
+  const [tabActual, setTabActual] = useState<TabConfig>('perfil')
 
   const {
     datosClinica,
@@ -69,7 +71,10 @@ export const ConfiguracionModulo = memo(() => {
       </div>
 
       {tabActual === 'perfil' && (
-        <PerfilProfesionalForm userProfile={userProfile} alGuardar={guardarPerfilProfesional} />
+        <PerfilProfesionalForm
+          userProfile={userProfile}
+          alGuardar={(nuevo) => guardarPerfilProfesional(nuevo as Record<string, unknown>)}
+        />
       )}
 
       {tabActual === 'clinica' && (

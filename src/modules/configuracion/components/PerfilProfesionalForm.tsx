@@ -2,19 +2,33 @@ import React, { memo, useState } from 'react'
 import { User } from 'lucide-react'
 import { Button } from '../../../components/ui/Button'
 
-export const PerfilProfesionalForm = memo(({ userProfile, alGuardar }) => {
-  const [nombreCompleto, setNombreCompleto] = useState(userProfile?.nombreCompleto || '')
-  const [rut, setRut] = useState(userProfile?.rut || '')
-  const [especialidad, setEspecialidad] = useState(userProfile?.especialidad || 'Cirujano Dentista')
-  const [registroSalud, setRegistroSalud] = useState(userProfile?.registroSalud || '')
-  const [email, setEmail] = useState(userProfile?.email || '')
-  const [enviando, setEnviando] = useState(false)
+export interface PerfilProfesionalData {
+  nombreCompleto?: string
+  rut?: string
+  especialidad?: string
+  registroSalud?: string
+  email?: string
+  [key: string]: unknown
+}
 
-  const handleSubmit = (e) => {
+export interface PerfilProfesionalFormProps {
+  userProfile?: PerfilProfesionalData | null
+  alGuardar: (perfil: PerfilProfesionalData) => void | Promise<void>
+}
+
+export const PerfilProfesionalForm: React.FC<PerfilProfesionalFormProps> = memo(({ userProfile, alGuardar }) => {
+  const [nombreCompleto, setNombreCompleto] = useState<string>(userProfile?.nombreCompleto || '')
+  const [rut, setRut] = useState<string>(userProfile?.rut || '')
+  const [especialidad, setEspecialidad] = useState<string>(userProfile?.especialidad || 'Cirujano Dentista')
+  const [registroSalud, setRegistroSalud] = useState<string>(userProfile?.registroSalud || '')
+  const [email, setEmail] = useState<string>(userProfile?.email || '')
+  const [enviando, setEnviando] = useState<boolean>(false)
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setEnviando(true)
     try {
-      alGuardar({
+      await alGuardar({
         ...userProfile,
         nombreCompleto,
         rut,

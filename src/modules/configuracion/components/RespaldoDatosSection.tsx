@@ -1,19 +1,25 @@
 import React, { memo } from 'react'
-import { configuracionStorageService } from '../services/configuracionStorageService'
+import { configuracionStorageService, type BackupBaseDeDatos } from '../services/configuracionStorageService'
 import { useAppDialog } from '../../../hooks/useAppDialog'
-import { AlertTriangle, Trash2 } from 'lucide-react'
-import { Save, Upload, Download } from 'lucide-react'
+import { AlertTriangle, Trash2, Save, Upload, Download } from 'lucide-react'
 
-export const RespaldoDatosSection = memo(({ alExportarBackup, alImportarBackup }) => {
+export interface RespaldoDatosSectionProps {
+  alExportarBackup: () => void
+  alImportarBackup: (backup: BackupBaseDeDatos) => void | Promise<void>
+}
+
+export const RespaldoDatosSection: React.FC<RespaldoDatosSectionProps> = memo(({ alExportarBackup, alImportarBackup }) => {
   const { confirm, alert: dialogAlert } = useAppDialog()
-  const handleFileChange = async (e) => {
-    const file = e.target.files[0]
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
     if (file) {
       const reader = new FileReader()
-      reader.onload = async (event) => {
+      reader.onload = async (event: ProgressEvent<FileReader>) => {
         try {
-          const parsed = JSON.parse(event.target.result)
-          alImportarBackup(parsed)
+          const content = event.target?.result as string
+          const parsed = JSON.parse(content) as BackupBaseDeDatos
+          await alImportarBackup(parsed)
         } catch {
           await dialogAlert({
             title: 'Archivo inválido',

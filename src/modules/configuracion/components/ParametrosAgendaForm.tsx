@@ -1,17 +1,23 @@
 import React, { memo, useState } from 'react'
-import { TRAMOS_DURACION } from '../constants/configuracionConstants'
+import { TRAMOS_DURACION, PARAMETROS_AGENDA_DEFAULT, type ParametrosAgendaConfig } from '../constants/configuracionConstants'
 import { Calendar } from 'lucide-react'
 
-export const ParametrosAgendaForm = memo(({ parametrosAgenda, alGuardar }) => {
-  const [duracion, setDuracion] = useState(parametrosAgenda?.duracionBloqueMinutos || 30)
-  const [horaInicio, setHoraInicio] = useState(parametrosAgenda?.horaInicio || '08:30')
-  const [horaFin, setHoraFin] = useState(parametrosAgenda?.horaFin || '19:30')
+export interface ParametrosAgendaFormProps {
+  parametrosAgenda?: ParametrosAgendaConfig | null
+  alGuardar: (parametros: ParametrosAgendaConfig) => void
+}
 
-  const handleSubmit = (e) => {
+export const ParametrosAgendaForm: React.FC<ParametrosAgendaFormProps> = memo(({ parametrosAgenda, alGuardar }) => {
+  const [duracion, setDuracion] = useState<number | string>(parametrosAgenda?.duracionBloqueMinutos || 30)
+  const [horaInicio, setHoraInicio] = useState<string>(parametrosAgenda?.horaInicio || '08:30')
+  const [horaFin, setHoraFin] = useState<string>(parametrosAgenda?.horaFin || '19:30')
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     alGuardar({
+      diasLaborales: parametrosAgenda?.diasLaborales ?? PARAMETROS_AGENDA_DEFAULT.diasLaborales,
       ...parametrosAgenda,
-      duracionBloqueMinutos: parseInt(duracion),
+      duracionBloqueMinutos: parseInt(String(duracion), 10) || 30,
       horaInicio,
       horaFin
     })
