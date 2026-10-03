@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback } from 'react'
 import {
   quirurgicoStorageService,
   type ImplanteItem,
-  type EndodonciaItem
+  type EndodonciaItem,
+  type ConductoItem
 } from '../services/quirurgicoStorageService'
 
 export type NuevoImplanteInput = Partial<ImplanteItem> & {
@@ -18,7 +19,7 @@ export type NuevoImplanteInput = Partial<ImplanteItem> & {
 
 export type NuevaEndodonciaInput = Partial<EndodonciaItem> & {
   pieza?: string
-  conductos?: number | string
+  conductos?: number | string | ConductoItem[]
   longitudConducto?: string
   tecnica?: string
   obturacion?: string

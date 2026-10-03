@@ -1,13 +1,16 @@
 import React, { useState, memo } from 'react'
-import { FlaskConical } from 'lucide-react'
+import { FlaskConical, Wrench } from 'lucide-react'
 import { Icon } from '../../components/Icon'
 import { useQuirurgico } from './hooks/useQuirurgico'
 import { FichaImplante } from './components/FichaImplante'
 import { FichaEndodoncia } from './components/FichaEndodoncia'
-import { Wrench } from 'lucide-react'
 
-export const QuirurgicoModulo = memo(({ pacienteId }) => {
-  const [tabSubSeccion, setTabSubSeccion] = useState('implantes')
+export interface QuirurgicoModuloProps {
+  pacienteId?: string | number | null
+}
+
+export const QuirurgicoModulo = memo<QuirurgicoModuloProps>(({ pacienteId }) => {
+  const [tabSubSeccion, setTabSubSeccion] = useState<'implantes' | 'endodoncia'>('implantes')
   const {
     implantes,
     endodoncias,

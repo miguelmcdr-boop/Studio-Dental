@@ -1,12 +1,36 @@
-import { sanitizarTorque, sanitizarISQ } from '../utils/quirurgicoValidation'
 import React, { useState } from 'react'
+import { sanitizarTorque, sanitizarISQ } from '../utils/quirurgicoValidation'
 import { MARCAS_IMPLANTES, TIPOS_PLATAFORMA, CONEXIONES_DIAMETRO } from '../constants/quirurgicoConstants'
 import { Icon } from '../../../components/Icon'
 import { Tooth } from '../../../components/icons/Tooth'
 import { Trash2 } from 'lucide-react'
+import type { ImplanteItem } from '../services/quirurgicoStorageService'
+import type { NuevoImplanteInput } from '../hooks/useQuirurgico'
 
-export const FichaImplante = ({ implantes = [], onAgregarImplante, onEliminarImplante }) => {
-  const [form, setForm] = useState({
+export interface FichaImplanteProps {
+  implantes?: ImplanteItem[]
+  onAgregarImplante: (nuevoImplante: NuevoImplanteInput) => void
+  onEliminarImplante: (id: number | string) => void
+}
+
+interface FormState {
+  pieza: string
+  marca: string
+  plataforma: string
+  diametro: string
+  longitud: string
+  torqueInsercion: string
+  isqInicial: string
+  lote: string
+  observacion: string
+}
+
+export const FichaImplante: React.FC<FichaImplanteProps> = ({
+  implantes = [],
+  onAgregarImplante,
+  onEliminarImplante
+}) => {
+  const [form, setForm] = useState<FormState>({
     pieza: '1.6',
     marca: 'Neodent',
     plataforma: 'Cono Morse',
@@ -18,7 +42,7 @@ export const FichaImplante = ({ implantes = [], onAgregarImplante, onEliminarImp
     observacion: 'Cirugía de colocación de implante óseointegrado sin complicaciones.'
   })
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault()
     if (!form.pieza) return
     onAgregarImplante({
@@ -27,8 +51,15 @@ export const FichaImplante = ({ implantes = [], onAgregarImplante, onEliminarImp
       isqInicial: sanitizarISQ(form.isqInicial)
     })
     setForm({
-      pieza: '1.6', marca: 'Neodent', plataforma: 'Cono Morse', diametro: '3.75 mm (Estándar)', 
-      longitud: '10 mm', torqueInsercion: '35', isqInicial: '72', lote: '', observacion: ''
+      pieza: '1.6',
+      marca: 'Neodent',
+      plataforma: 'Cono Morse',
+      diametro: '3.75 mm (Estándar)', 
+      longitud: '10 mm',
+      torqueInsercion: '35',
+      isqInicial: '72',
+      lote: '',
+      observacion: ''
     })
   }
 
@@ -136,7 +167,7 @@ export const FichaImplante = ({ implantes = [], onAgregarImplante, onEliminarImp
           <div>
             <label className="block text-gray-600 dark:text-graphite-400 surgical:text-black font-bold mb-1 uppercase">Observaciones Cirugía</label>
             <textarea
-              rows="2"
+              rows={2}
               value={form.observacion}
               onChange={(e) => setForm({ ...form, observacion: e.target.value })}
               className="w-full p-2.5 border border-surface rounded-lg bg-white dark:bg-graphite-800 surgical:bg-graphite-200 text-xs text-graphite-900 dark:text-graphite-50 surgical:text-black focus:ring-2 focus:ring-primary/40"
