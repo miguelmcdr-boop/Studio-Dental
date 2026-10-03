@@ -9,20 +9,24 @@ import { createLogger } from '../services/logger'
 
 const log = createLogger('useSincronizacionInicial')
 
+interface SincronizableService {
+  sincronizarDesdeSupabase?: () => Promise<unknown>
+}
+
 /**
  * Hook de sincronización inicial post-login (F6-C-d.4).
  * Refresca las 4 tablas sin store Zustand desde Supabase al montar.
  * Pacientes se sincroniza en useDataMigration (evita race condition).
  * P0-2: Escanea IndexedDB y sube adjuntos pendientes a Supabase Storage.
  *
- * @param {boolean} enabled - Si es false, no sincroniza
+ * @param enabled - Si es false, no sincroniza
  */
-export const useSincronizacionInicial = (enabled) => {
+export const useSincronizacionInicial = (enabled: boolean): void => {
   useEffect(() => {
     if (!enabled) return
 
-    const sincronizarInicial = async () => {
-      const servicios = [
+    const sincronizarInicial = async (): Promise<void> => {
+      const servicios: [string, SincronizableService][] = [
         ['citas', agendaStorageService],
         ['presupuestos', presupuestosStorageService],
         ['pagos', pagosStorageService],
@@ -36,8 +40,9 @@ export const useSincronizacionInicial = (enabled) => {
             await servicio.sincronizarDesdeSupabase()
             log.info(`[useRealtimeSync] Sincronización inicial de ${nombre}: OK`)
           }
-        } catch (e) {
-          log.warn(`[useRealtimeSync] Error sincronizando ${nombre}:`, e.message)
+        } catch (e: unknown) {
+          const msg = e instanceof Error ? e.message : String(e)
+          log.warn(`[useRealtimeSync] Error sincronizando ${nombre}:`, msg)
         }
       }
 
@@ -45,12 +50,13 @@ export const useSincronizacionInicial = (enabled) => {
       try {
         await escanearYSincronizarAdjuntosPendientes()
         log.info('[useRealtimeSync] Sincronización inicial de adjuntos: OK')
-      } catch (e) {
-        log.warn('[useRealtimeSync] Error sincronizando adjuntos:', e.message)
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e)
+        log.warn('[useRealtimeSync] Error sincronizando adjuntos:', msg)
       }
     }
 
-    sincronizarInicial()
+    void sincronizarInicial()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled])
 }
