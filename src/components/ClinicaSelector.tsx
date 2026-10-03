@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import { listarMisClinicas, setClinicaActiva, getClinicaActiva } from '../services/authService'
+import {
+  listarMisClinicas,
+  setClinicaActiva,
+  getClinicaActiva,
+  type ClinicaMembresiaItem,
+} from '../services/authService'
 import { createLogger } from '../services/logger'
 import { invalidarCacheCambioClinica } from '../services/invalidarCacheCambioClinica'
 
@@ -15,22 +20,26 @@ const log = createLogger('ClinicaSelector')
  * Si el usuario solo tiene 1 clínica, muestra el nombre sin selector (solo informativo).
  * Si tiene múltiples clínicas, muestra un dropdown para cambiar.
  */
-export const ClinicaSelector = ({ onCambioClinica }) => {
-  const [clinicas, setClinicas] = useState([])
-  const [clinicaActiva, setClinicaActivaState] = useState(null)
-  const [cargando, setCargando] = useState(true)
-  const [cambiando, setCambiando] = useState(false)
-  const [error, setError] = useState(null)
+export interface ClinicaSelectorProps {
+  onCambioClinica?: (nuevaClinicaId: string) => void
+}
+
+export const ClinicaSelector: React.FC<ClinicaSelectorProps> = ({ onCambioClinica }) => {
+  const [clinicas, setClinicas] = useState<ClinicaMembresiaItem[]>([])
+  const [clinicaActiva, setClinicaActivaState] = useState<string | null>(null)
+  const [cargando, setCargando] = useState<boolean>(true)
+  const [cambiando, setCambiando] = useState<boolean>(false)
+  const [error, setError] = useState<string | null>(null)
 
   // Cargar clínicas y clínica activa al montar
   useEffect(() => {
-    const cargar = async () => {
+    const cargar = async (): Promise<void> => {
       setCargando(true)
       setError(null)
       try {
         const [lista, activa] = await Promise.all([
           listarMisClinicas(),
-          getClinicaActiva()
+          getClinicaActiva(),
         ])
 
         setClinicas(lista)
@@ -38,27 +47,30 @@ export const ClinicaSelector = ({ onCambioClinica }) => {
         // F7-35: Auto-persistir selector si metadata ausente o inválida.
         // Previene que clinica_actual() fail-closed deje al usuario sin contexto
         // mientras la UI mostraba una clínica "por defecto".
-        let clinicaFinal = activa
+        let clinicaFinal: string | null = activa
         if (!clinicaFinal && lista.length > 0) {
           clinicaFinal = lista[0].clinica_id
           // setClinicaActiva hace updateUser + refreshSession (no bloqueante)
-          setClinicaActiva(clinicaFinal).catch(err => {
-            log.warn('F7-35: No se pudo auto-persistir clinicaActiva:', err?.message)
+          setClinicaActiva(clinicaFinal).catch((err: unknown) => {
+            const msg = err instanceof Error ? err.message : String(err)
+            log.warn('F7-35: No se pudo auto-persistir clinicaActiva:', msg)
           })
         }
         // Si clinicaFinal no está en la lista (metadata stale de clínica removida),
         // resetear a la primera disponible.
-        if (clinicaFinal && !lista.some(c => c.clinica_id === clinicaFinal)) {
+        if (clinicaFinal && !lista.some((c) => c.clinica_id === clinicaFinal)) {
           clinicaFinal = lista[0]?.clinica_id || null
           if (clinicaFinal) {
-            setClinicaActiva(clinicaFinal).catch(err => {
-              log.warn('F7-35: Reset de clinicaActiva stale:', err?.message)
+            setClinicaActiva(clinicaFinal).catch((err: unknown) => {
+              const msg = err instanceof Error ? err.message : String(err)
+              log.warn('F7-35: Reset de clinicaActiva stale:', msg)
             })
           }
         }
         setClinicaActivaState(clinicaFinal)
-      } catch (err) {
-        log.error('Error cargando clínicas:', err.message)
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err)
+        log.error('Error cargando clínicas:', msg)
         setError('Error cargando clínicas')
       } finally {
         setCargando(false)
@@ -68,7 +80,7 @@ export const ClinicaSelector = ({ onCambioClinica }) => {
   }, [])
 
   // Manejar cambio de clínica
-  const handleCambio = async (e) => {
+  const handleCambio = async (e: React.ChangeEvent<HTMLSelectElement>): Promise<void> => {
     const nuevaClinicaId = e.target.value
     if (nuevaClinicaId === clinicaActiva) return
 
@@ -99,9 +111,9 @@ export const ClinicaSelector = ({ onCambioClinica }) => {
             const perfilKey = `profile_${email}`
             const perfilGuardado = localStorage.getItem(perfilKey)
             if (perfilGuardado) {
-              const perfil = JSON.parse(perfilGuardado)
+              const perfil = JSON.parse(perfilGuardado) as Record<string, unknown>
               // Buscar la clínica recién seleccionada para obtener su rol contextual
-              const clinicaSeleccionada = clinicas.find(c => c.clinica_id === nuevaClinicaId)
+              const clinicaSeleccionada = clinicas.find((c) => c.clinica_id === nuevaClinicaId)
               if (clinicaSeleccionada && clinicaSeleccionada.rol) {
                 perfil.rol = clinicaSeleccionada.rol
                 localStorage.setItem(perfilKey, JSON.stringify(perfil))
@@ -109,18 +121,19 @@ export const ClinicaSelector = ({ onCambioClinica }) => {
               }
             }
           }
-        } catch (e) {
-          // Silencioso: si falla la actualización, App.jsx reconstruirá el perfil vía construirUserProfile()
-          log.warn('Error actualizando rol en perfil guardado:', e.message)
+        } catch (e: unknown) {
+          const msg = e instanceof Error ? e.message : String(e)
+          log.warn('Error actualizando rol en perfil guardado:', msg)
         }
         setTimeout(() => window.location.reload(), 300)
       } else {
         setError(result.error || 'Error al cambiar clínica')
         log.error('Error cambiando clínica:', result.error)
       }
-    } catch (err) {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
       setError('Error al cambiar clínica')
-      log.error('Excepción cambiando clínica:', err.message)
+      log.error('Excepción cambiando clínica:', msg)
     } finally {
       setCambiando(false)
     }
@@ -151,8 +164,6 @@ export const ClinicaSelector = ({ onCambioClinica }) => {
     )
   }
 
-  const clinicaActivaData = clinicas.find(c => c.clinica_id === clinicaActiva)
-
   // Si solo hay 1 clínica, mostrar sin selector (solo informativo)
   if (clinicas.length === 1) {
     return (
@@ -177,7 +188,7 @@ export const ClinicaSelector = ({ onCambioClinica }) => {
         disabled={cambiando}
         className="w-full px-2.5 py-1.5 text-xs font-medium border border-surface rounded-lg bg-surface text-graphite-900 dark:text-graphite-100 surgical:text-black focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed transition-fast"
       >
-        {clinicas.map(c => (
+        {clinicas.map((c) => (
           <option key={c.clinica_id} value={c.clinica_id}>
             {c.nombre} ({c.rol})
           </option>
@@ -189,3 +200,5 @@ export const ClinicaSelector = ({ onCambioClinica }) => {
     </div>
   )
 }
+
+ClinicaSelector.displayName = 'ClinicaSelector'
