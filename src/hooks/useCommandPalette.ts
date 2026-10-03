@@ -78,7 +78,7 @@ export const useCommandPalette = ({
   const [query, setQuery] = useState<string>('')
   const [selectedIndex, setSelectedIndex] = useState<number>(0)
   const pacientes = usePacientesStore((state: { pacientes: Paciente[] }) => state.pacientes)
-  const { puede } = useRBAC() as { puede: (permiso: string) => boolean }
+  const { puede } = useRBAC()
 
   // F7-26: Búsqueda de pacientes (top 5)
   // Cuando no hay query, mostrar pacientes recientes (últimos 5 visitados)
