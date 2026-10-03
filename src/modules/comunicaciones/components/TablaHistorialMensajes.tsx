@@ -1,9 +1,19 @@
 import React, { memo } from 'react'
 import { MessageCircle, Mail, Pin, Pencil, Trash2 } from 'lucide-react'
-import { ESTADOS_CONFIRMACION_CITA } from '../constants/comunicacionesConstants'
+import {
+  ESTADOS_CONFIRMACION_CITA,
+  type MensajeHistorial
+} from '../constants/comunicacionesConstants'
 import { generarLinkWhatsAppWeb } from '../utils/comunicacionesCalculations'
 
-export const TablaHistorialMensajes = memo(({
+export interface TablaHistorialMensajesProps {
+  historial: MensajeHistorial[]
+  onCambiarEstado: (id: number | string, nuevoEstado: string) => void
+  onEditarBitacora: (registro: MensajeHistorial) => void
+  onEliminarBitacora: (id: number | string) => void
+}
+
+export const TablaHistorialMensajes: React.FC<TablaHistorialMensajesProps> = memo(({
   historial,
   onCambiarEstado,
   onEditarBitacora,
@@ -32,31 +42,62 @@ export const TablaHistorialMensajes = memo(({
         </thead>
         <tbody className="divide-y divide-surface">
           {historial.map((m) => {
-            const configEst = ESTADOS_CONFIRMACION_CITA.find(e => e.id === m.estado) || ESTADOS_CONFIRMACION_CITA[0]
+            const configEst =
+              ESTADOS_CONFIRMACION_CITA.find((e) => e.id === m.estado) ||
+              ESTADOS_CONFIRMACION_CITA[0]
 
             return (
-              <tr key={m.id} className="hover:bg-slate-50 dark:hover:bg-graphite-800/50 surgical:hover:bg-graphite-200 transition-colors">
+              <tr
+                key={m.id}
+                className="hover:bg-slate-50 dark:hover:bg-graphite-800/50 surgical:hover:bg-graphite-200 transition-colors"
+              >
                 <td className="p-3">
-                  <span className="font-extrabold text-graphite-900 dark:text-graphite-50 surgical:text-black block">{m.pacienteNombre}</span>
-                  <span className="text-[10px] text-graphite-500 dark:text-graphite-400 surgical:text-black font-mono tabular-nums">{m.pacienteTelefono || 'Sin fono'}</span>
+                  <span className="font-extrabold text-graphite-900 dark:text-graphite-50 surgical:text-black block">
+                    {m.pacienteNombre}
+                  </span>
+                  <span className="text-[10px] text-graphite-500 dark:text-graphite-400 surgical:text-black font-mono tabular-nums">
+                    {m.pacienteTelefono || 'Sin fono'}
+                  </span>
                 </td>
 
                 <td className="p-3">
-                  <span className={`px-2 py-0.5 rounded-lg border font-bold text-[10px] ${
-                    m.canal === 'whatsapp' ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' : 'bg-sky-50 dark:bg-sky-950/40 text-sky-800 dark:text-sky-300 border-sky-200 dark:border-sky-800'
-                  }`}>
-                    {m.canal === 'whatsapp' ? <span className='inline-flex items-center gap-1'><MessageCircle size={10} />WhatsApp</span> : <span className='inline-flex items-center gap-1'><Mail size={10} />Email</span>}
+                  <span
+                    className={`px-2 py-0.5 rounded-lg border font-bold text-[10px] ${
+                      m.canal === 'whatsapp'
+                        ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+                        : 'bg-sky-50 dark:bg-sky-950/40 text-sky-800 dark:text-sky-300 border-sky-200 dark:border-sky-800'
+                    }`}
+                  >
+                    {m.canal === 'whatsapp' ? (
+                      <span className="inline-flex items-center gap-1">
+                        <MessageCircle size={10} />
+                        WhatsApp
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1">
+                        <Mail size={10} />
+                        Email
+                      </span>
+                    )}
                   </span>
                 </td>
 
                 <td className="p-3 max-w-xs">
-                  <span className="font-bold text-graphite-800 dark:text-graphite-100 surgical:text-black block text-[11px]">{m.plantillaNombre}</span>
-                  <span className="text-graphite-500 dark:text-graphite-400 surgical:text-black text-[10px] truncate block" title={m.mensajeEnviado}>
+                  <span className="font-bold text-graphite-800 dark:text-graphite-100 surgical:text-black block text-[11px]">
+                    {m.plantillaNombre}
+                  </span>
+                  <span
+                    className="text-graphite-500 dark:text-graphite-400 surgical:text-black text-[10px] truncate block"
+                    title={m.mensajeEnviado}
+                  >
                     {m.mensajeEnviado}
                   </span>
                   {m.notaBitacora && (
                     <span className="text-[10px] italic text-champagne-700 dark:text-gold-satin bg-gold-light dark:bg-graphite-800 px-1.5 py-0.5 rounded border border-gold-satin/40 dark:border-primary/40 inline-block mt-0.5">
-                      <span className="inline-flex items-center gap-1"><Pin size={8} />Nota: {m.notaBitacora}</span>
+                      <span className="inline-flex items-center gap-1">
+                        <Pin size={8} />
+                        Nota: {m.notaBitacora}
+                      </span>
                     </span>
                   )}
                 </td>
@@ -67,14 +108,19 @@ export const TablaHistorialMensajes = memo(({
                     onChange={(e) => onCambiarEstado(m.id, e.target.value)}
                     className={`px-2 py-1 rounded-lg font-bold text-[10px] border bg-surface cursor-pointer ${configEst.colorText} ${configEst.colorBorder}`}
                   >
-                    {ESTADOS_CONFIRMACION_CITA.map(e => (
-                      <option key={e.id} value={e.id}>{e.nombre}</option>
+                    {ESTADOS_CONFIRMACION_CITA.map((e) => (
+                      <option key={e.id} value={e.id}>
+                        {e.nombre}
+                      </option>
                     ))}
                   </select>
                 </td>
 
                 <td className="p-3 font-semibold text-graphite-700 dark:text-graphite-300 surgical:text-black tabular-nums">
-                  {m.fechaEnvio} <span className="text-graphite-400 dark:text-graphite-500 font-normal block">{m.horaEnvio} hrs</span>
+                  {m.fechaEnvio}{' '}
+                  <span className="text-graphite-400 dark:text-graphite-500 font-normal block">
+                    {m.horaEnvio} hrs
+                  </span>
                 </td>
 
                 <td className="p-3 text-right print:hidden space-x-1 whitespace-nowrap">
@@ -86,7 +132,10 @@ export const TablaHistorialMensajes = memo(({
                       className="p-1.5 bg-emerald-600 text-white font-bold rounded-lg text-[10px] hover:bg-emerald-700 inline-block transition-micro"
                       title="Reenviar por WhatsApp Web"
                     >
-                      <span className="inline-flex items-center gap-1"><MessageCircle size={10} />Reenviar</span>
+                      <span className="inline-flex items-center gap-1">
+                        <MessageCircle size={10} />
+                        Reenviar
+                      </span>
                     </a>
                   )}
 

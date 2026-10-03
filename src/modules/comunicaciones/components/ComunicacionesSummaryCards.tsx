@@ -1,7 +1,12 @@
 import React, { memo } from 'react'
 import { MessageSquare, CheckCircle2, Send, Mail } from 'lucide-react'
+import type { ResumenComunicaciones } from '../utils/comunicacionesCalculations'
 
-export const ComunicacionesSummaryCards = memo(({ resumen }) => {
+export interface ComunicacionesSummaryCardsProps {
+  resumen: ResumenComunicaciones
+}
+
+export const ComunicacionesSummaryCards: React.FC<ComunicacionesSummaryCardsProps> = memo(({ resumen }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs">
       <div className="relative overflow-hidden p-5 bg-surface/90 backdrop-blur-md border border-surface rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-[#0EA5E9]/50 before:to-transparent">

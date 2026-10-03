@@ -1,22 +1,57 @@
 import React, { memo, useState, useEffect } from 'react'
-import { MessageCircle, Monitor, Smartphone, Mail } from 'lucide-react'
+import { Monitor, Smartphone, Mail } from 'lucide-react'
 import { Modal } from '../../../components/ui/Modal'
 import { Button } from '../../../components/ui/Button'
-import { CANALES_COMUNICACION } from '../constants/comunicacionesConstants'
-import { interpolarVariablesMensaje, generarLinkWhatsAppWeb, generarLinkWhatsAppApp } from '../utils/comunicacionesCalculations'
+import {
+  CANALES_COMUNICACION,
+  type PlantillaComunicacion,
+  type MensajeHistorial
+} from '../constants/comunicacionesConstants'
+import {
+  interpolarVariablesMensaje,
+  generarLinkWhatsAppWeb,
+  generarLinkWhatsAppApp
+} from '../utils/comunicacionesCalculations'
 import { useAppDialog } from '../../../hooks/useAppDialog'
 
-export const ModalEnviarMensaje = memo(({ pacientes = [], plantillas = [], userProfile, alRegistrarEnvio, alCerrar }) => {
-  const [pacienteId, setPacienteId] = useState('')
+export interface PacienteParaMensaje {
+  id: string | number
+  nombre: string
+  telefono?: string | null
+  email?: string | null
+  [key: string]: unknown
+}
+
+export interface UserProfileInfo {
+  nombreCompleto?: string
+  [key: string]: unknown
+}
+
+export interface ModalEnviarMensajeProps {
+  pacientes?: PacienteParaMensaje[]
+  plantillas?: PlantillaComunicacion[]
+  userProfile?: UserProfileInfo | null
+  alRegistrarEnvio: (registro: MensajeHistorial) => void
+  alCerrar: () => void
+}
+
+export const ModalEnviarMensaje: React.FC<ModalEnviarMensajeProps> = memo(({
+  pacientes = [],
+  plantillas = [],
+  userProfile,
+  alRegistrarEnvio,
+  alCerrar
+}) => {
+  const [pacienteId, setPacienteId] = useState<string>('')
   const { alert: dialogAlert } = useAppDialog()
-  const [plantillaId, setPlantillaId] = useState('')
-  const [canal, setCanal] = useState(CANALES_COMUNICACION[0].id)
-  const [mensajeTexto, setMensajeTexto] = useState('')
+  const [plantillaId, setPlantillaId] = useState<string>('')
+  const [canal, setCanal] = useState<string>(CANALES_COMUNICACION[0].id)
+  const [mensajeTexto, setMensajeTexto] = useState<string>('')
 
   useEffect(() => {
     if (!plantillaId) return
-    const pl = plantillas.find(p => String(p.id) === String(plantillaId))
-    const pac = pacientes.find(p => String(p.id) === String(pacienteId))
+    const pl = plantillas.find((p) => String(p.id) === String(plantillaId))
+    const pac = pacientes.find((p) => String(p.id) === String(pacienteId))
 
     if (pl) {
       setCanal(pl.canal || CANALES_COMUNICACION[0].id)
@@ -29,7 +64,7 @@ export const ModalEnviarMensaje = memo(({ pacientes = [], plantillas = [], userP
     }
   }, [plantillaId, pacienteId, plantillas, pacientes, userProfile])
 
-  const handleEnviar = async (tipoApertura = 'web') => {
+  const handleEnviar = async (tipoApertura = 'web'): Promise<void> => {
     if (!pacienteId || !mensajeTexto) {
       await dialogAlert({
         title: 'Datos incompletos',
@@ -40,12 +75,12 @@ export const ModalEnviarMensaje = memo(({ pacientes = [], plantillas = [], userP
       return
     }
 
-    const pac = pacientes.find(p => String(p.id) === String(pacienteId))
-    const pl = plantillas.find(p => String(p.id) === String(plantillaId))
+    const pac = pacientes.find((p) => String(p.id) === String(pacienteId))
+    const pl = plantillas.find((p) => String(p.id) === String(plantillaId))
 
-    const registro = {
+    const registro: MensajeHistorial = {
       id: Date.now(),
-      pacienteId: pac?.id,
+      pacienteId: pac?.id ?? '',
       pacienteNombre: pac?.nombre || 'Paciente',
       pacienteTelefono: pac?.telefono || 'N/I',
       pacienteEmail: pac?.email || 'N/I',
@@ -61,9 +96,10 @@ export const ModalEnviarMensaje = memo(({ pacientes = [], plantillas = [], userP
     alRegistrarEnvio(registro)
 
     if (canal === 'whatsapp' && pac?.telefono) {
-      const link = tipoApertura === 'web' 
-        ? generarLinkWhatsAppWeb(pac.telefono, mensajeTexto)
-        : generarLinkWhatsAppApp(pac.telefono, mensajeTexto)
+      const link =
+        tipoApertura === 'web'
+          ? generarLinkWhatsAppWeb(pac.telefono, mensajeTexto)
+          : generarLinkWhatsAppApp(pac.telefono, mensajeTexto)
       window.open(link, '_blank')
     } else {
       await dialogAlert({
@@ -80,51 +116,68 @@ export const ModalEnviarMensaje = memo(({ pacientes = [], plantillas = [], userP
   return (
     <Modal isOpen={true} onClose={alCerrar} title="Transmitir Mensaje / Notificación" size="md">
       <div className="space-y-3 text-xs">
-
         <div className="space-y-3">
           <div>
-            <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Paciente Destinatario *</label>
+            <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">
+              Paciente Destinatario *
+            </label>
             <select
               value={pacienteId}
               onChange={(e) => setPacienteId(e.target.value)}
               className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-bold"
             >
               <option value="">-- Seleccionar paciente --</option>
-              {pacientes.map(p => (
-                <option key={p.id} value={p.id}>{p.nombre} ({p.telefono || 'Sin fono'})</option>
+              {pacientes.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.nombre} ({p.telefono || 'Sin fono'})
+                </option>
               ))}
             </select>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Cargar Plantilla</label>
+              <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">
+                Cargar Plantilla
+              </label>
               <select
                 value={plantillaId}
                 onChange={(e) => setPlantillaId(e.target.value)}
                 className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-medium"
               >
                 <option value="">-- Seleccionar --</option>
-                {plantillas.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+                {plantillas.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.nombre}
+                  </option>
+                ))}
               </select>
             </div>
 
             <div>
-              <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Canal de Envío</label>
+              <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">
+                Canal de Envío
+              </label>
               <select
                 value={canal}
                 onChange={(e) => setCanal(e.target.value)}
                 className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-bold"
               >
-                {CANALES_COMUNICACION.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+                {CANALES_COMUNICACION.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nombre}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
 
           <div>
-            <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Mensaje (Editable / Previsualización en Vivo)</label>
+            <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">
+              Mensaje (Editable / Previsualización en Vivo)
+            </label>
             <textarea
-              rows="4"
+              rows={4}
               value={mensajeTexto}
               onChange={(e) => setMensajeTexto(e.target.value)}
               className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 font-mono text-[11px]"
@@ -132,12 +185,7 @@ export const ModalEnviarMensaje = memo(({ pacientes = [], plantillas = [], userP
           </div>
 
           <div className="flex gap-2 pt-2">
-            <Button
-              type="button"
-              onClick={alCerrar}
-              variant="ghost"
-              fullWidth
-            >
+            <Button type="button" onClick={alCerrar} variant="ghost" fullWidth>
               Cancelar
             </Button>
 
@@ -145,32 +193,41 @@ export const ModalEnviarMensaje = memo(({ pacientes = [], plantillas = [], userP
               <>
                 <Button
                   type="button"
-                  onClick={() => handleEnviar('web')}
+                  onClick={() => void handleEnviar('web')}
                   variant="primary"
                   fullWidth
                   className="bg-emerald-700 hover:bg-emerald-800 transition-colors duration-150"
                   title="Abrir en navegador de escritorio"
                 >
-                  <span className="inline-flex items-center gap-1"><Monitor size={14} />WhatsApp Web</span>
+                  <span className="inline-flex items-center gap-1">
+                    <Monitor size={14} />
+                    WhatsApp Web
+                  </span>
                 </Button>
                 <Button
                   type="button"
-                  onClick={() => handleEnviar('app')}
+                  onClick={() => void handleEnviar('app')}
                   variant="primary"
                   fullWidth
                   title="Abrir App móvil wa.me"
                 >
-                  <span className="inline-flex items-center gap-1"><Smartphone size={14} />App Móvil</span>
+                  <span className="inline-flex items-center gap-1">
+                    <Smartphone size={14} />
+                    App Móvil
+                  </span>
                 </Button>
               </>
             ) : (
               <Button
                 type="button"
-                onClick={() => handleEnviar('web')}
+                onClick={() => void handleEnviar('web')}
                 variant="primary"
                 fullWidth
               >
-                <span className="inline-flex items-center gap-1"><Mail size={14} />Registrar Envío</span>
+                <span className="inline-flex items-center gap-1">
+                  <Mail size={14} />
+                  Registrar Envío
+                </span>
               </Button>
             )}
           </div>
