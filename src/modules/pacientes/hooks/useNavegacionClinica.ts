@@ -14,33 +14,39 @@
  * - F7-26: Cada vez que pacienteActual cambia, se agrega al historial
  *   de pacientes recientes (sesionStore) para acceso rápido desde
  *   CommandPalette.
- *
- * Uso:
- *   const nav = useNavegacionClinica(pacienteSeleccionado, setPacienteSeleccionado)
- *   // nav.siguiente() → actualiza el paciente en el store
- *   // nav.anterior() → actualiza el paciente en el store
- *   // nav.indiceActual, nav.total → indicador "X de Y"
- *
- * Integración con App.jsx:
- *   El hook se instancia en App.jsx (donde vive pacienteSeleccionado)
- *   y se pasan las props de navegación a FichaPacienteModulo.
  */
-import React, { useMemo, useCallback, useEffect } from 'react'
+import { useMemo, useCallback, useEffect } from 'react'
 import { usePacientesStore } from '../../../store/pacientesStore'
 import { useSesionStore } from '../../../store/sesionStore'
+import type { Paciente } from '../schemas/pacienteSchema'
 
-export const useNavegacionClinica = (pacienteActual, alCambiarPaciente) => {
-  const pacientes = usePacientesStore((state) => state.pacientes)
+export interface UseNavegacionClinicaReturn {
+  indiceActual: number
+  total: number
+  hayAnterior: boolean
+  haySiguiente: boolean
+  anterior: () => void
+  siguiente: () => void
+  irA: (indice: number) => void
+  pacienteActual: Paciente | null | undefined
+  listaOrdenada: Paciente[]
+}
+
+export const useNavegacionClinica = (
+  pacienteActual?: Paciente | null,
+  alCambiarPaciente?: (paciente: Paciente) => void
+): UseNavegacionClinicaReturn => {
+  const pacientes = usePacientesStore((state: { pacientes: Paciente[] }) => state.pacientes)
 
   // Lista ordenada alfabéticamente por nombre (navegación predecible)
   const pacientesOrdenados = useMemo(
-    () => [...pacientes].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')),
+    () => [...(pacientes || [])].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es')),
     [pacientes]
   )
 
   const indiceActual = useMemo(() => {
     if (!pacienteActual) return -1
-    return pacientesOrdenados.findIndex((p) => p.id === pacienteActual.id)
+    return pacientesOrdenados.findIndex((p) => String(p.id) === String(pacienteActual.id))
   }, [pacientesOrdenados, pacienteActual])
 
   const total = pacientesOrdenados.length
@@ -48,7 +54,7 @@ export const useNavegacionClinica = (pacienteActual, alCambiarPaciente) => {
   const haySiguiente = indiceActual >= 0 && indiceActual < total - 1
 
   const irA = useCallback(
-    (indice) => {
+    (indice: number): void => {
       if (indice < 0 || indice >= total) return
       const nuevo = pacientesOrdenados[indice]
       if (nuevo && alCambiarPaciente) {
@@ -58,11 +64,11 @@ export const useNavegacionClinica = (pacienteActual, alCambiarPaciente) => {
     [pacientesOrdenados, total, alCambiarPaciente]
   )
 
-  const anterior = useCallback(() => {
+  const anterior = useCallback((): void => {
     if (hayAnterior) irA(indiceActual - 1)
   }, [hayAnterior, irA, indiceActual])
 
-  const siguiente = useCallback(() => {
+  const siguiente = useCallback((): void => {
     if (haySiguiente) irA(indiceActual + 1)
   }, [haySiguiente, irA, indiceActual])
 
@@ -73,7 +79,7 @@ export const useNavegacionClinica = (pacienteActual, alCambiarPaciente) => {
     if (pacienteActual?.id) {
       useSesionStore.getState().agregarPacienteReciente(pacienteActual)
     }
-  }, [pacienteActual?.id])
+  }, [pacienteActual])
 
   return {
     indiceActual,
