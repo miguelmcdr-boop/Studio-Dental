@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react'
 import { pacientesStorageService } from '../services/pacientesStorageService'
+import type { PurgeResult } from '../services/pacientesSoftDeleteService'
 import { notificationService } from '../../../services/notificationService'
 import { createLogger } from '../../../services/logger'
 
@@ -9,7 +10,23 @@ const log = createLogger('usePapelera.vaciar')
  * Retención legal de fichas clínicas (Ley 20.584 de Chile).
  * Los pacientes solo pueden purgarse después de 10 años de su eliminación.
  */
-const ANIOS_RETENCION = 10
+export const ANIOS_RETENCION = 10
+
+export interface PacienteEliminado {
+  id: string | number
+  nombre?: string
+  rut?: string
+  deleted_at?: string | null
+  eliminadoPor?: string
+  [key: string]: unknown
+}
+
+export interface UsePapeleraVaciarReturn {
+  elegibles: PacienteEliminado[]
+  contadorElegibles: number
+  aniosRetencion: number
+  vaciar: (pacienteIds?: (string | number)[]) => Promise<PurgeResult>
+}
 
 /**
  * Hook dedicado a la purga de pacientes (Feature 1).
@@ -19,18 +36,22 @@ const ANIOS_RETENCION = 10
  * - Ejecutar purga vía pacientesStorageService.vaciarPapeleraPacientes
  * - Refrescar papelera y directorio tras purgar
  *
- * @param {Array} pacientesEliminados - Lista completa de pacientes en papelera
- * @param {Function} cargarPapelera - Recarga lista de papelera
- * @param {Function} refrescarPacientes - Recarga directorio de pacientes activos
+ * @param pacientesEliminados - Lista completa de pacientes en papelera
+ * @param cargarPapelera - Recarga lista de papelera
+ * @param refrescarPacientes - Recarga directorio de pacientes activos
  */
-export const usePapeleraVaciar = (pacientesEliminados, cargarPapelera, refrescarPacientes) => {
+export const usePapeleraVaciar = (
+  pacientesEliminados: PacienteEliminado[],
+  cargarPapelera: () => Promise<void> | void,
+  refrescarPacientes: () => Promise<void> | void
+): UsePapeleraVaciarReturn => {
   // Calcular pacientes elegibles (eliminados hace 10+ años)
   const elegibles = useMemo(() => {
     const ahora = new Date()
     const limite = new Date()
     limite.setFullYear(ahora.getFullYear() - ANIOS_RETENCION)
 
-    return pacientesEliminados.filter((p) => {
+    return (pacientesEliminados || []).filter((p) => {
       if (!p.deleted_at) return false
       return new Date(p.deleted_at) <= limite
     })
@@ -38,14 +59,14 @@ export const usePapeleraVaciar = (pacientesEliminados, cargarPapelera, refrescar
 
   /**
    * Purga pacientes elegibles de forma permanente.
-   * @param {Array<string>} [pacienteIds] - Lista específica a purgar (opcional)
-   * @returns {Promise<Object>} { purgados, rechazados, error }
+   * @param [pacienteIds] - Lista específica a purgar (opcional)
+   * @returns {Promise<PurgeResult>} { purgados, rechazados, error }
    */
-  const vaciar = useCallback(async (pacienteIds = []) => {
+  const vaciar = useCallback(async (pacienteIds: (string | number)[] = []): Promise<PurgeResult> => {
     try {
       const ids = pacienteIds.length > 0 
-        ? pacienteIds 
-        : elegibles.map((p) => p.id)
+        ? pacienteIds.map(String)
+        : elegibles.map((p) => String(p.id))
 
       if (ids.length === 0) {
         notificationService.error('No hay pacientes elegibles para purgar', { 
@@ -77,9 +98,10 @@ export const usePapeleraVaciar = (pacientesEliminados, cargarPapelera, refrescar
 
       return resultado
     } catch (error) {
-      log.error('Error inesperado al vaciar papelera:', error)
+      const err = error as Error
+      log.error('Error inesperado al vaciar papelera:', err)
       notificationService.error('Error inesperado al vaciar', { titulo: 'Error' })
-      return { purgados: [], rechazados: [], error: error.message }
+      return { purgados: [], rechazados: [], error: err.message }
     }
   }, [elegibles, cargarPapelera, refrescarPacientes])
 
