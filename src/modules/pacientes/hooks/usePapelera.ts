@@ -1,12 +1,26 @@
 import { useState, useEffect, useCallback } from 'react'
 import { pacientesStorageService } from '../services/pacientesStorageService'
-import { obtenerAutoresDeEliminacion } from '../services/pacientesSoftDeleteService';
+import { obtenerAutoresDeEliminacion, type PurgeResult } from '../services/pacientesSoftDeleteService'
 import { usePacientesStore } from '../../../store/pacientesStore'
 import { notificationService } from '../../../services/notificationService'
 import { createLogger } from '../../../services/logger'
-import { usePapeleraVaciar } from './usePapelera.vaciar'
+import { usePapeleraVaciar, type PacienteEliminado } from './usePapelera.vaciar'
 
 const log = createLogger('usePapelera')
+
+export type { PacienteEliminado, PurgeResult }
+
+export interface UsePapeleraReturn {
+  pacientesEliminados: PacienteEliminado[]
+  cargando: boolean
+  contador: number
+  restaurar: (pacienteId: string | number) => Promise<boolean>
+  vaciar: (pacienteIds?: (string | number)[]) => Promise<PurgeResult>
+  elegibles: PacienteEliminado[]
+  contadorElegibles: number
+  aniosRetencion: number
+  refrescar: () => Promise<void>
+}
 
 /**
  * Hook para gestión de papelera de reciclaje (F6-L).
@@ -18,32 +32,31 @@ const log = createLogger('usePapelera')
  * - Refresco automático tras restaurar
  * 
  * Solo accesible para usuarios con permiso VER_PAPELERA (admin).
- * 
- * @returns {Object} Estado y métodos de la papelera
  */
-export const usePapelera = () => {
-  const [pacientesEliminados, setPacientesEliminados] = useState([])
-  const [cargando, setCargando] = useState(false)
-  const [contador, setContador] = useState(0)
+export const usePapelera = (): UsePapeleraReturn => {
+  const [pacientesEliminados, setPacientesEliminados] = useState<PacienteEliminado[]>([])
+  const [cargando, setCargando] = useState<boolean>(false)
+  const [contador, setContador] = useState<number>(0)
   
-  const refrescarPacientes = usePacientesStore((state) => state.refrescarDesdeSupabase)
+  // Zustand store tipado implícitamente desde JS
+  const refrescarPacientes = usePacientesStore((state: { refrescarDesdeSupabase: () => Promise<void> | void }) => state.refrescarDesdeSupabase)
 
   /**
    * Carga la lista de pacientes eliminados desde Supabase.
    */
-  const cargarPapelera = useCallback(async () => {
+  const cargarPapelera = useCallback(async (): Promise<void> => {
     setCargando(true)
     try {
       const eliminados = await pacientesStorageService.listarPacientesEliminados()
       
       // Obtener autores de eliminación (batch query a audit_log)
-      const ids = eliminados.map(p => p.id)
+      const ids = eliminados.map(p => String(p.id))
       const autoresMap = await obtenerAutoresDeEliminacion(ids)
       
       // Merge datos de pacientes con autores
-      const eliminadosConAutor = eliminados.map(paciente => ({
+      const eliminadosConAutor: PacienteEliminado[] = eliminados.map(paciente => ({
         ...paciente,
-        eliminadoPor: autoresMap.get(paciente.id) || 'Usuario desconocido'
+        eliminadoPor: autoresMap.get(String(paciente.id)) || 'Usuario desconocido'
       }))
       
       setPacientesEliminados(eliminadosConAutor)
@@ -58,11 +71,11 @@ export const usePapelera = () => {
 
   /**
    * Restaura un paciente eliminado.
-   * @param {string} pacienteId - UUID del paciente a restaurar
+   * @param pacienteId - UUID del paciente a restaurar
    */
-  const restaurar = useCallback(async (pacienteId) => {
+  const restaurar = useCallback(async (pacienteId: string | number): Promise<boolean> => {
     try {
-      const exito = await pacientesStorageService.restaurarPaciente(pacienteId)
+      const exito = await pacientesStorageService.restaurarPaciente(String(pacienteId))
       
       if (exito) {
         notificationService.success('Paciente restaurado correctamente', { 
