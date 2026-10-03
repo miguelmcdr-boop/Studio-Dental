@@ -1,35 +1,44 @@
-/**
- * AgendaProfesionalView — F7-27
- *
- * Vista de agenda agrupada por doctor/profesional.
- * Alternativa a la vista por boxes cuando un doctor atiende en múltiples boxes.
- *
- * Características:
- * - Columnas: una por doctor
- * - Cada columna muestra las citas de ese doctor ordenadas por hora
- * - Similar a vista por box pero con doctores como columnas
- */
 import React, { memo, useMemo } from 'react'
 import { Calendar, Clock, User, MapPin } from 'lucide-react'
+import type { Cita } from '../schemas/citaSchema'
 
-const ESTADO_STYLES = {
+const ESTADO_STYLES: Record<string, string> = {
   'Agendada': 'border-l-clinical-info bg-clinical-info/5 dark:bg-sky-400/10',
+  'Agendado': 'border-l-clinical-info bg-clinical-info/5 dark:bg-sky-400/10',
   'EnEspera': 'border-l-clinical-warning bg-clinical-warning/5 dark:bg-amber-400/10',
   'En Espera': 'border-l-clinical-warning bg-clinical-warning/5 dark:bg-amber-400/10',
   'EnAtencion': 'border-l-clinical-success bg-clinical-success/5 dark:bg-emerald-400/10',
   'En Atención': 'border-l-clinical-success bg-clinical-success/5 dark:bg-emerald-400/10',
+  'En Sillón': 'border-l-clinical-success bg-clinical-success/5 dark:bg-emerald-400/10',
   'Completado': 'border-l-graphite-400 bg-graphite-50 dark:bg-graphite-700/30',
   'Atendido': 'border-l-graphite-400 bg-graphite-50 dark:bg-graphite-700/30',
   'Cancelada': 'border-l-clinical-error bg-clinical-error/5 dark:bg-red-400/10 opacity-60',
+  'Anulado': 'border-l-clinical-error bg-clinical-error/5 dark:bg-red-400/10 opacity-60',
 }
 
-export const AgendaProfesionalView = memo(({ citas = [], doctoresDisponibles = [], alVerFichaPaciente }) => {
+export interface DoctorDisponibleItem {
+  id?: string | number
+  nombre: string
+}
+
+export interface AgendaProfesionalViewProps {
+  citas?: Cita[]
+  doctoresDisponibles?: (string | DoctorDisponibleItem)[]
+  alVerFichaPaciente?: (cita: Cita) => void
+}
+
+export const AgendaProfesionalView: React.FC<AgendaProfesionalViewProps> = memo(({
+  citas = [],
+  doctoresDisponibles = [],
+  alVerFichaPaciente
+}) => {
   const citasPorDoctor = useMemo(() => {
-    const agrupadas = {}
+    const agrupadas: Record<string, Cita[]> = {}
 
     // Inicializar con todos los doctores disponibles
     doctoresDisponibles.forEach((doc) => {
-      agrupadas[doc.nombre] = []
+      const nombre = typeof doc === 'string' ? doc : doc.nombre
+      agrupadas[nombre] = []
     })
 
     // Agrupar citas por doctor

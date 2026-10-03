@@ -1,26 +1,14 @@
-/**
- * ModalNuevoBloqueo v2 — Modal de bloqueo de horario (F10-C2.5)
- *
- * Migración al Design System v2:
- * - Iconos lucide en botones (Ban) y selects de box (Building, Armchair)
- * - Emojis de motivos (🍱 🛠️ 🎓 🚨) se mantienen en <option> (son contenido, no iconos UI)
- *
- * Pendiente C3: migrar alert() a <ConfirmDialog>
- *
- * Contratos: API de props sin cambios, mensaje de alert() preservado.
- */
 import React, { memo, useState } from 'react'
-import { Ban, Building, Armchair } from 'lucide-react'
+import { Ban, Utensils, Wrench, GraduationCap, AlertTriangle } from 'lucide-react'
 import { Modal } from '../../../components/ui/Modal'
 import { Input } from '../../../components/ui/Input'
 import { Button } from '../../../components/ui/Button'
 import { useAppDialog } from '../../../hooks/useAppDialog'
 import { CustomSelect } from '../../../components/ui/CustomSelect'
-import { Utensils, Wrench, GraduationCap, AlertTriangle } from 'lucide-react'
-import { TIPOS_BLOQUEO_AGENDA, SILLONES_DENTALES } from '../constants/agendaConstants'
+import { SILLONES_DENTALES } from '../constants/agendaConstants'
 import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
 import { detectarConflictoBloqueo } from '../utils/agendaConflictos'
-
+import type { Cita } from '../schemas/citaSchema'
 
 const MOTIVOS_BLOQUEO = [
   { value: 'Horario de Almuerzo', label: 'Horario de Almuerzo', icon: Utensils },
@@ -29,7 +17,19 @@ const MOTIVOS_BLOQUEO = [
   { value: 'Ausencia / Urgencia', label: 'Ausencia del Profesional', icon: AlertTriangle },
 ]
 
-export const ModalNuevoBloqueo = memo(({ fechaPredeterminada, alGuardar, alCerrar, citasExistentes = [] }) => {
+export interface ModalNuevoBloqueoProps {
+  fechaPredeterminada?: string
+  alGuardar: (bloqueo: Cita) => void
+  alCerrar: () => void
+  citasExistentes?: Cita[]
+}
+
+export const ModalNuevoBloqueo: React.FC<ModalNuevoBloqueoProps> = memo(({
+  fechaPredeterminada,
+  alGuardar,
+  alCerrar,
+  citasExistentes = []
+}) => {
   const { alert: dialogAlert } = useAppDialog()
   const [form, setForm] = useState({
     motivoBloqueo: 'Horario de Almuerzo',
@@ -40,7 +40,7 @@ export const ModalNuevoBloqueo = memo(({ fechaPredeterminada, alGuardar, alCerra
     observaciones: ''
   })
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault()
 
     if (form.horaInicio >= form.horaFin) {
@@ -92,7 +92,10 @@ export const ModalNuevoBloqueo = memo(({ fechaPredeterminada, alGuardar, alCerra
       horaFin: form.horaFin,
       boxAsignado: form.boxAsignado,
       observaciones: form.observaciones,
-      estado: 'Bloqueado'
+      estado: 'Bloqueado',
+      pacienteId: 'bloqueo',
+      pacienteNombre: 'Bloqueo Horario',
+      trataMiento: form.motivoBloqueo,
     })
   }
 
@@ -104,11 +107,11 @@ export const ModalNuevoBloqueo = memo(({ fechaPredeterminada, alGuardar, alCerra
 
       <form onSubmit={handleSubmit} className="space-y-4 text-xs">
         <CustomSelect
-            label="Motivo del Bloqueo"
-            options={MOTIVOS_BLOQUEO}
-            value={form.motivoBloqueo}
-            onChange={(value) => setForm({ ...form, motivoBloqueo: value })}
-          />
+          label="Motivo del Bloqueo"
+          options={MOTIVOS_BLOQUEO}
+          value={form.motivoBloqueo}
+          onChange={(value) => setForm({ ...form, motivoBloqueo: value })}
+        />
 
         <div className="grid grid-cols-2 gap-3">
           <Input

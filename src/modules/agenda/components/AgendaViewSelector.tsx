@@ -3,7 +3,26 @@ import { Download } from 'lucide-react'
 import { BOXES_DENTALES } from '../constants/agendaConstants'
 import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
 
-export const AgendaViewSelector = memo(({
+export interface AgendaDoctorItem {
+  id?: string | number
+  nombre: string
+}
+
+export interface AgendaViewSelectorProps {
+  fechaSeleccionadaIso: string
+  setFechaSeleccionadaIso: (fecha: string) => void
+  boxFiltro: string
+  setBoxFiltro: (box: string) => void
+  doctorFiltro?: string
+  setDoctorFiltro?: (doc: string) => void
+  doctoresDisponibles?: (string | AgendaDoctorItem)[]
+  vista?: string
+  setVista?: (vista: string) => void
+  onExportarCSV?: () => void
+  onBusquedaChange?: (busqueda: string) => void
+}
+
+export const AgendaViewSelector: React.FC<AgendaViewSelectorProps> = memo(({
   fechaSeleccionadaIso,
   setFechaSeleccionadaIso,
   boxFiltro,
@@ -17,16 +36,16 @@ export const AgendaViewSelector = memo(({
   onBusquedaChange
 }) => {
   // F7-27: Estado de búsqueda con debounce
-  const [busquedaLocal, setBusquedaLocal] = useState('')
+  const [busquedaLocal, setBusquedaLocal] = useState<string>('')
 
-  const handleBusquedaChange = (e) => {
+  const handleBusquedaChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const valor = e.target.value
     setBusquedaLocal(valor)
     if (onBusquedaChange) onBusquedaChange(valor)
   }
 
-  const handleHoy = () => {
-   setFechaSeleccionadaIso(obtenerFechaLocalISO())
+  const handleHoy = (): void => {
+    setFechaSeleccionadaIso(obtenerFechaLocalISO())
   }
 
   return (
@@ -51,8 +70,9 @@ export const AgendaViewSelector = memo(({
             className="p-2 border rounded-xl bg-graphite-50 dark:bg-graphite-950 surgical:bg-white border-surface font-bold text-xs text-graphite-900 dark:text-graphite-50 surgical:text-black"
           />
           <button
+            type="button"
             onClick={handleHoy}
-            className="px-3 py-2 bg-graphite-50 dark:bg-graphite-950 surgical:bg-white border border-surface rounded-xl font-bold hover:bg-gray-100 dark:hover:bg-graphite-800 text-gray-800 dark:text-graphite-100 surgical:text-black transition-colors duration-150"
+            className="px-3 py-2 bg-graphite-50 dark:bg-graphite-950 surgical:bg-white border border-surface rounded-xl font-bold hover:bg-gray-100 dark:hover:bg-graphite-800 text-gray-800 dark:text-graphite-100 surgical:text-black transition-colors duration-150 cursor-pointer"
           >
             Hoy
           </button>
@@ -81,9 +101,12 @@ export const AgendaViewSelector = memo(({
               className="p-2 border rounded-xl bg-graphite-50 dark:bg-graphite-950 surgical:bg-white border-surface font-bold text-xs text-graphite-900 dark:text-graphite-50 surgical:text-black"
             >
               <option value="Todos">Todos los Odontólogos</option>
-              {doctoresDisponibles.map(doc => (
-                <option key={doc} value={doc}>{doc}</option>
-              ))}
+              {doctoresDisponibles.map(doc => {
+                const nombreDoc = typeof doc === 'string' ? doc : doc.nombre
+                return (
+                  <option key={nombreDoc} value={nombreDoc}>{nombreDoc}</option>
+                )
+              })}
             </select>
           </div>
         )}
@@ -109,7 +132,7 @@ export const AgendaViewSelector = memo(({
           <button
             type="button"
             onClick={onExportarCSV}
-            className="inline-flex items-center gap-1.5 px-3 py-2 bg-graphite-50 dark:bg-graphite-950 surgical:bg-white border border-surface rounded-xl font-bold text-xs text-gray-800 dark:text-graphite-100 surgical:text-black hover:bg-gray-50 dark:hover:bg-graphite-800 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-2 bg-graphite-50 dark:bg-graphite-950 surgical:bg-white border border-surface rounded-xl font-bold text-xs text-gray-800 dark:text-graphite-100 surgical:text-black hover:bg-gray-50 dark:hover:bg-graphite-800 transition-colors cursor-pointer"
             aria-label="Exportar agenda a CSV"
           >
             <Download size={12} />

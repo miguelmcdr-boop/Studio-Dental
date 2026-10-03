@@ -1,23 +1,29 @@
-/**
- * RecurrenciaForm — F7-27
- *
- * Formulario de recurrencia para citas recurrentes.
- * Extraído de ModalNuevaCita para mantener el límite de 250 líneas.
- *
- * Props:
- * - recurrencia: 'ninguna' | 'semanal' | 'mensual' | 'anual'
- * - frecuencia: número (cada X períodos)
- * - diaSemana: 0-6 (solo semanal)
- * - diaMes: 1-31 (solo mensual)
- * - fechaFin: string YYYY-MM-DD (opcional)
- * - numInstancias: número de citas a generar
- * - proximasCitas: array de citas generadas (preview)
- * - setters para cada campo
- */
 import React, { memo } from 'react'
 import { Calendar, RefreshCw } from 'lucide-react'
 
-export const RecurrenciaForm = memo(({
+export interface CitaRecurrenciaPreview {
+  fecha: string
+  [key: string]: unknown
+}
+
+export interface RecurrenciaFormProps {
+  recurrencia: string
+  setRecurrencia: (rec: string) => void
+  frecuencia: number
+  setFrecuencia: (frec: number) => void
+  diaSemana: number
+  setDiaSemana: (dia: number) => void
+  diaMes: number
+  setDiaMes: (dia: number) => void
+  fechaFin: string
+  setFechaFin: (fecha: string) => void
+  numInstancias: number
+  setNumInstancias: (num: number) => void
+  proximasCitas: CitaRecurrenciaPreview[]
+  fechaMinima?: string
+}
+
+export const RecurrenciaForm: React.FC<RecurrenciaFormProps> = memo(({
   recurrencia,
   setRecurrencia,
   frecuencia,

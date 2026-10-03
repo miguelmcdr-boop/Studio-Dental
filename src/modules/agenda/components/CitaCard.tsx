@@ -1,23 +1,12 @@
-/**
- * CitaCard v2 — Tarjeta de cita en parrilla (F10-C2.5)
- *
- * Migración al Design System v2:
- * - Iconos lucide reemplazan emojis (Ban, Clock, Armchair, Trash2, Stethoscope, Folder, MessageCircle)
- * - <Badge dot variant="..."> para estados (reemplaza 🔵🟢🟡🟣⚪🔴)
- * - Colores de border/ring para estados especiales preservados
- *
- * Pendiente C3: migrar confirm() nativo a <ConfirmDialog>
- *
- * Contratos: API de props sin cambios, mensajes de confirm() preservados.
- */
 import React, { memo } from 'react'
 import { Ban, Clock, Armchair, Trash2, Stethoscope, Folder, MessageCircle } from 'lucide-react'
 import { Icon } from '../../../components/Icon'
 import { useAppDialog } from '../../../hooks/useAppDialog'
 import { stripEmojis } from '../../../utils/stringUtils'
 import { Badge } from '../../../components/ui/Badge'
+import type { Cita } from '../schemas/citaSchema'
 
-const ESTADO_BADGE_VARIANT = {
+const ESTADO_BADGE_VARIANT: Record<string, 'info' | 'success' | 'warning' | 'neutral' | 'error'> = {
   'Agendado': 'info',
   'Confirmado': 'success',
   'En Espera': 'warning',
@@ -26,7 +15,16 @@ const ESTADO_BADGE_VARIANT = {
   'Anulado': 'error',
 }
 
-export const CitaCard = memo(({
+export interface CitaCardProps {
+  cita: Cita
+  alHacerClic?: (cita: Cita) => void
+  alCambiarEstado?: (id: string | number, estado: string) => void
+  alEnviarWhatsApp?: (cita: Cita) => void
+  alVerFicha?: (pacienteId?: string | number) => void
+  alEliminar?: (id: string | number) => void
+}
+
+export const CitaCard: React.FC<CitaCardProps> = memo(({
   cita,
   alHacerClic,
   alCambiarEstado,
@@ -35,7 +33,7 @@ export const CitaCard = memo(({
   alEliminar
 }) => {
   const { confirm } = useAppDialog()
-  const esBloqueo = cita.esBloqueo
+  const esBloqueo = Boolean(cita.esBloqueo)
 
   if (esBloqueo) {
     return (

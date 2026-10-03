@@ -1,28 +1,54 @@
-/**
- * CamposFormularioCita — Campos del formulario de nueva cita (F10-C2.7)
- * Extraído de ModalNuevaCita.jsx para cumplir límites de allowlist (F7-25)
- *
- * Componente "dumb": recibe props + setters del padre (ModalNuevaCita).
- * NO tiene form propio, NO tiene estado local, NO tiene botones.
- *
- * Migración DS v2: CustomSelect para paciente/box (sin emojis 👤📞🪑),
- * iconos lucide para confirmación, ficha y horario.
- */
 import React from 'react'
 import { Input } from '../../../components/ui/Input'
 import { CustomSelect } from '../../../components/ui/CustomSelect'
 import { Icon } from '../../../components/Icon'
 import { Armchair, Check, Phone, Folder, Clock, Timer } from 'lucide-react'
 import { TRATAMIENTOS_RAPIDOS } from '../constants/agendaConstants'
+import type { Paciente } from '../../pacientes/schemas/pacienteSchema'
 
-export const CamposFormularioCita = ({
+export interface SillonDentalItem {
+  id: string
+  nombre: string
+  especialidad?: string
+}
+
+export interface CamposFormularioCitaProps {
+  pacientes: (Paciente & { apellido?: string; nombreCompleto?: string })[]
+  sillonesDentales: readonly SillonDentalItem[] | SillonDentalItem[]
+  esPacienteExpress: boolean
+  pacienteSeleccionadoId: string | number
+  pacienteNombre: string
+  pacienteTelefono: string
+  pacienteRut: string
+  autoCrearFicha: boolean
+  tratamiento: string
+  boxAsignado: string
+  fecha: string
+  horaInicio: string
+  horaFinCalculada: string
+  duracionMinutos: number | string
+  observaciones: string
+  setPacienteSeleccionadoId: (id: string) => void
+  setPacienteNombre: (nombre: string) => void
+  setPacienteTelefono: (tel: string) => void
+  setPacienteRut: (rut: string) => void
+  setAutoCrearFicha: (auto: boolean) => void
+  setTratamiento: (tratamiento: string) => void
+  setBoxAsignado: (box: string) => void
+  setFecha: (fecha: string) => void
+  setHoraInicio: (hora: string) => void
+  setDuracionMinutos: (duracion: number | string) => void
+  setObservaciones: (obs: string) => void
+  handleSelectPacienteChange: (e: { target: { value: string } }) => void
+}
+
+export const CamposFormularioCita: React.FC<CamposFormularioCitaProps> = ({
   pacientes,
   sillonesDentales,
   esPacienteExpress,
   pacienteSeleccionadoId,
   pacienteNombre,
   pacienteTelefono,
-  pacienteRut,
   autoCrearFicha,
   tratamiento,
   boxAsignado,
@@ -31,10 +57,8 @@ export const CamposFormularioCita = ({
   horaFinCalculada,
   duracionMinutos,
   observaciones,
-  setPacienteSeleccionadoId,
   setPacienteNombre,
   setPacienteTelefono,
-  setPacienteRut,
   setAutoCrearFicha,
   setTratamiento,
   setBoxAsignado,
@@ -46,7 +70,7 @@ export const CamposFormularioCita = ({
 }) => {
   // El CustomSelect emite onChange(value) directo; el padre espera un evento.
   // Wrapper para mantener compatibilidad sin tocar el handler del padre.
-  const handlePacienteChange = (value) => {
+  const handlePacienteChange = (value: string): void => {
     handleSelectPacienteChange({ target: { value } })
   }
 
@@ -60,11 +84,11 @@ export const CamposFormularioCita = ({
             options={pacientes.map(p => {
               const nombreFull = `${p.nombre || ''} ${p.apellido || ''}`.trim() || p.nombreCompleto || 'Sin Nombre'
               return {
-                value: p.id,
+                value: String(p.id),
                 label: `${nombreFull} ${p.rut ? `(RUT: ${p.rut})` : ''} ${p.telefono ? `- Tel: ${p.telefono}` : ''}`
               }
             })}
-            value={pacienteSeleccionadoId}
+            value={String(pacienteSeleccionadoId)}
             onChange={handlePacienteChange}
             placeholder="-- Despliega para elegir paciente registrado --"
           />

@@ -16,10 +16,10 @@ export interface ResultadoValidacionRecurrencia {
   conflictos: ConflictoRecurrenciaDetalle[]
 }
 
-export type ValidarRecurrenciaFn = (cita: unknown, existentes: unknown[]) => ResultadoValidacionRecurrencia
+export type ValidarRecurrenciaFn = (cita: Record<string, unknown>, existentes: unknown[]) => ResultadoValidacionRecurrencia
 
 export const confirmarConflictosRecurrencia = async (
-  citasAGuardar: unknown[],
+  citasAGuardar: Record<string, unknown>[],
   citasExistentes: unknown[],
   validarFn: ValidarRecurrenciaFn,
   confirmFn: ConfirmDialogFn | null = null

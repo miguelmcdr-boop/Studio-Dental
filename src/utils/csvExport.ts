@@ -5,12 +5,12 @@
  */
 
 export interface CitaCSVInput {
-  id?: string | null
+  id?: string | number | null
   fecha?: string | null
   horaInicio?: string | null
   pacienteNombre?: string | null
   pacienteRut?: string | null
-  pacienteTelefono?: string | null
+  pacienteTelefono?: string | number | null
   trataMiento?: string | null
   boxAsignado?: string | null
   estado?: string | null
@@ -45,11 +45,11 @@ export const formatearCitaParaCSV = (cita: CitaCSVInput): CitaCSVFormateada => (
   'Hora': cita?.horaInicio || '',
   'Paciente': cita?.pacienteNombre || 'Sin nombre',
   'RUT': cita?.pacienteRut || '',
-  'Teléfono': cita?.pacienteTelefono || '',
+  'Teléfono': cita?.pacienteTelefono ? String(cita.pacienteTelefono) : '',
   'Tratamiento': cita?.trataMiento || '',
   'Box': cita?.boxAsignado || '',
   'Estado': cita?.estado || '',
-  'ID': cita?.id || '',
+  'ID': cita?.id ? String(cita.id) : '',
 })
 
 /** Exporta un array de citas a CSV y descarga el archivo. */

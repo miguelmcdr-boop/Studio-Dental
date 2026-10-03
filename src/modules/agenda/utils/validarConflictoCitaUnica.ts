@@ -16,10 +16,10 @@ export interface ResultadoValidacionCita {
   conflictos: ConflictoCitaDetalle[]
 }
 
-export type ValidarCitaFn = (cita: unknown, existentes: unknown[]) => ResultadoValidacionCita
+export type ValidarCitaFn = (cita: Record<string, unknown>, existentes: unknown[]) => ResultadoValidacionCita
 
 export const validarConflictoCitaUnica = async (
-  citaUnica: unknown,
+  citaUnica: Record<string, unknown>,
   citasExistentes: unknown[],
   validarFn: ValidarCitaFn,
   confirmFn: ConfirmDialogFn | null = null

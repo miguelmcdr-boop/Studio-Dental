@@ -1,11 +1,6 @@
-/**
- * ModalNuevaCita — Modal para agendar cita médica
- * Migrado a <Modal> base + CamposFormularioCita (F7-25)
- */
-import { Plus } from 'lucide-react'
 import React, { memo, useState, useMemo } from 'react'
+import { Plus, User, Zap } from 'lucide-react'
 import { Icon } from '../../../components/Icon'
-import { User, Zap } from 'lucide-react'
 import { SILLONES_DENTALES } from '../constants/agendaConstants'
 import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
 import { Modal } from '../../../components/ui/Modal'
@@ -14,37 +9,52 @@ import { useAppDialog } from '../../../hooks/useAppDialog'
 import { CamposFormularioCita } from './CamposFormularioCita'
 import { RecurrenciaForm } from './RecurrenciaForm'
 import { generarCitasRecurrencia, validarConflictosRecurrencia } from '../../../utils/recurrenciaUtils'
-import { RefreshCw } from 'lucide-react'
 import { confirmarConflictosRecurrencia } from '../utils/validarConflictosRecurrencia'
 import { validarConflictoCitaUnica } from '../utils/validarConflictoCitaUnica'
+import type { Cita } from '../schemas/citaSchema'
+import type { Paciente } from '../../pacientes/schemas/pacienteSchema'
 
-export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGuardar, alCerrar, citasExistentes = [] }) => {
-  const [esPacienteExpress, setEsPacienteExpress] = useState(false)
-  const [pacienteSeleccionadoId, setPacienteSeleccionadoId] = useState('')
+export interface ModalNuevaCitaProps {
+  pacientes?: (Paciente & { apellido?: string; nombreCompleto?: string })[]
+  fechaPredeterminada?: string
+  alGuardar: (cita: Cita, autoCrearFicha?: boolean) => void
+  alCerrar: () => void
+  citasExistentes?: Cita[]
+}
+
+export const ModalNuevaCita: React.FC<ModalNuevaCitaProps> = memo(({
+  pacientes = [],
+  fechaPredeterminada,
+  alGuardar,
+  alCerrar,
+  citasExistentes = []
+}) => {
+  const [esPacienteExpress, setEsPacienteExpress] = useState<boolean>(false)
+  const [pacienteSeleccionadoId, setPacienteSeleccionadoId] = useState<string>('')
   
-  const [pacienteNombre, setPacienteNombre] = useState('')
-  const [pacienteTelefono, setPacienteTelefono] = useState('')
-  const [pacienteRut, setPacienteRut] = useState('')
-  const [autoCrearFicha, setAutoCrearFicha] = useState(true)
+  const [pacienteNombre, setPacienteNombre] = useState<string>('')
+  const [pacienteTelefono, setPacienteTelefono] = useState<string>('')
+  const [pacienteRut, setPacienteRut] = useState<string>('')
+  const [autoCrearFicha, setAutoCrearFicha] = useState<boolean>(true)
 
-  const [tratamiento, setTratamiento] = useState('Evaluación / Diagnóstico Inicial')
-  const [boxAsignado, setBoxAsignado] = useState(SILLONES_DENTALES[0]?.nombre || 'Sillón 1 - Odontología General')
-  const [fecha, setFecha] = useState(fechaPredeterminada || obtenerFechaLocalISO())
-  const [horaInicio, setHoraInicio] = useState('09:00')
-  const [duracionMinutos, setDuracionMinutos] = useState(30)
-  const [observaciones, setObservaciones] = useState('')
+  const [tratamiento, setTratamiento] = useState<string>('Evaluación / Diagnóstico Inicial')
+  const [boxAsignado, setBoxAsignado] = useState<string>(SILLONES_DENTALES[0]?.nombre || 'Sillón 1 - Odontología General')
+  const [fecha, setFecha] = useState<string>(fechaPredeterminada || obtenerFechaLocalISO())
+  const [horaInicio, setHoraInicio] = useState<string>('09:00')
+  const [duracionMinutos, setDuracionMinutos] = useState<number | string>(30)
+  const [observaciones, setObservaciones] = useState<string>('')
 
   // F7-27: Estados de recurrencia
-  const [recurrencia, setRecurrencia] = useState('ninguna')
-  const [frecuencia, setFrecuencia] = useState(1)
-  const [diaSemana, setDiaSemana] = useState(1) // 0=Dom, 1=Lun, ..., 6=Sáb
-  const [diaMes, setDiaMes] = useState(1) // 1-31
-  const [fechaFin, setFechaFin] = useState('')
-  const [numInstancias, setNumInstancias] = useState(4)
+  const [recurrencia, setRecurrencia] = useState<'ninguna' | 'semanal' | 'mensual' | 'anual'>('ninguna')
+  const [frecuencia, setFrecuencia] = useState<number>(1)
+  const [diaSemana, setDiaSemana] = useState<number>(1) // 0=Dom, 1=Lun, ..., 6=Sáb
+  const [diaMes, setDiaMes] = useState<number>(1) // 1-31
+  const [fechaFin, setFechaFin] = useState<string>('')
+  const [numInstancias, setNumInstancias] = useState<number>(4)
 
   const { alert: dialogAlert, confirm: dialogConfirm } = useAppDialog()
 
-  const handleSelectPacienteChange = (e) => {
+  const handleSelectPacienteChange = (e: { target: { value: string } }): void => {
     const pId = e.target.value
     setPacienteSeleccionadoId(pId)
 
@@ -59,7 +69,7 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
     if (pEncontrado) {
       const nombreCompleto = `${pEncontrado.nombre || ''} ${pEncontrado.apellido || ''}`.trim() || pEncontrado.nombreCompleto || ''
       setPacienteNombre(nombreCompleto)
-      setPacienteTelefono(pEncontrado.telefono || '')
+      setPacienteTelefono(pEncontrado.telefono ? String(pEncontrado.telefono) : '')
       setPacienteRut(pEncontrado.rut || '')
     }
   }
@@ -68,7 +78,7 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
     if (!horaInicio) return '09:30'
     const [h, m] = horaInicio.split(':').map(Number)
     const inicioMin = h * 60 + m
-    const finMin = inicioMin + parseInt(duracionMinutos, 10)
+    const finMin = inicioMin + (typeof duracionMinutos === 'number' ? duracionMinutos : parseInt(duracionMinutos, 10))
     const hFin = String(Math.floor(finMin / 60) % 24).padStart(2, '0')
     const mFin = String(finMin % 60).padStart(2, '0')
     return `${hFin}:${mFin}`
@@ -92,7 +102,7 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
     return generarCitasRecurrencia(citaBase, numInstancias)
   }, [recurrencia, fecha, horaInicio, frecuencia, diaSemana, diaMes, fechaFin, numInstancias])
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault()
 
     if (!pacienteNombre.trim()) {
@@ -105,10 +115,12 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
       return
     }
 
+    const duracionNum = typeof duracionMinutos === 'number' ? duracionMinutos : parseInt(duracionMinutos, 10)
+
     // F7-27: Si hay recurrencia, generar citas futuras
     if (recurrencia !== 'ninguna' && proximasCitas.length > 0) {
       const citaPadreId = Date.now()
-      const citasAGuardar = []
+      const citasAGuardar: Cita[] = []
 
       // Cita original (la primera)
       citasAGuardar.push({
@@ -122,7 +134,7 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
         fecha,
         horaInicio,
         horaFin: horaFinCalculada,
-        duracionMinutos: parseInt(duracionMinutos, 10),
+        duracionMinutos: duracionNum,
         observaciones,
         estado: 'Agendado',
         recurrencia,
@@ -146,7 +158,7 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
           fecha: citaRec.fecha,
           horaInicio,
           horaFin: horaFinCalculada,
-          duracionMinutos: parseInt(duracionMinutos, 10),
+          duracionMinutos: duracionNum,
           observaciones,
           estado: 'Agendado',
           recurrencia: 'ninguna', // Las instancias generadas no son recurrentes
@@ -157,14 +169,14 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
       const puedeContinuar = await confirmarConflictosRecurrencia(
         citasAGuardar,
         citasExistentes,
-        validarConflictosRecurrencia,
+        (c, e) => validarConflictosRecurrencia(c, e as Record<string, unknown>[]),
         dialogConfirm
       )
       if (!puedeContinuar) {
         return
       }
 
-      // Guardar todas las citas (el hook useAgenda debe manejar arrays)
+      // Guardar todas las citas
       citasAGuardar.forEach((cita, index) => {
         alGuardar(cita, index === 0 && esPacienteExpress ? autoCrearFicha : false)
       })
@@ -177,7 +189,7 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
       })
     } else {
       // Cita única (sin recurrencia)
-      const citaUnica = {
+      const citaUnica: Cita = {
         id: Date.now(),
         pacienteId: pacienteSeleccionadoId || `express_${Date.now()}`,
         pacienteNombre,
@@ -188,7 +200,7 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
         fecha,
         horaInicio,
         horaFin: horaFinCalculada,
-        duracionMinutos: parseInt(duracionMinutos, 10),
+        duracionMinutos: duracionNum,
         observaciones,
         estado: 'Agendado'
       }
@@ -197,7 +209,7 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
       const puedeContinuar = await validarConflictoCitaUnica(
         citaUnica,
         citasExistentes,
-        validarConflictosRecurrencia,
+        (c, e) => validarConflictosRecurrencia(c, e as Record<string, unknown>[]),
         dialogConfirm
       )
       if (!puedeContinuar) {
@@ -284,7 +296,7 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
         {/* F7-27: Formulario de recurrencia */}
         <RecurrenciaForm
           recurrencia={recurrencia}
-          setRecurrencia={setRecurrencia}
+          setRecurrencia={(rec: string) => setRecurrencia(rec as 'ninguna' | 'semanal' | 'mensual' | 'anual')}
           frecuencia={frecuencia}
           setFrecuencia={setFrecuencia}
           diaSemana={diaSemana}
@@ -309,12 +321,12 @@ export const ModalNuevaCita = memo(({ pacientes = [], fechaPredeterminada, alGua
             Cancelar
           </Button>
           <Button
-              type="submit"
-              variant="primary"
-              icon={Plus}
-            >
-              Confirmar cita
-            </Button>
+            type="submit"
+            variant="primary"
+            icon={Plus}
+          >
+            Confirmar cita
+          </Button>
         </div>
       </form>
     </Modal>

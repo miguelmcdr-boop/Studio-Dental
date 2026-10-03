@@ -5,7 +5,7 @@
 export interface DialogOptions {
   title: string
   description: string
-  variant?: string
+  variant?: 'danger' | 'info' | 'warning'
   confirmText?: string
   cancelText?: string
 }

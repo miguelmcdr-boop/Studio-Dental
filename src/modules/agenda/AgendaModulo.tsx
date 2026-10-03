@@ -1,19 +1,3 @@
-/**
- * AgendaModulo v2 — Parrilla multi-box de citas (F10-C2)
- *
- * Migración al Design System v2:
- * - <PageHeader> con título sentence case (retira UPPERCASE + font-black)
- * - <Button> variant="danger" + icono Ban para bloqueos
- * - <Button> variant="primary" + icono Plus para nueva cita
- * - <EmptyState> compact para boxes sin citas
- * - Iconos lucide reemplazan emojis 📅 ⛔ ➕ 🪑
- *
- * Componentes auxiliares NO tocados (iteración posterior si se requiere):
- * - AgendaViewSelector, AgendaSummaryCards, CitaCard
- * - ModalNuevaCita, ModalNuevoBloqueo
- *
- * Contratos: no hay data-testid en este archivo, preservación de API de props.
- */
 import React, { memo, useMemo, useState } from 'react'
 import { Ban, Plus, Armchair, Calendar } from 'lucide-react'
 import { Button } from '../../components/ui/Button'
@@ -30,9 +14,16 @@ import { AgendaProfesionalView } from './components/AgendaProfesionalView'
 import { exportarCitasCSV } from '../../utils/csvExport'
 import { SILLONES_DENTALES } from './constants/agendaConstants'
 import { usePacientesStore } from '../../store/pacientesStore'
+import type { Cita } from './schemas/citaSchema'
+import type { Paciente } from '../pacientes/schemas/pacienteSchema'
 
-export const AgendaModulo = memo(({ alSeleccionarPaciente, alVerFichaPaciente }) => {
-  const pacientesProp = usePacientesStore((state) => state.pacientes)
+export interface AgendaModuloProps {
+  alSeleccionarPaciente?: (target: Paciente) => void
+  alVerFichaPaciente?: (target: Paciente) => void
+}
+
+export const AgendaModulo: React.FC<AgendaModuloProps> = memo(({ alSeleccionarPaciente, alVerFichaPaciente }) => {
+  const pacientesProp = usePacientesStore((state: { pacientes: Paciente[] }) => state.pacientes)
 
   const {
     citas,
@@ -54,8 +45,8 @@ export const AgendaModulo = memo(({ alSeleccionarPaciente, alVerFichaPaciente })
   } = useAgenda(pacientesProp)
 
   // F7-27: Estado de vista de agenda
-  const [vista, setVista] = useState('box')
-  const [busqueda, setBusqueda] = useState('')
+  const [vista, setVista] = useState<string>('box')
+  const [busqueda, setBusqueda] = useState<string>('')
 
   const citasDelDia = useMemo(() => {
     let filtradas = citas.filter(c => c.fecha === fechaSeleccionada)
@@ -65,17 +56,44 @@ export const AgendaModulo = memo(({ alSeleccionarPaciente, alVerFichaPaciente })
         (c.pacienteNombre || '').toLowerCase().includes(termino) ||
         (c.pacienteRut || '').toLowerCase().includes(termino) ||
         (c.trataMiento || '').toLowerCase().includes(termino) ||
-        (c.pacienteTelefono || '').toLowerCase().includes(termino)
+        String(c.pacienteTelefono || '').toLowerCase().includes(termino)
       )
     }
     return filtradas
   }, [citas, fechaSeleccionada, busqueda])
 
   // F7-27: Handler de exportación CSV
-  const handleExportarCSV = () => {
+  const handleExportarCSV = (): void => {
     exportarCitasCSV(citasDelDia, `agenda_${fechaSeleccionada}`)
   }
-  const funcionVerFicha = alSeleccionarPaciente || alVerFichaPaciente
+
+  const funcionVerFicha = (target: string | number | Cita | undefined): void => {
+    if (!target) return
+    let pacienteParaNavegar: Paciente | undefined
+
+    if (typeof target === 'object' && 'rut' in target && 'nombre' in target) {
+      pacienteParaNavegar = target as unknown as Paciente
+    } else {
+      const pId = typeof target === 'object' ? target.pacienteId : target
+      pacienteParaNavegar = pacientes.find(p => String(p.id) === String(pId))
+      if (!pacienteParaNavegar && typeof target === 'object') {
+        pacienteParaNavegar = {
+          id: target.pacienteId || target.id,
+          nombre: target.pacienteNombre || 'Paciente',
+          rut: target.pacienteRut || '',
+          telefono: target.pacienteTelefono
+        }
+      }
+    }
+
+    if (pacienteParaNavegar) {
+      if (alSeleccionarPaciente) {
+        alSeleccionarPaciente(pacienteParaNavegar)
+      } else if (alVerFichaPaciente) {
+        alVerFichaPaciente(pacienteParaNavegar)
+      }
+    }
+  }
 
   const boxesAMostrar = boxFiltro === 'Todos'
     ? SILLONES_DENTALES
@@ -145,7 +163,6 @@ export const AgendaModulo = memo(({ alSeleccionarPaciente, alVerFichaPaciente })
 
       {/* KPI Cards */}
       <AgendaSummaryCards citas={citasDelDia} />
-
 
       {/* F7-27: Renderizado condicional de vistas de agenda */}
       {vista === 'box' && (
