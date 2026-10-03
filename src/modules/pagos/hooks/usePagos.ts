@@ -1,23 +1,45 @@
 import { useState, useMemo, useCallback } from 'react'
+import type React from 'react'
 import { PAGOS_DEFAULT } from '../constants/pagosConstants'
-import { pagosStorageService } from '../services/pagosStorageService'
-import { sincronizarAbonoConFichaPaciente, removerAbonoDeFichaPaciente } from '../services/pagosAbonosLegacyService'
+import { pagosStorageService, type Pago } from '../services/pagosStorageService'
+import { sincronizarAbonoConFichaPaciente, removerAbonoDeFichaPaciente, type NuevoPagoAbono } from '../services/pagosAbonosLegacyService'
 import { exportarAuditoriaPagosXLSX } from '../services/pagosExportService'
-import { calcularResumenRecaudacion } from '../utils/pagosCalculations'
+import { calcularResumenRecaudacion, type ResumenRecaudacion } from '../utils/pagosCalculations'
 import { useAppDialog } from '../../../hooks/useAppDialog'
 import { useSesionStore } from '../../../store/sesionStore'
 
-export const usePagos = () => {
+export type { Pago, ResumenRecaudacion }
+
+export interface UsePagosReturn {
+  pagos: Pago[]
+  todosLosPagos: Pago[]
+  resumen: ResumenRecaudacion
+  busqueda: string
+  setBusqueda: React.Dispatch<React.SetStateAction<string>>
+  metodoFiltro: string
+  setMetodoFiltro: React.Dispatch<React.SetStateAction<string>>
+  estadoFiltro: string
+  setEstadoFiltro: React.Dispatch<React.SetStateAction<string>>
+  mostrarPurgados: boolean
+  setMostrarPurgados: React.Dispatch<React.SetStateAction<boolean>>
+  agregarOActualizarPago: (pagoData: Pago) => boolean | void
+  anularPago: (idPago: string | number, motivoAnulacion?: string) => Promise<void>
+  purgarPago: (idPago: string | number, motivo: string) => Promise<boolean>
+  exportarAuditoria: () => Promise<void>
+  refrescarPagos: () => void
+}
+
+export const usePagos = (): UsePagosReturn => {
   const { confirm, alert } = useAppDialog()
   const userProfile = useSesionStore((state) => state.userProfile)
-  const [pagos, setPagos] = useState(() => 
-    pagosStorageService.obtenerPagos(PAGOS_DEFAULT)
+  const [pagos, setPagos] = useState<Pago[]>(() => 
+    pagosStorageService.obtenerPagos(PAGOS_DEFAULT as unknown as Pago[])
   )
 
-  const [busqueda, setBusqueda] = useState('')
-  const [metodoFiltro, setMetodoFiltro] = useState('Todos')
-  const [estadoFiltro, setEstadoFiltro] = useState('Todos')
-  const [mostrarPurgados, setMostrarPurgados] = useState(false)
+  const [busqueda, setBusqueda] = useState<string>('')
+  const [metodoFiltro, setMetodoFiltro] = useState<string>('Todos')
+  const [estadoFiltro, setEstadoFiltro] = useState<string>('Todos')
+  const [mostrarPurgados, setMostrarPurgados] = useState<boolean>(false)
 
   const resumen = useMemo(() => calcularResumenRecaudacion(pagos), [pagos])
 
@@ -35,19 +57,28 @@ export const usePagos = () => {
     })
   }, [pagos, busqueda, metodoFiltro, estadoFiltro, mostrarPurgados])
 
-  const agregarOActualizarPago = useCallback((pagoData) => {
-    if (!pagoData?.folioComprobante || !pagoData?.pacienteNombre) { alert({ title: 'Pago inválido', description: 'El pago requiere folio y paciente.', variant: 'error' }); return false }
+  const agregarOActualizarPago = useCallback((pagoData: Pago): boolean | void => {
+    if (!pagoData?.folioComprobante || !pagoData?.pacienteNombre) {
+      alert({ title: 'Pago inválido', description: 'El pago requiere folio y paciente.', variant: 'error' })
+      return false
+    }
     setPagos(prev => {
       const existe = prev.some(p => String(p.id) === String(pagoData.id))
-      const actualizados = existe ? prev.map(p => String(p.id) === String(pagoData.id) ? { ...p, ...pagoData } : p) : [pagoData, ...prev]
+      const actualizados = existe
+        ? prev.map(p => String(p.id) === String(pagoData.id) ? { ...p, ...pagoData } : p)
+        : [pagoData, ...prev]
       pagosStorageService.guardarPagos(actualizados)
-      if (typeof pagosStorageService.registrarPago === 'function') pagosStorageService.registrarPago(pagoData).catch(() => {})
-      sincronizarAbonoConFichaPaciente(pagoData.pacienteId, pagoData)
+      if (typeof pagosStorageService.registrarPago === 'function') {
+        pagosStorageService.registrarPago(pagoData).catch(() => {})
+      }
+      if (pagoData.pacienteId) {
+        sincronizarAbonoConFichaPaciente(pagoData.pacienteId, pagoData as unknown as NuevoPagoAbono)
+      }
       return actualizados
     })
-  }, [])
+  }, [alert])
 
-  const anularPago = useCallback(async (idPago, motivoAnulacion) => {
+  const anularPago = useCallback(async (idPago: string | number, motivoAnulacion?: string): Promise<void> => {
     const ok = await confirm({
       title: 'Anular comprobante de pago',
       description: '¿Estás seguro de anular este comprobante de pago? El registro quedará guardado en auditoría.',
@@ -77,7 +108,7 @@ export const usePagos = () => {
     }
   }, [confirm])
 
-  const purgarPago = useCallback(async (idPago, motivo) => {
+  const purgarPago = useCallback(async (idPago: string | number, motivo: string): Promise<boolean> => {
     if (!motivo || motivo.trim().length < 10) {
       await alert({ title: 'Motivo inválido', description: 'El motivo debe tener al menos 10 caracteres.', variant: 'warning', confirmText: 'Entendido' })
       return false
@@ -108,7 +139,7 @@ export const usePagos = () => {
     return false
   }, [alert, userProfile, pagos])
 
-  const exportarAuditoria = useCallback(async () => {
+  const exportarAuditoria = useCallback(async (): Promise<void> => {
     const todos = pagosStorageService.obtenerPagosParaAuditoria()
     const resultado = await exportarAuditoriaPagosXLSX(todos)
     if (resultado.ok) {
@@ -118,7 +149,7 @@ export const usePagos = () => {
     }
   }, [alert])
 
-  const refrescarPagos = useCallback(() => {
+  const refrescarPagos = useCallback((): void => {
     const nuevos = pagosStorageService.obtenerPagos([]).map(p => ({ ...p }))
     setPagos(nuevos)
   }, [])
