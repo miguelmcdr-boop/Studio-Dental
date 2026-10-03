@@ -3,27 +3,32 @@
  *
  * Badge de estado semántico con variantes clínicas, sizes, dot y icono.
  * Usa tokens del DS v2 y dark mode automático.
- *
- * Uso:
- *   <Badge variant="success" size="md" dot icon={CheckCircle}>Confirmado</Badge>
- *   <Badge variant="error" size="sm">Stock bajo</Badge>
- *   <Badge variant="neutral">Particular</Badge>
- *
- * Variantes:
- *   - success: verde clínico (confirmaciones, realizado)
- *   - warning: ámbar clínico (advertencias, stock bajo)
- *   - error: rojo clínico (errores, urgente)
- *   - info: azul clínico (informativo, en proceso)
- *   - neutral: gris (estados por defecto, tags)
- *
- * Accesibilidad:
- *   - role="status" cuando hay dot (indica estado visual)
- *   - aria-label cuando hay solo icono sin texto
  */
 import React from 'react'
 import { Icon } from '../Icon'
 
-const VARIANT_STYLES = {
+export type BadgeVariant =
+  | 'success'
+  | 'warning'
+  | 'error'
+  | 'danger'
+  | 'info'
+  | 'neutral'
+  | 'status-success'
+  | 'status-warning'
+  | 'status-danger'
+  | 'status-info'
+
+export type BadgeSize = 'sm' | 'md'
+
+interface VariantConfig {
+  light: string
+  dark: string
+  dot: string
+  icon: string
+}
+
+const BASE_VARIANT_STYLES: Record<string, VariantConfig> = {
   success: {
     light: 'bg-status-success/10 text-status-success border-status-success/20',
     dark: 'dark:bg-status-success/10 dark:text-emerald-300 dark:border-status-success/30',
@@ -62,13 +67,12 @@ const VARIANT_STYLES = {
   },
 }
 
-// Aliases para variantes semánticas 'status-*'
-VARIANT_STYLES['status-success'] = VARIANT_STYLES.success
-VARIANT_STYLES['status-warning'] = VARIANT_STYLES.warning
-VARIANT_STYLES['status-danger'] = VARIANT_STYLES.danger
-VARIANT_STYLES['status-info'] = VARIANT_STYLES.info
+BASE_VARIANT_STYLES['status-success'] = BASE_VARIANT_STYLES.success
+BASE_VARIANT_STYLES['status-warning'] = BASE_VARIANT_STYLES.warning
+BASE_VARIANT_STYLES['status-danger'] = BASE_VARIANT_STYLES.danger
+BASE_VARIANT_STYLES['status-info'] = BASE_VARIANT_STYLES.info
 
-const SIZE_STYLES = {
+const SIZE_STYLES: Record<BadgeSize, { root: string; dot: string; icon: 'xs' | 'sm'; gap: string }> = {
   sm: {
     root: 'px-2 py-0.5 text-[10px]',
     dot: 'w-1.5 h-1.5',
@@ -83,7 +87,17 @@ const SIZE_STYLES = {
   },
 }
 
-export const Badge = ({
+export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
+  variant?: BadgeVariant
+  size?: BadgeSize
+  dot?: boolean
+  icon?: React.ElementType
+  children?: React.ReactNode
+  className?: string
+  'aria-label'?: string
+}
+
+export const Badge: React.FC<BadgeProps> = ({
   variant = 'neutral',
   size = 'md',
   dot = false,
@@ -93,7 +107,7 @@ export const Badge = ({
   'aria-label': ariaLabel,
   ...rest
 }) => {
-  const variantStyle = VARIANT_STYLES[variant] || VARIANT_STYLES.neutral
+  const variantStyle = BASE_VARIANT_STYLES[variant] || BASE_VARIANT_STYLES.neutral
   const sizeStyle = SIZE_STYLES[size] || SIZE_STYLES.md
 
   const hasOnlyIcon = IconComponent && !children
