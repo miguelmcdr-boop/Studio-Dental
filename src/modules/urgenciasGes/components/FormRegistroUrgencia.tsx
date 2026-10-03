@@ -1,59 +1,80 @@
 import React, { memo, useState } from 'react'
 import { FileText } from 'lucide-react'
 import { Button } from '../../../components/ui/Button'
-import { PATOLOGIAS_GES_ODONTO, DIAGNOSTICOS_URGENCIA_COMMON, CATEGORIAS_TRIAGE_URGENCIA } from '../constants/urgenciasGesConstants'
+import {
+  PATOLOGIAS_GES_ODONTO,
+  DIAGNOSTICOS_URGENCIA_COMMON,
+  CATEGORIAS_TRIAGE_URGENCIA
+} from '../constants/urgenciasGesConstants'
 import { useAppDialog } from '../../../hooks/useAppDialog'
+import type { AtencionGes } from '../services/urgenciasGesStorageService'
 
-export const FormRegistroGes = memo(({ pacientes = [], alRegistrar }) => {
-  const [pacienteId, setPacienteId] = useState('')
+export interface PacienteUrgenciaMinimo {
+  id: string | number
+  nombre?: string
+  rut?: string
+  prevision?: string
+  [key: string]: unknown
+}
+
+export interface FormRegistroGesProps {
+  pacientes?: PacienteUrgenciaMinimo[]
+  alRegistrar: (registro: Partial<AtencionGes>) => void
+}
+
+export const FormRegistroGes: React.FC<FormRegistroGesProps> = memo(({
+  pacientes = [],
+  alRegistrar
+}) => {
+  const [pacienteId, setPacienteId] = useState<string>('')
   const { alert: dialogAlert } = useAppDialog()
-  const [triage, setTriage] = useState(CATEGORIAS_TRIAGE_URGENCIA[1].id)
-  const [patologiaGes, setPatologiaGes] = useState(PATOLOGIAS_GES_ODONTO[0].id)
-  const [diagnostico, setDiagnostico] = useState(DIAGNOSTICOS_URGENCIA_COMMON[0])
-  const [indicacionesTratamiento, setIndicacionesTratamiento] = useState('')
-  const [enviando, setEnviando] = useState(false)
-  const [aceptaAtencion, setAceptaAtencion] = useState(true)
+  const [triage, setTriage] = useState<string>(CATEGORIAS_TRIAGE_URGENCIA[1].id)
+  const [patologiaGes, setPatologiaGes] = useState<string>(PATOLOGIAS_GES_ODONTO[0].id)
+  const [diagnostico, setDiagnostico] = useState<string>(DIAGNOSTICOS_URGENCIA_COMMON[0])
+  const [indicacionesTratamiento, setIndicacionesTratamiento] = useState<string>('')
+  const [enviando, setEnviando] = useState<boolean>(false)
+  const [aceptaAtencion, setAceptaAtencion] = useState<boolean>(true)
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault()
     setEnviando(true)
     try {
-    if (!pacienteId) {
+      if (!pacienteId) {
+        await dialogAlert({
+          title: 'Paciente requerido',
+          description: 'Por favor selecciona un paciente de la lista.',
+          variant: 'warning',
+          confirmText: 'Entendido'
+        })
+        return
+      }
+
+      const pac = pacientes.find(p => String(p.id) === String(pacienteId))
+      const patObj = PATOLOGIAS_GES_ODONTO.find(p => p.id === patologiaGes)
+      const triageObj = CATEGORIAS_TRIAGE_URGENCIA.find(t => t.id === triage)
+
+      const registro: Partial<AtencionGes> = {
+        pacienteId: pac?.id,
+        pacienteNombre: pac?.nombre || 'Paciente',
+        pacienteRut: pac?.rut || 'N/I',
+        pacientePrevision: pac?.prevision || 'Fonasa',
+        triageId: triageObj?.id,
+        triageNombre: triageObj?.nombre,
+        patologiaGesId: patObj?.id,
+        patologiaNombre: patObj?.nombre,
+        patologiaCodigo: patObj?.codigo,
+        diagnostico,
+        indicacionesTratamiento,
+        aceptaAtencion
+      }
+
+      alRegistrar(registro)
       await dialogAlert({
-        title: 'Paciente requerido',
-        description: 'Por favor selecciona un paciente de la lista.',
-        variant: 'warning',
+        title: 'Registro GES generado',
+        description: 'Registro de Urgencia y Constancia GES generado exitosamente.',
+        variant: 'success',
         confirmText: 'Entendido'
       })
-      return
-    }
-
-    const pac = pacientes.find(p => p.id === parseInt(pacienteId) || p.id === pacienteId)
-    const patObj = PATOLOGIAS_GES_ODONTO.find(p => p.id === patologiaGes)
-    const triageObj = CATEGORIAS_TRIAGE_URGENCIA.find(t => t.id === triage)
-
-    const registro = {
-      pacienteId: pac?.id,
-      pacienteNombre: pac?.nombre || 'Paciente',
-      pacienteRut: pac?.rut || 'N/I',
-      pacientePrevision: pac?.prevision || 'Fonasa',
-      triageId: triageObj?.id,
-      triageNombre: triageObj?.nombre,
-      patologiaGesId: patObj?.id,
-      patologiaNombre: patObj?.nombre,
-      patologiaCodigo: patObj?.codigo,
-      diagnostico,
-      indicacionesTratamiento,
-      aceptaAtencion
-    }
-
-    alRegistrar(registro)
-    await dialogAlert({
-      title: 'Registro GES generado',
-      description: 'Registro de Urgencia y Constancia GES generado exitosamente.',
-      variant: 'success',
-      confirmText: 'Entendido'
-    })
     } finally {
       setEnviando(false)
     }
@@ -72,7 +93,9 @@ export const FormRegistroGes = memo(({ pacientes = [], alRegistrar }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Seleccionar Paciente *</label>
+          <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">
+            Seleccionar Paciente *
+          </label>
           <select
             value={pacienteId}
             onChange={(e) => setPacienteId(e.target.value)}
@@ -86,7 +109,9 @@ export const FormRegistroGes = memo(({ pacientes = [], alRegistrar }) => {
         </div>
 
         <div>
-          <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Categorización Triage Urgencia</label>
+          <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">
+            Categorización Triage Urgencia
+          </label>
           <select
             value={triage}
             onChange={(e) => setTriage(e.target.value)}
@@ -99,7 +124,9 @@ export const FormRegistroGes = memo(({ pacientes = [], alRegistrar }) => {
         </div>
 
         <div>
-          <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Problema de Salud GES / AUGE *</label>
+          <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">
+            Problema de Salud GES / AUGE *
+          </label>
           <select
             value={patologiaGes}
             onChange={(e) => setPatologiaGes(e.target.value)}
@@ -114,7 +141,9 @@ export const FormRegistroGes = memo(({ pacientes = [], alRegistrar }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Diagnóstico Clínico (CIE-10)</label>
+          <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">
+            Diagnóstico Clínico (CIE-10)
+          </label>
           <select
             value={diagnostico}
             onChange={(e) => setDiagnostico(e.target.value)}
@@ -127,7 +156,9 @@ export const FormRegistroGes = memo(({ pacientes = [], alRegistrar }) => {
         </div>
 
         <div>
-          <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Decisión del Paciente</label>
+          <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">
+            Decisión del Paciente
+          </label>
           <div className="flex gap-4 pt-2">
             <label className="flex items-center gap-2 font-bold text-emerald-700 dark:text-emerald-400 surgical:text-black cursor-pointer">
               <input
@@ -152,9 +183,11 @@ export const FormRegistroGes = memo(({ pacientes = [], alRegistrar }) => {
       </div>
 
       <div>
-        <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Indicaciones Clínicas / Conducta Inmediata</label>
+        <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">
+          Indicaciones Clínicas / Conducta Inmediata
+        </label>
         <textarea
-          rows="2"
+          rows={2}
           placeholder="Ej: Se realiza trepanación y alivio de oclusión en pieza 1.6, indicación de farmacoterapia analgésica/antibiótica..."
           value={indicacionesTratamiento}
           onChange={(e) => setIndicacionesTratamiento(e.target.value)}
