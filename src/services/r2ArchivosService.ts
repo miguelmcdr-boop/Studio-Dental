@@ -109,6 +109,10 @@ export const solicitaUrlUpload = async ({
   tamanoBytes
 }: SolicitaUrlUploadParams): Promise<R2UploadUrlResponse | null> => {
   try {
+    if (!supabase) {
+      log.error('Supabase no disponible')
+      return null
+    }
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) {
       log.error('No hay sesión activa')
@@ -198,6 +202,10 @@ export const subeArchivoAR2 = async ({
  */
 export const solicitaUrlDownload = async (archivoId: string): Promise<R2DownloadUrlResponse | null> => {
   try {
+    if (!supabase) {
+      log.error('Supabase no disponible')
+      return null
+    }
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) {
       log.error('No hay sesión activa')
@@ -313,6 +321,10 @@ export const abrirArchivoDeR2 = async ({
  */
 export const eliminaArchivo = async (archivoId: string): Promise<boolean | null> => {
   try {
+    if (!supabase) {
+      log.error('Supabase no disponible')
+      return false
+    }
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) {
       log.error('No hay sesión activa')
@@ -352,6 +364,10 @@ export const listaArchivosDePaciente = async (
   categoria: string | null = null
 ): Promise<ArchivoClinicoRow[]> => {
   try {
+    if (!supabase) {
+      log.error('Supabase no disponible')
+      return []
+    }
     let query = supabase
       .from('archivos_clinicos')
       .select('*')
@@ -388,6 +404,10 @@ export const listaArchivosDePaciente = async (
  */
 export const listaArchivosEliminados = async (pacienteId: string | null = null): Promise<ArchivoClinicoRow[]> => {
   try {
+    if (!supabase) {
+      log.error('No hay sesión activa para listar papelera')
+      return []
+    }
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) {
       log.error('No hay sesión activa para listar papelera')
@@ -426,6 +446,10 @@ export const listaArchivosEliminados = async (pacienteId: string | null = null):
  */
 export const restaurarArchivo = async (archivoId: string): Promise<boolean> => {
   try {
+    if (!supabase) {
+      log.error('No hay sesión activa para restaurar archivo')
+      return false
+    }
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) {
       log.error('No hay sesión activa para restaurar archivo')
@@ -472,6 +496,10 @@ export const vaciarPapeleraArchivos = async (archivoIds: string[]): Promise<Vaci
   }
 
   try {
+    if (!supabase) {
+      log.error('No hay sesión activa para purgar archivos')
+      return { purgados: [], rechazados: [], error: 'Supabase no disponible' }
+    }
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) {
       log.error('No hay sesión activa para purgar archivos')
@@ -529,6 +557,10 @@ export const actualizarMetadataArchivo = async (
   }
 
   try {
+    if (!supabase) {
+      log.error('actualizarMetadataArchivo: no hay sesión activa')
+      return false
+    }
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) {
       log.error('actualizarMetadataArchivo: no hay sesión activa')

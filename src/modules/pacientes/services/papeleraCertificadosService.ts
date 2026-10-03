@@ -148,6 +148,10 @@ const eliminarViaArchivosPurge = async (
   certId: string | number
 ): Promise<boolean> => {
   try {
+    if (!supabase) {
+      log.error('eliminarViaArchivosPurge: Supabase no disponible')
+      return false
+    }
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) {
       log.error('eliminarViaArchivosPurge: no hay sesión activa')
@@ -210,6 +214,10 @@ const eliminarViaArchivosPurge = async (
  */
 const eliminarCertificadoSinArchivo = async (certId: string | number): Promise<boolean> => {
   try {
+    if (!supabase) {
+      log.error('eliminarCertificadoSinArchivo: Supabase no disponible')
+      return false
+    }
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) {
       log.error('eliminarCertificadoSinArchivo: no hay sesión activa')
