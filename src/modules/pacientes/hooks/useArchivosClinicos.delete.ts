@@ -1,14 +1,29 @@
 import { useCallback } from 'react'
+import type React from 'react'
 import { eliminaArchivo as eliminaArchivoService } from '../../../services/r2ArchivosService'
+import type { PermisosArchivos } from './useArchivosClinicos.helpers'
+
+export interface ArchivoItemRef {
+  id: string
+  [key: string]: unknown
+}
+
+export interface UseArchivosClinicosDeleteReturn {
+  eliminarArchivo: (archivoId: string) => Promise<boolean>
+}
 
 /**
  * Hook interno para lógica de eliminación de archivos.
  */
-export const useArchivosClinicosDelete = (permisos, setError, setArchivos) => {
-  const eliminarArchivo = useCallback(async (archivoId) => {
+export const useArchivosClinicosDelete = <T extends ArchivoItemRef>(
+  permisos: PermisosArchivos,
+  setError: (error: string | null) => void,
+  setArchivos: React.Dispatch<React.SetStateAction<T[]>>
+): UseArchivosClinicosDeleteReturn => {
+  const eliminarArchivo = useCallback(async (archivoId: string): Promise<boolean> => {
     if (!permisos.puedeEliminar) {
       setError('No tienes permisos para eliminar archivos. Solo administradores y dentistas pueden eliminar.')
-      return
+      return false
     }
 
     setError(null)
@@ -24,7 +39,8 @@ export const useArchivosClinicosDelete = (permisos, setError, setArchivos) => {
         return false
       }
     } catch (e) {
-      setError(e?.message || 'Error eliminando archivo.')
+      const err = e as Error
+      setError(err?.message || 'Error eliminando archivo.')
       return false
     }
   }, [permisos.puedeEliminar, setError, setArchivos])
