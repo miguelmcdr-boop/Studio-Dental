@@ -19,28 +19,33 @@ const log = createLogger('useRealtimeSync')
 const TOLERANCIA_LOOP_MS = 2000
 
 /** Timestamp de última escritura local por tabla (shared entre instancias). */
-const ultimaEscrituraLocal = {}
+const ultimaEscrituraLocal: Record<string, number> = {}
 
 /** Registra una escritura local. Llamar desde storage services al escribir. */
-export const registrarEscrituraLocal = (tabla) => {
+export const registrarEscrituraLocal = (tabla: string): void => {
   ultimaEscrituraLocal[tabla] = Date.now()
 }
 
 /** Verifica si un evento fue causado por nuestra propia escritura reciente. */
-const esEventoLocal = (tabla) => {
+const esEventoLocal = (tabla: string): boolean => {
   const timestamp = ultimaEscrituraLocal[tabla]
   if (!timestamp) return false
   const ahora = Date.now()
   return (ahora - timestamp) < TOLERANCIA_LOOP_MS
 }
 
+interface RealtimePayload {
+  eventType?: string
+  [key: string]: unknown
+}
+
 /** Hook de sincronización en tiempo real. */
-export const useRealtimeSync = () => {
-  const userProfile = useSesionStore((state) => state.userProfile)
-  const refrescarPacientes = usePacientesStore((state) => state.refrescarDesdeSupabase)
+export const useRealtimeSync = (): void => {
+  const userProfile = useSesionStore((state: { userProfile?: unknown }) => state.userProfile)
+  const refrescarPacientes = usePacientesStore((state: { refrescarDesdeSupabase: () => void }) => state.refrescarDesdeSupabase)
   const enabled = !!userProfile && USE_SUPABASE
 
-  const crearHandler = (tabla) => (payload) => {
+  const crearHandler = (tabla: string) => (payload: RealtimePayload): void => {
     if (esEventoLocal(tabla)) {
       log.info(`Ignorando evento local en ${tabla}`)
       return
@@ -57,7 +62,7 @@ export const useRealtimeSync = () => {
       return
     }
 
-    const evento = TABLAS_REALTIME[tabla]
+    const evento = (TABLAS_REALTIME as Record<string, string>)[tabla]
     if (evento) {
       window.dispatchEvent(new CustomEvent(evento, { detail: payload }))
     }

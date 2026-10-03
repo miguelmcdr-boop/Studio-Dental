@@ -27,32 +27,46 @@
  *   )
  */
 import { useEffect, useRef } from 'react'
-import { suscribirseATabla } from '../services/realtimeService'
+import {
+  suscribirseATabla,
+  type RealtimeEventType,
+  type RealtimeFilter,
+  type RealtimePayload,
+  type RealtimeCallback,
+  type RealtimeSubscription
+} from '../services/realtimeService'
 import { createLogger } from '../services/logger'
 
-const log = createLogger('useRealtimeSubscription')
+const _log = createLogger('useRealtimeSubscription')
+
+export interface UseRealtimeSubscriptionOptions {
+  evento?: RealtimeEventType
+  filtro?: RealtimeFilter
+  enabled?: boolean
+}
 
 /**
  * Hook de suscripción a cambios de Realtime.
  *
- * @param {string} tabla - Nombre de la tabla a escuchar
- * @param {Function} callback - Función a invocar al recibir evento
- * @param {Object} opciones - Opciones adicionales
- * @param {string} opciones.evento - Tipo de evento ('INSERT', 'UPDATE', 'DELETE', '*'). Default: '*'
- * @param {Object} opciones.filtro - Filtro por columna. Ej: { columna: 'paciente_id', valor: uuid }
- * @param {boolean} opciones.enabled - Si es false, no se suscribe. Default: true
+ * @param tabla - Nombre de la tabla a escuchar
+ * @param callback - Función a invocar al recibir evento
+ * @param opciones - Opciones adicionales
  */
-export const useRealtimeSubscription = (tabla, callback, opciones = {}) => {
+export const useRealtimeSubscription = <T = Record<string, unknown>>(
+  tabla: string,
+  callback: RealtimeCallback<T>,
+  opciones: UseRealtimeSubscriptionOptions = {}
+): void => {
   const { evento = '*', filtro, enabled = true } = opciones
 
   // Ref para mantener el callback actualizado sin re-suscribir
-  const callbackRef = useRef(callback)
+  const callbackRef = useRef<RealtimeCallback<T>>(callback)
   useEffect(() => {
     callbackRef.current = callback
   }, [callback])
 
   // Ref estable para pasar al servicio (evita re-suscripciones por cambio de callback)
-  const stableCallback = useRef((payload) => {
+  const stableCallback = useRef((payload: RealtimePayload<T>) => {
     callbackRef.current(payload)
   }).current
 
@@ -63,10 +77,14 @@ export const useRealtimeSubscription = (tabla, callback, opciones = {}) => {
     }
 
     // Suscribirse al canal
-    const subscription = suscribirseATabla(tabla, stableCallback, {
-      evento,
-      filtro
-    })
+    const subscription: RealtimeSubscription | null = suscribirseATabla(
+      tabla,
+      stableCallback as unknown as RealtimeCallback<Record<string, unknown>>,
+      {
+        evento,
+        filtro
+      }
+    )
 
     // Cleanup: desuscribirse al desmontar o cuando cambien las dependencias
     return () => {
@@ -78,4 +96,3 @@ export const useRealtimeSubscription = (tabla, callback, opciones = {}) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tabla, evento, JSON.stringify(filtro), enabled])
 }
-
