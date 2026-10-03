@@ -28,10 +28,16 @@ export interface CommandPaletteProps {
   pacientesFiltrados: Paciente[]
   modulosFiltrados: SidebarItem[]
   accionesRapidas: AccionRapida[]
-  onClose: () => void
-  onSelect: () => void
-  onMoveUp: () => void
-  onMoveDown: () => void
+  onClose?: () => void
+  close?: () => void
+  onSelect?: () => void
+  selectCurrent?: () => void
+  onMoveUp?: () => void
+  moveUp?: () => void
+  onMoveDown?: () => void
+  moveDown?: () => void
+  open?: () => void
+  toggle?: () => void
 }
 
 export const CommandPalette: React.FC<CommandPaletteProps> = ({
@@ -43,10 +49,19 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   modulosFiltrados,
   accionesRapidas,
   onClose,
+  close,
   onSelect,
+  selectCurrent,
   onMoveUp,
+  moveUp,
   onMoveDown,
+  moveDown,
 }) => {
+  const handleClose = onClose || close || (() => {})
+  const handleSelect = onSelect || selectCurrent || (() => {})
+  const handleMoveUp = onMoveUp || moveUp || (() => {})
+  const handleMoveDown = onMoveDown || moveDown || (() => {})
+
   const inputRef = useRef<HTMLInputElement | null>(null)
   const dialogRef = useRef<HTMLDivElement | null>(null)
 
@@ -64,22 +79,23 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     const handleKeyDown = (e: KeyboardEvent): void => {
       if (e.key === 'Escape') {
         e.preventDefault()
-        onClose()
+        handleClose()
       } else if (e.key === 'ArrowUp') {
         e.preventDefault()
-        onMoveUp()
+        handleMoveUp()
       } else if (e.key === 'ArrowDown') {
         e.preventDefault()
-        onMoveDown()
+        handleMoveDown()
       } else if (e.key === 'Enter') {
         e.preventDefault()
-        onSelect()
+        handleSelect()
       }
     }
 
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, onClose, onSelect, onMoveUp, onMoveDown])
+  }, [isOpen, handleClose, handleSelect, handleMoveUp, handleMoveDown])
+
 
   // F7-26: Set de IDs de pacientes recientes para mostrar badge visual
   const recientesIds = useMemo((): Set<string | number> => {

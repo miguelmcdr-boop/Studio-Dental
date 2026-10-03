@@ -27,12 +27,14 @@ export interface SidebarCounters {
   [key: string]: number | undefined
 }
 
+import type { SidebarCountersReturn } from '../hooks/useSidebarCounters'
+
 export interface SidebarProps {
   userProfile?: PerfilUsuario | null
   activeSection: string
   setActiveSection: (section: string) => void
   onLogout?: () => void
-  counters?: SidebarCounters
+  counters?: SidebarCountersReturn | Record<string, number | undefined>
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -69,7 +71,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const renderItem = (item: SidebarItem) => {
     const activo = activeSection === item.name
-    const contador = item.counterKey ? counters[item.counterKey] : undefined
+    const contador = item.counterKey ? (counters as Record<string, unknown>)[item.counterKey] : undefined
     const muestraContador = typeof contador === 'number' && contador > 0
 
     return (

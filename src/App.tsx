@@ -34,6 +34,8 @@ import { useSessionGuard } from './hooks/useSessionGuard'
 import { DashboardModulo } from './modules/dashboard'
 import { createLogger } from './services/logger'
 import { createTenantRepository } from './services/localStorageRepository' // F7-36 FASE 1 (hotfix import)
+import type { Paciente } from './modules/pacientes/schemas/pacienteSchema'
+import type { PerfilUsuario } from './services/authService'
 
 const log = createLogger('App')
 
@@ -53,14 +55,59 @@ const ConfiguracionModulo = lazy(() => import('./modules/configuracion').then(m 
 const AdminVademecumModulo = lazy(() => import('./modules/administracion').then(m => ({ default: m.AdminVademecumModulo })))
 const GestionMiembrosModulo = lazy(() => import('./modules/gestionMiembros').then(m => ({ default: m.GestionMiembrosModulo })))
 
-function App() {
+interface SesionStoreState {
+  userProfile: PerfilUsuario | null
+  login: (profile: PerfilUsuario) => void
+  logout: () => void
+}
+
+interface PacientesStoreState {
+  pacientes: Paciente[]
+  setPacientes: (pacientes: Paciente[]) => void
+}
+
+interface DashboardModuloProps {
+  setPacienteSeleccionado: (paciente: Paciente | null) => void
+  setActiveSection: (seccion: string) => void
+}
+
+interface AgendaModuloProps {
+  alSeleccionarPaciente: (paciente: Paciente) => void
+}
+
+interface PresupuestosModuloProps {
+  setPacienteSeleccionado: (paciente: Paciente | null) => void
+  setActiveSection: (seccion: string) => void
+}
+
+interface FichaPacienteProps {
+  paciente: Paciente
+  alActualizarPaciente: (paciente: Paciente) => void
+  alEliminarPaciente: (idPaciente: string | number) => void
+  alVolver: () => void
+  navegacionClinica?: unknown
+}
+
+interface DirectorioPacientesProps {
+  alSeleccionarPaciente: (paciente: Paciente | null) => void
+  alEliminarPaciente: (idPaciente: string | number) => void
+  alPacienteCreado: (paciente: Paciente) => void
+}
+
+const Dashboard = DashboardModulo as React.ComponentType<DashboardModuloProps>
+const Agenda = AgendaModulo as React.ComponentType<AgendaModuloProps>
+const Presupuestos = PresupuestosModulo as React.ComponentType<PresupuestosModuloProps>
+const Ficha = FichaPaciente as React.ComponentType<FichaPacienteProps>
+const Directorio = DirectorioPacientes as React.ComponentType<DirectorioPacientesProps>
+
+export const App: React.FC = () => {
   // F7-36 FASE 1 (Commit 1.5f): repo tenant-aware para paciente seleccionado (PHI).
   // La clave clinica_paciente_seleccionado_id ahora se almacena como
   // sd_<clinicaId>_clinica_paciente_seleccionado_id para aislamiento multi-tenant.
-  const pacienteSeleccionadoRepo = createTenantRepository('clinica_paciente_seleccionado_id', null)
+  const pacienteSeleccionadoRepo = createTenantRepository<string | null>('clinica_paciente_seleccionado_id', null)
 
   // F4-02e: Persistir activeSection (localStorage). Si no hay, usar 'Dashboard'.
-  const [activeSection, setActiveSection] = useState(() => {
+  const [activeSection, setActiveSection] = useState<string>(() => {
     try {
       const guardado = localStorage.getItem('clinica_active_section')
       return guardado || 'Dashboard'
@@ -69,19 +116,19 @@ function App() {
     }
   })
   // F4-02e: Paciente seleccionado (null inicialmente, restaurado desde Supabase).
-  const [pacienteSeleccionado, setPacienteSeleccionadoState] = useState(null)
+  const [pacienteSeleccionado, setPacienteSeleccionadoState] = useState<Paciente | null>(null)
 
   // F4-02e + F7-36: Wrapper que persiste el pacienteId en repo tenant-aware
-  const setPacienteSeleccionado = (paciente) => {
+  const setPacienteSeleccionado = (paciente: Paciente | null): void => {
     setPacienteSeleccionadoState(paciente)
     try {
-      if (paciente?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(paciente.id)) {
+      if (paciente?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(paciente.id))) {
         // F7-36: usa tenant-aware para aislamiento multi-tenant
-        pacienteSeleccionadoRepo.guardar(paciente.id)
+        pacienteSeleccionadoRepo.guardar(String(paciente.id))
       } else {
         pacienteSeleccionadoRepo.eliminar()
       }
-    } catch (e) {
+    } catch (e: unknown) {
       log.error('Error al persistir pacienteId:', e)
     }
   }
@@ -90,27 +137,23 @@ function App() {
   useEffect(() => {
     try {
       localStorage.setItem('clinica_active_section', activeSection)
-    } catch (e) {
+    } catch (e: unknown) {
       log.error('Error al persistir sección activa:', e)
     }
   }, [activeSection])
 
-
-  const userProfile = useSesionStore((state) => state.userProfile)
-  const loginStore = useSesionStore((state) => state.login)
+  const userProfile = useSesionStore((state: unknown) => (state as SesionStoreState).userProfile)
+  const loginStore = useSesionStore((state: unknown) => (state as SesionStoreState).login)
   const bootstrapNecesario = useBootstrapDetection(userProfile) // F7-11b
   // F7-11: Detectar invitación pendiente en URL hash
   const invitacionPendiente = useInvitacionHash()
 
   // F7-25: Dark mode y modo quirúrgico con persistencia
   const { theme, darkMode, cycleTheme, toggleDarkMode } = useDarkMode()
-  const logoutStore = useSesionStore((state) => state.logout)
+  const logoutStore = useSesionStore((state: unknown) => (state as SesionStoreState).logout)
 
   // F6-H: Timeout de sesión + sincronización entre pestañas + manejo de errores 401
   useSessionGuard({ userProfile, logout: logoutStore })
-
-  // F4-02c-2: ejecutar migración automática de datos al primer login con Supabase
-
 
   // F4-02e: Restaurar paciente seleccionado desde Supabase al recargar
   useRestaurarPaciente(userProfile, pacienteSeleccionado, setPacienteSeleccionadoState, setActiveSection)
@@ -129,12 +172,12 @@ function App() {
     onCreateCita: () => setActiveSection('Agenda'),
     onCreatePaciente: () => setActiveSection('Pacientes'),
     onCreatePresupuesto: () => setActiveSection('Presupuestos'),
-    onSelectPaciente: setPacienteSeleccionado, // F7-26: seleccionar paciente desde CommandPalette
+    onSelectPaciente: (paciente: Paciente) => setPacienteSeleccionado(paciente), // F7-26: seleccionar paciente desde CommandPalette
   })
 
   // F10-B4: Atajo ⌘K / Ctrl+K para abrir CommandPalette
   useEffect(() => {
-    const handleKeyDown = (e) => {
+    const handleKeyDown = (e: KeyboardEvent): void => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault()
         commandPalette.toggle()
@@ -144,7 +187,6 @@ function App() {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [commandPalette])
 
-
   useDataMigration(userProfile)
 
   // F5-02: activar sincronización en tiempo real
@@ -153,9 +195,8 @@ function App() {
   // F5-03: procesar cola offline al iniciar y al volver la conexión
   useOfflineQueue()
 
-
   useEffect(() => {
-    const refrescarDesdeStorage = usePrestacionesStore.getState().refrescarDesdeStorage
+    const refrescarDesdeStorage = (usePrestacionesStore.getState() as { refrescarDesdeStorage: () => void }).refrescarDesdeStorage
 
     window.addEventListener('storage', refrescarDesdeStorage)
     window.addEventListener('arancel_actualizado', refrescarDesdeStorage)
@@ -178,13 +219,14 @@ function App() {
       // Esperar un tick para ver si el logout completó el cierre de Supabase
       const timer = setTimeout(async () => {
         try {
+          if (!supabase) return
           const { data: { session } } = await supabase.auth.getSession()
-          
+
           // Solo restaurar si Supabase TODAVÍA tiene sesión activa
           // (si el usuario cerró sesión manualmente, session será null)
           if (session?.user) {
             log.info('Sesión de Supabase detectada, restaurando perfil...')
-            
+
             // F7-10b: reconstruir perfil con rol contextual vía construirUserProfile
             // (lee miembros_clinica.rol filtrado por clinica_actual())
             const userMetadata = { ...(session.user.user_metadata || {}), role: session.user.app_metadata?.role || 'recepcion' }
@@ -193,36 +235,36 @@ function App() {
               userMetadata,
               {}
             )
-            
-            loginStore(perfilRestaurado)
+
+            loginStore(perfilRestaurado as unknown as PerfilUsuario)
             log.info('F7-10b: Perfil restaurado con rol contextual:', perfilRestaurado.rol)
           }
-        } catch (error) {
+        } catch (error: unknown) {
           log.error('Error restaurando sesión de Supabase:', error)
         }
       }, 100) // 100ms delay para dar tiempo al logout de cerrar Supabase
-      
+
       return () => clearTimeout(timer)
     }
   }, [userProfile, loginStore])
 
-  const pacientes = usePacientesStore((state) => state.pacientes)
-  const setPacientes = usePacientesStore((state) => state.setPacientes)
+  const pacientes = usePacientesStore((state: unknown) => (state as PacientesStoreState).pacientes)
+  const setPacientes = usePacientesStore((state: unknown) => (state as PacientesStoreState).setPacientes)
 
   useEffect(() => {
     if (userProfile?.nombreCompleto) document.title = `DentikOS — ${userProfile.nombreCompleto}`
     else document.title = 'DentikOS'
   }, [userProfile])
 
-  const handleLogin = (profile) => {
+  const handleLogin = (profile: PerfilUsuario): void => {
     loginStore(profile)
   }
 
-  const handleLogout = () => {
+  const handleLogout = (): void => {
     logoutStore()
   }
 
-  const handleActualizarPaciente = (pacienteActualizado) => {
+  const handleActualizarPaciente = (pacienteActualizado: Paciente): void => {
     const nuevaLista = pacientes.map(p => p.id === pacienteActualizado.id ? pacienteActualizado : p)
     setPacientes(nuevaLista)
     setPacienteSeleccionado(pacienteActualizado)
@@ -263,98 +305,98 @@ function App() {
           <Sidebar userProfile={userProfile} activeSection={activeSection} setActiveSection={setActiveSection} onLogout={handleLogout} counters={sidebarCounters} />
 
           <main className="flex-1 p-8 print:p-0 overflow-x-hidden">
-        <Suspense fallback={<CargandoModulo />}>
-          {activeSection === 'Dashboard' && (
-            <DashboardModulo 
-              setPacienteSeleccionado={setPacienteSeleccionado}
-              setActiveSection={setActiveSection} 
-            />
-          )}
-
-          {activeSection === 'Agenda' && (
-            <ErrorBoundary modulo="agenda" onReset={() => setActiveSection('Dashboard')}>
-              <AgendaModulo 
-                alSeleccionarPaciente={(paciente) => {
-                  setPacienteSeleccionado(paciente)
-                  setActiveSection('Pacientes')
-                }}
-              />
-            </ErrorBoundary>
-          )}
-
-          {activeSection === 'Urgencias y GES' && (
-            <UrgenciasGesModulo />
-          )}
-
-          {activeSection === 'Esterilización' && (
-            <EsterilizacionModulo />
-          )}
-
-          {activeSection === 'Laboratorio' && (
-            <LaboratorioModulo />
-          )}
-
-          {activeSection === 'Prestaciones' && (
-            <PrestacionesModulo />
-          )}
-
-          {activeSection === 'Presupuestos' && (
-            <ErrorBoundary modulo="presupuestos" onReset={() => setActiveSection('Dashboard')}>
-              <PresupuestosModulo 
-                setPacienteSeleccionado={setPacienteSeleccionado} 
-                setActiveSection={setActiveSection} 
-              />
-            </ErrorBoundary>
-          )}
-
-          {activeSection === 'Pagos' && (
-            <PagosModulo />
-          )}
-
-          {activeSection === 'Finanzas' && (
-            <FinanzasModulo />
-          )}
-
-          {activeSection === 'Comunicaciones' && (
-            <ComunicacionesModulo />
-          )}
-
-          {activeSection === 'Inventario' && <InventarioModulo />}
-
-          {activeSection === 'Reportes' && (
-            <ReportesModulo />
-          )}
-
-          {activeSection === 'Miembros' && (
-            <GestionMiembrosModulo />
-          )}
-
-          {activeSection === 'Vademécum' && <AdminVademecumModulo />}
-
-          {activeSection === 'Configuración' && (
-            <ConfiguracionModulo />
-          )}
-
-          {activeSection === 'Pacientes' && (
-            <ErrorBoundary modulo="pacientes" onReset={() => { setPacienteSeleccionado(null); setActiveSection('Dashboard') }}>
-              {pacienteSeleccionado ? (
-                <FichaPaciente 
-                  paciente={pacienteSeleccionado} 
-                  alActualizarPaciente={handleActualizarPaciente}
-                  alEliminarPaciente={handleEliminarPaciente}
-                  alVolver={() => setPacienteSeleccionado(null)}
-                  navegacionClinica={navegacionClinica} /* F7-26 */
-                />
-              ) : (
-                <DirectorioPacientes
-                  alSeleccionarPaciente={setPacienteSeleccionado}
-                  alEliminarPaciente={handleEliminarPaciente}
-                  alPacienteCreado={setPacienteSeleccionado}
+            <Suspense fallback={<CargandoModulo />}>
+              {activeSection === 'Dashboard' && (
+                <Dashboard
+                  setPacienteSeleccionado={setPacienteSeleccionado}
+                  setActiveSection={setActiveSection}
                 />
               )}
-            </ErrorBoundary>
-          )}
-          </Suspense>
+
+              {activeSection === 'Agenda' && (
+                <ErrorBoundary modulo="agenda" onReset={() => setActiveSection('Dashboard')}>
+                  <Agenda
+                    alSeleccionarPaciente={(paciente: Paciente) => {
+                      setPacienteSeleccionado(paciente)
+                      setActiveSection('Pacientes')
+                    }}
+                  />
+                </ErrorBoundary>
+              )}
+
+              {activeSection === 'Urgencias y GES' && (
+                <UrgenciasGesModulo />
+              )}
+
+              {activeSection === 'Esterilización' && (
+                <EsterilizacionModulo />
+              )}
+
+              {activeSection === 'Laboratorio' && (
+                <LaboratorioModulo />
+              )}
+
+              {activeSection === 'Prestaciones' && (
+                <PrestacionesModulo />
+              )}
+
+              {activeSection === 'Presupuestos' && (
+                <ErrorBoundary modulo="presupuestos" onReset={() => setActiveSection('Dashboard')}>
+                  <Presupuestos
+                    setPacienteSeleccionado={setPacienteSeleccionado}
+                    setActiveSection={setActiveSection}
+                  />
+                </ErrorBoundary>
+              )}
+
+              {activeSection === 'Pagos' && (
+                <PagosModulo />
+              )}
+
+              {activeSection === 'Finanzas' && (
+                <FinanzasModulo />
+              )}
+
+              {activeSection === 'Comunicaciones' && (
+                <ComunicacionesModulo />
+              )}
+
+              {activeSection === 'Inventario' && <InventarioModulo />}
+
+              {activeSection === 'Reportes' && (
+                <ReportesModulo />
+              )}
+
+              {activeSection === 'Miembros' && (
+                <GestionMiembrosModulo />
+              )}
+
+              {activeSection === 'Vademécum' && <AdminVademecumModulo />}
+
+              {activeSection === 'Configuración' && (
+                <ConfiguracionModulo />
+              )}
+
+              {activeSection === 'Pacientes' && (
+                <ErrorBoundary modulo="pacientes" onReset={() => { setPacienteSeleccionado(null); setActiveSection('Dashboard') }}>
+                  {pacienteSeleccionado ? (
+                    <Ficha
+                      paciente={pacienteSeleccionado}
+                      alActualizarPaciente={handleActualizarPaciente}
+                      alEliminarPaciente={handleEliminarPaciente}
+                      alVolver={() => setPacienteSeleccionado(null)}
+                      navegacionClinica={navegacionClinica} /* F7-26 */
+                    />
+                  ) : (
+                    <Directorio
+                      alSeleccionarPaciente={setPacienteSeleccionado}
+                      alEliminarPaciente={handleEliminarPaciente}
+                      alPacienteCreado={setPacienteSeleccionado}
+                    />
+                  )}
+                </ErrorBoundary>
+              )}
+            </Suspense>
           </main>
         </div>
       </div>
