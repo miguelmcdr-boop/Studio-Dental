@@ -1,3 +1,9 @@
+export interface VademecumOdontologicoItem {
+  medicamento: string
+  posologia: string
+  familia: string
+}
+
 export const VADEMECUM_ODONTOLOGICO = [
   { medicamento: 'Lidocaína 2% + Epinefrina 1:100.000 (tubos)', posologia: 'Anestesia infiltrativa o troncular. Máximo 8 tubos en adulto sano.', familia: 'anestesico' },
   { medicamento: 'Mepivacaína 3% sin vasoconstrictor (tubos)', posologia: 'Anestesia de elección en pacientes hipertensos no controlados o cardiopatías.', familia: 'anestesico' },
@@ -21,4 +27,6 @@ export const VADEMECUM_ODONTOLOGICO = [
   { medicamento: 'Tramadol 37.5 mg + Paracetamol 325 mg', posologia: 'Tomar 1 a 2 comprimidos cada 8 horas en caso de dolor severo.', familia: 'opioide' },
   { medicamento: 'Dexametasona 4 mg (comprimidos)', posologia: 'Tomar 1 comprimido 1 hora antes de la cirugía o cada 24 horas por 2 días.', familia: 'corticoide' },
   { medicamento: 'Clorhexidina 0.12% (colutorio 250 ml)', posologia: 'Realizar buches con 15 ml durante 1 minuto, 2 veces al día por 7 a 10 días.', familia: 'antiseptico' }
-]
+] as const satisfies readonly VademecumOdontologicoItem[]
+
+export type VademecumItem = typeof VADEMECUM_ODONTOLOGICO[number]

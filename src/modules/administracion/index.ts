@@ -63,6 +63,7 @@ export {
   NIVELES_RIESGO_MRONG,
   VIAS_ADMINISTRACION
 } from './schemas/vademecumSchema'
+export type { Farmaco, FarmacoUrgencia, Antirresortivo } from './schemas/vademecumSchema'
 
 // Schema de alergias cruzadas (F4-03f-5a)
 export {
@@ -71,6 +72,7 @@ export {
   FAMILIAS_ALERGIAS,
   NIVELES_SEVERIDAD
 } from './schemas/alergiaCruzadaSchema'
+export type { AlergiaCruzada } from './schemas/alergiaCruzadaSchema'
 
 // Schema de interacciones (F4-03f-5b)
 export {
@@ -78,14 +80,17 @@ export {
   validarInteraccion,
   NIVELES_SEVERIDAD_INTERACCION
 } from './schemas/interaccionSchema'
+export type { Interaccion } from './schemas/interaccionSchema'
 
 // Schemas de protocolos (F4-03f-5c)
 export {
   profilaxisSchema,
   validarProfilaxis
 } from './schemas/profilaxisSchema'
+export type { Profilaxis } from './schemas/profilaxisSchema'
 
 export {
   anticoagulanteSchema,
   validarAnticoagulante
 } from './schemas/anticoagulanteSchema'
+export type { Anticoagulante } from './schemas/anticoagulanteSchema'

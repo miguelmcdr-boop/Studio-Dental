@@ -34,7 +34,7 @@ export const FormularioNuevaReceta: React.FC<FormularioNuevaRecetaProps> = memo(
   const [alertaFarmaco, setAlertaFarmaco] = useState<AlertaAlergiaData | null>(null)
   
   // F4-03g: Vademécum cargado desde Supabase (94 fármacos) con fallback a datos locales (22 fármacos)
-  const [vademecumCargado, setVademecumCargado] = useState<VademecumItemLocal[]>(VADEMECUM_ODONTOLOGICO as VademecumItemLocal[])
+  const [vademecumCargado, setVademecumCargado] = useState<VademecumItemLocal[]>([...VADEMECUM_ODONTOLOGICO])
   
   useEffect(() => {
     // F4-03g-fix: Construye posología completa combinando campos existentes
@@ -70,12 +70,12 @@ export const FormularioNuevaReceta: React.FC<FormularioNuevaRecetaProps> = memo(
           }))
           setVademecumCargado(adaptado)
         } else {
-          setVademecumCargado(VADEMECUM_ODONTOLOGICO as VademecumItemLocal[])
+          setVademecumCargado([...VADEMECUM_ODONTOLOGICO])
         }
       } catch (e: unknown) {
         const errorMsg = e instanceof Error ? e.message : String(e)
         log.warn('vademecumService no disponible, usando datos locales:', errorMsg)
-        setVademecumCargado(VADEMECUM_ODONTOLOGICO as VademecumItemLocal[])
+        setVademecumCargado([...VADEMECUM_ODONTOLOGICO])
       }
     }
     cargarVademecum()
