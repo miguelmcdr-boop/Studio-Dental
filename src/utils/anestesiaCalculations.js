@@ -524,3 +524,6 @@ export const listarAnestesicosDisponibles = () => {
     tieneVasoconstrictor: d.tieneVasoconstrictor
   }))
 }
+
+export { DOSIS_RESPALDO_V10 }
+

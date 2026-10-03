@@ -5,3 +5,4 @@ export {
   guardarPaciente,
   procesarColaPacientes
 } from './services/pacientesStorageService'
+export type { Paciente } from './schemas/pacienteSchema'
