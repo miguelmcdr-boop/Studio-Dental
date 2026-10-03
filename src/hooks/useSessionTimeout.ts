@@ -1,5 +1,13 @@
 import { useEffect, useRef, useCallback } from 'react'
 
+export interface UseSessionTimeoutOptions {
+  activo: boolean
+  timeoutMs?: number
+  warnMs?: number
+  onTimeout?: () => void | Promise<void>
+  onWarning?: () => void
+}
+
 /**
  * Hook de timeout de sesión por inactividad (F6-H).
  *
@@ -7,12 +15,12 @@ import { useEffect, useRef, useCallback } from 'react'
  * un logout forzado tras un período de inactividad configurable. Muestra
  * una advertencia antes del logout para dar oportunidad de guardar cambios.
  *
- * @param {Object} options
- * @param {boolean} options.activo - Si el timeout está activo (false si no hay sesión)
- * @param {number} [options.timeoutMs=1800000] - Inactividad máxima (default 30 min)
- * @param {number} [options.warnMs=120000] - Anticipación de advertencia (default 2 min)
- * @param {Function} options.onTimeout - Callback al expirar (logout forzado)
- * @param {Function} [options.onWarning] - Callback al mostrar advertencia
+ * @param options Opciones de configuración
+ * @param options.activo - Si el timeout está activo (false si no hay sesión)
+ * @param options.timeoutMs - Inactividad máxima (default 30 min)
+ * @param options.warnMs - Anticipación de advertencia (default 2 min)
+ * @param options.onTimeout - Callback al expirar (logout forzado)
+ * @param options.onWarning - Callback al mostrar advertencia
  */
 export const useSessionTimeout = ({
   activo,
@@ -20,19 +28,19 @@ export const useSessionTimeout = ({
   warnMs = 2 * 60 * 1000,
   onTimeout,
   onWarning
-}) => {
-  const warnTimerRef = useRef(null)
-  const timeoutTimerRef = useRef(null)
-  const advertidoRef = useRef(false)
+}: UseSessionTimeoutOptions): void => {
+  const warnTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const timeoutTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const advertidoRef = useRef<boolean>(false)
 
-  const limpiarTimers = useCallback(() => {
+  const limpiarTimers = useCallback((): void => {
     if (warnTimerRef.current) clearTimeout(warnTimerRef.current)
     if (timeoutTimerRef.current) clearTimeout(timeoutTimerRef.current)
     warnTimerRef.current = null
     timeoutTimerRef.current = null
   }, [])
 
-  const iniciarTimers = useCallback(() => {
+  const iniciarTimers = useCallback((): void => {
     limpiarTimers()
     advertidoRef.current = false
 
@@ -45,7 +53,7 @@ export const useSessionTimeout = ({
 
     // Timer de logout forzado
     timeoutTimerRef.current = setTimeout(() => {
-      if (onTimeout) onTimeout()
+      if (onTimeout) void onTimeout()
     }, timeoutMs)
   }, [timeoutMs, warnMs, onTimeout, onWarning, limpiarTimers])
 
@@ -59,7 +67,7 @@ export const useSessionTimeout = ({
 
     // Eventos que cuentan como actividad del usuario
     const eventos = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart']
-    const handleActivity = () => {
+    const handleActivity = (): void => {
       // Si ya se mostró advertencia y hay actividad, reiniciar sin re-advertir
       iniciarTimers()
     }
