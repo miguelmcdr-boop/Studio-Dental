@@ -10,18 +10,8 @@
  * - versionLocal: object (datos del usuario actual)
  * - versionRemota: object (datos en Supabase)
  * - camposComparar: array de strings (campos a mostrar en diff)
- * - alResolver: function(decision) → 'local' | 'remote' | 'cancel'
+ * - alResolver: function(decision) → 'local' | 'remote'
  * - alCerrar: function() → cierra sin resolver
- *
- * Uso:
- *   <ConflictResolutionModal
- *     titulo="Conflicto al guardar paciente"
- *     versionLocal={pacienteLocal}
- *     versionRemota={pacienteRemoto}
- *     camposComparar={['nombre', 'telefono', 'email', 'alergias']}
- *     alResolver={(decision) => handleResolution(decision)}
- *     alCerrar={() => setShowModal(false)}
- *   />
  */
 import React, { useState } from 'react'
 import { Button } from './ui/Button'
@@ -29,17 +19,26 @@ import { Globe, PenLine } from 'lucide-react'
 import { Icon } from './Icon'
 import { Modal } from './ui/Modal'
 
-export const ConflictResolutionModal = ({
+export interface ConflictResolutionModalProps {
+  titulo?: string
+  versionLocal?: Record<string, unknown> | null
+  versionRemota?: (Record<string, unknown> & { updated_at?: string }) | null
+  camposComparar?: string[]
+  alResolver: (decision: 'local' | 'remote') => void | Promise<void>
+  alCerrar: () => void
+}
+
+export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = ({
   titulo = 'Conflicto de edición detectado',
   versionLocal,
   versionRemota,
   camposComparar = [],
   alResolver,
-  alCerrar
+  alCerrar,
 }) => {
-  const [resolviendo, setResolviendo] = useState(false)
+  const [resolviendo, setResolviendo] = useState<boolean>(false)
 
-  const handleResolver = async (decision) => {
+  const handleResolver = async (decision: 'local' | 'remote'): Promise<void> => {
     if (resolviendo) return
     setResolviendo(true)
     try {
@@ -49,13 +48,13 @@ export const ConflictResolutionModal = ({
     }
   }
 
-  const formatearValor = (valor) => {
+  const formatearValor = (valor: unknown): string => {
     if (valor === null || valor === undefined) return '—'
     if (typeof valor === 'object') return JSON.stringify(valor)
     return String(valor)
   }
 
-  const sonDiferentes = (campo) => {
+  const sonDiferentes = (campo: string): boolean => {
     const valorLocal = versionLocal?.[campo]
     const valorRemoto = versionRemota?.[campo]
     return formatearValor(valorLocal) !== formatearValor(valorRemoto)
@@ -83,7 +82,7 @@ export const ConflictResolutionModal = ({
         <div className="border border-blue-200 dark:border-blue-800 rounded-lg overflow-hidden">
           <div className="bg-blue-50 dark:bg-blue-900/20 px-4 py-2 border-b border-blue-200 dark:border-blue-800">
             <h3 className="font-semibold text-graphite-900 dark:text-graphite-100 flex items-center gap-2">
-              <Icon icon={PenLine} size="xs"/> Tu versión
+              <Icon icon={PenLine} size="xs" /> Tu versión
             </h3>
             <p className="text-xs text-blue-700 dark:text-blue-300">Los cambios que hiciste</p>
           </div>
@@ -94,19 +93,21 @@ export const ConflictResolutionModal = ({
                 <div
                   key={campo}
                   className={`p-2 rounded ${
-                    diferente 
-                      ? 'bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800' 
+                    diferente
+                      ? 'bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800'
                       : 'bg-gray-50 dark:bg-graphite-800'
                   }`}
                 >
                   <div className="text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">
                     {campo.replace(/_/g, ' ')}
                   </div>
-                  <div className={`text-sm mt-1 ${
-                    diferente 
-                      ? 'text-yellow-900 dark:text-yellow-200 font-medium' 
-                      : 'text-gray-700 dark:text-graphite-300'
-                  }`}>
+                  <div
+                    className={`text-sm mt-1 ${
+                      diferente
+                        ? 'text-yellow-900 dark:text-yellow-200 font-medium'
+                        : 'text-gray-700 dark:text-graphite-300'
+                    }`}
+                  >
                     {formatearValor(versionLocal?.[campo])}
                   </div>
                 </div>
@@ -133,19 +134,21 @@ export const ConflictResolutionModal = ({
                 <div
                   key={campo}
                   className={`p-2 rounded ${
-                    diferente 
-                      ? 'bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800' 
+                    diferente
+                      ? 'bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800'
                       : 'bg-gray-50 dark:bg-graphite-800'
                   }`}
                 >
                   <div className="text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase">
                     {campo.replace(/_/g, ' ')}
                   </div>
-                  <div className={`text-sm mt-1 ${
-                    diferente 
-                      ? 'text-yellow-900 dark:text-yellow-200 font-medium' 
-                      : 'text-gray-700 dark:text-graphite-300'
-                  }`}>
+                  <div
+                    className={`text-sm mt-1 ${
+                      diferente
+                        ? 'text-yellow-900 dark:text-yellow-200 font-medium'
+                        : 'text-gray-700 dark:text-graphite-300'
+                    }`}
+                  >
                     {formatearValor(versionRemota?.[campo])}
                   </div>
                 </div>
@@ -186,3 +189,5 @@ export const ConflictResolutionModal = ({
     </Modal>
   )
 }
+
+ConflictResolutionModal.displayName = 'ConflictResolutionModal'

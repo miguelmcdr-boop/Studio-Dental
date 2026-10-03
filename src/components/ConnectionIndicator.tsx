@@ -11,14 +11,23 @@ import { estaOnline } from '../services/supabaseClient'
  *
  * Se monta en el Sidebar (footer). Hace ping cada 30s para verificar.
  */
-export const ConnectionIndicator = () => {
-  const [estado, setEstado] = useState('online') // 'online' | 'offline' | 'conectando'
+export type ConnectionState = 'online' | 'offline' | 'conectando'
+
+interface StateConfig {
+  color: string
+  text: string
+  label: string
+  title: string
+}
+
+export const ConnectionIndicator: React.FC = () => {
+  const [estado, setEstado] = useState<ConnectionState>('online')
 
   useEffect(() => {
     let activo = true
-    let intervalId = null
+    let intervalId: ReturnType<typeof setInterval> | null = null
 
-    const verificarConexion = async () => {
+    const verificarConexion = async (): Promise<void> => {
       // Verificación rápida con navigator.onLine
       if (typeof navigator !== 'undefined' && !navigator.onLine) {
         if (activo) setEstado('offline')
@@ -37,12 +46,12 @@ export const ConnectionIndicator = () => {
     verificarConexion()
 
     // Listeners de navegador
-    const handleOnline = () => {
+    const handleOnline = (): void => {
       setEstado('conectando')
       verificarConexion()
     }
 
-    const handleOffline = () => {
+    const handleOffline = (): void => {
       setEstado('offline')
     }
 
@@ -60,25 +69,25 @@ export const ConnectionIndicator = () => {
     }
   }, [])
 
-  const config = {
+  const config: Record<ConnectionState, StateConfig> = {
     online: {
       color: 'bg-green-500',
       text: 'text-green-700',
       label: 'Conectado',
-      title: 'Sincronización en tiempo real activa'
+      title: 'Sincronización en tiempo real activa',
     },
     offline: {
       color: 'bg-red-500',
       text: 'text-red-700',
       label: 'Sin conexión',
-      title: 'Trabajando offline. Los cambios se sincronizarán al volver la conexión.'
+      title: 'Trabajando offline. Los cambios se sincronizarán al volver la conexión.',
     },
     conectando: {
       color: 'bg-yellow-500',
       text: 'text-yellow-700',
       label: 'Conectando...',
-      title: 'Verificando conexión...'
-    }
+      title: 'Verificando conexión...',
+    },
   }
 
   const c = config[estado] || config.offline
@@ -98,3 +107,5 @@ export const ConnectionIndicator = () => {
     </div>
   )
 }
+
+ConnectionIndicator.displayName = 'ConnectionIndicator'

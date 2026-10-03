@@ -1,7 +1,7 @@
 import React from 'react'
-import { Info, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react'
+import { Info, CheckCircle2, AlertTriangle, XCircle, LucideIcon } from 'lucide-react'
 import { useNotifications } from '../hooks/useNotifications'
-import { notificationService } from '../services/notificationService'
+import { notificationService, NotificationItem, NotificationType } from '../services/notificationService'
 
 /**
  * Contenedor de toasts (F5-05).
@@ -16,38 +16,50 @@ import { notificationService } from '../services/notificationService'
  * - error (rojo)
  */
 
-const CONFIG_POR_TIPO = {
+interface ToastStyleConfig {
+  bg: string
+  border: string
+  text: string
+  iconColor: string
+  icon: LucideIcon
+}
+
+const CONFIG_POR_TIPO: Record<NotificationType, ToastStyleConfig> = {
   info: {
     bg: 'bg-blue-50 dark:bg-surface surgical:bg-surface',
     border: 'border-blue-400 dark:border-blue-500/60 surgical:border-blue-600',
     text: 'text-blue-900 dark:text-blue-200 surgical:text-black',
     iconColor: 'text-blue-600 dark:text-blue-400 surgical:text-black',
-    icon: Info
+    icon: Info,
   },
   success: {
     bg: 'bg-green-50 dark:bg-surface surgical:bg-surface',
     border: 'border-green-400 dark:border-green-500/60 surgical:border-green-600',
     text: 'text-green-900 dark:text-green-200 surgical:text-black',
     iconColor: 'text-green-600 dark:text-green-400 surgical:text-black',
-    icon: CheckCircle2
+    icon: CheckCircle2,
   },
   warning: {
     bg: 'bg-yellow-50 dark:bg-surface surgical:bg-surface',
     border: 'border-yellow-400 dark:border-yellow-500/60 surgical:border-yellow-600',
     text: 'text-yellow-900 dark:text-yellow-200 surgical:text-black',
     iconColor: 'text-yellow-600 dark:text-yellow-400 surgical:text-black',
-    icon: AlertTriangle
+    icon: AlertTriangle,
   },
   error: {
     bg: 'bg-red-50 dark:bg-surface surgical:bg-surface',
     border: 'border-red-400 dark:border-red-500/60 surgical:border-red-600',
     text: 'text-red-900 dark:text-red-200 surgical:text-black',
     iconColor: 'text-red-600 dark:text-red-400 surgical:text-black',
-    icon: XCircle
-  }
+    icon: XCircle,
+  },
 }
 
-const ToastItem = ({ notificacion }) => {
+interface ToastItemProps {
+  notificacion: NotificationItem
+}
+
+const ToastItem: React.FC<ToastItemProps> = ({ notificacion }) => {
   const config = CONFIG_POR_TIPO[notificacion.tipo] || CONFIG_POR_TIPO.info
 
   return (
@@ -81,7 +93,7 @@ const ToastItem = ({ notificacion }) => {
   )
 }
 
-export const ToastContainer = () => {
+export const ToastContainer: React.FC = () => {
   const notificaciones = useNotifications()
 
   if (notificaciones.length === 0) return null
@@ -97,3 +109,5 @@ export const ToastContainer = () => {
     </div>
   )
 }
+
+ToastContainer.displayName = 'ToastContainer'
