@@ -5,6 +5,23 @@
  * Fallback si vademecumService retorna vacío o no está disponible.
  */
 
+export interface DosisRespaldoItem {
+  numero: number
+  nombreGenerico: string
+  familia: string
+  mgPorKgAdulto: number | null
+  topeAbsolutoAdulto: number | null
+  mgPorKgPediatrico: number | null
+  topeAbsolutoPediatrico: number | null
+  mgPorTubo: number
+  volumenPorTubo: number
+  concentracionMgPorMl: number
+  tieneVasoconstrictor: boolean
+  concentracionVasoconstrictor: number
+  contraindicaciones: string
+  notasEspeciales: string
+}
+
 export const DOSIS_RESPALDO_V10 = {
   lidocaina: {
     numero: 1,
@@ -70,4 +87,6 @@ export const DOSIS_RESPALDO_V10 = {
     contraindicaciones: 'Cardiopatía isquémica severa, niños <12 años, arritmias ventriculares',
     notasEspeciales: 'Larga duración para cirugías complejas'
   }
-}
+} as const satisfies Record<string, DosisRespaldoItem>
+
+export type TipoAnestesicoRespaldo = keyof typeof DOSIS_RESPALDO_V10

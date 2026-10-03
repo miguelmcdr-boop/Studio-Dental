@@ -10,14 +10,56 @@
  *   const tareas = obtenerTareasClinicas(citas, evoluciones, recetas)
  */
 
+export interface CitaParaTareas {
+  id?: string | number
+  fecha?: string
+  estado?: string
+  pacienteId?: string | number | null
+  pacienteNombre?: string
+  trataMiento?: string
+  solicitoCertificado?: boolean
+  [key: string]: unknown
+}
+
+export interface RecetaParaTareas {
+  fechaEmision?: string
+  fecha?: string
+  pacienteId?: string | number | null
+  [key: string]: unknown
+}
+
+export interface CertificadoParaTareas {
+  fechaEmision?: string
+  fecha?: string
+  pacienteId?: string | number | null
+  [key: string]: unknown
+}
+
+export interface EvolucionParaTareas {
+  fecha?: string
+  pacienteId?: string | number | null
+  [key: string]: unknown
+}
+
+export type TipoTareaClinica = 'receta_pendiente' | 'certificado_pendiente' | 'evolucion_pendiente'
+
+export interface TareaClinicaItem {
+  tipo: TipoTareaClinica
+  completada: boolean
+  titulo: string
+  descripcion: string
+  fecha?: string
+  citaId?: string | number
+  pacienteId?: string | number | null
+}
+
 /**
  * Obtiene tareas de recetas por emitir (pacientes con consulta hoy sin receta).
- *
- * @param {Array} citas - Array de citas
- * @param {Array} recetas - Array de recetas emitidas
- * @returns {Array} Tareas de recetas pendientes
  */
-const obtenerTareasRecetas = (citas = [], recetas = []) => {
+const obtenerTareasRecetas = (
+  citas: CitaParaTareas[] = [],
+  recetas: RecetaParaTareas[] = []
+): TareaClinicaItem[] => {
   const hoy = new Date().toISOString().split('T')[0]
 
   const citasHoy = citas.filter((c) => c.fecha === hoy && (c.estado === 'Completado' || c.estado === 'Atendido' || c.estado === 'Realizado'))
@@ -44,12 +86,11 @@ const obtenerTareasRecetas = (citas = [], recetas = []) => {
 
 /**
  * Obtiene tareas de certificados pendientes (pacientes solicitaron pero no se emitieron).
- *
- * @param {Array} citas - Array de citas
- * @param {Array} certificados - Array de certificados emitidos
- * @returns {Array} Tareas de certificados pendientes
  */
-const obtenerTareasCertificados = (citas = [], certificados = []) => {
+const obtenerTareasCertificados = (
+  citas: CitaParaTareas[] = [],
+  certificados: CertificadoParaTareas[] = []
+): TareaClinicaItem[] => {
   const hoy = new Date().toISOString().split('T')[0]
 
   const citasHoy = citas.filter((c) => c.fecha === hoy && c.solicitoCertificado)
@@ -76,12 +117,11 @@ const obtenerTareasCertificados = (citas = [], certificados = []) => {
 
 /**
  * Obtiene tareas de evoluciones clínicas faltantes (citas finalizadas sin nota).
- *
- * @param {Array} citas - Array de citas
- * @param {Array} evoluciones - Array de evoluciones clínicas
- * @returns {Array} Tareas de evoluciones pendientes
  */
-const obtenerTareasEvoluciones = (citas = [], evoluciones = []) => {
+const obtenerTareasEvoluciones = (
+  citas: CitaParaTareas[] = [],
+  evoluciones: EvolucionParaTareas[] = []
+): TareaClinicaItem[] => {
   const hoy = new Date().toISOString().split('T')[0]
 
   const citasHoy = citas.filter((c) => c.fecha === hoy && (c.estado === 'Completado' || c.estado === 'Atendido' || c.estado === 'Realizado'))
@@ -108,17 +148,16 @@ const obtenerTareasEvoluciones = (citas = [], evoluciones = []) => {
 
 /**
  * Obtiene todas las tareas clínicas pendientes consolidadas.
- *
- * @param {Array} citas - Array de citas
- * @param {Array} evoluciones - Array de evoluciones clínicas
- * @param {Array} recetas - Array de recetas emitidas
- * @param {Array} certificados - Array de certificados emitidos
- * @returns {Array} Array de tareas ordenadas por tipo
  */
-export const obtenerTareasClinicas = (citas = [], evoluciones = [], recetas = [], certificados = []) => {
-  const tareasRecetas = obtenerTareasRecetas(citas, recetas)
-  const tareasCertificados = obtenerTareasCertificados(citas, certificados)
-  const tareasEvoluciones = obtenerTareasEvoluciones(citas, evoluciones)
+export const obtenerTareasClinicas = (
+  citas: CitaParaTareas[] = [],
+  evoluciones: (EvolucionParaTareas | unknown)[] = [],
+  recetas: (RecetaParaTareas | unknown)[] = [],
+  certificados: (CertificadoParaTareas | unknown)[] = []
+): TareaClinicaItem[] => {
+  const tareasRecetas = obtenerTareasRecetas(citas, recetas as RecetaParaTareas[])
+  const tareasCertificados = obtenerTareasCertificados(citas, certificados as CertificadoParaTareas[])
+  const tareasEvoluciones = obtenerTareasEvoluciones(citas, evoluciones as EvolucionParaTareas[])
 
   return [...tareasRecetas, ...tareasCertificados, ...tareasEvoluciones]
 }

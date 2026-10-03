@@ -3,7 +3,7 @@
  *
  * Este archivo contiene la implementación completa de los cálculos de dosis
  * máxima de anestesia local según el vademécum v1.1 curado por odontólogo.
- * El archivo `anestesiaCalc.js` actúa como re-export delgado (wrapper) para
+ * El archivo `anestesiaCalc.ts` actúa como re-export delgado (wrapper) para
  * preservar la compatibilidad de imports existentes.
  *
  * APIs públicas:
@@ -20,10 +20,85 @@
  * 2. DOSIS_RESPALDO_V10 (v1.0 hardcodeada, 4 anestésicos originales)
  */
 import { vademecumService } from '../services/vademecumService'
+import type { DosisAnestesiaItem } from '../services/vademecumAnestesia'
 import { createLogger } from '../services/logger'
-import { DOSIS_RESPALDO_V10 } from './anestesiaDatos'
+import { DOSIS_RESPALDO_V10, type DosisRespaldoItem } from './anestesiaDatos'
 
 const log = createLogger('anestesiaCalculations')
+
+export interface AnestesicoItem {
+  clave?: string
+  numero: number
+  nombreGenerico: string
+  familia: string
+  presentacion?: string | null
+  mgPorKgAdulto?: number | null
+  topeAbsolutoAdulto?: number | null
+  mgPorKgPediatrico?: number | null
+  topeAbsolutoPediatrico?: number | null
+  mgPorTubo?: number | null
+  volumenPorTubo?: number | null
+  concentracionMgPorMl?: number | null
+  tieneVasoconstrictor: boolean
+  concentracionVasoconstrictor: number
+  contraindicaciones?: string | null
+  notasEspeciales?: string | null
+}
+
+export interface CalcularTubosResultado {
+  estado: 'OK' | 'DATOS_INCOMPLETOS' | 'ANESTESICO_DESCONOCIDO'
+  mensaje: string | null
+  mgMax: string | null
+  tubos: number | null
+}
+
+export interface CalcularDosisParams {
+  peso?: number | string
+  tipoAnestesico?: string | number
+  esPediatria?: boolean
+  esCardiopata?: boolean
+  esEmbarazo?: boolean
+  edad?: number | null
+}
+
+export interface AnestesiaInfo {
+  nombreGenerico: string
+  familia: string
+  presentacion?: string | null
+  concentracion?: number | null
+  tieneVasoconstrictor?: boolean
+  contraindicaciones?: string | null
+  notasEspeciales?: string | null
+}
+
+export interface CalculosDosisResultado {
+  mgMaximo: number
+  mlMaximo: number
+  tubosMaximo: number
+  dosisPorKgUsada: 'adulta' | 'pediatrica' | 'adulta_fallback'
+  topeUsado: number | null
+  epinefrinaMg: number
+  epinefrinaCardioSeguro: boolean
+}
+
+export interface CalcularDosisCompletaResultado {
+  estado: 'OK' | 'DATOS_INCOMPLETOS' | 'ANESTESICO_DESCONOCIDO'
+  mensaje: string | null
+  anestesiaInfo: AnestesiaInfo | null
+  calculos: CalculosDosisResultado | null
+  advertencias: string[]
+}
+
+export interface AnestesicoDisponible {
+  numero: number
+  nombreGenerico: string
+  familia: string
+  presentacion?: string | null
+  contenidoPorUnidad_mg?: number | null
+  dosisMaxAdulto_mgPorKg?: number | null
+  concentracionMgPorMl?: number | null
+  tieneVasoconstrictor: boolean
+}
 
 // ═══════════════════════════════════════════════════════════════
 // HELPERS DE NORMALIZACIÓN DE TEXTO
@@ -32,12 +107,8 @@ const log = createLogger('anestesiaCalculations')
 /**
  * Normaliza texto: minúsculas + elimina tildes/diacríticos.
  * Útil para comparar nombres de fármacos ignorando tildes y case.
- * Ej: "Articaína" → "articaina", "Lidocaína" → "lidocaina"
- *
- * @param {string|any} texto
- * @returns {string}
  */
-export const normalizar = (texto) => {
+export const normalizar = (texto: unknown): string => {
   if (texto === null || texto === undefined) return ''
   return String(texto)
     .toLowerCase()
@@ -46,16 +117,10 @@ export const normalizar = (texto) => {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// DATOS DE RESPALDO (v1.0 hardcodeados)
-// Fallback si vademecumService retorna vacío o no está disponible
-// ═══════════════════════════════════════════════════════════════
-
-
-// ═══════════════════════════════════════════════════════════════
 // MAPA DE CLAVES (compatibilidad con API legada)
 // Las claves usan versiones normalizadas (sin tildes, en minúsculas)
 // ═══════════════════════════════════════════════════════════════
-const MAPA_CLAVES = {
+const MAPA_CLAVES: Record<string, { patron: RegExp }> = {
   lidocaina: { patron: /lidoca/i },
   mepivacaina: { patron: /mepivaca/i },
   articaina: { patron: /articaina/i },
@@ -70,13 +135,12 @@ const MAPA_CLAVES = {
 /**
  * Obtiene datos de anestesia desde vademecumService.
  * Si falla o retorna vacío, usa DOSIS_RESPALDO_V10.
- * @returns {Array} Array de anestésicos con datos completos
  */
-export const obtenerDatosAnestesia = () => {
+export const obtenerDatosAnestesia = (): AnestesicoItem[] => {
   try {
-    const desdeService = vademecumService?.obtenerDosisAnestesia?.()
+    const desdeService: DosisAnestesiaItem[] | undefined = vademecumService?.obtenerDosisAnestesia?.()
     if (Array.isArray(desdeService) && desdeService.length > 0) {
-      return desdeService.map((d) => ({
+      return desdeService.map((d: DosisAnestesiaItem): AnestesicoItem => ({
         numero: d.id,
         nombreGenerico: d.nombre,
         familia: d.familia,
@@ -100,12 +164,13 @@ export const obtenerDatosAnestesia = () => {
         notasEspeciales: d.notas
       }))
     }
-  } catch (e) {
-    log.warn('[anestesiaCalc] vademecumService no disponible, usando respaldo v1.0:', e?.message)
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
+    log.warn('[anestesiaCalc] vademecumService no disponible, usando respaldo v1.0:', msg)
   }
 
   // Fallback: datos hardcodeados v1.0
-  return Object.entries(DOSIS_RESPALDO_V10).map(([clave, datos]) => ({
+  return Object.entries(DOSIS_RESPALDO_V10).map(([clave, datos]: [string, DosisRespaldoItem]): AnestesicoItem => ({
     clave,
     ...datos
   }))
@@ -114,10 +179,8 @@ export const obtenerDatosAnestesia = () => {
 /**
  * Busca anestésico por clave corta (API legada) o por número/nombre.
  * Usa normalización (sin tildes, case-insensitive) para robustez.
- * @param {string|number} tipoAnestesico
- * @returns {Object|null}
  */
-export const buscarAnestesico = (tipoAnestesico) => {
+export const buscarAnestesico = (tipoAnestesico: unknown): AnestesicoItem | null => {
   const datos = obtenerDatosAnestesia()
 
   // Búsqueda por clave corta normalizada (legada: lidocaina, mepivacaina, etc.)
@@ -154,13 +217,13 @@ export const buscarAnestesico = (tipoAnestesico) => {
 
 /**
  * Genera advertencias clínicas automáticas según Sección 1 del vademécum v1.1.
- * @param {Object} anestesia
- * @param {Object} params
- * @returns {Array<string>}
  */
-export const generarAdvertencias = (anestesia, params) => {
+export const generarAdvertencias = (
+  anestesia: AnestesicoItem,
+  params: { esPediatria?: boolean; esCardiopata?: boolean; esEmbarazo?: boolean; peso?: number | null }
+): string[] => {
   const { esPediatria = false, esCardiopata = false, esEmbarazo = false, peso } = params
-  const advertencias = []
+  const advertencias: string[] = []
   const nombreNorm = normalizar(anestesia.nombreGenerico || '')
 
   // 1. Embarazo + Felipresina
@@ -175,7 +238,7 @@ export const generarAdvertencias = (anestesia, params) => {
 
   // 3. Cardiopata + vasoconstrictor
   if (esCardiopata && anestesia.tieneVasoconstrictor) {
-    const epiPorTubo = (anestesia.concentracionVasoconstrictor || 0) * anestesia.volumenPorTubo  // F7-03: volumenPorTubo ya validado arriba
+    const epiPorTubo = (anestesia.concentracionVasoconstrictor || 0) * (anestesia.volumenPorTubo || 0)
     if (epiPorTubo > 0) {
       const tubosMaximoEpi = Math.floor(0.04 / epiPorTubo)
       advertencias.push(`⚠ Cardiopatía: limitar Epinefrina a 0.04 mg por sesión (≈ ${tubosMaximoEpi} tubos)`)
@@ -222,18 +285,9 @@ export const generarAdvertencias = (anestesia, params) => {
 /**
  * Calcula la dosis máxima (mg) y el número máximo de tubos de anestesia local
  * seguros para un paciente, según su peso corporal y el anestésico elegido.
- *
- * REGLA DE SEGURIDAD CLÍNICA (Constitución, Cap. V.2): si el peso no es un
- * dato numérico válido y positivo, o si el tipo de anestésico no está en la
- * tabla de referencia, la función NUNCA debe asumir un valor por defecto ni
- * calcular una dosis "aproximada".
- *
- * @param {number|string} peso - Peso del paciente en kg.
- * @param {string} tipoAnestesico - Clave del anestésico.
- * @returns {{estado: string, mensaje: string|null, mgMax: string|null, tubos: number|null}}
  */
-export const calcularTubosAnestesia = (peso, tipoAnestesico) => {
-  const pesoNumerico = parseFloat(peso)
+export const calcularTubosAnestesia = (peso: unknown, tipoAnestesico: unknown): CalcularTubosResultado => {
+  const pesoNumerico = parseFloat(String(peso))
   const pesoValido = Number.isFinite(pesoNumerico) && pesoNumerico > 0
 
   if (!pesoValido) {
@@ -249,7 +303,7 @@ export const calcularTubosAnestesia = (peso, tipoAnestesico) => {
   if (!anestesia) {
     return {
       estado: 'ANESTESICO_DESCONOCIDO',
-      mensaje: `Tipo de anestésico "${tipoAnestesico}" no reconocido — Verificación manual requerida.`,
+      mensaje: `Tipo de anestésico "${String(tipoAnestesico)}" no reconocido — Verificación manual requerida.`,
       mgMax: null,
       tubos: null
     }
@@ -293,16 +347,8 @@ export const calcularTubosAnestesia = (peso, tipoAnestesico) => {
 /**
  * Calcula dosis máxima COMPLETA de anestesia con todos los parámetros
  * del vademécum v1.1 curado por odontólogo.
- *
- * @param {Object} params
- * @param {number|string} params.peso - Peso en kg (requerido)
- * @param {string|number} params.tipoAnestesico
- * @param {boolean} [params.esPediatria=false]
- * @param {boolean} [params.esCardiopata=false]
- * @param {boolean} [params.esEmbarazo=false]
- * @param {number} [params.edad] - Edad en años (para validaciones)
  */
-export const calcularDosisAnestesiaCompleta = (params = {}) => {
+export const calcularDosisAnestesiaCompleta = (params: CalcularDosisParams = {}): CalcularDosisCompletaResultado => {
   const {
     peso,
     tipoAnestesico,
@@ -313,7 +359,7 @@ export const calcularDosisAnestesiaCompleta = (params = {}) => {
   } = params
 
   // ─── Validación de peso (Fail-Safe Clinical Default) ───
-  const pesoNumerico = parseFloat(peso)
+  const pesoNumerico = parseFloat(String(peso))
   const pesoValido = Number.isFinite(pesoNumerico) && pesoNumerico > 0
 
   if (!pesoValido) {
@@ -331,7 +377,7 @@ export const calcularDosisAnestesiaCompleta = (params = {}) => {
   if (!anestesia) {
     return {
       estado: 'ANESTESICO_DESCONOCIDO',
-      mensaje: `Tipo de anestésico "${tipoAnestesico}" no reconocido — Verificación manual requerida.`,
+      mensaje: `Tipo de anestésico "${String(tipoAnestesico)}" no reconocido — Verificación manual requerida.`,
       anestesiaInfo: null,
       calculos: null,
       advertencias: []
@@ -372,7 +418,9 @@ export const calcularDosisAnestesiaCompleta = (params = {}) => {
   }
 
   // ─── Determinar dosis según población ───
-  let mgPorKg, topeAbsoluto, dosisPorKgUsada
+  let mgPorKg: number | null | undefined
+  let topeAbsoluto: number | null | undefined
+  let dosisPorKgUsada: 'adulta' | 'pediatrica'
 
   if (esPediatria) {
     mgPorKg = anestesia.mgPorKgPediatrico
@@ -414,20 +462,18 @@ export const calcularDosisAnestesiaCompleta = (params = {}) => {
   }
 
   // ─── F7-03: Validación de campos obligatorios (sin defaults numéricos) ───
-  const camposObligatorios = {
-    concentracionMgPorMl: anestesia.concentracionMgPorMl,
-    volumenPorTubo: anestesia.volumenPorTubo,
-    mgPorTubo: anestesia.mgPorTubo
-  }
+  const concentracion = anestesia.concentracionMgPorMl
+  const volumenPorTubo = anestesia.volumenPorTubo
+  const mgPorTubo = anestesia.mgPorTubo
 
-  const camposInvalidos = []
-  if (!camposObligatorios.concentracionMgPorMl || camposObligatorios.concentracionMgPorMl <= 0) {
+  const camposInvalidos: string[] = []
+  if (!concentracion || concentracion <= 0) {
     camposInvalidos.push('concentracionMgPorMl')
   }
-  if (!camposObligatorios.volumenPorTubo || camposObligatorios.volumenPorTubo <= 0) {
+  if (!volumenPorTubo || volumenPorTubo <= 0) {
     camposInvalidos.push('volumenPorTubo')
   }
-  if (!camposObligatorios.mgPorTubo || camposObligatorios.mgPorTubo <= 0) {
+  if (!mgPorTubo || mgPorTubo <= 0) {
     camposInvalidos.push('mgPorTubo')
   }
 
@@ -448,17 +494,14 @@ export const calcularDosisAnestesiaCompleta = (params = {}) => {
   // ─── Cálculos (fórmulas Sección 1B) ───
   let mgMaximo = pesoNumerico * mgPorKg
 
-  let topeUsado = null
+  let topeUsado: number | null = null
   if (topeAbsoluto && mgMaximo > topeAbsoluto) {
     mgMaximo = topeAbsoluto
     topeUsado = topeAbsoluto
   }
 
-  const concentracion = anestesia.concentracionMgPorMl  // F7-03: sin default
-  const mlMaximo = mgMaximo / concentracion
-
-  const volumenPorTubo = anestesia.volumenPorTubo  // F7-03: sin default
-  const tubosMaximo = Math.floor(mlMaximo / volumenPorTubo)
+  const mlMaximo = mgMaximo / concentracion!
+  const tubosMaximo = Math.floor(mlMaximo / volumenPorTubo!)
 
   let epinefrinaMg = 0
   if (anestesia.tieneVasoconstrictor && anestesia.concentracionVasoconstrictor > 0) {
@@ -511,9 +554,9 @@ export const calcularDosisAnestesiaCompleta = (params = {}) => {
 /**
  * Lista todos los anestésicos disponibles (desde vademécum o respaldo).
  */
-export const listarAnestesicosDisponibles = () => {
+export const listarAnestesicosDisponibles = (): AnestesicoDisponible[] => {
   const datos = obtenerDatosAnestesia()
-  return datos.map((d) => ({
+  return datos.map((d: AnestesicoItem): AnestesicoDisponible => ({
     numero: d.numero,
     nombreGenerico: d.nombreGenerico,
     familia: d.familia,
@@ -526,4 +569,3 @@ export const listarAnestesicosDisponibles = () => {
 }
 
 export { DOSIS_RESPALDO_V10 }
-

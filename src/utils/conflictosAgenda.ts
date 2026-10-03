@@ -6,16 +6,35 @@
  *
  * API pública:
  * - detectarConflictoAgenda(nuevaCita, citasExistentes) → { hayConflicto, citasConflictivas }
- * - convertirAHoras(fechaISO, horaInicio, duracionMinutos) → { inicioMs, finMs }
+ * - convertirAHoras(cita) → { inicioMs, finMs }
  */
+
+export interface CitaHorario {
+  id?: string | number
+  fecha?: string
+  horaInicio?: string
+  duracionMinutos?: number | string
+  pacienteId?: string | number
+  estado?: string
+  [key: string]: unknown
+}
+
+export interface IntervaloHoras {
+  inicioMs: number
+  finMs: number
+}
+
+export interface ConflictoAgendaResultado<T = CitaHorario> {
+  hayConflicto: boolean
+  citasConflictivas: T[]
+}
 
 /**
  * Convierte una cita en timestamps numéricos (inicio, fin).
  *
- * @param {Object} cita - Cita con campos fecha (ISO), horaInicio (HH:MM), duracionMinutos
- * @returns {{ inicioMs: number, finMs: number } | null}
+ * @param cita - Cita con campos fecha (ISO), horaInicio (HH:MM), duracionMinutos
  */
-export const convertirAHoras = (cita) => {
+export const convertirAHoras = (cita?: CitaHorario | null): IntervaloHoras | null => {
   if (!cita?.fecha || !cita?.horaInicio) return null
 
   const fechaBase = cita.fecha.split('T')[0] // YYYY-MM-DD
@@ -31,7 +50,7 @@ export const convertirAHoras = (cita) => {
   fechaCita.setHours(hora, minuto, 0, 0)
 
   const inicioMs = fechaCita.getTime()
-  const duracionMin = parseInt(cita.duracionMinutos, 10) || 30
+  const duracionMin = parseInt(String(cita.duracionMinutos), 10) || 30
   const finMs = inicioMs + duracionMin * 60 * 1000
 
   return { inicioMs, finMs }
@@ -39,12 +58,8 @@ export const convertirAHoras = (cita) => {
 
 /**
  * Verifica si dos citas se superponen en el tiempo.
- *
- * @param {Object} citaA - Primera cita
- * @param {Object} citaB - Segunda cita
- * @returns {boolean}
  */
-const seSuperponen = (citaA, citaB) => {
+const seSuperponen = (citaA: CitaHorario, citaB: CitaHorario): boolean => {
   const a = convertirAHoras(citaA)
   const b = convertirAHoras(citaB)
 
@@ -61,11 +76,13 @@ const seSuperponen = (citaA, citaB) => {
  * Solo considera conflictos para el MISMO paciente. Citas de diferentes
  * pacientes no generan conflicto (incluso si están en el mismo horario).
  *
- * @param {Object} nuevaCita - Cita a validar
- * @param {Array} citasExistentes - Lista de citas ya agendadas
- * @returns {{ hayConflicto: boolean, citasConflictivas: Array }}
+ * @param nuevaCita - Cita a validar
+ * @param citasExistentes - Lista de citas ya agendadas
  */
-export const detectarConflictoAgenda = (nuevaCita, citasExistentes = []) => {
+export const detectarConflictoAgenda = <T extends CitaHorario>(
+  nuevaCita?: T | null,
+  citasExistentes: T[] = []
+): ConflictoAgendaResultado<T> => {
   if (!nuevaCita?.pacienteId || !Array.isArray(citasExistentes)) {
     return { hayConflicto: false, citasConflictivas: [] }
   }
@@ -77,7 +94,7 @@ export const detectarConflictoAgenda = (nuevaCita, citasExistentes = []) => {
 
   const mismoPacienteId = String(nuevaCita.pacienteId)
 
-  const citasConflictivas = citasExistentes.filter((existente) => {
+  const citasConflictivas = citasExistentes.filter((existente: T): boolean => {
     // Ignorar citas canceladas existentes
     if (existente.estado === 'Cancelada' || existente.estado === 'Cancelado') {
       return false
