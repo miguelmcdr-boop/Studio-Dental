@@ -13,6 +13,21 @@
 export const MAX_TAMANO_MB = 50
 export const MAX_TAMANO_BYTES = MAX_TAMANO_MB * 1024 * 1024
 
+export type CategoriaArchivo = 'radiografia' | 'foto_intraoral' | 'foto_clinica' | 'pdf' | 'documento' | 'otro' | string
+
+export interface PermisosArchivos {
+  puedeSubir: boolean
+  puedeEliminar: boolean
+  puedeVer: boolean
+  puedeDescargar: boolean
+  rol?: string
+}
+
+export interface ValidacionArchivoResult {
+  valido: boolean
+  mensaje: string
+}
+
 /**
  * F7-36 FASE 9: MIME types permitidos por categoría.
  * 
@@ -25,7 +40,7 @@ export const MAX_TAMANO_BYTES = MAX_TAMANO_MB * 1024 * 1024
  * - Agregado: application/vnd.openxmlformats-officedocument.wordprocessingml.document (.docx)
  * - Agregado: text/plain (notas de texto)
  */
-export const MIME_TYPES_POR_CATEGORIA = {
+export const MIME_TYPES_POR_CATEGORIA: Record<string, string[]> = {
   radiografia: [
     'image/jpeg',
     'image/png',
@@ -63,12 +78,16 @@ export const MIME_TYPES_POR_CATEGORIA = {
  * 
  * ALINEADO CON BACKEND: usa validación por categoría.
  * 
- * @param {File} file - Archivo a validar
- * @param {Object} permisos - Permisos del usuario
- * @param {string} categoria - Categoría del archivo (radiografia, foto_clinica, etc.)
- * @returns {{ valido: boolean, mensaje: string }}
+ * @param file - Archivo a validar
+ * @param permisos - Permisos del usuario
+ * @param categoria - Categoría del archivo (radiografia, foto_clinica, etc.)
+ * @returns {ValidacionArchivoResult}
  */
-export const validarArchivo = (file, permisos, categoria = 'otro') => {
+export const validarArchivo = (
+  file: File,
+  permisos: PermisosArchivos,
+  categoria: CategoriaArchivo = 'otro'
+): ValidacionArchivoResult => {
   if (file.size > MAX_TAMANO_BYTES) {
     return {
       valido: false,
