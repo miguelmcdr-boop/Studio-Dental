@@ -8,14 +8,12 @@ export interface DatosVariablesMensaje {
   horaCita?: string
   doctorNombre?: string
   clinicaNombre?: string
-  [key: string]: unknown
 }
 
 export interface MensajeHistorial {
   fechaEnvio?: string
   estado?: string
   canal?: string
-  [key: string]: unknown
 }
 
 export interface ResumenComunicaciones {
