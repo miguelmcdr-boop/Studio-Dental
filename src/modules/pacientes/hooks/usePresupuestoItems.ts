@@ -1,0 +1,144 @@
+/**
+ * usePresupuestoItems — Hook para gestión de items del presupuesto (F7-25)
+ * 
+ * Extraído de usePresupuestoForm.js para cumplir límite arquitectónico (F3-02).
+ * Gestiona la selección de prestaciones, descuentos por convenio y CRUD de items.
+ */
+import { useState } from 'react'
+import type React from 'react'
+import { obtenerDescuentoConvenio } from '../utils/pacientesCalculations'
+import { pacientesStorageService } from '../services/pacientesStorageService'
+
+export interface ItemPresupuesto {
+  id: string | number
+  pieza: string
+  prestacion: string
+  convenio?: string
+  precioBase: number
+  descuentoPct: number
+  valor: number
+  estado: string
+  [key: string]: unknown
+}
+
+export interface PrestacionArancel {
+  id: string | number
+  nombre: string
+  precio?: number | string
+  precioParticular?: number | string
+  [key: string]: unknown
+}
+
+export interface PacientePresupuestoRef {
+  id: string | number
+  prevision?: string
+  [key: string]: unknown
+}
+
+export interface UsePresupuestoItemsOptions {
+  paciente: PacientePresupuestoRef
+  arancelActualizado: PrestacionArancel[]
+  convenioAplicado: string
+  itemsPresupuesto: ItemPresupuesto[]
+  setItemsPresupuesto: (items: ItemPresupuesto[]) => void
+}
+
+export interface UsePresupuestoItemsReturn {
+  piezaPresupuesto: string
+  prestacionSeleccionadaId: string | number
+  nombrePrestacion: string
+  valorPrestacion: number | string
+  precioBaseOriginal: number
+  porcentajeDescuentoAplicado: number
+  handleSeleccionarPrestacion: (id: string | number, convenioNombre?: string) => void
+  handleCambiarConvenioSelect: (nuevoConvenio: string) => void
+  handleAgregarItemPresupuesto: (e: React.FormEvent) => void
+  handleEliminarItem: (id: string | number) => void
+  setPiezaPresupuesto: (pieza: string) => void
+  setNombrePrestacion: (nombre: string) => void
+  setValorPrestacion: (valor: string | number) => void
+}
+
+export const usePresupuestoItems = ({
+  paciente,
+  arancelActualizado,
+  convenioAplicado,
+  itemsPresupuesto,
+  setItemsPresupuesto
+}: UsePresupuestoItemsOptions): UsePresupuestoItemsReturn => {
+  const [piezaPresupuesto, setPiezaPresupuesto] = useState<string>('')
+  const [prestacionSeleccionadaId, setPrestacionSeleccionadaId] = useState<string | number>('')
+  const [nombrePrestacion, setNombrePrestacion] = useState<string>('')
+  const [valorPrestacion, setValorPrestacion] = useState<number | string>('')
+  const [precioBaseOriginal, setPrecioBaseOriginal] = useState<number>(0)
+  const [porcentajeDescuentoAplicado, setPorcentajeDescuentoAplicado] = useState<number>(0)
+
+  const handleSeleccionarPrestacion = (id: string | number, convenioNombre: string = convenioAplicado): void => {
+    setPrestacionSeleccionadaId(id)
+    if (!id) return
+    const prest = arancelActualizado.find(p => String(p.id) === String(id))
+    if (prest) {
+      const precioBase = parseFloat(String(prest.precio ?? prest.precioParticular ?? 0)) || 0
+      setNombrePrestacion(prest.nombre)
+      setPrecioBaseOriginal(precioBase)
+      
+      const pctDesc = Number(obtenerDescuentoConvenio(convenioNombre)) || 0
+      setPorcentajeDescuentoAplicado(pctDesc)
+      const precioConDescuento = Math.round(precioBase * (1 - pctDesc / 100))
+      setValorPrestacion(precioConDescuento)
+    }
+  }
+
+  const handleCambiarConvenioSelect = (nuevoConvenio: string): void => {
+    if (prestacionSeleccionadaId) {
+      handleSeleccionarPrestacion(prestacionSeleccionadaId, nuevoConvenio)
+    }
+  }
+
+  const handleAgregarItemPresupuesto = (e: React.FormEvent): void => {
+    e.preventDefault()
+    if (!nombrePrestacion || !valorPrestacion) return
+    const valorNum = parseInt(String(valorPrestacion), 10) || 0
+    const nuevoItem: ItemPresupuesto = {
+      id: Date.now(),
+      pieza: piezaPresupuesto || 'General',
+      prestacion: nombrePrestacion,
+      convenio: convenioAplicado,
+      precioBase: precioBaseOriginal || valorNum,
+      descuentoPct: porcentajeDescuentoAplicado,
+      valor: valorNum,
+      estado: 'Pendiente'
+    }
+    const actualizados = [...itemsPresupuesto, nuevoItem]
+    setItemsPresupuesto(actualizados)
+    pacientesStorageService.guardarItem(`presupuesto_items_${paciente.id}`, actualizados)
+    setPiezaPresupuesto('')
+    setPrestacionSeleccionadaId('')
+    setNombrePrestacion('')
+    setValorPrestacion('')
+    setPrecioBaseOriginal(0)
+    setPorcentajeDescuentoAplicado(0)
+  }
+
+  const handleEliminarItem = (id: string | number): void => {
+    const actualizados = itemsPresupuesto.filter(i => String(i.id) !== String(id))
+    setItemsPresupuesto(actualizados)
+    pacientesStorageService.guardarItem(`presupuesto_items_${paciente.id}`, actualizados)
+  }
+
+  return {
+    piezaPresupuesto,
+    prestacionSeleccionadaId,
+    nombrePrestacion,
+    valorPrestacion,
+    precioBaseOriginal,
+    porcentajeDescuentoAplicado,
+    handleSeleccionarPrestacion,
+    handleCambiarConvenioSelect,
+    handleAgregarItemPresupuesto,
+    handleEliminarItem,
+    setPiezaPresupuesto,
+    setNombrePrestacion,
+    setValorPrestacion
+  }
+}
