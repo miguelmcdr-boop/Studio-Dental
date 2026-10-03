@@ -1,20 +1,29 @@
 import React, { memo, useState } from 'react'
 import { Icon } from '../../../components/Icon'
 import { Wrench, PenSquare } from 'lucide-react'
-import { EQUIPOS_AUTOCLAVE, RESULTADOS_BOWIE_DICK } from '../constants/esterilizacionConstants'
+import {
+  EQUIPOS_AUTOCLAVE,
+  RESULTADOS_BOWIE_DICK,
+  type TestBowieDick
+} from '../constants/esterilizacionConstants'
 import { useAppDialog } from '../../../hooks/useAppDialog'
 
-export const TestDiariosSection = memo(({ testDiarios, alAgregarTest }) => {
-  const [equipo, setEquipo] = useState(EQUIPOS_AUTOCLAVE[0])
-  const { alert: dialogAlert } = useAppDialog()
-  const [resultado, setResultado] = useState(RESULTADOS_BOWIE_DICK[0].nombre)
-  const [operador, setOperador] = useState('TENS Esterilización')
-  const [observacion, setObservacion] = useState('')
+export interface TestDiariosSectionProps {
+  testDiarios: TestBowieDick[]
+  alAgregarTest: (nuevoTest: TestBowieDick) => void
+}
 
-  const handleSubmit = async (e) => {
+export const TestDiariosSection = memo<TestDiariosSectionProps>(({ testDiarios, alAgregarTest }) => {
+  const [equipo, setEquipo] = useState<string>(EQUIPOS_AUTOCLAVE[0])
+  const { alert: dialogAlert } = useAppDialog()
+  const [resultado, setResultado] = useState<string>(RESULTADOS_BOWIE_DICK[0].nombre)
+  const [operador, setOperador] = useState<string>('TENS Esterilización')
+  const [observacion, setObservacion] = useState<string>('')
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault()
 
-    const nuevoTest = {
+    const nuevoTest: TestBowieDick = {
       id: Date.now(),
       fecha: new Date().toLocaleDateString('es-CL'),
       equipo,
@@ -39,9 +48,9 @@ export const TestDiariosSection = memo(({ testDiarios, alAgregarTest }) => {
         <div className="border-b pb-2">
           <h3 className="font-bold text-sm text-gray-900 dark:text-graphite-50 uppercase tracking-wider">
             <span className="flex items-center gap-2">
-            <Icon icon={Wrench} size="sm" />
-            Test Diarios de Penetración de Vapor (Bowie-Dick / Pre-Vacío)
-          </span>
+              <Icon icon={Wrench} size="sm" />
+              Test Diarios de Penetración de Vapor (Bowie-Dick / Pre-Vacío)
+            </span>
           </h3>
           <p className="text-gray-500 dark:text-graphite-400 text-[11px]">
             Verificación técnica matutina obligatoria por la SEREMI antes de procesar cargas de pacientes.
@@ -118,7 +127,7 @@ export const TestDiariosSection = memo(({ testDiarios, alAgregarTest }) => {
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-graphite-800">
             {testDiarios.map(t => (
-              <tr key={t.id} className="hover:bg-gray-50 dark:hover:bg-graphite-700 dark:hover:bg-graphite-700">
+              <tr key={t.id} className="hover:bg-gray-50 dark:hover:bg-graphite-700">
                 <td className="p-3 font-bold text-gray-900 dark:text-graphite-50">{t.fecha}</td>
                 <td className="p-3 font-semibold text-gray-800 dark:text-graphite-100">{t.equipo}</td>
                 <td className="p-3 text-gray-600 dark:text-graphite-400">{t.operador}</td>

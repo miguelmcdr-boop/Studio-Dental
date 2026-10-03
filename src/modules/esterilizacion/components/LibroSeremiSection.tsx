@@ -1,14 +1,23 @@
 import React, { memo } from 'react'
 import { BookOpen, Printer } from 'lucide-react'
+import type { CargaEsterilizacion, PruebaBiologica } from '../constants/esterilizacionConstants'
 
-export const LibroSeremiSection = memo(({ cargas, biologicos, userProfile }) => {
+export interface LibroSeremiSectionProps {
+  cargas: CargaEsterilizacion[]
+  biologicos: PruebaBiologica[]
+  userProfile?: { nombreCompleto?: string; [key: string]: unknown } | null
+}
+
+export const LibroSeremiSection = memo<LibroSeremiSectionProps>(({ cargas, biologicos, userProfile }) => {
   const hoyStr = new Date().toLocaleDateString('es-CL')
 
   return (
     <div className="space-y-4 text-xs">
       <div className="flex justify-between items-center print:hidden bg-gray-50 dark:bg-graphite-800 p-4 border rounded-2xl">
         <div>
-          <h3 className="font-bold text-sm text-gray-900 dark:text-graphite-50 flex items-center gap-2"><BookOpen size={16} />Libro Oficial Folia de Esterilización SEREMI</h3>
+          <h3 className="font-bold text-sm text-gray-900 dark:text-graphite-50 flex items-center gap-2">
+            <BookOpen size={16} />Libro Oficial Folia de Esterilización SEREMI
+          </h3>
           <p className="text-gray-500 dark:text-graphite-400 text-[11px]">Vista de reporte diario oficial para inspección y auditoría de bioseguridad.</p>
         </div>
 

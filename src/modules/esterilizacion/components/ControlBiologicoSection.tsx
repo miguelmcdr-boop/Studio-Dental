@@ -1,19 +1,31 @@
 import React, { memo, useState } from 'react'
-import { Dna, Plus } from 'lucide-react'
+import { Dna, Plus, Check, X } from 'lucide-react'
 import { Icon } from '../../../components/Icon'
-import { EQUIPOS_AUTOCLAVE } from '../constants/esterilizacionConstants'
+import {
+  EQUIPOS_AUTOCLAVE,
+  type PruebaBiologica
+} from '../constants/esterilizacionConstants'
 import { useAppDialog } from '../../../hooks/useAppDialog'
-import { Check, X } from 'lucide-react'
 
-export const ControlBiologicoSection = memo(({ biologicos, alAgregar, alActualizarResultado }) => {
-  const [loteAsociado, setLoteAsociado] = useState('')
+export interface ControlBiologicoSectionProps {
+  biologicos: PruebaBiologica[]
+  alAgregar: (nuevaPrueba: PruebaBiologica) => void
+  alActualizarResultado: (idBio: number | string, nuevoResultado: string) => void
+}
+
+export const ControlBiologicoSection = memo<ControlBiologicoSectionProps>(({
+  biologicos,
+  alAgregar,
+  alActualizarResultado
+}) => {
+  const [loteAsociado, setLoteAsociado] = useState<string>('')
   const { alert: dialogAlert } = useAppDialog()
-  const [equipo, setEquipo] = useState(EQUIPOS_AUTOCLAVE[0])
-  const [marcaAmpolla] = useState('3M Attest 1262')
-  const [horasRequeridas, setHorasRequeridas] = useState(24)
-  const [observacion, setObservacion] = useState('')
+  const [equipo, setEquipo] = useState<string>(EQUIPOS_AUTOCLAVE[0])
+  const [marcaAmpolla] = useState<string>('3M Attest 1262')
+  const [horasRequeridas, setHorasRequeridas] = useState<number>(24)
+  const [observacion, setObservacion] = useState<string>('')
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault()
     if (!loteAsociado.trim()) {
       await dialogAlert({
@@ -25,14 +37,14 @@ export const ControlBiologicoSection = memo(({ biologicos, alAgregar, alActualiz
       return
     }
 
-    const nuevaPrueba = {
+    const nuevaPrueba: PruebaBiologica = {
       id: Date.now(),
       loteAsociado,
       equipo,
       fechaIncubacion: new Date().toLocaleDateString('es-CL'),
       horaIncubacion: new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }),
       marcaAmpolla,
-      horasRequeridas: parseInt(horasRequeridas),
+      horasRequeridas: Number(horasRequeridas),
       resultado: 'Pendiente',
       responsableLectura: 'Operador TENS',
       observacion
@@ -82,7 +94,7 @@ export const ControlBiologicoSection = memo(({ biologicos, alAgregar, alActualiz
             <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Tiempo Lectura Requerido</label>
             <select
               value={horasRequeridas}
-              onChange={(e) => setHorasRequeridas(e.target.value)}
+              onChange={(e) => setHorasRequeridas(Number(e.target.value))}
               className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-bold"
             >
               <option value={24}>24 Horas (Incubación Estándar)</option>
@@ -129,7 +141,7 @@ export const ControlBiologicoSection = memo(({ biologicos, alAgregar, alActualiz
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-graphite-800">
             {biologicos.map(b => (
-              <tr key={b.id} className="hover:bg-gray-50 dark:hover:bg-graphite-700 dark:hover:bg-graphite-700">
+              <tr key={b.id} className="hover:bg-gray-50 dark:hover:bg-graphite-700">
                 <td className="p-3 font-mono font-bold text-gray-900 dark:text-graphite-50">{b.loteAsociado}</td>
                 <td className="p-3 font-semibold text-gray-700 dark:text-graphite-300">{b.fechaIncubacion} {b.horaIncubacion}</td>
                 <td className="p-3 text-gray-800 dark:text-graphite-100 font-medium">{b.equipo}</td>

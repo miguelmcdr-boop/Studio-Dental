@@ -1,7 +1,18 @@
 import React, { memo } from 'react'
 import { Tag, Trash2 } from 'lucide-react'
+import type { CargaEsterilizacion } from '../constants/esterilizacionConstants'
 
-export const TablaCargasEsterilizacion = memo(({ cargas, onSeleccionarImprimir, onEliminar }) => {
+export interface TablaCargasEsterilizacionProps {
+  cargas: CargaEsterilizacion[]
+  onSeleccionarImprimir: (carga: CargaEsterilizacion) => void
+  onEliminar: (id: number | string) => void
+}
+
+export const TablaCargasEsterilizacion = memo<TablaCargasEsterilizacionProps>(({
+  cargas,
+  onSeleccionarImprimir,
+  onEliminar
+}) => {
   if (cargas.length === 0) {
     return (
       <div className="p-10 text-center text-xs text-gray-400 dark:text-graphite-500 bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl">

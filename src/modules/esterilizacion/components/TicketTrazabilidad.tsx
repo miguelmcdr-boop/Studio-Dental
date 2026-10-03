@@ -1,13 +1,21 @@
 import React, { memo } from 'react'
 import { Tag, Printer } from 'lucide-react'
+import type { CargaEsterilizacion } from '../constants/esterilizacionConstants'
 
-export const TicketTrazabilidad = memo(({ carga, alCerrar }) => {
+export interface TicketTrazabilidadProps {
+  carga: CargaEsterilizacion | null
+  alCerrar: () => void
+}
+
+export const TicketTrazabilidad = memo<TicketTrazabilidadProps>(({ carga, alCerrar }) => {
   if (!carga) return null
 
   return (
     <div className="bg-gray-50 dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-6 space-y-4 text-xs">
       <div className="flex justify-between items-center print:hidden border-b pb-3">
-        <h4 className="font-bold text-sm text-gray-900 dark:text-graphite-50 inline-flex items-center gap-2"><Tag size={16} />Tique de Trazabilidad Estéril (Etiqueta Carga)</h4>
+        <h4 className="font-bold text-sm text-gray-900 dark:text-graphite-50 inline-flex items-center gap-2">
+          <Tag size={16} />Tique de Trazabilidad Estéril (Etiqueta Carga)
+        </h4>
         <div className="flex gap-2">
           <button
             onClick={() => window.print()}

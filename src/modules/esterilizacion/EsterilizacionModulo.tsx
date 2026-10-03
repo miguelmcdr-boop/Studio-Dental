@@ -3,7 +3,7 @@ import { Icon } from '../../components/Icon'
 import { Wrench, Sparkles, Dna, Tag, BookOpen } from 'lucide-react'
 import { Input } from '../../components/ui/Input'
 import { Button } from '../../components/ui/Button'
-import { EQUIPOS_AUTOCLAVE } from './constants/esterilizacionConstants'
+import { EQUIPOS_AUTOCLAVE, type CargaEsterilizacion } from './constants/esterilizacionConstants'
 import { useEsterilizacion } from './hooks/useEsterilizacion'
 import { EsterilizacionSummaryCards } from './components/EsterilizacionSummaryCards'
 import { TablaCargasEsterilizacion } from './components/TablaCargasEsterilizacion'
@@ -14,13 +14,15 @@ import { ModalNuevaCarga } from './components/ModalNuevaCarga'
 import { TicketTrazabilidad } from './components/TicketTrazabilidad'
 import { useSesionStore } from '../../store/sesionStore'
 
-export const EsterilizacionModulo = memo(() => {
-  // (F2-02) — userProfile ya no llega como prop desde App.jsx: se lee directo del store.
-  const userProfile = useSesionStore((state) => state.userProfile)
+type TabEsterilizacion = 'cargas' | 'biologico' | 'test' | 'libro'
 
-  const [tabActual, setTabActual] = useState('cargas') // 'cargas' | 'biologico' | 'test' | 'libro'
-  const [modalAbierto, setModalAbierto] = useState(false)
-  const [cargaImprimir, setCargaImprimir] = useState(null)
+export const EsterilizacionModulo: React.FC = memo(() => {
+  // (F2-02) — userProfile ya no llega como prop desde App.jsx: se lee directo del store.
+  const userProfile = useSesionStore((state: { userProfile?: { nombreCompleto?: string; [key: string]: unknown } | null }) => state.userProfile)
+
+  const [tabActual, setTabActual] = useState<TabEsterilizacion>('cargas')
+  const [modalAbierto, setModalAbierto] = useState<boolean>(false)
+  const [cargaImprimir, setCargaImprimir] = useState<CargaEsterilizacion | null>(null)
 
   const {
     cargas,
@@ -44,9 +46,9 @@ export const EsterilizacionModulo = memo(() => {
       <div className="flex justify-between items-center flex-wrap gap-3 print:hidden">
         <div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-graphite-50 uppercase tracking-wider flex items-center gap-2">
-          <Icon icon={Sparkles} size="md" />
-          Central de Esterilización & Bioseguridad SEREMI
-        </h2>
+            <Icon icon={Sparkles} size="md" />
+            Central de Esterilización & Bioseguridad SEREMI
+          </h2>
           <p className="text-xs text-gray-500 dark:text-graphite-400">Control de cargas, trazabilidad, incubación de ampollas y Libro Folia Oficial.</p>
         </div>
 
@@ -91,9 +93,9 @@ export const EsterilizacionModulo = memo(() => {
           size="sm"
         >
           <span className="flex items-center gap-2">
-          <Icon icon={Wrench} size="sm" />
-          Test Bowie-Dick / Fugas
-        </span>
+            <Icon icon={Wrench} size="sm" />
+            Test Bowie-Dick / Fugas
+          </span>
         </Button>
 
         <Button
