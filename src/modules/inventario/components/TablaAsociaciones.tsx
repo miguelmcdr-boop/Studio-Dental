@@ -2,8 +2,19 @@ import React, { memo } from 'react'
 import { Button } from '../../../components/ui/Button'
 import { Input } from '../../../components/ui/Input'
 import { AlertTriangle, Trash2 } from 'lucide-react'
+import type { ItemInventario } from '../services/inventarioStorageService'
+import type { InsumoAsociadoItem } from '../hooks/useAsociaciones'
 
-export const TablaAsociaciones = memo(({
+export interface TablaAsociacionesProps {
+  items: ItemInventario[]
+  categoriaActiva: string
+  asociacionesCategoriaActiva: InsumoAsociadoItem[]
+  handleAgregarAsociacion: () => void
+  handleActualizarAsociacion: (index: number, campo: string, valor: unknown) => void
+  handleEliminarAsociacion: (index: number) => void
+}
+
+export const TablaAsociaciones: React.FC<TablaAsociacionesProps> = memo(({
   items,
   categoriaActiva,
   asociacionesCategoriaActiva,
@@ -33,21 +44,24 @@ export const TablaAsociaciones = memo(({
     <div className="space-y-3">
       {asociacionesCategoriaActiva.map((asociacion, index) => {
         const sinVinculacion = !asociacion.itemId
-        const itemVinculado = items.find(i => i.id === asociacion.itemId)
-        
+        const itemVinculado = items.find((i) => String(i.id) === String(asociacion.itemId))
+
         return (
           <div
             key={index}
             className={`p-4 border rounded-xl space-y-3 ${
-              sinVinculacion 
-                ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-300 dark:border-amber-700' 
+              sinVinculacion
+                ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-300 dark:border-amber-700'
                 : 'bg-gray-50 dark:bg-graphite-800 border-gray-200 dark:border-graphite-700'
             }`}
           >
             {sinVinculacion && (
               <div className="bg-amber-100 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-700 rounded-lg p-2 text-xs text-amber-900 dark:text-amber-200">
-                <span className="inline-flex items-center gap-1"><AlertTriangle size={12} /><strong>Asociación sin vinculación:</strong></span> Esta asociación fue migrada desde una versión anterior 
-                y necesita ser vinculada a un item real del inventario. Selecciona el item correcto abajo.
+                <span className="inline-flex items-center gap-1">
+                  <AlertTriangle size={12} />
+                  <strong>Asociación sin vinculación:</strong>
+                </span>{' '}
+                Esta asociación fue migrada desde una versión anterior y necesita ser vinculada a un item real del inventario. Selecciona el item correcto abajo.
               </div>
             )}
 
@@ -57,12 +71,18 @@ export const TablaAsociaciones = memo(({
                   Material del Inventario
                 </label>
                 <select
-                  value={asociacion.itemId || ''}
-                  onChange={(e) => handleActualizarAsociacion(index, 'itemId', e.target.value ? Number(e.target.value) : null)}
+                  value={asociacion.itemId ? String(asociacion.itemId) : ''}
+                  onChange={(e) =>
+                    handleActualizarAsociacion(
+                      index,
+                      'itemId',
+                      e.target.value ? Number(e.target.value) : null
+                    )
+                  }
                   className="w-full p-2 border rounded-xl bg-white dark:bg-graphite-900 text-xs font-semibold dark:text-graphite-100 dark:border-graphite-600"
                 >
                   <option value="">-- Seleccionar item del inventario --</option>
-                  {items.map(item => (
+                  {items.map((item) => (
                     <option key={item.id} value={item.id}>
                       {item.nombre} (Stock: {item.cantidad} {item.unidad})
                     </option>
@@ -78,8 +98,10 @@ export const TablaAsociaciones = memo(({
                   type="number"
                   step="0.01"
                   min="0"
-                  value={asociacion.cantidad}
-                  onChange={(e) => handleActualizarAsociacion(index, 'cantidad', parseFloat(e.target.value) || 0)}
+                  value={asociacion.cantidad ?? ''}
+                  onChange={(e) =>
+                    handleActualizarAsociacion(index, 'cantidad', parseFloat(e.target.value) || 0)
+                  }
                   placeholder="0.04"
                 />
               </div>
@@ -112,8 +134,8 @@ export const TablaAsociaciones = memo(({
 
             {itemVinculado && (
               <div className="text-[10px] text-graphite-600 dark:text-graphite-400 bg-white dark:bg-graphite-900 p-2 rounded-lg border dark:border-graphite-700">
-                <strong>Stock actual:</strong> {itemVinculado.cantidad} {itemVinculado.unidad} | 
-                <strong> Categoría:</strong> {itemVinculado.categoria} | 
+                <strong>Stock actual:</strong> {itemVinculado.cantidad} {itemVinculado.unidad} |{' '}
+                <strong> Categoría:</strong> {itemVinculado.categoria} |{' '}
                 <strong> Proveedor:</strong> {itemVinculado.proveedor || 'N/I'}
               </div>
             )}
@@ -132,4 +154,5 @@ export const TablaAsociaciones = memo(({
     </div>
   )
 })
+
 TablaAsociaciones.displayName = 'TablaAsociaciones'

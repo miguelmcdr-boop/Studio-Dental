@@ -1,7 +1,12 @@
 import React, { memo } from 'react'
 import { Boxes, AlertTriangle, CalendarX, Coins } from 'lucide-react'
+import type { ResumenInventario } from '../hooks/useInventario'
 
-export const StockSummaryCards = memo(({ resumen }) => {
+export interface StockSummaryCardsProps {
+  resumen: ResumenInventario
+}
+
+export const StockSummaryCards: React.FC<StockSummaryCardsProps> = memo(({ resumen }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs">
       <div className="relative overflow-hidden p-5 bg-surface/90 backdrop-blur-md border border-surface rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-[#0EA5E9]/50 before:to-transparent">

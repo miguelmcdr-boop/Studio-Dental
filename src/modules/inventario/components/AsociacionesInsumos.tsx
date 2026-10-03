@@ -3,10 +3,14 @@ import { useAsociaciones } from '../hooks/useAsociaciones'
 import { SelectorCategoria } from './SelectorCategoria'
 import { FormularioPalabrasClave } from './FormularioPalabrasClave'
 import { TablaAsociaciones } from './TablaAsociaciones'
-import { Settings } from 'lucide-react'
-import { Lightbulb } from 'lucide-react'
+import { Settings, Lightbulb } from 'lucide-react'
+import type { ItemInventario } from '../services/inventarioStorageService'
 
-export const AsociacionesInsumos = memo(({ items }) => {
+export interface AsociacionesInsumosProps {
+  items: ItemInventario[]
+}
+
+export const AsociacionesInsumos: React.FC<AsociacionesInsumosProps> = memo(({ items }) => {
   const {
     categoriaActiva,
     setCategoriaActiva,
@@ -30,9 +34,12 @@ export const AsociacionesInsumos = memo(({ items }) => {
 
   return (
     <div className="bg-white dark:bg-graphite-900 border border-gray-200 dark:border-graphite-700 rounded-2xl p-6 shadow-xs space-y-4">
-      <div className="border-b dark:border-graphite-700 pb-3">
+      <div className="border-b border-gray-200 dark:border-graphite-700 pb-3">
         <h3 className="font-bold text-sm text-graphite-900 dark:text-graphite-100 uppercase tracking-wider">
-          <span className="inline-flex items-center gap-1"><Settings size={12} />Asociaciones Tratamiento → Material (Descuento Automático de Stock)</span>
+          <span className="inline-flex items-center gap-1">
+            <Settings size={12} />
+            Asociaciones Tratamiento → Material (Descuento Automático de Stock)
+          </span>
         </h3>
         <p className="text-graphite-500 dark:text-graphite-400 text-[11px] mt-1">
           Configura qué materiales se descuentan automáticamente cuando marcas un tratamiento como "Realizado".
@@ -49,7 +56,7 @@ export const AsociacionesInsumos = memo(({ items }) => {
         mostrarInputNuevaCategoria={mostrarInputNuevaCategoria}
         setMostrarInputNuevaCategoria={setMostrarInputNuevaCategoria}
         handleAgregarCategoria={handleAgregarCategoria}
-        handleEliminarCategoria={handleEliminarCategoria}
+        handleEliminarCategoria={(cat) => void handleEliminarCategoria(cat)}
       />
 
       <FormularioPalabrasClave
@@ -70,9 +77,11 @@ export const AsociacionesInsumos = memo(({ items }) => {
       />
 
       <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-3 text-[11px] text-blue-900 dark:text-blue-200">
-        <strong className="inline-flex items-center gap-1"><Lightbulb size={12} />Nota:</strong> Cada asociación está vinculada al ID específico del item en tu inventario.
-        Esto significa que si cambias el nombre de un producto, la asociación no se rompe.
-        Si eliminas un producto del inventario, la asociación quedará sin vinculación y deberás seleccionarla de nuevo.
+        <strong className="inline-flex items-center gap-1">
+          <Lightbulb size={12} />
+          Nota:
+        </strong>{' '}
+        Cada asociación está vinculada al ID específico del item en tu inventario. Esto significa que si cambias el nombre de un producto, la asociación no se rompe. Si eliminas un producto del inventario, la asociación quedará sin vinculación y deberás seleccionarla de nuevo.
       </div>
     </div>
   )

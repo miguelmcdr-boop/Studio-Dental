@@ -3,7 +3,19 @@ import { Button } from '../../../components/ui/Button'
 import { Input } from '../../../components/ui/Input'
 import { Trash2 } from 'lucide-react'
 
-export function SelectorCategoria({
+export interface SelectorCategoriaProps {
+  categoriaActiva: string
+  setCategoriaActiva: (cat: string) => void
+  categorias: string[]
+  nuevaCategoriaNombre: string
+  setNuevaCategoriaNombre: (nombre: string) => void
+  mostrarInputNuevaCategoria: boolean
+  setMostrarInputNuevaCategoria: (mostrar: boolean) => void
+  handleAgregarCategoria: () => void
+  handleEliminarCategoria: (categoria: string) => void | Promise<void>
+}
+
+export const SelectorCategoria: React.FC<SelectorCategoriaProps> = ({
   categoriaActiva,
   setCategoriaActiva,
   categorias,
@@ -13,17 +25,21 @@ export function SelectorCategoria({
   setMostrarInputNuevaCategoria,
   handleAgregarCategoria,
   handleEliminarCategoria
-}) {
+}) => {
   return (
     <div className="flex flex-wrap gap-2 items-center">
-      <span className="font-semibold text-graphite-700 dark:text-graphite-300 text-xs">Categoría de Tratamiento:</span>
+      <span className="font-semibold text-graphite-700 dark:text-graphite-300 text-xs">
+        Categoría de Tratamiento:
+      </span>
       <select
         value={categoriaActiva}
         onChange={(e) => setCategoriaActiva(e.target.value)}
         className="p-2 border rounded-xl bg-white dark:bg-graphite-800 font-semibold text-xs flex-1 sm:flex-initial min-w-[200px]"
       >
-        {categorias.map(cat => (
-          <option key={cat} value={cat}>{cat}</option>
+        {categorias.map((cat) => (
+          <option key={cat} value={cat}>
+            {cat}
+          </option>
         ))}
       </select>
 
@@ -68,12 +84,15 @@ export function SelectorCategoria({
 
       {categorias.length > 1 && (
         <Button
-          onClick={() => handleEliminarCategoria(categoriaActiva)}
+          onClick={() => void handleEliminarCategoria(categoriaActiva)}
           variant="danger"
           size="sm"
           className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors duration-150"
         >
-          <span className="inline-flex items-center gap-1"><Trash2 size={12} />Eliminar Categoría</span>
+          <span className="inline-flex items-center gap-1">
+            <Trash2 size={12} />
+            Eliminar Categoría
+          </span>
         </Button>
       )}
     </div>

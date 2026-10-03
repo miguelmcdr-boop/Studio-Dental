@@ -3,21 +3,35 @@ import { Button } from '../../../components/ui/Button'
 import { Input } from '../../../components/ui/Input'
 import { Key } from 'lucide-react'
 
-export function FormularioPalabrasClave({
+export interface FormularioPalabrasClaveProps {
+  palabrasClaveCategoriaActiva: string[]
+  nuevaPalabraClave: string
+  setNuevaPalabraClave: (palabra: string) => void
+  handleAgregarPalabraClave: () => void
+  handleEliminarPalabraClave: (index: number) => void
+}
+
+export const FormularioPalabrasClave: React.FC<FormularioPalabrasClaveProps> = ({
   palabrasClaveCategoriaActiva,
   nuevaPalabraClave,
   setNuevaPalabraClave,
   handleAgregarPalabraClave,
   handleEliminarPalabraClave
-}) {
+}) => {
   return (
     <div className="bg-gray-50 dark:bg-graphite-800 p-4 rounded-xl border border-gray-200 dark:border-graphite-700 space-y-2">
       <span className="font-semibold text-graphite-700 dark:text-graphite-300 text-xs block">
-        <span className="inline-flex items-center gap-1"><Key size={12} />Palabras clave para detectar automáticamente esta categoría:</span>
+        <span className="inline-flex items-center gap-1">
+          <Key size={12} />
+          Palabras clave para detectar automáticamente esta categoría:
+        </span>
       </span>
       <div className="flex flex-wrap gap-2 items-center">
         {palabrasClaveCategoriaActiva.map((palabra, index) => (
-          <span key={index} className="inline-flex items-center gap-1 bg-white dark:bg-graphite-700 px-2 py-1 rounded-lg border dark:border-graphite-600 text-xs font-semibold text-graphite-800 dark:text-graphite-200">
+          <span
+            key={index}
+            className="inline-flex items-center gap-1 bg-white dark:bg-graphite-700 px-2 py-1 rounded-lg border border-gray-200 dark:border-graphite-600 text-xs font-semibold text-graphite-800 dark:text-graphite-200"
+          >
             {palabra}
             <Button
               onClick={() => handleEliminarPalabraClave(index)}
@@ -42,11 +56,7 @@ export function FormularioPalabrasClave({
           onKeyDown={(e) => e.key === 'Enter' && handleAgregarPalabraClave()}
           className="w-40"
         />
-        <Button
-          onClick={handleAgregarPalabraClave}
-          variant="secondary"
-          size="sm"
-        >
+        <Button onClick={handleAgregarPalabraClave} variant="secondary" size="sm">
           + Agregar
         </Button>
       </div>

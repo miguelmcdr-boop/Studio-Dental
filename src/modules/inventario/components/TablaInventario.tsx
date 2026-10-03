@@ -2,8 +2,21 @@ import React, { memo } from 'react'
 import { Button } from '../../../components/ui/Button'
 import { evaluarEstadoStock, evaluarVencimiento } from '../utils/inventarioCalculations'
 import { Pencil, Trash2 } from 'lucide-react'
+import type { ItemInventario } from '../services/inventarioStorageService'
 
-export const TablaInventario = memo(({ items, onAjustarCantidad, onEditar, onEliminar }) => {
+export interface TablaInventarioProps {
+  items: ItemInventario[]
+  onAjustarCantidad: (idItem: string | number, cambio: number) => void
+  onEditar: (item: ItemInventario) => void
+  onEliminar: (idItem: string | number) => void | Promise<void>
+}
+
+export const TablaInventario: React.FC<TablaInventarioProps> = memo(({
+  items,
+  onAjustarCantidad,
+  onEditar,
+  onEliminar
+}) => {
   if (items.length === 0) {
     return (
       <div className="p-10 text-center text-xs text-gray-400 dark:text-graphite-500 bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl">
@@ -32,7 +45,10 @@ export const TablaInventario = memo(({ items, onAjustarCantidad, onEditar, onEli
             const estadoVenc = evaluarVencimiento(item.fechaVencimiento)
 
             return (
-              <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-graphite-800 surgical:hover:bg-slate-200 transition-colors">
+              <tr
+                key={item.id}
+                className="hover:bg-gray-50 dark:hover:bg-graphite-800 surgical:hover:bg-slate-200 transition-colors"
+              >
                 <td className="p-3 font-bold text-gray-900 dark:text-graphite-50 surgical:text-black">
                   {item.nombre}
                   <span className="block text-[10px] font-normal text-gray-500 dark:text-graphite-400 surgical:text-graphite-600 tabular-nums">
@@ -40,7 +56,9 @@ export const TablaInventario = memo(({ items, onAjustarCantidad, onEditar, onEli
                   </span>
                 </td>
 
-                <td className="p-3 font-medium text-gray-600 dark:text-graphite-400 surgical:text-graphite-700">{item.categoria}</td>
+                <td className="p-3 font-medium text-gray-600 dark:text-graphite-400 surgical:text-graphite-700">
+                  {item.categoria}
+                </td>
 
                 <td className="p-3 text-center font-bold">
                   <div className="inline-flex items-center gap-1.5 bg-graphite-50 dark:bg-graphite-950 surgical:bg-white px-2 py-1 rounded-xl border border-surface">
@@ -53,7 +71,9 @@ export const TablaInventario = memo(({ items, onAjustarCantidad, onEditar, onEli
                     >
                       -
                     </Button>
-                    <span className="text-sm px-1 text-gray-900 dark:text-graphite-50 surgical:text-black tabular-nums">{item.cantidad}</span>
+                    <span className="text-sm px-1 text-gray-900 dark:text-graphite-50 surgical:text-black tabular-nums">
+                      {item.cantidad}
+                    </span>
                     <Button
                       onClick={() => onAjustarCantidad(item.id, 1)}
                       size="sm"
@@ -67,24 +87,35 @@ export const TablaInventario = memo(({ items, onAjustarCantidad, onEditar, onEli
                 </td>
 
                 <td className="p-3 text-center">
-                  <span className={`px-2.5 py-1 rounded-lg font-extrabold text-[10px] ${estadoStock.colorBg} ${estadoStock.colorText}`}>
+                  <span
+                    className={`px-2.5 py-1 rounded-lg font-extrabold text-[10px] ${estadoStock.colorBg} ${estadoStock.colorText}`}
+                  >
                     {estadoStock.texto}
                   </span>
                 </td>
 
                 <td className="p-3 tabular-nums">
-                  <span className={`font-semibold ${
-                    estadoVenc.estado === 'vencido' ? 'text-red-600 dark:text-red-400 font-bold' :
-                    estadoVenc.estado === 'por_vencer' ? 'text-amber-600 dark:text-amber-400 font-bold' : 'text-gray-600 dark:text-graphite-400 surgical:text-graphite-700'
-                  }`}>
+                  <span
+                    className={`font-semibold ${
+                      estadoVenc.estado === 'vencido'
+                        ? 'text-red-600 dark:text-red-400 font-bold'
+                        : estadoVenc.estado === 'por_vencer'
+                          ? 'text-amber-600 dark:text-amber-400 font-bold'
+                          : 'text-gray-600 dark:text-graphite-400 surgical:text-graphite-700'
+                    }`}
+                  >
                     {item.fechaVencimiento || 'N/I'}
                   </span>
                   {estadoVenc.estado !== 'ok' && (
-                    <span className="block text-[9px] font-bold text-red-500">{estadoVenc.texto}</span>
+                    <span className="block text-[9px] font-bold text-red-500">
+                      {estadoVenc.texto}
+                    </span>
                   )}
                 </td>
 
-                <td className="p-3 text-gray-600 dark:text-graphite-400">{item.proveedor || 'N/I'}</td>
+                <td className="p-3 text-gray-600 dark:text-graphite-400">
+                  {item.proveedor || 'N/I'}
+                </td>
 
                 <td className="p-3 text-right print:hidden space-x-1">
                   <Button
@@ -97,7 +128,7 @@ export const TablaInventario = memo(({ items, onAjustarCantidad, onEditar, onEli
                     <Pencil size={12} />
                   </Button>
                   <Button
-                    onClick={() => onEliminar(item.id)}
+                    onClick={() => void onEliminar(item.id)}
                     size="sm"
                     variant="danger"
                     className="p-1.5"
