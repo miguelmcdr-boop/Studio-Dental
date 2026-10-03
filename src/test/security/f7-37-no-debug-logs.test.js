@@ -38,8 +38,8 @@ const contarEnCodigo = (contenido, patron) => {
 describe('F7-37: No debug logs peligrosos', () => {
   describe('Frontend: no TRACE logs', () => {
     const archivosFrontend = [
-      'src/modules/pacientes/components/ModalPapeleraCertificados.jsx',
-      'src/modules/pacientes/components/CertificadosSection.jsx',
+      'src/modules/pacientes/components/ModalPapeleraCertificados.tsx',
+      'src/modules/pacientes/components/CertificadosSection.tsx',
       'src/modules/pacientes/services/certificadosPDFService.ts',
     ];
 
