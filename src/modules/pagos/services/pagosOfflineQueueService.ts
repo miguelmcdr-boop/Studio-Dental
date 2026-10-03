@@ -64,7 +64,7 @@ export const pendingDeletesPagosRepo = createTenantRepository<Array<string | num
 
 export const obtenerClinicaId = (): string | null => {
   try {
-    return getClinicaActiva?.() || null
+    return (getClinicaActiva as unknown as () => string | null)?.() || null
   } catch {
     return null
   }
@@ -202,7 +202,7 @@ export const registrarPagoHelper = async (
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        const paraSupabase = {
+        const paraSupabase: Record<string, unknown> = {
           ...transformarParaSupabase(pagoLocal),
           user_id: user.id
         }
@@ -297,7 +297,7 @@ export const procesarColaPagosHelper = async ({
     for (const item of pending) {
       const id = typeof item === 'object' && item !== null ? item.id : item
       const itemFolio = typeof item === 'object' && item !== null ? item.folio : undefined
-      const itemClinicaId = typeof item === 'object' && item !== null ? (item.clinicaId || clinicaIdActual) : clinicaIdActual
+      const itemClinicaId: string | null = typeof item === 'object' && item !== null ? (item.clinicaId || clinicaIdActual) : clinicaIdActual
 
       // Aislamiento multi-tenant: procesar solo si pertenece a la clínica activa
       if (itemClinicaId !== clinicaIdActual) {
@@ -318,7 +318,7 @@ export const procesarColaPagosHelper = async ({
           continue
         }
 
-        const paraSupabase = {
+        const paraSupabase: Record<string, unknown> = {
           ...transformarParaSupabase(pagoLocal),
           user_id: user.id
         }

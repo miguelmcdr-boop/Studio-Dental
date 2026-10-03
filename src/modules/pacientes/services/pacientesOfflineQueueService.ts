@@ -61,7 +61,7 @@ export const pendingDeletesPacientesRepo = createTenantRepository<string[]>(STOR
 
 export const obtenerClinicaId = (): string | null => {
   try {
-    return getClinicaActiva?.() || null
+    return (getClinicaActiva as unknown as () => string | null)?.() || null
   } catch {
     return null
   }
@@ -209,7 +209,7 @@ export const guardarPacienteHelper = async (
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        const paraSupabase = {
+        const paraSupabase: Record<string, unknown> = {
           ...transformarParaSupabase(pacienteLocal),
           user_id: user.id
         }
@@ -303,7 +303,7 @@ export const procesarColaPacientesHelper = async ({
     for (const item of pending) {
       const id = typeof item === 'object' && item !== null ? item.id : item
       const itemRut = typeof item === 'object' && item !== null ? item.rut : undefined
-      const itemClinicaId = typeof item === 'object' && item !== null ? (item.clinicaId || clinicaIdActual) : clinicaIdActual
+      const itemClinicaId: string | null = typeof item === 'object' && item !== null ? (item.clinicaId || clinicaIdActual) : clinicaIdActual
 
       // Aislamiento multi-tenant: procesar solo si pertenece a la clínica activa
       if (itemClinicaId !== clinicaIdActual) {
@@ -324,7 +324,7 @@ export const procesarColaPacientesHelper = async ({
           continue
         }
 
-        const paraSupabase = {
+        const paraSupabase: Record<string, unknown> = {
           ...transformarParaSupabase(pacLocal),
           user_id: user.id
         }
@@ -456,7 +456,7 @@ export const sincronizarPacientesDesdeSupabaseHelper = async ({
     const fusionados = [...remotos]
     for (const prot of protegidosLocales) {
       if (!idsRemotos.has(prot.id) && (!prot.rut || !rutsRemotos.has(prot.rut))) {
-        fusionados.unshift(prot)
+        fusionados.unshift({ ...prot, sincronizado: false })
       }
     }
 
