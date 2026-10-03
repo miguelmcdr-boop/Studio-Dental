@@ -4,23 +4,22 @@
  * Estado vacío estándar con icono lucide, título, descripción y CTA opcional.
  * Reemplaza los bloques ad-hoc con emojis gigantes (🪑 text-2xl, 🗑️ text-6xl).
  *
- * Uso:
- *   <EmptyState
- *     icon={Armchair}
- *     title="Sin citas agendadas en este Box"
- *     description="Disponible para reservas de hoy."
- *     action={<Button variant="primary" size="sm">Agendar cita</Button>}
- *   />
- *
- *   <EmptyState compact icon={Inbox} title="Sin resultados" />
- *
  * Tokens DS v2 consumidos vía style inline: --ds-text-base, --ds-text-sm,
  * --ds-text-xs, --ds-weight-semibold.
  */
 import React from 'react'
 import { Icon } from '../Icon'
 
-export const EmptyState = ({
+export interface EmptyStateProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
+  icon?: React.ElementType
+  title: React.ReactNode
+  description?: React.ReactNode
+  action?: React.ReactNode
+  compact?: boolean
+  className?: string
+}
+
+export const EmptyState: React.FC<EmptyStateProps> = ({
   icon: IconComponent,
   title,
   description,
