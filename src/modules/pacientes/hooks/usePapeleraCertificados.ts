@@ -1,10 +1,25 @@
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '../../../services/supabaseClient'
-import { certificadosStorageService } from '../services/certificadosStorageService'
+import { certificadosStorageService, type CertificadoMedico } from '../services/certificadosStorageService'
 import * as papeleraCertificadosService from '../services/papeleraCertificadosService'
+import type { CertificadoPapelera } from '../services/papeleraCertificadosService'
 import { createLogger } from '../../../services/logger'
 
 const log = createLogger('usePapeleraCertificados')
+
+export type { CertificadoPapelera, CertificadoMedico }
+
+export interface UsePapeleraCertificadosReturn {
+  papeleraAbierta: boolean
+  abrirPapelera: () => void
+  cerrarPapelera: () => void
+  certificadosActivos: CertificadoPapelera[]
+  hayEliminados: boolean
+  moverAPapelera: (certId: string | number, motivo?: string) => Promise<boolean>
+  restaurar: (certId: string | number) => Promise<boolean>
+  eliminarDefinitivo: (certId: string | number) => Promise<boolean>
+  vaciarPapelera: () => Promise<number>
+}
 
 /**
  * Hook papelera de certificados (M3).
@@ -15,15 +30,21 @@ const log = createLogger('usePapeleraCertificados')
  * Estado local como fuente única de verdad.
  * Storage se actualiza de forma async (fire-and-forget).
  */
-export const usePapeleraCertificados = (pacienteId, certificados, setCertificados) => {
-  const [papeleraAbierta, setPapeleraAbierta] = useState(false)
-  const [userId, setUserId] = useState(null)
+export const usePapeleraCertificados = (
+  pacienteId: string | number,
+  certificados: CertificadoPapelera[] = [],
+  setCertificados: (actualizados: CertificadoPapelera[]) => void
+): UsePapeleraCertificadosReturn => {
+  const [papeleraAbierta, setPapeleraAbierta] = useState<boolean>(false)
+  const [userId, setUserId] = useState<string | null>(null)
 
   useEffect(() => {
     let activo = true
-    supabase.auth.getUser().then(({ data }) => {
-      if (activo && data?.user?.id) setUserId(data.user.id)
-    }).catch(e => log.warn('No se pudo obtener user.id:', e.message))
+    if (supabase?.auth) {
+      supabase.auth.getUser().then(({ data }) => {
+        if (activo && data?.user?.id) setUserId(data.user.id)
+      }).catch(e => log.warn('No se pudo obtener user.id:', (e as Error).message))
+    }
     return () => { activo = false }
   }, [])
 
@@ -37,12 +58,12 @@ export const usePapeleraCertificados = (pacienteId, certificados, setCertificado
     return certificados.some(c => c.eliminadoAt)
   }, [certificados])
 
-  const persistir = (lista) => {
-    certificadosStorageService.guardarCertificados(pacienteId, lista)
+  const persistir = (lista: CertificadoPapelera[]) => {
+    certificadosStorageService.guardarCertificados(pacienteId, lista as CertificadoMedico[])
       .catch(err => log.warn('Error persistiendo:', err))
   }
 
-  const moverAPapelera = async (certId, motivo = 'Movido a papelera') => {
+  const moverAPapelera = async (certId: string | number, motivo: string = 'Movido a papelera'): Promise<boolean> => {
     if (!Array.isArray(certificados) || !pacienteId) return false
 
     const actualizados = certificados.map(c =>
@@ -55,7 +76,7 @@ export const usePapeleraCertificados = (pacienteId, certificados, setCertificado
     return true
   }
 
-  const restaurar = async (certId) => {
+  const restaurar = async (certId: string | number): Promise<boolean> => {
     const actualizados = certificados.map(c =>
       String(c.id) === String(certId)
         ? { ...c, eliminadoAt: null, eliminadoPor: null, eliminadoMotivo: null }
@@ -74,7 +95,7 @@ export const usePapeleraCertificados = (pacienteId, certificados, setCertificado
    * Solo actualiza el estado local si el service reporta éxito.
    * Si el service falla, NO se actualiza el estado local (consistencia).
    */
-  const eliminarDef = async (certId) => {
+  const eliminarDef = async (certId: string | number): Promise<boolean> => {
     if (!Array.isArray(certificados)) return false
 
     // Delegar al service (que usa archivos-purge con validaciones completas)
@@ -97,7 +118,7 @@ export const usePapeleraCertificados = (pacienteId, certificados, setCertificado
    * Vacía la papelera eliminando definitivamente todos los certificados.
    * Usa el service para cada uno (arquitectura segura vía archivos-purge).
    */
-  const vaciarPapeleraLocal = async () => {
+  const vaciarPapeleraLocal = async (): Promise<number> => {
     const eliminados = certificados.filter(c => c.eliminadoAt)
     if (eliminados.length === 0) return 0
 
