@@ -31,7 +31,7 @@ export interface PrestacionArancel {
 
 export interface PacientePresupuestoRef {
   id: string | number
-  prevision?: string
+  prevision?: string | null
   [key: string]: unknown
 }
 

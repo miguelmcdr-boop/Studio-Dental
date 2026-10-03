@@ -5,11 +5,41 @@
  * Este hook ahora solo coordina entre items y abonos.
  */
 import { useState, useEffect } from 'react'
+import type React from 'react'
 import { prestacionesStorageService } from '../../prestaciones/services/prestacionesStorageService'
 import { pacientesStorageService } from '../services/pacientesStorageService'
 import { pagosStorageService } from '../../pagos/services/pagosStorageService'
-import { useEliminarAbono } from './useEliminarAbono'
-import { usePresupuestoItems } from './usePresupuestoItems'
+import { useEliminarAbono, type AbonoItem } from './useEliminarAbono'
+import {
+  usePresupuestoItems,
+  type ItemPresupuesto,
+  type PrestacionArancel,
+  type UsePresupuestoItemsReturn
+} from './usePresupuestoItems'
+import type { Paciente } from '../schemas/pacienteSchema'
+
+export type { ItemPresupuesto, PrestacionArancel, AbonoItem }
+
+export interface UsePresupuestoFormOptions {
+  paciente: Paciente | { id: string | number; nombre: string; prevision?: string; [key: string]: unknown }
+  prestacionesProp?: PrestacionArancel[]
+  itemsPresupuesto?: ItemPresupuesto[]
+  setItemsPresupuesto?: (items: ItemPresupuesto[]) => void
+  abonos?: AbonoItem[]
+  setAbonos?: (abonos: AbonoItem[]) => void
+}
+
+export interface UsePresupuestoFormReturn extends UsePresupuestoItemsReturn {
+  arancelActualizado: PrestacionArancel[]
+  convenioAplicado: string
+  montoAbono: string | number
+  metodoPagoAbono: string
+  handleAgregarAbono: (e: React.FormEvent) => void
+  handleEliminarAbono: (idAbono: string | number) => Promise<void>
+  handleCambiarConvenioSelect: (nuevoConvenio: string) => void
+  setValorAbono: (monto: string) => void
+  setMetodoPagoAbono: (metodo: string) => void
+}
 
 export const usePresupuestoForm = ({
   paciente,
@@ -18,17 +48,17 @@ export const usePresupuestoForm = ({
   setItemsPresupuesto = () => {},
   abonos = [],
   setAbonos = () => {}
-}) => {
+}: UsePresupuestoFormOptions): UsePresupuestoFormReturn => {
   // Estados de arancel y convenio
-  const [arancelActualizado, setArancelActualizado] = useState(() => {
+  const [arancelActualizado, setArancelActualizado] = useState<PrestacionArancel[]>(() => {
     const actuales = prestacionesStorageService.obtenerPrestaciones()
-    return Array.isArray(actuales) && actuales.length > 0 ? actuales : prestacionesProp
+    return Array.isArray(actuales) && actuales.length > 0 ? (actuales as PrestacionArancel[]) : prestacionesProp
   })
-  const [convenioAplicado, setConvenioAplicado] = useState(paciente.prevision || 'Particular')
+  const [convenioAplicado, setConvenioAplicado] = useState<string>(paciente.prevision || 'Particular')
 
   // Estados de abono
-  const [montoAbono, setValorAbono] = useState('')
-  const [metodoPagoAbono, setMetodoPagoAbono] = useState('Efectivo')
+  const [montoAbono, setValorAbono] = useState<string>('')
+  const [metodoPagoAbono, setMetodoPagoAbono] = useState<string>('Efectivo')
 
   // Hook de items
   const itemsHook = usePresupuestoItems({
@@ -41,9 +71,9 @@ export const usePresupuestoForm = ({
 
   // Sincronización con arancel global (F2-07a)
   useEffect(() => {
-    const handleRefrescarArancel = () => {
+    const handleRefrescarArancel = (): void => {
       const actuales = prestacionesStorageService.obtenerPrestaciones()
-      if (Array.isArray(actuales) && actuales.length > 0) setArancelActualizado(actuales)
+      if (Array.isArray(actuales) && actuales.length > 0) setArancelActualizado(actuales as PrestacionArancel[])
     }
     window.addEventListener('storage', handleRefrescarArancel)
     window.addEventListener('arancel_actualizado', handleRefrescarArancel)
@@ -57,13 +87,13 @@ export const usePresupuestoForm = ({
     if (prestacionesProp?.length > 0) setArancelActualizado(prestacionesProp)
   }, [prestacionesProp])
 
-  const handleAgregarAbono = (e) => {
+  const handleAgregarAbono = (e: React.FormEvent): void => {
     e.preventDefault()
     if (!montoAbono) return
-    const abonoObj = {
+    const abonoObj: AbonoItem = {
       id: Date.now(),
       fecha: new Date().toLocaleDateString('es-CL'),
-      monto: parseInt(montoAbono),
+      monto: parseInt(montoAbono, 10) || 0,
       metodoPago: metodoPagoAbono,
       pacienteNombre: paciente.nombre
     }
@@ -83,7 +113,7 @@ export const usePresupuestoForm = ({
     paciente,
   })
 
-  const handleCambiarConvenioSelect = (nuevoConvenio) => {
+  const handleCambiarConvenioSelect = (nuevoConvenio: string): void => {
     setConvenioAplicado(nuevoConvenio)
     itemsHook.handleCambiarConvenioSelect(nuevoConvenio)
   }
