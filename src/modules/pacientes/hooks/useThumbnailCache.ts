@@ -2,6 +2,19 @@ import { useState, useCallback, useEffect } from 'react'
 import { solicitaUrlDownload } from '../../../services/r2ArchivosService'
 import { createLogger } from '../../../services/logger'
 
+const log = createLogger('useThumbnailCache')
+
+export interface ArchivoConId {
+  id: string
+  [key: string]: unknown
+}
+
+export interface UseThumbnailCacheReturn {
+  cache: Record<string, string>
+  cargarThumbnail: (archivo: ArchivoConId) => Promise<string | null>
+  limpiarCache: () => void
+}
+
 /**
  * Hook de cache de thumbnails para archivos clínicos.
  *
@@ -18,15 +31,11 @@ import { createLogger } from '../../../services/logger'
  * - useEffect revoca todos los blob URLs al desmontar el componente
  * - Previene memory leaks entre sesiones
  * - Integrado con F7-05 (purga al logout)
- *
- * @returns {{cache, cargarThumbnail, limpiarCache}}
  */
-const log = createLogger('useThumbnailCache')
+export const useThumbnailCache = (): UseThumbnailCacheReturn => {
+  const [cache, setCache] = useState<Record<string, string>>({}) // { archivoId: blobUrl }
 
-export const useThumbnailCache = () => {
-  const [cache, setCache] = useState({}) // { archivoId: blobUrl }
-
-  const cargarThumbnail = useCallback(async (archivo) => {
+  const cargarThumbnail = useCallback(async (archivo: ArchivoConId): Promise<string | null> => {
     // Ya está cacheado: no re-descargar
     if (cache[archivo.id]) return cache[archivo.id]
 
@@ -59,7 +68,7 @@ export const useThumbnailCache = () => {
     }
   }, [cache])
 
-  const limpiarCache = useCallback(() => {
+  const limpiarCache = useCallback((): void => {
     Object.values(cache).forEach((url) => {
       window.URL.revokeObjectURL(url)
     })
