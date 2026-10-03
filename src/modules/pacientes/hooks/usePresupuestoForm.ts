@@ -21,7 +21,7 @@ import type { Paciente } from '../schemas/pacienteSchema'
 export type { ItemPresupuesto, PrestacionArancel, AbonoItem }
 
 export interface UsePresupuestoFormOptions {
-  paciente: Paciente | { id: string | number; nombre: string; prevision?: string; [key: string]: unknown }
+  paciente: Paciente | { id: string | number; nombre: string; prevision?: string | null; [key: string]: unknown }
   prestacionesProp?: PrestacionArancel[]
   itemsPresupuesto?: ItemPresupuesto[]
   setItemsPresupuesto?: (items: ItemPresupuesto[]) => void
