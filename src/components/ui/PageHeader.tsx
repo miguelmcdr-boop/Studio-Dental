@@ -4,27 +4,28 @@
  * Header estándar de módulo/página con breadcrumb, título sentence case,
  * descripción y slot de acciones. Reemplaza los headers ad-hoc de cada módulo.
  *
- * Uso:
- *   <PageHeader
- *     breadcrumb={[{ label: 'Pacientes', onClick: fn }, { label: 'María González' }]}
- *     title="Ficha clínica"
- *     description="Historial, odontograma y presupuesto del paciente."
- *     actions={<Button variant="primary">Nueva cita</Button>}
- *   />
- *
- * Accesibilidad:
- *   - <nav aria-label="breadcrumb"> con <ol> y aria-current="page" en el último item
- *   - Items clicables del breadcrumb son <button type="button">
- *
- * Tokens DS v2 consumidos vía style inline (namespace --ds-* no genera
- * utilidades Tailwind): --ds-text-2xl, --ds-text-base, --ds-text-xs,
- * --ds-weight-semibold.
+ * Tokens DS v2 consumidos vía style inline: --ds-text-2xl, --ds-text-base,
+ * --ds-text-xs, --ds-weight-semibold.
  */
 import React from 'react'
 import { ChevronRight } from 'lucide-react'
 import { Icon } from '../Icon'
 
-export const PageHeader = ({
+export interface BreadcrumbItem {
+  label: string
+  onClick?: () => void
+}
+
+export interface PageHeaderProps extends Omit<React.HTMLAttributes<HTMLElement>, 'title'> {
+  breadcrumb?: BreadcrumbItem[]
+  title: React.ReactNode
+  description?: React.ReactNode
+  actions?: React.ReactNode
+  icon?: React.ElementType
+  className?: string
+}
+
+export const PageHeader: React.FC<PageHeaderProps> = ({
   breadcrumb = [],
   title,
   description,
@@ -46,7 +47,13 @@ export const PageHeader = ({
               const isLast = idx === breadcrumb.length - 1
               return (
                 <li key={`${crumb.label}-${idx}`} className="flex items-center gap-1">
-                  {idx > 0 && <Icon icon={ChevronRight} size="xs" className="text-graphite-400 dark:text-graphite-600" />}
+                  {idx > 0 && (
+                    <Icon
+                      icon={ChevronRight}
+                      size="xs"
+                      className="text-graphite-400 dark:text-graphite-600"
+                    />
+                  )}
                   {isLast || !crumb.onClick ? (
                     <span
                       aria-current={isLast ? 'page' : undefined}
