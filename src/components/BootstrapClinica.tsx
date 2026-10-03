@@ -13,7 +13,12 @@ import { useAppDialog } from '../hooks/useAppDialog'
  * - Paso 2: Datos adicionales (RUT, dirección, teléfono)
  * - Paso 3: Confirmación y crear
  */
-export const BootstrapClinica = ({ onComplete }) => {
+export interface BootstrapClinicaProps {
+  onComplete?: () => void
+}
+
+export const BootstrapClinica: React.FC<BootstrapClinicaProps> = ({ onComplete }) => {
+  const { confirm } = useAppDialog()
   const {
     paso,
     datos,
@@ -23,7 +28,7 @@ export const BootstrapClinica = ({ onComplete }) => {
     actualizarCampo,
     avanzarPaso,
     retrocederPaso,
-    handleSubmit
+    handleSubmit,
   } = useBootstrapClinica(onComplete)
 
   return (
@@ -55,7 +60,7 @@ export const BootstrapClinica = ({ onComplete }) => {
             ))}
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
+            <div
               className="bg-blue-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${(paso / 3) * 100}%` }}
             />
@@ -79,7 +84,7 @@ export const BootstrapClinica = ({ onComplete }) => {
                 description: 'Puedes iniciar sesión más tarde para completar la configuración.',
                 variant: 'warning',
                 confirmText: 'Salir',
-                cancelText: 'Continuar'
+                cancelText: 'Continuar',
               })
               if (ok) {
                 await supabaseSignOut()
@@ -129,7 +134,7 @@ export const BootstrapClinica = ({ onComplete }) => {
                 <input
                   type="text"
                   id="rutEmpresa"
-                  value={datos.rutEmpresa}
+                  value={datos.rutEmpresa || ''}
                   onChange={(e) => actualizarCampo('rutEmpresa', e.target.value)}
                   placeholder="76.123.456-7"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -147,7 +152,7 @@ export const BootstrapClinica = ({ onComplete }) => {
                 <input
                   type="text"
                   id="direccion"
-                  value={datos.direccion}
+                  value={datos.direccion || ''}
                   onChange={(e) => actualizarCampo('direccion', e.target.value)}
                   placeholder="Av. Siempre Viva 123, Santiago"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -162,7 +167,7 @@ export const BootstrapClinica = ({ onComplete }) => {
                 <input
                   type="tel"
                   id="telefono"
-                  value={datos.telefono}
+                  value={datos.telefono || ''}
                   onChange={(e) => actualizarCampo('telefono', e.target.value)}
                   placeholder="+56912345678"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -245,3 +250,5 @@ export const BootstrapClinica = ({ onComplete }) => {
     </div>
   )
 }
+
+BootstrapClinica.displayName = 'BootstrapClinica'
