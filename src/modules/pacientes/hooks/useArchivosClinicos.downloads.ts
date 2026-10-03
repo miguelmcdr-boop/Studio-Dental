@@ -1,11 +1,29 @@
 import { useCallback } from 'react'
+import type React from 'react'
 import { solicitaUrlDownload, descargaArchivoDeR2 } from '../../../services/r2ArchivosService'
+import type { PermisosArchivos } from './useArchivosClinicos.helpers'
+
+export interface ArchivoVisualizar {
+  blobUrl: string
+  mimeType: string
+  nombreArchivo: string
+}
+
+export interface UseArchivosClinicosDownloadsReturn {
+  descargarArchivo: (archivoId: string, nombreArchivo: string) => Promise<void>
+  verArchivo: (archivoId: string, mimeType?: string | null, nombreArchivo?: string) => Promise<void>
+  cerrarArchivoModal: () => void
+}
 
 /**
  * Hook interno para lógica de descarga y visualización de archivos.
  */
-export const useArchivosClinicosDownloads = (permisos, setError, setArchivoParaVer) => {
-  const descargarArchivo = useCallback(async (archivoId, nombreArchivo) => {
+export const useArchivosClinicosDownloads = (
+  permisos: PermisosArchivos,
+  setError: (error: string | null) => void,
+  setArchivoParaVer: React.Dispatch<React.SetStateAction<ArchivoVisualizar | null>>
+): UseArchivosClinicosDownloadsReturn => {
+  const descargarArchivo = useCallback(async (archivoId: string, nombreArchivo: string): Promise<void> => {
     if (!permisos.puedeDescargar) {
       setError('No tienes permisos para descargar archivos.')
       return
@@ -31,11 +49,12 @@ export const useArchivosClinicosDownloads = (permisos, setError, setArchivoParaV
         setError('Error descargando archivo. Intenta de nuevo.')
       }
     } catch (e) {
-      setError(e?.message || 'Error descargando archivo.')
+      const err = e as Error
+      setError(err?.message || 'Error descargando archivo.')
     }
   }, [permisos.puedeDescargar, setError])
 
-  const verArchivo = useCallback(async (archivoId, mimeType, nombreArchivo) => {
+  const verArchivo = useCallback(async (archivoId: string, mimeType?: string | null, nombreArchivo: string = 'archivo'): Promise<void> => {
     if (!permisos.puedeVer) {
       setError('No tienes permisos para ver archivos.')
       return
@@ -69,11 +88,12 @@ export const useArchivosClinicosDownloads = (permisos, setError, setArchivoParaV
         nombreArchivo,
       })
     } catch (e) {
-      setError(e?.message || 'Error cargando archivo para visualización.')
+      const err = e as Error
+      setError(err?.message || 'Error cargando archivo para visualización.')
     }
   }, [permisos.puedeVer, setError, setArchivoParaVer])
 
-  const cerrarArchivoModal = useCallback(() => {
+  const cerrarArchivoModal = useCallback((): void => {
     setArchivoParaVer((prev) => {
       if (prev?.blobUrl) {
         window.URL.revokeObjectURL(prev.blobUrl)
