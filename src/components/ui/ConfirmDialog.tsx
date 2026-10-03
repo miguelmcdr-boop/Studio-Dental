@@ -27,12 +27,20 @@
  *   - loading: bloquea ESC/overlay y muestra spinner en confirmar
  */
 import React from 'react'
-import { AlertTriangle, AlertCircle, Info } from 'lucide-react'
+import { AlertTriangle, AlertCircle, Info, LucideIcon } from 'lucide-react'
 import { Modal } from './Modal'
-import { Button } from './Button'
+import { Button, ButtonVariant } from './Button'
 import { Icon } from '../Icon'
 
-const VARIANT_CONFIG = {
+export type ConfirmDialogVariant = 'info' | 'warning' | 'danger'
+
+interface VariantConfigItem {
+  icon: LucideIcon
+  iconClasses: string
+  confirmVariant: ButtonVariant
+}
+
+const VARIANT_CONFIG: Record<ConfirmDialogVariant, VariantConfigItem> = {
   info: {
     icon: Info,
     iconClasses: 'bg-clinical-info/10 text-clinical-info dark:bg-clinical-info/20 dark:text-sky-300',
@@ -50,7 +58,20 @@ const VARIANT_CONFIG = {
   },
 }
 
-export const ConfirmDialog = ({
+export interface ConfirmDialogProps {
+  isOpen: boolean
+  title?: React.ReactNode
+  description?: React.ReactNode
+  confirmText?: React.ReactNode
+  cancelText?: React.ReactNode
+  onConfirm?: () => void | Promise<void>
+  onCancel?: () => void
+  variant?: ConfirmDialogVariant | string
+  loading?: boolean
+  children?: React.ReactNode
+}
+
+export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   isOpen,
   title,
   description,
@@ -61,15 +82,16 @@ export const ConfirmDialog = ({
   variant = 'warning',
   loading = false,
   children,
-  ...rest
 }) => {
-  const config = VARIANT_CONFIG[variant] || VARIANT_CONFIG.warning
+  const selectedVariant: ConfirmDialogVariant =
+    variant && variant in VARIANT_CONFIG ? (variant as ConfirmDialogVariant) : 'warning'
+  const config = VARIANT_CONFIG[selectedVariant]
   const IconComponent = config.icon
 
   return (
     <Modal
       isOpen={isOpen}
-      onClose={onCancel}
+      onClose={onCancel || (() => {})}
       title={title}
       size="sm"
       closeOnOverlayClick={!loading}
