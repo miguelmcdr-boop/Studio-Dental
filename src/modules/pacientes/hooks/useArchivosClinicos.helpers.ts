@@ -5,6 +5,9 @@
  * F7-36 FASE 9: Validación MIME extraída a useArchivosClinicos.mimeValidation.js
  */
 
+import type { ArchivoClinicoRow } from '../../../services/r2ArchivosService'
+import type { PermisosArchivos } from './useArchivosClinicos.mimeValidation'
+
 // Re-export de validación MIME (backward compatibility)
 export {
   MAX_TAMANO_MB,
@@ -13,16 +16,18 @@ export {
   validarArchivo,
 } from './useArchivosClinicos.mimeValidation'
 
+export type { PermisosArchivos, CategoriaArchivo, ValidacionArchivoResult } from './useArchivosClinicos.mimeValidation'
+
 // Mapeo bidireccional entre tipo UI y categoría R2.
 // M4b: 'consentimiento' usa categoría 'pdf' porque es la válida en el
 // Edge Function r2-upload-url. Se distingue de otros PDFs por metadata.
-export const TIPO_A_CATEGORIA = {
+export const TIPO_A_CATEGORIA: Record<string, string> = {
   foto: 'foto_clinica',
   rx: 'radiografia',
   consentimiento: 'pdf',
 }
 
-export const CATEGORIA_A_TIPO = {
+export const CATEGORIA_A_TIPO: Record<string, string> = {
   foto_clinica: 'foto',
   radiografia: 'rx',
   documento: 'documento',
@@ -34,6 +39,14 @@ export const CATEGORIA_A_TIPO = {
 // M4b: subcategorías para distinguir tipos dentro de categoría 'pdf'
 export const SUBCATEGORIAS = {
   CONSENTIMIENTO: 'consentimiento',
+} as const
+
+export interface RolesMapRef {
+  ADMIN: string
+  DENTISTA: string
+  ASISTENTE: string
+  RECEPCION: string
+  [key: string]: string
 }
 
 /**
@@ -41,7 +54,7 @@ export const SUBCATEGORIAS = {
  * Nota: las Edge Functions también validan RBAC server-side.
  * Esto solo controla visibilidad/UX en frontend.
  */
-export const calcularPermisos = (rol, ROLES) => {
+export const calcularPermisos = (rol: string, ROLES: RolesMapRef): PermisosArchivos => {
   const puedeSubir = rol === ROLES.ADMIN || rol === ROLES.DENTISTA
   const puedeEliminar = rol === ROLES.ADMIN || rol === ROLES.DENTISTA
   const puedeVer = [ROLES.ADMIN, ROLES.DENTISTA, ROLES.ASISTENTE, ROLES.RECEPCION].includes(rol)
@@ -53,10 +66,10 @@ export const calcularPermisos = (rol, ROLES) => {
 /**
  * M4b: Determina el tipo UI real de un archivo basado en categoría y metadata.
  * Necesario porque 'pdf' puede ser consentimiento u otro PDF.
- * @param {Object} archivo — archivo de archivos_clinicos
- * @returns {string} tipo UI ('consentimiento', 'documento', 'otro', etc)
+ * @param archivo — archivo de archivos_clinicos
+ * @returns tipo UI ('consentimiento', 'documento', 'otro', etc)
  */
-export const determinarTipoDesdeArchivo = (archivo) => {
+export const determinarTipoDesdeArchivo = (archivo?: ArchivoClinicoRow | null): string | null => {
   if (!archivo) return null
 
   if (archivo.categoria === 'pdf' && archivo.metadata?.subcategoria === SUBCATEGORIAS.CONSENTIMIENTO) {
