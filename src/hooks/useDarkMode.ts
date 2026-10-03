@@ -13,20 +13,31 @@
  */
 import { useState, useEffect, useCallback } from 'react'
 
+export type Theme = 'light' | 'dark' | 'surgical'
+
+export interface UseDarkModeReturn {
+  theme: Theme
+  setTheme: (nuevoTema: Theme) => void
+  darkMode: boolean
+  isSurgical: boolean
+  toggleDarkMode: () => void
+  cycleTheme: () => void
+}
+
 const THEME_KEY = 'dentikos_theme'
 const LEGACY_DARK_KEY = 'darkMode'
 
-const THEMES = ['light', 'dark', 'surgical']
+const THEMES: readonly Theme[] = ['light', 'dark', 'surgical'] as const
 
 /**
  * Lee el tema inicial guardado en localStorage o detecta preferencia previa.
  */
-const obtenerTemaInicial = () => {
+const obtenerTemaInicial = (): Theme => {
   if (typeof localStorage === 'undefined') return 'light'
   try {
     const savedTheme = localStorage.getItem(THEME_KEY)
-    if (savedTheme && THEMES.includes(savedTheme)) {
-      return savedTheme
+    if (savedTheme && (THEMES as readonly string[]).includes(savedTheme)) {
+      return savedTheme as Theme
     }
     const legacyDark = localStorage.getItem(LEGACY_DARK_KEY)
     if (legacyDark === 'true') {
@@ -42,7 +53,7 @@ const obtenerTemaInicial = () => {
  * Aplica las clases de tema al elemento <html> raíz y a <body>.
  * Limpia rigurosamente clases anteriores antes de añadir la correspondiente.
  */
-const aplicarClasesDocumento = (tema) => {
+const aplicarClasesDocumento = (tema: Theme): void => {
   if (typeof document === 'undefined') return
   const targets = [document.documentElement, document.body].filter(Boolean)
   targets.forEach((el) => {
@@ -63,28 +74,28 @@ if (typeof document !== 'undefined') {
   aplicarClasesDocumento(obtenerTemaInicial())
 }
 
-export const useDarkMode = () => {
-  const [theme, setThemeState] = useState(obtenerTemaInicial)
+export const useDarkMode = (): UseDarkModeReturn => {
+  const [theme, setThemeState] = useState<Theme>(obtenerTemaInicial)
 
-  const setTheme = useCallback((nuevoTema) => {
+  const setTheme = useCallback((nuevoTema: Theme): void => {
     if (!THEMES.includes(nuevoTema)) return
     setThemeState(nuevoTema)
     try {
       localStorage.setItem(THEME_KEY, nuevoTema)
       localStorage.setItem(LEGACY_DARK_KEY, String(nuevoTema === 'dark'))
       aplicarClasesDocumento(nuevoTema)
-    } catch (e) {
+    } catch (e: unknown) {
       console.error('[useDarkMode] Error al persistir tema:', e)
     }
   }, [])
 
   // Alterna entre light y dark (retrocompatibilidad)
-  const toggleDarkMode = useCallback(() => {
+  const toggleDarkMode = useCallback((): void => {
     setTheme(theme === 'dark' ? 'light' : 'dark')
   }, [theme, setTheme])
 
   // Cicla entre light -> dark -> surgical -> light
-  const cycleTheme = useCallback(() => {
+  const cycleTheme = useCallback((): void => {
     const siguienteIndice = (THEMES.indexOf(theme) + 1) % THEMES.length
     setTheme(THEMES[siguienteIndice])
   }, [theme, setTheme])
