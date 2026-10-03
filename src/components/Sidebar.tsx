@@ -11,28 +11,47 @@
  * - RBAC: permisoRequerido por item (definidos en sidebarConstants)
  * - Toggle de colapso manual
  */
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useRBAC } from '../hooks/useRBAC'
 import { ConnectionIndicator } from './ConnectionIndicator'
 import { Icon } from './Icon'
 import { Badge } from './ui/Badge'
 import { DentikOSLogo } from './brand/DentikOSLogo'
-import { SECCIONES_SIDEBAR } from '../constants/sidebarConstants'
+import { SECCIONES_SIDEBAR, type SidebarItem, type SidebarSeccion } from '../constants/sidebarConstants'
+import type { PerfilUsuario } from '../services/authService'
 
-export const Sidebar = ({ userProfile, activeSection, setActiveSection, onLogout, counters = {} }) => {
+export interface SidebarCounters {
+  citasHoy?: number
+  pacientesActivos?: number
+  [key: string]: number | undefined
+}
+
+export interface SidebarProps {
+  userProfile?: PerfilUsuario | null
+  activeSection: string
+  setActiveSection: (section: string) => void
+  onLogout?: () => void
+  counters?: SidebarCounters
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({
+  activeSection,
+  setActiveSection,
+  counters = {},
+}) => {
   // F7-28: Auto-colapsar sidebar en mobile (< 768px) al montar
-  const [colapsado, setColapsado] = useState(() => {
+  const [colapsado, setColapsado] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false
     return window.innerWidth < 768
   })
-  const { puede, rol } = useRBAC()
+  const { puede } = useRBAC()
 
   // F7-28: Listener para cambios de tamaño de pantalla
-  React.useEffect(() => {
+  useEffect(() => {
     if (typeof window === 'undefined') return
     const mql = window.matchMedia('(max-width: 767px)')
-    const handleChange = (e) => {
+    const handleChange = (e: MediaQueryListEvent) => {
       // Solo auto-colapsar al cruzar el breakpoint (no sobreescribir toggle manual)
       if (e.matches) setColapsado(true)
     }
@@ -41,14 +60,14 @@ export const Sidebar = ({ userProfile, activeSection, setActiveSection, onLogout
   }, [])
 
   // Filtrar items por permiso y ocultar secciones que queden vacías
-  const seccionesVisibles = useMemo(() => (
-    SECCIONES_SIDEBAR.map(seccion => ({
+  const seccionesVisibles = useMemo((): SidebarSeccion[] => (
+    SECCIONES_SIDEBAR.map((seccion) => ({
       ...seccion,
-      items: seccion.items.filter(item => !item.permisoRequerido || puede(item.permisoRequerido)),
-    })).filter(seccion => seccion.items.length > 0)
+      items: seccion.items.filter((item) => !item.permisoRequerido || puede(item.permisoRequerido)),
+    })).filter((seccion) => seccion.items.length > 0)
   ), [puede])
 
-  const renderItem = (item) => {
+  const renderItem = (item: SidebarItem) => {
     const activo = activeSection === item.name
     const contador = item.counterKey ? counters[item.counterKey] : undefined
     const muestraContador = typeof contador === 'number' && contador > 0
@@ -82,7 +101,11 @@ export const Sidebar = ({ userProfile, activeSection, setActiveSection, onLogout
   }
 
   return (
-    <aside className={`${colapsado ? 'w-20' : 'w-64'} bg-white dark:bg-graphite-950 surgical:bg-graphite-300 p-4 border-r border-surface min-h-screen flex-col justify-between transition-all duration-300 print:hidden relative hidden sm:flex`} role="navigation" aria-label="Menú principal">
+    <aside
+      className={`${colapsado ? 'w-20' : 'w-64'} bg-white dark:bg-graphite-950 surgical:bg-graphite-300 p-4 border-r border-surface min-h-screen flex-col justify-between transition-all duration-300 print:hidden relative hidden sm:flex`}
+      role="navigation"
+      aria-label="Menú principal"
+    >
       <div>
         {/* Logo + toggle de colapso */}
         <div className="flex items-center justify-between mb-6 px-2">
@@ -126,11 +149,11 @@ export const Sidebar = ({ userProfile, activeSection, setActiveSection, onLogout
         </nav>
       </div>
 
-      
-
       <div className="px-2 mb-4">
         <ConnectionIndicator />
       </div>
     </aside>
   )
 }
+
+Sidebar.displayName = 'Sidebar'
