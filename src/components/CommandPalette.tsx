@@ -14,9 +14,27 @@
  */
 import React, { useEffect, useMemo, useRef } from 'react'
 import { Icon } from './Icon'
-import { X, Search, User, Calendar, DollarSign } from 'lucide-react'
+import { X, Search, User, Calendar, DollarSign, LucideIcon } from 'lucide-react'
+import { useSesionStore } from '../store/sesionStore'
+import type { Paciente } from '../modules/pacientes/schemas/pacienteSchema'
+import type { SidebarItem } from '../constants/sidebarConstants'
+import type { AccionRapida } from '../hooks/useCommandPalette'
 
-export const CommandPalette = ({
+export interface CommandPaletteProps {
+  isOpen: boolean
+  query: string
+  setQuery: (query: string) => void
+  selectedIndex: number
+  pacientesFiltrados: Paciente[]
+  modulosFiltrados: SidebarItem[]
+  accionesRapidas: AccionRapida[]
+  onClose: () => void
+  onSelect: () => void
+  onMoveUp: () => void
+  onMoveDown: () => void
+}
+
+export const CommandPalette: React.FC<CommandPaletteProps> = ({
   isOpen,
   query,
   setQuery,
@@ -29,8 +47,8 @@ export const CommandPalette = ({
   onMoveUp,
   onMoveDown,
 }) => {
-  const inputRef = useRef(null)
-  const dialogRef = useRef(null)
+  const inputRef = useRef<HTMLInputElement | null>(null)
+  const dialogRef = useRef<HTMLDivElement | null>(null)
 
   // Autofocus al abrir
   useEffect(() => {
@@ -43,7 +61,7 @@ export const CommandPalette = ({
   useEffect(() => {
     if (!isOpen) return
 
-    const handleKeyDown = (e) => {
+    const handleKeyDown = (e: KeyboardEvent): void => {
       if (e.key === 'Escape') {
         e.preventDefault()
         onClose()
@@ -64,10 +82,13 @@ export const CommandPalette = ({
   }, [isOpen, onClose, onSelect, onMoveUp, onMoveDown])
 
   // F7-26: Set de IDs de pacientes recientes para mostrar badge visual
-  const recientesIds = useMemo(() => {
+  const recientesIds = useMemo((): Set<string | number> => {
     try {
+      const sesionState = useSesionStore.getState() as {
+        obtenerPacientesRecientes?: () => { id: string | number }[]
+      }
       return new Set(
-        useSesionStore.getState().obtenerPacientesRecientes().map(r => r.id)
+        (sesionState.obtenerPacientesRecientes?.() || []).map((r) => r.id)
       )
     } catch {
       return new Set()
@@ -201,6 +222,8 @@ export const CommandPalette = ({
               </div>
               {accionesRapidas.map((accion) => {
                 const idx = globalIndex++
+                const IconMap: Record<string, LucideIcon> = { Calendar, User, DollarSign }
+                const IconComponent = IconMap[accion.icon] || Search
                 return (
                   <button
                     key={accion.id}
@@ -212,11 +235,7 @@ export const CommandPalette = ({
                         : 'hover:bg-slate-50 dark:hover:bg-graphite-800/50 surgical:hover:bg-graphite-200'
                     }`}
                   >
-                    {(() => {
-                      const IconMap = { Calendar, User, DollarSign }
-                      const IconComponent = IconMap[accion.icon] || Search
-                      return <IconComponent size={24} className="text-graphite-600 dark:text-graphite-400 surgical:text-black" />
-                    })()}
+                    <IconComponent size={24} className="text-graphite-600 dark:text-graphite-400 surgical:text-black" />
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-semibold text-graphite-900 dark:text-graphite-50 surgical:text-black truncate">
                         {accion.label}
