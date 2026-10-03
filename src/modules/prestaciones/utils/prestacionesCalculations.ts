@@ -5,7 +5,6 @@
 export interface PrestacionParaResumen {
   precioParticular?: number | string
   especialidad?: string
-  [key: string]: unknown
 }
 
 export interface ResumenArancel {
