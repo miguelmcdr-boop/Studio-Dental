@@ -1,9 +1,8 @@
 import React, { useState } from 'react'
 import {
-  obtenerPerfil,
-  guardarPerfil,
   supabaseSignIn,
   supabaseSignUp,
+  type PerfilUsuario,
 } from '../services/authService'
 import { construirUserProfile } from '../services/userProfileBuilder'
 import { NOMBRES_ROLES, DESCRIPCIONES_ROLES } from '../constants/rbacConstants'
@@ -16,23 +15,27 @@ import { Lock } from 'lucide-react'
 
 const log = createLogger('LoginScreen')
 
-export const LoginScreen = ({ onLogin }) => {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [nombreCompleto, setNombreCompleto] = useState('')
-  const [rut, setRut] = useState('')
-  const [especialidad, setEspecialidad] = useState('')
-  const [rol, setRol] = useState(obtenerRolPorDefecto()) // F3-05: rol por defecto (RECEPCION)
-  const [isFirstTime, setIsFirstTime] = useState(false)
+export interface LoginScreenProps {
+  onLogin: (profile: PerfilUsuario) => void
+}
 
-  const [error, setError] = useState('')
-  const [cargando, setCargando] = useState(false)
+export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
+  const [email, setEmail] = useState<string>('')
+  const [password, setPassword] = useState<string>('')
+  const [nombreCompleto, setNombreCompleto] = useState<string>('')
+  const [rut, setRut] = useState<string>('')
+  const [especialidad, setEspecialidad] = useState<string>('')
+  const [rol, setRol] = useState<string>(obtenerRolPorDefecto()) // F3-05: rol por defecto (RECEPCION)
+  const [isFirstTime, setIsFirstTime] = useState<boolean>(false)
 
-  const handleEmailChange = (e) => {
+  const [error, setError] = useState<string>('')
+  const [cargando, setCargando] = useState<boolean>(false)
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const value = e.target.value
     setEmail(value)
     setError('')
-    
+
     // F7-16: Modo Supabase únicamente. El usuario puede existir en Supabase Auth.
     // Mostramos login por defecto; si el email no existe, Supabase retorna error.
     setIsFirstTime(false)
@@ -42,7 +45,7 @@ export const LoginScreen = ({ onLogin }) => {
    * F7-16: handleSubmit con Supabase Auth únicamente.
    * Modo local PBKDF2 eliminado (código legacy no usado en producción).
    */
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault()
     setError('')
     if (email.trim() === '' || password === '') return
@@ -52,7 +55,7 @@ export const LoginScreen = ({ onLogin }) => {
     setCargando(true)
     try {
       // Metadata común para ambos modos (Supabase y Local)
-      const metadata = {
+      const metadata: Record<string, unknown> = {
         nombreCompleto: nombreCompleto || 'Profesional Dental',
         rut: rut || '',
         especialidad: especialidad || 'Cirujano Dentista',
@@ -99,10 +102,10 @@ export const LoginScreen = ({ onLogin }) => {
 
       // F4-02b FIX: Usar los user_metadata retornados por supabaseSignIn/SignUp
       // (evita race condition con getUser() después del signIn).
-      const userMetadata = metadata._supabaseUserMetadata || {}
+      const userMetadata = (metadata._supabaseUserMetadata as Record<string, unknown>) || {}
       const userProfile = await construirUserProfile(formattedEmail, userMetadata, metadata)
-      onLogin(userProfile)
-    } catch (err) {
+      onLogin(userProfile as unknown as PerfilUsuario)
+    } catch (err: unknown) {
       log.error('Error inesperado en login:', err)
       setError('Error inesperado. Intenta nuevamente.')
     } finally {
@@ -143,7 +146,7 @@ export const LoginScreen = ({ onLogin }) => {
             type="password"
             required
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
             placeholder="••••••••"
           />
 
@@ -204,7 +207,7 @@ export const LoginScreen = ({ onLogin }) => {
                   ))}
                 </select>
                 <p className="text-[11px] text-gray-400 dark:text-graphite-500 mt-1">
-                  {DESCRIPCIONES_ROLES[rol] || 'Selecciona tu rol'}
+                  {(DESCRIPCIONES_ROLES as Record<string, string>)[rol] || 'Selecciona tu rol'}
                 </p>
               </div>
             </div>
@@ -216,9 +219,14 @@ export const LoginScreen = ({ onLogin }) => {
 
           {/* F4-02b FIX: En modo Supabase, permitir cambiar entre login y registro */}
           {import.meta.env.VITE_USE_SUPABASE === 'true' && (
-            <Button type="button" variant="ghost" size="sm" fullWidth
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              fullWidth
               onClick={() => { setIsFirstTime(!isFirstTime); setError('') }}
-              className="mt-3 text-xs underline">
+              className="mt-3 text-xs underline"
+            >
               {isFirstTime ? '¿Ya tienes cuenta? Iniciar sesión' : '¿Primera vez? Crear cuenta'}
             </Button>
           )}
@@ -245,3 +253,5 @@ export const LoginScreen = ({ onLogin }) => {
     </div>
   )
 }
+
+LoginScreen.displayName = 'LoginScreen'
