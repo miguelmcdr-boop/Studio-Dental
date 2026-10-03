@@ -4,24 +4,47 @@
  * Commit D: cuando el abono está sincronizado con un pago global
  * (mismo id + mismo paciente), al borrarlo se propaga la anulación
  * al módulo Pagos con motivo "Abono eliminado desde Plan de Tratamiento".
- *
- * @param {Object} options
- * @param {Array} options.abonos - Lista de abonos actual
- * @param {Function} options.setAbonos - Setter de abonos
- * @param {Object} options.paciente - Paciente al que pertenecen los abonos
- * @returns {{ handleEliminarAbono: (idAbono: string) => Promise<void> }}
  */
 import { useCallback } from 'react'
 import { pacientesStorageService } from '../services/pacientesStorageService'
-import { pagosStorageService } from '../../pagos/services/pagosStorageService'
+import { pagosStorageService, type Pago } from '../../pagos/services/pagosStorageService'
 import { useAppDialog } from '../../../hooks/useAppDialog'
 
-export const useEliminarAbono = ({ abonos, setAbonos, paciente }) => {
+export interface AbonoItem {
+  id: string | number
+  fecha?: string
+  monto?: number | string
+  metodoPago?: string
+  pacienteNombre?: string
+  [key: string]: unknown
+}
+
+export interface PacienteRef {
+  id: string | number
+  nombre?: string
+  [key: string]: unknown
+}
+
+export interface UseEliminarAbonoOptions {
+  abonos: AbonoItem[]
+  setAbonos: (abonos: AbonoItem[]) => void
+  paciente: PacienteRef
+}
+
+export interface UseEliminarAbonoReturn {
+  handleEliminarAbono: (idAbono: string | number) => Promise<void>
+}
+
+export const useEliminarAbono = ({
+  abonos,
+  setAbonos,
+  paciente
+}: UseEliminarAbonoOptions): UseEliminarAbonoReturn => {
   const { confirm } = useAppDialog()
 
-  const handleEliminarAbono = useCallback(async (idAbono) => {
+  const handleEliminarAbono = useCallback(async (idAbono: string | number): Promise<void> => {
     // Commit D: detectar si el abono corresponde a un pago global sincronizado
-    const pagos = pagosStorageService.obtenerPagos([])
+    const pagos: Pago[] = pagosStorageService.obtenerPagos([])
     const pagoAsociado = pagos.find(p =>
       String(p.id) === String(idAbono) &&
       String(p.pacienteId) === String(paciente.id) &&
@@ -42,7 +65,7 @@ export const useEliminarAbono = ({ abonos, setAbonos, paciente }) => {
 
     // Propagar anulación al pago global asociado (Commit D)
     if (pagoAsociado) {
-      const pagosActualizados = pagos.map(p =>
+      const pagosActualizados: Pago[] = pagos.map(p =>
         String(p.id) === String(idAbono)
           ? {
               ...p,
@@ -52,10 +75,10 @@ export const useEliminarAbono = ({ abonos, setAbonos, paciente }) => {
             }
           : p
       )
-      pagosStorageService.guardarPagos(pagosActualizados)
+      await pagosStorageService.guardarPagos(pagosActualizados)
     }
 
-    const actualizados = abonos.filter(a => a.id !== idAbono)
+    const actualizados = abonos.filter(a => String(a.id) !== String(idAbono))
     setAbonos(actualizados)
     pacientesStorageService.guardarItem(`abonos_${paciente.id}`, actualizados)
   }, [abonos, setAbonos, paciente, confirm])
