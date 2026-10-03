@@ -19,7 +19,6 @@ export interface DsdConfig {
   formaDeseada?: string
   lineaSonrisa?: string
   observacionEstetica?: string
-  [key: string]: unknown
 }
 
 const construirKeyDsd = (pacienteId: string | number): string => `dsd_config_${pacienteId}`
