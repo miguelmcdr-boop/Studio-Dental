@@ -1,7 +1,21 @@
 import React, { memo } from 'react'
 import { Armchair, Clock, Activity, Stethoscope } from 'lucide-react'
+import type { Cita } from '../../agenda/schemas/citaSchema'
+import type { Paciente } from '../../pacientes/schemas/pacienteSchema'
 
-export const SalaEsperaWidget = memo(({ enEspera = [], enAtencion = [], pacientes = [], alSeleccionarPaciente }) => {
+export interface SalaEsperaWidgetProps {
+  enEspera?: Cita[]
+  enAtencion?: Cita[]
+  pacientes?: Paciente[]
+  alSeleccionarPaciente?: (paciente: Paciente) => void
+}
+
+export const SalaEsperaWidget: React.FC<SalaEsperaWidgetProps> = memo(({
+  enEspera = [],
+  enAtencion = [],
+  pacientes = [],
+  alSeleccionarPaciente
+}) => {
   return (
     <div className="relative overflow-hidden bg-surface/90 backdrop-blur-md border border-surface rounded-2xl p-5 shadow-sm space-y-4 text-xs before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-emerald-500/50 before:to-transparent">
       {/* Cabecera del Monitor Quirúrgico */}
@@ -64,10 +78,10 @@ export const SalaEsperaWidget = memo(({ enEspera = [], enAtencion = [], paciente
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-[10px] text-graphite-600 dark:text-graphite-300 font-medium">
-                    <span className="text-clinical-info font-semibold">{c.motivo || 'Procedimiento Clínico'}</span>
+                    <span className="text-clinical-info font-semibold">{String(c.motivo || c.trataMiento || 'Procedimiento Clínico')}</span>
                     <span>•</span>
                     <span className="text-graphite-500 dark:text-graphite-400 flex items-center gap-1">
-                      <Stethoscope size={10} /> {c.doctorNombre || 'Dr. Asignado'}
+                      <Stethoscope size={10} /> {String(c.doctorNombre || 'Dr. Asignado')}
                     </span>
                   </div>
                 </div>
@@ -115,7 +129,7 @@ export const SalaEsperaWidget = memo(({ enEspera = [], enAtencion = [], paciente
                     {c.pacienteNombre}
                   </span>
                   <span className="text-[10px] text-graphite-600 dark:text-amber-300/80 font-medium">
-                    Ingreso a recepción: <strong className="tabular-nums font-bold text-graphite-900 dark:text-gold-satin">{c.horaLlegadaEspera || c.horaInicio}</strong> hrs
+                    Ingreso a recepción: <strong className="tabular-nums font-bold text-graphite-900 dark:text-gold-satin">{String(c.horaLlegadaEspera || c.horaInicio)}</strong> hrs
                   </span>
                 </div>
                 {pac && alSeleccionarPaciente && (

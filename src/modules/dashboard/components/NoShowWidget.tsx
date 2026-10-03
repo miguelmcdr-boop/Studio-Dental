@@ -1,18 +1,12 @@
-/**
- * NoShowWidget — F7-27
- *
- * Widget de Dashboard que muestra métricas de no-show y cancelaciones.
- *
- * Características:
- * - Tasa de no-show (citas marcadas como "No asistió" / total citas)
- * - Tasa de cancelaciones (citas canceladas / total citas)
- * - Comparación con período anterior
- * - Lista de pacientes con mayor tasa de no-show
- */
 import React, { memo, useMemo } from 'react'
 import { XCircle, TrendingDown, AlertCircle } from 'lucide-react'
+import type { Cita } from '../../agenda/schemas/citaSchema'
 
-export const NoShowWidget = memo(({ citas = [] }) => {
+export interface NoShowWidgetProps {
+  citas?: Cita[]
+}
+
+export const NoShowWidget: React.FC<NoShowWidgetProps> = memo(({ citas = [] }) => {
   const metricas = useMemo(() => {
     if (!citas || citas.length === 0) {
       return { tasaNoShow: 0, tasaCancelaciones: 0, totalCitas: 0, noShowCount: 0, canceladasCount: 0 }

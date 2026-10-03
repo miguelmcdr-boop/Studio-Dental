@@ -1,7 +1,17 @@
 import React, { memo } from 'react'
 import { LayoutDashboard, ShieldCheck } from 'lucide-react'
 
-export const DashboardHeader = memo(({ userProfile }) => {
+export interface UserProfileInfo {
+  nombreCompleto?: string
+  especialidad?: string
+  [key: string]: unknown
+}
+
+export interface DashboardHeaderProps {
+  userProfile?: UserProfileInfo | null
+}
+
+export const DashboardHeader: React.FC<DashboardHeaderProps> = memo(({ userProfile }) => {
   const hoyTexto = new Date().toLocaleDateString('es-CL', {
     weekday: 'long',
     year: 'numeric',

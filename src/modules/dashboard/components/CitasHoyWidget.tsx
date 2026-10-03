@@ -1,7 +1,19 @@
 import React, { memo } from 'react'
 import { Calendar, Clock, Stethoscope } from 'lucide-react'
+import type { Cita } from '../../agenda/schemas/citaSchema'
+import type { Paciente } from '../../pacientes/schemas/pacienteSchema'
 
-export const CitasHoyWidget = memo(({ citasHoy = [], alSeleccionarPaciente, pacientes = [] }) => {
+export interface CitasHoyWidgetProps {
+  citasHoy?: Cita[]
+  alSeleccionarPaciente: (paciente: Paciente) => void
+  pacientes?: Paciente[]
+}
+
+export const CitasHoyWidget: React.FC<CitasHoyWidgetProps> = memo(({
+  citasHoy = [],
+  alSeleccionarPaciente,
+  pacientes = []
+}) => {
   return (
     <div className="relative overflow-hidden bg-surface/90 backdrop-blur-md border border-surface rounded-2xl p-5 shadow-sm text-xs space-y-3.5 before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-[#E5C378] before:to-transparent">
       <div className="flex justify-between items-center border-b border-surface pb-3">
@@ -50,11 +62,11 @@ export const CitasHoyWidget = memo(({ citasHoy = [], alSeleccionarPaciente, paci
                   </div>
                   <div className="text-[10px] text-graphite-600 dark:text-graphite-300 flex items-center gap-2">
                     <span className="inline-flex items-center gap-1 font-semibold text-gold-solid dark:text-gold-satin tabular-nums">
-                      <Clock size={11} /> {c.hora || '10:00'} hrs
+                      <Clock size={11} /> {String(c.hora || c.horaInicio || '10:00')} hrs
                     </span>
                     <span>•</span>
                     <span className="text-graphite-500 dark:text-graphite-400 flex items-center gap-1">
-                      <Stethoscope size={10} /> {c.motivo || 'Control Dental'}
+                      <Stethoscope size={10} /> {String(c.motivo || c.trataMiento || 'Control Dental')}
                     </span>
                   </div>
                 </div>

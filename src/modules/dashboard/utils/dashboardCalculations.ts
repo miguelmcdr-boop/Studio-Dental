@@ -1,12 +1,21 @@
 import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
 import { obtenerAlertasOperativas } from '../../../utils/alertasOperativas'
 import { obtenerTareasClinicas } from '../../../utils/tareasClinicas'
+import type { Cita } from '../../agenda/schemas/citaSchema'
+import type { Pago } from '../../pagos/services/pagosStorageService'
+import type { PresupuestoLocal } from '../../presupuestos/services/presupuestosStorageService'
+import type { Paciente } from '../../pacientes/schemas/pacienteSchema'
+import type { ResumenJornada, MetricasAvanzadasDashboard, TendenciaCita } from '../hooks/useDashboard'
 
 /**
  * Analítica avanzada y cálculos para el Dashboard World-Class
  */
-
-export const calcularResumenJornada = (pacientes = [], citas = [], pagos = [], presupuestos = []) => {
+export const calcularResumenJornada = (
+  pacientes: (Paciente | { id: string | number; [key: string]: unknown })[] = [],
+  citas: Cita[] = [],
+  pagos: Pago[] = [],
+  presupuestos: PresupuestoLocal[] = []
+): ResumenJornada => {
   const hoyIso = obtenerFechaLocalISO()
 
   // 1. Filtrar citas de hoy
@@ -26,7 +35,7 @@ export const calcularResumenJornada = (pacientes = [], citas = [], pagos = [], p
   // 4. Sumar ingresos recaudados hoy
   const recaudacionHoy = pagos
     .filter(p => p.fecha === hoyIso && p.estado !== 'Anulado')
-    .reduce((acc, curr) => acc + (parseFloat(curr.monto) || 0), 0)
+    .reduce((acc, curr) => acc + (parseFloat(String(curr.monto)) || 0), 0)
 
   // 5. Métricas de Conversión de Presupuestos
   let montoTotalCotizado = 0
@@ -34,7 +43,7 @@ export const calcularResumenJornada = (pacientes = [], citas = [], pagos = [], p
   let cantidadAceptados = 0
 
   presupuestos.forEach(p => {
-    const total = parseFloat(p.total) || 0
+    const total = parseFloat(String(p.total)) || 0
     montoTotalCotizado += total
     if (p.estado === 'Aceptado' || p.estado === 'En Proceso' || p.estado === 'Finalizado') {
       montoTotalAceptado += total
@@ -50,7 +59,7 @@ export const calcularResumenJornada = (pacientes = [], citas = [], pagos = [], p
   const diaDelMes = new Date().getDate()
   const acumuladoMes = pagos
     .filter(p => p.estado !== 'Anulado')
-    .reduce((acc, curr) => acc + (parseFloat(curr.monto) || 0), 0)
+    .reduce((acc, curr) => acc + (parseFloat(String(curr.monto)) || 0), 0)
   
   const proyeccionMensual = diaDelMes > 0 ? Math.round((acumuladoMes / diaDelMes) * 22) : recaudacionHoy * 22
 
@@ -74,9 +83,16 @@ export const calcularResumenJornada = (pacientes = [], citas = [], pagos = [], p
  * Calcula métricas avanzadas para el Dashboard F7-27.
  * Incluye: tendencias históricas, alertas operativas, tareas clínicas.
  */
-export const calcularMetricasAvanzadas = (citas = [], pagos = [], presupuestos = [], evoluciones = [], recetas = [], certificados = []) => {
+export const calcularMetricasAvanzadas = (
+  citas: Cita[] = [],
+  pagos: Pago[] = [],
+  presupuestos: PresupuestoLocal[] = [],
+  evoluciones: unknown[] = [],
+  recetas: unknown[] = [],
+  certificados: unknown[] = []
+): MetricasAvanzadasDashboard => {
   // Tendencias históricas (últimos 7 días)
-  const tendenciaCitas7Dias = []
+  const tendenciaCitas7Dias: TendenciaCita[] = []
   const hoy = new Date()
   for (let i = 6; i >= 0; i--) {
     const fecha = new Date(hoy)
@@ -87,7 +103,7 @@ export const calcularMetricasAvanzadas = (citas = [], pagos = [], presupuestos =
   }
 
   // Tendencias históricas (últimos 30 días)
-  const tendenciaCitas30Dias = []
+  const tendenciaCitas30Dias: TendenciaCita[] = []
   for (let i = 29; i >= 0; i--) {
     const fecha = new Date(hoy)
     fecha.setDate(fecha.getDate() - i)
@@ -97,10 +113,10 @@ export const calcularMetricasAvanzadas = (citas = [], pagos = [], presupuestos =
   }
 
   // Alertas operativas
-  const alertas = obtenerAlertasOperativas(citas, pagos, presupuestos)
+  const alertas = (obtenerAlertasOperativas(citas, pagos, presupuestos) || []) as MetricasAvanzadasDashboard['alertas']
 
   // Tareas clínicas
-  const tareas = obtenerTareasClinicas(citas, evoluciones, recetas, certificados)
+  const tareas = (obtenerTareasClinicas(citas, evoluciones, recetas, certificados) || []) as MetricasAvanzadasDashboard['tareas']
 
   return {
     tendenciaCitas7Dias,

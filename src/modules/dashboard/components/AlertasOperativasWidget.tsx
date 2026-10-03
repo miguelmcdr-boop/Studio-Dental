@@ -1,21 +1,24 @@
-/**
- * AlertasOperativasWidget — F7-27
- *
- * Widget de Dashboard que muestra alertas operativas críticas:
- * - Citas sin confirmar (últimas 24h)
- * - Pacientes con deuda > $50.000
- * - Post-operatorios por enviar (últimas 48h)
- *
- * Diseño:
- * - Grid responsive (1 col mobile, 2+ tablet/desktop)
- * - Colores semánticos por severidad (alta=rojo, media=ámbar, baja=verde)
- * - Click en alerta navega al contexto (paciente, cita, etc.)
- * - Estado vacío si no hay alertas
- */
 import React, { memo } from 'react'
-import { AlertTriangle, DollarSign, Calendar, ArrowRight } from 'lucide-react'
+import { AlertTriangle, DollarSign, Calendar, ArrowRight, type LucideIcon } from 'lucide-react'
 
-const SEVERIDAD_STYLES = {
+export interface AlertaOperativa {
+  tipo: string
+  severidad?: 'alta' | 'media' | 'baja' | string
+  titulo: string
+  descripcion: string
+  pacienteId?: string | number
+  citaId?: string | number
+  [key: string]: unknown
+}
+
+interface SeveridadStyle {
+  bg: string
+  border: string
+  text: string
+  icon: LucideIcon
+}
+
+const SEVERIDAD_STYLES: Record<string, SeveridadStyle> = {
   alta: {
     bg: 'bg-rose-50/80 dark:bg-rose-950/30 surgical:bg-rose-100/50',
     border: 'border-rose-200 dark:border-rose-800/60 surgical:border-rose-300',
@@ -36,14 +39,19 @@ const SEVERIDAD_STYLES = {
   },
 }
 
-const ICONO_TIPO = {
+const ICONO_TIPO: Record<string, LucideIcon> = {
   cita_sin_confirmar: Calendar,
   deuda_pendiente: DollarSign,
   post_operatorio_pendiente: ArrowRight,
 }
 
-const AlertaCard = ({ alerta, onClick }) => {
-  const estilo = SEVERIDAD_STYLES[alerta.severidad] || SEVERIDAD_STYLES.baja
+interface AlertaCardProps {
+  alerta: AlertaOperativa
+  onClick?: (alerta: AlertaOperativa) => void
+}
+
+const AlertaCard: React.FC<AlertaCardProps> = ({ alerta, onClick }) => {
+  const estilo = (alerta.severidad && SEVERIDAD_STYLES[alerta.severidad]) || SEVERIDAD_STYLES.baja
   const Icono = ICONO_TIPO[alerta.tipo] || AlertTriangle
 
   return (
@@ -70,7 +78,15 @@ const AlertaCard = ({ alerta, onClick }) => {
   )
 }
 
-export const AlertasOperativasWidget = memo(({ alertas = [], onNavegarAlerta }) => {
+export interface AlertasOperativasWidgetProps {
+  alertas?: AlertaOperativa[]
+  onNavegarAlerta?: (alerta: AlertaOperativa) => void
+}
+
+export const AlertasOperativasWidget: React.FC<AlertasOperativasWidgetProps> = memo(({
+  alertas = [],
+  onNavegarAlerta
+}) => {
   if (!alertas || alertas.length === 0) {
     return (
       <div className="relative overflow-hidden bg-surface/90 backdrop-blur-md border border-surface rounded-2xl p-6 text-center before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-emerald-500/40 before:to-transparent">

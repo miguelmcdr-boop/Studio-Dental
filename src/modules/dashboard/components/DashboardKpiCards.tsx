@@ -1,7 +1,12 @@
 import React, { memo } from 'react'
 import { Calendar, DollarSign, Users, Armchair, TrendingUp, Sparkles } from 'lucide-react'
+import type { ResumenJornada } from '../hooks/useDashboard'
 
-export const DashboardKpiCards = memo(({ resumen }) => {
+export interface DashboardKpiCardsProps {
+  resumen: ResumenJornada
+}
+
+export const DashboardKpiCards: React.FC<DashboardKpiCardsProps> = memo(({ resumen }) => {
   // Proyección de meta mensual (basado en días hábiles ~22)
   const metaMensualEstimada = resumen.proyeccionMensual || (resumen.recaudacionHoy * 22)
   const progresoMeta = metaMensualEstimada > 0

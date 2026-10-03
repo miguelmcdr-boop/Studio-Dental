@@ -1,15 +1,19 @@
 import React, { memo } from 'react'
 import { ACCESOS_RAPIDOS } from '../constants/dashboardConstants'
-import { Zap, Calendar, UserPlus, CreditCard, FileText, ArrowRight } from 'lucide-react'
+import { Zap, Calendar, UserPlus, CreditCard, FileText, ArrowRight, type LucideIcon } from 'lucide-react'
 
-const ICONOS_ACCESO = {
+const ICONOS_ACCESO: Record<string, LucideIcon> = {
   agenda: Calendar,
   paciente: UserPlus,
   cobro: CreditCard,
   presupuesto: FileText,
 }
 
-export const AccesosRapidosWidget = memo(({ setActiveSection }) => {
+export interface AccesosRapidosWidgetProps {
+  setActiveSection?: (seccion: string) => void
+}
+
+export const AccesosRapidosWidget: React.FC<AccesosRapidosWidgetProps> = memo(({ setActiveSection }) => {
   return (
     <div className="relative overflow-hidden bg-surface/90 backdrop-blur-md border border-surface rounded-2xl p-5 shadow-sm text-xs space-y-3.5 before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-[#B88E3A]/40 before:to-transparent">
       <div className="flex items-center justify-between border-b border-surface pb-3">

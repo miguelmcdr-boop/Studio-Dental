@@ -1,21 +1,25 @@
-/**
- * TareasClinicasWidget — F7-27
- *
- * Widget de Dashboard que muestra tareas clínicas pendientes:
- * - Recetas por emitir (pacientes con consulta hoy sin receta)
- * - Certificados pendientes (pacientes solicitaron pero no se emitieron)
- * - Evoluciones clínicas faltantes (citas finalizadas sin nota)
- *
- * Diseño:
- * - Lista de tareas con checkbox para marcar como completadas
- * - Agrupadas por tipo (recetas, certificados, evoluciones)
- * - Click en tarea navega al paciente/módulo correspondiente
- * - Badge con count de tareas pendientes
- */
 import React, { memo, useState } from 'react'
-import { FileText, FileCheck, Stethoscope, CheckCircle, ArrowRight } from 'lucide-react'
+import { FileText, FileCheck, Stethoscope, CheckCircle, ArrowRight, type LucideIcon } from 'lucide-react'
 
-const TIPO_STYLES = {
+export interface TareaClinica {
+  tipo: string
+  completada?: boolean
+  titulo: string
+  descripcion: string
+  fecha?: string
+  citaId?: string | number
+  pacienteId?: string | number
+  [key: string]: unknown
+}
+
+interface TipoStyle {
+  icon: LucideIcon
+  color: string
+  bg: string
+  label: string
+}
+
+const TIPO_STYLES: Record<string, TipoStyle> = {
   receta_pendiente: {
     icon: FileText,
     color: 'text-sky-700 dark:text-sky-300',
@@ -36,7 +40,14 @@ const TIPO_STYLES = {
   },
 }
 
-const TareaCard = ({ tarea, completada, onToggle, onNavegar }) => {
+interface TareaCardProps {
+  tarea: TareaClinica
+  completada: boolean
+  onToggle?: (tarea: TareaClinica) => void
+  onNavegar?: (tarea: TareaClinica) => void
+}
+
+const TareaCard: React.FC<TareaCardProps> = ({ tarea, completada, onToggle, onNavegar }) => {
   const estilo = TIPO_STYLES[tarea.tipo] || TIPO_STYLES.evolucion_pendiente
   const Icono = estilo.icon
 
@@ -92,10 +103,18 @@ const TareaCard = ({ tarea, completada, onToggle, onNavegar }) => {
   )
 }
 
-export const TareasClinicasWidget = memo(({ tareas = [], onNavegarTarea }) => {
-  const [tareasCompletadas, setTareasCompletadas] = useState(new Set())
+export interface TareasClinicasWidgetProps {
+  tareas?: TareaClinica[]
+  onNavegarTarea?: (tarea: TareaClinica) => void
+}
 
-  const handleToggle = (tarea) => {
+export const TareasClinicasWidget: React.FC<TareasClinicasWidgetProps> = memo(({
+  tareas = [],
+  onNavegarTarea
+}) => {
+  const [tareasCompletadas, setTareasCompletadas] = useState<Set<string>>(new Set())
+
+  const handleToggle = (tarea: TareaClinica) => {
     setTareasCompletadas((prev) => {
       const nueva = new Set(prev)
       const key = `${tarea.tipo}_${tarea.pacienteId}_${tarea.fecha}`
@@ -139,7 +158,7 @@ export const TareasClinicasWidget = memo(({ tareas = [], onNavegarTarea }) => {
       </div>
 
       <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
-        {tareas.map((tarea, index) => {
+        {tareas.map((tarea) => {
           const key = `${tarea.tipo}_${tarea.pacienteId}_${tarea.fecha}`
           return (
             <TareaCard

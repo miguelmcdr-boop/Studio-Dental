@@ -1,35 +1,41 @@
 import React, { memo } from 'react'
 import { useDashboard } from './hooks/useDashboard'
-import { DashboardHeader } from './components/DashboardHeader'
+import { DashboardHeader, type UserProfileInfo } from './components/DashboardHeader'
 import { DashboardKpiCards } from './components/DashboardKpiCards'
 import { SalaEsperaWidget } from './components/SalaEsperaWidget'
 import { CitasHoyWidget } from './components/CitasHoyWidget'
 import { AccesosRapidosWidget } from './components/AccesosRapidosWidget'
-import { AlertasOperativasWidget } from './components/AlertasOperativasWidget'
-import { TareasClinicasWidget } from './components/TareasClinicasWidget'
+import { AlertasOperativasWidget, type AlertaOperativa } from './components/AlertasOperativasWidget'
+import { TareasClinicasWidget, type TareaClinica } from './components/TareasClinicasWidget'
 import { TendenciasWidget } from './components/TendenciasWidget'
 import { NoShowWidget } from './components/NoShowWidget'
 import { usePacientesStore } from '../../store/pacientesStore'
 import { useSesionStore } from '../../store/sesionStore'
+import type { Paciente } from '../pacientes/schemas/pacienteSchema'
 
-export const DashboardModulo = memo(({ setPacienteSeleccionado, setActiveSection }) => {
+export interface DashboardModuloProps {
+  setPacienteSeleccionado?: (paciente: Paciente) => void
+  setActiveSection?: (seccion: string) => void
+}
+
+export const DashboardModulo: React.FC<DashboardModuloProps> = memo(({ setPacienteSeleccionado, setActiveSection }) => {
   // (F2-02) — pacientes y userProfile ya no llegan como prop desde App.jsx: se leen directo de los stores.
-  const pacientes = usePacientesStore((state) => state.pacientes)
-  const userProfile = useSesionStore((state) => state.userProfile)
+  const pacientes = usePacientesStore((state: { pacientes?: Paciente[] }) => state.pacientes || []) as Paciente[]
+  const userProfile = useSesionStore((state: { userProfile?: UserProfileInfo | null }) => state.userProfile)
 
   const { resumen, metricasAvanzadas } = useDashboard(pacientes)
 
-  const handleVerFichaPaciente = (paciente) => {
+  const handleVerFichaPaciente = (paciente: Paciente) => {
     if (setPacienteSeleccionado && setActiveSection) {
       setPacienteSeleccionado(paciente)
       setActiveSection('Pacientes')
     }
   }
 
-  const handleNavegarAlerta = (alerta) => {
+  const handleNavegarAlerta = (alerta: AlertaOperativa) => {
     // Navegar al contexto según tipo de alerta
     if (alerta.pacienteId && setPacienteSeleccionado && setActiveSection) {
-      const paciente = pacientes.find((p) => p.id === alerta.pacienteId)
+      const paciente = pacientes.find((p: Paciente) => String(p.id) === String(alerta.pacienteId))
       if (paciente) {
         handleVerFichaPaciente(paciente)
       }
@@ -38,10 +44,10 @@ export const DashboardModulo = memo(({ setPacienteSeleccionado, setActiveSection
     }
   }
 
-  const handleNavegarTarea = (tarea) => {
+  const handleNavegarTarea = (tarea: TareaClinica) => {
     // Navegar al paciente/módulo según tipo de tarea
     if (tarea.pacienteId && setPacienteSeleccionado && setActiveSection) {
-      const paciente = pacientes.find((p) => p.id === tarea.pacienteId)
+      const paciente = pacientes.find((p: Paciente) => String(p.id) === String(tarea.pacienteId))
       if (paciente) {
         handleVerFichaPaciente(paciente)
       }
@@ -72,11 +78,11 @@ export const DashboardModulo = memo(({ setPacienteSeleccionado, setActiveSection
       {/* F7-27: Widgets de alertas y tareas operativas */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <AlertasOperativasWidget
-          alertas={metricasAvanzadas?.alertas || []}
+          alertas={metricasAvanzadas?.alertas as AlertaOperativa[] || []}
           onNavegarAlerta={handleNavegarAlerta}
         />
         <TareasClinicasWidget
-          tareas={metricasAvanzadas?.tareas || []}
+          tareas={metricasAvanzadas?.tareas as TareaClinica[] || []}
           onNavegarTarea={handleNavegarTarea}
         />
       </div>

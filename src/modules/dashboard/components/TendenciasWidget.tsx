@@ -11,8 +11,9 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts'
+import type { TendenciaCita } from '../hooks/useDashboard'
 
-const formatearFechaCorta = (fechaIso) => {
+const formatearFechaCorta = (fechaIso?: string): string => {
   if (!fechaIso) return ''
   const fecha = new Date(fechaIso + 'T00:00:00')
   const dia = fecha.getDate()
@@ -20,7 +21,13 @@ const formatearFechaCorta = (fechaIso) => {
   return `${dia} ${mes}`
 }
 
-const CustomTooltip = ({ active, payload, label }) => {
+interface CustomTooltipProps {
+  active?: boolean
+  payload?: Array<{ value: number; [key: string]: unknown }>
+  label?: string
+}
+
+const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-[#0F172A]/95 dark:bg-[#070B14]/95 backdrop-blur-md border border-[#E5C378]/40 rounded-xl p-3 shadow-2xl">
@@ -37,8 +44,16 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null
 }
 
-export const TendenciasWidget = memo(({ tendenciaCitas7Dias = [], tendenciaCitas30Dias = [] }) => {
-  const [periodo, setPeriodo] = useState('7d')
+export interface TendenciasWidgetProps {
+  tendenciaCitas7Dias?: TendenciaCita[]
+  tendenciaCitas30Dias?: TendenciaCita[]
+}
+
+export const TendenciasWidget: React.FC<TendenciasWidgetProps> = memo(({
+  tendenciaCitas7Dias = [],
+  tendenciaCitas30Dias = []
+}) => {
+  const [periodo, setPeriodo] = useState<'7d' | '30d'>('7d')
 
   const datos = periodo === '7d' ? tendenciaCitas7Dias : tendenciaCitas30Dias
 
@@ -50,7 +65,7 @@ export const TendenciasWidget = memo(({ tendenciaCitas7Dias = [], tendenciaCitas
     const promedio = Math.round(totales.reduce((a, b) => a + b, 0) / totales.length)
     const max = Math.max(...totales)
     const min = Math.min(...totales)
-    const diaPico = datos.find((d) => d.citas === max)
+    const diaPico = datos.find((d) => d.citas === max) || null
     return { promedio, max, min, diaPico }
   }, [datos])
 
