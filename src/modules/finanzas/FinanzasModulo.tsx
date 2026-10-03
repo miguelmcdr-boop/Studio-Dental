@@ -10,14 +10,30 @@ import { CalculadoraBoletas } from './components/CalculadoraBoletas'
 import { usePacientesStore } from '../../store/pacientesStore'
 import { useSesionStore } from '../../store/sesionStore'
 import { DollarSign } from 'lucide-react'
+import type { Paciente } from '../pacientes/schemas/pacienteSchema'
 
-export const FinanzasModulo = memo(() => {
+type TabFinanzas =
+  | 'Arqueo de Caja'
+  | 'Historial Global de Movimientos'
+  | 'Cuentas Pendientes'
+  | 'Convenios'
+  | 'Calculadora de Boletas'
+
+const TABS: readonly TabFinanzas[] = [
+  'Arqueo de Caja',
+  'Historial Global de Movimientos',
+  'Cuentas Pendientes',
+  'Convenios',
+  'Calculadora de Boletas'
+]
+
+export const FinanzasModulo: React.FC = memo(() => {
   // (F2-02) — pacientes y userProfile ya no llegan como prop desde App.jsx: se leen directo de los stores.
-  const pacientes = usePacientesStore((state) => state.pacientes)
-  const userProfile = useSesionStore((state) => state.userProfile)
+  const pacientes = usePacientesStore((state: { pacientes: Paciente[] }) => state.pacientes)
+  const userProfile = useSesionStore((state: { userProfile?: { nombreCompleto?: string; [key: string]: unknown } | null }) => state.userProfile)
 
-  const [tabActiva, setTabActiva] = useState('Arqueo de Caja')
-  const [modalAbierto, setModalAbierto] = useState(false)
+  const [tabActiva, setTabActiva] = useState<TabFinanzas>('Arqueo de Caja')
+  const [modalAbierto, setModalAbierto] = useState<boolean>(false)
 
   const {
     movimientos,
@@ -31,19 +47,13 @@ export const FinanzasModulo = memo(() => {
     actualizarDescuentoConvenio
   } = useFinanzas(pacientes)
 
-  const TABS = [
-    'Arqueo de Caja',
-    'Historial Global de Movimientos',
-    'Cuentas Pendientes',
-    'Convenios',
-    'Calculadora de Boletas'
-  ]
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center flex-wrap gap-3 print:hidden">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-graphite-50 uppercase tracking-wider inline-flex items-center gap-2"><DollarSign size={20} />Control Financiero & Arqueo de Caja</h2>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-graphite-50 uppercase tracking-wider inline-flex items-center gap-2">
+            <DollarSign size={20} />Control Financiero & Arqueo de Caja
+          </h2>
           <p className="text-xs text-gray-500 dark:text-graphite-400">Gestión de ingresos, egresos, arqueos diarios y balances contables de la clínica.</p>
         </div>
 

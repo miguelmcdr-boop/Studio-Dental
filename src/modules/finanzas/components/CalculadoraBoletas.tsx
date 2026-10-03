@@ -1,10 +1,15 @@
 import React, { memo } from 'react'
-import { Receipt } from 'lucide-react'
-import { useCalculadoraBoletas } from '../hooks/useCalculadoraBoletas'
-import { BarChart3 } from 'lucide-react'
-import { Banknote } from 'lucide-react'
+import { Receipt, BarChart3, Banknote } from 'lucide-react'
+import {
+  useCalculadoraBoletas,
+  type MovimientoGastoHonorario
+} from '../hooks/useCalculadoraBoletas'
 
-export const CalculadoraBoletas = memo(({ alRegistrarGastoHonorario }) => {
+export interface CalculadoraBoletasProps {
+  alRegistrarGastoHonorario?: (gasto: MovimientoGastoHonorario) => void
+}
+
+export const CalculadoraBoletas = memo<CalculadoraBoletasProps>(({ alRegistrarGastoHonorario }) => {
   const {
     usarPorcentajePrestacion, setUsarPorcentajePrestacion,
     nombrePrestacion, setNombrePrestacion,

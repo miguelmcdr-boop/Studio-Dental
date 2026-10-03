@@ -1,37 +1,43 @@
 import React, { memo } from 'react'
-import { Printer, ClipboardList } from 'lucide-react'
-import { CreditCard } from 'lucide-react'
-import { Banknote, Building2 } from 'lucide-react'
+import { Printer, ClipboardList, CreditCard, Banknote, Building2 } from 'lucide-react'
+import type { MovimientoFinanciero } from '../services/finanzasStorageService'
 
-export const ArqueoCajaDiario = memo(({
+export interface ArqueoCajaDiarioProps {
+  transaccionesDia?: MovimientoFinanciero[]
+  fechaArqueo: string
+  setFechaArqueo: React.Dispatch<React.SetStateAction<string>> | ((fecha: string) => void)
+  userProfile?: { nombreCompleto?: string; [key: string]: unknown } | null
+}
+
+export const ArqueoCajaDiario = memo<ArqueoCajaDiarioProps>(({
   transaccionesDia = [],
   fechaArqueo,
   setFechaArqueo,
   userProfile
 }) => {
-  const ingresos = transaccionesDia.filter(t => t.tipo === 'Ingreso')
-  const egresos = transaccionesDia.filter(t => t.tipo === 'Egreso')
+  const ingresos = transaccionesDia.filter(t => (t.tipo || '').toLowerCase() === 'ingreso')
+  const egresos = transaccionesDia.filter(t => (t.tipo || '').toLowerCase() === 'egreso')
 
-  const totalIngresos = ingresos.reduce((acc, curr) => acc + (curr.monto || 0), 0)
-  const totalEgresos = egresos.reduce((acc, curr) => acc + (curr.monto || 0), 0)
+  const totalIngresos = ingresos.reduce((acc, curr) => acc + (Number(curr.monto) || 0), 0)
+  const totalEgresos = egresos.reduce((acc, curr) => acc + (Number(curr.monto) || 0), 0)
   const saldoFinalCaja = totalIngresos - totalEgresos
 
   // Desglose por Medio de Pago
   const efectivo = transaccionesDia
-    .filter(t => t.metodoPago === 'Efectivo' && t.tipo === 'Ingreso')
-    .reduce((acc, curr) => acc + (curr.monto || 0), 0)
+    .filter(t => t.metodoPago === 'Efectivo' && (t.tipo || '').toLowerCase() === 'ingreso')
+    .reduce((acc, curr) => acc + (Number(curr.monto) || 0), 0)
 
   const transferencia = transaccionesDia
-    .filter(t => t.metodoPago === 'Transferencia' && t.tipo === 'Ingreso')
-    .reduce((acc, curr) => acc + (curr.monto || 0), 0)
+    .filter(t => t.metodoPago === 'Transferencia' && (t.tipo || '').toLowerCase() === 'ingreso')
+    .reduce((acc, curr) => acc + (Number(curr.monto) || 0), 0)
 
   const debito = transaccionesDia
-    .filter(t => t.metodoPago === 'Débito' && t.tipo === 'Ingreso')
-    .reduce((acc, curr) => acc + (curr.monto || 0), 0)
+    .filter(t => t.metodoPago === 'Débito' && (t.tipo || '').toLowerCase() === 'ingreso')
+    .reduce((acc, curr) => acc + (Number(curr.monto) || 0), 0)
 
   const credito = transaccionesDia
-    .filter(t => t.metodoPago === 'Crédito' && t.tipo === 'Ingreso')
-    .reduce((acc, curr) => acc + (curr.monto || 0), 0)
+    .filter(t => t.metodoPago === 'Crédito' && (t.tipo || '').toLowerCase() === 'ingreso')
+    .reduce((acc, curr) => acc + (Number(curr.monto) || 0), 0)
 
   return (
     <div className="space-y-6">
@@ -134,25 +140,31 @@ export const ArqueoCajaDiario = memo(({
               </tr>
             </thead>
             <tbody>
-              {transaccionesDia.map(t => (
-                <tr key={t.id} className="border-b border-gray-200 dark:border-graphite-700">
-                  <td className="p-2.5 font-bold text-gray-900 dark:text-graphite-50">{t.categoria || 'General'}</td>
-                  <td className="p-2.5 text-gray-700 dark:text-graphite-300">{t.pacienteNombre || t.concepto || 'S/D'}</td>
-                  <td className="p-2.5 font-semibold text-gray-600 dark:text-graphite-400">{t.metodoPago || 'Efectivo'}</td>
-                  <td className="p-2.5 text-center">
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                      t.tipo === 'Ingreso' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
+              {transaccionesDia.map(t => {
+                const tipoLower = (t.tipo || '').toLowerCase()
+                const esIngreso = tipoLower === 'ingreso'
+                const concepto = typeof t.concepto === 'string' ? t.concepto : ''
+
+                return (
+                  <tr key={t.id} className="border-b border-gray-200 dark:border-graphite-700">
+                    <td className="p-2.5 font-bold text-gray-900 dark:text-graphite-50">{t.categoria || 'General'}</td>
+                    <td className="p-2.5 text-gray-700 dark:text-graphite-300">{t.pacienteNombre || concepto || 'S/D'}</td>
+                    <td className="p-2.5 font-semibold text-gray-600 dark:text-graphite-400">{t.metodoPago || 'Efectivo'}</td>
+                    <td className="p-2.5 text-center">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                        esIngreso ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
+                      }`}>
+                        {t.tipo}
+                      </span>
+                    </td>
+                    <td className={`p-2.5 text-right font-bold ${
+                      esIngreso ? 'text-emerald-700' : 'text-red-600'
                     }`}>
-                      {t.tipo}
-                    </span>
-                  </td>
-                  <td className={`p-2.5 text-right font-bold ${
-                    t.tipo === 'Ingreso' ? 'text-emerald-700' : 'text-red-600'
-                  }`}>
-                    {t.tipo === 'Ingreso' ? '+' : '-'}${Math.abs(t.monto).toLocaleString('es-CL')}
-                  </td>
-                </tr>
-              ))}
+                      {esIngreso ? '+' : '-'}${Math.abs(Number(t.monto)).toLocaleString('es-CL')}
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         )}

@@ -1,8 +1,12 @@
 import React, { memo } from 'react'
-import { formatearCLP } from '../utils/finanzasCalculations'
+import { formatearCLP, type BalanceFinanzas } from '../utils/finanzasCalculations'
 import { TrendingUp, TrendingDown, Wallet } from 'lucide-react'
 
-export const BalanceCajaCards = memo(({ balance }) => {
+export interface BalanceCajaCardsProps {
+  balance: BalanceFinanzas
+}
+
+export const BalanceCajaCards = memo<BalanceCajaCardsProps>(({ balance }) => {
   const esPositivo = balance.saldoNeto >= 0
 
   return (

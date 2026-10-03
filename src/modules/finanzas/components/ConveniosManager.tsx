@@ -1,10 +1,16 @@
 import React, { memo, useState, useEffect } from 'react'
 import { Settings } from 'lucide-react'
+import type { ConvenioConfig } from '../services/finanzasStorageService'
 
-export const ConveniosManager = memo(({ convenios, onActualizarDescuento }) => {
-  const [convenioRecienGuardado, setConvenioRecienGuardado] = useState(null)
+export interface ConveniosManagerProps {
+  convenios: ConvenioConfig[]
+  onActualizarDescuento: (convenioId: string | number, nuevoDescuento: string | number) => void
+}
 
-  const handleCambioDescuento = (convenioId, nuevoValor) => {
+export const ConveniosManager = memo<ConveniosManagerProps>(({ convenios, onActualizarDescuento }) => {
+  const [convenioRecienGuardado, setConvenioRecienGuardado] = useState<string | number | null>(null)
+
+  const handleCambioDescuento = (convenioId: string | number, nuevoValor: string | number): void => {
     onActualizarDescuento(convenioId, nuevoValor)
     setConvenioRecienGuardado(convenioId)
   }
