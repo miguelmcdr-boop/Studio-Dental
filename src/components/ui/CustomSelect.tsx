@@ -28,10 +28,28 @@
  * - Compatible con <form onSubmit>
  */
 import React, { useState, useRef, useEffect, useId } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, LucideIcon } from 'lucide-react'
 import { Icon } from '../Icon'
 
-export const CustomSelect = ({
+export interface CustomSelectOption<T extends string | number = string> {
+  value: T
+  label: string
+  icon?: LucideIcon | React.ComponentType<{ className?: string }>
+  [key: string]: unknown
+}
+
+export interface CustomSelectProps<T extends string | number = string> {
+  label?: string
+  options?: CustomSelectOption<T>[]
+  value?: T | null | ''
+  onChange?: (value: T) => void
+  placeholder?: string
+  disabled?: boolean
+  className?: string
+  'aria-describedby'?: string
+}
+
+export const CustomSelect = <T extends string | number = string>({
   label,
   options = [],
   value,
@@ -40,23 +58,23 @@ export const CustomSelect = ({
   disabled = false,
   className = '',
   'aria-describedby': ariaDescribedBy,
-}) => {
-  const [isOpen, setIsOpen] = useState(false)
-  const [activeIndex, setActiveIndex] = useState(0)
-  const containerRef = useRef(null)
-  const triggerRef = useRef(null)
-  const listboxRef = useRef(null)
+}: CustomSelectProps<T>) => {
+  const [isOpen, setIsOpen] = useState<boolean>(false)
+  const [activeIndex, setActiveIndex] = useState<number>(0)
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const triggerRef = useRef<HTMLButtonElement | null>(null)
+  const listboxRef = useRef<HTMLDivElement | null>(null)
   const baseId = useId()
   const listboxId = `${baseId}-listbox`
 
-  const selectedOption = options.find(o => o.value === value) || null
+  const selectedOption = options.find((o) => o.value === value) || null
 
   // Cerrar con click fuera
   useEffect(() => {
     if (!isOpen) return
 
-    const onClickOutside = (e) => {
-      if (containerRef.current && !containerRef.current.contains(e.target)) {
+    const onClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsOpen(false)
       }
     }
@@ -66,14 +84,14 @@ export const CustomSelect = ({
   }, [isOpen])
 
   // Navegación con teclado
-  const handleKeyDown = (e) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
     if (disabled) return
 
     if (!isOpen) {
       if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
         e.preventDefault()
         setIsOpen(true)
-        setActiveIndex(Math.max(0, options.findIndex(o => o.value === value)))
+        setActiveIndex(Math.max(0, options.findIndex((o) => o.value === value)))
       }
       return
     }
@@ -81,11 +99,11 @@ export const CustomSelect = ({
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault()
-        setActiveIndex(prev => Math.min(prev + 1, options.length - 1))
+        setActiveIndex((prev) => Math.min(prev + 1, options.length - 1))
         break
       case 'ArrowUp':
         e.preventDefault()
-        setActiveIndex(prev => Math.max(prev - 1, 0))
+        setActiveIndex((prev) => Math.max(prev - 1, 0))
         break
       case 'Enter':
       case ' ':
@@ -109,7 +127,7 @@ export const CustomSelect = ({
     }
   }
 
-  const handleSelectOption = (optionValue) => {
+  const handleSelectOption = (optionValue: T) => {
     onChange?.(optionValue)
     setIsOpen(false)
     triggerRef.current?.focus()
