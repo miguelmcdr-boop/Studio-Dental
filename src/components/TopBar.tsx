@@ -14,7 +14,7 @@
  * - aria-label "Activar modo claro/oscuro" preservado (contrato TopBar.test.jsx:108)
  */
 import React, { useState, useRef, useEffect } from 'react'
-import { LogOut, Moon, Sun, Sparkles } from 'lucide-react'
+import { LogOut, Moon, Sun, Sparkles, LucideIcon } from 'lucide-react'
 import { Icon } from './Icon'
 import { Button } from './ui/Button'
 import { Badge } from './ui/Badge'
@@ -22,25 +22,50 @@ import { ClinicaSelector } from './ClinicaSelector'
 import { DentikOSLogo } from './brand/DentikOSLogo'
 import { NOMBRES_ROLES } from '../constants/rbacConstants'
 
-const THEME_CONFIG = {
+export type AppTheme = 'light' | 'dark' | 'surgical'
+
+interface ThemeConfigItem {
+  nextTheme: AppTheme
+  icon: LucideIcon
+  label: string
+}
+
+const THEME_CONFIG: Record<AppTheme, ThemeConfigItem> = {
   light: {
     nextTheme: 'dark',
     icon: Moon,
-    label: 'Activar modo oscuro'
+    label: 'Activar modo oscuro',
   },
   dark: {
     nextTheme: 'surgical',
     icon: Sparkles,
-    label: 'Activar modo quirúrgico'
+    label: 'Activar modo quirúrgico',
   },
   surgical: {
     nextTheme: 'light',
     icon: Sun,
-    label: 'Activar modo claro'
-  }
+    label: 'Activar modo claro',
+  },
 }
 
-export const TopBar = ({
+export interface TopBarUserProfile {
+  nombreCompleto?: string
+  email?: string
+  rol?: string
+  [key: string]: unknown
+}
+
+export interface TopBarProps {
+  userProfile?: TopBarUserProfile | null
+  onLogout?: () => void
+  darkMode?: boolean
+  theme?: AppTheme | string
+  onToggleDarkMode?: () => void
+  onCycleTheme?: () => void
+  onCambioClinica?: (nuevaClinicaId: string) => void
+}
+
+export const TopBar: React.FC<TopBarProps> = ({
   userProfile,
   onLogout,
   darkMode = false,
@@ -49,11 +74,12 @@ export const TopBar = ({
   onCycleTheme,
   onCambioClinica,
 }) => {
-  const [menuOpen, setMenuOpen] = useState(false)
-  const menuRef = useRef(null)
-  const triggerRef = useRef(null)
+  const [menuOpen, setMenuOpen] = useState<boolean>(false)
+  const menuRef = useRef<HTMLDivElement | null>(null)
+  const triggerRef = useRef<HTMLButtonElement | null>(null)
 
-  const currentTheme = theme || (darkMode ? 'dark' : 'light')
+  const currentTheme: AppTheme =
+    (theme as AppTheme) || (darkMode ? 'dark' : 'light')
   const themeInfo = THEME_CONFIG[currentTheme] || THEME_CONFIG.light
   const handleToggleTheme = onCycleTheme || onToggleDarkMode
 
@@ -61,20 +87,23 @@ export const TopBar = ({
     ? userProfile.nombreCompleto.replace('Dr. ', '').replace('Dra. ', '').charAt(0).toUpperCase()
     : 'U'
 
-  const nombreRol = NOMBRES_ROLES[userProfile?.rol] || 'Usuario'
+  const nombreRol =
+    userProfile?.rol && userProfile.rol in NOMBRES_ROLES
+      ? (NOMBRES_ROLES as Record<string, string>)[userProfile.rol]
+      : 'Usuario'
 
   // Cerrar menú con ESC o click fuera (F6-04 simplificado)
   useEffect(() => {
     if (!menuOpen) return
 
-    const onKeyDown = (e) => {
+    const onKeyDown = (e: KeyboardEvent): void => {
       if (e.key === 'Escape') {
         setMenuOpen(false)
         triggerRef.current?.focus()
       }
     }
-    const onClickOutside = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
+    const onClickOutside = (e: MouseEvent): void => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setMenuOpen(false)
       }
     }
@@ -87,7 +116,7 @@ export const TopBar = ({
     }
   }, [menuOpen])
 
-  const handleLogout = () => {
+  const handleLogout = (): void => {
     setMenuOpen(false)
     onLogout?.()
   }
@@ -234,3 +263,5 @@ export const TopBar = ({
     </header>
   )
 }
+
+TopBar.displayName = 'TopBar'
