@@ -6,24 +6,14 @@
  * - Trampa de foco con Tab/Shift+Tab
  * - Click en overlay para cerrar (opcional)
  * - aria-modal, role="dialog", aria-labelledby
- *
- * Uso:
- *   <Modal isOpen={show} onClose={handleClose} title="Editar paciente" size="md">
- *     <p>Contenido del modal</p>
- *   </Modal>
- *
- * Tamaños:
- *   - sm: max-w-md (448px)
- *   - md: max-w-lg (512px) — default
- *   - lg: max-w-2xl (672px)
- *   - xl: max-w-4xl (896px)
- *   - full: max-w-full (pantalla completa)
  */
 import React, { useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import { Icon } from '../Icon'
 
-const SIZE_STYLES = {
+export type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | 'full'
+
+const SIZE_STYLES: Record<ModalSize, string> = {
   sm: 'max-w-md',
   md: 'max-w-lg',
   lg: 'max-w-2xl',
@@ -31,7 +21,20 @@ const SIZE_STYLES = {
   full: 'max-w-full mx-4',
 }
 
-export const Modal = ({
+export interface ModalProps {
+  isOpen: boolean
+  onClose: () => void
+  title?: React.ReactNode
+  children: React.ReactNode
+  size?: ModalSize
+  showCloseButton?: boolean
+  closeOnOverlayClick?: boolean
+  closeOnEscape?: boolean
+  zIndex?: string
+  'aria-label'?: string
+}
+
+export const Modal: React.FC<ModalProps> = ({
   isOpen,
   onClose,
   title,
@@ -43,17 +46,17 @@ export const Modal = ({
   zIndex = 'z-50',
   'aria-label': ariaLabel,
 }) => {
-  const modalRef = useRef(null)
-  const previousActiveElement = useRef(null)
+  const modalRef = useRef<HTMLDivElement | null>(null)
+  const previousActiveElement = useRef<HTMLElement | null>(null)
 
   // Trampa de foco + ESC (F6-04)
   useEffect(() => {
     if (!isOpen) return
 
     // Guardar elemento que tenía foco antes de abrir el modal
-    previousActiveElement.current = document.activeElement
+    previousActiveElement.current = document.activeElement as HTMLElement | null
 
-    const handleKeyDown = (e) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       // Cerrar con ESC
       if (closeOnEscape && e.key === 'Escape') {
         e.preventDefault()
@@ -63,7 +66,7 @@ export const Modal = ({
 
       // Trampa de foco con Tab
       if (e.key === 'Tab' && modalRef.current) {
-        const focusableElements = modalRef.current.querySelectorAll(
+        const focusableElements = modalRef.current.querySelectorAll<HTMLElement>(
           'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
         )
         const firstElement = focusableElements[0]
@@ -86,7 +89,7 @@ export const Modal = ({
     // Enfocar primer elemento focusable al abrir
     requestAnimationFrame(() => {
       if (modalRef.current) {
-        const firstFocusable = modalRef.current.querySelector(
+        const firstFocusable = modalRef.current.querySelector<HTMLElement>(
           'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
         )
         if (firstFocusable) {
@@ -104,7 +107,7 @@ export const Modal = ({
       document.removeEventListener('keydown', handleKeyDown)
       document.body.style.overflow = ''
       // Restaurar foco al elemento previo
-      if (previousActiveElement.current && previousActiveElement.current.focus) {
+      if (previousActiveElement.current && typeof previousActiveElement.current.focus === 'function') {
         previousActiveElement.current.focus()
       }
     }
@@ -112,14 +115,17 @@ export const Modal = ({
 
   if (!isOpen) return null
 
-  const handleOverlayClick = (e) => {
+  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (closeOnOverlayClick && e.target === e.currentTarget) {
       onClose()
     }
   }
 
   const sizeStyle = SIZE_STYLES[size] || SIZE_STYLES.md
-  const titleId = title ? `modal-title-${title.toLowerCase().replace(/\s+/g, '-')}` : undefined
+  const titleId =
+    typeof title === 'string'
+      ? `modal-title-${title.toLowerCase().replace(/\s+/g, '-')}`
+      : undefined
 
   return (
     <div
@@ -163,3 +169,5 @@ export const Modal = ({
     </div>
   )
 }
+
+Modal.displayName = 'Modal'
