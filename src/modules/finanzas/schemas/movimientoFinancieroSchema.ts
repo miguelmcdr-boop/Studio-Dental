@@ -10,7 +10,7 @@ export const movimientoFinancieroSchema = z.object({
   fecha: z.string().trim().min(1, 'La fecha del movimiento es obligatoria'),
   tipo: z.string().trim().min(1, 'El tipo de movimiento es obligatorio'),
   categoria: z.string().trim().min(1, 'La categoría es obligatoria'),
-  monto: z.number({ required_error: 'El monto es obligatorio' }),
+  monto: z.number({ message: 'El monto es obligatorio' }),
   metodoPago: z.string().trim().min(1, 'El método de pago es obligatorio'),
 
   // Campos opcionales

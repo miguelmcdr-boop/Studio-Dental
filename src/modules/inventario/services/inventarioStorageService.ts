@@ -6,7 +6,7 @@ import { createTenantRepository } from '../../../services/localStorageRepository
 import { INSUMOS_POR_PRESTACION_DEFAULT } from '../utils/inventarioCalculations'
 import type { ItemInventarioDefault } from '../constants/inventarioConstants'
 
-export interface ItemInventario extends Partial<ItemInventarioDefault> {
+export interface ItemInventario extends Omit<Partial<ItemInventarioDefault>, 'id'> {
   id: number | string
   nombre: string
   categoria: string
@@ -37,12 +37,12 @@ const asociacionesRepo = createTenantRepository<AsociacionesInsumos>(
 
 export const inventarioStorageService = {
   obtenerItems: (defaults?: ItemInventario[]): ItemInventario[] => inventarioRepo.obtener(defaults),
-  guardarItems: (items: ItemInventario[]): void => inventarioRepo.guardar(items),
+  guardarItems: (items: ItemInventario[]): boolean => inventarioRepo.guardar(items),
 
   // Asociaciones tratamiento→material (F2-11/F2-12).
   // Al obtener por primera vez, usa el diccionario semilla exportado desde inventarioCalculations.js.
   obtenerAsociacionesInsumos: (
     defaults: AsociacionesInsumos = INSUMOS_POR_PRESTACION_DEFAULT as AsociacionesInsumos
   ): AsociacionesInsumos => asociacionesRepo.obtener(defaults),
-  guardarAsociacionesInsumos: (asociaciones: AsociacionesInsumos): void => asociacionesRepo.guardar(asociaciones)
+  guardarAsociacionesInsumos: (asociaciones: AsociacionesInsumos): boolean => asociacionesRepo.guardar(asociaciones)
 }

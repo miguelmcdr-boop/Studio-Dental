@@ -128,6 +128,7 @@ export const eliminarItemPresupuesto = async (
   itemId: string | number,
   presupuestoId?: string | number | null
 ): Promise<boolean> => {
+  if (presupuestoId === undefined || presupuestoId === null) return false
   return eliminarItemPresupuestoHelper(itemId, presupuestoId, {
     obtenerPresupuestos,
     actualizarPresupuestosLocal

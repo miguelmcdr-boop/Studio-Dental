@@ -221,7 +221,7 @@ const guardarMovimientos = async (movs: unknown): Promise<boolean> => {
 
     // INSERT uno por uno
     for (const movimiento of aInsertar) {
-      const paraInsert = {
+      const paraInsert: Record<string, unknown> = {
         ...transformarParaSupabase(movimiento),
         user_id: user.id
       }
@@ -306,9 +306,9 @@ export const finanzasStorageService = {
 
   // Convenios e Isapres — siguen en localStorage (no hay tabla en Supabase)
   obtenerConvenios: (defaults: ConvenioConfig[] = []): ConvenioConfig[] => conveniosRepo.obtener(defaults),
-  guardarConvenios: (convenios: ConvenioConfig[]): void => conveniosRepo.guardar(convenios),
+  guardarConvenios: (convenios: ConvenioConfig[]): boolean => conveniosRepo.guardar(convenios),
 
   // Cierres y Arqueos de Caja — siguen en localStorage (no hay tabla en Supabase)
   obtenerCierresCaja: (): CierreCaja[] => cierresRepo.obtener([]),
-  guardarCierresCaja: (cierres: CierreCaja[]): void => cierresRepo.guardar(cierres)
+  guardarCierresCaja: (cierres: CierreCaja[]): boolean => cierresRepo.guardar(cierres)
 }

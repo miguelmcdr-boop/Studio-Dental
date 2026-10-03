@@ -1,0 +1,1 @@
+export { UrgenciasGesModulo } from './UrgenciasGesModulo'

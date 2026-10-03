@@ -6,11 +6,11 @@ import { z } from 'zod'
 
 export const anticoagulanteSchema = z.object({
   farmaco_o_grupo: z.string({
-    required_error: 'El fármaco o grupo es obligatorio'
+    message: 'El fármaco o grupo es obligatorio'
   }).min(2, 'Mínimo 2 caracteres').max(200, 'Máximo 200 caracteres'),
   
   recomendacion: z.string({
-    required_error: 'La recomendación es obligatoria'
+    message: 'La recomendación es obligatoria'
   }).min(2, 'Mínimo 2 caracteres').max(1000, 'Máximo 1000 caracteres'),
   
   medidas_hemostasia: z.string().max(1000, 'Máximo 1000 caracteres').optional().nullable(),

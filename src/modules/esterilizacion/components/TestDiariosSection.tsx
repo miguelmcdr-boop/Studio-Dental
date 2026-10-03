@@ -1,0 +1,145 @@
+import React, { memo, useState } from 'react'
+import { Icon } from '../../../components/Icon'
+import { Wrench, PenSquare } from 'lucide-react'
+import {
+  EQUIPOS_AUTOCLAVE,
+  RESULTADOS_BOWIE_DICK,
+  type TestBowieDick
+} from '../constants/esterilizacionConstants'
+import { useAppDialog } from '../../../hooks/useAppDialog'
+
+export interface TestDiariosSectionProps {
+  testDiarios: TestBowieDick[]
+  alAgregarTest: (nuevoTest: TestBowieDick) => void
+}
+
+export const TestDiariosSection = memo<TestDiariosSectionProps>(({ testDiarios, alAgregarTest }) => {
+  const [equipo, setEquipo] = useState<string>(EQUIPOS_AUTOCLAVE[0])
+  const { alert: dialogAlert } = useAppDialog()
+  const [resultado, setResultado] = useState<string>(RESULTADOS_BOWIE_DICK[0].nombre)
+  const [operador, setOperador] = useState<string>('TENS Esterilización')
+  const [observacion, setObservacion] = useState<string>('')
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
+    e.preventDefault()
+
+    const nuevoTest: TestBowieDick = {
+      id: Date.now(),
+      fecha: new Date().toLocaleDateString('es-CL'),
+      equipo,
+      resultado,
+      operador,
+      observacion: observacion || 'Prueba de penetración de vapor matutina.'
+    }
+
+    alAgregarTest(nuevoTest)
+    await dialogAlert({
+      title: 'Test registrado',
+      description: 'Test Diario de Bowie-Dick registrado correctamente.',
+      variant: 'success',
+      confirmText: 'Entendido'
+    })
+    setObservacion('')
+  }
+
+  return (
+    <div className="space-y-6 text-xs">
+      <form onSubmit={handleSubmit} className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-6 shadow-xs space-y-4">
+        <div className="border-b pb-2">
+          <h3 className="font-bold text-sm text-gray-900 dark:text-graphite-50 uppercase tracking-wider">
+            <span className="flex items-center gap-2">
+              <Icon icon={Wrench} size="sm" />
+              Test Diarios de Penetración de Vapor (Bowie-Dick / Pre-Vacío)
+            </span>
+          </h3>
+          <p className="text-gray-500 dark:text-graphite-400 text-[11px]">
+            Verificación técnica matutina obligatoria por la SEREMI antes de procesar cargas de pacientes.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Equipo Autoclave *</label>
+            <select
+              value={equipo}
+              onChange={(e) => setEquipo(e.target.value)}
+              className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-bold"
+            >
+              {EQUIPOS_AUTOCLAVE.map(eq => <option key={eq} value={eq}>{eq}</option>)}
+            </select>
+          </div>
+
+          <div>
+            <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Resultado de Viraje Hoja Bowie-Dick</label>
+            <select
+              value={resultado}
+              onChange={(e) => setResultado(e.target.value)}
+              className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 bg-white dark:bg-graphite-800 font-semibold"
+            >
+              {RESULTADOS_BOWIE_DICK.map(r => <option key={r.id} value={r.nombre}>{r.nombre}</option>)}
+            </select>
+          </div>
+
+          <div>
+            <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Operador Responsable</label>
+            <input
+              type="text"
+              value={operador}
+              onChange={(e) => setOperador(e.target.value)}
+              className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 font-semibold"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1">Observaciones Técnicas</label>
+          <input
+            type="text"
+            placeholder="Viraje uniforme de hoja de prueba, sin presencia de bolsas de aire..."
+            value={observacion}
+            onChange={(e) => setObservacion(e.target.value)}
+            className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600"
+          />
+        </div>
+
+        <button
+          type="submit"
+          className="bg-black text-white font-bold px-4 py-2.5 rounded-xl hover:bg-gray-800 transition-colors shadow-xs"
+        >
+          <span className="inline-flex items-center gap-1"><PenSquare size={14} />Guardar Test de Bowie-Dick</span>
+        </button>
+      </form>
+
+      <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl overflow-hidden shadow-xs">
+        <div className="p-4 bg-gray-50 dark:bg-graphite-800 border-b font-bold text-gray-800 dark:text-graphite-100 uppercase tracking-wider">
+          Historial de Test Diarios de Autoclave ({testDiarios.length})
+        </div>
+
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="bg-gray-100 dark:bg-graphite-800 border-b text-gray-700 dark:text-graphite-300 font-bold uppercase text-[10px]">
+              <th className="p-3">Fecha</th>
+              <th className="p-3">Equipo</th>
+              <th className="p-3">Operador</th>
+              <th className="p-3">Resultado Bowie-Dick</th>
+              <th className="p-3">Observación</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100 dark:divide-graphite-800">
+            {testDiarios.map(t => (
+              <tr key={t.id} className="hover:bg-gray-50 dark:hover:bg-graphite-700">
+                <td className="p-3 font-bold text-gray-900 dark:text-graphite-50">{t.fecha}</td>
+                <td className="p-3 font-semibold text-gray-800 dark:text-graphite-100">{t.equipo}</td>
+                <td className="p-3 text-gray-600 dark:text-graphite-400">{t.operador}</td>
+                <td className="p-3 font-bold text-gray-900 dark:text-graphite-50">{t.resultado}</td>
+                <td className="p-3 text-gray-500 dark:text-graphite-400 italic">{t.observacion}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+})
+
+TestDiariosSection.displayName = 'TestDiariosSection'

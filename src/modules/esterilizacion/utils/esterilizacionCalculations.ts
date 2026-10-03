@@ -6,17 +6,14 @@ export interface CargaEsterilizacion {
   fecha?: string
   estado?: string
   indicadorQuimico?: string
-  [key: string]: unknown
 }
 
 export interface BiologicoEsterilizacion {
   resultado?: string
-  [key: string]: unknown
 }
 
 export interface TestDiarioEsterilizacion {
   fecha?: string
-  [key: string]: unknown
 }
 
 export interface ResumenEsterilizacion {

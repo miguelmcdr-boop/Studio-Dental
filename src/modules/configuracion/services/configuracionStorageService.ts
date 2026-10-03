@@ -62,8 +62,8 @@ export interface ConfiguracionStorageServiceAPI {
 // F7-36 FASE 1 (Commit 1.5e): migrados a createTenantRepository para aislamiento multi-tenant.
 // Claves legacy ahora: sd_<clinicaId>_studio_dental_config_clinica, sd_<clinicaId>_studio_dental_config_agenda
 // clinicaRepo preserva notify: true para sincronización entre pestañas/módulos.
-const clinicaRepo = createTenantRepository<DatosClinicaConfig>(KEY_CLINICA, undefined, { notify: true })
-const parametrosAgendaRepo = createTenantRepository<ParametrosAgendaConfig>(KEY_PARAMETROS_AGENDA, undefined)
+const clinicaRepo = createTenantRepository<DatosClinicaConfig | undefined>(KEY_CLINICA, undefined, { notify: true })
+const parametrosAgendaRepo = createTenantRepository<ParametrosAgendaConfig | undefined>(KEY_PARAMETROS_AGENDA, undefined)
 
 // ═══════════════════════════════════════════════════════════════════
 // TRANSFORMACIÓN camelCase ↔ snake_case (F6-C-e)

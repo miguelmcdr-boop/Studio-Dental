@@ -1,0 +1,75 @@
+import React, { memo } from 'react'
+import { Icon } from '../../../components/Icon'
+import { Tooth } from '../../../components/icons/Tooth'
+import { TEMPORAL_SUPERIOR, TEMPORAL_INFERIOR } from '../constants/pediatriaConstants'
+
+export interface EstadoDentosanaOption {
+  id: string
+  label: string
+  color: string
+}
+
+export interface OdontogramaTemporalProps {
+  datosDentosana?: Record<string, unknown>
+  onToggleEstadoPieza: (piezaId: string | number, estado: string) => void
+}
+
+const ESTADOS_DISPONIBLES: readonly EstadoDentosanaOption[] = [
+  { id: 'sano', label: 'Sano', color: 'bg-emerald-500 text-white' },
+  { id: 'caries', label: 'Caries', color: 'bg-[var(--chart-caries)] text-white' },
+  { id: 'obturado', label: 'Obturado', color: 'bg-[var(--chart-sound)] text-white' },
+  { id: 'extraido', label: 'Extraído', color: 'bg-[var(--chart-missing)] text-white' }
+]
+
+export const OdontogramaTemporal = memo<OdontogramaTemporalProps>(({ datosDentosana = {}, onToggleEstadoPieza }) => {
+  const renderFila = (piezas: readonly string[]): React.ReactElement => (
+    <div className="flex flex-wrap gap-2 justify-center">
+      {piezas.map(piezaId => {
+        const estadoActual = (datosDentosana[piezaId] as string) || 'sano'
+        return (
+          <div key={piezaId} className="border rounded-xl p-2 bg-white dark:bg-graphite-800 text-center w-20 shadow-2xs space-y-1">
+            <span className="font-bold text-xs block border-b pb-0.5 text-gray-900 dark:text-graphite-50">P.{piezaId}</span>
+            <div className="flex flex-col gap-1">
+              {ESTADOS_DISPONIBLES.map(est => (
+                <button
+                  key={est.id}
+                  type="button"
+                  onClick={() => onToggleEstadoPieza(piezaId, est.id)}
+                  className={`text-[9px] font-bold py-0.5 px-1 rounded transition-all cursor-pointer ${
+                    estadoActual === est.id ? est.color : 'bg-gray-100 dark:bg-graphite-800 text-gray-500 dark:text-graphite-400 hover:bg-gray-200'
+                  }`}
+                >
+                  {est.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+
+  return (
+    <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-6 shadow-xs space-y-6">
+      <div className="border-b pb-2">
+        <h3 className="font-bold text-sm text-gray-900 dark:text-graphite-50 uppercase tracking-wider">
+          <span className="flex items-center gap-1.5"><Icon icon={Tooth} size="sm" />Odontograma Temporal / Deciduo (Dentosana)</span>
+        </h3>
+        <p className="text-gray-500 dark:text-graphite-400 text-[11px]">Registro rápido de estado clínico para piezas primarias (5.1 a 8.5).</p>
+      </div>
+
+      <div className="space-y-4 overflow-x-auto">
+        <div>
+          <h4 className="text-[10px] font-bold text-gray-500 dark:text-graphite-400 uppercase mb-2 text-center">Arcada Superior Decidua</h4>
+          {renderFila(TEMPORAL_SUPERIOR)}
+        </div>
+        <div>
+          <h4 className="text-[10px] font-bold text-gray-500 dark:text-graphite-400 uppercase mb-2 text-center">Arcada Inferior Decidua</h4>
+          {renderFila(TEMPORAL_INFERIOR)}
+        </div>
+      </div>
+    </div>
+  )
+})
+
+OdontogramaTemporal.displayName = 'OdontogramaTemporal'

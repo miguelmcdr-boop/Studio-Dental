@@ -55,8 +55,8 @@ export interface Pago {
   clinica_id?: string | null
   userId?: string
   user_id?: string
-  motivoPurga?: string
-  fechaPurga?: string
+  motivoPurga?: string | null
+  fechaPurga?: string | null
   purgadoPor?: string | null
   motivoAnulacion?: string
   fechaAnulacion?: string

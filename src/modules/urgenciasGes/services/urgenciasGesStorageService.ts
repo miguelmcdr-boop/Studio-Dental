@@ -7,9 +7,18 @@ export interface AtencionGes {
   id?: string | number
   folio?: string
   fechaCreacion?: string
+  pacienteId?: string | number
   pacienteNombre?: string
   pacienteRut?: string
+  pacientePrevision?: string
+  triageId?: string
+  triageNombre?: string
+  patologiaGesId?: string
+  patologiaNombre?: string
+  patologiaCodigo?: string
   diagnostico?: string
+  indicacionesTratamiento?: string
+  aceptaAtencion?: boolean
   categoriaTriage?: string
   patologiaGes?: string
   [key: string]: unknown
@@ -22,5 +31,5 @@ const gesRepo = createTenantRepository<AtencionGes[]>(STORAGE_KEY_GES, [])
 
 export const urgenciasGesStorageService = {
   obtenerAtenciones: (): AtencionGes[] => gesRepo.obtener([]) || [],
-  guardarAtenciones: (atenciones: AtencionGes[]): void => gesRepo.guardar(atenciones)
+  guardarAtenciones: (atenciones: AtencionGes[]): boolean => gesRepo.guardar(atenciones)
 }

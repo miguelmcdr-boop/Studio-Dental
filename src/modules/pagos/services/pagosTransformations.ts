@@ -129,12 +129,12 @@ export const mergeCamposLocales = <T extends Record<string, unknown>>(
   return pagosSupabase.map(pago => {
     const previo = previosMap.get(String(pago.id))
     if (!previo) return pago
-    const out = { ...pago }
+    const out = { ...pago } as Record<string, unknown>
     CAMPOS_SOLO_LOCALES.forEach(k => {
       if ((out[k] === null || out[k] === undefined) && previo[k] !== null && previo[k] !== undefined) {
-        out[k] = previo[k] as T[Extract<keyof T, string>]
+        out[k] = previo[k]
       }
     })
-    return out
+    return out as T
   })
 }

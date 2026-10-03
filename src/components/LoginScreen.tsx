@@ -1,0 +1,257 @@
+import React, { useState } from 'react'
+import {
+  supabaseSignIn,
+  supabaseSignUp,
+  type PerfilUsuario,
+} from '../services/authService'
+import { construirUserProfile } from '../services/userProfileBuilder'
+import { NOMBRES_ROLES, DESCRIPCIONES_ROLES } from '../constants/rbacConstants'
+import { obtenerRolPorDefecto } from '../services/rbacService'
+import { createLogger } from '../services/logger'
+import { Button } from './ui/Button'
+import { Input } from './ui/Input'
+import { DentikOSLogo } from './brand/DentikOSLogo'
+import { Lock } from 'lucide-react'
+
+const log = createLogger('LoginScreen')
+
+export interface LoginScreenProps {
+  onLogin: (profile: PerfilUsuario) => void
+}
+
+export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
+  const [email, setEmail] = useState<string>('')
+  const [password, setPassword] = useState<string>('')
+  const [nombreCompleto, setNombreCompleto] = useState<string>('')
+  const [rut, setRut] = useState<string>('')
+  const [especialidad, setEspecialidad] = useState<string>('')
+  const [rol, setRol] = useState<string>(obtenerRolPorDefecto()) // F3-05: rol por defecto (RECEPCION)
+  const [isFirstTime, setIsFirstTime] = useState<boolean>(false)
+
+  const [error, setError] = useState<string>('')
+  const [cargando, setCargando] = useState<boolean>(false)
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const value = e.target.value
+    setEmail(value)
+    setError('')
+
+    // F7-16: Modo Supabase únicamente. El usuario puede existir en Supabase Auth.
+    // Mostramos login por defecto; si el email no existe, Supabase retorna error.
+    setIsFirstTime(false)
+  }
+
+  /**
+   * F7-16: handleSubmit con Supabase Auth únicamente.
+   * Modo local PBKDF2 eliminado (código legacy no usado en producción).
+   */
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
+    e.preventDefault()
+    setError('')
+    if (email.trim() === '' || password === '') return
+
+    const formattedEmail = email.trim().toLowerCase()
+
+    setCargando(true)
+    try {
+      // Metadata común para ambos modos (Supabase y Local)
+      const metadata: Record<string, unknown> = {
+        nombreCompleto: nombreCompleto || 'Profesional Dental',
+        rut: rut || '',
+        especialidad: especialidad || 'Cirujano Dentista',
+        rol: rol, // F3-05: incluir el rol seleccionado
+      }
+
+      // F7-28 FIX: useSupabase eliminado (legacy de F7-16).
+      // Solo existe flujo Supabase Auth (no hay modo local).
+      if (isFirstTime) {
+        // Registro de nuevo usuario
+        const result = await supabaseSignUp(formattedEmail, password, metadata)
+
+        if (!result.success) {
+          let mensajeError = result.error || 'Error al registrar usuario'
+          if (mensajeError.includes('already registered') || mensajeError.includes('already')) {
+            mensajeError = 'Este email ya está registrado. Intenta iniciar sesión.'
+            setIsFirstTime(false)
+          } else if (mensajeError.includes('Password') || mensajeError.includes('password')) {
+            mensajeError = 'La contraseña debe tener al menos 6 caracteres.'
+          } else if (mensajeError.includes('Invalid email')) {
+            mensajeError = 'El formato del email no es válido.'
+          }
+          setError(mensajeError)
+          return
+        }
+      } else {
+        // Login de usuario existente
+        const result = await supabaseSignIn(formattedEmail, password)
+
+        if (!result.success) {
+          let mensajeError = result.error || 'Credenciales inválidas'
+          if (mensajeError.includes('Invalid login credentials') || mensajeError.includes('Invalid')) {
+            mensajeError = 'Email o contraseña incorrectos.'
+          } else if (mensajeError.includes('Email not confirmed')) {
+            mensajeError = 'Debes confirmar tu email antes de iniciar sesión.'
+          }
+          setError(mensajeError)
+          return
+        }
+
+        // F4-02b FIX: guardar userMetadata retornado para usar al construir perfil
+        metadata._supabaseUserMetadata = result.userMetadata || {}
+      }
+
+      // F4-02b FIX: Usar los user_metadata retornados por supabaseSignIn/SignUp
+      // (evita race condition con getUser() después del signIn).
+      const userMetadata = (metadata._supabaseUserMetadata as Record<string, unknown>) || {}
+      const userProfile = await construirUserProfile(formattedEmail, userMetadata, metadata)
+      onLogin(userProfile as unknown as PerfilUsuario)
+    } catch (err: unknown) {
+      log.error('Error inesperado en login:', err)
+      setError('Error inesperado. Intenta nuevamente.')
+    } finally {
+      setCargando(false)
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-[#070B14] bg-blueprint-scanner flex items-center justify-center p-4 print:hidden" role="main" aria-label="Pantalla de autenticación">
+      <div className="bg-[#0B132B]/90 dark:bg-graphite-900/90 backdrop-blur-md p-8 rounded-2xl shadow-2xl border border-[#24334A] w-full max-w-md">
+        <div className="flex justify-center mb-6">
+          <DentikOSLogo variant="stacked" size="lg" opticalSize="display" dark={true} />
+        </div>
+
+        <h2 className="text-xl sm:text-2xl font-bold text-white mb-1">
+          {isFirstTime ? 'Crear perfil profesional' : 'Iniciar sesión'}
+        </h2>
+        <p className="text-sm text-slate-400 mb-6">
+          {isFirstTime ? 'Ingresa tus datos para personalizar tu clínica.' : 'Ingresa tus credenciales para acceder a tu consulta.'}
+        </p>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <Input
+            label="Correo electrónico"
+            id="login-email"
+            data-testid="login-email"
+            type="email"
+            required
+            value={email}
+            onChange={handleEmailChange}
+            placeholder="dr.miguel@ejemplo.com"
+          />
+
+          <Input
+            label="Contraseña"
+            id="login-password"
+            data-testid="login-password"
+            type="password"
+            required
+            value={password}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+            placeholder="••••••••"
+          />
+
+          {isFirstTime && (
+            <div className="space-y-4 pt-2 border-t border-gray-100 dark:border-graphite-800">
+              <div>
+                <label htmlFor="login-nombre" className="block text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase mb-1">Nombre Completo</label>
+                <input
+                  type="text"
+                  required
+                  value={nombreCompleto}
+                  id="login-nombre"
+                  onChange={(e) => setNombreCompleto(e.target.value)}
+                  placeholder="Dr. Miguel Díaz Rodríguez"
+                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-graphite-600 focus:outline-none focus:border-black text-sm text-gray-800 dark:text-graphite-100"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label htmlFor="login-rut" className="block text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase mb-1">RUT / Licencia</label>
+                  <input
+                    type="text"
+                    value={rut}
+                    id="login-rut"
+                    onChange={(e) => setRut(e.target.value)}
+                    placeholder="12.345.678-9"
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-graphite-600 focus:outline-none focus:border-black text-sm text-gray-800 dark:text-graphite-100"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="login-especialidad" className="block text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase mb-1">Especialidad</label>
+                  <input
+                    type="text"
+                    value={especialidad}
+                    id="login-especialidad"
+                    onChange={(e) => setEspecialidad(e.target.value)}
+                    placeholder="Cirujano Dentista"
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-graphite-600 focus:outline-none focus:border-black text-sm text-gray-800 dark:text-graphite-100"
+                  />
+                </div>
+              </div>
+
+              {/* F3-05: Selector de rol para nuevos usuarios */}
+              <div>
+                <label htmlFor="login-rol" className="block text-xs font-semibold text-gray-600 dark:text-graphite-400 uppercase mb-1">Rol en el sistema</label>
+                <select
+                  id="login-rol"
+                  data-testid="login-rol"
+                  value={rol}
+                  onChange={(e) => setRol(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-graphite-600 focus:outline-none focus:border-black text-sm text-gray-800 dark:text-graphite-100 bg-white dark:bg-graphite-800"
+                >
+                  {Object.entries(NOMBRES_ROLES).map(([rolValue, rolNombre]) => (
+                    <option key={rolValue} value={rolValue}>
+                      {rolNombre}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-gray-400 dark:text-graphite-500 mt-1">
+                  {(DESCRIPCIONES_ROLES as Record<string, string>)[rol] || 'Selecciona tu rol'}
+                </p>
+              </div>
+            </div>
+          )}
+
+          <Button data-testid="login-submit" type="submit" loading={cargando} fullWidth className="mt-2">
+            {cargando ? 'Verificando...' : isFirstTime ? 'Guardar datos e Ingresar' : 'Ingresar al sistema'}
+          </Button>
+
+          {/* F4-02b FIX: En modo Supabase, permitir cambiar entre login y registro */}
+          {import.meta.env.VITE_USE_SUPABASE === 'true' && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              fullWidth
+              onClick={() => { setIsFirstTime(!isFirstTime); setError('') }}
+              className="mt-3 text-xs underline"
+            >
+              {isFirstTime ? '¿Ya tienes cuenta? Iniciar sesión' : '¿Primera vez? Crear cuenta'}
+            </Button>
+          )}
+
+          {error && (
+            <p
+              data-testid="login-error"
+              role="alert"
+              aria-live="assertive"
+              className="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mt-2"
+            >
+              {error}
+            </p>
+          )}
+
+          {/* F4-02b: Indicador del modo de autenticación activo */}
+          {import.meta.env.VITE_USE_SUPABASE === 'true' && (
+            <p className="text-[10px] text-gray-400 dark:text-graphite-500 text-center mt-2">
+              <span className="inline-flex items-center gap-1"><Lock size={12} />Autenticación segura con Supabase</span>
+            </p>
+          )}
+        </form>
+      </div>
+    </div>
+  )
+}
+
+LoginScreen.displayName = 'LoginScreen'

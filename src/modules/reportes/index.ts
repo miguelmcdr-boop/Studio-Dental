@@ -1,0 +1,1 @@
+export { ReportesModulo } from './ReportesModulo'

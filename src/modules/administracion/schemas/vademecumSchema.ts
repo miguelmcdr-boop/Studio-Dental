@@ -76,27 +76,25 @@ export type ViaAdministracion = typeof VIAS_ADMINISTRACION[number]
 // ═══════════════════════════════════════════════════════════════
 export const farmacoSchema = z.object({
   numero: z.number({
-    required_error: 'El número es obligatorio',
-    invalid_type_error: 'El número debe ser un entero'
+    message: 'El número es obligatorio'
   }).int('El número debe ser un entero').positive('El número debe ser positivo'),
   
   familia: z.enum(FAMILIAS_VADEMECUM, {
-    required_error: 'La familia es obligatoria',
-    errorMap: () => ({ message: 'Seleccione una familia válida' })
+    message: 'La familia es obligatoria'
   }),
   
   nombre_generico: z.string({
-    required_error: 'El nombre genérico es obligatorio'
+    message: 'El nombre genérico es obligatorio'
   }).min(2, 'Mínimo 2 caracteres').max(200, 'Máximo 200 caracteres'),
   
   nombre_comercial: z.string().max(200, 'Máximo 200 caracteres').optional().or(z.literal('')),
   
   presentacion: z.string({
-    required_error: 'La presentación es obligatoria'
+    message: 'La presentación es obligatoria'
   }).min(2, 'Mínimo 2 caracteres').max(200, 'Máximo 200 caracteres'),
   
   posologia_adulto: z.string({
-    required_error: 'La posología adulto es obligatoria'
+    message: 'La posología adulto es obligatoria'
   }).min(2, 'Mínimo 2 caracteres').max(500, 'Máximo 500 caracteres'),
   
   posologia_pediatrica: z.string().max(500, 'Máximo 500 caracteres').optional().or(z.literal('')),
@@ -128,30 +126,28 @@ export type Farmaco = z.infer<typeof farmacoSchema>
 // ═══════════════════════════════════════════════════════════════
 export const urgenciaSchema = z.object({
   numero: z.number({
-    required_error: 'El número es obligatorio',
-    invalid_type_error: 'El número debe ser un entero'
+    message: 'El número es obligatorio'
   }).int('El número debe ser un entero').positive('El número debe ser positivo'),
   
   nombre_generico: z.string({
-    required_error: 'El nombre genérico es obligatorio'
+    message: 'El nombre genérico es obligatorio'
   }).min(2, 'Mínimo 2 caracteres').max(200, 'Máximo 200 caracteres'),
   
   concentracion: z.string().max(100, 'Máximo 100 caracteres').optional().or(z.literal('')),
   
   presentacion: z.string({
-    required_error: 'La presentación es obligatoria'
+    message: 'La presentación es obligatoria'
   }).min(2, 'Mínimo 2 caracteres').max(200, 'Máximo 200 caracteres'),
   
   indicacion: z.string({
-    required_error: 'La indicación es obligatoria'
+    message: 'La indicación es obligatoria'
   }).min(2, 'Mínimo 2 caracteres').max(500, 'Máximo 500 caracteres'),
   
   posologia_adulto: z.string().max(500, 'Máximo 500 caracteres').optional().or(z.literal('')),
   posologia_pediatrica: z.string().max(500, 'Máximo 500 caracteres').optional().or(z.literal('')),
   
   via_administracion: z.enum(VIAS_ADMINISTRACION, {
-    required_error: 'La vía de administración es obligatoria',
-    errorMap: () => ({ message: 'Seleccione una vía válida' })
+    message: 'La vía de administración es obligatoria'
   }),
   
   advertencias: z.string().max(2000, 'Máximo 2000 caracteres').optional().or(z.literal('')),
@@ -166,17 +162,15 @@ export type FarmacoUrgencia = z.infer<typeof urgenciaSchema>
 // ═══════════════════════════════════════════════════════════════
 export const antirresortivoSchema = z.object({
   numero: z.number({
-    required_error: 'El número es obligatorio',
-    invalid_type_error: 'El número debe ser un entero'
+    message: 'El número es obligatorio'
   }).int('El número debe ser un entero').positive('El número debe ser positivo'),
   
   nombre_generico: z.string({
-    required_error: 'El nombre genérico es obligatorio'
+    message: 'El nombre genérico es obligatorio'
   }).min(2, 'Mínimo 2 caracteres').max(200, 'Máximo 200 caracteres'),
   
   familia: z.enum(FAMILIAS_ANTIRRESORTIVOS, {
-    required_error: 'La familia es obligatoria',
-    errorMap: () => ({ message: 'Seleccione una familia válida' })
+    message: 'La familia es obligatoria'
   }),
   
   via_administracion: z.string().max(100, 'Máximo 100 caracteres').optional().or(z.literal('')),
@@ -184,16 +178,15 @@ export const antirresortivoSchema = z.object({
   dosis_habitual: z.string().max(200, 'Máximo 200 caracteres').optional().or(z.literal('')),
   
   indicacion: z.string({
-    required_error: 'La indicación es obligatoria'
+    message: 'La indicación es obligatoria'
   }).min(2, 'Mínimo 2 caracteres').max(500, 'Máximo 500 caracteres'),
   
   riesgo_mronj: z.enum(NIVELES_RIESGO_MRONG, {
-    required_error: 'El nivel de riesgo MRONJ es obligatorio',
-    errorMap: () => ({ message: 'Seleccione un nivel de riesgo válido' })
+    message: 'El nivel de riesgo MRONJ es obligatorio'
   }),
   
   manejo_odontologico: z.string({
-    required_error: 'El manejo odontológico es obligatorio'
+    message: 'El manejo odontológico es obligatorio'
   }).min(2, 'Mínimo 2 caracteres').max(2000, 'Máximo 2000 caracteres'),
   
   activo: z.boolean().default(true)

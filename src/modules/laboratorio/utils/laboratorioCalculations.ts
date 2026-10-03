@@ -5,20 +5,17 @@
 export interface TarifaLab {
   trabajo?: string
   precio?: number | string
-  [key: string]: unknown
 }
 
 export interface LaboratorioConTarifas {
   id?: number | string
-  tarifas?: TarifaLab[]
-  [key: string]: unknown
+  tarifas?: readonly TarifaLab[] | TarifaLab[]
 }
 
 export interface OrdenLabCalc {
   costoLaboratorio?: number | string
   etapa?: string
   estadoPagoLab?: string
-  [key: string]: unknown
 }
 
 export interface ResumenLaboratorio {
@@ -37,7 +34,7 @@ export const generarCodigoOrdenLab = (): string => {
 }
 
 export const buscarTarifaSugerida = (
-  laboratorios: LaboratorioConTarifas[] = [],
+  laboratorios: readonly LaboratorioConTarifas[] | LaboratorioConTarifas[] = [],
   labId: number | string,
   trabajoNombre: string
 ): number => {

@@ -63,7 +63,7 @@ const pendingEvolucionesRepo = createTenantRepository<PendingEvolucionEntry[]>('
 
 const obtenerClinicaId = (): string | null => {
   try {
-    return getClinicaActiva?.() || null
+    return (getClinicaActiva as unknown as () => string | null)?.() || null
   } catch {
     return null
   }
@@ -417,7 +417,7 @@ export const procesarColaEvoluciones = async (): Promise<{
   for (const item of pending) {
     const id = typeof item === 'object' && item !== null ? item.id : item
     const pacienteId = typeof item === 'object' && item !== null ? item.pacienteId : undefined
-    const itemClinicaId = (typeof item === 'object' && item !== null ? item.clinicaId : null) || clinicaIdActual
+    const itemClinicaId: string | null = (typeof item === 'object' && item !== null ? item.clinicaId : null) || clinicaIdActual
 
     // Aislamiento multi-tenant: procesar solo si pertenece a la clínica activa
     if (itemClinicaId !== clinicaIdActual) {
@@ -519,7 +519,7 @@ export const sincronizarDesdeSupabase = async (
   // 2. Descargar evoluciones desde Supabase
   let remotas: EvolucionClinicaRow[] = []
   try {
-    remotas = await obtenerEvolucionesRemotas(pacienteId)
+    remotas = (await obtenerEvolucionesRemotas(pacienteId)) as unknown as EvolucionClinicaRow[]
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err)
     log.warn('Error al descargar evoluciones remotas en sincronizarDesdeSupabase:', msg)

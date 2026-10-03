@@ -150,12 +150,15 @@ function verificarBarrerasPublicas() {
   const modulos = entries.filter(e => e.isDirectory() && !e.name.startsWith('.'))
   
   for (const modulo of modulos) {
-    const indexPath = path.join(modulesDir, modulo.name, 'index.js')
-    if (!fs.existsSync(indexPath)) {
+    const indexPathJs = path.join(modulesDir, modulo.name, 'index.js')
+    const indexPathTs = path.join(modulesDir, modulo.name, 'index.ts')
+    const hasIndex = fs.existsSync(indexPathJs) || fs.existsSync(indexPathTs)
+
+    if (!hasIndex) {
       violations.push(
         `📁 [BARRERA PÚBLICA FALTANTE] src/modules/${modulo.name}/\n` +
-        `   Este módulo no tiene index.js.\n` +
-        `   Crea un index.js que exporte la barrera pública del módulo (Cap. III).`
+        `   Este módulo no tiene index.js o index.ts.\n` +
+        `   Crea un index.ts que exporte la barrera pública del módulo (Cap. III).`
       )
     }
   }

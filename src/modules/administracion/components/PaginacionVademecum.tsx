@@ -1,0 +1,39 @@
+/**
+ * Componente de paginación para tablas de vademécum.
+ * F4-03f-2 (refactorización)
+ */
+import React from 'react'
+
+export interface PaginacionVademecumProps {
+  paginaActual: number
+  totalPaginas: number
+  setPaginaActual: (pagina: number) => void
+}
+
+export const PaginacionVademecum: React.FC<PaginacionVademecumProps> = ({ paginaActual, totalPaginas, setPaginaActual }) => {
+  if (totalPaginas <= 1) return null
+
+  return (
+    <div className="px-6 py-3 border-t border-gray-200 dark:border-graphite-700 bg-gray-50 dark:bg-graphite-800 flex items-center justify-between">
+      <div className="text-sm text-gray-600 dark:text-graphite-400">
+        Página {paginaActual} de {totalPaginas}
+      </div>
+      <div className="flex gap-2">
+        <button
+          onClick={() => setPaginaActual(paginaActual - 1)}
+          disabled={paginaActual === 1}
+          className="px-3 py-1 text-sm font-medium text-gray-700 dark:text-graphite-300 bg-white dark:bg-graphite-800 border border-gray-300 dark:border-graphite-600 rounded hover:bg-gray-50 dark:hover:bg-graphite-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+        >
+          ← Anterior
+        </button>
+        <button
+          onClick={() => setPaginaActual(paginaActual + 1)}
+          disabled={paginaActual === totalPaginas}
+          className="px-3 py-1 text-sm font-medium text-gray-700 dark:text-graphite-300 bg-white dark:bg-graphite-800 border border-gray-300 dark:border-graphite-600 rounded hover:bg-gray-50 dark:hover:bg-graphite-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+        >
+          Siguiente →
+        </button>
+      </div>
+    </div>
+  )
+}

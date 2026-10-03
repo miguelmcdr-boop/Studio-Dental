@@ -38,8 +38,8 @@ export const comunicacionesStorageService = {
     }
     return plantillasLimpias
   },
-  guardarPlantillas: (plantillas: PlantillaComunicacion[]): void => plantillasRepo.guardar(plantillas),
+  guardarPlantillas: (plantillas: PlantillaComunicacion[]): boolean => plantillasRepo.guardar(plantillas),
 
   obtenerHistorial: (defaults: MensajeHistorial[] = []): MensajeHistorial[] => historialRepo.obtener(defaults),
-  guardarHistorial: (historial: MensajeHistorial[]): void => historialRepo.guardar(historial)
+  guardarHistorial: (historial: MensajeHistorial[]): boolean => historialRepo.guardar(historial)
 }

@@ -18,11 +18,27 @@ export interface ImplanteItem {
   fecha?: string
   pieza?: string
   marca?: string
+  plataforma?: string
   diametro?: string
   longitud?: string
   torque?: number | null
+  torqueInsercion?: number | string | null
   isq?: number | null
+  isqInicial?: number | string | null
+  lote?: string
+  observacion?: string
   notas?: string
+  [key: string]: unknown
+}
+
+export interface ConductoItem {
+  nombre?: string
+  cad?: string
+  crd?: string
+  ltp?: string
+  referencia?: string
+  limaApical?: string
+  irrigacion?: string
   [key: string]: unknown
 }
 
@@ -30,9 +46,11 @@ export interface EndodonciaItem {
   id: number | string
   fecha?: string
   pieza?: string
-  conductos?: number | string
+  conductos?: number | string | ConductoItem[]
   longitudConducto?: string
   tecnica?: string
+  tecnicaObturacion?: string
+  sellador?: string
   obturacion?: string
   notas?: string
   [key: string]: unknown

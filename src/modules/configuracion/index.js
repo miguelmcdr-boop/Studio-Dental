@@ -1,1 +1,0 @@
-export { ConfiguracionModulo } from './ConfiguracionModulo'

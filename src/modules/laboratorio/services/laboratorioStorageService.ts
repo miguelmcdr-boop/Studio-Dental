@@ -14,8 +14,8 @@ const laboratoriosRepo = createTenantRepository<LaboratorioBase[]>(STORAGE_KEY_L
 
 export const laboratorioStorageService = {
   obtenerOrdenes: (defaults?: OrdenLaboratorio[]): OrdenLaboratorio[] => ordenesRepo.obtener(defaults),
-  guardarOrdenes: (ordenes: OrdenLaboratorio[]): void => ordenesRepo.guardar(ordenes),
+  guardarOrdenes: (ordenes: OrdenLaboratorio[]): boolean => ordenesRepo.guardar(ordenes),
 
   obtenerLaboratorios: (defaults?: LaboratorioBase[]): LaboratorioBase[] => laboratoriosRepo.obtener(defaults),
-  guardarLaboratorios: (labs: LaboratorioBase[]): void => laboratoriosRepo.guardar(labs)
+  guardarLaboratorios: (labs: LaboratorioBase[]): boolean => laboratoriosRepo.guardar(labs)
 }

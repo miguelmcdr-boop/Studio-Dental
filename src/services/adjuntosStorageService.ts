@@ -344,12 +344,13 @@ export const eliminarAdjunto = async (id: string | number): Promise<boolean> => 
   const db = await abrirDB()
   
   // Paso 1: leer el registro para obtener storagePath
-  let registro: AdjuntoClinico | null = null
+  let storagePath: string | null | undefined = undefined
   await new Promise<void>((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, 'readonly')
     const request = tx.objectStore(STORE_NAME).get(id as IDBValidKey)
     request.onsuccess = () => {
-      registro = (request.result as AdjuntoClinico) || null
+      const registro = (request.result as AdjuntoClinico) || null
+      storagePath = registro?.storagePath
       resolve()
     }
     request.onerror = () => reject(new Error('No se pudo leer el adjunto.'))
@@ -364,9 +365,9 @@ export const eliminarAdjunto = async (id: string | number): Promise<boolean> => 
   })
 
   // Paso 3: intentar eliminar de Supabase si existe storagePath
-  if (registro && typeof registro === 'object' && 'storagePath' in registro && registro.storagePath) {
+  if (storagePath) {
     try {
-      await eliminarAdjuntoDeStorage(registro.storagePath as string)
+      await eliminarAdjuntoDeStorage(storagePath)
     } catch (e: unknown) {
       log.warn('No se pudo eliminar de Supabase Storage:', e)
     }

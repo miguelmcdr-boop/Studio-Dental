@@ -64,7 +64,7 @@ const transformarMovimientoParaSupabase = (
     categoria: movimiento.categoria || 'Sin categoría',
     monto: movimiento.monto || 0,
     metodo_pago: movimiento.metodoPago || 'Efectivo',
-    descripcion: movimiento.descripcion || ''
+    descripcion: String((movimiento as Record<string, unknown>).descripcion || '')
   }
 }
 
@@ -95,7 +95,7 @@ export const migrateMovimientosFinancierosToSupabase = async (
     }
   }
 
-  const movimientos = finanzasStorageService.obtenerMovimientos([])
+  const movimientos = finanzasStorageService.obtenerMovimientos([]) ?? []
   const resultado: MigrateMovimientosResult = {
     success: true,
     migrados: 0,
@@ -156,7 +156,7 @@ export const migrateMovimientosFinancierosToSupabase = async (
  * Verifica si hay movimientos financieros pendientes de migrar.
  */
 export const verificarMovimientosPendientes = (): VerificarMovimientosPendientesResult => {
-  const movimientos = finanzasStorageService.obtenerMovimientos([])
+  const movimientos = finanzasStorageService.obtenerMovimientos([]) ?? []
   let yaMigrados = 0
 
   for (const movimiento of movimientos) {

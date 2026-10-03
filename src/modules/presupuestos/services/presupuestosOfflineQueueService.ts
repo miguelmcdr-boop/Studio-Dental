@@ -44,7 +44,7 @@ export interface PresupuestoItemLocal {
   [key: string]: unknown
 }
 
-export interface PresupuestoLocal extends Partial<Presupuesto> {
+export interface PresupuestoLocal extends Omit<Partial<Presupuesto>, 'pacienteId'> {
   id: string | number
   folio?: string
   pacienteId?: string | number | null
@@ -130,7 +130,7 @@ export const pendingDeletesPresupuestoItemsRepo = createTenantRepository<(string
 
 export const obtenerClinicaId = (): string | null => {
   try {
-    return getClinicaActiva?.() || null
+    return (getClinicaActiva as unknown as () => string | null)?.() || null
   } catch {
     return null
   }
@@ -390,11 +390,12 @@ export const guardarPresupuestoHelper = async (
             .single()
 
           if (!insertErr && insertado?.id) {
-            uuidPadre = insertado.id
+            const nuevoUuid = String(insertado.id)
+            uuidPadre = nuevoUuid
             padreSubido = true
             const oldId = presupuestoLocal.id
-            presupuestoLocal.id = uuidPadre
-            migrationStorageService.registrarMapeo(oldId, uuidPadre)
+            presupuestoLocal.id = nuevoUuid
+            migrationStorageService.registrarMapeo(oldId, nuevoUuid)
           }
         }
 
@@ -705,7 +706,7 @@ export const procesarColaPresupuestosHelper = async ({
 
     for (const item of pending) {
       const id = typeof item === 'object' && item !== null ? item.id : item
-      const itemClinicaId = (typeof item === 'object' && item !== null ? item.clinicaId : null) || clinicaIdActual
+      const itemClinicaId: string | null = (typeof item === 'object' && item !== null ? item.clinicaId : null) || clinicaIdActual
 
       // Aislamiento multi-tenant: procesar solo clínica activa
       if (itemClinicaId !== clinicaIdActual) {
@@ -745,10 +746,11 @@ export const procesarColaPresupuestosHelper = async ({
           if (insertErr) throw insertErr
           if (!insertado?.id) throw new Error('No se obtuvo UUID del presupuesto padre insertado')
 
-          uuidPadre = insertado.id
+          const nuevoUuid = String(insertado.id)
+          uuidPadre = nuevoUuid
           const oldId = pLocal.id
-          pLocal.id = uuidPadre
-          migrationStorageService.registrarMapeo(oldId, uuidPadre)
+          pLocal.id = nuevoUuid
+          migrationStorageService.registrarMapeo(oldId, nuevoUuid)
         }
 
         // Si el padre fue exitoso, marcar como sincronizado
