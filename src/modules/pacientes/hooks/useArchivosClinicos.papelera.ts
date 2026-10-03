@@ -1,5 +1,35 @@
 import { useState, useCallback } from 'react'
-import { listaArchivosEliminados, restaurarArchivo as restaurarArchivoService, vaciarPapeleraArchivos } from '../../../services/r2ArchivosService'
+import {
+  listaArchivosEliminados,
+  restaurarArchivo as restaurarArchivoService,
+  vaciarPapeleraArchivos,
+  type VaciarPapeleraArchivosResult
+} from '../../../services/r2ArchivosService'
+import type { PermisosArchivos } from './useArchivosClinicos.helpers'
+
+export interface ArchivoEliminadoFormateado {
+  id: string
+  paciente_id: string
+  tipo: string
+  fecha?: string | null
+  nombre: string
+  tamano?: number | null
+  enPapelera: boolean
+  categoria: string
+  created_at?: string | null
+  updated_at?: string | null
+  deleted_at?: string | null
+  eliminado_por?: string | null
+  [key: string]: unknown
+}
+
+export interface UseArchivosClinicosPapeleraReturn {
+  archivosEliminados: ArchivoEliminadoFormateado[]
+  cargandoPapelera: boolean
+  cargarPapelera: () => Promise<void>
+  restaurarArchivo: (archivoId: string) => Promise<boolean>
+  vaciarPapelera: () => Promise<VaciarPapeleraArchivosResult>
+}
 
 /**
  * Hook interno para gestión de papelera de archivos clínicos.
@@ -10,16 +40,21 @@ import { listaArchivosEliminados, restaurarArchivo as restaurarArchivoService, v
  * - Estado: archivosEliminados, cargandoPapelera, errorPapelera
  * - Métodos: cargarPapelera, restaurarArchivo
  *
- * @param {string} pacienteId — UUID del paciente (opcional, null para toda la clínica)
- * @param {Function} setError — setter de error del hook padre
- * @param {Function} recargarActivos — función para recargar archivos activos tras restaurar
- * @param {Object} permisos — permisos del usuario
+ * @param pacienteId — UUID del paciente (opcional, null para toda la clínica)
+ * @param setError — setter de error del hook padre
+ * @param recargarActivos — función para recargar archivos activos tras restaurar
+ * @param permisos — permisos del usuario
  */
-export const useArchivosClinicosPapelera = (pacienteId, setError, recargarActivos, permisos) => {
-  const [archivosEliminados, setArchivosEliminados] = useState([])
-  const [cargandoPapelera, setCargandoPapelera] = useState(false)
+export const useArchivosClinicosPapelera = (
+  pacienteId: string | null | undefined,
+  setError: (error: string | null) => void,
+  recargarActivos: () => Promise<void>,
+  permisos: PermisosArchivos
+): UseArchivosClinicosPapeleraReturn => {
+  const [archivosEliminados, setArchivosEliminados] = useState<ArchivoEliminadoFormateado[]>([])
+  const [cargandoPapelera, setCargandoPapelera] = useState<boolean>(false)
 
-  const cargarPapelera = useCallback(async () => {
+  const cargarPapelera = useCallback(async (): Promise<void> => {
     if (!pacienteId) {
       setArchivosEliminados([])
       return
@@ -32,7 +67,7 @@ export const useArchivosClinicosPapelera = (pacienteId, setError, recargarActivo
       const eliminados = await listaArchivosEliminados(pacienteId)
 
       // Mapear para compatibilidad con ArchivoViewer
-      const eliminadosFormateados = eliminados.map((archivo) => ({
+      const eliminadosFormateados: ArchivoEliminadoFormateado[] = (eliminados || []).map((archivo) => ({
         ...archivo,
         tipo: archivo.categoria,
         fecha: archivo.deleted_at,
@@ -43,14 +78,15 @@ export const useArchivosClinicosPapelera = (pacienteId, setError, recargarActivo
 
       setArchivosEliminados(eliminadosFormateados)
     } catch (e) {
-      setError(e?.message || 'Error cargando papelera.')
+      const err = e as Error
+      setError(err?.message || 'Error cargando papelera.')
       setArchivosEliminados([])
     } finally {
       setCargandoPapelera(false)
     }
   }, [pacienteId, setError])
 
-  const restaurarArchivo = useCallback(async (archivoId) => {
+  const restaurarArchivo = useCallback(async (archivoId: string): Promise<boolean> => {
     if (!permisos.puedeEliminar) {
       setError('No tienes permisos para restaurar archivos. Solo administradores y dentistas pueden restaurar.')
       return false
@@ -74,12 +110,13 @@ export const useArchivosClinicosPapelera = (pacienteId, setError, recargarActivo
         return false
       }
     } catch (e) {
-      setError(e?.message || 'Error restaurando archivo.')
+      const err = e as Error
+      setError(err?.message || 'Error restaurando archivo.')
       return false
     }
   }, [permisos.puedeEliminar, setError, recargarActivos])
 
-  const vaciarPapelera = useCallback(async () => {
+  const vaciarPapelera = useCallback(async (): Promise<VaciarPapeleraArchivosResult> => {
     if (!permisos.puedeEliminar) {
       setError('No tienes permisos para vaciar la papelera. Solo administradores pueden hacerlo.')
       return { purgados: [], rechazados: [] }
@@ -106,8 +143,9 @@ export const useArchivosClinicosPapelera = (pacienteId, setError, recargarActivo
 
       return resultado
     } catch (e) {
-      setError(e?.message || 'Error vaciando papelera.')
-      return { purgados: [], rechazados: [], error: e.message }
+      const err = e as Error
+      setError(err?.message || 'Error vaciando papelera.')
+      return { purgados: [], rechazados: [], error: err.message }
     } finally {
       setCargandoPapelera(false)
     }
