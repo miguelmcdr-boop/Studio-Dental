@@ -4,25 +4,39 @@ import { usePresupuestos } from './hooks/usePresupuestos'
 import { PresupuestosSummaryCards } from './components/PresupuestosSummaryCards'
 import { TablaPresupuestosGlobales } from './components/TablaPresupuestosGlobales'
 import { ModalNuevoPresupuesto } from './components/ModalNuevoPresupuesto'
-import { DocumentoPresupuestoImprimible } from './components/DocumentoPresupuestoImprimible'
+import { DocumentoPresupuestoImprimible, type UserProfilePresupuesto } from './components/DocumentoPresupuestoImprimible'
 import { usePacientesStore } from '../../store/pacientesStore'
 import { usePrestacionesStore } from '../../store/prestacionesStore'
 import { useSesionStore } from '../../store/sesionStore'
 import { useAppDialog } from '../../hooks/useAppDialog'
 import { ClipboardList } from 'lucide-react'
+import type { PresupuestoLocal } from './services/presupuestosStorageService'
+import type { PacienteFormRef, PrestacionFormRef } from './components/CamposFormularioPresupuesto'
 
-export const PresupuestosModulo = memo(({ setPacienteSeleccionado, setActiveSection }) => {
+export interface PresupuestosModuloProps {
+  setPacienteSeleccionado?: (paciente: unknown) => void
+  setActiveSection?: (section: string) => void
+}
+
+export const PresupuestosModulo: React.FC<PresupuestosModuloProps> = memo(({
+  setPacienteSeleccionado,
+  setActiveSection
+}) => {
   // (F2-02) — pacientes, prestacionesArancel y userProfile ya no llegan como prop
   // desde App.jsx: se leen directo de los stores. setPacienteSeleccionado y
   // setActiveSection son navegación local de App.jsx, fuera del alcance de F2-01,
   // así que se quedan como props.
-  const pacientes = usePacientesStore((state) => state.pacientes)
-  const prestaciones = usePrestacionesStore((state) => state.prestacionesArancel)
-  const userProfile = useSesionStore((state) => state.userProfile)
+  const pacientes = usePacientesStore((state: { pacientes: PacienteFormRef[] }) => state.pacientes)
+  const prestaciones = usePrestacionesStore(
+    (state: { prestacionesArancel: PrestacionFormRef[] }) => state.prestacionesArancel
+  )
+  const userProfile = useSesionStore(
+    (state: { userProfile: UserProfilePresupuesto }) => state.userProfile
+  )
 
-  const [modalAbierto, setModalAbierto] = useState(false)
+  const [modalAbierto, setModalAbierto] = useState<boolean>(false)
   const { alert: dialogAlert } = useAppDialog()
-  const [presupuestoVerDocumento, setPresupuestoVerDocumento] = useState(null)
+  const [presupuestoVerDocumento, setPresupuestoVerDocumento] = useState<PresupuestoLocal | null>(null)
 
   const {
     presupuestos,
@@ -36,8 +50,8 @@ export const PresupuestosModulo = memo(({ setPacienteSeleccionado, setActiveSect
     eliminarPresupuesto
   } = usePresupuestos(pacientes)
 
-  const handleVerFichaPaciente = async (presupuesto) => {
-    const pac = pacientes.find(p => String(p.id) === String(presupuesto.pacienteId))
+  const handleVerFichaPaciente = async (presupuesto: PresupuestoLocal): Promise<void> => {
+    const pac = pacientes.find((p) => String(p.id) === String(presupuesto.pacienteId))
     if (pac && setPacienteSeleccionado && setActiveSection) {
       setPacienteSeleccionado(pac)
       setActiveSection('Pacientes')
@@ -55,8 +69,12 @@ export const PresupuestosModulo = memo(({ setPacienteSeleccionado, setActiveSect
     <div className="space-y-6">
       <div className="flex justify-between items-center flex-wrap gap-3 print:hidden">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-graphite-50 uppercase tracking-wider inline-flex items-center gap-2"><ClipboardList size={16} />Presupuestos Globales & Cotizaciones</h2>
-          <p className="text-xs text-gray-500 dark:text-graphite-400">Panel central de seguimiento de tratamientos y planes de financiamiento.</p>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-graphite-50 uppercase tracking-wider inline-flex items-center gap-2">
+            <ClipboardList size={16} />Presupuestos Globales & Cotizaciones
+          </h2>
+          <p className="text-xs text-gray-500 dark:text-graphite-400">
+            Panel central de seguimiento de tratamientos y planes de financiamiento.
+          </p>
         </div>
 
         <button
@@ -81,14 +99,20 @@ export const PresupuestosModulo = memo(({ setPacienteSeleccionado, setActiveSect
         <>
           <div className="bg-slate-50 dark:bg-surface surgical:bg-surface p-4 border border-surface rounded-2xl flex justify-between items-center flex-wrap gap-3 text-xs print:hidden">
             <div className="flex items-center gap-2 w-full sm:w-auto">
-              <span className="font-semibold text-graphite-600 dark:text-graphite-400 surgical:text-black">Estado:</span>
+              <span className="font-semibold text-graphite-600 dark:text-graphite-400 surgical:text-black">
+                Estado:
+              </span>
               <select
                 value={estadoFiltro}
                 onChange={(e) => setEstadoFiltro(e.target.value)}
-                className="p-2 border border-surface rounded-lg bg-white dark:bg-graphite-800 surgical:bg-graphite-200 text-graphite-900 dark:text-graphite-100 surgical:text-black font-semibold flex-1 sm:flex-initial focus:ring-2 focus:ring-primary/40"
+                className="p-2 border border-surface rounded-lg bg-white dark:bg-graphite-800 surgical:bg-graphite-200 text-graphite-900 dark:text-graphite-100 surgical:text-black font-semibold flex-1 sm:flex-initial focus:ring-2 focus:ring-primary/40 cursor-pointer"
               >
                 <option value="Todos">Todos los estados</option>
-                {ESTADOS_PRESUPUESTO.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
+                {ESTADOS_PRESUPUESTO.map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {e.nombre}
+                  </option>
+                ))}
               </select>
             </div>
 

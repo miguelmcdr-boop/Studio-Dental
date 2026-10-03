@@ -1,7 +1,12 @@
 import React, { memo } from 'react'
 import { FileSpreadsheet, DollarSign, CheckCircle2, TrendingUp } from 'lucide-react'
+import type { ResumenPresupuestos } from '../utils/presupuestosCalculations'
 
-export const PresupuestosSummaryCards = memo(({ resumen }) => {
+export interface PresupuestosSummaryCardsProps {
+  resumen: ResumenPresupuestos
+}
+
+export const PresupuestosSummaryCards: React.FC<PresupuestosSummaryCardsProps> = memo(({ resumen }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs">
       <div className="relative overflow-hidden p-5 bg-surface/90 backdrop-blur-md border border-surface rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-[#B88E3A]/40 before:to-transparent">
@@ -10,37 +15,49 @@ export const PresupuestosSummaryCards = memo(({ resumen }) => {
           <span className="text-[10px] font-bold uppercase tracking-wider block">Total Emitidos</span>
         </div>
         <span className="text-2xl font-black text-graphite-900 dark:text-graphite-50 surgical:text-black block tabular-nums tracking-tight">
-          {resumen.totalEmitidos} <span className="text-xs font-semibold text-graphite-500 dark:text-graphite-400">Cotizaciones</span>
+          {resumen.totalEmitidos}{' '}
+          <span className="text-xs font-semibold text-graphite-500 dark:text-graphite-400">
+            Cotizaciones
+          </span>
         </span>
       </div>
 
       <div className="relative overflow-hidden p-5 bg-amber-50/70 dark:bg-amber-950/20 surgical:bg-surface backdrop-blur-md border border-amber-200/80 dark:border-amber-800/40 surgical:border-graphite-600 rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-[#B88E3A] before:to-transparent">
         <div className="flex items-center gap-1.5 text-primary mb-1">
           <DollarSign size={13} />
-          <span className="text-[10px] font-bold uppercase tracking-wider block">Monto Total Cotizado</span>
+          <span className="text-[10px] font-bold uppercase tracking-wider block">
+            Monto Total Cotizado
+          </span>
         </div>
         <span className="text-2xl font-black text-primary surgical:text-black block tabular-nums tracking-tight">
-          ${resumen.totalCotizado.toLocaleString('es-CL')} <span className="text-xs font-semibold">CLP</span>
+          ${resumen.totalCotizado.toLocaleString('es-CL')}{' '}
+          <span className="text-xs font-semibold">CLP</span>
         </span>
       </div>
 
       <div className="relative overflow-hidden p-5 bg-emerald-50/70 dark:bg-emerald-950/20 surgical:bg-surface backdrop-blur-md border border-emerald-200/80 dark:border-emerald-800/40 surgical:border-graphite-600 rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-emerald-500/50 before:to-transparent">
         <div className="flex items-center gap-1.5 text-emerald-800 dark:text-emerald-300 mb-1">
           <CheckCircle2 size={13} className="text-emerald-500" />
-          <span className="text-[10px] font-bold uppercase tracking-wider block">Abonado Recaudado</span>
+          <span className="text-[10px] font-bold uppercase tracking-wider block">
+            Abonado Recaudado
+          </span>
         </div>
         <span className="text-2xl font-black text-emerald-900 dark:text-emerald-300 surgical:text-black block tabular-nums tracking-tight">
-          ${resumen.totalAbonado.toLocaleString('es-CL')} <span className="text-xs font-semibold">CLP</span>
+          ${resumen.totalAbonado.toLocaleString('es-CL')}{' '}
+          <span className="text-xs font-semibold">CLP</span>
         </span>
       </div>
 
       <div className="relative overflow-hidden p-5 bg-sky-50/70 dark:bg-sky-950/20 surgical:bg-surface backdrop-blur-md border border-sky-200/80 dark:border-sky-800/40 surgical:border-graphite-600 rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-[#0EA5E9]/50 before:to-transparent">
         <div className="flex items-center gap-1.5 text-sky-800 dark:text-sky-300 mb-1">
           <TrendingUp size={13} className="text-clinical-info" />
-          <span className="text-[10px] font-bold uppercase tracking-wider block">Tasa Conversión</span>
+          <span className="text-[10px] font-bold uppercase tracking-wider block">
+            Tasa Conversión
+          </span>
         </div>
         <span className="text-2xl font-black text-sky-900 dark:text-sky-300 surgical:text-black block tabular-nums tracking-tight">
-          {resumen.tasaConversion}% <span className="text-xs font-semibold">Aprobados</span>
+          {resumen.tasaConversion}%{' '}
+          <span className="text-xs font-semibold">Aprobados</span>
         </span>
       </div>
     </div>

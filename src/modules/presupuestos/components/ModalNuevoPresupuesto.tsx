@@ -4,28 +4,49 @@
  */
 import React, { memo, useState, useEffect } from 'react'
 import { generarFolioPresupuesto } from '../utils/presupuestosCalculations'
-import { presupuestosStorageService } from '../services/presupuestosStorageService'
+import {
+  presupuestosStorageService,
+  type PresupuestoLocal
+} from '../services/presupuestosStorageService'
 import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
 import { odontogramaStorageService } from '../../odontograma'
 import { createLogger } from '../../../services/logger'
 import { Modal } from '../../../components/ui/Modal'
 import { Button } from '../../../components/ui/Button'
-import { CamposFormularioPresupuesto } from './CamposFormularioPresupuesto'
+import {
+  CamposFormularioPresupuesto,
+  type PacienteFormRef,
+  type PrestacionFormRef,
+  type HallazgoOdontograma,
+  type ItemSeleccionadoPresupuesto
+} from './CamposFormularioPresupuesto'
 import { useAppDialog } from '../../../hooks/useAppDialog'
 
 const log = createLogger('ModalNuevoPresupuesto')
 
-export const ModalNuevoPresupuesto = memo(({ pacientes = [], prestaciones = [], alGuardar, alCerrar }) => {
-  const [pacienteId, setPacienteId] = useState('')
-  const { alert: dialogAlert } = useAppDialog()
-  const [convenio, setConvenio] = useState('Particular')
-  const [observacion, setObservacion] = useState('')
-  
-  const [itemsSeleccionados, setItemsSeleccionados] = useState([])
-  const [prestacionSelId, setPrestacionSelId] = useState('')
-  const [piezaDental, setPiezaDental] = useState('')
+export interface ModalNuevoPresupuestoProps {
+  pacientes?: PacienteFormRef[]
+  prestaciones?: PrestacionFormRef[]
+  alGuardar: (nuevoPresupuesto: PresupuestoLocal) => void
+  alCerrar: () => void
+}
 
-  const [hallazgosOdontograma, setHallazgosOdontograma] = useState([])
+export const ModalNuevoPresupuesto: React.FC<ModalNuevoPresupuestoProps> = memo(({
+  pacientes = [],
+  prestaciones = [],
+  alGuardar,
+  alCerrar
+}) => {
+  const [pacienteId, setPacienteId] = useState<string>('')
+  const { alert: dialogAlert } = useAppDialog()
+  const [convenio, setConvenio] = useState<string>('Particular')
+  const [observacion, setObservacion] = useState<string>('')
+
+  const [itemsSeleccionados, setItemsSeleccionados] = useState<ItemSeleccionadoPresupuesto[]>([])
+  const [prestacionSelId, setPrestacionSelId] = useState<string>('')
+  const [piezaDental, setPiezaDental] = useState<string>('')
+
+  const [hallazgosOdontograma, setHallazgosOdontograma] = useState<HallazgoOdontograma[]>([])
 
   useEffect(() => {
     if (!pacienteId) {
@@ -34,16 +55,19 @@ export const ModalNuevoPresupuesto = memo(({ pacientes = [], prestaciones = [], 
     }
 
     try {
-      const odonto = odontogramaStorageService.obtenerOdontograma(`odonto_inicial_${pacienteId}`, {})
+      const odonto = odontogramaStorageService.obtenerOdontograma(
+        `odonto_inicial_${pacienteId}`,
+        {}
+      )
       if (odonto && typeof odonto === 'object') {
-        const listaHallazgos = []
+        const listaHallazgos: HallazgoOdontograma[] = []
 
-        Object.keys(odonto).forEach(pieza => {
-          const estados = odonto[pieza]
+        Object.keys(odonto as Record<string, unknown>).forEach((pieza) => {
+          const estados = (odonto as Record<string, unknown>)[pieza]
           if (Array.isArray(estados)) {
-            estados.forEach(est => {
+            estados.forEach((est) => {
               if (est && est !== 'Sano') {
-                listaHallazgos.push({ pieza, diagnostico: est })
+                listaHallazgos.push({ pieza, diagnostico: String(est) })
               }
             })
           }
@@ -59,18 +83,18 @@ export const ModalNuevoPresupuesto = memo(({ pacientes = [], prestaciones = [], 
     }
   }, [pacienteId])
 
-  const handleAgregarItem = () => {
+  const handleAgregarItem = (): void => {
     if (!prestacionSelId) return
-    const prest = prestaciones.find(p => String(p.id) === String(prestacionSelId))
+    const prest = prestaciones.find((p) => String(p.id) === String(prestacionSelId))
     if (!prest) return
 
-    const nuevoItem = {
+    const nuevoItem: ItemSeleccionadoPresupuesto = {
       id: Date.now(),
       pieza: piezaDental || 'General',
       prestacion: prest.nombre,
       convenio,
-      precioBase: parseFloat(prest.precioParticular || prest.precio) || 0,
-      valor: parseFloat(prest.precioParticular || prest.precio) || 0,
+      precioBase: parseFloat(String(prest.precioParticular ?? prest.precio ?? 0)) || 0,
+      valor: parseFloat(String(prest.precioParticular ?? prest.precio ?? 0)) || 0,
       estado: 'Pendiente'
     }
 
@@ -79,31 +103,38 @@ export const ModalNuevoPresupuesto = memo(({ pacientes = [], prestaciones = [], 
     setPiezaDental('')
   }
 
-  const handleImportarHallazgo = (hallazgo) => {
-    let prestacionEncontrada = prestaciones.find(p => 
-      p.nombre.toLowerCase().includes(hallazgo.diagnostico.toLowerCase())
-    ) || prestaciones[0]
+  const handleImportarHallazgo = (hallazgo: HallazgoOdontograma): void => {
+    const prestacionEncontrada =
+      prestaciones.find((p) =>
+        p.nombre.toLowerCase().includes(hallazgo.diagnostico.toLowerCase())
+      ) || prestaciones[0]
 
-    const nuevoItem = {
+    const precio = prestacionEncontrada
+      ? parseFloat(String(prestacionEncontrada.precioParticular ?? prestacionEncontrada.precio ?? 0)) || 0
+      : 35000
+
+    const nuevoItem: ItemSeleccionadoPresupuesto = {
       id: Date.now() + Math.random(),
       pieza: hallazgo.pieza,
-      prestacion: prestacionEncontrada ? `${hallazgo.diagnostico} — ${prestacionEncontrada.nombre}` : hallazgo.diagnostico,
+      prestacion: prestacionEncontrada
+        ? `${hallazgo.diagnostico} — ${prestacionEncontrada.nombre}`
+        : hallazgo.diagnostico,
       convenio,
-      precioBase: prestacionEncontrada ? (parseFloat(prestacionEncontrada.precioParticular || prestacionEncontrada.precio) || 0) : 35000,
-      valor: prestacionEncontrada ? (parseFloat(prestacionEncontrada.precioParticular || prestacionEncontrada.precio) || 0) : 35000,
+      precioBase: precio,
+      valor: precio,
       estado: 'Pendiente'
     }
 
-    setItemsSeleccionados(prev => [...prev, nuevoItem])
+    setItemsSeleccionados((prev) => [...prev, nuevoItem])
   }
 
-  const handleEliminarItem = (itemId) => {
-    setItemsSeleccionados(itemsSeleccionados.filter(i => i.id !== itemId))
+  const handleEliminarItem = (itemId: string | number): void => {
+    setItemsSeleccionados(itemsSeleccionados.filter((i) => i.id !== itemId))
   }
 
-  const montoTotal = itemsSeleccionados.reduce((acc, curr) => acc + curr.valor, 0)
+  const montoTotal = itemsSeleccionados.reduce((acc, curr) => acc + (Number(curr.valor) || 0), 0)
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault()
     if (!pacienteId) {
       await dialogAlert({
@@ -124,9 +155,9 @@ export const ModalNuevoPresupuesto = memo(({ pacientes = [], prestaciones = [], 
       return
     }
 
-    const pac = pacientes.find(p => String(p.id) === String(pacienteId))
+    const pac = pacientes.find((p) => String(p.id) === String(pacienteId))
 
-    const nuevoPresupuesto = {
+    const nuevoPresupuesto: PresupuestoLocal = {
       id: Date.now(),
       folio: generarFolioPresupuesto(),
       pacienteId: pac?.id,
@@ -142,17 +173,23 @@ export const ModalNuevoPresupuesto = memo(({ pacientes = [], prestaciones = [], 
       observacion
     }
 
-    presupuestosStorageService.sincronizarConFichaPaciente(pac?.id, itemsSeleccionados, convenio)
+    if (pac?.id) {
+      presupuestosStorageService.sincronizarConFichaPaciente(
+        pac.id,
+        itemsSeleccionados,
+        convenio
+      )
+    }
 
     alGuardar(nuevoPresupuesto)
-    
+
     await dialogAlert({
       title: 'Presupuesto creado',
       description: `Presupuesto ${nuevoPresupuesto.folio} creado exitosamente para ${pac?.nombre || 'paciente'}.`,
       variant: 'success',
       confirmText: 'Entendido'
     })
-    
+
     alCerrar()
   }
 
@@ -191,19 +228,10 @@ export const ModalNuevoPresupuesto = memo(({ pacientes = [], prestaciones = [], 
 
         {/* Botones */}
         <div className="flex gap-2 pt-2">
-          <Button
-            type="button"
-            onClick={alCerrar}
-            variant="ghost"
-            fullWidth
-          >
+          <Button type="button" onClick={alCerrar} variant="ghost" fullWidth>
             Cancelar
           </Button>
-          <Button
-            type="submit"
-            variant="primary"
-            fullWidth
-          >
+          <Button type="submit" variant="primary" fullWidth>
             Guardar y Emitir
           </Button>
         </div>
