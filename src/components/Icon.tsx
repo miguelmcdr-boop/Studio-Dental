@@ -3,17 +3,20 @@
  *
  * Proporciona una API consistente para iconos con tamaños y colores
  * del design system Graphite & Champagne.
- *
- * Uso:
- *   import { Icon } from '../components/Icon'
- *   import { Calendar, Users } from 'lucide-react'
- *
- *   <Icon icon={Calendar} size="md" />
- *   <Icon icon={Users} size="sm" color="primary" />
  */
 import React from 'react'
 
-const SIZES = {
+export type IconSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+export type IconColor =
+  | 'default'
+  | 'primary'
+  | 'muted'
+  | 'success'
+  | 'warning'
+  | 'error'
+  | 'info'
+
+const SIZES: Record<IconSize, number> = {
   xs: 14,
   sm: 16,
   md: 20,
@@ -21,7 +24,7 @@ const SIZES = {
   xl: 32,
 }
 
-const COLORS = {
+const COLORS: Record<IconColor, string> = {
   default: 'currentColor',
   primary: 'var(--color-primary)',
   muted: 'var(--color-graphite-500)',
@@ -31,15 +34,21 @@ const COLORS = {
   info: 'var(--color-clinical-info)',
 }
 
-/**
- * Wrapper de iconos lucide-react con tamaños y colores del design system.
- *
- * @param {React.ComponentType} icon - Componente de lucide-react (ej: Calendar)
- * @param {'xs'|'sm'|'md'|'lg'|'xl'} size - Tamaño del icono (default: 'md')
- * @param {'default'|'primary'|'muted'|'success'|'warning'|'error'|'info'} color - Color del design system
- * @param {string} className - Clases adicionales
- */
-export const Icon = ({ icon: IconComponent, size = 'md', color = 'default', className = '', ...props }) => {
+export interface IconProps extends Omit<React.SVGProps<SVGSVGElement>, 'color'> {
+  icon: React.ElementType
+  size?: IconSize
+  color?: IconColor
+  className?: string
+  strokeWidth?: number
+}
+
+export const Icon: React.FC<IconProps> = ({
+  icon: IconComponent,
+  size = 'md',
+  color = 'default',
+  className = '',
+  ...props
+}) => {
   if (!IconComponent) return null
 
   const sizePx = SIZES[size] || SIZES.md
@@ -55,3 +64,5 @@ export const Icon = ({ icon: IconComponent, size = 'md', color = 'default', clas
     />
   )
 }
+
+Icon.displayName = 'Icon'
