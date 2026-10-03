@@ -4,25 +4,36 @@
  * Extraído de ModalNuevoPago.jsx para reducir su tamaño de 250 a ~199 líneas.
  * Maneja la carga de prestaciones desde presupuestosStorageService y la
  * selección múltiple para imputación de pagos.
- *
- * @param {string|number} pacienteId - ID del paciente seleccionado
- * @param {Object|null} pagoEditar - Pago en modo edición (para preseleccionar prestaciones)
- * @returns {{
- *   prestacionesPaciente: Array,
- *   prestacionesSeleccionadas: Array,
- *   handleTogglePrestacion: (labelItem: string) => void,
- *   resetPrestaciones: (arrayInicial: string[]) => void
- * }}
  */
 import { useState, useEffect } from 'react'
-import { presupuestosStorageService } from '../../presupuestos/services/presupuestosStorageService'
+import {
+  presupuestosStorageService,
+  type PresupuestoItemLocal
+} from '../../presupuestos/services/presupuestosStorageService'
 import { createLogger } from '../../../services/logger'
 
 const log = createLogger('usePrestacionesPaciente')
 
-export const usePrestacionesPaciente = (pacienteId, pagoEditar = null) => {
-  const [prestacionesPaciente, setPrestacionesPaciente] = useState([])
-  const [prestacionesSeleccionadas, setPrestacionesSeleccionadas] = useState([])
+export type { PresupuestoItemLocal }
+
+export interface PagoEditarRef {
+  prestacionesImputadas?: string[]
+  [key: string]: unknown
+}
+
+export interface UsePrestacionesPacienteReturn {
+  prestacionesPaciente: PresupuestoItemLocal[]
+  prestacionesSeleccionadas: string[]
+  handleTogglePrestacion: (labelItem: string) => void
+  resetPrestaciones: (arrayInicial?: string[]) => void
+}
+
+export const usePrestacionesPaciente = (
+  pacienteId?: string | number | null,
+  pagoEditar: PagoEditarRef | null = null
+): UsePrestacionesPacienteReturn => {
+  const [prestacionesPaciente, setPrestacionesPaciente] = useState<PresupuestoItemLocal[]>([])
+  const [prestacionesSeleccionadas, setPrestacionesSeleccionadas] = useState<string[]>([])
 
   // Carga de prestaciones desde el plan de tratamiento del paciente (vía servicio, F2-07a)
   useEffect(() => {
@@ -51,7 +62,7 @@ export const usePrestacionesPaciente = (pacienteId, pagoEditar = null) => {
     }
   }, [pagoEditar])
 
-  const handleTogglePrestacion = (labelItem) => {
+  const handleTogglePrestacion = (labelItem: string): void => {
     if (prestacionesSeleccionadas.includes(labelItem)) {
       setPrestacionesSeleccionadas(prestacionesSeleccionadas.filter(i => i !== labelItem))
     } else {
@@ -59,7 +70,7 @@ export const usePrestacionesPaciente = (pacienteId, pagoEditar = null) => {
     }
   }
 
-  const resetPrestaciones = (arrayInicial = []) => {
+  const resetPrestaciones = (arrayInicial: string[] = []): void => {
     setPrestacionesSeleccionadas(arrayInicial)
   }
 
