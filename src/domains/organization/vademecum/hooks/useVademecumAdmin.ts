@@ -18,7 +18,7 @@ import {
   type AlergiaCruzadaItem,
   type AlergiaCruzadaInput,
   type InteraccionInput
-} from '../../../services/vademecumService'
+} from '../../../../services/vademecumService'
 import type {
   FarmacoUrgencia,
   Antirresortivo
@@ -26,9 +26,9 @@ import type {
 import type { Interaccion } from '../schemas/interaccionSchema'
 import type { Profilaxis } from '../schemas/profilaxisSchema'
 import type { Anticoagulante } from '../schemas/anticoagulanteSchema'
-import { notificationService } from '../../../services/notificationService'
-import { REALTIME_EVENTS } from '../../../services/realtimeEvents'
-import { createLogger } from '../../../services/logger'
+import { notificationService } from '../../../../services/notificationService'
+import { REALTIME_EVENTS } from '../../../../services/realtimeEvents'
+import { createLogger } from '../../../../services/logger'
 import { useDesactivarFarmaco } from './useDesactivarFarmaco'
 
 const log = createLogger('useVademecumAdmin')

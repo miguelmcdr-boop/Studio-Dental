@@ -3,7 +3,7 @@
  * F4-03f-5a
  */
 import React, { useState, useEffect } from 'react'
-import { Modal } from '../../../components/ui/Modal'
+import { Modal } from '../../../../components/ui/Modal'
 import {
   validarAlergiaCruzada,
   FAMILIAS_ALERGIAS,
@@ -11,7 +11,7 @@ import {
   type AlergiaCruzada,
   type NivelSeveridadAlergia
 } from '../schemas/alergiaCruzadaSchema'
-import type { AlergiaCruzadaItem } from '../../../services/vademecumService'
+import type { AlergiaCruzadaItem } from '../../../../services/vademecumService'
 
 export interface CeldaAlergia {
   familia_alergia?: string

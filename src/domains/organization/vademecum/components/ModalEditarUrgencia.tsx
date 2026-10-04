@@ -3,9 +3,9 @@
  * F4-03f-3
  */
 import React, { useState, useEffect } from 'react'
-import { Modal } from '../../../components/ui/Modal'
+import { Modal } from '../../../../components/ui/Modal'
 import { CamposFormularioUrgencia, type UrgenciaFormState } from './CamposFormularioUrgencia'
-import { Button } from '../../../components/ui/Button'
+import { Button } from '../../../../components/ui/Button'
 import { validarUrgencia, type FarmacoUrgencia } from '../schemas/vademecumSchema'
 import { AlertTriangle } from 'lucide-react'
 

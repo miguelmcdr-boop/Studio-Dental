@@ -26,11 +26,11 @@ import { notificationService } from './notificationService'
 import { REALTIME_EVENTS } from './realtimeEvents'
 import { createLogger } from './logger'
 import { obtenerDosisAnestesia } from './vademecumAnestesia'
-import type { Farmaco, FarmacoUrgencia, Antirresortivo } from '../modules/administracion/schemas/vademecumSchema'
-import type { AlergiaCruzada } from '../modules/administracion/schemas/alergiaCruzadaSchema'
-import type { Interaccion } from '../modules/administracion/schemas/interaccionSchema'
-import type { Profilaxis } from '../modules/administracion/schemas/profilaxisSchema'
-import type { Anticoagulante } from '../modules/administracion/schemas/anticoagulanteSchema'
+import type { Farmaco, FarmacoUrgencia, Antirresortivo } from '../domains/organization/vademecum/schemas/vademecumSchema'
+import type { AlergiaCruzada } from '../domains/organization/vademecum/schemas/alergiaCruzadaSchema'
+import type { Interaccion } from '../domains/organization/vademecum/schemas/interaccionSchema'
+import type { Profilaxis } from '../domains/organization/vademecum/schemas/profilaxisSchema'
+import type { Anticoagulante } from '../domains/organization/vademecum/schemas/anticoagulanteSchema'
 
 const log = createLogger('vademecumService')
 

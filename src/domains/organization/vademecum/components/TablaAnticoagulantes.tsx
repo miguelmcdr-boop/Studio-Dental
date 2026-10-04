@@ -4,7 +4,7 @@
  * F4-03f-5c
  */
 import React, { memo } from 'react'
-import { Icon } from '../../../components/Icon'
+import { Icon } from '../../../../components/Icon'
 import { Droplet, AlertTriangle, FileText } from 'lucide-react'
 import type { Anticoagulante } from '../schemas/anticoagulanteSchema'
 

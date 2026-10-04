@@ -4,7 +4,7 @@
  */
 import React from 'react'
 import type { Farmaco } from '../schemas/vademecumSchema'
-import type { FarmacoVademecum } from '../../../services/vademecumService'
+import type { FarmacoVademecum } from '../../../../services/vademecumService'
 
 const FAMILIA_COLORS: Record<string, string> = {
   anestesico_amida: 'bg-purple-100 text-purple-800 border-purple-300',

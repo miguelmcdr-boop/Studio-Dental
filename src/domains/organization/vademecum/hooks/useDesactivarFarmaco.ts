@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { useAppDialog } from '../../../hooks/useAppDialog'
+import { useAppDialog } from '../../../../hooks/useAppDialog'
 
 export interface VademecumServiceDesactivar {
   desactivarFarmaco: (

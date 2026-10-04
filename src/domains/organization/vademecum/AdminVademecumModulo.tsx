@@ -15,8 +15,8 @@
  * Acceso restringido a ADMIN y DENTISTA vía permiso ADMINISTRAR_VADEMECUM.
  */
 import React, { useState, useCallback } from 'react'
-import { useRBAC } from '../../hooks/useRBAC'
-import { PERMISOS } from '../../constants/rbacConstants'
+import { useRBAC } from '../../../hooks/useRBAC'
+import { PERMISOS } from '../../../constants/rbacConstants'
 import { useVademecumAdmin } from './hooks/useVademecumAdmin'
 import { TablaVademecum } from './components/TablaVademecum'
 import { TablaUrgencia } from './components/TablaUrgencia'
@@ -26,9 +26,9 @@ import { ModalEditarFarmaco } from './components/ModalEditarFarmaco'
 import { ModalEditarUrgencia } from './components/ModalEditarUrgencia'
 import { ModalEditarAntirresortivo } from './components/ModalEditarAntirresortivo'
 import { AdminProtocolosContenido } from './components/AdminProtocolosContenido'
-import type { FarmacoVademecum, FarmacoInput } from '../../services/vademecumService'
+import type { FarmacoVademecum, FarmacoInput } from '../../../services/vademecumService'
 import type { FarmacoUrgencia, Antirresortivo } from './schemas/vademecumSchema'
-import { createLogger } from '../../services/logger'
+import { createLogger } from '../../../services/logger'
 import { Lock, Pill, RefreshCw } from 'lucide-react'
 
 const log = createLogger('AdminVademecumModulo')

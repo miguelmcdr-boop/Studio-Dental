@@ -52,7 +52,7 @@ const PagosModulo = lazy(() => import('./modules/pagos').then(m => ({ default: m
 const ComunicacionesModulo = lazy(() => import('./modules/comunicaciones').then(m => ({ default: m.ComunicacionesModulo })))
 const ReportesModulo = lazy(() => import('./modules/reportes').then(m => ({ default: m.ReportesModulo })))
 const ConfiguracionModulo = lazy(() => import('./modules/configuracion').then(m => ({ default: m.ConfiguracionModulo })))
-const AdminVademecumModulo = lazy(() => import('./modules/administracion').then(m => ({ default: m.AdminVademecumModulo })))
+const AdminVademecumModulo = lazy(() => import('./domains/organization/vademecum').then(m => ({ default: m.AdminVademecumModulo })))
 const GestionMiembrosModulo = lazy(() => import('./domains/organization/team').then(m => ({ default: m.GestionMiembrosModulo })))
 
 interface SesionStoreState {
