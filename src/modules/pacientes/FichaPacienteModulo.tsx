@@ -23,7 +23,7 @@ import { useMetricasClinicas } from './hooks/useMetricasClinicas' // F7-26
 import { OdontogramaModulo } from '../odontograma'
 import { PeriodontogramaModulo } from '../periodontograma'
 import { QuirurgicoModulo } from '../quirurgico'
-import { OdontopediatriaModulo } from '../odontopediatria'
+import { OdontopediatriaModulo } from '../../domains/specialty/peds'
 import { SmileDesignModulo } from '../dsd'
 import { ErrorBoundary } from '../../components/ErrorBoundary' // F6-01
 
