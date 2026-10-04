@@ -6,7 +6,7 @@
  */
 import { useState, useEffect } from 'react'
 import type React from 'react'
-import { prestacionesStorageService } from '../../prestaciones/services/prestacionesStorageService'
+import { prestacionesStorageService } from '../../../domains/organization/prestations/services/prestacionesStorageService'
 import { pacientesStorageService } from '../services/pacientesStorageService'
 import { pagosStorageService } from '../../pagos/services/pagosStorageService'
 import { useEliminarAbono, type AbonoItem } from './useEliminarAbono'

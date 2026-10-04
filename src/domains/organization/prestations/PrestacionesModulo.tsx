@@ -1,7 +1,7 @@
 import React, { memo, useState } from 'react'
 import { TrendingUp, ClipboardList, Gift } from 'lucide-react'
-import { Icon } from '../../components/Icon'
-import { Tooth } from '../../components/icons/Tooth'
+import { Icon } from '../../../components/Icon'
+import { Tooth } from '../../../components/icons/Tooth'
 import { ESPECIALIDADES_ODONTOLOGICAS } from './constants/prestacionesConstants'
 import { usePrestaciones, type PrestacionInput } from './hooks/usePrestaciones'
 import { PrestacionesSummaryCards } from './components/PrestacionesSummaryCards'
@@ -9,7 +9,7 @@ import { TablaArancelPrestaciones } from './components/TablaArancelPrestaciones'
 import { PaquetesClinicosManager } from './components/PaquetesClinicosManager'
 import { ModalNuevaPrestacion } from './components/ModalNuevaPrestacion'
 import { ReajusteMasivoModal } from './components/ReajusteMasivoModal'
-import { usePrestacionesStore } from '../../store/prestacionesStore'
+import { usePrestacionesStore } from '../../../store/prestacionesStore'
 import type { Prestacion } from './services/prestacionesStorageService'
 
 interface PrestacionesStoreState {

@@ -1,7 +1,7 @@
 import React, { memo, useState } from 'react'
 import { Pencil, Plus, Gift, Trash2 } from 'lucide-react'
-import { formatearCLP } from '../../../utils/formatoMoneda'
-import { useAppDialog } from '../../../hooks/useAppDialog'
+import { formatearCLP } from '../../../../utils/formatoMoneda'
+import { useAppDialog } from '../../../../hooks/useAppDialog'
 import type { PaqueteClinico } from '../services/prestacionesStorageService'
 import type { PaqueteInput } from '../hooks/usePrestaciones'
 

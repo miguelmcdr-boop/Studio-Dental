@@ -5,7 +5,7 @@ import {
   type Prestacion,
   type PaqueteClinico
 } from '../services/prestacionesStorageService'
-import { useAppDialog } from '../../../hooks/useAppDialog'
+import { useAppDialog } from '../../../../hooks/useAppDialog'
 
 export interface UseEliminarPrestacionesOptions {
   prestaciones: Prestacion[]

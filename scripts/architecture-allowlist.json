@@ -15,7 +15,7 @@
     "src/modules/finanzas/components/CalculadoraBoletas.jsx": 255,
     "src/modules/inventario/utils/inventarioCalculations.js": 204,
     "src/modules/agenda/hooks/useAgenda.js": 177,
-    "src/modules/prestaciones/hooks/usePrestaciones.js": 176,
+    "src/domains/organization/prestations/hooks/usePrestaciones.js": 176,
     "src/modules/periodontograma/utils/periodontalCalculations.js": 169,
     "src/domains/billing/report/utils/reportesCalculations.js": 87,
     "src/modules/pacientes/utils/pacientesCalculations.js": 136,

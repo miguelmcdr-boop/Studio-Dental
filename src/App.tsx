@@ -46,7 +46,7 @@ const InventarioModulo = lazy(() => import('./modules/inventario').then(m => ({ 
 const UrgenciasGesModulo = lazy(() => import('./domains/clinical/emergency-ges').then(m => ({ default: m.UrgenciasGesModulo })))
 const EsterilizacionModulo = lazy(() => import('./modules/esterilizacion').then(m => ({ default: m.EsterilizacionModulo })))
 const LaboratorioModulo = lazy(() => import('./domains/addons/lab').then(m => ({ default: m.LaboratorioModulo })))
-const PrestacionesModulo = lazy(() => import('./modules/prestaciones').then(m => ({ default: m.PrestacionesModulo })))
+const PrestacionesModulo = lazy(() => import('./domains/organization/prestations').then(m => ({ default: m.PrestacionesModulo })))
 const PresupuestosModulo = lazy(() => import('./modules/presupuestos').then(m => ({ default: m.PresupuestosModulo })))
 const PagosModulo = lazy(() => import('./modules/pagos').then(m => ({ default: m.PagosModulo })))
 const ComunicacionesModulo = lazy(() => import('./domains/operations/communications').then(m => ({ default: m.ComunicacionesModulo })))

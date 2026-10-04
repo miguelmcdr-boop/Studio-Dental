@@ -11,7 +11,7 @@ vi.mock('../utils/pacientesCalculations', () => ({
   })
 }))
 
-vi.mock('../../prestaciones/services/prestacionesStorageService', () => ({
+vi.mock('../../../domains/organization/prestations/services/prestacionesStorageService', () => ({
   prestacionesStorageService: {
     obtenerPrestaciones: vi.fn(() => [
       { id: 1, nombre: 'Corona', precio: 100000 },
@@ -32,7 +32,7 @@ vi.mock('./useEliminarAbono', () => ({
 
 import { usePresupuestoForm } from './usePresupuestoForm'
 import { pacientesStorageService } from '../services/pacientesStorageService'
-import { prestacionesStorageService } from '../../prestaciones/services/prestacionesStorageService'
+import { prestacionesStorageService } from '../../../domains/organization/prestations/services/prestacionesStorageService'
 import { obtenerDescuentoConvenio } from '../utils/pacientesCalculations'
 
 describe('usePresupuestoForm (Commit G3)', () => {

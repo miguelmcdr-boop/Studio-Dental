@@ -1,5 +1,5 @@
 import React, { memo } from 'react'
-import { formatearCLP } from '../../../utils/formatoMoneda'
+import { formatearCLP } from '../../../../utils/formatoMoneda'
 import type { ResumenArancel } from '../utils/prestacionesCalculations'
 
 export interface PrestacionesSummaryCardsProps {

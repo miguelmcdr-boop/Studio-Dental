@@ -1,8 +1,8 @@
 import React, { memo, useState } from 'react'
-import { Modal } from '../../../components/ui/Modal'
-import { Input } from '../../../components/ui/Input'
-import { Button } from '../../../components/ui/Button'
-import { useAppDialog } from '../../../hooks/useAppDialog'
+import { Modal } from '../../../../components/ui/Modal'
+import { Input } from '../../../../components/ui/Input'
+import { Button } from '../../../../components/ui/Button'
+import { useAppDialog } from '../../../../hooks/useAppDialog'
 
 export interface ReajusteMasivoModalProps {
   alAplicarReajuste: (porcentaje: number | string) => void

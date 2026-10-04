@@ -1,7 +1,7 @@
 import { create } from 'zustand'
-import { prestacionesStorageService } from '../modules/prestaciones/services/prestacionesStorageService'
-import { ARANCEL_DEFAULT } from '../modules/prestaciones/constants/prestacionesConstants'
-import type { Prestacion } from '../modules/prestaciones/schemas/prestacionSchema'
+import { prestacionesStorageService } from '../domains/organization/prestations/services/prestacionesStorageService'
+import { ARANCEL_DEFAULT } from '../domains/organization/prestations/constants/prestacionesConstants'
+import type { Prestacion } from '../domains/organization/prestations/schemas/prestacionSchema'
 
 const defaultPrestaciones: Prestacion[] = ARANCEL_DEFAULT.map((item) => ({
   id: item.id,
