@@ -1,12 +1,12 @@
 import React, { memo, useState } from 'react'
-import { Icon } from '../../../components/Icon'
+import { Icon } from '../../../../components/Icon'
 import { Wrench, PenSquare } from 'lucide-react'
 import {
   EQUIPOS_AUTOCLAVE,
   RESULTADOS_BOWIE_DICK,
   type TestBowieDick
 } from '../constants/esterilizacionConstants'
-import { useAppDialog } from '../../../hooks/useAppDialog'
+import { useAppDialog } from '../../../../hooks/useAppDialog'
 
 export interface TestDiariosSectionProps {
   testDiarios: TestBowieDick[]

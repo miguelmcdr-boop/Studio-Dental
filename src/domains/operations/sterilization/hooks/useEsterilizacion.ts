@@ -12,7 +12,7 @@ import {
   calcularResumenEsterilizacion,
   type ResumenEsterilizacion
 } from '../utils/esterilizacionCalculations'
-import { useAppDialog } from '../../../hooks/useAppDialog'
+import { useAppDialog } from '../../../../hooks/useAppDialog'
 
 export interface UseEsterilizacionReturn {
   cargas: CargaEsterilizacion[]
