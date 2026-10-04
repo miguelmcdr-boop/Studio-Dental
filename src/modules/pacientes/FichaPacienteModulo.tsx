@@ -20,7 +20,7 @@ import { ResumenClinicoHeader } from './components/ResumenClinicoHeader' // F7-2
 import { useMetricasClinicas } from './hooks/useMetricasClinicas' // F7-26
 
 // Especialidades Externas (Módulos Encapsulados)
-import { OdontogramaModulo } from '../odontograma'
+import { OdontogramaModulo } from '../../domains/clinical/odontogram'
 import { PeriodontogramaModulo } from '../periodontograma'
 import { EndodonciaModulo } from '../../domains/specialty/endo'
 import { ImplantesModulo } from '../../domains/specialty/surg'
@@ -34,7 +34,7 @@ import { useSesionStore } from '../../store/sesionStore'
 import { usePrestacionesStore } from '../../store/prestacionesStore'
 import type { Paciente } from './schemas/pacienteSchema'
 import type { PrestacionArancel } from './hooks/usePresupuesto'
-import type { OdontogramaData } from '../odontograma/hooks/useOdontograma'
+import type { OdontogramaData } from '../../domains/clinical/odontogram/hooks/useOdontograma'
 import type { UseNavegacionClinicaReturn } from './hooks/useNavegacionClinica'
 import type { RecetaTimeline } from './components/TimelineClinicoWidget'
 

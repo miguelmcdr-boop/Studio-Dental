@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { pacientesStorageService } from '../services/pacientesStorageService'
-import { odontogramaStorageService } from '../../odontograma/services/odontogramaStorageService'
+import { odontogramaStorageService } from '../../../domains/clinical/odontogram/services/odontogramaStorageService'
 import { presupuestosStorageService } from '../../../domains/billing/budget/services/presupuestosStorageService'
 import { eliminarAbonosDePaciente } from '../../../domains/billing/payment/services/pagosAbonosLegacyService'
 import { eliminarTodosPorPaciente as eliminarAdjuntosDelPaciente } from '../../../services/adjuntosStorageService'

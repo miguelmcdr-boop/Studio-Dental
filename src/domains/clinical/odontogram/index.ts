@@ -1,12 +1,4 @@
-/**
- * Dominio: odontogram
- * Capa: domains/clinical
- * Estado: PENDIENTE DE MIGRACIÓN
- *
- * Este directorio está preparado para recibir los archivos durante la Fase 1
- * de la migración arquitectónica.
- *
- * NO IMPORTAR desde este directorio hasta que la migración esté completa.
- */
-
-export {};
+export { OdontogramaModulo } from './OdontogramaModulo'
+export { useOdontograma } from './hooks/useOdontograma'
+export { odontogramaStorageService } from './services/odontogramaStorageService'
+export { calcularIndiceCPOD } from './utils/odontogramaCalculations'

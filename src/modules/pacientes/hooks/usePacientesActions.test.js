@@ -14,7 +14,7 @@ vi.mock('../services/pacientesStorageService', () => ({
   }
 }))
 
-vi.mock('../../odontograma/services/odontogramaStorageService', () => ({
+vi.mock('../../../domains/clinical/odontogram/services/odontogramaStorageService', () => ({
   odontogramaStorageService: {
     eliminarOdontogramasDePaciente: vi.fn()
   }
@@ -46,7 +46,7 @@ vi.mock('../../../hooks/useAppDialog', () => ({
 
 import { usePacientesActions } from './usePacientesActions'
 import { pacientesStorageService } from '../services/pacientesStorageService'
-import { odontogramaStorageService } from '../../odontograma/services/odontogramaStorageService'
+import { odontogramaStorageService } from '../../../domains/clinical/odontogram/services/odontogramaStorageService'
 import { presupuestosStorageService } from '../../../domains/billing/budget/services/presupuestosStorageService'
 import { eliminarAbonosDePaciente } from '../../../domains/billing/payment/services/pagosAbonosLegacyService'
 import { eliminarTodosPorPaciente } from '../../../services/adjuntosStorageService'

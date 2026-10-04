@@ -9,16 +9,16 @@ import { odontogramaStorageService } from './odontogramaStorageService'
 import {
   guardarOdontograma as guardarOdontogramaSupabase,
   obtenerDatoClinico
-} from '../../../services/datosClinicosSupabase'
-import { leerJSON, escribirJSON } from '../../../services/localStorageRepository'
+} from '../../../../services/datosClinicosSupabase'
+import { leerJSON, escribirJSON } from '../../../../services/localStorageRepository'
 
 // Mock de dependencias
-vi.mock('../../../services/datosClinicosSupabase', () => ({
+vi.mock('../../../../services/datosClinicosSupabase', () => ({
   guardarOdontograma: vi.fn(),
   obtenerDatoClinico: vi.fn()
 }))
 
-vi.mock('../../../services/localStorageRepository', () => ({
+vi.mock('../../../../services/localStorageRepository', () => ({
   leerJSON: vi.fn(),
   escribirJSON: vi.fn()
 }))

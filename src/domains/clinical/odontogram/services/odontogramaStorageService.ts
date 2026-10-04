@@ -17,12 +17,12 @@
  * - obtenerOdontograma(key, fallback)                → LEGACY, mantenido para compatibilidad
  * - guardarOdontograma(key, data)                    → LEGACY, mantenido para compatibilidad
  */
-import { leerJSON, escribirJSON } from '../../../services/localStorageRepository'
+import { leerJSON, escribirJSON } from '../../../../services/localStorageRepository'
 import {
   guardarOdontograma as guardarOdontogramaSupabase,
   obtenerDatoClinico
-} from '../../../services/datosClinicosSupabase'
-import { createLogger } from '../../../services/logger'
+} from '../../../../services/datosClinicosSupabase'
+import { createLogger } from '../../../../services/logger'
 
 const log = createLogger('odontogramaStorageService')
 

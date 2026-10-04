@@ -9,7 +9,7 @@ import {
   type PresupuestoLocal
 } from '../services/presupuestosStorageService'
 import { obtenerFechaLocalISO } from '../../../../utils/dateUtils'
-import { odontogramaStorageService } from '../../../../modules/odontograma'
+import { odontogramaStorageService } from '../../../clinical/odontogram'
 import { createLogger } from '../../../../services/logger'
 import { Modal } from '../../../../components/ui/Modal'
 import { Button } from '../../../../components/ui/Button'

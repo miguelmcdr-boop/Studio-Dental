@@ -6,7 +6,7 @@ import { certificadosStorageService } from '../services/certificadosStorageServi
 import type { CertificadoPapelera } from '../services/papeleraCertificadosService'
 // F6-D-4: usar recetasStorageService para recetas
 import { recetasStorageService, type RecetaLocal } from '../services/recetasStorageService'
-import { odontogramaStorageService, type OdontogramaDatos } from '../../odontograma/services/odontogramaStorageService'
+import { odontogramaStorageService, type OdontogramaDatos } from '../../../domains/clinical/odontogram/services/odontogramaStorageService'
 import { useFichaClinicaSync } from './useFichaClinicaSync'
 import type { ItemPresupuesto, AbonoItem } from './usePresupuestoForm'
 import type { Paciente } from '../schemas/pacienteSchema'

@@ -2,7 +2,7 @@ import { renderHook, act } from '@testing-library/react'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useFichaPaciente } from './useFichaPaciente'
 import { pacientesStorageService } from '../services/pacientesStorageService'
-import { odontogramaStorageService } from '../../odontograma/services/odontogramaStorageService'
+import { odontogramaStorageService } from '../../../domains/clinical/odontogram/services/odontogramaStorageService'
 
 describe('useFichaPaciente', () => {
   const pacienteMock = {

@@ -1,9 +1,9 @@
 import React, { memo } from 'react'
 import { Baby, Columns3, Eraser } from 'lucide-react'
-import { Icon } from '../../components/Icon'
-import { Tooth } from '../../components/icons/Tooth'
-import { Button } from '../../components/ui/Button'
-import { DienteSVG, type CaraDiente } from '../../components/DienteSVG'
+import { Icon } from '../../../components/Icon'
+import { Tooth } from '../../../components/icons/Tooth'
+import { Button } from '../../../components/ui/Button'
+import { DienteSVG, type CaraDiente } from '../../../components/DienteSVG'
 import {
   PERMANENTE_SUPERIOR,
   PERMANENTE_INFERIOR,
