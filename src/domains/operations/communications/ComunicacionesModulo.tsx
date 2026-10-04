@@ -12,8 +12,8 @@ import { PlantillasManager } from './components/PlantillasManager'
 import { RecallPacientesSection, type PacienteRecall } from './components/RecallPacientesSection'
 import { ModalEnviarMensaje } from './components/ModalEnviarMensaje'
 import { ModalEditarBitacora } from './components/ModalEditarBitacora'
-import { usePacientesStore } from '../../store/pacientesStore'
-import { useSesionStore } from '../../store/sesionStore'
+import { usePacientesStore } from '../../../store/pacientesStore'
+import { useSesionStore } from '../../../store/sesionStore'
 
 type TabComunicaciones = 'historial' | 'plantillas' | 'recall'
 

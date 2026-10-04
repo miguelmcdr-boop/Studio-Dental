@@ -1,13 +1,13 @@
 import React, { memo, useState } from 'react'
 import { Pencil, Plus, ClipboardList, Trash2, MessageCircle, Mail } from 'lucide-react'
-import { Input } from '../../../components/ui/Input'
-import { Button } from '../../../components/ui/Button'
+import { Input } from '../../../../components/ui/Input'
+import { Button } from '../../../../components/ui/Button'
 import {
   CANALES_COMUNICACION,
   type PlantillaComunicacion
 } from '../constants/comunicacionesConstants'
 import type { PlantillaInput } from '../hooks/useComunicaciones'
-import { useAppDialog } from '../../../hooks/useAppDialog'
+import { useAppDialog } from '../../../../hooks/useAppDialog'
 
 export interface PlantillasManagerProps {
   plantillas: PlantillaComunicacion[]

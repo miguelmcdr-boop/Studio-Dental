@@ -1,7 +1,7 @@
 import React, { memo, useState, useEffect } from 'react'
 import { Monitor, Smartphone, Mail } from 'lucide-react'
-import { Modal } from '../../../components/ui/Modal'
-import { Button } from '../../../components/ui/Button'
+import { Modal } from '../../../../components/ui/Modal'
+import { Button } from '../../../../components/ui/Button'
 import {
   CANALES_COMUNICACION,
   type PlantillaComunicacion,
@@ -12,7 +12,7 @@ import {
   generarLinkWhatsAppWeb,
   generarLinkWhatsAppApp
 } from '../utils/comunicacionesCalculations'
-import { useAppDialog } from '../../../hooks/useAppDialog'
+import { useAppDialog } from '../../../../hooks/useAppDialog'
 
 export interface PacienteParaMensaje {
   id: string | number

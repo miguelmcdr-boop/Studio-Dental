@@ -1,7 +1,7 @@
 import React, { memo, useState, useEffect } from 'react'
-import { Modal } from '../../../components/ui/Modal'
-import { Input } from '../../../components/ui/Input'
-import { Button } from '../../../components/ui/Button'
+import { Modal } from '../../../../components/ui/Modal'
+import { Input } from '../../../../components/ui/Input'
+import { Button } from '../../../../components/ui/Button'
 import {
   ESTADOS_CONFIRMACION_CITA,
   type MensajeHistorial
