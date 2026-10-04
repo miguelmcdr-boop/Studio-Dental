@@ -1,6 +1,6 @@
 import React, { memo } from 'react'
 import { Printer } from 'lucide-react'
-import { DentikOSMicroSeal } from '../../../components/brand/DentikOSMicroSeal'
+import { DentikOSMicroSeal } from '../../../../components/brand/DentikOSMicroSeal'
 import type { OrdenLaboratorio } from '../constants/laboratorioConstants'
 
 export interface UserProfileLab {

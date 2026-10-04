@@ -1,6 +1,6 @@
 import React, { memo, useState } from 'react'
 import { FlaskConical, ClipboardList, Folder } from 'lucide-react'
-import { Icon } from '../../components/Icon'
+import { Icon } from '../../../components/Icon'
 import { ETAPAS_LABORATORIO, type OrdenLaboratorio } from './constants/laboratorioConstants'
 import { useLaboratorio } from './hooks/useLaboratorio'
 import { LaboratorioSummaryCards } from './components/LaboratorioSummaryCards'
@@ -8,8 +8,8 @@ import { TablaOrdenesLaboratorio } from './components/TablaOrdenesLaboratorio'
 import { DirectorioLaboratorios } from './components/DirectorioLaboratorios'
 import { ModalNuevaOrden, type PacienteParaLab } from './components/ModalNuevaOrden'
 import { OrdenImprimible, type UserProfileLab } from './components/OrdenImprimible'
-import { usePacientesStore } from '../../store/pacientesStore'
-import { useSesionStore } from '../../store/sesionStore'
+import { usePacientesStore } from '../../../store/pacientesStore'
+import { useSesionStore } from '../../../store/sesionStore'
 
 type TabLaboratorio = 'ordenes' | 'directorio'
 

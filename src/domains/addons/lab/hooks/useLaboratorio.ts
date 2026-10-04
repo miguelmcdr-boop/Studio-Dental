@@ -10,7 +10,7 @@ import {
   calcularResumenLaboratorio,
   type ResumenLaboratorio
 } from '../utils/laboratorioCalculations'
-import { useAppDialog } from '../../../hooks/useAppDialog'
+import { useAppDialog } from '../../../../hooks/useAppDialog'
 
 export type LabDataInput = Partial<LaboratorioBase> & {
   nombre: string
