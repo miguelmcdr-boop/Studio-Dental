@@ -14,7 +14,7 @@
  * Es idempotente: puede ejecutarse múltiples veces sin duplicar citas.
  */
 import { supabase } from '../supabaseClient'
-import { agendaStorageService } from '../../modules/agenda'
+import { agendaStorageService } from '../../domains/operations/agenda'
 import { migrationStorageService } from '../migrationStorageService'
 import { esUuidValido } from './uuidUtils'
 import { createLogger } from '../logger'

@@ -26,7 +26,7 @@ import { migrateMovimientosFinancierosToSupabase, verificarMovimientosPendientes
 import { migrateDatosClinicosToSupabase, verificarDatosClinicosPendientes } from '../services/migrations/migrateDatosClinicosToSupabase'
 import { usePacientesStore } from '../store/pacientesStore'
 import { pacientesStorageService } from '../modules/pacientes'
-import { agendaStorageService } from '../modules/agenda'
+import { agendaStorageService } from '../domains/operations/agenda'
 import { presupuestosStorageService } from '../modules/presupuestos/services/presupuestosStorageService'
 import { pagosStorageService } from '../modules/pagos/services/pagosStorageService'
 import { finanzasStorageService } from '../modules/finanzas/services/finanzasStorageService'

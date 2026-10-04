@@ -27,7 +27,7 @@ import { useCommandPalette } from './hooks/useCommandPalette'
 import { CommandPalette } from './components/CommandPalette'
 
 // Módulos de uso diario — carga eager (Public API, Constitución v3.0.0)
-import { Agenda as AgendaModulo } from './modules/agenda'
+import { Agenda as AgendaModulo } from './domains/operations/agenda'
 import { FichaPaciente, DirectorioPacientes } from './modules/pacientes'
 import { usePacientesActions } from './modules/pacientes/hooks/usePacientesActions'
 import { useSessionGuard } from './hooks/useSessionGuard'

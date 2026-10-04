@@ -1,9 +1,9 @@
 import React, { memo } from 'react'
 import { Ban, Clock, Armchair, Trash2, Stethoscope, Folder, MessageCircle } from 'lucide-react'
-import { Icon } from '../../../components/Icon'
-import { useAppDialog } from '../../../hooks/useAppDialog'
-import { stripEmojis } from '../../../utils/stringUtils'
-import { Badge } from '../../../components/ui/Badge'
+import { Icon } from '../../../../components/Icon'
+import { useAppDialog } from '../../../../hooks/useAppDialog'
+import { stripEmojis } from '../../../../utils/stringUtils'
+import { Badge } from '../../../../components/ui/Badge'
 import type { Cita } from '../schemas/citaSchema'
 
 const ESTADO_BADGE_VARIANT: Record<string, 'info' | 'success' | 'warning' | 'neutral' | 'error'> = {

@@ -10,7 +10,7 @@
  * Papelera se refresca al montar y al escuchar 'pacientes_actualizados'.
  */
 import { useState, useEffect, useCallback } from 'react'
-import { agendaStorageService } from '../modules/agenda/services/agendaStorageService'
+import { agendaStorageService } from '../domains/operations/agenda/services/agendaStorageService'
 import { inventarioStorageService } from '../modules/inventario/services/inventarioStorageService'
 import { listarPacientesEliminados } from '../modules/pacientes/services/pacientesSoftDeleteService'
 import { obtenerFechaLocalISO } from '../utils/dateUtils'

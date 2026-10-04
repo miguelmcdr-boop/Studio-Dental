@@ -1,7 +1,7 @@
 import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
 import { obtenerAlertasOperativas } from '../../../utils/alertasOperativas'
 import { obtenerTareasClinicas } from '../../../utils/tareasClinicas'
-import type { Cita } from '../../agenda/schemas/citaSchema'
+import type { Cita } from '../../../domains/operations/agenda/schemas/citaSchema'
 import type { Pago } from '../../pagos/services/pagosStorageService'
 import type { PresupuestoLocal } from '../../presupuestos/services/presupuestosStorageService'
 import type { Paciente } from '../../pacientes/schemas/pacienteSchema'

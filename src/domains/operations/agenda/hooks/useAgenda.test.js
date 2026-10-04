@@ -18,9 +18,9 @@ import { renderHook, act } from '@testing-library/react'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useAgenda } from './useAgenda'
 import { agendaStorageService } from '../services/agendaStorageService'
-import { pacientesStorageService } from '../../pacientes/services/pacientesStorageService'
-import { usePacientesStore } from '../../../store/pacientesStore'
-import { useDialogStore } from '../../../store/dialogStore'
+import { pacientesStorageService } from '../../../../modules/pacientes/services/pacientesStorageService'
+import { usePacientesStore } from '../../../../store/pacientesStore'
+import { useDialogStore } from '../../../../store/dialogStore'
 
 describe('useAgenda', () => {
   beforeEach(() => {

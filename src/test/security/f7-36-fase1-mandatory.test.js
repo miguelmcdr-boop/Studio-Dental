@@ -121,7 +121,7 @@ const simularReload = async () => {
 
   // Re-importar servicios (se inicializan frescos)
   const pacMod = await import('../../modules/pacientes/services/pacientesStorageService.js')
-  const agMod = await import('../../modules/agenda/services/agendaStorageService.js')
+  const agMod = await import('../../domains/operations/agenda/services/agendaStorageService.js')
   const adjMod = await import('../../services/adjuntosStorageService.js')
   const invMod = await import('../../services/invalidarCacheCambioClinica.js')
   const tcMod = await import('../../services/tenantCache.js')
@@ -183,7 +183,7 @@ describe('F7-36 FASE 1 — 5 tests obligatorios de aislamiento multi-tenant', ()
     const pacMod = await import('../../modules/pacientes/services/pacientesStorageService.js')
     pacientesStorageService = pacMod.pacientesStorageService
 
-    const agMod = await import('../../modules/agenda/services/agendaStorageService.js')
+    const agMod = await import('../../domains/operations/agenda/services/agendaStorageService.js')
     agendaStorageService = agMod.agendaStorageService
 
     const adjMod = await import('../../services/adjuntosStorageService.js')

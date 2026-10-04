@@ -26,7 +26,7 @@
 
 import { tenantCache } from './tenantCache'
 import { finanzasStorageService } from '../modules/finanzas/services/finanzasStorageService'
-import { agendaStorageService } from '../modules/agenda/services/agendaStorageService'
+import { agendaStorageService } from '../domains/operations/agenda/services/agendaStorageService'
 import { pagosStorageService } from '../modules/pagos/services/pagosStorageService'
 import { presupuestosStorageService } from '../modules/presupuestos/services/presupuestosStorageService'
 import { usePacientesStore } from '../store/pacientesStore'

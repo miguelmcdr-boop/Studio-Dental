@@ -1,6 +1,6 @@
 import React, { memo } from 'react'
 import { Calendar, Clock, Stethoscope } from 'lucide-react'
-import type { Cita } from '../../agenda/schemas/citaSchema'
+import type { Cita } from '../../../../domains/operations/agenda/schemas/citaSchema'
 import type { Paciente } from '../../pacientes/schemas/pacienteSchema'
 
 export interface CitasHoyWidgetProps {

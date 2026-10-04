@@ -10,9 +10,9 @@
  * - Antes de abrir → cambia estado de la cita a "Confirmado" (vía callback)
  */
 import { useCallback } from 'react'
-import { useAppDialog } from '../../../hooks/useAppDialog'
+import { useAppDialog } from '../../../../hooks/useAppDialog'
 import type { Cita } from '../schemas/citaSchema'
-import type { Paciente } from '../../pacientes/schemas/pacienteSchema'
+import type { Paciente } from '../../../../modules/pacientes/schemas/pacienteSchema'
 
 export interface CitaWhatsAppRef {
   id?: string | number

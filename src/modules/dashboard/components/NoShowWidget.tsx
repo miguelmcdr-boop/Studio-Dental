@@ -1,6 +1,6 @@
 import React, { memo, useMemo } from 'react'
 import { XCircle, TrendingDown, AlertCircle } from 'lucide-react'
-import type { Cita } from '../../agenda/schemas/citaSchema'
+import type { Cita } from '../../../../domains/operations/agenda/schemas/citaSchema'
 
 export interface NoShowWidgetProps {
   citas?: Cita[]

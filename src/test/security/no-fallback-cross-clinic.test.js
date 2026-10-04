@@ -170,7 +170,7 @@ describe('F7-36: No-fallback cross-clinic en storage services', () => {
       }))
 
       const { agendaStorageService } = await import(
-        '../../modules/agenda/services/agendaStorageService.js'
+        '../../domains/operations/agenda/services/agendaStorageService.js'
       )
 
       // Obtener citas (lee de clave tenant-aware)

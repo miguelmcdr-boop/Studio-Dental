@@ -96,7 +96,7 @@ vi.mock('../modules/pacientes', () => ({
   }
 }))
 
-vi.mock('../modules/agenda', () => ({
+vi.mock('../domains/operations/agenda', () => ({
   agendaStorageService: {
     sincronizarDesdeSupabase: vi.fn()
   }

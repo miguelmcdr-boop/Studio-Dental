@@ -2,8 +2,8 @@
  * Funciones de transformación y mapeo de datos de agenda (citas)
  * Extraído de agendaStorageService.js para respetar límite arquitectónico
  */
-import { migrationStorageService } from '../../../services/migrationStorageService'
-import { esUuidValido } from '../../../services/migrations/uuidUtils'
+import { migrationStorageService } from '../../../../services/migrationStorageService'
+import { esUuidValido } from '../../../../services/migrations/uuidUtils'
 import type { Cita } from '../schemas/citaSchema'
 
 export const ESTADO_CODIGO_A_SUPABASE: Readonly<Record<string, string>> = {

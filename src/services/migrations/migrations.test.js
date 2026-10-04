@@ -66,7 +66,7 @@ vi.mock('../../modules/pacientes', () => ({
   }
 }))
 
-vi.mock('../../modules/agenda', () => ({
+vi.mock('../../domains/operations/agenda', () => ({
   agendaStorageService: {
     listarCitas: vi.fn(() => []),
     obtenerCitas: vi.fn(() => []),

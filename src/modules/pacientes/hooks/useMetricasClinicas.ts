@@ -17,7 +17,7 @@
  * - alertasActivas: array de strings de alertas (alergias, enfermedades, medicamentos)
  */
 import { useMemo } from 'react'
-import { agendaStorageService } from '../../agenda/services/agendaStorageService'
+import { agendaStorageService } from '../../../domains/operations/agenda/services/agendaStorageService'
 import { formatearCLP } from '../../../utils/formatoMoneda'
 import type { EvolucionClinicaLocal } from '../services/evolucionesStorageService'
 import type { ItemPresupuesto, AbonoItem } from './usePresupuestoForm'
