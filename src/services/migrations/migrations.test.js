@@ -74,7 +74,7 @@ vi.mock('../../domains/operations/agenda', () => ({
   }
 }))
 
-vi.mock('../../modules/finanzas/services/finanzasStorageService', () => ({
+vi.mock('../../domains/billing/cash-register/services/finanzasStorageService', () => ({
   finanzasStorageService: {
     listarMovimientos: vi.fn(() => []),
     obtenerMovimientos: vi.fn(() => []),

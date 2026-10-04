@@ -41,7 +41,7 @@ const log = createLogger('App')
 
 // (F2-05) — resto de los módulos vía React.lazy: no se descargan en el
 // bundle inicial, solo cuando el usuario navega a esa sección por primera vez.
-const FinanzasModulo = lazy(() => import('./modules/finanzas').then(m => ({ default: m.FinanzasModulo })))
+const FinanzasModulo = lazy(() => import('./domains/billing/cash-register').then(m => ({ default: m.FinanzasModulo })))
 const InventarioModulo = lazy(() => import('./domains/operations/inventory').then(m => ({ default: m.InventarioModulo })))
 const UrgenciasGesModulo = lazy(() => import('./domains/clinical/emergency-ges').then(m => ({ default: m.UrgenciasGesModulo })))
 const EsterilizacionModulo = lazy(() => import('./domains/operations/sterilization').then(m => ({ default: m.EsterilizacionModulo })))

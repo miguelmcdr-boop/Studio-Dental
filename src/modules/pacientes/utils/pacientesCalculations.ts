@@ -1,4 +1,4 @@
-import { finanzasStorageService } from '../../finanzas/services/finanzasStorageService'
+import { finanzasStorageService } from '../../../domains/billing/cash-register/services/finanzasStorageService'
 import { vademecumService, type FarmacoVademecum, type AlergiaCruzadaItem } from '../../../services/vademecumService'
 import {
   detectarFamiliaFarmaco,

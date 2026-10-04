@@ -16,7 +16,7 @@
  * en localStorage). Se migrarán en F4-02d si es necesario.
  */
 import { supabase } from '../supabaseClient'
-import { finanzasStorageService, type MovimientoFinanciero } from '../../modules/finanzas/services/finanzasStorageService'
+import { finanzasStorageService, type MovimientoFinanciero } from '../../domains/billing/cash-register/services/finanzasStorageService'
 import { migrationStorageService } from '../migrationStorageService'
 import { esUuidValido } from './uuidUtils'
 

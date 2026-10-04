@@ -4,7 +4,7 @@
 
 // Commit G2: fuente única de verdad movida a src/utils/formatoMoneda.js
 // Se re-exporta para mantener retrocompatibilidad con imports existentes
-export { formatearCLP } from '../../../utils/formatoMoneda'
+export { formatearCLP } from '../../../../utils/formatoMoneda'
 
 export interface MovimientoCalculo {
   monto: number | string

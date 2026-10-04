@@ -130,7 +130,7 @@ describe('F7-36: No-fallback cross-clinic en storage services', () => {
       }))
 
       const { finanzasStorageService } = await import(
-        '../../modules/finanzas/services/finanzasStorageService.js'
+        '../../domains/billing/cash-register/services/finanzasStorageService.js'
       )
 
       const inicial = finanzasStorageService.obtenerMovimientos()
@@ -274,7 +274,7 @@ describe('F7-36: No-fallback cross-clinic en storage services', () => {
       }))
 
       const { finanzasStorageService } = await import(
-        '../../modules/finanzas/services/finanzasStorageService.js'
+        '../../domains/billing/cash-register/services/finanzasStorageService.js'
       )
 
       const inicial = finanzasStorageService.obtenerMovimientos()
@@ -321,7 +321,7 @@ describe('F7-36: No-fallback cross-clinic en storage services', () => {
       }))
 
       const { finanzasStorageService } = await import(
-        '../../modules/finanzas/services/finanzasStorageService.js'
+        '../../domains/billing/cash-register/services/finanzasStorageService.js'
       )
 
       const inicial = finanzasStorageService.obtenerMovimientos()

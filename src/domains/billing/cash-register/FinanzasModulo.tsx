@@ -7,10 +7,10 @@ import { ModalNuevoMovimiento } from './components/ModalNuevoMovimiento'
 import { CuentasPendientes } from './components/CuentasPendientes'
 import { ConveniosManager } from './components/ConveniosManager'
 import { CalculadoraBoletas } from './components/CalculadoraBoletas'
-import { usePacientesStore } from '../../store/pacientesStore'
-import { useSesionStore } from '../../store/sesionStore'
+import { usePacientesStore } from '../../../store/pacientesStore'
+import { useSesionStore } from '../../../store/sesionStore'
 import { DollarSign } from 'lucide-react'
-import type { Paciente } from '../pacientes/schemas/pacienteSchema'
+import type { Paciente } from '../../../modules/pacientes/schemas/pacienteSchema'
 
 type TabFinanzas =
   | 'Arqueo de Caja'

@@ -1,6 +1,6 @@
 import React, { memo } from 'react'
 import { BarChart3 } from 'lucide-react'
-import type { Paciente } from '../../pacientes/schemas/pacienteSchema'
+import type { Paciente } from '../../../../modules/pacientes/schemas/pacienteSchema'
 
 export interface CuentasPendientesProps {
   pacientes?: Paciente[]

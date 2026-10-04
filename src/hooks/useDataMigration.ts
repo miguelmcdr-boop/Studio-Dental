@@ -29,7 +29,7 @@ import { pacientesStorageService } from '../modules/pacientes'
 import { agendaStorageService } from '../domains/operations/agenda'
 import { presupuestosStorageService } from '../modules/presupuestos/services/presupuestosStorageService'
 import { pagosStorageService } from '../modules/pagos/services/pagosStorageService'
-import { finanzasStorageService } from '../modules/finanzas/services/finanzasStorageService'
+import { finanzasStorageService } from '../domains/billing/cash-register/services/finanzasStorageService'
 import { createLogger } from '../services/logger'
 
 const log = createLogger('useDataMigration')

@@ -20,7 +20,7 @@ vi.mock('./tenantCache', () => ({
 }))
 
 // Mock de los 4 storage services
-vi.mock('../modules/finanzas/services/finanzasStorageService', () => ({
+vi.mock('../domains/billing/cash-register/services/finanzasStorageService', () => ({
   finanzasStorageService: { resetCache: vi.fn() },
 }))
 vi.mock('../domains/operations/agenda/services/agendaStorageService', () => ({
@@ -47,7 +47,7 @@ vi.mock('./adjuntosStorageService', () => ({
 
 // Importar mocks y servicio
 import { tenantCache } from './tenantCache'
-import { finanzasStorageService } from '../modules/finanzas/services/finanzasStorageService'
+import { finanzasStorageService } from '../domains/billing/cash-register/services/finanzasStorageService'
 import { agendaStorageService } from '../domains/operations/agenda/services/agendaStorageService'
 import { pagosStorageService } from '../modules/pagos/services/pagosStorageService'
 import { presupuestosStorageService } from '../modules/presupuestos/services/presupuestosStorageService'
