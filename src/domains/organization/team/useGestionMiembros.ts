@@ -7,10 +7,10 @@ import {
   listarMiembros,
   type MiembroItem,
   type InvitacionItem
-} from '../../services/authService'
-import { ROLES, NOMBRES_ROLES, DESCRIPCIONES_ROLES } from '../../constants/rbacConstants'
-import { createLogger } from '../../services/logger'
-import { useAppDialog } from '../../hooks/useAppDialog'
+} from '../../../services/authService'
+import { ROLES, NOMBRES_ROLES, DESCRIPCIONES_ROLES } from '../../../constants/rbacConstants'
+import { createLogger } from '../../../services/logger'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 const log = createLogger('useGestionMiembros')
 
