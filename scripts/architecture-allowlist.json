@@ -21,7 +21,7 @@
     "src/domains/clinical/patient/utils/pacientesCalculations.js": 136,
     "src/domains/billing/cash-register/utils/finanzasCalculations.js": 71,
     "src/domains/clinical/odontogram/utils/odontogramaCalculations.js": 70,
-    "src/modules/dashboard/utils/dashboardCalculations.js": 112,
+    "src/application/analytics/dashboard/utils/dashboardCalculations.js": 112,
     "src/utils/anestesiaCalc.ts": 22,
     "src/components/LoginScreen.jsx": 343,
     "src/hooks/useAuth.js": 191,

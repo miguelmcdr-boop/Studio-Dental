@@ -31,7 +31,7 @@ import { Agenda as AgendaModulo } from './domains/operations/agenda'
 import { FichaPaciente, DirectorioPacientes } from './domains/clinical/patient'
 import { usePacientesActions } from './domains/clinical/patient/hooks/usePacientesActions'
 import { useSessionGuard } from './hooks/useSessionGuard'
-import { DashboardModulo } from './modules/dashboard'
+import { DashboardModulo } from './application/analytics/dashboard'
 import { createLogger } from './infrastructure/logging/logger'
 import { createTenantRepository } from './infrastructure/storage/localStorageRepository' // F7-36 FASE 1 (hotfix import)
 import type { Paciente } from './domains/clinical/patient/schemas/pacienteSchema'

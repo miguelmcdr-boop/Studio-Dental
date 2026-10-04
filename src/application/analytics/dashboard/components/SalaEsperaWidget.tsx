@@ -1,7 +1,7 @@
 import React, { memo } from 'react'
 import { Armchair, Clock, Activity, Stethoscope } from 'lucide-react'
 import type { Cita } from '../../../../domains/operations/agenda/schemas/citaSchema'
-import type { Paciente } from '../../pacientes/schemas/pacienteSchema'
+import type { Paciente } from '../../../../domains/clinical/patient/schemas/pacienteSchema'
 
 export interface SalaEsperaWidgetProps {
   enEspera?: Cita[]

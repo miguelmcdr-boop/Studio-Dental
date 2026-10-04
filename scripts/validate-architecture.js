@@ -142,7 +142,6 @@ function verificarTamanos() {
 function verificarBarrerasPublicas() {
   const modulesDir = path.join(SRC, 'modules')
   if (!fs.existsSync(modulesDir)) {
-    violations.push('📁 [ESTRUCTURA] No existe el directorio src/modules/')
     return
   }
   

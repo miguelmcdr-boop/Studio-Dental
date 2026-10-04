@@ -1,10 +1,10 @@
-import { obtenerFechaLocalISO } from '../../../utils/dateUtils'
-import { obtenerAlertasOperativas } from '../../../utils/alertasOperativas'
-import { obtenerTareasClinicas } from '../../../utils/tareasClinicas'
-import type { Cita } from '../../../domains/operations/agenda/schemas/citaSchema'
-import type { Pago } from '../../../domains/billing/payment/services/pagosStorageService'
-import type { PresupuestoLocal } from '../../../domains/billing/budget/services/presupuestosStorageService'
-import type { Paciente } from '../../pacientes/schemas/pacienteSchema'
+import { obtenerFechaLocalISO } from '../../../../utils/dateUtils'
+import { obtenerAlertasOperativas } from '../../../../utils/alertasOperativas'
+import { obtenerTareasClinicas } from '../../../../utils/tareasClinicas'
+import type { Cita } from '../../../../domains/operations/agenda/schemas/citaSchema'
+import type { Pago } from '../../../../domains/billing/payment'
+import type { PresupuestoLocal } from '../../../../domains/billing/budget'
+import type { Paciente } from '../../../../domains/clinical/patient/schemas/pacienteSchema'
 import type { ResumenJornada, MetricasAvanzadasDashboard, TendenciaCita } from '../hooks/useDashboard'
 
 /**

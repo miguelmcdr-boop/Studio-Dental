@@ -9,9 +9,9 @@ import { AlertasOperativasWidget, type AlertaOperativa } from './components/Aler
 import { TareasClinicasWidget, type TareaClinica } from './components/TareasClinicasWidget'
 import { TendenciasWidget } from './components/TendenciasWidget'
 import { NoShowWidget } from './components/NoShowWidget'
-import { usePacientesStore } from '../../store/pacientesStore'
-import { useSesionStore } from '../../store/sesionStore'
-import type { Paciente } from '../pacientes/schemas/pacienteSchema'
+import { usePacientesStore } from '../../../store/pacientesStore'
+import { useSesionStore } from '../../../store/sesionStore'
+import type { Paciente } from '../../../domains/clinical/patient/schemas/pacienteSchema'
 
 export interface DashboardModuloProps {
   setPacienteSeleccionado?: (paciente: Paciente) => void

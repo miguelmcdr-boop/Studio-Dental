@@ -3,15 +3,16 @@ import {
   calcularResumenJornada,
   calcularMetricasAvanzadas
 } from '../utils/dashboardCalculations'
-import { agendaStorageService } from '../../../domains/operations/agenda'
-import { pagosStorageService } from '../../../domains/billing/payment/services/pagosStorageService'
-import { obtenerAbonosPorPaciente } from '../../../domains/billing/payment/services/pagosAbonosLegacyService'
-import { presupuestosStorageService } from '../../../domains/billing/budget/services/presupuestosStorageService'
-import { createLogger } from '../../../infrastructure/logging/logger'
-import type { Paciente } from '../../pacientes/schemas/pacienteSchema'
-import type { Cita } from '../../../domains/operations/agenda/schemas/citaSchema'
-import type { Pago } from '../../../domains/billing/payment/services/pagosStorageService'
-import type { PresupuestoLocal } from '../../../domains/billing/budget/services/presupuestosStorageService'
+import { agendaStorageService } from '../../../../domains/operations/agenda'
+import {
+  obtenerTodosLosPagosDashboard,
+  obtenerPresupuestosDashboard,
+} from '../../dashboardQueries'
+import { createLogger } from '../../../../infrastructure/logging/logger'
+import type { Paciente } from '../../../../domains/clinical/patient/schemas/pacienteSchema'
+import type { Cita } from '../../../../domains/operations/agenda/schemas/citaSchema'
+import type { Pago } from '../../../../domains/billing/payment'
+import type { PresupuestoLocal } from '../../../../domains/billing/budget'
 
 const log = createLogger('useDashboard')
 
@@ -60,29 +61,13 @@ export const useDashboard = (
 
   const cargarDatos = useCallback(() => {
     try {
-      // Cargar datos desde servicios (F2-07a)
       const citasStorage = agendaStorageService.obtenerCitas([])
-      const pagosStorage = pagosStorageService.obtenerPagos([])
-      const presupuestosStorage =
-        presupuestosStorageService.obtenerPresupuestos([])
-
-      // Recolectar abonos de presupuestos individuales para sumar a pagos (vía pagosStorageService, F2-07a)
-      const abonosGlobales: Pago[] = []
-      pacientes.forEach(p => {
-        const abonosPac = obtenerAbonosPorPaciente(p.id)
-        if (Array.isArray(abonosPac)) {
-          abonosPac.forEach(a => abonosGlobales.push(a as unknown as Pago))
-        }
-      })
+      const todosLosPagos = obtenerTodosLosPagosDashboard(pacientes)
+      const presupuestosStorage = obtenerPresupuestosDashboard()
 
       setCitas(Array.isArray(citasStorage) ? citasStorage : [])
-      setPagos([
-        ...(Array.isArray(pagosStorage) ? pagosStorage : []),
-        ...abonosGlobales
-      ])
-      setPresupuestos(
-        Array.isArray(presupuestosStorage) ? presupuestosStorage : []
-      )
+      setPagos(todosLosPagos)
+      setPresupuestos(presupuestosStorage)
     } catch (e) {
       log.error('Error al cargar datos en Dashboard:', e)
     }
