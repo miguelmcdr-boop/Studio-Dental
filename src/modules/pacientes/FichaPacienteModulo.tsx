@@ -1,5 +1,5 @@
 import React, { memo, useState, useEffect } from 'react'
-import { Trash2, Pencil, AlertTriangle } from 'lucide-react'
+import { Trash2, Pencil, AlertTriangle, FlaskConical, Wrench } from 'lucide-react'
 import { TABS_FICHA_PACIENTE } from './constants/pacientesConstants'
 import { useFichaPaciente } from './hooks/useFichaPaciente'
 
@@ -22,9 +22,11 @@ import { useMetricasClinicas } from './hooks/useMetricasClinicas' // F7-26
 // Especialidades Externas (Módulos Encapsulados)
 import { OdontogramaModulo } from '../odontograma'
 import { PeriodontogramaModulo } from '../periodontograma'
-import { QuirurgicoModulo } from '../quirurgico'
+import { EndodonciaModulo } from '../../domains/specialty/endo'
+import { ImplantesModulo } from '../../domains/specialty/surg'
 import { OdontopediatriaModulo } from '../../domains/specialty/peds'
 import { SmileDesignModulo } from '../../domains/specialty/dsd'
+import { Icon } from '../../components/Icon'
 import { ErrorBoundary } from '../../components/ErrorBoundary' // F6-01
 
 // Stores de Zustand
@@ -62,6 +64,7 @@ export const FichaPacienteModulo: React.FC<FichaPacienteModuloProps> = memo(({
   const userProfile = useSesionStore((state: { userProfile?: UserProfileStoreRef | null }) => state.userProfile)
   const prestacionesArancel = usePrestacionesStore((state: { prestacionesArancel: PrestacionArancel[] }) => state.prestacionesArancel)
   const [mostrarEditarDatos, setMostrarEditarDatos] = useState<boolean>(false)
+  const [tabQuirurgica, setTabQuirurgica] = useState<'implantes' | 'endodoncia'>('implantes')
 
   const {
     tabActiva,
@@ -261,8 +264,30 @@ export const FichaPacienteModulo: React.FC<FichaPacienteModuloProps> = memo(({
       )}
 
       {tabActiva === 'Endodoncia & Implantes' && (
-        <div className="print:hidden">
-          <QuirurgicoModulo pacienteId={paciente.id} />
+        <div className="print:hidden space-y-6">
+          <div className="flex gap-2 border-b border-surface">
+            <button
+              onClick={() => setTabQuirurgica('implantes')}
+              className={`px-4 py-2 text-xs font-bold border-b-2 transition-micro cursor-pointer ${
+                tabQuirurgica === 'implantes' ? 'border-primary dark:border-gold-satin text-champagne-700 dark:text-gold-satin surgical:border-black surgical:text-black' : 'border-transparent text-graphite-500 dark:text-graphite-400 surgical:text-black hover:text-graphite-800 dark:hover:text-graphite-200'
+              }`}
+            >
+              <span className="inline-flex items-center gap-1"><Wrench size={12} />Implantología y Cirugía</span>
+            </button>
+            <button
+              onClick={() => setTabQuirurgica('endodoncia')}
+              className={`px-4 py-2 text-xs font-bold border-b-2 transition-micro cursor-pointer ${
+                tabQuirurgica === 'endodoncia' ? 'border-primary dark:border-gold-satin text-champagne-700 dark:text-gold-satin surgical:border-black surgical:text-black' : 'border-transparent text-graphite-500 dark:text-graphite-400 surgical:text-black hover:text-graphite-800 dark:hover:text-graphite-200'
+              }`}
+            >
+              <span className="flex items-center gap-1.5">
+                <Icon icon={FlaskConical} size="sm" />
+                Endodoncia & Conductometría
+              </span>
+            </button>
+          </div>
+          {tabQuirurgica === 'implantes' && <ImplantesModulo pacienteId={paciente.id} />}
+          {tabQuirurgica === 'endodoncia' && <EndodonciaModulo pacienteId={paciente.id} />}
         </div>
       )}
 

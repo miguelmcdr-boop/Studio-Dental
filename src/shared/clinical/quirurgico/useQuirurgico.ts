@@ -4,7 +4,7 @@ import {
   type ImplanteItem,
   type EndodonciaItem,
   type ConductoItem
-} from '../services/quirurgicoStorageService'
+} from './quirurgicoStorageService'
 
 export type NuevoImplanteInput = Partial<ImplanteItem> & {
   pieza?: string

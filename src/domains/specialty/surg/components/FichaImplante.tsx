@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
-import { sanitizarTorque, sanitizarISQ } from '../utils/quirurgicoValidation'
-import { MARCAS_IMPLANTES, TIPOS_PLATAFORMA, CONEXIONES_DIAMETRO } from '../constants/quirurgicoConstants'
-import { Icon } from '../../../components/Icon'
-import { Tooth } from '../../../components/icons/Tooth'
+import { sanitizarTorque, sanitizarISQ } from '../../../../shared/clinical/quirurgico/quirurgicoValidation'
+import { MARCAS_IMPLANTES, TIPOS_PLATAFORMA, CONEXIONES_DIAMETRO } from '../../../../shared/clinical/quirurgico/quirurgicoConstants'
+import { Icon } from '../../../../components/Icon'
+import { Tooth } from '../../../../components/icons/Tooth'
 import { Trash2 } from 'lucide-react'
-import type { ImplanteItem } from '../services/quirurgicoStorageService'
-import type { NuevoImplanteInput } from '../hooks/useQuirurgico'
+import type { ImplanteItem } from '../../../../shared/clinical/quirurgico/quirurgicoStorageService'
+import type { NuevoImplanteInput } from '../../../../shared/clinical/quirurgico/useQuirurgico'
 
 export interface FichaImplanteProps {
   implantes?: ImplanteItem[]

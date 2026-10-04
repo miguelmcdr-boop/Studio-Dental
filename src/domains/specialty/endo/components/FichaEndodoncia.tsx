@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
-import { TECNICAS_OBTURACION, SELLADORES_ENDODONTICOS } from '../constants/quirurgicoConstants'
-import { Icon } from '../../../components/Icon'
+import { TECNICAS_OBTURACION, SELLADORES_ENDODONTICOS } from '../../../../shared/clinical/quirurgico/quirurgicoConstants'
+import { Icon } from '../../../../components/Icon'
 import { FlaskConical, Trash2 } from 'lucide-react'
-import type { EndodonciaItem, ConductoItem } from '../services/quirurgicoStorageService'
-import type { NuevaEndodonciaInput } from '../hooks/useQuirurgico'
+import type { EndodonciaItem, ConductoItem } from '../../../../shared/clinical/quirurgico/quirurgicoStorageService'
+import type { NuevaEndodonciaInput } from '../../../../shared/clinical/quirurgico/useQuirurgico'
 
 export interface FichaEndodonciaProps {
   endodoncias?: EndodonciaItem[]
