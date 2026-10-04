@@ -1,11 +1,11 @@
 import React, { memo } from 'react'
 import { Siren, FileText, Trash2 } from 'lucide-react'
-import { Icon } from '../../components/Icon'
+import { Icon } from '../../../components/Icon'
 import { useUrgenciasGes } from './hooks/useUrgenciasGes'
 import { FormRegistroGes, type PacienteUrgenciaMinimo } from './components/FormRegistroUrgencia'
 import { DocumentoImpresoGes, type UserProfileGes } from './components/DocumentoImpresoGes'
-import { usePacientesStore } from '../../store/pacientesStore'
-import { useSesionStore } from '../../store/sesionStore'
+import { usePacientesStore } from '../../../store/pacientesStore'
+import { useSesionStore } from '../../../store/sesionStore'
 import type { AtencionGes } from './services/urgenciasGesStorageService'
 
 export const UrgenciasGesModulo: React.FC = memo(() => {

@@ -1,7 +1,7 @@
 import React, { memo } from 'react'
 import { CheckCircle2, XCircle, Printer } from 'lucide-react'
 import { formatearFechaHoraChile } from '../utils/urgenciasGesCalculations'
-import { DentikOSMicroSeal } from '../../../components/brand/DentikOSMicroSeal'
+import { DentikOSMicroSeal } from '../../../../components/brand/DentikOSMicroSeal'
 import type { AtencionGes } from '../services/urgenciasGesStorageService'
 
 export interface UserProfileGes {

@@ -1,7 +1,7 @@
 /**
  * Persistencia en LocalStorage para Urgencias y Notificaciones GES
  */
-import { createTenantRepository } from '../../../services/localStorageRepository'
+import { createTenantRepository } from '../../../../services/localStorageRepository'
 
 export interface AtencionGes {
   id?: string | number
