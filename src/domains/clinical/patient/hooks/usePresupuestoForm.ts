@@ -1,13 +1,18 @@
 /**
- * usePresupuestoForm — Hook coordinador de formulario de presupuesto (F7-25)
- * 
- * Refactorizado en F3-02: extraída lógica de items a usePresupuestoItems.js
- * Este hook ahora solo coordina entre items y abonos.
+ * usePresupuestoForm — Hook coordinador de formulario de presupuesto (F7-25, Fase 5C)
+ * Delega orquestación a `treatmentPlan` y `registerTreatmentPayment`.
  */
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import type React from 'react'
 import { prestacionesStorageService } from '../../../../domains/organization/prestations/services/prestacionesStorageService'
 import { registrarPagoTratamiento } from '../../../../application/billing'
+import {
+  createTreatmentPlan,
+  updateTreatmentPlan,
+  deleteTreatmentPlan,
+  type TreatmentPlanInput,
+  type TreatmentPlanResult,
+} from '../../../../application/treatment'
 import { useEliminarAbono, type AbonoItem } from './useEliminarAbono'
 import {
   usePresupuestoItems,
@@ -17,7 +22,7 @@ import {
 } from './usePresupuestoItems'
 import type { Paciente } from '../schemas/pacienteSchema'
 
-export type { ItemPresupuesto, PrestacionArancel, AbonoItem }
+export type { ItemPresupuesto, PrestacionArancel, AbonoItem, TreatmentPlanInput, TreatmentPlanResult }
 
 export interface UsePresupuestoFormOptions {
   paciente: Paciente | { id: string | number; nombre: string; prevision?: string | null; [key: string]: unknown }
@@ -38,6 +43,9 @@ export interface UsePresupuestoFormReturn extends UsePresupuestoItemsReturn {
   handleCambiarConvenioSelect: (nuevoConvenio: string) => void
   setValorAbono: (monto: string) => void
   setMetodoPagoAbono: (metodo: string) => void
+  guardarPlanTratamiento: (descuento?: number) => Promise<TreatmentPlanResult>
+  actualizarPlanTratamiento: (id: string, updates: Partial<TreatmentPlanInput>) => Promise<TreatmentPlanResult>
+  eliminarPlanTratamiento: (id: string) => Promise<void>
 }
 
 export const usePresupuestoForm = ({
@@ -48,18 +56,14 @@ export const usePresupuestoForm = ({
   abonos = [],
   setAbonos = () => {}
 }: UsePresupuestoFormOptions): UsePresupuestoFormReturn => {
-  // Estados de arancel y convenio
   const [arancelActualizado, setArancelActualizado] = useState<PrestacionArancel[]>(() => {
     const actuales = prestacionesStorageService.obtenerPrestaciones()
     return Array.isArray(actuales) && actuales.length > 0 ? (actuales as PrestacionArancel[]) : prestacionesProp
   })
   const [convenioAplicado, setConvenioAplicado] = useState<string>(paciente.prevision || 'Particular')
-
-  // Estados de abono
   const [montoAbono, setValorAbono] = useState<string>('')
   const [metodoPagoAbono, setMetodoPagoAbono] = useState<string>('Efectivo')
 
-  // Hook de items
   const itemsHook = usePresupuestoItems({
     paciente,
     arancelActualizado,
@@ -68,7 +72,6 @@ export const usePresupuestoForm = ({
     setItemsPresupuesto
   })
 
-  // Sincronización con arancel global (F2-07a)
   useEffect(() => {
     const handleRefrescarArancel = (): void => {
       const actuales = prestacionesStorageService.obtenerPrestaciones()
@@ -89,28 +92,39 @@ export const usePresupuestoForm = ({
   const handleAgregarAbono = (e: React.FormEvent): void => {
     e.preventDefault()
     if (!montoAbono) return
-
     const { abonosActualizados } = registrarPagoTratamiento({
       paciente,
       monto: montoAbono,
       metodoPago: metodoPagoAbono,
       abonosPrevios: abonos,
     })
-
     setAbonos(abonosActualizados)
     setValorAbono('')
   }
 
-  const { handleEliminarAbono } = useEliminarAbono({
-    abonos,
-    setAbonos,
-    paciente,
-  })
+  const { handleEliminarAbono } = useEliminarAbono({ abonos, setAbonos, paciente })
 
   const handleCambiarConvenioSelect = (nuevoConvenio: string): void => {
     setConvenioAplicado(nuevoConvenio)
     itemsHook.handleCambiarConvenioSelect(nuevoConvenio)
   }
+
+  const guardarPlanTratamiento = useCallback(async (descuento = 0): Promise<TreatmentPlanResult> => {
+    return createTreatmentPlan({
+      pacienteId: paciente.id,
+      prestaciones: itemsPresupuesto.map((i) => ({ prestacionId: i.id, piezaDental: i.piezaDental, cantidad: 1 })),
+      convenioId: convenioAplicado,
+      descuento,
+    })
+  }, [paciente.id, itemsPresupuesto, convenioAplicado])
+
+  const actualizarPlanTratamiento = useCallback(async (id: string, updates: Partial<TreatmentPlanInput>) => {
+    return updateTreatmentPlan(id, updates)
+  }, [])
+
+  const eliminarPlanTratamiento = useCallback(async (id: string) => {
+    return deleteTreatmentPlan(id)
+  }, [])
 
   return {
     ...itemsHook,
@@ -122,6 +136,9 @@ export const usePresupuestoForm = ({
     handleEliminarAbono,
     handleCambiarConvenioSelect,
     setValorAbono,
-    setMetodoPagoAbono
+    setMetodoPagoAbono,
+    guardarPlanTratamiento,
+    actualizarPlanTratamiento,
+    eliminarPlanTratamiento,
   }
 }
