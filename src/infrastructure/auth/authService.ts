@@ -586,48 +586,63 @@ export const listarMiembros = async (): Promise<{ success: boolean; miembros?: M
       return { success: false, error: 'No hay clínica activa' }
     }
 
-    const { data, error } = await supabase
+    // Query 1: Obtener miembros sin JOIN a auth.users para evitar error 400 de PostgREST
+    const { data: miembrosData, error: miembrosError } = await supabase
       .from('miembros_clinica')
-      .select(`
-        id,
-        user_id,
-        rol,
-        activo,
-        fecha_invitacion,
-        invitado_por,
-        users:user_id (email)
-      `)
+      .select('id, user_id, rol, activo, fecha_invitacion, invitado_por')
       .eq('clinica_id', clinicaId)
       .order('fecha_invitacion', { ascending: false })
 
-    if (error) {
-      log.error('F7-11: Error listando miembros:', error.message)
-      return { success: false, error: error.message }
+    if (miembrosError) {
+      log.error('F7-11: Error listando miembros:', miembrosError.message)
+      return { success: false, error: miembrosError.message }
     }
 
-    // Transformar para incluir email de auth.users
-    const miembros: MiembroItem[] = (data || []).map((m: {
+    const miembrosRaw = miembrosData || []
+    if (miembrosRaw.length === 0) {
+      return { success: true, miembros: [] }
+    }
+
+    // Query 2: Obtener emails de usuarios por separado (evita JOIN de PostgREST)
+    const userIds = Array.from(new Set(miembrosRaw.map((m: { user_id: string }) => m.user_id).filter(Boolean)))
+    const emailMap = new Map<string, string>()
+
+    if (userIds.length > 0) {
+      try {
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, email')
+          .in('id', userIds)
+
+        if (profilesData) {
+          profilesData.forEach((p: { id: string; email?: string }) => {
+            if (p.id && p.email) {
+              emailMap.set(p.id, p.email)
+            }
+          })
+        }
+      } catch (err: unknown) {
+        log.warn('F7-11: No se pudieron obtener emails de profiles para miembros:', err)
+      }
+    }
+
+    // Combinar en memoria
+    const miembros: MiembroItem[] = miembrosRaw.map((m: {
       id: string
       user_id: string
       rol: string
       activo: boolean
       fecha_invitacion?: string
       invitado_por?: string
-      users?: { email?: string } | { email?: string }[] | null
-    }) => {
-      const emailUser = Array.isArray(m.users)
-        ? m.users[0]?.email
-        : m.users?.email
-      return {
-        id: m.id,
-        user_id: m.user_id,
-        email: emailUser || 'N/A',
-        rol: m.rol,
-        activo: m.activo,
-        fecha_invitacion: m.fecha_invitacion,
-        invitado_por: m.invitado_por
-      }
-    })
+    }) => ({
+      id: m.id,
+      user_id: m.user_id,
+      email: emailMap.get(m.user_id) || 'N/A',
+      rol: m.rol,
+      activo: m.activo,
+      fecha_invitacion: m.fecha_invitacion,
+      invitado_por: m.invitado_por
+    }))
 
     return { success: true, miembros }
   } catch (error: unknown) {
