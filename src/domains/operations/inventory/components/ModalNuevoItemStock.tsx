@@ -1,7 +1,7 @@
 import React, { memo, useState, useEffect } from 'react'
-import { Modal } from '../../../components/ui/Modal'
-import { Input } from '../../../components/ui/Input'
-import { Button } from '../../../components/ui/Button'
+import { Modal } from '../../../../components/ui/Modal'
+import { Input } from '../../../../components/ui/Input'
+import { Button } from '../../../../components/ui/Button'
 import { CATEGORIAS_INSUMOS, UNIDADES_MEDIDA } from '../constants/inventarioConstants'
 import type { ItemInventario } from '../services/inventarioStorageService'
 

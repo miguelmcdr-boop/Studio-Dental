@@ -1,5 +1,5 @@
 import React, { memo } from 'react'
-import { Button } from '../../../components/ui/Button'
+import { Button } from '../../../../components/ui/Button'
 import { evaluarEstadoStock, evaluarVencimiento } from '../utils/inventarioCalculations'
 import { Pencil, Trash2 } from 'lucide-react'
 import type { ItemInventario } from '../services/inventarioStorageService'

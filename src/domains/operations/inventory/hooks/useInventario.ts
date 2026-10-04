@@ -3,7 +3,7 @@ import type React from 'react'
 import { ITEMS_INVENTARIO_DEFAULT } from '../constants/inventarioConstants'
 import { inventarioStorageService, type ItemInventario } from '../services/inventarioStorageService'
 import { calcularResumenInventario } from '../utils/inventarioCalculations'
-import { useAppDialog } from '../../../hooks/useAppDialog'
+import { useAppDialog } from '../../../../hooks/useAppDialog'
 
 export type { ItemInventario }
 

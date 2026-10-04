@@ -1,6 +1,6 @@
 import React, { memo } from 'react'
-import { Button } from '../../../components/ui/Button'
-import { Input } from '../../../components/ui/Input'
+import { Button } from '../../../../components/ui/Button'
+import { Input } from '../../../../components/ui/Input'
 import { AlertTriangle, Trash2 } from 'lucide-react'
 import type { ItemInventario } from '../services/inventarioStorageService'
 import type { InsumoAsociadoItem } from '../hooks/useAsociaciones'

@@ -1,6 +1,6 @@
 import React from 'react'
-import { Button } from '../../../components/ui/Button'
-import { Input } from '../../../components/ui/Input'
+import { Button } from '../../../../components/ui/Button'
+import { Input } from '../../../../components/ui/Input'
 import { Key } from 'lucide-react'
 
 export interface FormularioPalabrasClaveProps {

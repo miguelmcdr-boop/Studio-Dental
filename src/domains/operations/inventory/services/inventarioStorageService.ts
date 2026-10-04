@@ -2,7 +2,7 @@
  * Persistencia aislada en LocalStorage para Inventario
  * Incluye persistencia de las asociaciones tratamiento→material (F2-11/F2-12).
  */
-import { createTenantRepository } from '../../../services/localStorageRepository'
+import { createTenantRepository } from '../../../../services/localStorageRepository'
 import { INSUMOS_POR_PRESTACION_DEFAULT } from '../utils/inventarioCalculations'
 import type { ItemInventarioDefault } from '../constants/inventarioConstants'
 

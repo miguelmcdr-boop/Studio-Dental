@@ -8,8 +8,8 @@ import {
   descontarMaterialesSeleccionados,
   detectarCategoriaTratamiento,
   PALABRAS_CLAVE_POR_CATEGORIA_DEFAULT
-} from '../../inventario/utils/inventarioCalculations'
-import { inventarioStorageService } from '../../inventario/services/inventarioStorageService'
+} from '../../../domains/operations/inventory/utils/inventarioCalculations'
+import { inventarioStorageService } from '../../../domains/operations/inventory/services/inventarioStorageService'
 import { evolucionesStorageService, type EvolucionClinicaLocal } from '../services/evolucionesStorageService'
 import { createLogger } from '../../../services/logger'
 import type { ItemPresupuesto } from './usePresupuestoItems'

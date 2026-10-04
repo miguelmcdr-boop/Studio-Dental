@@ -11,7 +11,7 @@
  */
 import { useState, useEffect, useCallback } from 'react'
 import { agendaStorageService } from '../domains/operations/agenda/services/agendaStorageService'
-import { inventarioStorageService } from '../modules/inventario/services/inventarioStorageService'
+import { inventarioStorageService } from '../domains/operations/inventory/services/inventarioStorageService'
 import { listarPacientesEliminados } from '../modules/pacientes/services/pacientesSoftDeleteService'
 import { obtenerFechaLocalISO } from '../utils/dateUtils'
 import { createLogger } from '../services/logger'
