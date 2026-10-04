@@ -82,7 +82,7 @@ vi.mock('../../domains/billing/cash-register/services/finanzasStorageService', (
   }
 }))
 
-vi.mock('../../modules/pagos/services/pagosStorageService', () => ({
+vi.mock('../../domains/billing/payment/services/pagosStorageService', () => ({
   pagosStorageService: {
     listarPagos: vi.fn(() => []),
     obtenerPagos: vi.fn(() => []),

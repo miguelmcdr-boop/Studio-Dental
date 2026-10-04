@@ -13,7 +13,7 @@
  */
 
 import { pacientesStorageService } from '../../../../modules/pacientes/services/pacientesStorageService'
-import { pagosStorageService } from '../../../../modules/pagos/services/pagosStorageService'
+import { pagosStorageService } from '../../payment/services/pagosStorageService'
 import { presupuestosStorageService } from '../../budget/services/presupuestosStorageService'
 import { agendaStorageService } from '../../../operations/agenda/services/agendaStorageService'
 import { createLogger } from '../../../../services/logger'

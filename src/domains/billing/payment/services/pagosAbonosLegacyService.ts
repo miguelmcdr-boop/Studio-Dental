@@ -13,8 +13,8 @@
  * - eliminarAbono(pacienteId, abonoId)
  * - removerAbonoDeFichaPaciente(pacienteId, abonoId)
  */
-import { leerJSON, escribirJSON } from '../../../services/localStorageRepository'
-import { createLogger } from '../../../services/logger'
+import { leerJSON, escribirJSON } from '../../../../services/localStorageRepository'
+import { createLogger } from '../../../../services/logger'
 
 const log = createLogger('pagosAbonosLegacyService')
 

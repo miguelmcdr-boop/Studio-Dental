@@ -9,7 +9,7 @@ vi.mock('../services/pacientesStorageService', () => ({
   pacientesStorageService: { guardarItem: vi.fn() }
 }))
 
-vi.mock('../../pagos/services/pagosStorageService', () => ({
+vi.mock('../../../domains/billing/payment/services/pagosStorageService', () => ({
   pagosStorageService: {
     obtenerPagos: vi.fn(() => []),
     guardarPagos: vi.fn()
@@ -22,7 +22,7 @@ vi.mock('../../../hooks/useAppDialog', () => ({
 
 import { useEliminarAbono } from './useEliminarAbono'
 import { pacientesStorageService } from '../services/pacientesStorageService'
-import { pagosStorageService } from '../../pagos/services/pagosStorageService'
+import { pagosStorageService } from '../../../domains/billing/payment/services/pagosStorageService'
 
 describe('useEliminarAbono (Commit D)', () => {
   const paciente = { id: 42, nombre: 'Ana' }

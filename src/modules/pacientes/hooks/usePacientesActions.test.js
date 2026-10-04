@@ -26,7 +26,7 @@ vi.mock('../../../domains/billing/budget/services/presupuestosStorageService', (
   }
 }))
 
-vi.mock('../../pagos/services/pagosAbonosLegacyService', () => ({
+vi.mock('../../../domains/billing/payment/services/pagosAbonosLegacyService', () => ({
   eliminarAbonosDePaciente: vi.fn()
 }))
 
@@ -48,7 +48,7 @@ import { usePacientesActions } from './usePacientesActions'
 import { pacientesStorageService } from '../services/pacientesStorageService'
 import { odontogramaStorageService } from '../../odontograma/services/odontogramaStorageService'
 import { presupuestosStorageService } from '../../../domains/billing/budget/services/presupuestosStorageService'
-import { eliminarAbonosDePaciente } from '../../pagos/services/pagosAbonosLegacyService'
+import { eliminarAbonosDePaciente } from '../../../domains/billing/payment/services/pagosAbonosLegacyService'
 import { eliminarTodosPorPaciente } from '../../../services/adjuntosStorageService'
 
 describe('usePacientesActions (Commit G3)', () => {

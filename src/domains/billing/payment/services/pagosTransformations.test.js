@@ -1,13 +1,13 @@
 import { describe, it, expect, vi } from 'vitest'
 
-vi.mock('../../../services/migrationStorageService', () => ({
+vi.mock('../../../../services/migrationStorageService', () => ({
   migrationStorageService: {
     obtenerSupabaseId: vi.fn(() => null),
     registrarMapeo: vi.fn()
   }
 }))
 
-vi.mock('../../../services/migrations/uuidUtils', () => ({
+vi.mock('../../../../services/migrations/uuidUtils', () => ({
   esUuidValido: (v) => typeof v === 'string' && v.length > 20
 }))
 

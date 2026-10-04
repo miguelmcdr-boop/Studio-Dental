@@ -29,7 +29,7 @@
     "src/domains/operations/agenda/services/agendaStorageService.ts": 379,
     "src/hooks/useDataMigration.js": 269,
     "src/domains/billing/budget/services/presupuestosStorageService.js": 462,
-    "src/modules/pagos/services/pagosStorageService.js": 321,
+    "src/domains/billing/payment/services/pagosStorageService.js": 321,
     "src/domains/billing/cash-register/services/finanzasStorageService.js": 295,
     "src/App.jsx": 367,
     "src/utils/conflictosAgenda.js": 104,

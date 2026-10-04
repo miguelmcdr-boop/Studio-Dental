@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { agendaStorageService } from '../domains/operations/agenda/services/agendaStorageService'
 import { presupuestosStorageService } from '../domains/billing/budget/services/presupuestosStorageService'
-import { pagosStorageService } from '../modules/pagos/services/pagosStorageService'
+import { pagosStorageService } from '../domains/billing/payment/services/pagosStorageService'
 import { finanzasStorageService } from '../domains/billing/cash-register/services/finanzasStorageService'
 import { vademecumService } from '../services/vademecumService'
 import { escanearYSincronizarAdjuntosPendientes } from '../services/adjuntosStorageService'

@@ -8,8 +8,8 @@
  * - Transformación de objetos para lectura/escritura en Supabase
  * - Commit K1: allowlist ajustada a schema REAL de Supabase
  */
-import { migrationStorageService } from '../../../services/migrationStorageService'
-import { esUuidValido } from '../../../services/migrations/uuidUtils'
+import { migrationStorageService } from '../../../../services/migrationStorageService'
+import { esUuidValido } from '../../../../services/migrations/uuidUtils'
 
 // MAPEO DE CLAVES: DB (snake_case) <-> JS (camelCase)
 export const SNAKE_TO_CAMEL_MAP: Readonly<Record<string, string>> = {

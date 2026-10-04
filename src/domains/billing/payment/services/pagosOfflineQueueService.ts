@@ -15,14 +15,14 @@
  * Extraído de pagosStorageService.js para respetar el límite
  * arquitectónico constitucional de 321 líneas.
  */
-import { supabase, USE_SUPABASE } from '../../../services/supabaseClient'
-import { createTenantRepository } from '../../../services/localStorageRepository'
-import { getClinicaActiva } from '../../../services/authService'
-import { esUuidValido } from '../../../services/migrations/uuidUtils'
-import { migrationStorageService } from '../../../services/migrationStorageService'
+import { supabase, USE_SUPABASE } from '../../../../services/supabaseClient'
+import { createTenantRepository } from '../../../../services/localStorageRepository'
+import { getClinicaActiva } from '../../../../services/authService'
+import { esUuidValido } from '../../../../services/migrations/uuidUtils'
+import { migrationStorageService } from '../../../../services/migrationStorageService'
 import { transformarParaSupabase, transformarDesdeSupabase, mergeCamposLocales } from './pagosTransformations'
 import type { Pago } from './pagosStorageService'
-import { createLogger } from '../../../services/logger'
+import { createLogger } from '../../../../services/logger'
 
 const log = createLogger('pagosOfflineQueue')
 

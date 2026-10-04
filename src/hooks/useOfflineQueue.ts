@@ -11,7 +11,7 @@ import { useEffect } from 'react'
 import { procesarColaPacientes } from '../modules/pacientes/services/pacientesStorageService'
 import { procesarColaSubidas } from '../services/adjuntosStorageService'
 import { procesarColaEvoluciones } from '../modules/pacientes/services/evolucionesStorageService'
-import { procesarColaPagos } from '../modules/pagos/services/pagosStorageService'
+import { procesarColaPagos } from '../domains/billing/payment/services/pagosStorageService'
 import {
   procesarColaPresupuestos,
   procesarPendingDeletesPresupuestos

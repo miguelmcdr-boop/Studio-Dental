@@ -2,8 +2,8 @@ import { renderHook, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { useFinanzas } from './useFinanzas'
 import { finanzasStorageService } from '../services/finanzasStorageService'
-import { pagosStorageService } from '../../../../modules/pagos/services/pagosStorageService'
-import { obtenerAbonosPorPaciente, eliminarAbono } from '../../../../modules/pagos/services/pagosAbonosLegacyService'
+import { pagosStorageService } from '../../payment/services/pagosStorageService'
+import { obtenerAbonosPorPaciente, eliminarAbono } from '../../payment/services/pagosAbonosLegacyService'
 import { calcularBalanceFinanzas } from '../utils/finanzasCalculations'
 
 vi.mock('../services/finanzasStorageService', () => ({
@@ -15,13 +15,13 @@ vi.mock('../services/finanzasStorageService', () => ({
   }
 }))
 
-vi.mock('../../../../modules/pagos/services/pagosStorageService', () => ({
+vi.mock('../../payment/services/pagosStorageService', () => ({
   pagosStorageService: {
     obtenerPagos: vi.fn()
   }
 }))
 
-vi.mock('../../../../modules/pagos/services/pagosAbonosLegacyService', () => ({
+vi.mock('../../payment/services/pagosAbonosLegacyService', () => ({
   obtenerAbonosPorPaciente: vi.fn(),
   eliminarAbono: vi.fn()
 }))

@@ -3,8 +3,8 @@ import type React from 'react'
 import { finanzasStorageService, type MovimientoFinanciero, type ConvenioConfig } from '../services/finanzasStorageService'
 import { calcularBalanceFinanzas } from '../utils/finanzasCalculations'
 import { CONVENIOS_DEFAULT } from '../constants/finanzasConstants'
-import { pagosStorageService, type Pago } from "../../../../modules/pagos/services/pagosStorageService"
-import { obtenerAbonosPorPaciente, eliminarAbono, type AbonoFicha } from "../../../../modules/pagos/services/pagosAbonosLegacyService"
+import { pagosStorageService, type Pago } from "../../payment/services/pagosStorageService"
+import { obtenerAbonosPorPaciente, eliminarAbono, type AbonoFicha } from "../../payment/services/pagosAbonosLegacyService"
 import { createLogger } from '../../../../services/logger'
 import { useAppDialog } from '../../../../hooks/useAppDialog'
 import type { Paciente } from '../../../../modules/pacientes/schemas/pacienteSchema'

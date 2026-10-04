@@ -47,7 +47,7 @@ vi.mock('exceljs', () => {
   }
 })
 
-vi.mock('../../../services/logger', () => ({
+vi.mock('../../../../services/logger', () => ({
   createLogger: () => ({
     info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn()
   })

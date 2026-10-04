@@ -5,8 +5,8 @@ import { pagosStorageService, type Pago } from '../services/pagosStorageService'
 import { sincronizarAbonoConFichaPaciente, removerAbonoDeFichaPaciente, type NuevoPagoAbono } from '../services/pagosAbonosLegacyService'
 import { exportarAuditoriaPagosXLSX } from '../services/pagosExportService'
 import { calcularResumenRecaudacion, type ResumenRecaudacion } from '../utils/pagosCalculations'
-import { useAppDialog } from '../../../hooks/useAppDialog'
-import { useSesionStore } from '../../../store/sesionStore'
+import { useAppDialog } from '../../../../hooks/useAppDialog'
+import { useSesionStore } from '../../../../store/sesionStore'
 
 export type { Pago, ResumenRecaudacion }
 

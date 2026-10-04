@@ -206,7 +206,7 @@ describe('F7-36: No-fallback cross-clinic en storage services', () => {
       }))
 
       const { pagosStorageService } = await import(
-        '../../modules/pagos/services/pagosStorageService.js'
+        '../../domains/billing/payment/services/pagosStorageService.js'
       )
       const inicial = pagosStorageService.obtenerPagos()
       expect(inicial).toHaveLength(1)

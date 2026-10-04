@@ -4,13 +4,13 @@ import {
   calcularMetricasAvanzadas
 } from '../utils/dashboardCalculations'
 import { agendaStorageService } from '../../../domains/operations/agenda'
-import { pagosStorageService } from '../../pagos/services/pagosStorageService'
-import { obtenerAbonosPorPaciente } from '../../pagos/services/pagosAbonosLegacyService'
+import { pagosStorageService } from '../../../domains/billing/payment/services/pagosStorageService'
+import { obtenerAbonosPorPaciente } from '../../../domains/billing/payment/services/pagosAbonosLegacyService'
 import { presupuestosStorageService } from '../../../domains/billing/budget/services/presupuestosStorageService'
 import { createLogger } from '../../../services/logger'
 import type { Paciente } from '../../pacientes/schemas/pacienteSchema'
 import type { Cita } from '../../../domains/operations/agenda/schemas/citaSchema'
-import type { Pago } from '../../pagos/services/pagosStorageService'
+import type { Pago } from '../../../domains/billing/payment/services/pagosStorageService'
 import type { PresupuestoLocal } from '../../../domains/billing/budget/services/presupuestosStorageService'
 
 const log = createLogger('useDashboard')

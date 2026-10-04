@@ -16,7 +16,7 @@
  * Es idempotente: puede ejecutarse múltiples veces sin duplicar pagos.
  */
 import { supabase } from '../supabaseClient'
-import { pagosStorageService, type Pago } from '../../modules/pagos/services/pagosStorageService'
+import { pagosStorageService, type Pago } from '../../domains/billing/payment/services/pagosStorageService'
 import { migrationStorageService } from '../migrationStorageService'
 import { esUuidValido } from './uuidUtils'
 import { leerJSON } from '../localStorageRepository'

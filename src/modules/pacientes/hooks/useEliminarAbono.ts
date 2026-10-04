@@ -7,7 +7,7 @@
  */
 import { useCallback } from 'react'
 import { pacientesStorageService } from '../services/pacientesStorageService'
-import { pagosStorageService, type Pago } from '../../pagos/services/pagosStorageService'
+import { pagosStorageService, type Pago } from '../../../domains/billing/payment/services/pagosStorageService'
 import { useAppDialog } from '../../../hooks/useAppDialog'
 
 export interface AbonoItem {

@@ -8,7 +8,7 @@ import { useState, useEffect } from 'react'
 import type React from 'react'
 import { prestacionesStorageService } from '../../../domains/organization/prestations/services/prestacionesStorageService'
 import { pacientesStorageService } from '../services/pacientesStorageService'
-import { pagosStorageService } from '../../pagos/services/pagosStorageService'
+import { pagosStorageService } from '../../../domains/billing/payment/services/pagosStorageService'
 import { useEliminarAbono, type AbonoItem } from './useEliminarAbono'
 import {
   usePresupuestoItems,

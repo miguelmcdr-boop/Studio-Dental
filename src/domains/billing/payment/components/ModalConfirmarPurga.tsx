@@ -1,6 +1,6 @@
 import React, { memo, useState } from 'react'
-import { Modal } from '../../../components/ui/Modal'
-import { Button } from '../../../components/ui/Button'
+import { Modal } from '../../../../components/ui/Modal'
+import { Button } from '../../../../components/ui/Button'
 import { Trash2, AlertTriangle } from 'lucide-react'
 import type { Pago } from '../services/pagosStorageService'
 
