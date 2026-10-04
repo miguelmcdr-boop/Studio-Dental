@@ -1,6 +1,6 @@
 import React, { memo, useState } from 'react'
 import { User } from 'lucide-react'
-import { Button } from '../../../components/ui/Button'
+import { Button } from '../../../../components/ui/Button'
 
 export interface PerfilProfesionalData {
   nombreCompleto?: string
@@ -61,20 +61,18 @@ export const PerfilProfesionalForm: React.FC<PerfilProfesionalFormProps> = memo(
         </div>
 
         <div>
-          <label className="block font-semibold text-gray-700 dark:text-graphite-300 surgical:text-black mb-1">RUT / Identificación *</label>
+          <label className="block font-semibold text-gray-700 dark:text-graphite-300 surgical:text-black mb-1">RUT Profesional *</label>
           <input
             type="text"
             required
             value={rut}
             onChange={(e) => setRut(e.target.value)}
-            className="w-full p-2.5 rounded-lg border border-surface bg-white dark:bg-graphite-800 surgical:bg-graphite-200 text-graphite-900 dark:text-graphite-50 surgical:text-black font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/40"
+            className="w-full p-2.5 rounded-lg border border-surface bg-white dark:bg-graphite-800 surgical:bg-graphite-200 text-graphite-900 dark:text-graphite-50 surgical:text-black font-bold focus:outline-none focus:ring-2 focus:ring-primary/40"
           />
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div>
-          <label className="block font-semibold text-gray-700 dark:text-graphite-300 surgical:text-black mb-1">Especialidad Principal</label>
+          <label className="block font-semibold text-gray-700 dark:text-graphite-300 surgical:text-black mb-1">Especialidad Clínica</label>
           <input
             type="text"
             value={especialidad}
@@ -84,18 +82,18 @@ export const PerfilProfesionalForm: React.FC<PerfilProfesionalFormProps> = memo(
         </div>
 
         <div>
-          <label className="block font-semibold text-gray-700 dark:text-graphite-300 surgical:text-black mb-1">N° Registro Superintendencia Salud</label>
+          <label className="block font-semibold text-gray-700 dark:text-graphite-300 surgical:text-black mb-1">Registro Nacional de Salud (N°)</label>
           <input
             type="text"
-            placeholder="Ej: 485120"
             value={registroSalud}
             onChange={(e) => setRegistroSalud(e.target.value)}
-            className="w-full p-2.5 rounded-lg border border-surface bg-white dark:bg-graphite-800 surgical:bg-graphite-200 text-graphite-900 dark:text-graphite-50 surgical:text-black font-mono font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/40"
+            placeholder="Ej: 123456"
+            className="w-full p-2.5 rounded-lg border border-surface bg-white dark:bg-graphite-800 surgical:bg-graphite-200 text-graphite-900 dark:text-graphite-50 surgical:text-black focus:outline-none focus:ring-2 focus:ring-primary/40"
           />
         </div>
 
-        <div>
-          <label className="block font-semibold text-gray-700 dark:text-graphite-300 surgical:text-black mb-1">Correo Electrónico</label>
+        <div className="sm:col-span-2">
+          <label className="block font-semibold text-gray-700 dark:text-graphite-300 surgical:text-black mb-1">Email Profesional</label>
           <input
             type="email"
             value={email}
@@ -105,11 +103,11 @@ export const PerfilProfesionalForm: React.FC<PerfilProfesionalFormProps> = memo(
         </div>
       </div>
 
-      <div className="pt-2 text-right">
+      <div className="flex justify-end pt-3 border-t border-surface">
         <Button
           type="submit"
           variant="primary"
-          loading={enviando}
+          size="md"
           disabled={enviando}
         >
           {enviando ? 'Guardando...' : 'Guardar Perfil Profesional'}

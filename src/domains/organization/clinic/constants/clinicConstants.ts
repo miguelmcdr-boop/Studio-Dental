@@ -1,5 +1,5 @@
 /**
- * Constantes y Configuración por Defecto
+ * Constantes y Configuración de Clínica (Branding / Membrete)
  */
 
 export interface ClinicaConfig {
@@ -14,13 +14,6 @@ export interface ClinicaConfig {
   logoUrl: string
 }
 
-export interface ParametrosAgendaConfig {
-  duracionBloqueMinutos: number
-  horaInicio: string
-  horaFin: string
-  diasLaborales: string[]
-}
-
 export const CLINICA_DEFAULT: ClinicaConfig = {
   nombreClinica: 'DentikOS',
   razonSocial: 'Sociedad Odontológica DentikOS SpA',
@@ -33,11 +26,5 @@ export const CLINICA_DEFAULT: ClinicaConfig = {
   logoUrl: ''
 }
 
-export const PARAMETROS_AGENDA_DEFAULT: ParametrosAgendaConfig = {
-  duracionBloqueMinutos: 30,
-  horaInicio: '08:30',
-  horaFin: '19:30',
-  diasLaborales: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
-}
-
-export const TRAMOS_DURACION: readonly number[] = [15, 20, 30, 45, 60]
+// Re-exportar parámetros de agenda para compatibilidad de tests históricos
+export { PARAMETROS_AGENDA_DEFAULT, TRAMOS_DURACION, type ParametrosAgendaConfig } from '../../../operations/agenda/constants/agendaConstants'

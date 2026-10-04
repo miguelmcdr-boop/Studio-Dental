@@ -51,7 +51,7 @@ const PresupuestosModulo = lazy(() => import('./domains/billing/budget').then(m 
 const PagosModulo = lazy(() => import('./domains/billing/payment').then(m => ({ default: m.PagosModulo })))
 const ComunicacionesModulo = lazy(() => import('./domains/operations/communications').then(m => ({ default: m.ComunicacionesModulo })))
 const ReportesModulo = lazy(() => import('./domains/billing/report').then(m => ({ default: m.ReportesModulo })))
-const ConfiguracionModulo = lazy(() => import('./modules/configuracion').then(m => ({ default: m.ConfiguracionModulo })))
+const DatosClinicaForm = lazy(() => import('./domains/organization/clinic').then(m => ({ default: m.DatosClinicaForm })))
 const AdminVademecumModulo = lazy(() => import('./domains/organization/vademecum').then(m => ({ default: m.AdminVademecumModulo })))
 const GestionMiembrosModulo = lazy(() => import('./domains/organization/team').then(m => ({ default: m.GestionMiembrosModulo })))
 
@@ -374,7 +374,7 @@ export const App: React.FC = () => {
               {activeSection === 'Vademécum' && <AdminVademecumModulo />}
 
               {activeSection === 'Configuración' && (
-                <ConfiguracionModulo />
+                <DatosClinicaForm />
               )}
 
               {activeSection === 'Pacientes' && (

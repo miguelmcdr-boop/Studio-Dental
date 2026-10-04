@@ -1,12 +1,4 @@
-/**
- * Dominio: clinic
- * Capa: domains/organization
- * Estado: PENDIENTE DE MIGRACIÓN
- *
- * Este directorio está preparado para recibir los archivos durante la Fase 1
- * de la migración arquitectónica.
- *
- * NO IMPORTAR desde este directorio hasta que la migración esté completa.
- */
-
-export {};
+export { DatosClinicaForm } from './components/DatosClinicaForm'
+export { clinicStorageService, configuracionStorageService, type DatosClinicaConfig } from './services/clinicStorageService'
+export { CLINICA_DEFAULT, type ClinicaConfig } from './constants/clinicConstants'
+export { convertirImagenADataURL } from './utils/clinicCalculations'

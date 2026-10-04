@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
-import { descargarArchivoBackupJSON, convertirImagenADataURL } from './configuracionCalculations'
+import { descargarArchivoBackupJSON, convertirImagenADataURL } from './clinicCalculations'
 
-describe('configuracionCalculations', () => {
+describe('clinicCalculations', () => {
   describe('descargarArchivoBackupJSON', () => {
     it('crea un elemento anchor con los datos codificados y simula el click', () => {
       const appendChildSpy = vi.spyOn(document.body, 'appendChild')

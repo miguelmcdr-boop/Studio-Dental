@@ -1,10 +1,10 @@
 import React, { memo, useState } from 'react'
-import { TRAMOS_DURACION, PARAMETROS_AGENDA_DEFAULT, type ParametrosAgendaConfig } from '../constants/configuracionConstants'
+import { TRAMOS_DURACION, PARAMETROS_AGENDA_DEFAULT, type ParametrosAgendaConfig } from '../constants/agendaConstants'
 import { Calendar } from 'lucide-react'
 
 export interface ParametrosAgendaFormProps {
   parametrosAgenda?: ParametrosAgendaConfig | null
-  alGuardar: (parametros: ParametrosAgendaConfig) => void
+  alGuardar?: (parametros: ParametrosAgendaConfig) => void
 }
 
 export const ParametrosAgendaForm: React.FC<ParametrosAgendaFormProps> = memo(({ parametrosAgenda, alGuardar }) => {
@@ -14,13 +14,15 @@ export const ParametrosAgendaForm: React.FC<ParametrosAgendaFormProps> = memo(({
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    alGuardar({
-      diasLaborales: parametrosAgenda?.diasLaborales ?? PARAMETROS_AGENDA_DEFAULT.diasLaborales,
-      ...parametrosAgenda,
-      duracionBloqueMinutos: parseInt(String(duracion), 10) || 30,
-      horaInicio,
-      horaFin
-    })
+    if (alGuardar) {
+      alGuardar({
+        diasLaborales: parametrosAgenda?.diasLaborales ?? PARAMETROS_AGENDA_DEFAULT.diasLaborales,
+        ...parametrosAgenda,
+        duracionBloqueMinutos: parseInt(String(duracion), 10) || 30,
+        horaInicio,
+        horaFin
+      })
+    }
   }
 
   return (
@@ -50,25 +52,25 @@ export const ParametrosAgendaForm: React.FC<ParametrosAgendaFormProps> = memo(({
             type="time"
             value={horaInicio}
             onChange={(e) => setHoraInicio(e.target.value)}
-            className="w-full p-2.5 rounded-lg border border-surface bg-white dark:bg-graphite-800 surgical:bg-graphite-200 text-graphite-900 dark:text-graphite-50 surgical:text-black font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/40"
+            className="w-full p-2.5 rounded-lg border border-surface bg-white dark:bg-graphite-800 surgical:bg-graphite-200 text-graphite-900 dark:text-graphite-50 surgical:text-black font-bold focus:outline-none focus:ring-2 focus:ring-primary/40"
           />
         </div>
 
         <div>
-          <label className="block font-semibold text-gray-700 dark:text-graphite-300 surgical:text-black mb-1">Hora Término Jornada</label>
+          <label className="block font-semibold text-gray-700 dark:text-graphite-300 surgical:text-black mb-1">Hora Fin Jornada</label>
           <input
             type="time"
             value={horaFin}
             onChange={(e) => setHoraFin(e.target.value)}
-            className="w-full p-2.5 rounded-lg border border-surface bg-white dark:bg-graphite-800 surgical:bg-graphite-200 text-graphite-900 dark:text-graphite-50 surgical:text-black font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/40"
+            className="w-full p-2.5 rounded-lg border border-surface bg-white dark:bg-graphite-800 surgical:bg-graphite-200 text-graphite-900 dark:text-graphite-50 surgical:text-black font-bold focus:outline-none focus:ring-2 focus:ring-primary/40"
           />
         </div>
       </div>
 
-      <div className="pt-2 text-right">
+      <div className="flex justify-end pt-3 border-t border-surface">
         <button
           type="submit"
-          className="bg-primary hover:bg-champagne-600 dark:bg-gold-satin dark:hover:bg-primary text-white dark:text-graphite-950 font-bold px-5 py-2.5 rounded-lg transition-micro shadow-xs cursor-pointer"
+          className="px-4 py-2 bg-primary text-white rounded-lg font-bold hover:bg-primary-dark transition cursor-pointer"
         >
           Guardar Parámetros Agenda
         </button>

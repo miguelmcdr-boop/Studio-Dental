@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import type React from 'react'
-import { configuracionStorageService, type DatosClinicaConfig } from '../../../../modules/configuracion/services/configuracionStorageService'
-import { CLINICA_DEFAULT, type ClinicaConfig } from '../../../../modules/configuracion/constants/configuracionConstants'
+import { configuracionStorageService, type DatosClinicaConfig } from '../../../organization/clinic/services/clinicStorageService'
+import { CLINICA_DEFAULT, type ClinicaConfig } from '../../../organization/clinic/constants/clinicConstants'
 import { pacientesStorageService } from '../services/pacientesStorageService'
 import { createLogger } from '../../../../services/logger'
 

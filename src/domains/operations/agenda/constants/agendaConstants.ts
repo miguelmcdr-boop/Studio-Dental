@@ -54,3 +54,19 @@ export const TRATAMIENTOS_RAPIDOS: readonly string[] = [
   'Instalación / Blanqueamiento Dental',
   'Control / Urgencia Dental'
 ]
+
+export interface ParametrosAgendaConfig {
+  duracionBloqueMinutos: number
+  horaInicio: string
+  horaFin: string
+  diasLaborales: string[]
+}
+
+export const PARAMETROS_AGENDA_DEFAULT: ParametrosAgendaConfig = {
+  duracionBloqueMinutos: 30,
+  horaInicio: '08:30',
+  horaFin: '19:30',
+  diasLaborales: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+}
+
+export const TRAMOS_DURACION: readonly number[] = [15, 20, 30, 45, 60]

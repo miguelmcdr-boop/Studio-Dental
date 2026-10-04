@@ -3,9 +3,9 @@ import {
   CLINICA_DEFAULT,
   PARAMETROS_AGENDA_DEFAULT,
   TRAMOS_DURACION
-} from './configuracionConstants'
+} from './clinicConstants'
 
-describe('configuracionConstants', () => {
+describe('clinicConstants', () => {
   it('contiene la configuracion por defecto de la clinica con todos los campos', () => {
     expect(CLINICA_DEFAULT.nombreClinica).toBe('DentikOS')
     expect(CLINICA_DEFAULT.rutClinica).toBe('77.854.320-K')
