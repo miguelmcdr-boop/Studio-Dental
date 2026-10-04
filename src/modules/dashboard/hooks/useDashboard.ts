@@ -6,12 +6,12 @@ import {
 import { agendaStorageService } from '../../../domains/operations/agenda'
 import { pagosStorageService } from '../../pagos/services/pagosStorageService'
 import { obtenerAbonosPorPaciente } from '../../pagos/services/pagosAbonosLegacyService'
-import { presupuestosStorageService } from '../../presupuestos/services/presupuestosStorageService'
+import { presupuestosStorageService } from '../../../domains/billing/budget/services/presupuestosStorageService'
 import { createLogger } from '../../../services/logger'
 import type { Paciente } from '../../pacientes/schemas/pacienteSchema'
 import type { Cita } from '../../../domains/operations/agenda/schemas/citaSchema'
 import type { Pago } from '../../pagos/services/pagosStorageService'
-import type { PresupuestoLocal } from '../../presupuestos/services/presupuestosStorageService'
+import type { PresupuestoLocal } from '../../../domains/billing/budget/services/presupuestosStorageService'
 
 const log = createLogger('useDashboard')
 

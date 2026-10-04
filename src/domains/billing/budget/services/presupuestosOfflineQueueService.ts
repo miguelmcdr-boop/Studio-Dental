@@ -12,12 +12,12 @@
  * Extraído de presupuestosStorageService.js para respetar el límite
  * arquitectónico constitucional de 462 líneas congeladas.
  */
-import { supabase, USE_SUPABASE } from '../../../services/supabaseClient'
-import { createTenantRepository } from '../../../services/localStorageRepository'
-import { getClinicaActiva } from '../../../services/authService'
-import { esUuidValido } from '../../../services/migrations/uuidUtils'
-import { migrationStorageService } from '../../../services/migrationStorageService'
-import { createLogger } from '../../../services/logger'
+import { supabase, USE_SUPABASE } from '../../../../services/supabaseClient'
+import { createTenantRepository } from '../../../../services/localStorageRepository'
+import { getClinicaActiva } from '../../../../services/authService'
+import { esUuidValido } from '../../../../services/migrations/uuidUtils'
+import { migrationStorageService } from '../../../../services/migrationStorageService'
+import { createLogger } from '../../../../services/logger'
 import type { Presupuesto } from '../schemas/presupuestoSchema'
 
 const log = createLogger('presupuestosOfflineQueue')

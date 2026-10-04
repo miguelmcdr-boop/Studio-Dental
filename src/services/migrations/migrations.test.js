@@ -90,7 +90,7 @@ vi.mock('../../modules/pagos/services/pagosStorageService', () => ({
   }
 }))
 
-vi.mock('../../modules/presupuestos/services/presupuestosStorageService', () => ({
+vi.mock('../../domains/billing/budget/services/presupuestosStorageService', () => ({
   presupuestosStorageService: {
     listarPresupuestos: vi.fn(() => []),
     obtenerPresupuestos: vi.fn(() => []),

@@ -3,7 +3,7 @@ import { obtenerAlertasOperativas } from '../../../utils/alertasOperativas'
 import { obtenerTareasClinicas } from '../../../utils/tareasClinicas'
 import type { Cita } from '../../../domains/operations/agenda/schemas/citaSchema'
 import type { Pago } from '../../pagos/services/pagosStorageService'
-import type { PresupuestoLocal } from '../../presupuestos/services/presupuestosStorageService'
+import type { PresupuestoLocal } from '../../../domains/billing/budget/services/presupuestosStorageService'
 import type { Paciente } from '../../pacientes/schemas/pacienteSchema'
 import type { ResumenJornada, MetricasAvanzadasDashboard, TendenciaCita } from '../hooks/useDashboard'
 

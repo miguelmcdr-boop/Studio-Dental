@@ -3,9 +3,9 @@
  * Extraído de ModalNuevoPresupuesto.jsx para cumplir límites de allowlist (F7-25)
  */
 import React from 'react'
-import { Icon } from '../../../components/Icon'
-import { Tooth } from '../../../components/icons/Tooth'
-import { Input } from '../../../components/ui/Input'
+import { Icon } from '../../../../components/Icon'
+import { Tooth } from '../../../../components/icons/Tooth'
+import { Input } from '../../../../components/ui/Input'
 
 import type { PresupuestoItemLocal } from '../services/presupuestosStorageService'
 

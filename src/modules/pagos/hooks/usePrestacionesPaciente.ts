@@ -9,7 +9,7 @@ import { useState, useEffect } from 'react'
 import {
   presupuestosStorageService,
   type PresupuestoItemLocal
-} from '../../presupuestos/services/presupuestosStorageService'
+} from '../../../domains/billing/budget/services/presupuestosStorageService'
 import { createLogger } from '../../../services/logger'
 
 const log = createLogger('usePrestacionesPaciente')

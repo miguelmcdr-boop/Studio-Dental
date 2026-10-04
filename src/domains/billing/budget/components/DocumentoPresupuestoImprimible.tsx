@@ -1,7 +1,7 @@
 import React, { memo, useEffect, useState } from 'react'
-import { DienteSVG, type EstadosPiezaDental } from '../../../components/DienteSVG'
-import { odontogramaStorageService } from '../../odontograma'
-import { createLogger } from '../../../services/logger'
+import { DienteSVG, type EstadosPiezaDental } from '../../../../components/DienteSVG'
+import { odontogramaStorageService } from '../../../../modules/odontograma'
+import { createLogger } from '../../../../services/logger'
 import { Printer } from 'lucide-react'
 import type { PresupuestoLocal } from '../services/presupuestosStorageService'
 

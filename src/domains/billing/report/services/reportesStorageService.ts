@@ -14,12 +14,12 @@
 
 import { pacientesStorageService } from '../../../../modules/pacientes/services/pacientesStorageService'
 import { pagosStorageService } from '../../../../modules/pagos/services/pagosStorageService'
-import { presupuestosStorageService } from '../../../../modules/presupuestos/services/presupuestosStorageService'
+import { presupuestosStorageService } from '../../budget/services/presupuestosStorageService'
 import { agendaStorageService } from '../../../operations/agenda/services/agendaStorageService'
 import { createLogger } from '../../../../services/logger'
 import type { Paciente } from '../../../../modules/pacientes/schemas/pacienteSchema'
 import type { Cita } from '../../../operations/agenda/schemas/citaSchema'
-import type { Presupuesto } from '../../../../modules/presupuestos/schemas/presupuestoSchema'
+import type { Presupuesto } from '../../budget/schemas/presupuestoSchema'
 
 const log = createLogger('reportesStorageService')
 

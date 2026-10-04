@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { agendaStorageService } from '../domains/operations/agenda/services/agendaStorageService'
-import { presupuestosStorageService } from '../modules/presupuestos/services/presupuestosStorageService'
+import { presupuestosStorageService } from '../domains/billing/budget/services/presupuestosStorageService'
 import { pagosStorageService } from '../modules/pagos/services/pagosStorageService'
 import { finanzasStorageService } from '../domains/billing/cash-register/services/finanzasStorageService'
 import { vademecumService } from '../services/vademecumService'

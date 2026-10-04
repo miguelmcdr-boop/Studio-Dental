@@ -238,7 +238,7 @@ describe('F7-36: No-fallback cross-clinic en storage services', () => {
       }))
 
       const { presupuestosStorageService } = await import(
-        '../../modules/presupuestos/services/presupuestosStorageService.js'
+        '../../domains/billing/budget/services/presupuestosStorageService.js'
       )
       const inicial = presupuestosStorageService.obtenerPresupuestos()
       expect(inicial).toHaveLength(1)

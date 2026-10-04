@@ -1,5 +1,5 @@
 import React, { memo } from 'react'
-import type { PresupuestoItemLocal } from '../../presupuestos/services/presupuestosStorageService'
+import type { PresupuestoItemLocal } from '../../../domains/billing/budget/services/presupuestosStorageService'
 
 export interface SelectorPrestacionesImputadasProps {
   prestaciones?: PresupuestoItemLocal[]

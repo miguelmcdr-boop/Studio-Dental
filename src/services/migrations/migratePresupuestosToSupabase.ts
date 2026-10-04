@@ -16,7 +16,7 @@
  * Es idempotente: puede ejecutarse múltiples veces sin duplicar presupuestos.
  */
 import { supabase } from '../supabaseClient'
-import { presupuestosStorageService } from '../../modules/presupuestos/services/presupuestosStorageService'
+import { presupuestosStorageService } from '../../domains/billing/budget/services/presupuestosStorageService'
 import { migrationStorageService } from '../migrationStorageService'
 import { esUuidValido } from './uuidUtils'
 import { leerJSON } from '../localStorageRepository'

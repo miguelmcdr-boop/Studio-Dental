@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-vi.mock('../../presupuestos/services/presupuestosStorageService', () => ({
+vi.mock('../../../domains/billing/budget/services/presupuestosStorageService', () => ({
   presupuestosStorageService: {
     obtenerItemsPorPaciente: vi.fn(() => [])
   }
@@ -14,7 +14,7 @@ vi.mock('../../../services/logger.js', () => ({
 }))
 
 import { usePrestacionesPaciente } from './usePrestacionesPaciente'
-import { presupuestosStorageService } from '../../presupuestos/services/presupuestosStorageService'
+import { presupuestosStorageService } from '../../../domains/billing/budget/services/presupuestosStorageService'
 
 describe('usePrestacionesPaciente (Commit G1)', () => {
   beforeEach(() => {

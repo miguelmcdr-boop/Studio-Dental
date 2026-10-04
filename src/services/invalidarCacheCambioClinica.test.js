@@ -29,7 +29,7 @@ vi.mock('../domains/operations/agenda/services/agendaStorageService', () => ({
 vi.mock('../modules/pagos/services/pagosStorageService', () => ({
   pagosStorageService: { resetCache: vi.fn() },
 }))
-vi.mock('../modules/presupuestos/services/presupuestosStorageService', () => ({
+vi.mock('../domains/billing/budget/services/presupuestosStorageService', () => ({
   presupuestosStorageService: { resetCache: vi.fn() },
 }))
 
@@ -50,7 +50,7 @@ import { tenantCache } from './tenantCache'
 import { finanzasStorageService } from '../domains/billing/cash-register/services/finanzasStorageService'
 import { agendaStorageService } from '../domains/operations/agenda/services/agendaStorageService'
 import { pagosStorageService } from '../modules/pagos/services/pagosStorageService'
-import { presupuestosStorageService } from '../modules/presupuestos/services/presupuestosStorageService'
+import { presupuestosStorageService } from '../domains/billing/budget/services/presupuestosStorageService'
 import { usePacientesStore } from '../store/pacientesStore'
 import { usePrestacionesStore } from '../store/prestacionesStore'
 import { invalidarCacheAdjuntos } from './adjuntosStorageService'

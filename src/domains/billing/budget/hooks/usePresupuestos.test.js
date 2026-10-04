@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { usePresupuestos } from './usePresupuestos'
 import { presupuestosStorageService } from '../services/presupuestosStorageService'
 import { calcularResumenPresupuestos } from '../utils/presupuestosCalculations'
-import { useDialogStore } from '../../../store/dialogStore'
+import { useDialogStore } from '../../../../store/dialogStore'
 
 vi.mock('../services/presupuestosStorageService', () => ({
   presupuestosStorageService: {

@@ -15,7 +15,7 @@ import { procesarColaPagos } from '../modules/pagos/services/pagosStorageService
 import {
   procesarColaPresupuestos,
   procesarPendingDeletesPresupuestos
-} from '../modules/presupuestos/services/presupuestosStorageService'
+} from '../domains/billing/budget/services/presupuestosStorageService'
 import { notificationService } from '../services/notificationService'
 import { createLogger } from '../services/logger'
 
