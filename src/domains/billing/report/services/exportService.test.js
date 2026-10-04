@@ -10,10 +10,10 @@ import {
   exportarRankingExcel,
   exportarRendimientoExcel
 } from './exportService'
-import { supabase } from '../../../services/supabaseClient'
+import { supabase } from '../../../../services/supabaseClient'
 
 // Mock de supabase
-vi.mock('../../../services/supabaseClient', () => ({
+vi.mock('../../../../services/supabaseClient', () => ({
   supabase: {
     rpc: vi.fn()
   },
@@ -21,7 +21,7 @@ vi.mock('../../../services/supabaseClient', () => ({
 }))
 
 // Mock de conflictDetectionService (ya no se usa directamente)
-vi.mock('../../../services/conflictDetectionService', () => ({
+vi.mock('../../../../services/conflictDetectionService', () => ({
   registrarAuditoria: vi.fn()
 }))
 

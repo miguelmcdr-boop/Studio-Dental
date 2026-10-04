@@ -6,11 +6,11 @@ import { RankingPrestacionesTable } from './components/RankingPrestacionesTable'
 import { GraficoProductividad } from './components/GraficoProductividad'
 import { RendimientoProfesionales } from './components/RendimientoProfesionales'
 import { ReporteImprimibleLetter } from './components/ReporteImprimibleLetter'
-import { usePacientesStore } from '../../store/pacientesStore'
-import { useSesionStore } from '../../store/sesionStore'
+import { usePacientesStore } from '../../../store/pacientesStore'
+import { useSesionStore } from '../../../store/sesionStore'
 import { exportService } from './services/exportService'
 import { FileText, BarChart3, FileSpreadsheet } from 'lucide-react'
-import type { Paciente } from '../pacientes/schemas/pacienteSchema'
+import type { Paciente } from '../../../modules/pacientes/schemas/pacienteSchema'
 
 export const ReportesModulo: React.FC = memo(() => {
   // (F2-02) — pacientes y userProfile ya no llegan como prop desde App.jsx: se leen directo de los stores.

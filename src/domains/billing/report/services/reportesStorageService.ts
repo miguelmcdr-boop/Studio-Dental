@@ -12,14 +12,14 @@
  * Fuente única de verdad: cada storage service es dueño de sus claves.
  */
 
-import { pacientesStorageService } from '../../pacientes/services/pacientesStorageService'
-import { pagosStorageService } from '../../pagos/services/pagosStorageService'
-import { presupuestosStorageService } from '../../presupuestos/services/presupuestosStorageService'
-import { agendaStorageService } from '../../agenda/services/agendaStorageService'
-import { createLogger } from '../../../services/logger'
-import type { Paciente } from '../../pacientes/schemas/pacienteSchema'
-import type { Cita } from '../../agenda/schemas/citaSchema'
-import type { Presupuesto } from '../../presupuestos/schemas/presupuestoSchema'
+import { pacientesStorageService } from '../../../../modules/pacientes/services/pacientesStorageService'
+import { pagosStorageService } from '../../../../modules/pagos/services/pagosStorageService'
+import { presupuestosStorageService } from '../../../../modules/presupuestos/services/presupuestosStorageService'
+import { agendaStorageService } from '../../../../modules/agenda/services/agendaStorageService'
+import { createLogger } from '../../../../services/logger'
+import type { Paciente } from '../../../../modules/pacientes/schemas/pacienteSchema'
+import type { Cita } from '../../../../modules/agenda/schemas/citaSchema'
+import type { Presupuesto } from '../../../../modules/presupuestos/schemas/presupuestoSchema'
 
 const log = createLogger('reportesStorageService')
 

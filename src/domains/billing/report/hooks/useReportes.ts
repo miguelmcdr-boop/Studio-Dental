@@ -4,7 +4,7 @@ import {
   type DatosConsolidadosBI
 } from '../services/reportesStorageService'
 import { calcularEstadisticasAvanzadas } from '../utils/reportesCalculations'
-import type { Paciente } from '../../pacientes/schemas/pacienteSchema'
+import type { Paciente } from '../../../../modules/pacientes/schemas/pacienteSchema'
 
 export interface MetricasReportes {
   totalPacientes: number

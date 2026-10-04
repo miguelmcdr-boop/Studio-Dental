@@ -2,8 +2,8 @@
  * Cálculos financieros, estadísticas de agenda y agregaciones para BI
  */
 
-import { presupuestosStorageService } from '../../presupuestos/services/presupuestosStorageService'
-import { createLogger } from '../../../services/logger'
+import { presupuestosStorageService } from '../../../../modules/presupuestos/services/presupuestosStorageService'
+import { createLogger } from '../../../../services/logger'
 
 const log = createLogger('reportesCalculations')
 
