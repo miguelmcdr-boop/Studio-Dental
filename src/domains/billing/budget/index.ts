@@ -1,2 +1,5 @@
 export { PresupuestosModulo } from './PresupuestosModulo'
-export { presupuestosStorageService } from './services/presupuestosStorageService'
+export {
+  presupuestosStorageService,
+  type PresupuestoLocal,
+} from './services/presupuestosStorageService'

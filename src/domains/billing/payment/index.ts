@@ -1,2 +1,6 @@
 export { PagosModulo } from './PagosModulo'
-export { pagosStorageService } from './services/pagosStorageService'
+export { pagosStorageService, type Pago } from './services/pagosStorageService'
+export {
+  obtenerAbonosPorPaciente,
+  type AbonoFicha,
+} from './services/pagosAbonosLegacyService'
