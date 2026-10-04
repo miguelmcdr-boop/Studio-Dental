@@ -1,12 +1,12 @@
-/**
- * Dominio: billing
- * Capa: application
- * Estado: PENDIENTE DE MIGRACIÓN
- *
- * Este directorio está preparado para recibir los archivos durante la Fase 1
- * de la migración arquitectónica.
- *
- * NO IMPORTAR desde este directorio hasta que la migración esté completa.
- */
-
-export {};
+export {
+  registrarPagoTratamiento,
+  eliminarPagoTratamiento,
+  obtenerAbonosPaciente,
+  obtenerPagoAsociadoAAbono,
+  type AbonoItem,
+  type PacienteRef,
+  type RegistrarAbonoParams,
+  type RegistrarAbonoResult,
+  type EliminarAbonoParams,
+  type EliminarAbonoResult,
+} from './registerTreatmentPayment'

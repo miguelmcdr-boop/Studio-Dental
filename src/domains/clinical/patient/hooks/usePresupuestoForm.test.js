@@ -22,7 +22,8 @@ vi.mock('../../../../domains/organization/prestations/services/prestacionesStora
 
 vi.mock('../services/pacientesStorageService', () => ({
   pacientesStorageService: {
-    guardarItem: vi.fn()
+    guardarItem: vi.fn(),
+    obtenerPacientes: vi.fn(() => [])
   }
 }))
 

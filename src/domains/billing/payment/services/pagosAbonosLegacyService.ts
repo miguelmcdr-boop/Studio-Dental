@@ -1,4 +1,7 @@
 /**
+ * @deprecated Este servicio legacy gestiona abonos en localStorage y está en proceso de migración.
+ * Usar en su lugar el Application Service `registerTreatmentPayment` en `src/application/billing`.
+ *
  * pagosAbonosLegacyService — Servicio legacy de abonos por paciente (F4-02d pendiente)
  *
  * Extraído de pagosStorageService.js para cumplir límite arquitectónico (F3-02).

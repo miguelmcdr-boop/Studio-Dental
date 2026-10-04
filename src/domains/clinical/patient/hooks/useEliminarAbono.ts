@@ -1,29 +1,19 @@
 /**
  * useEliminarAbono — Hook para eliminar abonos de un paciente (F10-C3.4 + Commit D)
  *
- * Commit D: cuando el abono está sincronizado con un pago global
- * (mismo id + mismo paciente), al borrarlo se propaga la anulación
- * al módulo Pagos con motivo "Abono eliminado desde Plan de Tratamiento".
+ * Refactorizado en Fase 4C-1: delega la orquestación y sincronización de
+ * abonos y pagos globales al Application Service `registerTreatmentPayment`.
  */
 import { useCallback } from 'react'
-import { pacientesStorageService } from '../services/pacientesStorageService'
-import { pagosStorageService, type Pago } from '../../../../domains/billing/payment/services/pagosStorageService'
+import {
+  eliminarPagoTratamiento,
+  obtenerPagoAsociadoAAbono,
+  type AbonoItem,
+  type PacienteRef,
+} from '../../../../application/billing'
 import { useAppDialog } from '../../../../hooks/useAppDialog'
 
-export interface AbonoItem {
-  id: string | number
-  fecha?: string
-  monto?: number | string
-  metodoPago?: string
-  pacienteNombre?: string
-  [key: string]: unknown
-}
-
-export interface PacienteRef {
-  id: string | number
-  nombre?: string
-  [key: string]: unknown
-}
+export type { AbonoItem, PacienteRef }
 
 export interface UseEliminarAbonoOptions {
   abonos: AbonoItem[]
@@ -43,13 +33,8 @@ export const useEliminarAbono = ({
   const { confirm } = useAppDialog()
 
   const handleEliminarAbono = useCallback(async (idAbono: string | number): Promise<void> => {
-    // Commit D: detectar si el abono corresponde a un pago global sincronizado
-    const pagos: Pago[] = pagosStorageService.obtenerPagos([])
-    const pagoAsociado = pagos.find(p =>
-      String(p.id) === String(idAbono) &&
-      String(p.pacienteId) === String(paciente.id) &&
-      p.estado !== 'Anulado'
-    )
+    // Detectar si el abono corresponde a un pago global sincronizado vía Application Service
+    const pagoAsociado = obtenerPagoAsociadoAAbono(idAbono, paciente.id)
 
     const descripcion = pagoAsociado
       ? `Este abono está vinculado al pago ${pagoAsociado.folioComprobante}. Al eliminarlo, el pago quedará como Anulado en el módulo Pagos. ¿Continuar?`
@@ -63,24 +48,14 @@ export const useEliminarAbono = ({
     })
     if (!ok) return
 
-    // Propagar anulación al pago global asociado (Commit D)
-    if (pagoAsociado) {
-      const pagosActualizados: Pago[] = pagos.map(p =>
-        String(p.id) === String(idAbono)
-          ? {
-              ...p,
-              estado: 'Anulado',
-              motivoAnulacion: 'Abono eliminado desde Plan de Tratamiento',
-              fechaAnulacion: new Date().toLocaleDateString('es-CL')
-            }
-          : p
-      )
-      await pagosStorageService.guardarPagos(pagosActualizados)
-    }
+    // Delegar anulación global y eliminación local al Application Service
+    const { abonosActualizados } = await eliminarPagoTratamiento({
+      pacienteId: paciente.id,
+      idAbono,
+      abonosPrevios: abonos,
+    })
 
-    const actualizados = abonos.filter(a => String(a.id) !== String(idAbono))
-    setAbonos(actualizados)
-    pacientesStorageService.guardarItem(`abonos_${paciente.id}`, actualizados)
+    setAbonos(abonosActualizados)
   }, [abonos, setAbonos, paciente, confirm])
 
   return { handleEliminarAbono }

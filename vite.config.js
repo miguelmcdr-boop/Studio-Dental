@@ -28,6 +28,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         // F6-J: fallback a index.html si falla la navegacion (cold-start offline)
         navigateFallback: '/index.html',
         // Excluir endpoints de Supabase del fallback (son API, no rutas)

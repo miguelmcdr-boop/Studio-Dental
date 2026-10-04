@@ -6,7 +6,10 @@ const { mockConfirm } = vi.hoisted(() => ({
 }))
 
 vi.mock('../services/pacientesStorageService', () => ({
-  pacientesStorageService: { guardarItem: vi.fn() }
+  pacientesStorageService: {
+    guardarItem: vi.fn(),
+    obtenerPacientes: vi.fn(() => [])
+  }
 }))
 
 vi.mock('../../../../domains/billing/payment/services/pagosStorageService', () => ({

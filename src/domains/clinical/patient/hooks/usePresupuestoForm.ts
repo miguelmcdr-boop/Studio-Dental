@@ -7,8 +7,7 @@
 import { useState, useEffect } from 'react'
 import type React from 'react'
 import { prestacionesStorageService } from '../../../../domains/organization/prestations/services/prestacionesStorageService'
-import { pacientesStorageService } from '../services/pacientesStorageService'
-import { pagosStorageService } from '../../../../domains/billing/payment/services/pagosStorageService'
+import { registrarPagoTratamiento } from '../../../../application/billing'
 import { useEliminarAbono, type AbonoItem } from './useEliminarAbono'
 import {
   usePresupuestoItems,
@@ -90,20 +89,15 @@ export const usePresupuestoForm = ({
   const handleAgregarAbono = (e: React.FormEvent): void => {
     e.preventDefault()
     if (!montoAbono) return
-    const abonoObj: AbonoItem = {
-      id: Date.now(),
-      fecha: new Date().toLocaleDateString('es-CL'),
-      monto: parseInt(montoAbono, 10) || 0,
+
+    const { abonosActualizados } = registrarPagoTratamiento({
+      paciente,
+      monto: montoAbono,
       metodoPago: metodoPagoAbono,
-      pacienteNombre: paciente.nombre
-    }
-    const actualizados = [abonoObj, ...abonos]
-    setAbonos(actualizados)
-    pacientesStorageService.guardarItem(`abonos_${paciente.id}`, actualizados)
+      abonosPrevios: abonos,
+    })
 
-    // BUG-ABONOS-PAGOS: sincronizar con módulo Pagos
-    pagosStorageService.crearPagoDesdeAbono(paciente, abonoObj)
-
+    setAbonos(abonosActualizados)
     setValorAbono('')
   }
 
