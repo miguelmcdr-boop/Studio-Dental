@@ -8,9 +8,11 @@ const { mockConfirm, mockAlert } = vi.hoisted(() => ({
 
 vi.mock('../services/pacientesStorageService', () => ({
   pacientesStorageService: {
+    obtenerPacientes: vi.fn(() => []),
     eliminarPaciente: vi.fn(() => Promise.resolve(true)),
     eliminarEvolucionesDePaciente: vi.fn(),
-    eliminarRecetasDePaciente: vi.fn()
+    eliminarRecetasDePaciente: vi.fn(),
+    eliminarItem: vi.fn()
   }
 }))
 

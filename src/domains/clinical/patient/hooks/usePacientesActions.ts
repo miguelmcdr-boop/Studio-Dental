@@ -1,9 +1,5 @@
 import { useState } from 'react'
-import { pacientesStorageService } from '../services/pacientesStorageService'
-import { odontogramaStorageService } from '../../../../domains/clinical/odontogram/services/odontogramaStorageService'
-import { presupuestosStorageService } from '../../../../domains/billing/budget/services/presupuestosStorageService'
-import { eliminarAbonosDePaciente } from '../../../../domains/billing/payment/services/pagosAbonosLegacyService'
-import { eliminarTodosPorPaciente as eliminarAdjuntosDelPaciente } from '../../../../services/adjuntosStorageService'
+import { deletePatient } from '../../../../application/patients'
 import { createLogger } from '../../../../services/logger'
 import { useAppDialog } from '../../../../hooks/useAppDialog'
 import type { Paciente } from '../schemas/pacienteSchema'
@@ -18,7 +14,11 @@ export interface UsePacientesActionsReturn {
 /**
  * Hook para acciones sobre pacientes (crear, editar, eliminar).
  * Extraído de App.jsx para respetar límite arquitectónico (F6-F).
- * 
+ *
+ * Refactorizado en Fase 4B-2: actúa como un wrapper delgado que maneja el
+ * estado de UI (loading, confirmación, error) y delega la orquestación de
+ * eliminación en cascada al Application Service `deletePatient`.
+ *
  * @param pacientes - Lista actual de pacientes
  * @param setPacientes - Setter de pacientes
  * @param pacienteSeleccionado - Paciente actualmente seleccionado
@@ -34,9 +34,7 @@ export const usePacientesActions = (
   const { confirm, alert: dialogAlert } = useAppDialog()
 
   /**
-   * F6-F: Soft delete de paciente.
-   * Marca deleted_at en Supabase (trigger trg_pacientes_audit registra automáticamente en audit_log).
-   * Paciente queda oculto pero reversible por admin.
+   * F6-F: Soft delete de paciente vía Application Service.
    */
   const handleEliminarPaciente = async (idPaciente: string | number): Promise<boolean> => {
     if (eliminando) return false
@@ -53,10 +51,9 @@ export const usePacientesActions = (
     setEliminando(true)
 
     try {
-      // F6-F: soft delete en Supabase (marca deleted_at)
-      const eliminado = await pacientesStorageService.eliminarPaciente(idPaciente)
+      const resultado = await deletePatient({ pacienteId: idPaciente })
 
-      if (eliminado) {
+      if (resultado.success) {
         // Actualizar lista local (paciente desaparece de la vista normal)
         const nuevaLista = pacientes.filter(p => String(p.id) !== String(idPaciente))
         setPacientes(nuevaLista)
@@ -68,27 +65,14 @@ export const usePacientesActions = (
           }
         }
 
-        // Eliminar datos clínicos relacionados de localStorage (caché local)
-        // F6-D: estos datos ahora viven en Supabase, pero limpiamos caché local
-        odontogramaStorageService.eliminarOdontogramasDePaciente(idPaciente)
-        pacientesStorageService.eliminarEvolucionesDePaciente(idPaciente)
-        presupuestosStorageService.eliminarItemsDePaciente(idPaciente)
-        eliminarAbonosDePaciente(idPaciente)
-        pacientesStorageService.eliminarRecetasDePaciente(idPaciente)
-
-        // Los adjuntos clínicos viven en Supabase Storage + IndexedDB (F6-E).
-        // La eliminación es asíncrona; se registra el error si falla.
-        eliminarAdjuntosDelPaciente(idPaciente).catch((e: unknown) => {
-          log.error('No se pudieron eliminar adjuntos IndexedDB:', e)
-        })
-
         log.info(`[F6-F] Paciente ${idPaciente} eliminado (soft delete)`)
         return true
       } else {
-        log.error('[F6-F] Error al eliminar paciente (soft delete falló)')
+        const esInesperado = Boolean(resultado.isUnexpected)
+        log.error('[F6-F] Error al eliminar paciente:', resultado.error)
         await dialogAlert({
-          title: 'Error al eliminar',
-          description: 'No se pudo eliminar el paciente. Intenta de nuevo.',
+          title: esInesperado ? 'Error inesperado' : 'Error al eliminar',
+          description: resultado.error || 'No se pudo eliminar el paciente. Intenta de nuevo.',
           variant: 'error',
           confirmText: 'Entendido'
         })
