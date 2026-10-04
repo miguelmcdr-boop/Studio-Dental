@@ -13,7 +13,7 @@ vi.mock('../../../infrastructure/auth/authService', () => ({
 }))
 
 // Mock de sesionStore
-vi.mock('../../../store/sesionStore', () => ({
+vi.mock('../../../app/stores/sesionStore', () => ({
   useSesionStore: vi.fn((selector) => {
     const state = {
       userProfile: {
@@ -35,7 +35,7 @@ vi.mock('../../../infrastructure/logging/logger', () => ({
   })
 }))
 
-vi.mock('../../../hooks/useAppDialog', () => ({
+vi.mock('../../../shared/hooks/useAppDialog', () => ({
   useAppDialog: vi.fn(() => ({
     confirm: vi.fn().mockResolvedValue(true),
     alert: vi.fn().mockResolvedValue(undefined),
@@ -49,7 +49,7 @@ import {
   generarUrlInvitacion,
   listarMiembros 
 } from '../../../infrastructure/auth/authService'
-import { useDialogStore } from '../../../store/dialogStore'
+import { useDialogStore } from '../../../app/stores/dialogStore'
 
 describe('GestionMiembrosModulo', () => {
   beforeEach(() => {

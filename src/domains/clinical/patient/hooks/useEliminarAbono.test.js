@@ -19,7 +19,7 @@ vi.mock('../../../../domains/billing/payment/services/pagosStorageService', () =
   }
 }))
 
-vi.mock('../../../../hooks/useAppDialog', () => ({
+vi.mock('../../../../shared/hooks/useAppDialog', () => ({
   useAppDialog: () => ({ confirm: mockConfirm })
 }))
 

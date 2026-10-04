@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { validarRut, normalizarRut } from '../../../../utils/validarRut'
+import { validarRut, normalizarRut } from '../../../../shared/utils/validarRut'
 
 /**
  * Esquema de validación del paciente (F2-04 — MASTER_ROADMAP).

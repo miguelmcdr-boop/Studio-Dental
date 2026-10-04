@@ -12,7 +12,7 @@
  * el SW de forma confiable.
  */
 import { describe, it, expect } from 'vitest'
-import { debeCachearSupabase } from './src/utils/supabaseCacheFilter.ts'
+import { debeCachearSupabase } from './src/shared/utils/supabaseCacheFilter.ts'
 
 describe('F7-06: filtro de caching de Supabase (debeCachearSupabase)', () => {
   describe('Exclusiones de PHI (debe retornar false)', () => {

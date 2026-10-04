@@ -6,7 +6,7 @@
 import React, { memo } from 'react'
 import { FAMILIAS_ALERGIAS, type AlergiaCruzada, type FamiliaAlergia } from '../schemas/alergiaCruzadaSchema'
 import type { AlergiaCruzadaItem } from '../../../../infrastructure/clinical-data/vademecumService'
-import { Icon } from '../../../../components/Icon'
+import { Icon } from '../../../../shared/ui/Icon'
 import { Dna, AlertTriangle, FileText } from 'lucide-react'
 
 export interface CeldaAlergiaInfo {

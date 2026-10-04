@@ -11,7 +11,7 @@ import {
   type AbonoItem,
   type PacienteRef,
 } from '../../../../application/billing'
-import { useAppDialog } from '../../../../hooks/useAppDialog'
+import { useAppDialog } from '../../../../shared/hooks/useAppDialog'
 
 export type { AbonoItem, PacienteRef }
 

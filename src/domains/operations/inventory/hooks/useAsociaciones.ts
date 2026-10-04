@@ -8,7 +8,7 @@ import {
 } from '../services/inventarioStorageService'
 import { INSUMOS_POR_PRESTACION_DEFAULT, PALABRAS_CLAVE_POR_CATEGORIA_DEFAULT } from '../utils/inventarioCalculations'
 import { createLogger } from '../../../../infrastructure/logging/logger'
-import { useAppDialog } from '../../../../hooks/useAppDialog'
+import { useAppDialog } from '../../../../shared/hooks/useAppDialog'
 
 const log = createLogger('useAsociaciones')
 const STORAGE_KEY_PALABRAS_CLAVE = 'studio_dental_inventario_palabras_clave'

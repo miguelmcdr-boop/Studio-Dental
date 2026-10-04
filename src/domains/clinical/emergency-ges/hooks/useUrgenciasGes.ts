@@ -4,7 +4,7 @@ import {
   type AtencionGes
 } from '../services/urgenciasGesStorageService'
 import { generarFolioGes } from '../utils/urgenciasGesCalculations'
-import { useAppDialog } from '../../../../hooks/useAppDialog'
+import { useAppDialog } from '../../../../shared/hooks/useAppDialog'
 
 export interface UseUrgenciasGesReturn {
   atenciones: AtencionGes[]

@@ -1,7 +1,7 @@
 import React, { memo, useState } from 'react'
-import { Modal } from '../../../../components/ui/Modal'
-import { Input } from '../../../../components/ui/Input'
-import { Button } from '../../../../components/ui/Button'
+import { Modal } from '../../../../shared/ui/ui/Modal'
+import { Input } from '../../../../shared/ui/ui/Input'
+import { Button } from '../../../../shared/ui/ui/Button'
 import {
   EQUIPOS_AUTOCLAVE,
   PROGRAMAS_ESTERILIZACION,
@@ -10,7 +10,7 @@ import {
   type CargaEsterilizacion
 } from '../constants/esterilizacionConstants'
 import { generarCodigoLoteEsterilizacion } from '../utils/esterilizacionCalculations'
-import { useAppDialog } from '../../../../hooks/useAppDialog'
+import { useAppDialog } from '../../../../shared/hooks/useAppDialog'
 
 export interface ModalNuevaCargaProps {
   userProfile?: { nombreCompleto?: string; [key: string]: unknown } | null

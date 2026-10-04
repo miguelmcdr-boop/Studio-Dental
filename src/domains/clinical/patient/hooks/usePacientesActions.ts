@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { deletePatient } from '../../../../application/patients'
 import { createLogger } from '../../../../infrastructure/logging/logger'
-import { useAppDialog } from '../../../../hooks/useAppDialog'
+import { useAppDialog } from '../../../../shared/hooks/useAppDialog'
 import type { Paciente } from '../schemas/pacienteSchema'
 
 const log = createLogger('usePacientesActions')

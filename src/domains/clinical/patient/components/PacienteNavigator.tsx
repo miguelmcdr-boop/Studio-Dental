@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { ChevronLeft, ChevronRight, Users } from 'lucide-react'
-import { Icon } from '../../../../components/Icon'
+import { Icon } from '../../../../shared/ui/Icon'
 
 export interface PacienteNavigatorProps {
   indiceActual: number

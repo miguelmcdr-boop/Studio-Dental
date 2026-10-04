@@ -19,8 +19,8 @@ import {
   pacientesStorageService,
   type Paciente,
 } from '../../domains/clinical/patient'
-import { obtenerFechaLocalISO } from '../../utils/dateUtils'
-import { obtenerAlertasOperativas } from '../../utils/alertasOperativas'
+import { obtenerFechaLocalISO } from '../../shared/utils/dateUtils'
+import { obtenerAlertasOperativas } from '../../shared/utils/alertasOperativas'
 
 export interface ResumenConsultasDashboard {
   fecha: string

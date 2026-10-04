@@ -29,8 +29,8 @@ import { finanzasStorageService } from '../../domains/billing/cash-register/serv
 import { agendaStorageService } from '../../domains/operations/agenda/services/agendaStorageService'
 import { pagosStorageService } from '../../domains/billing/payment/services/pagosStorageService'
 import { presupuestosStorageService } from '../../domains/billing/budget/services/presupuestosStorageService'
-import { usePacientesStore } from '../../store/pacientesStore'
-import { usePrestacionesStore } from '../../store/prestacionesStore'
+import { usePacientesStore } from '../../app/stores/pacientesStore'
+import { usePrestacionesStore } from '../../app/stores/prestacionesStore'
 import { invalidarCacheAdjuntos } from '../storage/adjuntosStorageService'
 import { createLogger } from '../logging/logger'
 

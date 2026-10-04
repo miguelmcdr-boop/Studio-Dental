@@ -1,5 +1,5 @@
 import React, { memo } from 'react'
-import { DentikOSMicroSeal } from '../../../../components/brand/DentikOSMicroSeal'
+import { DentikOSMicroSeal } from '../../../../shared/ui/brand/DentikOSMicroSeal'
 
 export interface ConsentimientoDoc {
   id?: string | number

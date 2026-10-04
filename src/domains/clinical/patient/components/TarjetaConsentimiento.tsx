@@ -1,7 +1,7 @@
 import React, { memo } from 'react'
 import { Printer, Trash2, Download } from 'lucide-react'
-import { Button } from '../../../../components/ui/Button'
-import { useAppDialog } from '../../../../hooks/useAppDialog'
+import { Button } from '../../../../shared/ui/ui/Button'
+import { useAppDialog } from '../../../../shared/hooks/useAppDialog'
 import type { ArchivoClinicoUI } from '../hooks/useArchivosClinicos'
 
 export interface MetadataConsentimiento {

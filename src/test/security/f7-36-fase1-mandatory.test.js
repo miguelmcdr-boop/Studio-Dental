@@ -64,7 +64,7 @@ vi.mock('../../infrastructure/logging/logger', () => ({
 // F7-36 FIX: Mock de stores Zustand para evitar que se inicialicen con
 // SEED_PACIENTES_DEMO al ser importados (lo que contaminaba la caché
 // de pacientesStorageService con Camila Silva y Carlos Mendoza).
-vi.mock('../../store/pacientesStore', () => ({
+vi.mock('../../app/stores/pacientesStore', () => ({
   usePacientesStore: {
     getState: vi.fn(() => ({ pacientes: [], setPacientes: vi.fn() })),
     setState: vi.fn(),
@@ -72,7 +72,7 @@ vi.mock('../../store/pacientesStore', () => ({
   },
 }))
 
-vi.mock('../../store/prestacionesStore', () => ({
+vi.mock('../../app/stores/prestacionesStore', () => ({
   usePrestacionesStore: {
     getState: vi.fn(() => ({ prestaciones: [], setPrestaciones: vi.fn() })),
     setState: vi.fn(),
@@ -80,7 +80,7 @@ vi.mock('../../store/prestacionesStore', () => ({
   },
 }))
 
-vi.mock('../../store/sesionStore', () => ({
+vi.mock('../../app/stores/sesionStore', () => ({
   useSesionStore: {
     getState: vi.fn(() => ({ userProfile: { clinicaId: clinicaActivaActual } })),
     setState: vi.fn(),

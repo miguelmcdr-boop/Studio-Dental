@@ -1,8 +1,8 @@
 import React, { memo, useState } from 'react'
 import { Scan, FileText, Paperclip, Trash2, Recycle, AlertTriangle } from 'lucide-react'
-import { Input } from '../../../../components/ui/Input'
-import { Button } from '../../../../components/ui/Button'
-import { useAppDialog } from '../../../../hooks/useAppDialog'
+import { Input } from '../../../../shared/ui/ui/Input'
+import { Button } from '../../../../shared/ui/ui/Button'
+import { useAppDialog } from '../../../../shared/hooks/useAppDialog'
 import type { ArchivoEliminadoFormateado, PermisosArchivos } from '../hooks/useArchivosClinicos'
 
 export interface PapeleraArchivosProps {

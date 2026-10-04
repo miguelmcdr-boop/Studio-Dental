@@ -1,7 +1,7 @@
 import React, { memo } from 'react'
-import { formatearCLP } from '../../../../utils/formatoMoneda'
-import { Input } from '../../../../components/ui/Input'
-import { Button } from '../../../../components/ui/Button'
+import { formatearCLP } from '../../../../shared/utils/formatoMoneda'
+import { Input } from '../../../../shared/ui/ui/Input'
+import { Button } from '../../../../shared/ui/ui/Button'
 import { Trash2 } from 'lucide-react'
 import type { AbonoItem } from '../hooks/usePresupuesto'
 

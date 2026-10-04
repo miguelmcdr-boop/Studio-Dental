@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { pacientesStorageService } from '../services/pacientesStorageService'
 import { obtenerAutoresDeEliminacion, type PurgeResult } from '../services/pacientesSoftDeleteService'
-import { usePacientesStore } from '../../../../store/pacientesStore'
+import { usePacientesStore } from '../../../../app/stores/pacientesStore'
 import { notificationService } from '../../../../infrastructure/notification/notificationService'
 import { createLogger } from '../../../../infrastructure/logging/logger'
 import { usePapeleraVaciar, type PacienteEliminado } from './usePapelera.vaciar'

@@ -3,7 +3,7 @@
  * F4-03f-5a
  */
 import React, { useState, useEffect } from 'react'
-import { Modal } from '../../../../components/ui/Modal'
+import { Modal } from '../../../../shared/ui/ui/Modal'
 import {
   validarAlergiaCruzada,
   FAMILIAS_ALERGIAS,

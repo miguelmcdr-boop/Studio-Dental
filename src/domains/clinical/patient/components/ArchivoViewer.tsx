@@ -1,6 +1,6 @@
 import React, { memo, useState, useEffect } from 'react'
 import { Image, FileText, Paperclip } from 'lucide-react'
-import { useAppDialog } from '../../../../hooks/useAppDialog'
+import { useAppDialog } from '../../../../shared/hooks/useAppDialog'
 import type {
   ArchivoClinicoUI,
   ArchivoVisualizar,

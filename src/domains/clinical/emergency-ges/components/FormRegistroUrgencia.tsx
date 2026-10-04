@@ -1,12 +1,12 @@
 import React, { memo, useState } from 'react'
 import { FileText } from 'lucide-react'
-import { Button } from '../../../../components/ui/Button'
+import { Button } from '../../../../shared/ui/ui/Button'
 import {
   PATOLOGIAS_GES_ODONTO,
   DIAGNOSTICOS_URGENCIA_COMMON,
   CATEGORIAS_TRIAGE_URGENCIA
 } from '../constants/urgenciasGesConstants'
-import { useAppDialog } from '../../../../hooks/useAppDialog'
+import { useAppDialog } from '../../../../shared/hooks/useAppDialog'
 import type { AtencionGes } from '../services/urgenciasGesStorageService'
 
 export interface PacienteUrgenciaMinimo {

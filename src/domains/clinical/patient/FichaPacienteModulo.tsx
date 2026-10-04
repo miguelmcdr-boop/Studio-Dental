@@ -26,12 +26,12 @@ import { EndodonciaModulo } from '../../../domains/specialty/endo'
 import { ImplantesModulo } from '../../../domains/specialty/surg'
 import { OdontopediatriaModulo } from '../../../domains/specialty/peds'
 import { SmileDesignModulo } from '../../../domains/specialty/dsd'
-import { Icon } from '../../../components/Icon'
-import { ErrorBoundary } from '../../../components/ErrorBoundary' // F6-01
+import { Icon } from '../../../shared/ui/Icon'
+import { ErrorBoundary } from '../../../shared/ui/ErrorBoundary' // F6-01
 
 // Stores de Zustand
-import { useSesionStore } from '../../../store/sesionStore'
-import { usePrestacionesStore } from '../../../store/prestacionesStore'
+import { useSesionStore } from '../../../app/stores/sesionStore'
+import { usePrestacionesStore } from '../../../app/stores/prestacionesStore'
 import type { Paciente } from './schemas/pacienteSchema'
 import type { PrestacionArancel } from './hooks/usePresupuesto'
 import type { OdontogramaData } from '../../../domains/clinical/odontogram/hooks/useOdontograma'

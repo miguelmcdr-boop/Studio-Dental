@@ -1,5 +1,5 @@
 import React, { memo, useEffect, useState } from 'react'
-import { DienteSVG, type EstadosPiezaDental } from '../../../../components/DienteSVG'
+import { DienteSVG, type EstadosPiezaDental } from '../../../../shared/ui/DienteSVG'
 import { odontogramaStorageService } from '../../../clinical/odontogram'
 import { createLogger } from '../../../../infrastructure/logging/logger'
 import { Printer } from 'lucide-react'

@@ -34,10 +34,10 @@ vi.mock('../../domains/billing/budget/services/presupuestosStorageService', () =
 }))
 
 // Mock de stores Zustand
-vi.mock('../../store/pacientesStore', () => ({
+vi.mock('../../app/stores/pacientesStore', () => ({
   usePacientesStore: { setState: vi.fn() },
 }))
-vi.mock('../../store/prestacionesStore', () => ({
+vi.mock('../../app/stores/prestacionesStore', () => ({
   usePrestacionesStore: { setState: vi.fn() },
 }))
 
@@ -51,8 +51,8 @@ import { finanzasStorageService } from '../../domains/billing/cash-register/serv
 import { agendaStorageService } from '../../domains/operations/agenda/services/agendaStorageService'
 import { pagosStorageService } from '../../domains/billing/payment/services/pagosStorageService'
 import { presupuestosStorageService } from '../../domains/billing/budget/services/presupuestosStorageService'
-import { usePacientesStore } from '../../store/pacientesStore'
-import { usePrestacionesStore } from '../../store/prestacionesStore'
+import { usePacientesStore } from '../../app/stores/pacientesStore'
+import { usePrestacionesStore } from '../../app/stores/prestacionesStore'
 import { invalidarCacheAdjuntos } from '../storage/adjuntosStorageService'
 import { invalidarCacheCambioClinica } from './invalidarCacheCambioClinica'
 

@@ -1,6 +1,6 @@
 import React, { memo, useState, useMemo } from 'react'
 import { Baby, Heart, AlertTriangle, Ban } from 'lucide-react'
-import { calcularDosisAnestesiaCompleta, listarAnestesicosDisponibles } from '../../../../utils/anestesiaCalculations'
+import { calcularDosisAnestesiaCompleta, listarAnestesicosDisponibles } from '../../../../shared/utils/anestesiaCalculations'
 import { esCardiopata, esPediatria, parseEdad } from '../utils/anestesiaHelpers'
 import { CONFIG_ESTADO } from '../constants/anestesiaConstants'
 import type { Paciente } from '../schemas/pacienteSchema'

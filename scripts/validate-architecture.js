@@ -213,12 +213,12 @@ function verificarCapasServices() {
       const content = fs.readFileSync(archivo, 'utf-8')
       const lineas = content.split(String.fromCharCode(10))
       for (const linea of lineas) {
-        if (/from\s+['"].*\/components\//.test(linea)) {
+        if (/from\s+['"].*\/components\//.test(linea) || /from\s+['"].*\/shared\/ui\//.test(linea)) {
           violations.push(
             `🔀 [CAPAS: infrastructure → components] ${rel} - ${linea.trim()}`
           )
         }
-        if (/from\s+['"].*\/hooks\//.test(linea)) {
+        if (/from\s+['"].*\/hooks\//.test(linea) || /from\s+['"].*\/shared\/hooks\//.test(linea)) {
           violations.push(
             `🔀 [CAPAS: infrastructure → hooks] ${rel} - ${linea.trim()}`
           )
@@ -234,28 +234,30 @@ function verificarCapasServices() {
 // ─────────────────────────────────────────────────────────────
 
 function verificarSupabaseEnComponents() {
-  const componentsDir = path.join(SRC, 'components')
-  if (!fs.existsSync(componentsDir)) return
-  
-  const archivos = listarArchivos(componentsDir, ['.js', '.jsx'])
-  
-  for (const archivo of archivos) {
-    const rel = rutaRelativa(archivo)
+  const dirs = [path.join(SRC, 'components'), path.join(SRC, 'shared', 'ui')]
+  for (const componentsDir of dirs) {
+    if (!fs.existsSync(componentsDir)) continue
     
-    // Excepciones documentadas en allowlist con justificación
-    if (rel === 'src/components/ConnectionIndicator.jsx') {
-      // Legítimo: componente de UI que muestra estado de conexión
-      continue
-    }
+    const archivos = listarArchivos(componentsDir, ['.js', '.jsx'])
     
-    const content2 = fs.readFileSync(archivo, 'utf-8')
-    const lineas = content2.split(String.fromCharCode(10))
-    for (const linea of lineas) {
-      if (/from\s+['"].*supabaseClient['"]/.test(linea) ||
-          /from\s+['"]@supabase\/supabase-js['"]/.test(linea)) {
-        violations.push(
-          `🔀 [CAPAS: component → Supabase directo] ${rel} - ${linea.trim()}`
-        )
+    for (const archivo of archivos) {
+      const rel = rutaRelativa(archivo)
+      
+      // Excepciones documentadas en allowlist con justificación
+      if (rel === 'src/components/ConnectionIndicator.jsx' || rel === 'src/shared/ui/ConnectionIndicator.jsx') {
+        // Legítimo: componente de UI que muestra estado de conexión
+        continue
+      }
+      
+      const content2 = fs.readFileSync(archivo, 'utf-8')
+      const lineas = content2.split(String.fromCharCode(10))
+      for (const linea of lineas) {
+        if (/from\s+['"].*supabaseClient['"]/.test(linea) ||
+            /from\s+['"]@supabase\/supabase-js['"]/.test(linea)) {
+          violations.push(
+            `🔀 [CAPAS: component → Supabase directo] ${rel} - ${linea.trim()}`
+          )
+        }
       }
     }
   }

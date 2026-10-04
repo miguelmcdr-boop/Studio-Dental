@@ -17,7 +17,7 @@
  * Si alergias no informadas → tipo: 'sin_datos' (nunca null)
  */
 import { vademecumService, type FarmacoVademecum, type EvaluacionAlergiaCruzada } from '../../../../infrastructure/clinical-data/vademecumService'
-import { normalizar } from '../../../../utils/anestesiaCalculations'
+import { normalizar } from '../../../../shared/utils/anestesiaCalculations'
 
 export interface MensajeDinamicoResultado {
   mensaje: string

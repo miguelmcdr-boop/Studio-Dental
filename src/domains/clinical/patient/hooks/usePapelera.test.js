@@ -23,7 +23,7 @@ vi.mock('../services/pacientesSoftDeleteService', () => ({
   obtenerAutoresDeEliminacion: mocks.mockObtenerAutores
 }))
 
-vi.mock('../../../../store/pacientesStore', () => ({
+vi.mock('../../../../app/stores/pacientesStore', () => ({
   usePacientesStore: (selector) => {
     if (selector.toString().includes('refrescarDesdeSupabase')) {
       return mocks.mockRefrescar

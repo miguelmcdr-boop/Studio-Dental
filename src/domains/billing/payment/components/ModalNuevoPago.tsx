@@ -1,15 +1,15 @@
 import React, { memo, useState, useEffect } from 'react'
-import { formatearCLP } from '../../../../utils/formatoMoneda'
-import { Modal } from '../../../../components/ui/Modal'
-import { Input } from '../../../../components/ui/Input'
-import { Button } from '../../../../components/ui/Button'
+import { formatearCLP } from '../../../../shared/utils/formatoMoneda'
+import { Modal } from '../../../../shared/ui/ui/Modal'
+import { Input } from '../../../../shared/ui/ui/Input'
+import { Button } from '../../../../shared/ui/ui/Button'
 import {
   METODOS_PAGO_GOLD,
   TIPOS_DOCUMENTO_TRIBUTARIO,
   CONCEPTOS_PAGO
 } from '../constants/pagosConstants'
 import { generarFolioRecibo } from '../utils/pagosCalculations'
-import { useAppDialog } from '../../../../hooks/useAppDialog'
+import { useAppDialog } from '../../../../shared/hooks/useAppDialog'
 import { usePrestacionesPaciente } from '../hooks/usePrestacionesPaciente'
 import { SelectorPrestacionesImputadas } from './SelectorPrestacionesImputadas'
 import type { Pago } from '../services/pagosStorageService'

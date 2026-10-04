@@ -1,7 +1,7 @@
 import React, { memo, useState } from 'react'
 import { AlertTriangle, Package, Lightbulb } from 'lucide-react'
-import { Modal } from '../../../../components/ui/Modal'
-import { Button } from '../../../../components/ui/Button'
+import { Modal } from '../../../../shared/ui/ui/Modal'
+import { Button } from '../../../../shared/ui/ui/Button'
 
 export interface MaterialInventarioDisponible {
   itemId: string | number

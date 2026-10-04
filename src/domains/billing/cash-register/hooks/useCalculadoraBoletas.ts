@@ -8,7 +8,7 @@ import { useState } from 'react'
 import type React from 'react'
 import { PORCENTAJE_RETENCION_HONORARIOS_DEFAULT } from '../constants/finanzasConstants'
 import { calcularBoletaHonorarios, calcularMontoComision, formatearCLP } from '../utils/finanzasCalculations'
-import { useAppDialog } from '../../../../hooks/useAppDialog'
+import { useAppDialog } from '../../../../shared/hooks/useAppDialog'
 
 export interface BoletaCalculada {
   bruto: number

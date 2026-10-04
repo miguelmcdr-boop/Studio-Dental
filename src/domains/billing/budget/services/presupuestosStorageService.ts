@@ -17,7 +17,7 @@
  * - sincronizarDesdeSupabase()         → ASYNC, refresca caché desde Supabase protegiendo pendientes
  * - resetCache()                       → limpia caché (para tests)
  */
-import { obtenerFechaLocalISO } from '../../../../utils/dateUtils'
+import { obtenerFechaLocalISO } from '../../../../shared/utils/dateUtils'
 import { leerJSON, escribirJSON, createTenantRepository } from '../../../../infrastructure/storage/localStorageRepository'
 import { validarListaPresupuestos } from '../schemas/presupuestoSchema'
 import { supabase, USE_SUPABASE } from '../../../../infrastructure/supabase/supabaseClient'

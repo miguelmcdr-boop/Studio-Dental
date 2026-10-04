@@ -1,6 +1,6 @@
 import React, { memo, useState } from 'react'
 import { Printer, FileText } from 'lucide-react'
-import { DentikOSMicroSeal } from '../../../../components/brand/DentikOSMicroSeal'
+import { DentikOSMicroSeal } from '../../../../shared/ui/brand/DentikOSMicroSeal'
 import type { Pago } from '../services/pagosStorageService'
 import type { UserProfileRefPago } from './ModalNuevoPago'
 

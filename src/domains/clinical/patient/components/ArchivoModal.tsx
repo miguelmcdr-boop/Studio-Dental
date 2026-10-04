@@ -1,5 +1,5 @@
 import React, { memo } from 'react'
-import { Modal } from '../../../../components/ui/Modal'
+import { Modal } from '../../../../shared/ui/ui/Modal'
 import { FileText, Lightbulb } from 'lucide-react'
 
 export interface ArchivoModalProps {

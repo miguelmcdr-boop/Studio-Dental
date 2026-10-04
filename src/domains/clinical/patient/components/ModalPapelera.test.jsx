@@ -2,7 +2,7 @@ import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { ModalPapelera } from './ModalPapelera'
-import { useDialogStore } from '../../../../store/dialogStore'
+import { useDialogStore } from '../../../../app/stores/dialogStore'
 
 describe('ModalPapelera (F6-L)', () => {
   const mockPacientes = [

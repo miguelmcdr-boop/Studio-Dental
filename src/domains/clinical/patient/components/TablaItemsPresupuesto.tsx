@@ -1,6 +1,6 @@
 import React, { memo } from 'react'
-import { formatearCLP } from '../../../../utils/formatoMoneda'
-import { Button } from '../../../../components/ui/Button'
+import { formatearCLP } from '../../../../shared/utils/formatoMoneda'
+import { Button } from '../../../../shared/ui/ui/Button'
 import type { ItemPresupuesto } from '../hooks/usePresupuesto'
 import type { Paciente } from '../schemas/pacienteSchema'
 

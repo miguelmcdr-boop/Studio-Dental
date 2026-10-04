@@ -19,8 +19,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useAgenda } from './useAgenda'
 import { agendaStorageService } from '../services/agendaStorageService'
 import { pacientesStorageService } from '../../../../domains/clinical/patient/services/pacientesStorageService'
-import { usePacientesStore } from '../../../../store/pacientesStore'
-import { useDialogStore } from '../../../../store/dialogStore'
+import { usePacientesStore } from '../../../../app/stores/pacientesStore'
+import { useDialogStore } from '../../../../app/stores/dialogStore'
 
 describe('useAgenda', () => {
   beforeEach(() => {

@@ -21,7 +21,7 @@ import {
   eliminarAdjuntoDeStorage,
   storageDisponible
 } from './adjuntosSupabaseService'
-import { useSesionStore } from '../../store/sesionStore'
+import { useSesionStore } from '../../app/stores/sesionStore'
 import { createTenantRepository } from './localStorageRepository'
 import { createLogger } from '../logging/logger'
 

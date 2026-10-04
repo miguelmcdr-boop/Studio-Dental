@@ -1,11 +1,11 @@
 import React, { memo, useState } from 'react'
 import { Dna, Plus, Check, X } from 'lucide-react'
-import { Icon } from '../../../../components/Icon'
+import { Icon } from '../../../../shared/ui/Icon'
 import {
   EQUIPOS_AUTOCLAVE,
   type PruebaBiologica
 } from '../constants/esterilizacionConstants'
-import { useAppDialog } from '../../../../hooks/useAppDialog'
+import { useAppDialog } from '../../../../shared/hooks/useAppDialog'
 
 export interface ControlBiologicoSectionProps {
   biologicos: PruebaBiologica[]

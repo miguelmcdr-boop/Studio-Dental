@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { useRBAC } from '../../../../hooks/useRBAC'
+import { useRBAC } from '../../../../shared/hooks/useRBAC'
 import { ROLES } from '../../../../constants/rbacConstants'
 import { listaArchivosDePaciente, type VaciarPapeleraArchivosResult } from '../../../../infrastructure/storage/r2ArchivosService'
 import {

@@ -1,6 +1,6 @@
 import React, { memo, useState, useEffect } from 'react'
 import { Droplet, RefreshCw, Save } from 'lucide-react'
-import { Icon } from '../../../components/Icon'
+import { Icon } from '../../../shared/ui/Icon'
 import { ArcadaSuperior } from './components/ArcadaSuperior'
 import { ArcadaInferior } from './components/ArcadaInferior'
 import { HeaderPeriodontal } from './components/HeaderPeriodontal'
@@ -18,7 +18,7 @@ import {
   type PeriodontogramaData
 } from './services/periodontogramaStorageService'
 import { createLogger } from '../../../infrastructure/logging/logger'
-import { useAppDialog } from '../../../hooks/useAppDialog'
+import { useAppDialog } from '../../../shared/hooks/useAppDialog'
 
 const log = createLogger('PeriodontogramaModulo')
 

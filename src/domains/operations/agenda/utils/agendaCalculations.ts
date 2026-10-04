@@ -1,4 +1,4 @@
-import { obtenerFechaLocalISO } from '../../../../utils/dateUtils'
+import { obtenerFechaLocalISO } from '../../../../shared/utils/dateUtils'
 
 export interface CitaAgendaCalc {
   id?: string | number

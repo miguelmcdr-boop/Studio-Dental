@@ -1,5 +1,5 @@
 import React, { memo, useState, useMemo } from 'react'
-import { formatearCLP } from '../../../../utils/formatoMoneda'
+import { formatearCLP } from '../../../../shared/utils/formatoMoneda'
 import { FileText, Pill, File, CheckCircle, Clock, Calendar, Sparkles, Star, ExternalLink } from 'lucide-react'
 
 export interface EvolucionNotaItem {

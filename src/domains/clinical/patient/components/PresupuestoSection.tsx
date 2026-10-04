@@ -4,13 +4,13 @@
  */
 import React, { memo } from 'react'
 import { Printer } from 'lucide-react'
-import { Button } from '../../../../components/ui/Button'
+import { Button } from '../../../../shared/ui/ui/Button'
 import { ModalDescuentoInventario } from './ModalDescuentoInventario'
 import { FormularioAgregarPrestacion } from './FormularioAgregarPrestacion'
 import { FormularioRegistrarAbono } from './FormularioRegistrarAbono'
 import { DocumentoImprimiblePresupuesto } from './DocumentoImprimiblePresupuesto'
 import { usePresupuesto, type UsePresupuestoProps, type ItemPresupuesto, type AbonoItem } from '../hooks/usePresupuesto'
-import type { EstadosPiezaDental } from '../../../../components/DienteSVG'
+import type { EstadosPiezaDental } from '../../../../shared/ui/DienteSVG'
 import type { UserProfilePresupuestoRef } from './TablaItemsPresupuesto'
 
 export interface PresupuestoSectionProps extends UsePresupuestoProps {

@@ -24,8 +24,8 @@
  *   - sessionStorage (no se usa en la app actualmente)
  */
 
-import { usePacientesStore } from '../../store/pacientesStore'
-import { usePrestacionesStore } from '../../store/prestacionesStore'
+import { usePacientesStore } from '../../app/stores/pacientesStore'
+import { usePrestacionesStore } from '../../app/stores/prestacionesStore'
 import { createLogger, type Logger } from '../logging/logger'
 
 const log = createLogger('purgarDatosLocales')

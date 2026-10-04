@@ -10,7 +10,7 @@ import { ModalPapeleraCertificados } from './ModalPapeleraCertificados'
 import { FormularioNuevoCertificado } from './FormularioNuevoCertificado'
 import { CertificadoImprimible } from './CertificadoImprimible'
 import { createLogger } from '../../../../infrastructure/logging/logger'
-import { useAppDialog } from '../../../../hooks/useAppDialog'
+import { useAppDialog } from '../../../../shared/hooks/useAppDialog'
 import type { Paciente } from '../schemas/pacienteSchema'
 
 const log = createLogger('CertificadosSection')

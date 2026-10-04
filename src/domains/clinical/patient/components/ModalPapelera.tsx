@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react'
-import { tiempoRelativo } from '../../../../utils/dateUtils'
-import { Modal } from '../../../../components/ui/Modal'
-import { Input } from '../../../../components/ui/Input'
-import { Button } from '../../../../components/ui/Button'
-import { useAppDialog } from '../../../../hooks/useAppDialog'
+import { tiempoRelativo } from '../../../../shared/utils/dateUtils'
+import { Modal } from '../../../../shared/ui/ui/Modal'
+import { Input } from '../../../../shared/ui/ui/Input'
+import { Button } from '../../../../shared/ui/ui/Button'
+import { useAppDialog } from '../../../../shared/hooks/useAppDialog'
 import { Trash2, Scale, AlertTriangle, Calendar, User, Lightbulb } from 'lucide-react'
 
 export interface PacienteEliminadoUI {

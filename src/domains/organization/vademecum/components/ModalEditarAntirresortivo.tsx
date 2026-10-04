@@ -3,8 +3,8 @@
  * F4-03f-3
  */
 import React, { useState, useEffect } from 'react'
-import { Modal } from '../../../../components/ui/Modal'
-import { Button } from '../../../../components/ui/Button'
+import { Modal } from '../../../../shared/ui/ui/Modal'
+import { Button } from '../../../../shared/ui/ui/Button'
 import { CamposFormularioAntirresortivo, type AntirresortivoFormState } from './CamposFormularioAntirresortivo'
 import { validarAntirresortivo, type Antirresortivo } from '../schemas/vademecumSchema'
 import { Bone, AlertTriangle } from 'lucide-react'

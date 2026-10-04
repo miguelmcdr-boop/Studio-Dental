@@ -1,5 +1,5 @@
 import React, { memo } from 'react'
-import { DentikOSMicroSeal } from '../../../../components/brand/DentikOSMicroSeal'
+import { DentikOSMicroSeal } from '../../../../shared/ui/brand/DentikOSMicroSeal'
 import type { CertificadoMedico } from '../services/certificadosStorageService'
 import type { CertificadoPapelera } from '../services/papeleraCertificadosService'
 import type { Paciente } from '../schemas/pacienteSchema'

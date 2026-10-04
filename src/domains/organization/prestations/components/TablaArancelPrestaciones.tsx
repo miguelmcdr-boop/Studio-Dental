@@ -1,6 +1,6 @@
 import React, { memo } from 'react'
 import { Pencil, Trash2 } from 'lucide-react'
-import { formatearCLP } from '../../../../utils/formatoMoneda'
+import { formatearCLP } from '../../../../shared/utils/formatoMoneda'
 import type { Prestacion } from '../services/prestacionesStorageService'
 
 export interface TablaArancelPrestacionesProps {

@@ -6,7 +6,7 @@ import {
   procesarColaSubidas,
   type AdjuntoClinico
 } from '../../../../infrastructure/storage/adjuntosStorageService'
-import { useSesionStore } from '../../../../store/sesionStore'
+import { useSesionStore } from '../../../../app/stores/sesionStore'
 
 export interface AdjuntoConUrl extends AdjuntoClinico {
   url: string

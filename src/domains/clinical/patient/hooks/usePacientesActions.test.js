@@ -42,7 +42,7 @@ vi.mock('../../../../infrastructure/logging/logger', () => ({
   })
 }))
 
-vi.mock('../../../../hooks/useAppDialog', () => ({
+vi.mock('../../../../shared/hooks/useAppDialog', () => ({
   useAppDialog: () => ({ confirm: mockConfirm, alert: mockAlert })
 }))
 

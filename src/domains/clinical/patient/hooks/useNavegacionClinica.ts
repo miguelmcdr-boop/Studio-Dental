@@ -16,8 +16,8 @@
  *   CommandPalette.
  */
 import { useMemo, useCallback, useEffect } from 'react'
-import { usePacientesStore } from '../../../../store/pacientesStore'
-import { useSesionStore } from '../../../../store/sesionStore'
+import { usePacientesStore } from '../../../../app/stores/pacientesStore'
+import { useSesionStore } from '../../../../app/stores/sesionStore'
 import type { Paciente } from '../schemas/pacienteSchema'
 
 export interface UseNavegacionClinicaReturn {

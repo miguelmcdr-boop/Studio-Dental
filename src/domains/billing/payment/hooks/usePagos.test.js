@@ -25,14 +25,14 @@ vi.mock('../services/pagosExportService', () => ({
   exportarAuditoriaPagosXLSX: vi.fn(() => Promise.resolve({ ok: true, total: 2, nombreArchivo: 'test.xlsx' }))
 }))
 
-vi.mock('../../../../hooks/useAppDialog', () => ({
+vi.mock('../../../../shared/hooks/useAppDialog', () => ({
   useAppDialog: () => ({
     confirm: mockConfirm,
     alert: mockAlert
   })
 }))
 
-vi.mock('../../../../store/sesionStore', () => ({
+vi.mock('../../../../app/stores/sesionStore', () => ({
   useSesionStore: (selector) => selector({
     userProfile: { email: 'admin@test.com', rol: 'admin' }
   })

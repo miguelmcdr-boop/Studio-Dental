@@ -10,7 +10,7 @@ import {
   calcularResumenComunicaciones,
   type ResumenComunicaciones
 } from '../utils/comunicacionesCalculations'
-import { useAppDialog } from '../../../../hooks/useAppDialog'
+import { useAppDialog } from '../../../../shared/hooks/useAppDialog'
 
 export interface PlantillaInput {
   id?: number | string

@@ -3,8 +3,8 @@
  * F4-03f-5b
  */
 import React, { useState, useEffect } from 'react'
-import { Modal } from '../../../../components/ui/Modal'
-import { Button } from '../../../../components/ui/Button'
+import { Modal } from '../../../../shared/ui/ui/Modal'
+import { Button } from '../../../../shared/ui/ui/Button'
 import { CamposFormularioInteraccion, type InteraccionFormState } from './CamposFormularioInteraccion'
 import { validarInteraccion, type Interaccion } from '../schemas/interaccionSchema'
 import { AlertTriangle } from 'lucide-react'

@@ -1,6 +1,6 @@
 import React, { memo } from 'react'
 import { Baby } from 'lucide-react'
-import { Icon } from '../../../../components/Icon'
+import { Icon } from '../../../../shared/ui/Icon'
 import { ESCALA_FRANKL } from '../constants/pediatriaConstants'
 
 export interface EscalaFranklProps {

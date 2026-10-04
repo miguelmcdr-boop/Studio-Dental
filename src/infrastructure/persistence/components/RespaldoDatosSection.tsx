@@ -1,6 +1,6 @@
 import React, { memo } from 'react'
 import { persistenceStorageService, descargarArchivoBackupJSON, type BackupBaseDeDatos } from '../services/persistenceStorageService'
-import { useAppDialog } from '../../../hooks/useAppDialog'
+import { useAppDialog } from '../../../shared/hooks/useAppDialog'
 import { AlertTriangle, Trash2, Save, Upload, Download } from 'lucide-react'
 
 export interface RespaldoDatosSectionProps {

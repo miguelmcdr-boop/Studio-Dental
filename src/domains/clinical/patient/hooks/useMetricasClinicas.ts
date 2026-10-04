@@ -18,7 +18,7 @@
  */
 import { useMemo } from 'react'
 import { obtenerProximaCitaPaciente, type ProximaCitaResumen } from '../../../../application/scheduling'
-import { formatearCLP } from '../../../../utils/formatoMoneda'
+import { formatearCLP } from '../../../../shared/utils/formatoMoneda'
 import type { EvolucionClinicaLocal } from '../services/evolucionesStorageService'
 import type { ItemPresupuesto, AbonoItem } from './usePresupuestoForm'
 import type { Paciente } from '../schemas/pacienteSchema'

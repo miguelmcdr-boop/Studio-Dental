@@ -4,7 +4,7 @@ import './index.css'
 import App from './App'
 // F6-01: ErrorBoundary global captura cualquier error no manejado
 // y evita pantalla blanca. El fallback mantiene la app montada.
-import { ErrorBoundary } from './components/ErrorBoundary'
+import { ErrorBoundary } from './shared/ui/ErrorBoundary'
 
 const rootElement = document.getElementById('root')
 if (rootElement) {

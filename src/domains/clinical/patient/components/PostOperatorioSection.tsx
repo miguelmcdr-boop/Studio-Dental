@@ -1,7 +1,7 @@
 import React, { memo, useState } from 'react'
 import { Printer, MessageCircle } from 'lucide-react'
 import { INDICACIONES_POST_OPERATORIAS } from '../../../../data/plantillas'
-import { DentikOSMicroSeal } from '../../../../components/brand/DentikOSMicroSeal'
+import { DentikOSMicroSeal } from '../../../../shared/ui/brand/DentikOSMicroSeal'
 import type { Paciente } from '../schemas/pacienteSchema'
 
 export interface PostOperatorioSectionProps {

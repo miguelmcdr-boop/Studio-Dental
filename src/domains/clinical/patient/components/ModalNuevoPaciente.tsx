@@ -1,8 +1,8 @@
 import React, { memo, useState } from 'react'
-import { Modal } from '../../../../components/ui/Modal'
-import { Input } from '../../../../components/ui/Input'
-import { Button } from '../../../../components/ui/Button'
-import { formatearRut, obtenerErrorRut } from '../../../../utils/validarRut'
+import { Modal } from '../../../../shared/ui/ui/Modal'
+import { Input } from '../../../../shared/ui/ui/Input'
+import { Button } from '../../../../shared/ui/ui/Button'
+import { formatearRut, obtenerErrorRut } from '../../../../shared/utils/validarRut'
 import { rutDuplicado, type Paciente } from '../schemas/pacienteSchema'
 
 export interface NuevoPacienteFormData {

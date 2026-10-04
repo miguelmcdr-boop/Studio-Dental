@@ -4,7 +4,7 @@ import { ArchivoUploader } from './ArchivoUploader'
 import { ArchivoViewer } from './ArchivoViewer'
 import { ArchivoModal } from './ArchivoModal'
 import { PapeleraArchivos } from './PapeleraArchivos'
-import { useRBAC } from '../../../../hooks/useRBAC'
+import { useRBAC } from '../../../../shared/hooks/useRBAC'
 import { PERMISOS } from '../../../../constants/rbacConstants'
 
 export interface AdjuntosSectionProps {

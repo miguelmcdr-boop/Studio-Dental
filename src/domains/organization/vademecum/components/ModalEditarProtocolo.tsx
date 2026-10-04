@@ -6,8 +6,8 @@
 import React, { useState, useEffect } from 'react'
 import { validarProfilaxis, type Profilaxis } from '../schemas/profilaxisSchema'
 import { validarAnticoagulante, type Anticoagulante } from '../schemas/anticoagulanteSchema'
-import { Modal } from '../../../../components/ui/Modal'
-import { Button } from '../../../../components/ui/Button'
+import { Modal } from '../../../../shared/ui/ui/Modal'
+import { Button } from '../../../../shared/ui/ui/Button'
 import { CamposFormularioProtocolo, type ProtocoloFormState } from './CamposFormularioProtocolo'
 import { AlertTriangle } from 'lucide-react'
 

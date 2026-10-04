@@ -8,11 +8,11 @@ import {
   presupuestosStorageService,
   type PresupuestoLocal
 } from '../services/presupuestosStorageService'
-import { obtenerFechaLocalISO } from '../../../../utils/dateUtils'
+import { obtenerFechaLocalISO } from '../../../../shared/utils/dateUtils'
 import { odontogramaStorageService } from '../../../clinical/odontogram'
 import { createLogger } from '../../../../infrastructure/logging/logger'
-import { Modal } from '../../../../components/ui/Modal'
-import { Button } from '../../../../components/ui/Button'
+import { Modal } from '../../../../shared/ui/ui/Modal'
+import { Button } from '../../../../shared/ui/ui/Button'
 import {
   CamposFormularioPresupuesto,
   type PacienteFormRef,
@@ -20,7 +20,7 @@ import {
   type HallazgoOdontograma,
   type ItemSeleccionadoPresupuesto
 } from './CamposFormularioPresupuesto'
-import { useAppDialog } from '../../../../hooks/useAppDialog'
+import { useAppDialog } from '../../../../shared/hooks/useAppDialog'
 
 const log = createLogger('ModalNuevoPresupuesto')
 

@@ -32,7 +32,7 @@ vi.mock('../../../../infrastructure/auth/authService', () => ({
   obtenerPerfil: vi.fn(() => null)
 }))
 
-vi.mock('../../../../store/sesionStore', () => ({
+vi.mock('../../../../app/stores/sesionStore', () => ({
   useSesionStore: {
     getState: vi.fn(() => ({
       userProfile: { clinicaId: estadoMock.clinicaId }

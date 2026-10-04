@@ -7,13 +7,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // Mockear los stores antes de importar el servicio
-vi.mock('../../store/pacientesStore', () => ({
+vi.mock('../../app/stores/pacientesStore', () => ({
   usePacientesStore: {
     setState: vi.fn(),
   },
 }))
 
-vi.mock('../../store/prestacionesStore', () => ({
+vi.mock('../../app/stores/prestacionesStore', () => ({
   usePrestacionesStore: {
     setState: vi.fn(),
   },
@@ -50,8 +50,8 @@ Object.defineProperty(globalThis, 'localStorage', {
 
 // Importar DESPUÉS de mockear
 const { purgarDatosLocales } = await import('./purgarDatosLocales.js')
-const { usePacientesStore } = await import('../../store/pacientesStore')
-const { usePrestacionesStore } = await import('../../store/prestacionesStore')
+const { usePacientesStore } = await import('../../app/stores/pacientesStore')
+const { usePrestacionesStore } = await import('../../app/stores/prestacionesStore')
 
 describe('purgarDatosLocales (F7-05)', () => {
   beforeEach(() => {

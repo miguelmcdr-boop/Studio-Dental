@@ -1,15 +1,15 @@
 import React, { memo, useState, useEffect } from 'react'
-import { Modal } from '../../../../components/ui/Modal'
-import { Input } from '../../../../components/ui/Input'
-import { Button } from '../../../../components/ui/Button'
+import { Modal } from '../../../../shared/ui/ui/Modal'
+import { Input } from '../../../../shared/ui/ui/Input'
+import { Button } from '../../../../shared/ui/ui/Button'
 import {
   TIPOS_TRABAJO_SUGERIDOS,
   type LaboratorioBase,
   type OrdenLaboratorio
 } from '../constants/laboratorioConstants'
 import { generarCodigoOrdenLab, buscarTarifaSugerida } from '../utils/laboratorioCalculations'
-import { obtenerFechaLocalISO } from '../../../../utils/dateUtils'
-import { useAppDialog } from '../../../../hooks/useAppDialog'
+import { obtenerFechaLocalISO } from '../../../../shared/utils/dateUtils'
+import { useAppDialog } from '../../../../shared/hooks/useAppDialog'
 
 export interface PacienteParaLab {
   id: string | number

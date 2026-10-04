@@ -44,7 +44,7 @@ import {
 // F7-36 FASE 1 (Commit 1.6): mock global de useSesionStore con clínica por defecto.
 // Los tests existentes que NO configuraban clinicaId ahora usan 'clinica-test-default'
 // como valor por defecto, preservando su comportamiento original.
-vi.mock('../../store/sesionStore', () => ({
+vi.mock('../../app/stores/sesionStore', () => ({
   useSesionStore: {
     getState: vi.fn(() => ({
       userProfile: { clinicaId: 'clinica-test-default' }
@@ -57,7 +57,7 @@ vi.mock('../../store/sesionStore', () => ({
  * @param {string|null} clinicaId - UUID de la clínica a simular, o null para "sin clínica"
  */
 const configurarClinica = async (clinicaId) => {
-  const { useSesionStore } = await import('../../store/sesionStore')
+  const { useSesionStore } = await import('../../app/stores/sesionStore')
   useSesionStore.getState.mockReturnValue({
     userProfile: clinicaId ? { clinicaId } : null
   })

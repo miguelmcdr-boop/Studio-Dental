@@ -1,7 +1,7 @@
 import React, { memo, useState } from 'react'
 import { Download } from 'lucide-react'
 import { BOXES_DENTALES } from '../constants/agendaConstants'
-import { obtenerFechaLocalISO } from '../../../../utils/dateUtils'
+import { obtenerFechaLocalISO } from '../../../../shared/utils/dateUtils'
 
 export interface AgendaDoctorItem {
   id?: string | number

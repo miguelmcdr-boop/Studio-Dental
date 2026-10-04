@@ -3,8 +3,8 @@
  * Extraído de PresupuestoSection.jsx para cumplir límites arquitectónicos (F7-25)
  */
 import React, { memo } from 'react'
-import { DienteSVG, type EstadosPiezaDental } from '../../../../components/DienteSVG'
-import { DentikOSMicroSeal } from '../../../../components/brand/DentikOSMicroSeal'
+import { DienteSVG, type EstadosPiezaDental } from '../../../../shared/ui/DienteSVG'
+import { DentikOSMicroSeal } from '../../../../shared/ui/brand/DentikOSMicroSeal'
 import { PERMANENTE_SUPERIOR, PERMANENTE_INFERIOR } from '../constants/pacientesConstants'
 import { TablaItemsPresupuesto, type UserProfilePresupuestoRef } from './TablaItemsPresupuesto'
 import type { ItemPresupuesto } from '../hooks/usePresupuesto'

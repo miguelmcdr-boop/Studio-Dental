@@ -8,7 +8,7 @@ import {
   calcularResumenPresupuestos,
   type ResumenPresupuestos
 } from '../utils/presupuestosCalculations'
-import { useAppDialog } from '../../../../hooks/useAppDialog'
+import { useAppDialog } from '../../../../shared/hooks/useAppDialog'
 import type { Paciente } from '../../../../domains/clinical/patient/schemas/pacienteSchema'
 
 export interface UsePresupuestosReturn {

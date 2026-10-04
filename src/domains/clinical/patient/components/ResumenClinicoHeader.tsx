@@ -8,7 +8,7 @@ import {
   Activity,
   type LucideIcon,
 } from 'lucide-react'
-import { Icon } from '../../../../components/Icon'
+import { Icon } from '../../../../shared/ui/Icon'
 
 import type { UseMetricasClinicasReturn, ProximaCitaResumen, AlertaClinica } from '../hooks/useMetricasClinicas'
 

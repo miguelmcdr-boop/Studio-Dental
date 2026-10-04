@@ -1,6 +1,6 @@
 import React, { memo } from 'react'
-import { Icon } from '../../../../components/Icon'
-import { Tooth } from '../../../../components/icons/Tooth'
+import { Icon } from '../../../../shared/ui/Icon'
+import { Tooth } from '../../../../shared/ui/icons/Tooth'
 import { TEMPORAL_SUPERIOR, TEMPORAL_INFERIOR } from '../constants/pediatriaConstants'
 
 export interface EstadoDentosanaOption {

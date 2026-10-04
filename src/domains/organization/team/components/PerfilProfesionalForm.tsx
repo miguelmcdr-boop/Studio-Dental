@@ -1,6 +1,6 @@
 import React, { memo, useState } from 'react'
 import { User } from 'lucide-react'
-import { Button } from '../../../../components/ui/Button'
+import { Button } from '../../../../shared/ui/ui/Button'
 
 export interface PerfilProfesionalData {
   nombreCompleto?: string

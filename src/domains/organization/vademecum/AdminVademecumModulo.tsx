@@ -15,7 +15,7 @@
  * Acceso restringido a ADMIN y DENTISTA vía permiso ADMINISTRAR_VADEMECUM.
  */
 import React, { useState, useCallback } from 'react'
-import { useRBAC } from '../../../hooks/useRBAC'
+import { useRBAC } from '../../../shared/hooks/useRBAC'
 import { PERMISOS } from '../../../constants/rbacConstants'
 import { useVademecumAdmin } from './hooks/useVademecumAdmin'
 import { TablaVademecum } from './components/TablaVademecum'

@@ -1,7 +1,7 @@
 import React, { memo, useState } from 'react'
-import { Modal } from '../../../../components/ui/Modal'
-import { Input } from '../../../../components/ui/Input'
-import { Button } from '../../../../components/ui/Button'
+import { Modal } from '../../../../shared/ui/ui/Modal'
+import { Input } from '../../../../shared/ui/ui/Input'
+import { Button } from '../../../../shared/ui/ui/Button'
 import type { Paciente } from '../schemas/pacienteSchema'
 
 export interface ModalEditarPacienteProps {

@@ -6,7 +6,7 @@ import { CONVENIOS_DEFAULT } from '../constants/finanzasConstants'
 import { pagosStorageService, type Pago } from "../../payment/services/pagosStorageService"
 import { obtenerAbonosPorPaciente, eliminarAbono, type AbonoFicha } from "../../payment/services/pagosAbonosLegacyService"
 import { createLogger } from '../../../../infrastructure/logging/logger'
-import { useAppDialog } from '../../../../hooks/useAppDialog'
+import { useAppDialog } from '../../../../shared/hooks/useAppDialog'
 import type { Paciente } from '../../../../domains/clinical/patient/schemas/pacienteSchema'
 
 const log = createLogger('useFinanzas')

@@ -3,7 +3,7 @@ import { Square, Mic, Calendar, Trash2, PenSquare } from 'lucide-react'
 import { evolucionesStorageService, type EvolucionClinicaLocal } from '../services/evolucionesStorageService'
 import { useDictadoVoz } from '../hooks/useDictadoVoz'
 import { createLogger } from '../../../../infrastructure/logging/logger'
-import { useAppDialog } from '../../../../hooks/useAppDialog'
+import { useAppDialog } from '../../../../shared/hooks/useAppDialog'
 
 const log = createLogger('BitacoraSection')
 

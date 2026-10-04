@@ -4,7 +4,7 @@
  * F4-03f-2
  */
 import React, { memo } from 'react'
-import { Icon } from '../../../../components/Icon'
+import { Icon } from '../../../../shared/ui/Icon'
 import { Siren, AlertTriangle } from 'lucide-react'
 import type { FarmacoUrgencia } from '../schemas/vademecumSchema'
 

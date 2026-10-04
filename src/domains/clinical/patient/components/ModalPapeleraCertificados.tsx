@@ -1,8 +1,8 @@
 import React, { memo } from 'react'
 import { Trash2, Lock } from 'lucide-react'
-import { Modal } from '../../../../components/ui/Modal'
-import { Button } from '../../../../components/ui/Button'
-import { useAppDialog } from '../../../../hooks/useAppDialog'
+import { Modal } from '../../../../shared/ui/ui/Modal'
+import { Button } from '../../../../shared/ui/ui/Button'
+import { useAppDialog } from '../../../../shared/hooks/useAppDialog'
 import { diasRestantes, type CertificadoPapelera } from '../services/papeleraCertificadosService'
 
 export interface ModalPapeleraCertificadosProps {

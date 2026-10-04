@@ -35,7 +35,7 @@ vi.mock('../auth/authService', () => ({
   obtenerPerfil: vi.fn(() => null)
 }))
 
-vi.mock('../../store/sesionStore', () => ({
+vi.mock('../../app/stores/sesionStore', () => ({
   useSesionStore: {
     getState: vi.fn(() => ({
       userProfile: { clinicaId: estadoMock.clinicaId }
@@ -43,7 +43,7 @@ vi.mock('../../store/sesionStore', () => ({
   }
 }))
 
-vi.mock('../../store/pacientesStore', () => ({
+vi.mock('../../app/stores/pacientesStore', () => ({
   usePacientesStore: {
     getState: vi.fn(() => ({ pacientes: [], setPacientes: vi.fn() })),
     setState: vi.fn(),
