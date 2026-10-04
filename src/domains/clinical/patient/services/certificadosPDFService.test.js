@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { generarPDFCertificado, respaldarCertificadoEnR2, descargarBlob, descargarCertificadoDesdeR2 } from './certificadosPDFService'
-import { solicitaUrlUpload, subeArchivoAR2, solicitaUrlDownload, descargaArchivoDeR2 } from '../../../../services/r2ArchivosService'
+import { solicitaUrlUpload, subeArchivoAR2, solicitaUrlDownload, descargaArchivoDeR2 } from '../../../../infrastructure/storage/r2ArchivosService'
 
 // Mocks estables fuera de factory (sobreviven a mockClear)
 const mockAddImage = vi.fn()
@@ -18,7 +18,7 @@ vi.mock('jspdf', () => ({
   jsPDF: vi.fn(() => ({ addImage: mockAddImage, output: mockOutput }))
 }))
 
-vi.mock('../../../../services/r2ArchivosService', () => ({
+vi.mock('../../../../infrastructure/storage/r2ArchivosService', () => ({
   solicitaUrlUpload: vi.fn(),
   subeArchivoAR2: vi.fn(),
   solicitaUrlDownload: vi.fn(),

@@ -10,7 +10,7 @@
  * La eliminación definitiva se propaga a Supabase vía guardarPagos().
  */
 import { pagosStorageService, type Pago } from './pagosStorageService'
-import { createLogger } from '../../../../services/logger'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 
 const log = createLogger('papeleraPagosService')
 

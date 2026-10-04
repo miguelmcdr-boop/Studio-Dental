@@ -26,9 +26,9 @@ import { ModalEditarFarmaco } from './components/ModalEditarFarmaco'
 import { ModalEditarUrgencia } from './components/ModalEditarUrgencia'
 import { ModalEditarAntirresortivo } from './components/ModalEditarAntirresortivo'
 import { AdminProtocolosContenido } from './components/AdminProtocolosContenido'
-import type { FarmacoVademecum, FarmacoInput } from '../../../services/vademecumService'
+import type { FarmacoVademecum, FarmacoInput } from '../../../infrastructure/clinical-data/vademecumService'
 import type { FarmacoUrgencia, Antirresortivo } from './schemas/vademecumSchema'
-import { createLogger } from '../../../services/logger'
+import { createLogger } from '../../../infrastructure/logging/logger'
 import { Lock, Pill, RefreshCw } from 'lucide-react'
 
 const log = createLogger('AdminVademecumModulo')

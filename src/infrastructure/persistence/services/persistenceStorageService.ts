@@ -1,7 +1,7 @@
 /**
  * Servicio de Persistencia y Copias de Seguridad (Backup / Restore / Reset)
  */
-import { createLogger } from '../../../../services/logger'
+import { createLogger } from '../../logging/logger'
 
 const log = createLogger('persistenceStorageService')
 

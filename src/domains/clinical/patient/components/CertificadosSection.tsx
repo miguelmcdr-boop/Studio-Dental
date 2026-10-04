@@ -9,7 +9,7 @@ import { usePapeleraCertificados, type CertificadoPapelera } from '../hooks/useP
 import { ModalPapeleraCertificados } from './ModalPapeleraCertificados'
 import { FormularioNuevoCertificado } from './FormularioNuevoCertificado'
 import { CertificadoImprimible } from './CertificadoImprimible'
-import { createLogger } from '../../../../services/logger'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 import { useAppDialog } from '../../../../hooks/useAppDialog'
 import type { Paciente } from '../schemas/pacienteSchema'
 

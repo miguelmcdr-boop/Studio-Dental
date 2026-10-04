@@ -32,7 +32,7 @@ vi.mock('../../../../store/pacientesStore', () => ({
   }
 }))
 
-vi.mock('../../../../services/notificationService', () => ({
+vi.mock('../../../../infrastructure/notification/notificationService', () => ({
   notificationService: {
     error: vi.fn(),
     success: vi.fn()
@@ -40,7 +40,7 @@ vi.mock('../../../../services/notificationService', () => ({
 }))
 
 import { usePapelera } from './usePapelera'
-import { notificationService } from '../../../../services/notificationService'
+import { notificationService } from '../../../../infrastructure/notification/notificationService'
 
 describe('usePapelera (F6-L)', () => {
   beforeEach(() => {

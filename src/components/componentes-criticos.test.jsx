@@ -21,7 +21,7 @@ vi.mock('../hooks/useNotifications', () => ({
   useNotifications: vi.fn(() => [])
 }))
 
-vi.mock('../services/notificationService', () => ({
+vi.mock('../infrastructure/notification/notificationService', () => ({
   notificationService: {
     ocultar: vi.fn(),
     listar: vi.fn(() => []),
@@ -32,13 +32,13 @@ vi.mock('../services/notificationService', () => ({
   }
 }))
 
-vi.mock('../services/supabaseClient', () => ({
+vi.mock('../infrastructure/supabase/supabaseClient', () => ({
   estaOnline: vi.fn(() => Promise.resolve(true)),
   supabase: null,
   USE_SUPABASE: false
 }))
 
-vi.mock('../services/logger.js', () => ({
+vi.mock('../infrastructure/logging/logger.js', () => ({
   createLogger: () => ({
     info: vi.fn(),
     warn: vi.fn(),
@@ -53,7 +53,7 @@ import { ConnectionIndicator } from './ConnectionIndicator'
 import { ConflictResolutionModal } from './ConflictResolutionModal'
 import { CargandoModulo } from './CargandoModulo'
 import { useNotifications } from '../hooks/useNotifications'
-import { notificationService } from '../services/notificationService'
+import { notificationService } from '../infrastructure/notification/notificationService'
 
 // ═══════════════════════════════════════════════════════════════
 // TOAST CONTAINER
@@ -207,7 +207,7 @@ describe('ConnectionIndicator', () => {
   it('debe invocar estaOnline al montar', () => {
     const { render } = require('@testing-library/react')
     // Re-importar mock directamente
-    vi.doMock('../services/supabaseClient', () => ({
+    vi.doMock('../infrastructure/supabase/supabaseClient', () => ({
       estaOnline: vi.fn(() => Promise.resolve(true)),
       supabase: null,
       USE_SUPABASE: false

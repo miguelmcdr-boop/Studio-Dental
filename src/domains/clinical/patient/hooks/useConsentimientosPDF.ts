@@ -13,7 +13,7 @@ import {
   type RespaldoConsentimientoResult
 } from '../services/consentimientosPDFService'
 import { imprimirConsentimientoAislado } from '../services/consentimientosPrintService'
-import { createLogger } from '../../../../services/logger'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 
 const log = createLogger('useConsentimientosPDF')
 

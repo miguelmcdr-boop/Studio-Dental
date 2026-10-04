@@ -4,14 +4,14 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { AceptarInvitacion } from './AceptarInvitacion'
 
 // Mock de authService
-vi.mock('../services/authService', () => ({
+vi.mock('../infrastructure/auth/authService', () => ({
   aceptarInvitacion: vi.fn(),
   supabaseSignIn: vi.fn(),
   supabaseSignUp: vi.fn()
 }))
 
 // Mock de logger
-vi.mock('../services/logger', () => ({
+vi.mock('../infrastructure/logging/logger', () => ({
   createLogger: () => ({
     info: vi.fn(),
     error: vi.fn(),
@@ -19,7 +19,7 @@ vi.mock('../services/logger', () => ({
   })
 }))
 
-import { aceptarInvitacion, supabaseSignIn, supabaseSignUp } from '../services/authService'
+import { aceptarInvitacion, supabaseSignIn, supabaseSignUp } from '../infrastructure/auth/authService'
 
 describe('AceptarInvitacion', () => {
   beforeEach(() => {

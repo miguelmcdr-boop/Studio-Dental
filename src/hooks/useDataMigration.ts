@@ -17,20 +17,20 @@
  * 3. Sincronizar caché de pacientes y citas desde Supabase
  */
 import { useEffect } from 'react'
-import { supabase, USE_SUPABASE } from '../services/supabaseClient'
-import { migratePacientesToSupabase, verificarPacientesPendientes } from '../services/migrations/migratePacientesToSupabase'
-import { migrateCitasToSupabase, verificarCitasPendientes } from '../services/migrations/migrateCitasToSupabase'
-import { migratePresupuestosToSupabase, verificarPresupuestosPendientes } from '../services/migrations/migratePresupuestosToSupabase'
-import { migratePagosToSupabase, verificarPagosPendientes } from '../services/migrations/migratePagosToSupabase'
-import { migrateMovimientosFinancierosToSupabase, verificarMovimientosPendientes } from '../services/migrations/migrateMovimientosFinancierosToSupabase'
-import { migrateDatosClinicosToSupabase, verificarDatosClinicosPendientes } from '../services/migrations/migrateDatosClinicosToSupabase'
+import { supabase, USE_SUPABASE } from '../infrastructure/supabase/supabaseClient'
+import { migratePacientesToSupabase, verificarPacientesPendientes } from '../infrastructure/supabase/migrations/migratePacientesToSupabase'
+import { migrateCitasToSupabase, verificarCitasPendientes } from '../infrastructure/supabase/migrations/migrateCitasToSupabase'
+import { migratePresupuestosToSupabase, verificarPresupuestosPendientes } from '../infrastructure/supabase/migrations/migratePresupuestosToSupabase'
+import { migratePagosToSupabase, verificarPagosPendientes } from '../infrastructure/supabase/migrations/migratePagosToSupabase'
+import { migrateMovimientosFinancierosToSupabase, verificarMovimientosPendientes } from '../infrastructure/supabase/migrations/migrateMovimientosFinancierosToSupabase'
+import { migrateDatosClinicosToSupabase, verificarDatosClinicosPendientes } from '../infrastructure/supabase/migrations/migrateDatosClinicosToSupabase'
 import { usePacientesStore } from '../store/pacientesStore'
 import { pacientesStorageService } from '../domains/clinical/patient'
 import { agendaStorageService } from '../domains/operations/agenda'
 import { presupuestosStorageService } from '../domains/billing/budget/services/presupuestosStorageService'
 import { pagosStorageService } from '../domains/billing/payment/services/pagosStorageService'
 import { finanzasStorageService } from '../domains/billing/cash-register/services/finanzasStorageService'
-import { createLogger } from '../services/logger'
+import { createLogger } from '../infrastructure/logging/logger'
 
 const log = createLogger('useDataMigration')
 

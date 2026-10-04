@@ -1,18 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-vi.mock('../../../../services/localStorageRepository', () => ({
+vi.mock('../../../../infrastructure/storage/localStorageRepository', () => ({
   leerJSON: vi.fn(() => []),
   escribirJSON: vi.fn()
 }))
 
-vi.mock('../../../../services/logger', () => ({
+vi.mock('../../../../infrastructure/logging/logger', () => ({
   createLogger: () => ({
     info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn()
   })
 }))
 
 import { sincronizarAbonoConFichaPaciente, removerAbonoDeFichaPaciente } from './pagosAbonosLegacyService'
-import { leerJSON, escribirJSON } from '../../../../services/localStorageRepository'
+import { leerJSON, escribirJSON } from '../../../../infrastructure/storage/localStorageRepository'
 
 describe('pagosAbonosLegacyService — métodos legacy (extraídos de pagosStorageService)', () => {
   beforeEach(() => {

@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 import type React from 'react'
-import { solicitaUrlDownload, descargaArchivoDeR2 } from '../../../../services/r2ArchivosService'
+import { solicitaUrlDownload, descargaArchivoDeR2 } from '../../../../infrastructure/storage/r2ArchivosService'
 import type { PermisosArchivos } from './useArchivosClinicos.helpers'
 
 export interface ArchivoVisualizar {

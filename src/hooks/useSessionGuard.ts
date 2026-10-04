@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { useSessionTimeout } from './useSessionTimeout'
 import { useAuthStateListener } from './useAuthStateListener'
-import { notificationService } from '../services/notificationService'
+import { notificationService } from '../infrastructure/notification/notificationService'
 
 export interface UseSessionGuardOptions {
   userProfile: Record<string, unknown> | null | undefined

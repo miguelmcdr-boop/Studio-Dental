@@ -23,7 +23,7 @@ const { estadoMock } = vi.hoisted(() => ({
 }))
 
 // Mock de authService y sesionStore
-vi.mock('../../../../services/authService', () => ({
+vi.mock('../../../../infrastructure/auth/authService', () => ({
   getClinicaActiva: vi.fn(() => estadoMock.clinicaId),
   setClinicaActiva: vi.fn(async (id) => {
     estadoMock.clinicaId = id
@@ -49,7 +49,7 @@ const { mockSupabaseService } = vi.hoisted(() => ({
   }
 }))
 
-vi.mock('../../../../services/datosClinicosSupabase', () => ({
+vi.mock('../../../../infrastructure/supabase/datosClinicosSupabase', () => ({
   guardarEvolucionClinica: mockSupabaseService.guardarEvolucionClinica,
   obtenerDatoClinico: mockSupabaseService.obtenerDatoClinico,
   obtenerEvolucionesRemotas: mockSupabaseService.obtenerEvolucionesRemotas

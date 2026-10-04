@@ -1,7 +1,7 @@
 /**
  * Persistencia en LocalStorage para Órdenes y Directorio de Laboratorios
  */
-import { createTenantRepository } from '../../../../services/localStorageRepository'
+import { createTenantRepository } from '../../../../infrastructure/storage/localStorageRepository'
 import type { OrdenLaboratorio, LaboratorioBase } from '../constants/laboratorioConstants'
 
 const STORAGE_KEY_ORDENES = 'studio_dental_laboratorio_ordenes'

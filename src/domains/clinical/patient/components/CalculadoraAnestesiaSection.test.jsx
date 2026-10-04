@@ -13,7 +13,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import React from 'react'
 
 // Mock de vademecumService para usar datos de respaldo v1.0
-vi.mock('../../../../services/vademecumService', () => ({
+vi.mock('../../../../infrastructure/clinical-data/vademecumService', () => ({
   vademecumService: {
     obtenerDosisAnestesia: vi.fn(() => []),
     obtenerVademecum: vi.fn(() => []),
@@ -28,7 +28,7 @@ vi.mock('../../../../services/vademecumService', () => ({
   }
 }))
 
-vi.mock('../../../../services/logger.js', () => ({
+vi.mock('../../../../infrastructure/logging/logger.js', () => ({
   createLogger: () => ({
     info: vi.fn(),
     warn: vi.fn(),

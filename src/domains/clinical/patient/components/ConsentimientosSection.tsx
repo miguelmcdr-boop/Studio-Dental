@@ -12,7 +12,7 @@ import { useArchivosClinicos } from '../hooks/useArchivosClinicos'
 import { useConsentimientosPDF } from '../hooks/useConsentimientosPDF'
 import { useConsentimientosInit } from '../hooks/useConsentimientosInit'
 import { PLANTILLAS_CONSENTIMIENTO } from '../constants/plantillasConsentimiento'
-import { createLogger } from '../../../../services/logger'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 import type { Paciente } from '../schemas/pacienteSchema'
 
 const log = createLogger('ConsentimientosSection')

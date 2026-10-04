@@ -14,7 +14,7 @@ import {
   type MaterialEnriquecido,
 } from '../../../../application/treatment'
 import type { EvolucionClinicaLocal } from '../services/evolucionesStorageService'
-import { createLogger } from '../../../../services/logger'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 import type { ItemPresupuesto } from './usePresupuestoItems'
 
 const log = createLogger('useDescuentoInventario')

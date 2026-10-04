@@ -15,7 +15,7 @@ const { mockFrom } = vi.hoisted(() => ({
   mockFrom: vi.fn()
 }))
 
-vi.mock('../../../../services/supabaseClient', () => ({
+vi.mock('../../../../infrastructure/supabase/supabaseClient', () => ({
   supabase: {
     from: mockFrom
   },

@@ -28,13 +28,13 @@ Object.defineProperty(global, 'localStorage', {
 })
 
 // Mock de rbacService
-vi.mock('../services/rbacService', () => ({
+vi.mock('../infrastructure/auth/rbacService', () => ({
   esRolValido: vi.fn((rol) => ['ADMIN', 'RECEPCION', 'DENTISTA', 'CONTADOR'].includes(rol)),
   obtenerRolPorDefecto: vi.fn(() => 'RECEPCION')
 }))
 
 // Mock de supabaseClient
-vi.mock('../services/supabaseClient', () => ({
+vi.mock('../infrastructure/supabase/supabaseClient', () => ({
   supabase: {
     auth: {
       signOut: vi.fn(() => Promise.resolve())
@@ -44,7 +44,7 @@ vi.mock('../services/supabaseClient', () => ({
 }))
 
 // Mock de logger
-vi.mock('../services/logger', () => ({
+vi.mock('../infrastructure/logging/logger', () => ({
   createLogger: vi.fn(() => ({
     error: vi.fn(),
     info: vi.fn(),
@@ -56,7 +56,7 @@ vi.mock('../services/logger', () => ({
 import { useSesionStore } from './sesionStore'
 import { usePacientesStore } from './pacientesStore'
 import { usePrestacionesStore } from './prestacionesStore'
-import { esRolValido, obtenerRolPorDefecto } from '../services/rbacService'
+import { esRolValido, obtenerRolPorDefecto } from '../infrastructure/auth/rbacService'
 
 describe('sesionStore', () => {
   beforeEach(() => {
@@ -163,7 +163,7 @@ describe('sesionStore', () => {
     })
 
     it('debería cerrar sesión de Supabase si USE_SUPABASE es true', async () => {
-      const { supabase } = await import('../services/supabaseClient')
+      const { supabase } = await import('../infrastructure/supabase/supabaseClient')
       
       await useSesionStore.getState().logout()
 
@@ -180,7 +180,7 @@ describe('sesionStore', () => {
     })
 
     it('debería manejar errores de Supabase gracefully', async () => {
-      const { supabase } = await import('../services/supabaseClient')
+      const { supabase } = await import('../infrastructure/supabase/supabaseClient')
       supabase.auth.signOut.mockRejectedValue(new Error('Network error'))
 
       await expect(useSesionStore.getState().logout()).resolves.not.toThrow()

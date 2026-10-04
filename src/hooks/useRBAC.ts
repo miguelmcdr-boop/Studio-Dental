@@ -23,7 +23,7 @@ import {
   obtenerPermisos,
   tieneAlgunPermiso,
   esRolValido
-} from '../services/rbacService'
+} from '../infrastructure/auth/rbacService'
 import { ROLES, type PermisoValue } from '../constants/rbacConstants'
 
 export interface UseRBACReturn {

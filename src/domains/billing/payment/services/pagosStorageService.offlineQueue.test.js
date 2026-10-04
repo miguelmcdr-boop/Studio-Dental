@@ -30,7 +30,7 @@ const { estadoMock, mockFrom } = vi.hoisted(() => ({
 }))
 
 // Mock de authService
-vi.mock('../../../../services/authService', () => ({
+vi.mock('../../../../infrastructure/auth/authService', () => ({
   getClinicaActiva: vi.fn(() => estadoMock.clinicaId),
   setClinicaActiva: vi.fn(async (id) => {
     estadoMock.clinicaId = id
@@ -40,7 +40,7 @@ vi.mock('../../../../services/authService', () => ({
 }))
 
 // Mock de supabaseClient
-vi.mock('../../../../services/supabaseClient', () => ({
+vi.mock('../../../../infrastructure/supabase/supabaseClient', () => ({
   USE_SUPABASE: true,
   supabase: {
     auth: {

@@ -10,7 +10,7 @@
  * la asociación de archivos del sistema.
  */
 import ExcelJS from 'exceljs'
-import { createLogger } from '../../../../services/logger'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 
 const log = createLogger('pagosExportService')
 

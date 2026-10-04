@@ -1,7 +1,7 @@
 import React from 'react'
 import { Building2 } from 'lucide-react'
 import { useBootstrapClinica } from '../hooks/useBootstrapClinica'
-import { supabaseSignOut } from '../services/authService'
+import { supabaseSignOut } from '../infrastructure/auth/authService'
 import { useAppDialog } from '../hooks/useAppDialog'
 
 /**

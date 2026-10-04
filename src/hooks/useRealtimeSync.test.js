@@ -16,7 +16,7 @@ import { useRealtimeSync, registrarEscrituraLocal } from './useRealtimeSync'
 import * as useRealtimeSubscriptionModule from './useRealtimeSubscription'
 import * as pacientesStoreModule from '../store/pacientesStore'
 import * as sesionStoreModule from '../store/sesionStore'
-import * as supabaseClientModule from '../services/supabaseClient'
+import * as supabaseClientModule from '../infrastructure/supabase/supabaseClient'
 
 // Mocks
 vi.mock('./useRealtimeSubscription', () => ({
@@ -37,7 +37,7 @@ vi.mock('../store/sesionStore', () => ({
   }))
 }))
 
-vi.mock('../services/supabaseClient', () => ({
+vi.mock('../infrastructure/supabase/supabaseClient', () => ({
   USE_SUPABASE: true
 }))
 

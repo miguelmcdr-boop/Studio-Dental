@@ -7,7 +7,7 @@ import {
 } from '../services/certificadosPDFService'
 import { certificadosStorageService } from '../services/certificadosStorageService'
 import type { CertificadoPapelera } from '../services/papeleraCertificadosService'
-import { createLogger } from '../../../../services/logger'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 import { useAppDialog } from '../../../../hooks/useAppDialog'
 
 const log = createLogger('useDescargaCertificado')

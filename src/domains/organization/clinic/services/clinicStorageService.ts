@@ -4,9 +4,9 @@
  * Persiste en la tabla `clinicas` de Supabase cuando VITE_USE_SUPABASE=true
  * y en localStorage multi-tenant como caché optimista rápida.
  */
-import { createTenantRepository } from '../../../../services/localStorageRepository'
-import { supabase, USE_SUPABASE } from '../../../../services/supabaseClient'
-import { createLogger } from '../../../../services/logger'
+import { createTenantRepository } from '../../../../infrastructure/storage/localStorageRepository'
+import { supabase, USE_SUPABASE } from '../../../../infrastructure/supabase/supabaseClient'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 
 const log = createLogger('clinicStorageService')
 

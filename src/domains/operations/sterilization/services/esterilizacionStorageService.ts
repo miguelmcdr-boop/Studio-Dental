@@ -1,7 +1,7 @@
 /**
  * Persistencia aislada en LocalStorage para Esterilización (Cargas, Biológicos y Test Diarios)
  */
-import { createTenantRepository } from '../../../../services/localStorageRepository'
+import { createTenantRepository } from '../../../../infrastructure/storage/localStorageRepository'
 import type {
   CargaEsterilizacion,
   PruebaBiologica,

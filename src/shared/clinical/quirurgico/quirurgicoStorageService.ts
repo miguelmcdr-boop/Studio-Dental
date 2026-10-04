@@ -7,9 +7,9 @@
  *
  * Cumple Cap. VII.4 de la Constitución (try/catch obligatorio).
  */
-import { leerJSON, escribirJSON } from '../../../services/localStorageRepository'
-import { obtenerDatoClinico, guardarDatoGenerico } from '../../../services/datosClinicosSupabase'
-import { createLogger } from '../../../services/logger'
+import { leerJSON, escribirJSON } from '../../../infrastructure/storage/localStorageRepository'
+import { obtenerDatoClinico, guardarDatoGenerico } from '../../../infrastructure/supabase/datosClinicosSupabase'
+import { createLogger } from '../../../infrastructure/logging/logger'
 
 const log = createLogger('quirurgicoStorageService')
 

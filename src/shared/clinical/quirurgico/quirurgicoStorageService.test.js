@@ -1,14 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { quirurgicoStorageService } from './quirurgicoStorageService'
-import * as datosClinicosSupabase from '../../../services/datosClinicosSupabase'
-import * as localStorageRepository from '../../../services/localStorageRepository'
+import * as datosClinicosSupabase from '../../../infrastructure/supabase/datosClinicosSupabase'
+import * as localStorageRepository from '../../../infrastructure/storage/localStorageRepository'
 
-vi.mock('../../../services/datosClinicosSupabase', () => ({
+vi.mock('../../../infrastructure/supabase/datosClinicosSupabase', () => ({
   obtenerDatoClinico: vi.fn(),
   guardarDatoGenerico: vi.fn()
 }))
 
-vi.mock('../../../services/localStorageRepository', () => ({
+vi.mock('../../../infrastructure/storage/localStorageRepository', () => ({
   leerJSON: vi.fn(),
   escribirJSON: vi.fn()
 }))

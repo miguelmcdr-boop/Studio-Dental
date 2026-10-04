@@ -14,7 +14,7 @@ import { agendaStorageService } from '../domains/operations/agenda/services/agen
 import { inventarioStorageService } from '../domains/operations/inventory/services/inventarioStorageService'
 import { listarPacientesEliminados } from '../domains/clinical/patient/services/pacientesSoftDeleteService'
 import { obtenerFechaLocalISO } from '../utils/dateUtils'
-import { createLogger } from '../services/logger'
+import { createLogger } from '../infrastructure/logging/logger'
 
 const log = createLogger('useSidebarCounters')
 

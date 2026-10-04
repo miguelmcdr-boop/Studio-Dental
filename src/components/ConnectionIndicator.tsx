@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { estaOnline } from '../services/supabaseClient'
+import { estaOnline } from '../infrastructure/supabase/supabaseClient'
 
 /**
  * Indicador de estado de conexión (F5-05).

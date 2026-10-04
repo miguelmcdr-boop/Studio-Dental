@@ -18,12 +18,12 @@
  * - resetCache()                       → limpia caché (para tests)
  */
 import { obtenerFechaLocalISO } from '../../../../utils/dateUtils'
-import { leerJSON, escribirJSON, createTenantRepository } from '../../../../services/localStorageRepository'
+import { leerJSON, escribirJSON, createTenantRepository } from '../../../../infrastructure/storage/localStorageRepository'
 import { validarListaPresupuestos } from '../schemas/presupuestoSchema'
-import { supabase, USE_SUPABASE } from '../../../../services/supabaseClient'
-import { migrationStorageService } from '../../../../services/migrationStorageService'
-import { esUuidValido } from '../../../../services/migrations/uuidUtils'
-import { createLogger } from '../../../../services/logger'
+import { supabase, USE_SUPABASE } from '../../../../infrastructure/supabase/supabaseClient'
+import { migrationStorageService } from '../../../../infrastructure/persistence/migrationStorageService'
+import { esUuidValido } from '../../../../infrastructure/supabase/migrations/uuidUtils'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 import {
   guardarPresupuestoHelper,
   guardarItemPresupuestoHelper,

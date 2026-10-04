@@ -7,11 +7,11 @@ import { useEffect } from 'react'
 import { useRealtimeSubscription } from './useRealtimeSubscription'
 import { usePacientesStore } from '../store/pacientesStore'
 import { useSesionStore } from '../store/sesionStore'
-import { USE_SUPABASE } from '../services/supabaseClient'
-import { notificationService } from '../services/notificationService'
-import { TABLAS_REALTIME } from '../services/realtimeEvents'
+import { USE_SUPABASE } from '../infrastructure/supabase/supabaseClient'
+import { notificationService } from '../infrastructure/notification/notificationService'
+import { TABLAS_REALTIME } from '../infrastructure/realtime/realtimeEvents'
 import { useSincronizacionInicial } from './useSincronizacionInicial'
-import { createLogger } from '../services/logger'
+import { createLogger } from '../infrastructure/logging/logger'
 
 const log = createLogger('useRealtimeSync')
 

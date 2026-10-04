@@ -17,7 +17,7 @@ import {
   periodontogramaStorageService,
   type PeriodontogramaData
 } from './services/periodontogramaStorageService'
-import { createLogger } from '../../../services/logger'
+import { createLogger } from '../../../infrastructure/logging/logger'
 import { useAppDialog } from '../../../hooks/useAppDialog'
 
 const log = createLogger('PeriodontogramaModulo')

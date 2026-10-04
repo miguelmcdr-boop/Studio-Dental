@@ -13,8 +13,8 @@ import { useDataMigration } from './hooks/useDataMigration'
 import { useNavegacionClinica } from './domains/clinical/patient/hooks/useNavegacionClinica' // F7-26
 import { useRealtimeSync } from './hooks/useRealtimeSync'
 import { useOfflineQueue } from './hooks/useOfflineQueue'
-import { supabase, USE_SUPABASE } from './services/supabaseClient'
-import { construirUserProfile } from './services/userProfileBuilder'
+import { supabase, USE_SUPABASE } from './infrastructure/supabase/supabaseClient'
+import { construirUserProfile } from './infrastructure/clinical-data/userProfileBuilder'
 import { useBootstrapDetection } from './hooks/useBootstrapDetection'
 import { AceptarInvitacion } from './components/AceptarInvitacion'
 import { BootstrapClinica } from './components/BootstrapClinica'
@@ -32,10 +32,10 @@ import { FichaPaciente, DirectorioPacientes } from './domains/clinical/patient'
 import { usePacientesActions } from './domains/clinical/patient/hooks/usePacientesActions'
 import { useSessionGuard } from './hooks/useSessionGuard'
 import { DashboardModulo } from './modules/dashboard'
-import { createLogger } from './services/logger'
-import { createTenantRepository } from './services/localStorageRepository' // F7-36 FASE 1 (hotfix import)
+import { createLogger } from './infrastructure/logging/logger'
+import { createTenantRepository } from './infrastructure/storage/localStorageRepository' // F7-36 FASE 1 (hotfix import)
 import type { Paciente } from './domains/clinical/patient/schemas/pacienteSchema'
-import type { PerfilUsuario } from './services/authService'
+import type { PerfilUsuario } from './infrastructure/auth/authService'
 
 const log = createLogger('App')
 

@@ -16,7 +16,7 @@
  */
 import React, { Component, ErrorInfo, ReactNode } from 'react'
 import { ErrorFallback, ErrorFallbackProps } from './ErrorFallback'
-import { createLogger } from '../services/logger'
+import { createLogger } from '../infrastructure/logging/logger'
 
 const log = createLogger('ErrorBoundary')
 

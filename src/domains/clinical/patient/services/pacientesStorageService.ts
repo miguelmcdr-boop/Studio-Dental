@@ -4,12 +4,12 @@
  * Estrategia de "caché local + sync en background" (alineada con RFC F4-01):
  *   localStorage (caché rápida, síncrona) ↕ Caché en memoria ↕ Supabase
  */
-import { createTenantRepository, leerJSON, escribirJSON } from '../../../../services/localStorageRepository'
+import { createTenantRepository, leerJSON, escribirJSON } from '../../../../infrastructure/storage/localStorageRepository'
 import { validarListaPacientes } from '../schemas/pacienteSchema'
 import type { Paciente } from '../schemas/pacienteSchema'
-import { supabase, USE_SUPABASE } from '../../../../services/supabaseClient'
+import { supabase, USE_SUPABASE } from '../../../../infrastructure/supabase/supabaseClient'
 import { transformarParaSupabase } from './pacientesTransformations'
-import { migrationStorageService } from '../../../../services/migrationStorageService'
+import { migrationStorageService } from '../../../../infrastructure/persistence/migrationStorageService'
 import { 
   eliminarPaciente as softDeleteEliminar, 
   restaurarPaciente as softDeleteRestaurar, 
@@ -17,8 +17,8 @@ import {
   vaciarPapeleraPacientes as softDeleteVaciarPacientes
 } from './pacientesSoftDeleteService'
 import type { PurgeResult } from './pacientesSoftDeleteService'
-import { esUuidValido } from '../../../../services/migrations/uuidUtils'
-import { createLogger } from '../../../../services/logger'
+import { esUuidValido } from '../../../../infrastructure/supabase/migrations/uuidUtils'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 import {
   pendingPacientesRepo,
   obtenerPendingPacientes,

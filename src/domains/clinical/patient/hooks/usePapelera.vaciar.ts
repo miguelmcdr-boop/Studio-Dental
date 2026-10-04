@@ -1,8 +1,8 @@
 import { useCallback, useMemo } from 'react'
 import { pacientesStorageService } from '../services/pacientesStorageService'
 import type { PurgeResult } from '../services/pacientesSoftDeleteService'
-import { notificationService } from '../../../../services/notificationService'
-import { createLogger } from '../../../../services/logger'
+import { notificationService } from '../../../../infrastructure/notification/notificationService'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 
 const log = createLogger('usePapelera.vaciar')
 

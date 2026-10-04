@@ -21,7 +21,7 @@ import {
   crearPagoDesdeAbono,
   type Pago,
 } from '../../domains/billing/payment'
-import { createLogger } from '../../services/logger'
+import { createLogger } from '../../infrastructure/logging/logger'
 
 const log = createLogger('registerTreatmentPayment')
 

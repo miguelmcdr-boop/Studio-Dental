@@ -197,31 +197,33 @@ function verificarExportDefault() {
 // ─────────────────────────────────────────────────────────────
 
 function verificarCapasServices() {
-  const servicesDir = path.join(SRC, 'services')
-  if (!fs.existsSync(servicesDir)) return
-  
-  const archivos = listarArchivos(servicesDir, ['.js', '.jsx'])
-  
-  for (const archivo of archivos) {
-    const rel = rutaRelativa(archivo)
+  const dirs = [path.join(SRC, 'services'), path.join(SRC, 'infrastructure')]
+  for (const servicesDir of dirs) {
+    if (!fs.existsSync(servicesDir)) continue
     
-    // Excepciones legítimas: migraciones (F4-02)
-    if (rel.startsWith('src/services/migrations/')) {
-      continue
-    }
+    const archivos = listarArchivos(servicesDir, ['.js', '.jsx'])
     
-    const content = fs.readFileSync(archivo, 'utf-8')
-    const lineas = content.split(String.fromCharCode(10))
-    for (const linea of lineas) {
-      if (/from\s+['"].*\/components\//.test(linea)) {
-        violations.push(
-          `🔀 [CAPAS: services → components] ${rel} - ${linea.trim()}`
-        )
+    for (const archivo of archivos) {
+      const rel = rutaRelativa(archivo)
+      
+      // Excepciones legítimas: migraciones (F4-02)
+      if (rel.startsWith('src/services/migrations/') || rel.startsWith('src/infrastructure/supabase/migrations/')) {
+        continue
       }
-      if (/from\s+['"].*\/hooks\//.test(linea)) {
-        violations.push(
-          `🔀 [CAPAS: services → hooks] ${rel} - ${linea.trim()}`
-        )
+      
+      const content = fs.readFileSync(archivo, 'utf-8')
+      const lineas = content.split(String.fromCharCode(10))
+      for (const linea of lineas) {
+        if (/from\s+['"].*\/components\//.test(linea)) {
+          violations.push(
+            `🔀 [CAPAS: infrastructure → components] ${rel} - ${linea.trim()}`
+          )
+        }
+        if (/from\s+['"].*\/hooks\//.test(linea)) {
+          violations.push(
+            `🔀 [CAPAS: infrastructure → hooks] ${rel} - ${linea.trim()}`
+          )
+        }
       }
     }
   }

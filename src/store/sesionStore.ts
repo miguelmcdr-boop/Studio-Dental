@@ -1,8 +1,8 @@
 import { create } from 'zustand'
-import { esRolValido, obtenerRolPorDefecto } from '../services/rbacService'
-import { supabase, USE_SUPABASE } from '../services/supabaseClient'
-import { createLogger } from '../services/logger'
-import { purgarDatosLocales } from '../services/purgarDatosLocales'
+import { esRolValido, obtenerRolPorDefecto } from '../infrastructure/auth/rbacService'
+import { supabase, USE_SUPABASE } from '../infrastructure/supabase/supabaseClient'
+import { createLogger } from '../infrastructure/logging/logger'
+import { purgarDatosLocales } from '../infrastructure/persistence/purgarDatosLocales'
 
 const log = createLogger('sesionStore')
 

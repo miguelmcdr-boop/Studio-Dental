@@ -1,4 +1,4 @@
-import { createLogger } from '../../../../services/logger'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 
 const log = createLogger('certificadosPrintService')
 

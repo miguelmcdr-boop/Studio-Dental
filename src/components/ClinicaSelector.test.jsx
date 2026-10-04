@@ -4,13 +4,13 @@ import { render, screen } from '@testing-library/react'
 import { ClinicaSelector } from './ClinicaSelector'
 
 // Mock completo de authService antes de importar el componente
-vi.mock('../services/authService', () => ({
+vi.mock('../infrastructure/auth/authService', () => ({
   listarMisClinicas: vi.fn(),
   setClinicaActiva: vi.fn(),
   getClinicaActiva: vi.fn()
 }))
 
-vi.mock('../services/invalidarCacheCambioClinica', () => ({
+vi.mock('../infrastructure/supabase/invalidarCacheCambioClinica', () => ({
   invalidarCacheCambioClinica: vi.fn().mockResolvedValue({
     tenantKeys: 5,
     storageServices: 4,
@@ -21,7 +21,7 @@ vi.mock('../services/invalidarCacheCambioClinica', () => ({
   })
 }))
 
-vi.mock('../services/logger', () => ({
+vi.mock('../infrastructure/logging/logger', () => ({
   createLogger: () => ({
     info: vi.fn(),
     error: vi.fn(),
@@ -31,8 +31,8 @@ vi.mock('../services/logger', () => ({
 }))
 
 // Importar después de mockear
-import * as authService from '../services/authService'
-import * as invalidarModule from '../services/invalidarCacheCambioClinica'
+import * as authService from '../infrastructure/auth/authService'
+import * as invalidarModule from '../infrastructure/supabase/invalidarCacheCambioClinica'
 
 describe('ClinicaSelector (F7-10)', () => {
   beforeEach(() => {

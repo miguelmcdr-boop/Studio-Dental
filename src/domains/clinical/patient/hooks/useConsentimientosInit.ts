@@ -3,7 +3,7 @@ import type React from 'react'
 import { configuracionStorageService, type DatosClinicaConfig } from '../../../organization/clinic/services/clinicStorageService'
 import { CLINICA_DEFAULT, type ClinicaConfig } from '../../../organization/clinic/constants/clinicConstants'
 import { pacientesStorageService } from '../services/pacientesStorageService'
-import { createLogger } from '../../../../services/logger'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 
 const log = createLogger('useConsentimientosInit')
 

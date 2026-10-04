@@ -1,7 +1,7 @@
 import React from 'react'
 import { Info, CheckCircle2, AlertTriangle, XCircle, LucideIcon } from 'lucide-react'
 import { useNotifications } from '../hooks/useNotifications'
-import { notificationService, NotificationItem, NotificationType } from '../services/notificationService'
+import { notificationService, NotificationItem, NotificationType } from '../infrastructure/notification/notificationService'
 
 /**
  * Contenedor de toasts (F5-05).

@@ -1,7 +1,7 @@
 /**
  * Persistencia aislada para Comunicaciones, Bitácora y Plantillas
  */
-import { createTenantRepository } from '../../../../services/localStorageRepository'
+import { createTenantRepository } from '../../../../infrastructure/storage/localStorageRepository'
 import type {
   PlantillaComunicacion,
   MensajeHistorial

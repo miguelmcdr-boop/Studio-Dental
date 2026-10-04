@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type React from 'react'
-import { aceptarInvitacion, supabaseSignIn, supabaseSignUp } from '../services/authService'
-import { createLogger } from '../services/logger'
+import { aceptarInvitacion, supabaseSignIn, supabaseSignUp } from '../infrastructure/auth/authService'
+import { createLogger } from '../infrastructure/logging/logger'
 
 const log = createLogger('useAceptarInvitacion')
 

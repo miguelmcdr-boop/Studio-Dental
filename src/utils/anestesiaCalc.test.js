@@ -10,7 +10,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // Mock de vademecumService
-vi.mock('../services/vademecumService', () => ({
+vi.mock('../infrastructure/clinical-data/vademecumService', () => ({
   vademecumService: {
     obtenerDosisAnestesia: vi.fn(() => [])
   }
@@ -27,7 +27,7 @@ describe('anestesiaCalc', () => {
     vi.resetModules()
 
     const module = await import('./anestesiaCalc')
-    const serviceModule = await import('../services/vademecumService')
+    const serviceModule = await import('../infrastructure/clinical-data/vademecumService')
 
     calcularTubosAnestesia = module.calcularTubosAnestesia
     calcularDosisAnestesiaCompleta = module.calcularDosisAnestesiaCompleta

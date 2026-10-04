@@ -4,9 +4,9 @@ import {
   setClinicaActiva,
   getClinicaActiva,
   type ClinicaMembresiaItem,
-} from '../services/authService'
-import { createLogger } from '../services/logger'
-import { invalidarCacheCambioClinica } from '../services/invalidarCacheCambioClinica'
+} from '../infrastructure/auth/authService'
+import { createLogger } from '../infrastructure/logging/logger'
+import { invalidarCacheCambioClinica } from '../infrastructure/supabase/invalidarCacheCambioClinica'
 
 const log = createLogger('ClinicaSelector')
 

@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { evaluarIncompatibilidadFarmaco } from './pacientesCalculations'
-import { vademecumService } from '../../../../services/vademecumService'
+import { vademecumService } from '../../../../infrastructure/clinical-data/vademecumService'
 
 // Mock de vademecumService
-vi.mock('../../../../services/vademecumService', () => ({
+vi.mock('../../../../infrastructure/clinical-data/vademecumService', () => ({
   vademecumService: {
     obtenerVademecum: vi.fn(),
     evaluarAlergiaCruzada: vi.fn()

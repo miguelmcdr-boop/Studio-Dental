@@ -4,7 +4,7 @@ import {
   restaurarArchivo as restaurarArchivoService,
   vaciarPapeleraArchivos,
   type VaciarPapeleraArchivosResult
-} from '../../../../services/r2ArchivosService'
+} from '../../../../infrastructure/storage/r2ArchivosService'
 import type { PermisosArchivos } from './useArchivosClinicos.helpers'
 
 export interface ArchivoEliminadoFormateado {

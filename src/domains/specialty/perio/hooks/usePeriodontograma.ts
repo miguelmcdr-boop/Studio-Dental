@@ -12,7 +12,7 @@ import {
   estructurarDatosParaGrafico
 } from '../utils/periodontalCalculations'
 import { periodontogramaStorageService } from '../services/periodontogramaStorageService'
-import { createLogger } from '../../../../services/logger'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 
 const log = createLogger('usePeriodontograma')
 

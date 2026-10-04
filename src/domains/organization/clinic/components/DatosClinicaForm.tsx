@@ -1,6 +1,6 @@
 import React, { memo, useState } from 'react'
 import { convertirImagenADataURL } from '../utils/clinicCalculations'
-import { createLogger } from '../../../../services/logger'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 import { Lock, Building2 } from 'lucide-react'
 import { CLINICA_DEFAULT, type ClinicaConfig } from '../constants/clinicConstants'
 import type { DatosClinicaConfig } from '../services/clinicStorageService'

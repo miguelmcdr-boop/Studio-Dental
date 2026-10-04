@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { pacientesStorageService, type Paciente } from '../domains/clinical/patient'
-import { createLogger } from '../services/logger'
+import { createLogger } from '../infrastructure/logging/logger'
 
 const log = createLogger('pacientesStore')
 

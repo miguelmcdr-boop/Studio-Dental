@@ -6,8 +6,8 @@
  *
  * Cumple Cap. VII.4 de la Constitución (try/catch obligatorio).
  */
-import { leerJSON, escribirJSON } from '../../../../services/localStorageRepository'
-import { createLogger } from '../../../../services/logger'
+import { leerJSON, escribirJSON } from '../../../../infrastructure/storage/localStorageRepository'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 
 const log = createLogger('odontopediatriaStorageService')
 

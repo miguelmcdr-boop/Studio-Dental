@@ -19,7 +19,7 @@ import { Icon } from './Icon'
 import { Badge } from './ui/Badge'
 import { DentikOSLogo } from './brand/DentikOSLogo'
 import { SECCIONES_SIDEBAR, type SidebarItem, type SidebarSeccion } from '../constants/sidebarConstants'
-import type { PerfilUsuario } from '../services/authService'
+import type { PerfilUsuario } from '../infrastructure/auth/authService'
 
 export interface SidebarCounters {
   citasHoy?: number

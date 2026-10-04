@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type React from 'react'
-import { bootstrapClinica, type BootstrapClinicaDatos } from '../services/authService'
-import { createLogger } from '../services/logger'
+import { bootstrapClinica, type BootstrapClinicaDatos } from '../infrastructure/auth/authService'
+import { createLogger } from '../infrastructure/logging/logger'
 
 const log = createLogger('useBootstrapClinica')
 

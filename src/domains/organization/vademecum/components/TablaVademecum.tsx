@@ -11,7 +11,7 @@ import { FiltrosVademecum } from './FiltrosVademecum'
 import { FilaVademecum } from './FilaVademecum'
 import { PaginacionVademecum } from './PaginacionVademecum'
 import type { Farmaco } from '../schemas/vademecumSchema'
-import type { FarmacoVademecum } from '../../../../services/vademecumService'
+import type { FarmacoVademecum } from '../../../../infrastructure/clinical-data/vademecumService'
 
 const ITEMS_POR_PAGINA = 20
 

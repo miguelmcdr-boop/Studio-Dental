@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { verificarBootstrapNecesario } from '../services/authService'
+import { verificarBootstrapNecesario } from '../infrastructure/auth/authService'
 
 /**
  * F7-11b: Hook que detecta si el usuario necesita crear una clínica.

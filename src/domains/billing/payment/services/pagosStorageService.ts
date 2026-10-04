@@ -13,12 +13,12 @@
  * - procesarColaPagos()               → ASYNC, procesa pagos y deletes pendientes
  * - resetCache()                      → limpia caché (para tests)
  */
-import { createTenantRepository } from '../../../../services/localStorageRepository'
-import { supabase, USE_SUPABASE } from '../../../../services/supabaseClient'
-import { migrationStorageService } from '../../../../services/migrationStorageService'
-import { esUuidValido } from '../../../../services/migrations/uuidUtils'
+import { createTenantRepository } from '../../../../infrastructure/storage/localStorageRepository'
+import { supabase, USE_SUPABASE } from '../../../../infrastructure/supabase/supabaseClient'
+import { migrationStorageService } from '../../../../infrastructure/persistence/migrationStorageService'
+import { esUuidValido } from '../../../../infrastructure/supabase/migrations/uuidUtils'
 import { transformarParaSupabase } from './pagosTransformations'
-import { createLogger } from '../../../../services/logger'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 import {
   registrarPagoHelper,
   procesarColaPagosHelper,

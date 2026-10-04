@@ -3,11 +3,11 @@ import {
   supabaseSignIn,
   supabaseSignUp,
   type PerfilUsuario,
-} from '../services/authService'
-import { construirUserProfile } from '../services/userProfileBuilder'
+} from '../infrastructure/auth/authService'
+import { construirUserProfile } from '../infrastructure/clinical-data/userProfileBuilder'
 import { NOMBRES_ROLES, DESCRIPCIONES_ROLES } from '../constants/rbacConstants'
-import { obtenerRolPorDefecto } from '../services/rbacService'
-import { createLogger } from '../services/logger'
+import { obtenerRolPorDefecto } from '../infrastructure/auth/rbacService'
+import { createLogger } from '../infrastructure/logging/logger'
 import { Button } from './ui/Button'
 import { Input } from './ui/Input'
 import { DentikOSLogo } from './brand/DentikOSLogo'

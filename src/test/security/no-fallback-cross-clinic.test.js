@@ -98,7 +98,7 @@ describe('F7-36: No-fallback cross-clinic en storage services', () => {
   })
 
   afterEach(() => {
-    vi.doUnmock('../../services/supabaseClient')
+    vi.doUnmock('../../infrastructure/supabase/supabaseClient')
     vi.restoreAllMocks()
   })
 
@@ -118,13 +118,13 @@ describe('F7-36: No-fallback cross-clinic en storage services', () => {
       )
 
       // Mockear tenantCache ANTES de importar el servicio
-      vi.doMock('../../services/tenantCache', () => ({
+      vi.doMock('../../infrastructure/tenant/tenantCache', () => ({
         tenantCache: crearMockTenantCache(CLINICA_ID),
       }))
 
       // Mockear supabase
       const mockSupabase = crearMockSupabase([], null)
-      vi.doMock('../../services/supabaseClient', () => ({
+      vi.doMock('../../infrastructure/supabase/supabaseClient', () => ({
         supabase: mockSupabase,
         USE_SUPABASE: true,
       }))
@@ -158,13 +158,13 @@ describe('F7-36: No-fallback cross-clinic en storage services', () => {
       )
 
       // Mockear tenantCache ANTES de importar el servicio
-      vi.doMock('../../services/tenantCache', () => ({
+      vi.doMock('../../infrastructure/tenant/tenantCache', () => ({
         tenantCache: crearMockTenantCache(CLINICA_ID),
       }))
 
       // Mockear supabase
       const mockSupabase = crearMockSupabase([], null)
-      vi.doMock('../../services/supabaseClient', () => ({
+      vi.doMock('../../infrastructure/supabase/supabaseClient', () => ({
         supabase: mockSupabase,
         USE_SUPABASE: true,
       }))
@@ -195,12 +195,12 @@ describe('F7-36: No-fallback cross-clinic en storage services', () => {
         JSON.stringify([{ id: 'a-1', monto: 50000, paciente: 'Clínica A' }])
       )
 
-      vi.doMock('../../services/tenantCache', () => ({
+      vi.doMock('../../infrastructure/tenant/tenantCache', () => ({
         tenantCache: crearMockTenantCache(CLINICA_ID),
       }))
 
       const mockSupabase = crearMockSupabase([], null)
-      vi.doMock('../../services/supabaseClient', () => ({
+      vi.doMock('../../infrastructure/supabase/supabaseClient', () => ({
         supabase: mockSupabase,
         USE_SUPABASE: true,
       }))
@@ -227,12 +227,12 @@ describe('F7-36: No-fallback cross-clinic en storage services', () => {
         JSON.stringify([{ id: 'a-1', total: 150000, paciente: 'Clínica A' }])
       )
 
-      vi.doMock('../../services/tenantCache', () => ({
+      vi.doMock('../../infrastructure/tenant/tenantCache', () => ({
         tenantCache: crearMockTenantCache(CLINICA_ID),
       }))
 
       const mockSupabase = crearMockSupabase([], null)
-      vi.doMock('../../services/supabaseClient', () => ({
+      vi.doMock('../../infrastructure/supabase/supabaseClient', () => ({
         supabase: mockSupabase,
         USE_SUPABASE: true,
       }))
@@ -262,13 +262,13 @@ describe('F7-36: No-fallback cross-clinic en storage services', () => {
       ]
       localStorage.setItem(CLAVE_TENANT, JSON.stringify(datosCache))
 
-      vi.doMock('../../services/tenantCache', () => ({
+      vi.doMock('../../infrastructure/tenant/tenantCache', () => ({
         tenantCache: crearMockTenantCache(CLINICA_ID),
       }))
 
       // Mockear supabase con error
       const mockSupabase = crearMockSupabase(null, new Error('Network error'))
-      vi.doMock('../../services/supabaseClient', () => ({
+      vi.doMock('../../infrastructure/supabase/supabaseClient', () => ({
         supabase: mockSupabase,
         USE_SUPABASE: true,
       }))
@@ -296,7 +296,7 @@ describe('F7-36: No-fallback cross-clinic en storage services', () => {
       const datosCache = [{ id: 'a-1', monto: 100, descripcion: 'Clínica A (viejo)' }]
       localStorage.setItem(CLAVE_TENANT, JSON.stringify(datosCache))
 
-      vi.doMock('../../services/tenantCache', () => ({
+      vi.doMock('../../infrastructure/tenant/tenantCache', () => ({
         tenantCache: crearMockTenantCache(CLINICA_ID),
       }))
 
@@ -315,7 +315,7 @@ describe('F7-36: No-fallback cross-clinic en storage services', () => {
       ]
 
       const mockSupabase = crearMockSupabase(datosSupabase, null)
-      vi.doMock('../../services/supabaseClient', () => ({
+      vi.doMock('../../infrastructure/supabase/supabaseClient', () => ({
         supabase: mockSupabase,
         USE_SUPABASE: true,
       }))

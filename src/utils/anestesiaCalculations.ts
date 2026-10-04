@@ -19,9 +19,9 @@
  * 1. vademecumService.obtenerDosisAnestesia() (v1.1 desde Supabase)
  * 2. DOSIS_RESPALDO_V10 (v1.0 hardcodeada, 4 anestésicos originales)
  */
-import { vademecumService } from '../services/vademecumService'
-import type { DosisAnestesiaItem } from '../services/vademecumAnestesia'
-import { createLogger } from '../services/logger'
+import { vademecumService } from '../infrastructure/clinical-data/vademecumService'
+import type { DosisAnestesiaItem } from '../infrastructure/clinical-data/vademecumAnestesia'
+import { createLogger } from '../infrastructure/logging/logger'
 import { DOSIS_RESPALDO_V10, type DosisRespaldoItem } from './anestesiaDatos'
 
 const log = createLogger('anestesiaCalculations')

@@ -6,8 +6,8 @@ import {
   solicitaUrlDownload,
   descargaArchivoDeR2,
   actualizarMetadataArchivo
-} from '../../../../services/r2ArchivosService'
-import { createLogger } from '../../../../services/logger'
+} from '../../../../infrastructure/storage/r2ArchivosService'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 
 const log = createLogger('consentimientosPDFService')
 

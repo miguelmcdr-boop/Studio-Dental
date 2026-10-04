@@ -7,7 +7,7 @@ import React, { useState, useEffect } from 'react'
 import { Modal } from '../../../../components/ui/Modal'
 import { Button } from '../../../../components/ui/Button'
 import { validarFarmaco, type Farmaco } from '../schemas/vademecumSchema'
-import type { FarmacoVademecum } from '../../../../services/vademecumService'
+import type { FarmacoVademecum } from '../../../../infrastructure/clinical-data/vademecumService'
 import { CamposFormularioFarmaco, type FarmacoFormState } from './CamposFormularioFarmaco'
 
 const VALOR_INICIAL: FarmacoFormState = {

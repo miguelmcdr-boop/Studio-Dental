@@ -16,12 +16,12 @@
  * porque no hay tablas correspondientes en Supabase en esta fase.
  * Se migrarán en F4-02d si es necesario.
  */
-import { createTenantRepository } from '../../../../services/localStorageRepository'
+import { createTenantRepository } from '../../../../infrastructure/storage/localStorageRepository'
 import { validarListaMovimientos, type MovimientoFinanciero } from '../schemas/movimientoFinancieroSchema'
-import { supabase, USE_SUPABASE } from '../../../../services/supabaseClient'
-import { migrationStorageService } from '../../../../services/migrationStorageService'
-import { esUuidValido } from '../../../../services/migrations/uuidUtils'
-import { createLogger } from '../../../../services/logger'
+import { supabase, USE_SUPABASE } from '../../../../infrastructure/supabase/supabaseClient'
+import { migrationStorageService } from '../../../../infrastructure/persistence/migrationStorageService'
+import { esUuidValido } from '../../../../infrastructure/supabase/migrations/uuidUtils'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 import type { ConvenioConfig } from '../constants/finanzasConstants'
 
 const log = createLogger('finanzasStorageService')

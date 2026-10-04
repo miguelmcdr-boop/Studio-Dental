@@ -9,15 +9,15 @@
  */
 import { useEffect } from 'react'
 import { procesarColaPacientes } from '../domains/clinical/patient/services/pacientesStorageService'
-import { procesarColaSubidas } from '../services/adjuntosStorageService'
+import { procesarColaSubidas } from '../infrastructure/storage/adjuntosStorageService'
 import { procesarColaEvoluciones } from '../domains/clinical/patient/services/evolucionesStorageService'
 import { procesarColaPagos } from '../domains/billing/payment/services/pagosStorageService'
 import {
   procesarColaPresupuestos,
   procesarPendingDeletesPresupuestos
 } from '../domains/billing/budget/services/presupuestosStorageService'
-import { notificationService } from '../services/notificationService'
-import { createLogger } from '../services/logger'
+import { notificationService } from '../infrastructure/notification/notificationService'
+import { createLogger } from '../infrastructure/logging/logger'
 
 const log = createLogger('useOfflineQueue')
 

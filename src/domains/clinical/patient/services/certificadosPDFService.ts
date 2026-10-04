@@ -1,5 +1,5 @@
-import { solicitaUrlUpload, subeArchivoAR2, solicitaUrlDownload, descargaArchivoDeR2 } from '../../../../services/r2ArchivosService'
-import { createLogger } from '../../../../services/logger'
+import { solicitaUrlUpload, subeArchivoAR2, solicitaUrlDownload, descargaArchivoDeR2 } from '../../../../infrastructure/storage/r2ArchivosService'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 
 const log = createLogger('certificadosPDFService')
 

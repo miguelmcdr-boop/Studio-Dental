@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect, vi } from 'vitest'
-import { obtenerRolConFailClosed } from '../../services/authService'
+import { obtenerRolConFailClosed } from '../../infrastructure/auth/authService'
 
 describe('F7-09: handle_new_user() fail-closed', () => {
   

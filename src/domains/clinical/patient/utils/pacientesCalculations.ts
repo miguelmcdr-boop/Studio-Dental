@@ -1,5 +1,5 @@
 import { finanzasStorageService } from '../../../../domains/billing/cash-register/services/finanzasStorageService'
-import { vademecumService, type FarmacoVademecum, type AlergiaCruzadaItem } from '../../../../services/vademecumService'
+import { vademecumService, type FarmacoVademecum, type AlergiaCruzadaItem } from '../../../../infrastructure/clinical-data/vademecumService'
 import {
   detectarFamiliaFarmaco,
   detectarFamiliasAlergia,
@@ -7,7 +7,7 @@ import {
   evaluarIncompatibilidadLegacy,
   type IncompatibilidadLegacyResultado
 } from './pacientesAlergiaCalculations'
-import { createLogger } from '../../../../services/logger'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 
 const log = createLogger('pacientesCalculations')
 

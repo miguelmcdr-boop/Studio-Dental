@@ -1,6 +1,6 @@
-import { supabase, USE_SUPABASE, supabaseUrl } from '../../../../services/supabaseClient'
+import { supabase, USE_SUPABASE, supabaseUrl } from '../../../../infrastructure/supabase/supabaseClient'
 import { certificadosStorageService, type CertificadoMedico } from './certificadosStorageService'
-import { createLogger } from '../../../../services/logger'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 
 const log = createLogger('papeleraCertificadosService')
 

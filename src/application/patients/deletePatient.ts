@@ -21,10 +21,10 @@ import { odontogramaStorageService } from '../../domains/clinical/odontogram'
 import { periodontogramaStorageService } from '../../domains/specialty/perio'
 import { presupuestosStorageService } from '../../domains/billing/budget'
 import { eliminarAbonosDePaciente } from '../../domains/billing/payment'
-import { eliminarTodosPorPaciente as eliminarAdjuntosDelPaciente } from '../../services/adjuntosStorageService'
-import { puedeAcceder } from '../../services/rbacService'
+import { eliminarTodosPorPaciente as eliminarAdjuntosDelPaciente } from '../../infrastructure/storage/adjuntosStorageService'
+import { puedeAcceder } from '../../infrastructure/auth/rbacService'
 import { PERMISOS } from '../../constants/rbacConstants'
-import { createLogger } from '../../services/logger'
+import { createLogger } from '../../infrastructure/logging/logger'
 
 const log = createLogger('deletePatient')
 

@@ -2,7 +2,7 @@ import React, { memo } from 'react'
 import { Printer } from 'lucide-react'
 import { recetasStorageService, type RecetaLocal } from '../services/recetasStorageService'
 import { FormularioNuevaReceta } from './FormularioNuevaReceta'
-import { createLogger } from '../../../../services/logger'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 import type { Paciente } from '../schemas/pacienteSchema'
 
 const log = createLogger('RecetasSection')

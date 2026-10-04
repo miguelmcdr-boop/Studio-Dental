@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo } from 'react'
-import { supabase } from '../../../../services/supabaseClient'
+import { supabase } from '../../../../infrastructure/supabase/supabaseClient'
 import { certificadosStorageService, type CertificadoMedico } from '../services/certificadosStorageService'
 import * as papeleraCertificadosService from '../services/papeleraCertificadosService'
 import type { CertificadoPapelera } from '../services/papeleraCertificadosService'
-import { createLogger } from '../../../../services/logger'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 
 const log = createLogger('usePapeleraCertificados')
 

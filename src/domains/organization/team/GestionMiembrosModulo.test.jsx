@@ -4,7 +4,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { GestionMiembrosModulo } from './GestionMiembrosModulo'
 
 // Mock de authService
-vi.mock('../../../services/authService', () => ({
+vi.mock('../../../infrastructure/auth/authService', () => ({
   invitarMiembro: vi.fn(),
   listarInvitaciones: vi.fn(),
   revocarInvitacion: vi.fn(),
@@ -27,7 +27,7 @@ vi.mock('../../../store/sesionStore', () => ({
 }))
 
 // Mock de logger
-vi.mock('../../../services/logger', () => ({
+vi.mock('../../../infrastructure/logging/logger', () => ({
   createLogger: () => ({
     info: vi.fn(),
     error: vi.fn(),
@@ -48,7 +48,7 @@ import {
   revocarInvitacion, 
   generarUrlInvitacion,
   listarMiembros 
-} from '../../../services/authService'
+} from '../../../infrastructure/auth/authService'
 import { useDialogStore } from '../../../store/dialogStore'
 
 describe('GestionMiembrosModulo', () => {

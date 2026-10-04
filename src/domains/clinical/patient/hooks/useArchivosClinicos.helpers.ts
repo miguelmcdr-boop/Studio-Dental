@@ -5,7 +5,7 @@
  * F7-36 FASE 9: Validación MIME extraída a useArchivosClinicos.mimeValidation.js
  */
 
-import type { ArchivoClinicoRow } from '../../../../services/r2ArchivosService'
+import type { ArchivoClinicoRow } from '../../../../infrastructure/storage/r2ArchivosService'
 import type { PermisosArchivos } from './useArchivosClinicos.mimeValidation'
 
 // Re-export de validación MIME (backward compatibility)

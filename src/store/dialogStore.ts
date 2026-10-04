@@ -17,7 +17,7 @@
  *   if (result) { (usuario confirmó) }
  */
 import { create } from 'zustand'
-import { createLogger } from '../services/logger'
+import { createLogger } from '../infrastructure/logging/logger'
 
 const log = createLogger('dialogStore')
 

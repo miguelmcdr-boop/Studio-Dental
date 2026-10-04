@@ -1,9 +1,9 @@
 import React, { memo, useState, useEffect } from 'react'
-import { vademecumService, type FarmacoVademecum } from '../../../../services/vademecumService'
+import { vademecumService, type FarmacoVademecum } from '../../../../infrastructure/clinical-data/vademecumService'
 import { VADEMECUM_ODONTOLOGICO } from '../../../../data/vademecum'
 import { evaluarIncompatibilidadFarmaco } from '../utils/pacientesCalculations'
 import { AlertaAlergiaMejorada, type AlertaAlergiaData } from './AlertaAlergiaMejorada'
-import { createLogger } from '../../../../services/logger'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 
 const log = createLogger('FormularioNuevaReceta')
 

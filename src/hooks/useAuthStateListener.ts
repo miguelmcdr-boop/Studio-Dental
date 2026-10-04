@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
-import { supabase, USE_SUPABASE } from '../services/supabaseClient'
-import { createLogger } from '../services/logger'
+import { supabase, USE_SUPABASE } from '../infrastructure/supabase/supabaseClient'
+import { createLogger } from '../infrastructure/logging/logger'
 
 const log = createLogger('useAuthStateListener')
 

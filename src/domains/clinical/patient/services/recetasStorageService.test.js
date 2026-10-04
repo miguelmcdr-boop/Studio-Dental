@@ -9,16 +9,16 @@ import { recetasStorageService } from './recetasStorageService'
 import {
   guardarReceta as guardarRecetaSupabase,
   obtenerDatoClinico
-} from '../../../../services/datosClinicosSupabase'
-import { leerJSON, escribirJSON } from '../../../../services/localStorageRepository'
+} from '../../../../infrastructure/supabase/datosClinicosSupabase'
+import { leerJSON, escribirJSON } from '../../../../infrastructure/storage/localStorageRepository'
 
 // Mock de dependencias
-vi.mock('../../../../services/datosClinicosSupabase', () => ({
+vi.mock('../../../../infrastructure/supabase/datosClinicosSupabase', () => ({
   guardarReceta: vi.fn(),
   obtenerDatoClinico: vi.fn()
 }))
 
-vi.mock('../../../../services/localStorageRepository', () => ({
+vi.mock('../../../../infrastructure/storage/localStorageRepository', () => ({
   leerJSON: vi.fn(),
   escribirJSON: vi.fn()
 }))

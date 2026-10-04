@@ -3,11 +3,11 @@ import {
   obtenerDatoClinico,
   guardarEvolucionClinica as guardarEvolucionSupabase,
   obtenerEvolucionesRemotas
-} from '../../../../services/datosClinicosSupabase'
-import type { EvolucionClinicaRow } from '../../../../services/datosClinicosSupabase'
-import { createTenantRepository } from '../../../../services/localStorageRepository'
-import { getClinicaActiva } from '../../../../services/authService'
-import { createLogger } from '../../../../services/logger'
+} from '../../../../infrastructure/supabase/datosClinicosSupabase'
+import type { EvolucionClinicaRow } from '../../../../infrastructure/supabase/datosClinicosSupabase'
+import { createTenantRepository } from '../../../../infrastructure/storage/localStorageRepository'
+import { getClinicaActiva } from '../../../../infrastructure/auth/authService'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 
 const log = createLogger('evolucionesStorageService')
 

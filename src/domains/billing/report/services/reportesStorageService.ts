@@ -16,7 +16,7 @@ import { pacientesStorageService } from '../../../../domains/clinical/patient/se
 import { pagosStorageService } from '../../payment/services/pagosStorageService'
 import { presupuestosStorageService } from '../../budget/services/presupuestosStorageService'
 import { agendaStorageService } from '../../../operations/agenda/services/agendaStorageService'
-import { createLogger } from '../../../../services/logger'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 import type { Paciente } from '../../../../domains/clinical/patient/schemas/pacienteSchema'
 import type { Cita } from '../../../operations/agenda/schemas/citaSchema'
 import type { Presupuesto } from '../../budget/schemas/presupuestoSchema'

@@ -9,7 +9,7 @@
  *   return <ToastContainer notificaciones={notificaciones} />
  */
 import { useState, useEffect } from 'react'
-import { notificationService, type NotificationItem } from '../services/notificationService'
+import { notificationService, type NotificationItem } from '../infrastructure/notification/notificationService'
 
 export const useNotifications = (): NotificationItem[] => {
   const [notificaciones, setNotificaciones] = useState<NotificationItem[]>(() =>

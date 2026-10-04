@@ -32,11 +32,11 @@ vi.mock('../../../../domains/billing/payment/services/pagosAbonosLegacyService',
   eliminarAbonosDePaciente: vi.fn()
 }))
 
-vi.mock('../../../../services/adjuntosStorageService', () => ({
+vi.mock('../../../../infrastructure/storage/adjuntosStorageService', () => ({
   eliminarTodosPorPaciente: vi.fn(() => Promise.resolve())
 }))
 
-vi.mock('../../../../services/logger', () => ({
+vi.mock('../../../../infrastructure/logging/logger', () => ({
   createLogger: () => ({
     info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn()
   })
@@ -51,7 +51,7 @@ import { pacientesStorageService } from '../services/pacientesStorageService'
 import { odontogramaStorageService } from '../../../../domains/clinical/odontogram/services/odontogramaStorageService'
 import { presupuestosStorageService } from '../../../../domains/billing/budget/services/presupuestosStorageService'
 import { eliminarAbonosDePaciente } from '../../../../domains/billing/payment/services/pagosAbonosLegacyService'
-import { eliminarTodosPorPaciente } from '../../../../services/adjuntosStorageService'
+import { eliminarTodosPorPaciente } from '../../../../infrastructure/storage/adjuntosStorageService'
 
 describe('usePacientesActions (Commit G3)', () => {
   const pacientes = [

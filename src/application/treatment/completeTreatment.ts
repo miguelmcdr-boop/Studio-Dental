@@ -20,7 +20,7 @@ import {
   detectarCategoriaTratamiento,
   PALABRAS_CLAVE_POR_CATEGORIA_DEFAULT,
 } from '../../domains/operations/inventory'
-import { createLogger } from '../../services/logger'
+import { createLogger } from '../../infrastructure/logging/logger'
 
 const log = createLogger('completeTreatment')
 

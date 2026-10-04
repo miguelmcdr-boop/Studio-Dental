@@ -8,8 +8,8 @@
  *   useRestaurarPaciente(userProfile, pacienteSeleccionado, setPacienteSeleccionadoState, setActiveSection)
  */
 import { useEffect } from 'react'
-import { supabase, USE_SUPABASE } from '../services/supabaseClient'
-import { createLogger } from '../services/logger'
+import { supabase, USE_SUPABASE } from '../infrastructure/supabase/supabaseClient'
+import { createLogger } from '../infrastructure/logging/logger'
 import type { Paciente } from '../domains/clinical/patient/schemas/pacienteSchema'
 
 const log = createLogger('useRestaurarPaciente')

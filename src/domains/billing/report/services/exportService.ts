@@ -15,8 +15,8 @@
  * - Descarga vía Blob + URL.createObjectURL
  */
 import ExcelJS from 'exceljs'
-import { supabase, USE_SUPABASE } from '../../../../services/supabaseClient'
-import { createLogger } from '../../../../services/logger'
+import { supabase, USE_SUPABASE } from '../../../../infrastructure/supabase/supabaseClient'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 
 const log = createLogger('exportService')
 

@@ -10,9 +10,9 @@
  * Nota: paquetes aún no tiene esquema de validación (posible tarea derivada
  * futura si se requiere).
  */
-import { createTenantRepository } from '../../../../services/localStorageRepository'
+import { createTenantRepository } from '../../../../infrastructure/storage/localStorageRepository'
 import { validarListaPrestaciones, type Prestacion } from '../schemas/prestacionSchema'
-import { createLogger } from '../../../../services/logger'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 
 const log = createLogger('prestacionesStorageService')
 

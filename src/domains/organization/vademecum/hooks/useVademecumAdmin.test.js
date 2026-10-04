@@ -30,7 +30,7 @@ describe('useVademecumAdmin', () => {
   
   describe('Integración con vademecumService', () => {
     it('el servicio subyacente puede importarse', async () => {
-      const { vademecumService } = await import('../../../../services/vademecumService')
+      const { vademecumService } = await import('../../../../infrastructure/clinical-data/vademecumService')
       expect(vademecumService).toBeDefined()
       expect(typeof vademecumService.obtenerVademecum).toBe('function')
       expect(typeof vademecumService.guardarFarmaco).toBe('function')
@@ -42,14 +42,14 @@ describe('useVademecumAdmin', () => {
     })
     
     it('el servicio de notificaciones puede importarse', async () => {
-      const { notificationService } = await import('../../../../services/notificationService')
+      const { notificationService } = await import('../../../../infrastructure/notification/notificationService')
       expect(notificationService).toBeDefined()
       expect(typeof notificationService.success).toBe('function')
       expect(typeof notificationService.error).toBe('function')
     })
     
     it('las constantes de eventos realtime están disponibles', async () => {
-      const { REALTIME_EVENTS } = await import('../../../../services/realtimeEvents')
+      const { REALTIME_EVENTS } = await import('../../../../infrastructure/realtime/realtimeEvents')
       expect(REALTIME_EVENTS).toBeDefined()
       expect(REALTIME_EVENTS.VADEMECUM_CHANGED).toBe('realtime:vademecum_changed')
     })

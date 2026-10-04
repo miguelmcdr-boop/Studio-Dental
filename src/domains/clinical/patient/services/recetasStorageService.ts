@@ -13,12 +13,12 @@
  * - guardarRecetas(pacienteId, recetas)           → ASYNC, Supabase + localStorage
  * - eliminarRecetasDePaciente(pacienteId)         → SÍNCRONO, limpia localStorage
  */
-import { leerJSON, escribirJSON } from '../../../../services/localStorageRepository'
+import { leerJSON, escribirJSON } from '../../../../infrastructure/storage/localStorageRepository'
 import {
   guardarReceta as guardarRecetaSupabase,
   obtenerDatoClinico
-} from '../../../../services/datosClinicosSupabase'
-import { createLogger } from '../../../../services/logger'
+} from '../../../../infrastructure/supabase/datosClinicosSupabase'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 
 const log = createLogger('recetasStorageService')
 

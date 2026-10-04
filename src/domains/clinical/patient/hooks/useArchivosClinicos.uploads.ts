@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { solicitaUrlUpload, subeArchivoAR2 } from '../../../../services/r2ArchivosService'
+import { solicitaUrlUpload, subeArchivoAR2 } from '../../../../infrastructure/storage/r2ArchivosService'
 import { validarArchivo, type PermisosArchivos, type CategoriaArchivo } from './useArchivosClinicos.helpers'
 
 export interface UseArchivosClinicosUploadsReturn {

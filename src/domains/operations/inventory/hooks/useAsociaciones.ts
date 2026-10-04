@@ -7,7 +7,7 @@ import {
   type InsumoAsociado
 } from '../services/inventarioStorageService'
 import { INSUMOS_POR_PRESTACION_DEFAULT, PALABRAS_CLAVE_POR_CATEGORIA_DEFAULT } from '../utils/inventarioCalculations'
-import { createLogger } from '../../../../services/logger'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 import { useAppDialog } from '../../../../hooks/useAppDialog'
 
 const log = createLogger('useAsociaciones')

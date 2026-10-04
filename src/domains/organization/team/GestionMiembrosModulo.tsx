@@ -2,7 +2,7 @@ import React, { useMemo } from 'react'
 import { UsersRound } from 'lucide-react'
 import { useGestionMiembros } from './useGestionMiembros'
 import { NOMBRES_ROLES } from '../../../constants/rbacConstants'
-import type { MiembroItem, InvitacionItem } from '../../../services/authService'
+import type { MiembroItem, InvitacionItem } from '../../../infrastructure/auth/authService'
 
 /**
  * F7-11: Módulo de gestión de miembros de la clínica.

@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 import type React from 'react'
-import { eliminaArchivo as eliminaArchivoService } from '../../../../services/r2ArchivosService'
+import { eliminaArchivo as eliminaArchivoService } from '../../../../infrastructure/storage/r2ArchivosService'
 import type { PermisosArchivos } from './useArchivosClinicos.helpers'
 
 export interface ArchivoItemRef {

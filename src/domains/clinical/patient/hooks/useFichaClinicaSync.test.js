@@ -4,10 +4,10 @@ import { useFichaClinicaSync } from './useFichaClinicaSync'
 import {
   sincronizarPaciente,
   limpiarCachePaciente
-} from '../../../../services/datosClinicosSupabase'
+} from '../../../../infrastructure/supabase/datosClinicosSupabase'
 
 // Mock del servicio de Supabase
-vi.mock('../../../../services/datosClinicosSupabase', () => ({
+vi.mock('../../../../infrastructure/supabase/datosClinicosSupabase', () => ({
   sincronizarPaciente: vi.fn(),
   limpiarCachePaciente: vi.fn()
 }))

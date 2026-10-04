@@ -34,8 +34,8 @@ import {
   type RealtimePayload,
   type RealtimeCallback,
   type RealtimeSubscription
-} from '../services/realtimeService'
-import { createLogger } from '../services/logger'
+} from '../infrastructure/realtime/realtimeService'
+import { createLogger } from '../infrastructure/logging/logger'
 
 const _log = createLogger('useRealtimeSubscription')
 

@@ -5,13 +5,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // Mock de vademecumService
-vi.mock('../services/vademecumService', () => ({
+vi.mock('../infrastructure/clinical-data/vademecumService', () => ({
   vademecumService: {
     obtenerDosisAnestesia: vi.fn()
   }
 }))
 
-vi.mock('../services/logger.js', () => ({
+vi.mock('../infrastructure/logging/logger.js', () => ({
   createLogger: () => ({
     info: vi.fn(),
     warn: vi.fn(),
@@ -20,7 +20,7 @@ vi.mock('../services/logger.js', () => ({
   })
 }))
 
-import { vademecumService } from '../services/vademecumService'
+import { vademecumService } from '../infrastructure/clinical-data/vademecumService'
 import { obtenerDatosAnestesia } from './anestesiaCalculations'
 
 describe('F7-02: Integración vademecumService → anestesiaCalculations', () => {

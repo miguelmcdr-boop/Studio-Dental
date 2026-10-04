@@ -11,7 +11,7 @@ import {
   type AlergiaCruzada,
   type NivelSeveridadAlergia
 } from '../schemas/alergiaCruzadaSchema'
-import type { AlergiaCruzadaItem } from '../../../../services/vademecumService'
+import type { AlergiaCruzadaItem } from '../../../../infrastructure/clinical-data/vademecumService'
 
 export interface CeldaAlergia {
   familia_alergia?: string

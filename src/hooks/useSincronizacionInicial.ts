@@ -3,9 +3,9 @@ import { agendaStorageService } from '../domains/operations/agenda/services/agen
 import { presupuestosStorageService } from '../domains/billing/budget/services/presupuestosStorageService'
 import { pagosStorageService } from '../domains/billing/payment/services/pagosStorageService'
 import { finanzasStorageService } from '../domains/billing/cash-register/services/finanzasStorageService'
-import { vademecumService } from '../services/vademecumService'
-import { escanearYSincronizarAdjuntosPendientes } from '../services/adjuntosStorageService'
-import { createLogger } from '../services/logger'
+import { vademecumService } from '../infrastructure/clinical-data/vademecumService'
+import { escanearYSincronizarAdjuntosPendientes } from '../infrastructure/storage/adjuntosStorageService'
+import { createLogger } from '../infrastructure/logging/logger'
 
 const log = createLogger('useSincronizacionInicial')
 

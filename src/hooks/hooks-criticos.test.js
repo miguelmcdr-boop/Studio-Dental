@@ -16,7 +16,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook } from '@testing-library/react'
 
 // Mocks globales antes de importar los hooks
-vi.mock('../services/notificationService', () => ({
+vi.mock('../infrastructure/notification/notificationService', () => ({
   notificationService: {
     listar: vi.fn(() => []),
     suscribir: vi.fn((callback) => {
@@ -32,7 +32,7 @@ vi.mock('../domains/clinical/patient/services/pacientesStorageService', () => ({
   procesarColaPacientes: vi.fn(() => Promise.resolve({ procesados: 0, fallidos: 0 }))
 }))
 
-vi.mock('../services/logger', () => ({
+vi.mock('../infrastructure/logging/logger', () => ({
   createLogger: () => ({
     info: vi.fn(),
     warn: vi.fn(),
@@ -41,7 +41,7 @@ vi.mock('../services/logger', () => ({
   })
 }))
 
-vi.mock('../services/logger.js', () => ({
+vi.mock('../infrastructure/logging/logger.js', () => ({
   createLogger: () => ({
     info: vi.fn(),
     warn: vi.fn(),
@@ -50,7 +50,7 @@ vi.mock('../services/logger.js', () => ({
   })
 }))
 
-vi.mock('../services/supabaseClient', () => ({
+vi.mock('../infrastructure/supabase/supabaseClient', () => ({
   supabase: {
     auth: {
       getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null })
@@ -59,32 +59,32 @@ vi.mock('../services/supabaseClient', () => ({
   USE_SUPABASE: false
 }))
 
-vi.mock('../services/migrations/migratePacientesToSupabase', () => ({
+vi.mock('../infrastructure/supabase/migrations/migratePacientesToSupabase', () => ({
   migratePacientesToSupabase: vi.fn(),
   verificarPacientesPendientes: vi.fn(() => ({ pendientes: 0 }))
 }))
 
-vi.mock('../services/migrations/migrateCitasToSupabase', () => ({
+vi.mock('../infrastructure/supabase/migrations/migrateCitasToSupabase', () => ({
   migrateCitasToSupabase: vi.fn(),
   verificarCitasPendientes: vi.fn(() => ({ pendientes: 0 }))
 }))
 
-vi.mock('../services/migrations/migratePresupuestosToSupabase', () => ({
+vi.mock('../infrastructure/supabase/migrations/migratePresupuestosToSupabase', () => ({
   migratePresupuestosToSupabase: vi.fn(),
   verificarPresupuestosPendientes: vi.fn(() => ({ pendientes: 0 }))
 }))
 
-vi.mock('../services/migrations/migratePagosToSupabase', () => ({
+vi.mock('../infrastructure/supabase/migrations/migratePagosToSupabase', () => ({
   migratePagosToSupabase: vi.fn(),
   verificarPagosPendientes: vi.fn(() => ({ globalesPendientes: 0 }))
 }))
 
-vi.mock('../services/migrations/migrateMovimientosFinancierosToSupabase', () => ({
+vi.mock('../infrastructure/supabase/migrations/migrateMovimientosFinancierosToSupabase', () => ({
   migrateMovimientosFinancierosToSupabase: vi.fn(),
   verificarMovimientosPendientes: vi.fn(() => ({ pendientes: 0 }))
 }))
 
-vi.mock('../services/migrations/migrateDatosClinicosToSupabase', () => ({
+vi.mock('../infrastructure/supabase/migrations/migrateDatosClinicosToSupabase', () => ({
   migrateDatosClinicosToSupabase: vi.fn(),
   verificarDatosClinicosPendientes: vi.fn(() => ({ conDatos: false }))
 }))
@@ -113,7 +113,7 @@ import { useNotifications } from './useNotifications'
 import { useOfflineQueue } from './useOfflineQueue'
 import { useSessionGuard } from './useSessionGuard'
 import { useDataMigration } from './useDataMigration'
-import { notificationService } from '../services/notificationService'
+import { notificationService } from '../infrastructure/notification/notificationService'
 import { procesarColaPacientes } from '../domains/clinical/patient/services/pacientesStorageService'
 
 describe('useNotifications', () => {

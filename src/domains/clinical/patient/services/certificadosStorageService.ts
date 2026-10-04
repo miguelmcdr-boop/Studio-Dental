@@ -1,7 +1,7 @@
 import { pacientesStorageService } from './pacientesStorageService'
-import { obtenerDatoClinico, guardarCertificado } from '../../../../services/datosClinicosSupabase'
-import { esUuidValido } from '../../../../services/migrations/uuidUtils'
-import { createLogger } from '../../../../services/logger'
+import { obtenerDatoClinico, guardarCertificado } from '../../../../infrastructure/supabase/datosClinicosSupabase'
+import { esUuidValido } from '../../../../infrastructure/supabase/migrations/uuidUtils'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 
 const log = createLogger('certificadosStorageService')
 

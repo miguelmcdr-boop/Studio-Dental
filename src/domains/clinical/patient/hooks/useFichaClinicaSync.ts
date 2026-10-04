@@ -15,9 +15,9 @@ import { useEffect, useState } from 'react'
 import {
   sincronizarPaciente,
   limpiarCachePaciente
-} from '../../../../services/datosClinicosSupabase'
+} from '../../../../infrastructure/supabase/datosClinicosSupabase'
 import { procesarColaEvoluciones } from '../services/evolucionesStorageService'
-import { createLogger } from '../../../../services/logger'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 
 const log = createLogger('useFichaClinicaSync')
 

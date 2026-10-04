@@ -5,7 +5,7 @@ import { odontogramaStorageService } from '../../domains/clinical/odontogram'
 import { periodontogramaStorageService } from '../../domains/specialty/perio'
 import { presupuestosStorageService } from '../../domains/billing/budget'
 import * as paymentDomain from '../../domains/billing/payment'
-import * as adjuntosModule from '../../services/adjuntosStorageService'
+import * as adjuntosModule from '../../infrastructure/storage/adjuntosStorageService'
 
 describe('deletePatient (Application Service)', () => {
   beforeEach(() => {

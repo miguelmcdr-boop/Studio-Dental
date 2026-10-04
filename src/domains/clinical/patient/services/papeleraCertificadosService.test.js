@@ -40,12 +40,12 @@ vi.mock('./pacientesStorageService', () => ({
   }
 }))
 
-vi.mock('../../../../services/r2ArchivosService', () => ({
+vi.mock('../../../../infrastructure/storage/r2ArchivosService', () => ({
   eliminaArchivo: mocks.mockEliminaArchivo
 }))
 
 // F7-37 v4 H-12: mock de supabaseClient incluye auth, from, USE_SUPABASE, supabaseUrl
-vi.mock('../../../../services/supabaseClient', () => ({
+vi.mock('../../../../infrastructure/supabase/supabaseClient', () => ({
   supabase: {
     from: mocks.mockSupabaseFrom,
     auth: { getSession: mocks.mockGetSession }
@@ -54,7 +54,7 @@ vi.mock('../../../../services/supabaseClient', () => ({
   supabaseUrl: 'https://test.supabase.co'
 }))
 
-vi.mock('../../../../services/logger', () => ({
+vi.mock('../../../../infrastructure/logging/logger', () => ({
   createLogger: () => ({
     info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn()
   })

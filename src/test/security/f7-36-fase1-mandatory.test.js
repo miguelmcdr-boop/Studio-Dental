@@ -23,7 +23,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 let clinicaActivaActual = null
 
 // Mock de authService — getClinicaActiva como función síncrona mockeable
-vi.mock('../../services/authService', () => ({
+vi.mock('../../infrastructure/auth/authService', () => ({
   getClinicaActiva: vi.fn(() => clinicaActivaActual),
   setClinicaActiva: vi.fn(async (id) => {
     clinicaActivaActual = id
@@ -33,7 +33,7 @@ vi.mock('../../services/authService', () => ({
 }))
 
 // Mock de supabaseClient — evita llamadas reales a Supabase
-vi.mock('../../services/supabaseClient', () => ({
+vi.mock('../../infrastructure/supabase/supabaseClient', () => ({
   supabase: {
     from: vi.fn(() => ({
       select: vi.fn(() => ({
@@ -52,7 +52,7 @@ vi.mock('../../services/supabaseClient', () => ({
 }))
 
 // Mock de logger — evita ruido en tests
-vi.mock('../../services/logger', () => ({
+vi.mock('../../infrastructure/logging/logger', () => ({
   createLogger: () => ({
     info: vi.fn(),
     warn: vi.fn(),
@@ -122,9 +122,9 @@ const simularReload = async () => {
   // Re-importar servicios (se inicializan frescos)
   const pacMod = await import('../../domains/clinical/patient/services/pacientesStorageService.js')
   const agMod = await import('../../domains/operations/agenda/services/agendaStorageService.js')
-  const adjMod = await import('../../services/adjuntosStorageService.js')
-  const invMod = await import('../../services/invalidarCacheCambioClinica.js')
-  const tcMod = await import('../../services/tenantCache.js')
+  const adjMod = await import('../../infrastructure/storage/adjuntosStorageService.js')
+  const invMod = await import('../../infrastructure/supabase/invalidarCacheCambioClinica.js')
+  const tcMod = await import('../../infrastructure/tenant/tenantCache.js')
 
   // Asegurar que la clínica sigue siendo la misma
   clinicaActivaActual = clinicaPrevia
@@ -186,15 +186,15 @@ describe('F7-36 FASE 1 — 5 tests obligatorios de aislamiento multi-tenant', ()
     const agMod = await import('../../domains/operations/agenda/services/agendaStorageService.js')
     agendaStorageService = agMod.agendaStorageService
 
-    const adjMod = await import('../../services/adjuntosStorageService.js')
+    const adjMod = await import('../../infrastructure/storage/adjuntosStorageService.js')
     guardarAdjunto = adjMod.guardarAdjunto
     obtenerAdjuntosPorPaciente = adjMod.obtenerAdjuntosPorPaciente
     cerrarDB = adjMod.cerrarDB
 
-    const invMod = await import('../../services/invalidarCacheCambioClinica.js')
+    const invMod = await import('../../infrastructure/supabase/invalidarCacheCambioClinica.js')
     invalidarCacheCambioClinica = invMod.invalidarCacheCambioClinica
 
-    const tcMod = await import('../../services/tenantCache.js')
+    const tcMod = await import('../../infrastructure/tenant/tenantCache.js')
     tenantCache = tcMod.tenantCache
 
     // 6. Resetear el caché en memoria del storageService guardando array vacío.

@@ -5,7 +5,7 @@ import {
   eliminarAdjunto as eliminarAdjuntoDelServicio,
   procesarColaSubidas,
   type AdjuntoClinico
-} from '../../../../services/adjuntosStorageService'
+} from '../../../../infrastructure/storage/adjuntosStorageService'
 import { useSesionStore } from '../../../../store/sesionStore'
 
 export interface AdjuntoConUrl extends AdjuntoClinico {

@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { generarPDFCertificado, respaldarCertificadoEnR2 } from '../services/certificadosPDFService'
 import { certificadosStorageService } from '../services/certificadosStorageService'
 import type { CertificadoPapelera } from '../services/papeleraCertificadosService'
-import { createLogger } from '../../../../services/logger'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 
 const log = createLogger('useAutoRespaldoCertificados')
 

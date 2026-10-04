@@ -11,11 +11,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook } from '@testing-library/react'
 import { useRealtimeSubscription } from './useRealtimeSubscription'
-import * as realtimeService from '../services/realtimeService'
+import * as realtimeService from '../infrastructure/realtime/realtimeService'
 
 // Espía del método suscribirseATabla
-vi.mock('../services/realtimeService', async () => {
-  const actual = await vi.importActual('../services/realtimeService')
+vi.mock('../infrastructure/realtime/realtimeService', async () => {
+  const actual = await vi.importActual('../infrastructure/realtime/realtimeService')
   return {
     ...actual,
     suscribirseATabla: vi.fn()

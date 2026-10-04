@@ -7,7 +7,7 @@ const mockUnsubscribe = vi.fn()
 const mockOnAuthStateChange = vi.fn()
 const mockCallbackRef = { current: null }
 
-vi.mock('../services/supabaseClient', () => ({
+vi.mock('../infrastructure/supabase/supabaseClient', () => ({
   USE_SUPABASE: true,
   supabase: {
     auth: {

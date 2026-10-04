@@ -13,9 +13,9 @@
  * Dependencia: pacientesStorageService.js re-exporta estos métodos
  * en su API pública para mantener compatibilidad con consumidores existentes.
  */
-import { supabase, USE_SUPABASE } from '../../../../services/supabaseClient'
+import { supabase, USE_SUPABASE } from '../../../../infrastructure/supabase/supabaseClient'
 import { transformarDesdeSupabase } from './pacientesTransformations'
-import { createLogger } from '../../../../services/logger'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 import type { Paciente } from '../schemas/pacienteSchema'
 
 const log = createLogger('pacientesSoftDeleteService')

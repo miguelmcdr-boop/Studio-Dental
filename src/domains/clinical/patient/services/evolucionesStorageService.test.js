@@ -10,10 +10,10 @@ import { pacientesStorageService } from './pacientesStorageService'
 import {
   guardarEvolucionClinica as guardarEvolucionSupabase,
   obtenerDatoClinico
-} from '../../../../services/datosClinicosSupabase'
+} from '../../../../infrastructure/supabase/datosClinicosSupabase'
 
 // Mock de dependencias
-vi.mock('../../../../services/datosClinicosSupabase', () => ({
+vi.mock('../../../../infrastructure/supabase/datosClinicosSupabase', () => ({
   guardarEvolucionClinica: vi.fn(),
   obtenerDatoClinico: vi.fn()
 }))

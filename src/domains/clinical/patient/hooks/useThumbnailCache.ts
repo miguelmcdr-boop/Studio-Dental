@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
-import { solicitaUrlDownload } from '../../../../services/r2ArchivosService'
-import { createLogger } from '../../../../services/logger'
+import { solicitaUrlDownload } from '../../../../infrastructure/storage/r2ArchivosService'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 
 const log = createLogger('useThumbnailCache')
 

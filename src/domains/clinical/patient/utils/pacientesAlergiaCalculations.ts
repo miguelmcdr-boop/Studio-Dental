@@ -16,7 +16,7 @@
  * REGLA DE SEGURIDAD CLÍNICA (Constitución, Cap. V.2):
  * Si alergias no informadas → tipo: 'sin_datos' (nunca null)
  */
-import { vademecumService, type FarmacoVademecum, type EvaluacionAlergiaCruzada } from '../../../../services/vademecumService'
+import { vademecumService, type FarmacoVademecum, type EvaluacionAlergiaCruzada } from '../../../../infrastructure/clinical-data/vademecumService'
 import { normalizar } from '../../../../utils/anestesiaCalculations'
 
 export interface MensajeDinamicoResultado {

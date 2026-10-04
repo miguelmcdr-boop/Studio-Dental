@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRBAC } from '../../../../hooks/useRBAC'
 import { ROLES } from '../../../../constants/rbacConstants'
-import { listaArchivosDePaciente, type VaciarPapeleraArchivosResult } from '../../../../services/r2ArchivosService'
+import { listaArchivosDePaciente, type VaciarPapeleraArchivosResult } from '../../../../infrastructure/storage/r2ArchivosService'
 import {
   TIPO_A_CATEGORIA,
   CATEGORIA_A_TIPO,

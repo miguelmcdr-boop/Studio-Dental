@@ -2,10 +2,10 @@
  * F6-D-7: Tests de aislamiento multi-clínica
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { sincronizarPaciente, obtenerDatoClinico, limpiarCacheCompleta } from '../../../services/datosClinicosSupabase'
-import { supabase } from '../../../services/supabaseClient'
+import { sincronizarPaciente, obtenerDatoClinico, limpiarCacheCompleta } from '../../../infrastructure/supabase/datosClinicosSupabase'
+import { supabase } from '../../../infrastructure/supabase/supabaseClient'
 
-vi.mock('../../../services/supabaseClient', () => ({
+vi.mock('../../../infrastructure/supabase/supabaseClient', () => ({
   supabase: {
     from: vi.fn()
   },

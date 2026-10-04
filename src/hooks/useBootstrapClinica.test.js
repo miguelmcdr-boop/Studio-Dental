@@ -4,12 +4,12 @@ import { renderHook, act } from '@testing-library/react'
 import { useBootstrapClinica } from './useBootstrapClinica'
 
 // Mock de authService
-vi.mock('../services/authService', () => ({
+vi.mock('../infrastructure/auth/authService', () => ({
   bootstrapClinica: vi.fn()
 }))
 
 // Mock de logger
-vi.mock('../services/logger', () => ({
+vi.mock('../infrastructure/logging/logger', () => ({
   createLogger: () => ({
     info: vi.fn(),
     error: vi.fn(),
@@ -17,7 +17,7 @@ vi.mock('../services/logger', () => ({
   })
 }))
 
-import { bootstrapClinica } from '../services/authService'
+import { bootstrapClinica } from '../infrastructure/auth/authService'
 
 describe('useBootstrapClinica', () => {
   beforeEach(() => {

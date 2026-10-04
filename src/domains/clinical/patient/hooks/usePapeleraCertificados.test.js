@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => ({
   mockEliminarDefinitivo: vi.fn(() => Promise.resolve(true))
 }))
 
-vi.mock('../../../../services/supabaseClient', () => ({
+vi.mock('../../../../infrastructure/supabase/supabaseClient', () => ({
   supabase: { auth: { getUser: mocks.mockGetUser } }
 }))
 
@@ -25,7 +25,7 @@ vi.mock('../services/papeleraCertificadosService', () => ({
   eliminarDefinitivo: mocks.mockEliminarDefinitivo
 }))
 
-vi.mock('../../../../services/logger', () => ({
+vi.mock('../../../../infrastructure/logging/logger', () => ({
   createLogger: () => ({
     info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn()
   })

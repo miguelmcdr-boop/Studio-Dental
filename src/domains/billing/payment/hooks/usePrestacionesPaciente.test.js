@@ -7,7 +7,7 @@ vi.mock('../../budget/services/presupuestosStorageService', () => ({
   }
 }))
 
-vi.mock('../../../../services/logger.js', () => ({
+vi.mock('../../../../infrastructure/logging/logger.js', () => ({
   createLogger: () => ({
     info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn()
   })

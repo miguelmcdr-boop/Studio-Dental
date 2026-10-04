@@ -17,7 +17,7 @@ import type { AlergiaCruzada } from '../schemas/alergiaCruzadaSchema'
 import type { Interaccion } from '../schemas/interaccionSchema'
 import type { Profilaxis } from '../schemas/profilaxisSchema'
 import type { Anticoagulante } from '../schemas/anticoagulanteSchema'
-import { createLogger } from '../../../../services/logger'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 
 const log = createLogger('AdminProtocolosContenido')
 

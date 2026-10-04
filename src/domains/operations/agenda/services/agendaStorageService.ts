@@ -25,12 +25,12 @@
  * - Al leer desde Supabase: desnormalizar al formato del código
  * - Al escribir a Supabase: normalizar al formato esperado
  */
-import { createTenantRepository } from '../../../../services/localStorageRepository'
+import { createTenantRepository } from '../../../../infrastructure/storage/localStorageRepository'
 import { validarListaCitas, type Cita } from '../schemas/citaSchema'
-import { supabase, USE_SUPABASE } from '../../../../services/supabaseClient'
-import { migrationStorageService } from '../../../../services/migrationStorageService'
-import { esUuidValido } from '../../../../services/migrations/uuidUtils'
-import { createLogger } from '../../../../services/logger'
+import { supabase, USE_SUPABASE } from '../../../../infrastructure/supabase/supabaseClient'
+import { migrationStorageService } from '../../../../infrastructure/persistence/migrationStorageService'
+import { esUuidValido } from '../../../../infrastructure/supabase/migrations/uuidUtils'
+import { createLogger } from '../../../../infrastructure/logging/logger'
 import {
   transformarDesdeSupabase,
   transformarParaSupabase
