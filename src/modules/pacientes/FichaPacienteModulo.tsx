@@ -24,7 +24,7 @@ import { OdontogramaModulo } from '../odontograma'
 import { PeriodontogramaModulo } from '../periodontograma'
 import { QuirurgicoModulo } from '../quirurgico'
 import { OdontopediatriaModulo } from '../../domains/specialty/peds'
-import { SmileDesignModulo } from '../dsd'
+import { SmileDesignModulo } from '../../domains/specialty/dsd'
 import { ErrorBoundary } from '../../components/ErrorBoundary' // F6-01
 
 // Stores de Zustand
