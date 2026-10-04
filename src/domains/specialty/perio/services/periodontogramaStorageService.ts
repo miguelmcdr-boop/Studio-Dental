@@ -18,13 +18,13 @@
  * - guardarHistorialControles(pacienteId, historial)        → ASYNC, Supabase + localStorage
  * - eliminarDatosDePaciente(pacienteId)                     → SÍNCRONO, limpia localStorage (F2-07d)
  */
-import { leerJSON, escribirJSON } from '../../../services/localStorageRepository'
+import { leerJSON, escribirJSON } from '../../../../services/localStorageRepository'
 import {
   guardarPeriodontograma as guardarPeriodontogramaSupabase,
   guardarPeriodontogramaHistorial as guardarPeriodontogramaHistorialSupabase,
   obtenerDatoClinico
-} from '../../../services/datosClinicosSupabase'
-import { createLogger } from '../../../services/logger'
+} from '../../../../services/datosClinicosSupabase'
+import { createLogger } from '../../../../services/logger'
 import type { ControlPeriodontal, PiezaPeriodontal } from '../schemas/periodontalSchema'
 
 const log = createLogger('periodontogramaStorageService')

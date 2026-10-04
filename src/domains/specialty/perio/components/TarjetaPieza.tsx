@@ -1,5 +1,5 @@
 import React, { memo } from 'react'
-import { Button } from '../../../components/ui/Button'
+import { Button } from '../../../../components/ui/Button'
 
 export interface PiezaDataCara {
   sondaje?: (number | string | null)[]

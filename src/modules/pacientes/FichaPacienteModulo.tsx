@@ -21,7 +21,7 @@ import { useMetricasClinicas } from './hooks/useMetricasClinicas' // F7-26
 
 // Especialidades Externas (Módulos Encapsulados)
 import { OdontogramaModulo } from '../../domains/clinical/odontogram'
-import { PeriodontogramaModulo } from '../periodontograma'
+import { PeriodontogramaModulo } from '../../domains/specialty/perio'
 import { EndodonciaModulo } from '../../domains/specialty/endo'
 import { ImplantesModulo } from '../../domains/specialty/surg'
 import { OdontopediatriaModulo } from '../../domains/specialty/peds'

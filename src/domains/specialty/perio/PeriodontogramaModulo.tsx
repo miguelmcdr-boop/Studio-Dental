@@ -1,6 +1,6 @@
 import React, { memo, useState, useEffect } from 'react'
 import { Droplet, RefreshCw, Save } from 'lucide-react'
-import { Icon } from '../../components/Icon'
+import { Icon } from '../../../components/Icon'
 import { ArcadaSuperior } from './components/ArcadaSuperior'
 import { ArcadaInferior } from './components/ArcadaInferior'
 import { HeaderPeriodontal } from './components/HeaderPeriodontal'
@@ -11,14 +11,14 @@ import {
   type IndicesPeriodontalesResultado,
   type PiezasDataCalculo
 } from './utils/periodontalCalculations'
-import { pacientesStorageService } from '../pacientes/services/pacientesStorageService'
+import { pacientesStorageService } from '../../../modules/pacientes/services/pacientesStorageService'
 // F2-07b: acceso centralizado vía servicio (antes localStorage directo)
 import {
   periodontogramaStorageService,
   type PeriodontogramaData
 } from './services/periodontogramaStorageService'
-import { createLogger } from '../../services/logger'
-import { useAppDialog } from '../../hooks/useAppDialog'
+import { createLogger } from '../../../services/logger'
+import { useAppDialog } from '../../../hooks/useAppDialog'
 
 const log = createLogger('PeriodontogramaModulo')
 
