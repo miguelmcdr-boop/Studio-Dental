@@ -17,7 +17,7 @@
  * - alertasActivas: array de strings de alertas (alergias, enfermedades, medicamentos)
  */
 import { useMemo } from 'react'
-import { agendaStorageService } from '../../../../domains/operations/agenda/services/agendaStorageService'
+import { obtenerProximaCitaPaciente, type ProximaCitaResumen } from '../../../../application/scheduling'
 import { formatearCLP } from '../../../../utils/formatoMoneda'
 import type { EvolucionClinicaLocal } from '../services/evolucionesStorageService'
 import type { ItemPresupuesto, AbonoItem } from './usePresupuestoForm'
@@ -28,12 +28,7 @@ export interface AlertaClinica {
   texto: string
 }
 
-export interface ProximaCitaResumen {
-  fecha: string
-  hora: string | null
-  box: string | null
-  motivo: string | null
-}
+export type { ProximaCitaResumen }
 
 export interface UseMetricasClinicasOptions {
   paciente?: Paciente | { id: string | number; alergias?: string | null; enfermedades?: string | null; medicamentos?: string | null; [key: string]: unknown } | null
@@ -95,35 +90,10 @@ export const useMetricasClinicas = ({
     const diasDesdeUltimaVisita = diasEntre(ultimaVisita, hoy)
     const totalVisitas = evolucionesNotas.length
 
-    // 2. Próxima cita (desde agenda)
-    let proximaCita: ProximaCitaResumen | null = null
-    try {
-      if (paciente?.id && agendaStorageService?.obtenerCitas) {
-        const todasCitas = agendaStorageService.obtenerCitas() || []
-        const citasPaciente = todasCitas
-          .filter(
-            (c) =>
-              String(c.pacienteId) === String(paciente.id) &&
-              c.estado !== 'Cancelada' &&
-              c.fecha
-          )
-          .map((c) => ({ ...c, _fechaObj: parseFecha(c.fecha) }))
-          .filter((c): c is typeof c & { _fechaObj: Date } => c._fechaObj !== null && c._fechaObj >= new Date(hoy.toDateString()))
-          .sort((a, b) => a._fechaObj.getTime() - b._fechaObj.getTime())
-
-        if (citasPaciente[0]) {
-          const c0 = citasPaciente[0] as unknown as Record<string, unknown>
-          proximaCita = {
-            fecha: String(c0.fecha || ''),
-            hora: (c0.horaInicio as string) || (c0.hora as string) || null,
-            box: (c0.boxAsignado as string) || null,
-            motivo: (c0.trataMiento as string) || (c0.motivo as string) || null,
-          }
-        }
-      }
-    } catch {
-      // agendaStorageService no disponible — continuar sin métrica
-    }
+    // 2. Próxima cita (Application Service — desacoplado de Agenda)
+    const proximaCita: ProximaCitaResumen | null = paciente?.id
+      ? obtenerProximaCitaPaciente(paciente.id, hoy)
+      : null
 
     // 3. Métricas de presupuesto
     const presupuestoTotal = itemsPresupuesto.reduce((sum, i) => sum + (Number(i.valor) || 0), 0)
