@@ -16,7 +16,7 @@ import React, { useEffect, useMemo, useRef } from 'react'
 import { Icon } from './Icon'
 import { X, Search, User, Calendar, DollarSign, LucideIcon } from 'lucide-react'
 import { useSesionStore } from '../store/sesionStore'
-import type { Paciente } from '../modules/pacientes/schemas/pacienteSchema'
+import type { Paciente } from '../domains/clinical/patient/schemas/pacienteSchema'
 import type { SidebarItem } from '../constants/sidebarConstants'
 import type { AccionRapida } from '../hooks/useCommandPalette'
 

@@ -22,7 +22,7 @@
  * - fechaIngreso → fecha_ingreso
  */
 import { supabase } from '../supabaseClient'
-import { pacientesStorageService, type Paciente } from '../../modules/pacientes'
+import { pacientesStorageService, type Paciente } from '../../domains/clinical/patient'
 import { migrationStorageService } from '../migrationStorageService'
 import { esUuidValido } from './uuidUtils'
 import { createLogger } from '../logger'

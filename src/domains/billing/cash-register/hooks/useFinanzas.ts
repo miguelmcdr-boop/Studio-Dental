@@ -7,7 +7,7 @@ import { pagosStorageService, type Pago } from "../../payment/services/pagosStor
 import { obtenerAbonosPorPaciente, eliminarAbono, type AbonoFicha } from "../../payment/services/pagosAbonosLegacyService"
 import { createLogger } from '../../../../services/logger'
 import { useAppDialog } from '../../../../hooks/useAppDialog'
-import type { Paciente } from '../../../../modules/pacientes/schemas/pacienteSchema'
+import type { Paciente } from '../../../../domains/clinical/patient/schemas/pacienteSchema'
 
 const log = createLogger('useFinanzas')
 

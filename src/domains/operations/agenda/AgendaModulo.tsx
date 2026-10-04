@@ -15,7 +15,7 @@ import { exportarCitasCSV } from '../../../utils/csvExport'
 import { SILLONES_DENTALES } from './constants/agendaConstants'
 import { usePacientesStore } from '../../../store/pacientesStore'
 import type { Cita } from './schemas/citaSchema'
-import type { Paciente } from '../../../modules/pacientes/schemas/pacienteSchema'
+import type { Paciente } from '../../../domains/clinical/patient/schemas/pacienteSchema'
 
 export interface AgendaModuloProps {
   alSeleccionarPaciente?: (target: Paciente) => void

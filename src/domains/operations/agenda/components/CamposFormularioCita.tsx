@@ -4,7 +4,7 @@ import { CustomSelect } from '../../../../components/ui/CustomSelect'
 import { Icon } from '../../../../components/Icon'
 import { Armchair, Check, Phone, Folder, Clock, Timer } from 'lucide-react'
 import { TRATAMIENTOS_RAPIDOS } from '../constants/agendaConstants'
-import type { Paciente } from '../../../../modules/pacientes/schemas/pacienteSchema'
+import type { Paciente } from '../../../../domains/clinical/patient/schemas/pacienteSchema'
 
 export interface SillonDentalItem {
   id: string

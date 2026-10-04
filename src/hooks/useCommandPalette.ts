@@ -13,7 +13,7 @@ import { usePacientesStore } from '../store/pacientesStore'
 import { useRBAC } from './useRBAC'
 import { useSesionStore } from '../store/sesionStore' // F7-26: historial de pacientes recientes
 import { SECCIONES_SIDEBAR, type SidebarItem } from '../constants/sidebarConstants'
-import type { Paciente } from '../modules/pacientes/schemas/pacienteSchema'
+import type { Paciente } from '../domains/clinical/patient/schemas/pacienteSchema'
 import { createLogger } from '../services/logger'
 
 const log = createLogger('useCommandPalette')

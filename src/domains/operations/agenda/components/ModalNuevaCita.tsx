@@ -12,7 +12,7 @@ import { generarCitasRecurrencia, validarConflictosRecurrencia } from '../../../
 import { confirmarConflictosRecurrencia } from '../utils/validarConflictosRecurrencia'
 import { validarConflictoCitaUnica } from '../utils/validarConflictoCitaUnica'
 import type { Cita } from '../schemas/citaSchema'
-import type { Paciente } from '../../../../modules/pacientes/schemas/pacienteSchema'
+import type { Paciente } from '../../../../domains/clinical/patient/schemas/pacienteSchema'
 
 export interface ModalNuevaCitaProps {
   pacientes?: (Paciente & { apellido?: string; nombreCompleto?: string })[]

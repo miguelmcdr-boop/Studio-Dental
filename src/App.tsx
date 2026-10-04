@@ -10,7 +10,7 @@ import { usePacientesStore } from './store/pacientesStore'
 import { usePrestacionesStore } from './store/prestacionesStore'
 import { useSesionStore } from './store/sesionStore'
 import { useDataMigration } from './hooks/useDataMigration'
-import { useNavegacionClinica } from './modules/pacientes/hooks/useNavegacionClinica' // F7-26
+import { useNavegacionClinica } from './domains/clinical/patient/hooks/useNavegacionClinica' // F7-26
 import { useRealtimeSync } from './hooks/useRealtimeSync'
 import { useOfflineQueue } from './hooks/useOfflineQueue'
 import { supabase, USE_SUPABASE } from './services/supabaseClient'
@@ -28,13 +28,13 @@ import { CommandPalette } from './components/CommandPalette'
 
 // Módulos de uso diario — carga eager (Public API, Constitución v3.0.0)
 import { Agenda as AgendaModulo } from './domains/operations/agenda'
-import { FichaPaciente, DirectorioPacientes } from './modules/pacientes'
-import { usePacientesActions } from './modules/pacientes/hooks/usePacientesActions'
+import { FichaPaciente, DirectorioPacientes } from './domains/clinical/patient'
+import { usePacientesActions } from './domains/clinical/patient/hooks/usePacientesActions'
 import { useSessionGuard } from './hooks/useSessionGuard'
 import { DashboardModulo } from './modules/dashboard'
 import { createLogger } from './services/logger'
 import { createTenantRepository } from './services/localStorageRepository' // F7-36 FASE 1 (hotfix import)
-import type { Paciente } from './modules/pacientes/schemas/pacienteSchema'
+import type { Paciente } from './domains/clinical/patient/schemas/pacienteSchema'
 import type { PerfilUsuario } from './services/authService'
 
 const log = createLogger('App')

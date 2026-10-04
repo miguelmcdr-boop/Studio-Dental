@@ -10,7 +10,7 @@
 import { useEffect } from 'react'
 import { supabase, USE_SUPABASE } from '../services/supabaseClient'
 import { createLogger } from '../services/logger'
-import type { Paciente } from '../modules/pacientes/schemas/pacienteSchema'
+import type { Paciente } from '../domains/clinical/patient/schemas/pacienteSchema'
 
 const log = createLogger('useRestaurarPaciente')
 

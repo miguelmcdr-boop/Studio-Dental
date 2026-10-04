@@ -58,7 +58,7 @@ vi.mock('../logger.js', () => ({
   })
 }))
 
-vi.mock('../../modules/pacientes', () => ({
+vi.mock('../../domains/clinical/patient', () => ({
   pacientesStorageService: {
     listarTodos: vi.fn(() => []),
     obtenerPacientes: vi.fn(() => []),

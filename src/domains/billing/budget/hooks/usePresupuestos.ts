@@ -9,7 +9,7 @@ import {
   type ResumenPresupuestos
 } from '../utils/presupuestosCalculations'
 import { useAppDialog } from '../../../../hooks/useAppDialog'
-import type { Paciente } from '../../../../modules/pacientes/schemas/pacienteSchema'
+import type { Paciente } from '../../../../domains/clinical/patient/schemas/pacienteSchema'
 
 export interface UsePresupuestosReturn {
   presupuestos: PresupuestoLocal[]

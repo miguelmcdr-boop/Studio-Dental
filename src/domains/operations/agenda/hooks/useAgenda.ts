@@ -2,12 +2,12 @@ import { useState, useEffect, useCallback } from 'react'
 import type React from 'react'
 import { agendaStorageService } from '../services/agendaStorageService'
 import { generarCitasRecurrencia } from '../../../../utils/recurrenciaUtils'
-import { pacientesStorageService } from '../../../../modules/pacientes/services/pacientesStorageService'
+import { pacientesStorageService } from '../../../../domains/clinical/patient/services/pacientesStorageService'
 import { usePacientesStore } from '../../../../store/pacientesStore'
 import { obtenerFechaLocalISO } from '../../../../utils/dateUtils'
 import { useWhatsAppConfirmacion, type CitaWhatsAppRef } from './useWhatsAppConfirmacion'
 import type { Cita } from '../schemas/citaSchema'
-import type { Paciente } from '../../../../modules/pacientes/schemas/pacienteSchema'
+import type { Paciente } from '../../../../domains/clinical/patient/schemas/pacienteSchema'
 
 export interface UseAgendaReturn {
   citas: Cita[]

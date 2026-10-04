@@ -28,7 +28,7 @@ vi.mock('../services/notificationService', () => ({
   }
 }))
 
-vi.mock('../modules/pacientes/services/pacientesStorageService', () => ({
+vi.mock('../domains/clinical/patient/services/pacientesStorageService', () => ({
   procesarColaPacientes: vi.fn(() => Promise.resolve({ procesados: 0, fallidos: 0 }))
 }))
 
@@ -89,7 +89,7 @@ vi.mock('../services/migrations/migrateDatosClinicosToSupabase', () => ({
   verificarDatosClinicosPendientes: vi.fn(() => ({ conDatos: false }))
 }))
 
-vi.mock('../modules/pacientes', () => ({
+vi.mock('../domains/clinical/patient', () => ({
   pacientesStorageService: {
     sincronizarDesdeSupabase: vi.fn(),
     obtenerPacientes: vi.fn(() => [])
@@ -114,7 +114,7 @@ import { useOfflineQueue } from './useOfflineQueue'
 import { useSessionGuard } from './useSessionGuard'
 import { useDataMigration } from './useDataMigration'
 import { notificationService } from '../services/notificationService'
-import { procesarColaPacientes } from '../modules/pacientes/services/pacientesStorageService'
+import { procesarColaPacientes } from '../domains/clinical/patient/services/pacientesStorageService'
 
 describe('useNotifications', () => {
   beforeEach(() => {

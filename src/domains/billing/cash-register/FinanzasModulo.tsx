@@ -10,7 +10,7 @@ import { CalculadoraBoletas } from './components/CalculadoraBoletas'
 import { usePacientesStore } from '../../../store/pacientesStore'
 import { useSesionStore } from '../../../store/sesionStore'
 import { DollarSign } from 'lucide-react'
-import type { Paciente } from '../../../modules/pacientes/schemas/pacienteSchema'
+import type { Paciente } from '../../../domains/clinical/patient/schemas/pacienteSchema'
 
 type TabFinanzas =
   | 'Arqueo de Caja'

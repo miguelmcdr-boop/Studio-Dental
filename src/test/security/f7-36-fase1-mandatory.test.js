@@ -120,7 +120,7 @@ const simularReload = async () => {
   vi.resetModules()
 
   // Re-importar servicios (se inicializan frescos)
-  const pacMod = await import('../../modules/pacientes/services/pacientesStorageService.js')
+  const pacMod = await import('../../domains/clinical/patient/services/pacientesStorageService.js')
   const agMod = await import('../../domains/operations/agenda/services/agendaStorageService.js')
   const adjMod = await import('../../services/adjuntosStorageService.js')
   const invMod = await import('../../services/invalidarCacheCambioClinica.js')
@@ -180,7 +180,7 @@ describe('F7-36 FASE 1 — 5 tests obligatorios de aislamiento multi-tenant', ()
     configurarClinica('clinica-A')
 
     // 5. Cargar servicios dinámicamente (respetan mocks arriba)
-    const pacMod = await import('../../modules/pacientes/services/pacientesStorageService.js')
+    const pacMod = await import('../../domains/clinical/patient/services/pacientesStorageService.js')
     pacientesStorageService = pacMod.pacientesStorageService
 
     const agMod = await import('../../domains/operations/agenda/services/agendaStorageService.js')

@@ -11,7 +11,7 @@ import {
   type IndicesPeriodontalesResultado,
   type PiezasDataCalculo
 } from './utils/periodontalCalculations'
-import { pacientesStorageService } from '../../../modules/pacientes/services/pacientesStorageService'
+import { pacientesStorageService } from '../../../domains/clinical/patient/services/pacientesStorageService'
 // F2-07b: acceso centralizado vía servicio (antes localStorage directo)
 import {
   periodontogramaStorageService,

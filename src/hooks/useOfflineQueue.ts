@@ -8,9 +8,9 @@
  *   useOfflineQueue()  // en App.jsx
  */
 import { useEffect } from 'react'
-import { procesarColaPacientes } from '../modules/pacientes/services/pacientesStorageService'
+import { procesarColaPacientes } from '../domains/clinical/patient/services/pacientesStorageService'
 import { procesarColaSubidas } from '../services/adjuntosStorageService'
-import { procesarColaEvoluciones } from '../modules/pacientes/services/evolucionesStorageService'
+import { procesarColaEvoluciones } from '../domains/clinical/patient/services/evolucionesStorageService'
 import { procesarColaPagos } from '../domains/billing/payment/services/pagosStorageService'
 import {
   procesarColaPresupuestos,
