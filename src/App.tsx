@@ -391,7 +391,7 @@ export const App: React.FC = () => {
               {activeSection === 'Vademécum' && <AdminVademecumModulo />}
 
               {activeSection === 'Configuración' && (
-                <DatosClinicaForm />
+                <DatosClinicaForm userProfile={userProfile} />
               )}
 
               {activeSection === 'Pacientes' && (
