@@ -50,6 +50,8 @@ describe('P0-1: Sincronización multi-usuario no destructiva y Soft-Delete en ag
     supabase.auth.getUser.mockResolvedValue({
       data: { user: { id: 'user-b-uuid', email: 'doctor_b@example.com' } }
     })
+    localStorage.setItem('clinica_active_user', 'doctor_b@example.com')
+    localStorage.setItem('profile_doctor_b@example.com', JSON.stringify({ clinicaId: 'clinica-multiuser-test' }))
 
     // Chain mocks para from('citas')
     inMock = vi.fn().mockResolvedValue({ error: null })

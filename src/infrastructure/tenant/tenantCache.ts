@@ -19,7 +19,7 @@
  *   tenantCache.escribirTenant('pacientes_v3', nuevosDatos)
  */
 
-import { getClinicaActiva } from '../auth/authService'
+import { getClinicaActivaSync } from '../auth/authService'
 import { createLogger } from '../logging/logger'
 
 const log = createLogger('tenantCache')
@@ -197,7 +197,8 @@ export const createTenantCache = (getClinicaId: () => string | null): TenantCach
 }
 
 /**
- * Instancia por defecto de tenantCache que usa authService.getClinicaActiva().
- * Esta es la instancia que deben usar todos los servicios de la aplicación.
+ * Instancia por defecto de tenantCache que usa authService.getClinicaActivaSync().
+ * Usa la versión síncrona porque tenantCache se invoca en contextos
+ * que no soportan await (storage repositories, claves de localStorage).
  */
-export const tenantCache = createTenantCache(getClinicaActiva as unknown as () => string | null)
+export const tenantCache = createTenantCache(getClinicaActivaSync)

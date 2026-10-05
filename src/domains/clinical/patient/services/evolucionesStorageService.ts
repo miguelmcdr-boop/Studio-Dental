@@ -6,7 +6,7 @@ import {
 } from '../../../../infrastructure/supabase/datosClinicosSupabase'
 import type { EvolucionClinicaRow } from '../../../../infrastructure/supabase/datosClinicosSupabase'
 import { createTenantRepository } from '../../../../infrastructure/storage/localStorageRepository'
-import { getClinicaActiva } from '../../../../infrastructure/auth/authService'
+import { getClinicaActivaSync } from '../../../../infrastructure/auth/authService'
 import { createLogger } from '../../../../infrastructure/logging/logger'
 
 const log = createLogger('evolucionesStorageService')
@@ -63,7 +63,7 @@ const pendingEvolucionesRepo = createTenantRepository<PendingEvolucionEntry[]>('
 
 const obtenerClinicaId = (): string | null => {
   try {
-    return (getClinicaActiva as unknown as () => string | null)?.() || null
+    return getClinicaActivaSync()
   } catch {
     return null
   }

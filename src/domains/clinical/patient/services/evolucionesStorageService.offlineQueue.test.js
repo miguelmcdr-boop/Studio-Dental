@@ -25,6 +25,7 @@ const { estadoMock } = vi.hoisted(() => ({
 // Mock de authService y sesionStore
 vi.mock('../../../../infrastructure/auth/authService', () => ({
   getClinicaActiva: vi.fn(() => estadoMock.clinicaId),
+  getClinicaActivaSync: vi.fn(() => estadoMock.clinicaId),
   setClinicaActiva: vi.fn(async (id) => {
     estadoMock.clinicaId = id
   }),

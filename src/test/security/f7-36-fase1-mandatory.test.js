@@ -25,6 +25,7 @@ let clinicaActivaActual = null
 // Mock de authService — getClinicaActiva como función síncrona mockeable
 vi.mock('../../infrastructure/auth/authService', () => ({
   getClinicaActiva: vi.fn(() => clinicaActivaActual),
+  getClinicaActivaSync: vi.fn(() => clinicaActivaActual),
   setClinicaActiva: vi.fn(async (id) => {
     clinicaActivaActual = id
   }),

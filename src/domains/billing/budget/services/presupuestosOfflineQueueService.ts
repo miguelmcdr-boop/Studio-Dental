@@ -14,7 +14,7 @@
  */
 import { supabase, USE_SUPABASE } from '../../../../infrastructure/supabase/supabaseClient'
 import { createTenantRepository } from '../../../../infrastructure/storage/localStorageRepository'
-import { getClinicaActiva } from '../../../../infrastructure/auth/authService'
+import { getClinicaActivaSync } from '../../../../infrastructure/auth/authService'
 import { esUuidValido } from '../../../../infrastructure/supabase/migrations/uuidUtils'
 import { migrationStorageService } from '../../../../infrastructure/persistence/migrationStorageService'
 import { createLogger } from '../../../../infrastructure/logging/logger'
@@ -130,7 +130,7 @@ export const pendingDeletesPresupuestoItemsRepo = createTenantRepository<(string
 
 export const obtenerClinicaId = (): string | null => {
   try {
-    return (getClinicaActiva as unknown as () => string | null)?.() || null
+    return getClinicaActivaSync()
   } catch {
     return null
   }
