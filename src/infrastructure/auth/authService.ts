@@ -404,6 +404,36 @@ export const getClinicaActiva = async (): Promise<string | null> => {
 }
 
 /**
+ * HOTFIX: Versión síncrona de getClinicaActiva para uso en contextos
+ * donde no se puede usar await (tenantCache, storage services).
+ *
+ * Lee el clinicaId desde el perfil guardado en localStorage por sesionStore,
+ * que es la misma fuente de verdad que usa el JWT.
+ *
+ * @returns UUID de la clínica activa, o null si no está disponible
+ */
+export const getClinicaActivaSync = (): string | null => {
+  try {
+    if (typeof localStorage === 'undefined') return null
+
+    const ACTIVE_USER_KEY = 'clinica_active_user'
+    const activeEmail = localStorage.getItem(ACTIVE_USER_KEY)
+    if (!activeEmail) return null
+
+    const profileKey = `profile_${activeEmail.trim().toLowerCase()}`
+    const saved = localStorage.getItem(profileKey)
+    if (!saved) return null
+
+    const perfil = JSON.parse(saved) as { clinicaId?: string | null }
+    return perfil.clinicaId || null
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
+    log.error('Error en getClinicaActivaSync:', msg)
+    return null
+  }
+}
+
+/**
  * F7-10: Lista las clínicas donde el usuario tiene membresía activa.
  */
 export const listarMisClinicas = async (): Promise<ClinicaMembresiaItem[]> => {
