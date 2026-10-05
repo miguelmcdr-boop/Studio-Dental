@@ -34,6 +34,7 @@ import { useSessionGuard } from './shared/hooks/useSessionGuard'
 import { DashboardModulo } from './application/analytics/dashboard'
 import { createLogger } from './infrastructure/logging/logger'
 import { createTenantRepository } from './infrastructure/storage/localStorageRepository' // F7-36 FASE 1 (hotfix import)
+import { migrateCorruptTenantKeys } from './infrastructure/persistence/migrateCorruptTenantKeys'
 import type { Paciente } from './domains/clinical/patient/schemas/pacienteSchema'
 import type { PerfilUsuario } from './infrastructure/auth/authService'
 
@@ -255,6 +256,22 @@ export const App: React.FC = () => {
     if (userProfile?.nombreCompleto) document.title = `DentikOS — ${userProfile.nombreCompleto}`
     else document.title = 'DentikOS'
   }, [userProfile])
+
+  // Hotfix 3/4: migración automática de claves corruptas de localStorage
+  useEffect(() => {
+    if (userProfile?.email) {
+      // Ejecutar migración de claves corruptas una sola vez por sesión
+      const MIGRATION_KEY = 'dentikos_corrupt_keys_migrated_v1'
+      const alreadyMigrated = localStorage.getItem(MIGRATION_KEY)
+
+      if (!alreadyMigrated) {
+        const result = migrateCorruptTenantKeys()
+        if (result.migrated > 0 || result.deleted > 0) {
+          localStorage.setItem(MIGRATION_KEY, new Date().toISOString())
+        }
+      }
+    }
+  }, [userProfile?.email])
 
   const handleLogin = (profile: PerfilUsuario): void => {
     loginStore(profile)
