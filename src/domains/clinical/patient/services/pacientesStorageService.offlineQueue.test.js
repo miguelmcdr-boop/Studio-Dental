@@ -96,6 +96,21 @@ describe('P1-3: Cola de Pacientes (pendingPacientes)', () => {
           eq: vi.fn(() => ({
             eq: vi.fn(() => ({
               maybeSingle: vi.fn(async () => ({ data: null, error: null }))
+            })),
+            is: vi.fn(() => ({
+              order: vi.fn(async () => {
+                if (estadoMock.supabaseError) {
+                  return { data: null, error: estadoMock.supabaseError }
+                }
+                return { data: estadoMock.remotePacientes, error: null }
+              }),
+              then: (resolve) => {
+                if (estadoMock.supabaseError) {
+                  resolve({ data: null, error: estadoMock.supabaseError })
+                } else {
+                  resolve({ data: estadoMock.remotePacientes, error: null })
+                }
+              }
             }))
           }))
         })),

@@ -405,6 +405,14 @@ export const sincronizarPacientesDesdeSupabaseHelper = async ({
 
   try {
     const clinicaIdActual = obtenerClinicaId()
+
+    if (!clinicaIdActual) {
+      log.warn('No se pudo obtener clinicaId, retornando cache local')
+      return obtenerPacientes()
+    }
+
+    log.info(`Sincronizando pacientes para clínica: ${clinicaIdActual}`)
+
     const localesActuales = obtenerPacientes() || []
     const pending = obtenerPendingPacientes()
     const pendingDelTenant = pending.filter((p) =>
@@ -424,17 +432,22 @@ export const sincronizarPacientesDesdeSupabaseHelper = async ({
       (p) => idsPendientes.has(p.id) || (p.rut && rutsPendientes.has(p.rut)) || p.sincronizado === false
     )
 
-    // F6-F: filtrar pacientes eliminados (soft delete)
-    const { data, error } = await supabase
+    // F6-F: filtrar pacientes eliminados (soft delete) y por clínica explícita
+    const query = supabase
       .from('pacientes')
       .select('*')
+      .eq('clinica_id', clinicaIdActual)
       .is('deleted_at', null)
       .order('created_at', { ascending: false })
+
+    const { data, error } = await query
 
     if (error) {
       log.warn('Error al sincronizar desde Supabase:', error.message)
       return obtenerPacientes()
     }
+
+    log.info(`Supabase retornó ${data?.length ?? 0} pacientes`)
 
     if (!Array.isArray(data)) return obtenerPacientes()
 
