@@ -185,8 +185,9 @@ export const ClinicaSelector: React.FC<ClinicaSelectorProps> = ({ onCambioClinic
   // Múltiples clínicas: mostrar selector
   return (
     <div className="px-2 py-3 mb-4 border-b border-surface">
-      <label className="text-xs font-semibold text-graphite-500 dark:text-graphite-400 surgical:text-black block mb-1">Clínica activa</label>
+      <label htmlFor="clinica-activa-select" className="text-xs font-semibold text-graphite-500 dark:text-graphite-400 surgical:text-black block mb-1">Clínica activa</label>
       <select
+        id="clinica-activa-select"
         value={clinicaActiva || ''}
         onChange={handleCambio}
         disabled={cambiando}

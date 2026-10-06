@@ -1,3 +1,12 @@
+/**
+ * SelectorSede — Selector y visualizador de sede activa (Blueprint 03 §04)
+ *
+ * Siempre visible en desktop con:
+ * - Punto indicador 🟢 (#0D9488) de sincronización
+ * - Icono MapPin dorado (#D4AF37)
+ * - Nombre de sede activa (fallback 'Sede Principal' si no hay sedes)
+ * - Indicador dropdown ▼ (interactivo incluso con 1 sede)
+ */
 import React from 'react'
 import { MapPin } from 'lucide-react'
 import { useSedes } from '../../domains/organization/clinic/hooks/useSedes'
@@ -16,10 +25,14 @@ export const SelectorSede: React.FC<SelectorSedeProps> = ({
   compacto = false,
   sincronizado = true,
 }) => {
-  const { sedes, sedeActivaId, cambiarSede } = useSedes()
+  const { sedes = [], sedeActiva, sedeActivaId, cambiarSede } = useSedes()
   const storeCambiarSede = useSesionStore((s) => s.cambiarSede)
 
-  if (!sedes || sedes.length === 0) return null
+  const listaSedes = sedes && sedes.length > 0
+    ? sedes
+    : [{ id: 'sede-principal', nombre: 'Sede Principal' }]
+
+  const valorActivo = sedeActivaId || sedeActiva?.id || listaSedes[0]?.id || ''
 
   const handleSeleccion = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const nuevaSedeId = e.target.value
@@ -31,63 +44,42 @@ export const SelectorSede: React.FC<SelectorSedeProps> = ({
   const statusTitle = sincronizado ? 'Sede activa y sincronizada' : 'Cambio pendiente'
   const statusIndicator = (
     <span
-      className={`w-2 h-2 rounded-full shrink-0 ${sincronizado ? 'bg-emerald-500' : 'bg-amber-400'}`}
+      className={`w-2 h-2 rounded-full shrink-0 ${sincronizado ? 'bg-[#0D9488]' : 'bg-amber-400'}`}
       title={statusTitle}
       aria-label={statusTitle}
     />
   )
 
-  // Si solo hay una sede
-  if (sedes.length === 1) {
-    if (compacto) {
-      return (
-        <div
-          data-testid="selector-sede"
-          className={`h-8 max-w-[160px] px-2.5 rounded-lg border border-surface bg-surface/50 text-[13px] text-graphite-700 dark:text-graphite-200 inline-flex items-center gap-1.5 shrink-0 ${className}`}
-          title={`${sedes[0].nombre} — ${statusTitle}`}
-        >
-          {statusIndicator}
-          <MapPin size={13} className="text-[#D4AF37] shrink-0" />
-          <span className="truncate max-w-[110px] font-medium">{sedes[0].nombre}</span>
-        </div>
-      )
-    }
-
-    return (
-      <div
-        className={`px-2 py-1.5 rounded-lg border border-surface bg-surface/50 text-xs text-graphite-600 dark:text-graphite-300 flex items-center gap-2 ${className}`}
-        title={`${sedes[0].nombre} — ${statusTitle}`}
-      >
-        {statusIndicator}
-        <MapPin size={14} className="text-[#D4AF37] shrink-0" />
-        <span className="truncate font-medium">{sedes[0].nombre}</span>
-      </div>
-    )
-  }
-
-  // Múltiples sedes: dropdown interactivo con indicador visual
   return (
-    <div data-testid="selector-sede" className={`relative inline-flex items-center gap-1.5 h-8 max-w-[160px] shrink-0 ${className}`}>
+    <div
+      data-testid="selector-sede"
+      className={`relative inline-flex items-center gap-1.5 h-8 ${compacto ? 'max-w-[160px]' : 'max-w-[200px]'} shrink-0 ${className}`}
+    >
       {statusIndicator}
       <div className="relative inline-flex items-center">
         <label htmlFor="selector-sede-select" className="sr-only">Seleccionar sede</label>
         <div className="absolute left-2 pointer-events-none text-[#D4AF37]">
-          <MapPin size={12} />
+          <MapPin size={compacto ? 12 : 14} />
         </div>
         <select
           id="selector-sede-select"
-          value={sedeActivaId || sedes[0]?.id || ''}
+          value={valorActivo}
           onChange={handleSeleccion}
           title={statusTitle}
-          className="pl-6 pr-5 h-8 text-[13px] font-medium border border-surface rounded-lg bg-surface text-graphite-900 dark:text-graphite-100 surgical:text-black focus:outline-none focus:ring-1 focus:ring-[#D4AF37] cursor-pointer transition-colors max-w-[140px] truncate"
+          className="pl-6 pr-6 h-8 text-[13px] font-medium border border-surface rounded-lg bg-surface text-graphite-900 dark:text-graphite-100 surgical:text-black focus:outline-none focus:ring-1 focus:ring-[#D4AF37] cursor-pointer transition-colors max-w-[140px] truncate appearance-none"
         >
-          {sedes.map((s) => (
+          {listaSedes.map((s) => (
             <option key={s.id || s.nombre} value={s.id || s.nombre}>
               {s.nombre}
             </option>
           ))}
         </select>
+        <div className="absolute right-2 pointer-events-none text-graphite-400 text-[9px] select-none" aria-hidden="true">
+          ▼
+        </div>
       </div>
     </div>
   )
 }
+
+SelectorSede.displayName = 'SelectorSede'

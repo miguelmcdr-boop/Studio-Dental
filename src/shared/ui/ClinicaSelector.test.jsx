@@ -106,7 +106,7 @@ describe('ClinicaSelector (F7-10)', () => {
     await new Promise(resolve => setTimeout(resolve, 10))
 
     // El usuario cambia a clínica B
-    const select = screen.getByRole('combobox')
+    const select = screen.getByRole('combobox', { name: /clínica activa/i })
     Object.defineProperty(select, 'value', { value: 'clinica-B', writable: true })
     select.dispatchEvent(new Event('change', { bubbles: true }))
 

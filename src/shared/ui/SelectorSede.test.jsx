@@ -2,6 +2,7 @@ import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { SelectorSede } from './SelectorSede'
+import { useSedes } from '../../domains/organization/clinic/hooks/useSedes'
 
 vi.mock('../../domains/organization/clinic/hooks/useSedes', () => ({
   useSedes: vi.fn(),
@@ -11,14 +12,12 @@ vi.mock('../../app/stores/sesionStore', () => ({
   useSesionStore: vi.fn(() => vi.fn()),
 }))
 
-import { useSedes } from '../../domains/organization/clinic/hooks/useSedes'
-
-describe('SelectorSede', () => {
+describe('SelectorSede (Blueprint 03 §04)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
-  it('no renderiza nada si no hay sedes', () => {
+  it('muestra fallback "Sede Principal" si no hay sedes registradas', () => {
     vi.mocked(useSedes).mockReturnValue({
       sedes: [],
       sedeActiva: null,
@@ -30,14 +29,15 @@ describe('SelectorSede', () => {
       recargar: vi.fn(),
     })
 
-    const { container } = render(<SelectorSede />)
-    expect(container.firstChild).toBeNull()
+    render(<SelectorSede />)
+    expect(screen.getByTestId('selector-sede')).toBeInTheDocument()
+    expect(screen.getByText('Sede Principal')).toBeInTheDocument()
   })
 
-  it('muestra etiqueta fija si solo hay 1 sede', () => {
+  it('con 1 sede: pill visible con nombre y combobox interactivo', () => {
     vi.mocked(useSedes).mockReturnValue({
-      sedes: [{ id: 'sede-1', nombre: 'Sede Principal', direccion: 'Calle 1', comuna: 'C', region: 'R', activa: true }],
-      sedeActiva: { id: 'sede-1', nombre: 'Sede Principal', direccion: 'Calle 1', comuna: 'C', region: 'R', activa: true },
+      sedes: [{ id: 'sede-1', nombre: 'Sede Providencia', direccion: 'Av. Providencia 123', comuna: 'P', region: 'RM', activa: true }],
+      sedeActiva: { id: 'sede-1', nombre: 'Sede Providencia', direccion: 'Av. Providencia 123', comuna: 'P', region: 'RM', activa: true },
       sedeActivaId: 'sede-1',
       cambiarSede: vi.fn(),
       agregarSede: vi.fn(),
@@ -46,18 +46,22 @@ describe('SelectorSede', () => {
       recargar: vi.fn(),
     })
 
-    render(<SelectorSede />)
-    expect(screen.getByText('Sede Principal')).toBeInTheDocument()
+    render(<SelectorSede compacto />)
+    expect(screen.getByTestId('selector-sede')).toBeInTheDocument()
+    expect(screen.getByText('Sede Providencia')).toBeInTheDocument()
+    const select = screen.getByRole('combobox')
+    expect(select).toBeInTheDocument()
+    expect(select).toHaveValue('sede-1')
   })
 
-  it('muestra selector interactivo si hay múltiples sedes', () => {
+  it('con múltiples sedes: selector interactivo permite cambiar de sede', () => {
     const cambiarSedeMock = vi.fn()
     vi.mocked(useSedes).mockReturnValue({
       sedes: [
-        { id: 'sede-1', nombre: 'Sede Providencia', direccion: 'Av. Providencia', comuna: 'C', region: 'R', activa: true },
-        { id: 'sede-2', nombre: 'Sede Las Condes', direccion: 'Av. Las Condes', comuna: 'C', region: 'R', activa: true },
+        { id: 'sede-1', nombre: 'Sede Providencia', direccion: 'Av. Providencia', comuna: 'C', region: 'RM', activa: true },
+        { id: 'sede-2', nombre: 'Sede Las Condes', direccion: 'Av. Las Condes', comuna: 'C', region: 'RM', activa: true },
       ],
-      sedeActiva: { id: 'sede-1', nombre: 'Sede Providencia', direccion: 'Av. Providencia', comuna: 'C', region: 'R', activa: true },
+      sedeActiva: { id: 'sede-1', nombre: 'Sede Providencia', direccion: 'Av. Providencia', comuna: 'C', region: 'RM', activa: true },
       sedeActivaId: 'sede-1',
       cambiarSede: cambiarSedeMock,
       agregarSede: vi.fn(),
