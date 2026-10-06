@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useNombreClinica } from './useNombreClinica'
-import { notificarCambioClinica } from '../../domains/organization/clinic'
+import { notificarCambioClinica } from '../../domains/organization/clinic/services/clinicaActivaService'
 import { clinicStorageService } from '../../domains/organization/clinic/services/clinicStorageService'
 import { useSesionStore } from '../../app/stores/sesionStore'
 

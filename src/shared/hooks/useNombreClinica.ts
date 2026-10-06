@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import {
   obtenerNombreClinica,
   suscribirNombre,
-} from '../../domains/organization/clinic'
+} from '../../domains/organization/clinic/services/clinicaActivaService'
 
 export const useNombreClinica = (perfilNombre?: unknown): string => {
   const [nombre, setNombre] = useState<string>(() => {
