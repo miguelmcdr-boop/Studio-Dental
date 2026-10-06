@@ -4,14 +4,14 @@
  */
 import React, { useMemo, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useRBAC } from '../hooks/useRBAC'
+import { SidebarHeader } from './SidebarHeader'
 import { SidebarFooter } from './SidebarFooter'
 import { Icon } from './Icon'
 import { Badge } from './ui/Badge'
-import { DentikOSLogo } from './brand/DentikOSLogo'
 import { useSidebarStore } from '../../app/stores/useSidebarStore'
 import { useDarkMode } from '../hooks/useDarkMode'
+import { useSedes } from '../../domains/organization/clinic/hooks/useSedes'
 import { SECCIONES_SIDEBAR, type SidebarItem, type SidebarSeccion } from '../../constants/sidebarConstants'
 import type { PerfilUsuario } from '../../infrastructure/auth/authService'
 import type { SidebarCountersReturn } from '../hooks/useSidebarCounters'
@@ -46,6 +46,7 @@ export interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
+  userProfile,
   activeSection,
   setActiveSection,
   counters = {},
@@ -55,8 +56,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const focusMode = useSidebarStore((s) => s.focusMode)
   const { theme } = useDarkMode()
   const { puede } = useRBAC()
+  const { sedeActiva } = useSedes()
 
   const isCollapsed = mode === 'collapsed'
+  const clinicaNombre = typeof userProfile?.clinicaNombre === 'string' ? userProfile.clinicaNombre : 'Studio Dental'
+  const sedeNombre = sedeActiva?.nombre || 'Sede Principal'
 
   useEffect(() => {
     // Auto-colapsar al activar modo quirúrgico
@@ -95,26 +99,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       aria-label="Menú principal"
     >
       <div>
-        {/* Header: Logo DentikOS + Toggle colapso */}
-        <div className={`mb-5 px-1 ${isCollapsed ? 'flex flex-col items-center gap-2' : 'flex items-center justify-between min-h-[36px]'}`}>
-          <div className={`${isCollapsed ? 'mx-auto' : ''} flex items-center overflow-hidden`}>
-            <DentikOSLogo
-              variant={isCollapsed ? 'icon-only' : 'horizontal'}
-              size="sm"
-              opticalSize={isCollapsed ? 'micro' : 'standard'}
-            />
-          </div>
-
-          <button
-            onClick={() => setMode(isCollapsed ? 'expanded' : 'collapsed')}
-            aria-label={isCollapsed ? 'Expandir menú' : 'Colapsar menú'}
-            title={isCollapsed ? 'Expandir menú' : 'Colapsar menú'}
-            data-testid="sidebar-toggle"
-            className="p-1.5 rounded-lg hover:bg-graphite-200/60 dark:hover:bg-graphite-800 text-graphite-500 hover:text-graphite-900 dark:hover:text-gold-satin transition-colors cursor-pointer"
-          >
-            <Icon icon={isCollapsed ? ChevronRight : ChevronLeft} size="sm" />
-          </button>
-        </div>
+        {/* Header: Logo DentikOS + Identidad + Toggle colapso */}
+        <SidebarHeader
+          isCollapsed={isCollapsed}
+          onToggleCollapse={() => setMode(isCollapsed ? 'expanded' : 'collapsed')}
+          clinicaNombre={clinicaNombre}
+          sedeNombre={sedeNombre}
+        />
 
         {/* 5 Categorías Core en cascada Framer Motion */}
         <motion.nav

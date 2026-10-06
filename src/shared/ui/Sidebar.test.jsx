@@ -89,4 +89,20 @@ describe('Sidebar - Matriz de Permisos Blueprint 02', () => {
     rerender(<Sidebar activeSection="Dashboard" setActiveSection={vi.fn()} />)
     expect(screen.getByTestId('sidebar-toggle')).toBeInTheDocument()
   })
+
+  it('muestra la identidad de la clínica y sede en modo expandido', () => {
+    vi.mocked(useRBAC).mockReturnValue({
+      rol: ROLES.ADMIN,
+      esAdmin: true,
+      puede: vi.fn().mockReturnValue(true),
+      tieneAlguno: vi.fn().mockReturnValue(true),
+      es: vi.fn().mockReturnValue(true),
+      permisos: Object.values(PERMISOS),
+    })
+
+    const userProfile = { clinicaNombre: 'Clínica Sonrisa Perfecta' }
+    render(<Sidebar activeSection="Dashboard" setActiveSection={vi.fn()} userProfile={userProfile} />)
+
+    expect(screen.getByText('Clínica Sonrisa Perfecta')).toBeInTheDocument()
+  })
 })
