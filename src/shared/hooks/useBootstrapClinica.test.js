@@ -22,6 +22,14 @@ vi.mock('../../domains/organization/clinic/services/sedesService', () => ({
   },
 }))
 
+// Mock de clinicStorageService
+vi.mock('../../domains/organization/clinic/services/clinicStorageService', () => ({
+  clinicStorageService: {
+    sincronizarClinicaDesdeSupabase: vi.fn().mockResolvedValue({ nombreClinica: 'Clínica Dental Pro' }),
+    obtenerClinica: vi.fn(() => ({ nombreClinica: 'Clínica Dental Pro' })),
+  },
+}))
+
 // Mock de logger
 vi.mock('../../infrastructure/logging/logger', () => ({
   createLogger: () => ({
@@ -33,6 +41,7 @@ vi.mock('../../infrastructure/logging/logger', () => ({
 
 import { bootstrapClinica, supabaseSignOut } from '../../infrastructure/auth/authService'
 import { sedesService } from '../../domains/organization/clinic/services/sedesService'
+import { clinicStorageService } from '../../domains/organization/clinic/services/clinicStorageService'
 
 describe('useBootstrapClinica (4 pasos)', () => {
   beforeEach(() => {
@@ -187,6 +196,7 @@ describe('useBootstrapClinica (4 pasos)', () => {
         direccion: 'Calle Principal 100',
       })
     )
+    expect(clinicStorageService.sincronizarClinicaDesdeSupabase).toHaveBeenCalledWith('clinica-123')
     expect(sedesService.guardarSedes).toHaveBeenCalled()
     expect(result.current.completado).toBe(true)
     expect(result.current.procesando).toBe(false)
