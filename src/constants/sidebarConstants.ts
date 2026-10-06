@@ -43,7 +43,7 @@ export const SECCIONES_SIDEBAR: SidebarSeccion[] = [
     categoria: 'CLINICO',
     items: [
       { name: 'Esterilización', icon: FlaskConical, slug: 'esterilizacion', permisoRequerido: PERMISOS.VER_ESTERILIZACION },
-      { name: 'Urgencias GES', icon: Siren, slug: 'urgencias-ges' },
+      { name: 'Urgencias GES', icon: Siren, slug: 'urgencias-ges', permisoRequerido: PERMISOS.VER_URGENCIAS_GES },
       { name: 'Vademécum', icon: Pill, slug: 'vademecum', permisoRequerido: PERMISOS.VER_VADEMECUM },
     ],
   },

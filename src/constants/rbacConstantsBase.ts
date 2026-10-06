@@ -26,6 +26,7 @@ export const PERMISOS = {
   VER_INVENTARIO: 'ver_inventario',
   VER_LABORATORIO: 'ver_laboratorio',
   VER_ESTERILIZACION: 'ver_esterilizacion',
+  VER_URGENCIAS_GES: 'ver_urgencias_ges',
 
   // Permisos de edición/operación
   EDITAR_PRECIOS: 'editar_precios',
