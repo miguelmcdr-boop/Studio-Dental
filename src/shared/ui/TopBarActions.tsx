@@ -7,7 +7,7 @@ import { MoreHorizontal, type LucideIcon } from 'lucide-react'
 
 export interface AccionContextualItem {
   label: string
-  icon: LucideIcon
+  icon?: LucideIcon
   onClick: () => void
 }
 
@@ -59,7 +59,7 @@ export const TopBarActions: React.FC<TopBarActionsProps> = ({
           }}
           title={primaria.label}
         >
-          <primaria.icon size={14} className="shrink-0" />
+          {primaria.icon && <primaria.icon size={14} className="shrink-0" />}
           <span className="hidden sm:inline">{primaria.label}</span>
         </button>
       )}
@@ -70,7 +70,7 @@ export const TopBarActions: React.FC<TopBarActionsProps> = ({
           <button
             type="button"
             onClick={() => setMenuOpen(!menuOpen)}
-            className="p-1.5 text-graphite-600 dark:text-graphite-300 hover:bg-graphite-100 dark:hover:bg-graphite-800 rounded-lg transition-colors border border-surface"
+            className="p-1.5 text-graphite-600 dark:text-graphite-300 hover:bg-graphite-100 dark:hover:bg-graphite-800 rounded-lg transition-colors border border-surface cursor-pointer"
             aria-label="Más acciones contextuales"
             title="Más acciones"
           >
@@ -91,9 +91,9 @@ export const TopBarActions: React.FC<TopBarActionsProps> = ({
                     setMenuOpen(false)
                     sec.onClick()
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-graphite-700 dark:text-graphite-200 hover:bg-graphite-100 dark:hover:bg-graphite-800 transition-colors text-left"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-graphite-700 dark:text-graphite-200 hover:bg-graphite-100 dark:hover:bg-graphite-800 transition-colors text-left cursor-pointer"
                 >
-                  <sec.icon size={13} className="text-primary shrink-0" />
+                  {sec.icon && <sec.icon size={13} className="text-primary shrink-0" />}
                   <span className="truncate">{sec.label}</span>
                 </button>
               ))}
