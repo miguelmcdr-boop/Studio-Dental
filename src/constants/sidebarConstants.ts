@@ -34,7 +34,7 @@ export const SECCIONES_SIDEBAR: SidebarSeccion[] = [
     categoria: 'PRINCIPAL',
     items: [
       { name: 'Dashboard', icon: LayoutDashboard, slug: 'dashboard' },
-      { name: 'Agenda', icon: Calendar, slug: 'agenda', counterKey: 'agenda', counterVariant: 'info' },
+      { name: 'Agenda', icon: Calendar, slug: 'agenda', counterKey: 'agendaSinConfirmar', counterVariant: 'info' },
       { name: 'Pacientes', icon: Users, slug: 'pacientes', counterKey: 'papelera', counterVariant: 'warning' },
     ],
   },
@@ -42,7 +42,7 @@ export const SECCIONES_SIDEBAR: SidebarSeccion[] = [
     label: 'PRÁCTICA SANITARIA', // Categoría 02
     categoria: 'CLINICO',
     items: [
-      { name: 'Esterilización', icon: FlaskConical, slug: 'esterilizacion', permisoRequerido: PERMISOS.VER_ESTERILIZACION },
+      { name: 'Esterilización', icon: FlaskConical, slug: 'esterilizacion', permisoRequerido: PERMISOS.VER_ESTERILIZACION, counterKey: 'esterilizacionPendiente', counterVariant: 'warning' },
       { name: 'Urgencias GES', icon: Siren, slug: 'urgencias-ges', permisoRequerido: PERMISOS.VER_URGENCIAS_GES },
       { name: 'Vademécum', icon: Pill, slug: 'vademecum', permisoRequerido: PERMISOS.VER_VADEMECUM },
     ],
@@ -51,7 +51,7 @@ export const SECCIONES_SIDEBAR: SidebarSeccion[] = [
     label: 'GESTIÓN FINANCIERA', // Categoría 03
     categoria: 'FINANZAS',
     items: [
-      { name: 'Pagos', icon: CreditCard, slug: 'pagos', permisoRequerido: PERMISOS.VER_FINANZAS },
+      { name: 'Pagos', icon: CreditCard, slug: 'pagos', permisoRequerido: PERMISOS.VER_FINANZAS, counterKey: 'pagosVencidos', counterVariant: 'error' },
       { name: 'Reportes', icon: BarChart3, slug: 'reportes', permisoRequerido: PERMISOS.VER_REPORTES },
     ],
   },
@@ -59,8 +59,8 @@ export const SECCIONES_SIDEBAR: SidebarSeccion[] = [
     label: 'LOGÍSTICA OPERATIVA', // Categoría 04
     categoria: 'OPERACIONES',
     items: [
-      { name: 'Inventario', icon: Package, slug: 'inventario', permisoRequerido: PERMISOS.VER_INVENTARIO, counterKey: 'inventario', counterVariant: 'error' },
-      { name: 'Comunicaciones', icon: Mail, slug: 'comunicaciones' },
+      { name: 'Inventario', icon: Package, slug: 'inventario', permisoRequerido: PERMISOS.VER_INVENTARIO, counterKey: 'inventarioBajo', counterVariant: 'error' },
+      { name: 'Comunicaciones', icon: Mail, slug: 'comunicaciones', counterKey: 'mensajesNoLeidos', counterVariant: 'info' },
     ],
   },
   {
