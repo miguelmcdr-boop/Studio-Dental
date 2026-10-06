@@ -81,4 +81,38 @@ describe('Blueprint 01 - LoginScreen Split Screen & 9 Estados', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument()
     expect(screen.getByText(/Recuperar contraseña/i)).toBeInTheDocument()
   })
+
+  describe('Flujo de registro', () => {
+    it('permite volver al login desde el formulario de registro', () => {
+      render(<LoginScreen onLogin={onLoginMock} />)
+
+      // Click en "Comenzar con DentikOS" — abre registro
+      fireEvent.click(screen.getByText(/Comenzar con DentikOS/i))
+
+      // Aparece el botón de volver
+      expect(screen.getByLabelText(/Volver al login/i)).toBeInTheDocument()
+
+      // Click en "Volver al inicio de sesión"
+      fireEvent.click(screen.getByLabelText(/Volver al login/i))
+
+      // Regresa al formulario de login — el h2 vuelve a 'Iniciar Sesión'
+      expect(screen.getByRole('heading', { name: 'Iniciar Sesión' })).toBeInTheDocument()
+      expect(screen.queryByLabelText(/Volver al login/i)).not.toBeInTheDocument()
+    })
+
+    it('vuelve al login al presionar Escape en el formulario de registro', () => {
+      render(<LoginScreen onLogin={onLoginMock} />)
+
+      // Abrir registro
+      fireEvent.click(screen.getByText(/Comenzar con DentikOS/i))
+      expect(screen.getByLabelText(/Volver al login/i)).toBeInTheDocument()
+
+      // Presionar Escape
+      fireEvent.keyDown(document, { key: 'Escape' })
+
+      // Regresa al login — el h2 vuelve a 'Iniciar Sesión'
+      expect(screen.getByRole('heading', { name: 'Iniciar Sesión' })).toBeInTheDocument()
+      expect(screen.queryByLabelText(/Volver al login/i)).not.toBeInTheDocument()
+    })
+  })
 })
