@@ -1,33 +1,43 @@
 /**
- * Sidebar con control de acceso por rol (F3-05) + Design System v2 (F10-B2).
- *
- * F10-B2: navegación agrupada en 4 secciones con labels, soporte de
- * contadores vía props (conexión a datos reales en B2.5) y item activo
- * en graphite-900 (champagne reservado para marca).
- *
- * Contratos preservados:
- * - data-testid="sidebar-menu-{slug}" (tests)
- * - aria-current="page" en item activo
- * - RBAC: permisoRequerido por item (definidos en sidebarConstants)
- * - Toggle de colapso manual
+ * Sidebar — Blueprint 02: 5 Categorías Core, Trazo de Cera Quirúrgico y Cascada Framer Motion
+ * Respetando arquitectura DDD y límite estricto de 250 líneas.
  */
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useMemo, useEffect, useCallback } from 'react'
+import { motion } from 'framer-motion'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useRBAC } from '../hooks/useRBAC'
 import { ConnectionIndicator } from './ConnectionIndicator'
+import { DeviceIndicator } from './DeviceIndicator'
+import { ThemeSwitcher } from './ThemeSwitcher'
 import { Icon } from './Icon'
 import { Badge } from './ui/Badge'
 import { DentikOSLogo } from './brand/DentikOSLogo'
+import { useSidebarStore } from '../../app/stores/useSidebarStore'
+import { useDarkMode } from '../hooks/useDarkMode'
 import { SECCIONES_SIDEBAR, type SidebarItem, type SidebarSeccion } from '../../constants/sidebarConstants'
 import type { PerfilUsuario } from '../../infrastructure/auth/authService'
-
-export interface SidebarCounters {
-  citasHoy?: number
-  pacientesActivos?: number
-  [key: string]: number | undefined
-}
-
 import type { SidebarCountersReturn } from '../hooks/useSidebarCounters'
+
+const playTrazoCeraSound = () => {
+  if (typeof window === 'undefined') return
+  try {
+    const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof window.AudioContext }).webkitAudioContext
+    if (!AudioCtx) return
+    const ctx = new AudioCtx()
+    const now = ctx.currentTime
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.frequency.setValueAtTime(1200, now)
+    gain.gain.setValueAtTime(0.025, now)
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.015)
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.start(now)
+    osc.stop(now + 0.015)
+  } catch {
+    // Ignore audio failures
+  }
+}
 
 export interface SidebarProps {
   userProfile?: PerfilUsuario | null
@@ -42,116 +52,161 @@ export const Sidebar: React.FC<SidebarProps> = ({
   setActiveSection,
   counters = {},
 }) => {
-  // F7-28: Auto-colapsar sidebar en mobile (< 768px) al montar
-  const [colapsado, setColapsado] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false
-    return window.innerWidth < 768
-  })
+  const mode = useSidebarStore((s) => s.mode)
+  const setMode = useSidebarStore((s) => s.setMode)
+  const toggleMode = useSidebarStore((s) => s.toggleMode)
+  const focusMode = useSidebarStore((s) => s.focusMode)
+  const { theme } = useDarkMode()
   const { puede } = useRBAC()
 
-  // F7-28: Listener para cambios de tamaño de pantalla
+  // Auto-colapso cuando el tema es quirúrgico o mobile
+  const isSurgical = theme === 'surgical'
+  const isCollapsed = mode === 'collapsed' || isSurgical
+
   useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
-    const mql = window.matchMedia('(max-width: 767px)')
-    const handleChange = (e: MediaQueryListEvent) => {
-      // Solo auto-colapsar al cruzar el breakpoint (no sobreescribir toggle manual)
-      if (e.matches) setColapsado(true)
+    const mql = window.matchMedia('(max-width: 1024px)')
+    const handleChange = (e: MediaQueryListEvent | MediaQueryList) => {
+      if (e.matches) setMode('collapsed')
     }
+    handleChange(mql)
     mql.addEventListener('change', handleChange)
     return () => mql.removeEventListener('change', handleChange)
-  }, [])
+  }, [setMode])
 
-  // Filtrar items por permiso y ocultar secciones que queden vacías
   const seccionesVisibles = useMemo((): SidebarSeccion[] => (
-    SECCIONES_SIDEBAR.map((seccion) => ({
-      ...seccion,
-      items: seccion.items.filter((item) => !item.permisoRequerido || puede(item.permisoRequerido)),
-    })).filter((seccion) => seccion.items.length > 0)
+    SECCIONES_SIDEBAR.map((sec) => ({
+      ...sec,
+      items: sec.items.filter((item) => !item.permisoRequerido || puede(item.permisoRequerido)),
+    })).filter((sec) => sec.items.length > 0)
   ), [puede])
 
-  const renderItem = (item: SidebarItem) => {
-    const activo = activeSection === item.name
-    const contador = item.counterKey ? (counters as Record<string, unknown>)[item.counterKey] : undefined
-    const muestraContador = typeof contador === 'number' && contador > 0
+  const handleItemClick = useCallback((name: string) => {
+    playTrazoCeraSound()
+    setActiveSection(name)
+  }, [setActiveSection])
 
-    return (
-      <button
-        key={item.name}
-        data-testid={`sidebar-menu-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
-        onClick={() => setActiveSection(item.name)}
-        title={colapsado ? item.name : ''}
-        aria-current={activo ? 'page' : undefined}
-        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-          activo
-            ? 'bg-gold-light text-champagne-700 shadow-xs dark:bg-surface dark:text-gold-satin surgical:bg-white surgical:text-black border-l-2 border-primary pl-2.5'
-            : 'text-graphite-700 dark:text-graphite-300 hover:bg-graphite-200/60 dark:hover:bg-graphite-800/70 border-l-2 border-transparent'
-        } ${colapsado ? 'justify-center' : ''}`}
-      >
-        <Icon icon={item.icon} size="md" className={activo ? 'text-primary surgical:text-black' : ''} />
-        {!colapsado && (
-          <>
-            <span className="flex-1 text-left">{item.name}</span>
-            {muestraContador && (
-              <Badge size="sm" variant={item.counterVariant || 'neutral'}>
-                {contador}
-              </Badge>
-            )}
-          </>
-        )}
-      </button>
-    )
-  }
+  if (focusMode) return null
 
   return (
     <aside
-      className={`${colapsado ? 'w-20' : 'w-64'} bg-white dark:bg-graphite-950 surgical:bg-graphite-300 p-4 border-r border-surface min-h-screen flex-col justify-between transition-all duration-300 print:hidden relative hidden sm:flex`}
+      className={`${isCollapsed ? 'w-16' : 'w-60'} bg-white dark:bg-graphite-950 surgical:bg-graphite-300 p-3 border-r border-surface min-h-screen flex flex-col justify-between transition-[width] duration-300 select-none print:hidden z-30`}
       role="navigation"
       aria-label="Menú principal"
     >
       <div>
-        {/* Logo + toggle de colapso */}
-        <div className="flex items-center justify-between mb-6 px-2">
-          <div className={`${colapsado ? 'mx-auto' : ''} flex items-center`}>
+        {/* Header: Logo DentikOS + Toggle colapso */}
+        <div className="flex items-center justify-between mb-5 px-1 min-h-[36px]">
+          <div className={`${isCollapsed ? 'mx-auto' : ''} flex items-center overflow-hidden`}>
             <DentikOSLogo
-              variant={colapsado ? 'icon-only' : 'horizontal'}
-              size={colapsado ? 'sm' : 'sm'}
-              opticalSize={colapsado ? 'micro' : 'standard'}
+              variant={isCollapsed ? 'icon-only' : 'horizontal'}
+              size="sm"
+              opticalSize={isCollapsed ? 'micro' : 'standard'}
             />
           </div>
 
-          <button
-            onClick={() => setColapsado(!colapsado)}
-            className="p-1.5 rounded-lg hover:bg-graphite-200 dark:hover:bg-graphite-800 text-graphite-500 dark:text-graphite-400 hover:text-graphite-900 dark:hover:text-gold-satin transition-colors"
-            title={colapsado ? 'Expandir menú' : 'Minimizar menú'}
-            aria-label={colapsado ? 'Expandir menú' : 'Minimizar menú'}
-          >
-            <Icon icon={colapsado ? ChevronRight : ChevronLeft} size="sm" />
-          </button>
+          {!isSurgical && (
+            <button
+              onClick={toggleMode}
+              className={`p-1.5 rounded-lg hover:bg-graphite-100 dark:hover:bg-graphite-800 text-graphite-500 hover:text-graphite-900 dark:hover:text-gold-satin transition-colors ${isCollapsed ? 'hidden' : 'block'}`}
+              title={isCollapsed ? 'Expandir menú' : 'Minimizar menú'}
+              aria-label={isCollapsed ? 'Expandir menú' : 'Minimizar menú'}
+            >
+              <Icon icon={isCollapsed ? ChevronRight : ChevronLeft} size="sm" />
+            </button>
+          )}
         </div>
 
-        {/* Navegación por secciones */}
-        <nav aria-label="Navegacion principal" className="space-y-5">
+        {/* 5 Categorías Core en cascada Framer Motion */}
+        <motion.nav
+          aria-label="Navegacion principal"
+          className="space-y-4"
+          initial="hidden"
+          animate="visible"
+          variants={{ visible: { transition: { staggerChildren: 0.03 } } }}
+        >
           {seccionesVisibles.map((seccion) => (
             <div key={seccion.label}>
-              {!colapsado ? (
-                <p
-                  className="px-3 mb-1.5 text-graphite-400 dark:text-graphite-500 font-semibold uppercase tracking-wider"
-                  style={{ fontSize: '10px' }}
-                >
+              {!isCollapsed ? (
+                <p className="px-2 mb-1 text-[10px] text-graphite-400 dark:text-graphite-500 font-bold uppercase tracking-wider">
                   {seccion.label}
                 </p>
               ) : (
-                <div className="h-px bg-graphite-200 dark:bg-graphite-700 mx-2 mb-2" aria-hidden="true" />
+                <div className="h-px bg-graphite-200 dark:bg-graphite-800 mx-1 mb-1.5" aria-hidden="true" />
               )}
-              <div className="space-y-1">
-                {seccion.items.map(renderItem)}
+
+              <div className="space-y-0.5">
+                {seccion.items.map((item) => {
+                  const activo = activeSection === item.name || (item.slug === 'urgencias-ges' && activeSection === 'Urgencias y GES')
+                  const contador = item.counterKey ? (counters as Record<string, unknown>)[item.counterKey] : undefined
+                  const muestraContador = typeof contador === 'number' && contador > 0
+
+                  return (
+                    <motion.div
+                      key={item.slug}
+                      variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }}
+                    >
+                      <button
+                        data-testid={`sidebar-menu-${item.slug}`}
+                        data-legacy-testid={`sidebar-menu-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
+                        onClick={() => handleItemClick(item.name)}
+                        title={isCollapsed ? item.name : ''}
+                        aria-current={activo ? 'page' : undefined}
+                        className={`relative w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs font-semibold transition-all group overflow-hidden ${
+                          activo
+                            ? 'bg-gold-light/60 text-champagne-700 shadow-xs dark:bg-surface dark:text-gold-satin surgical:bg-white surgical:text-black font-bold'
+                            : 'text-graphite-700 dark:text-graphite-300 hover:bg-graphite-100 dark:hover:bg-graphite-800/70'
+                        } ${isCollapsed ? 'justify-center px-1' : ''}`}
+                      >
+                        {/* Trazo de Cera Quirúrgica en item activo */}
+                        {activo && (
+                          <motion.div
+                            layoutId="sidebar-active-border"
+                            className="absolute left-0 top-0 bottom-0 w-[3px] bg-primary rounded-r"
+                            initial={{ height: 0 }}
+                            animate={{ height: '100%' }}
+                            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                          >
+                            <span className="absolute -bottom-0.5 -left-0.5 w-1.5 h-1.5 rounded-full bg-amber-300 shadow-sm" />
+                          </motion.div>
+                        )}
+
+                        <motion.div
+                          animate={activo ? { scale: [1.0, 1.08, 1.0] } : { scale: 1.0 }}
+                          transition={{ duration: 0.18 }}
+                          className="flex items-center justify-center flex-shrink-0"
+                        >
+                          <Icon
+                            icon={item.icon}
+                            size="md"
+                            className={activo ? 'text-primary surgical:text-black' : 'text-graphite-500 group-hover:text-graphite-900 dark:group-hover:text-gold-satin'}
+                          />
+                        </motion.div>
+
+                        {!isCollapsed && (
+                          <>
+                            <span className="flex-1 text-left truncate">{item.name}</span>
+                            {muestraContador && (
+                              <Badge size="sm" variant={item.counterVariant || 'neutral'}>
+                                {contador}
+                              </Badge>
+                            )}
+                          </>
+                        )}
+                      </button>
+                    </motion.div>
+                  )
+                })}
               </div>
             </div>
           ))}
-        </nav>
+        </motion.nav>
       </div>
 
-      <div className="px-2 mb-4">
+      {/* Footer: ThemeSwitcher + DeviceIndicator + ConnectionIndicator */}
+      <div className="pt-3 border-t border-surface space-y-2 px-1">
+        <ThemeSwitcher compact={isCollapsed} />
+        <DeviceIndicator compact={isCollapsed} />
         <ConnectionIndicator />
       </div>
     </aside>

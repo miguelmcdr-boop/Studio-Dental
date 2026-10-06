@@ -9,7 +9,7 @@ vi.mock('../hooks/useRBAC', () => ({
   useRBAC: vi.fn(),
 }))
 
-describe('Sidebar - Matriz de Permisos Blueprint 01', () => {
+describe('Sidebar - Matriz de Permisos Blueprint 02', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -33,7 +33,7 @@ describe('Sidebar - Matriz de Permisos Blueprint 01', () => {
 
     // Opciones no permitidas no deben aparecer
     expect(screen.queryByTestId('sidebar-menu-presupuestos')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('sidebar-menu-administración-dentikos')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('sidebar-menu-admin')).not.toBeInTheDocument()
     expect(screen.queryByTestId('sidebar-menu-inventario')).not.toBeInTheDocument()
   })
 
@@ -49,7 +49,7 @@ describe('Sidebar - Matriz de Permisos Blueprint 01', () => {
 
     render(<Sidebar activeSection="Dashboard" setActiveSection={vi.fn()} />)
 
-    expect(screen.getByTestId('sidebar-menu-administración-dentikos')).toBeInTheDocument()
+    expect(screen.getByTestId('sidebar-menu-admin')).toBeInTheDocument()
   })
 
   it('Dentista: no ve Administración DentikOS pero sí ve módulos clínicos y financieros', () => {
@@ -64,7 +64,9 @@ describe('Sidebar - Matriz de Permisos Blueprint 01', () => {
 
     render(<Sidebar activeSection="Dashboard" setActiveSection={vi.fn()} />)
 
-    expect(screen.getByTestId('sidebar-menu-presupuestos')).toBeInTheDocument()
-    expect(screen.queryByTestId('sidebar-menu-administración-dentikos')).not.toBeInTheDocument()
+    expect(screen.getByTestId('sidebar-menu-pagos')).toBeInTheDocument()
+    expect(screen.getByTestId('sidebar-menu-vademecum')).toBeInTheDocument()
+    expect(screen.queryByTestId('sidebar-menu-admin')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('sidebar-menu-presupuestos')).not.toBeInTheDocument()
   })
 })
