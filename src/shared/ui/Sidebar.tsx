@@ -52,14 +52,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const mode = useSidebarStore((s) => s.mode)
   const setMode = useSidebarStore((s) => s.setMode)
-  const toggleMode = useSidebarStore((s) => s.toggleMode)
   const focusMode = useSidebarStore((s) => s.focusMode)
   const { theme } = useDarkMode()
   const { puede } = useRBAC()
 
-  // Auto-colapso cuando el tema es quirúrgico o mobile
-  const isSurgical = theme === 'surgical'
-  const isCollapsed = mode === 'collapsed' || isSurgical
+  const isCollapsed = mode === 'collapsed'
+
+  useEffect(() => {
+    // Auto-colapsar al activar modo quirúrgico
+    if (theme === 'surgical') setMode('collapsed')
+  }, [theme, setMode])
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
@@ -94,7 +96,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     >
       <div>
         {/* Header: Logo DentikOS + Toggle colapso */}
-        <div className="flex items-center justify-between mb-5 px-1 min-h-[36px]">
+        <div className={`mb-5 px-1 ${isCollapsed ? 'flex flex-col items-center gap-2' : 'flex items-center justify-between min-h-[36px]'}`}>
           <div className={`${isCollapsed ? 'mx-auto' : ''} flex items-center overflow-hidden`}>
             <DentikOSLogo
               variant={isCollapsed ? 'icon-only' : 'horizontal'}
@@ -103,16 +105,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
             />
           </div>
 
-          {!isSurgical && (
-            <button
-              onClick={toggleMode}
-              className={`p-1.5 rounded-lg hover:bg-graphite-100 dark:hover:bg-graphite-800 text-graphite-500 hover:text-graphite-900 dark:hover:text-gold-satin transition-colors ${isCollapsed ? 'hidden' : 'block'}`}
-              title={isCollapsed ? 'Expandir menú' : 'Minimizar menú'}
-              aria-label={isCollapsed ? 'Expandir menú' : 'Minimizar menú'}
-            >
-              <Icon icon={isCollapsed ? ChevronRight : ChevronLeft} size="sm" />
-            </button>
-          )}
+          <button
+            onClick={() => setMode(isCollapsed ? 'expanded' : 'collapsed')}
+            aria-label={isCollapsed ? 'Expandir menú' : 'Colapsar menú'}
+            title={isCollapsed ? 'Expandir menú' : 'Colapsar menú'}
+            data-testid="sidebar-toggle"
+            className="p-1.5 rounded-lg hover:bg-graphite-200/60 dark:hover:bg-graphite-800 text-graphite-500 hover:text-graphite-900 dark:hover:text-gold-satin transition-colors cursor-pointer"
+          >
+            <Icon icon={isCollapsed ? ChevronRight : ChevronLeft} size="sm" />
+          </button>
         </div>
 
         {/* 5 Categorías Core en cascada Framer Motion */}
@@ -148,7 +149,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         data-testid={`sidebar-menu-${item.slug}`}
                         data-legacy-testid={`sidebar-menu-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
                         onClick={() => handleItemClick(item.name)}
-                        title={isCollapsed ? item.name : ''}
+                        title={isCollapsed ? (muestraContador ? `${item.name} (${contador})` : item.name) : undefined}
                         aria-current={activo ? 'page' : undefined}
                         className={`relative w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs font-semibold transition-all group overflow-hidden ${
                           activo

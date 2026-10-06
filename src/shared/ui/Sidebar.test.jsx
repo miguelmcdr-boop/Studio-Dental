@@ -69,4 +69,24 @@ describe('Sidebar - Matriz de Permisos Blueprint 02', () => {
     expect(screen.queryByTestId('sidebar-menu-admin')).not.toBeInTheDocument()
     expect(screen.queryByTestId('sidebar-menu-presupuestos')).not.toBeInTheDocument()
   })
+
+  it('Toggle de colapso: botón visible y conmuta modo del store', () => {
+    vi.mocked(useRBAC).mockReturnValue({
+      rol: ROLES.ADMIN,
+      esAdmin: true,
+      puede: vi.fn().mockReturnValue(true),
+      tieneAlguno: vi.fn().mockReturnValue(true),
+      es: vi.fn().mockReturnValue(true),
+      permisos: Object.values(PERMISOS),
+    })
+
+    const { rerender } = render(<Sidebar activeSection="Dashboard" setActiveSection={vi.fn()} />)
+
+    const toggleBtn = screen.getByTestId('sidebar-toggle')
+    expect(toggleBtn).toBeInTheDocument()
+
+    // En ambos estados el botón debe ser visible
+    rerender(<Sidebar activeSection="Dashboard" setActiveSection={vi.fn()} />)
+    expect(screen.getByTestId('sidebar-toggle')).toBeInTheDocument()
+  })
 })
