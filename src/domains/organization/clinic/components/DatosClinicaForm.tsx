@@ -5,6 +5,7 @@ import { Lock, Building2, CheckCircle2 } from 'lucide-react'
 import { CLINICA_DEFAULT, type ClinicaConfig } from '../constants/clinicConstants'
 import { clinicStorageService, type DatosClinicaConfig } from '../services/clinicStorageService'
 import { useSesionStore } from '../../../../app/stores/sesionStore'
+import { markFormDirty, markFormSaved } from '../../../../shared/utils/formDirtyUtils'
 
 const log = createLogger('DatosClinicaForm')
 
@@ -49,10 +50,16 @@ export const DatosClinicaForm: React.FC<DatosClinicaFormProps> = memo(({ datosCl
   // F6-C-e: solo el admin puede editar la configuración de clínica.
   const esSoloLectura = userProfile?.rol !== 'admin'
 
+  const handleChange = (campo: string, valor: string) => {
+    markFormDirty()
+    setForm((prev) => ({ ...prev, [campo]: valor }))
+  }
+
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (esSoloLectura) return
     const file = e.target.files?.[0]
     if (file) {
+      markFormDirty()
       try {
         const dataUrl = await convertirImagenADataURL(file)
         if (typeof dataUrl === 'string') {
@@ -74,6 +81,7 @@ export const DatosClinicaForm: React.FC<DatosClinicaFormProps> = memo(({ datosCl
       if (clinicaId) {
         const ok = await clinicStorageService.guardarClinicaCompleta(clinicaId, form as DatosClinicaConfig)
         if (ok) {
+          markFormSaved()
           setEstadoGuardado('Guardado en la nube ✓')
           if (alGuardar) alGuardar(form)
         }
@@ -83,6 +91,7 @@ export const DatosClinicaForm: React.FC<DatosClinicaFormProps> = memo(({ datosCl
         if (typeof window !== 'undefined' && nuevoNombre) {
           window.dispatchEvent(new CustomEvent('clinica_actualizada', { detail: { nombre: nuevoNombre } }))
         }
+        markFormSaved()
         setEstadoGuardado('Guardado en la nube ✓')
         if (alGuardar) alGuardar(form)
       }
@@ -117,62 +126,57 @@ export const DatosClinicaForm: React.FC<DatosClinicaFormProps> = memo(({ datosCl
             required
             disabled={esSoloLectura}
             value={form.nombreClinica || ''}
-            onChange={(e) => setForm({ ...form, nombreClinica: e.target.value })}
+            onChange={(e) => handleChange('nombreClinica', e.target.value)}
             className={`${inputClass} font-bold`}
           />
         </div>
-
         <div>
           <label className="block font-semibold text-gray-700 dark:text-graphite-300 surgical:text-black mb-1">Razón Social</label>
           <input
             type="text"
             disabled={esSoloLectura}
             value={form.razonSocial || ''}
-            onChange={(e) => setForm({ ...form, razonSocial: e.target.value })}
+            onChange={(e) => handleChange('razonSocial', e.target.value)}
             className={inputClass}
           />
         </div>
-
         <div>
           <label className="block font-semibold text-gray-700 dark:text-graphite-300 surgical:text-black mb-1">RUT Empresa</label>
           <input
             type="text"
             disabled={esSoloLectura}
             value={form.rutClinica || ''}
-            onChange={(e) => setForm({ ...form, rutClinica: e.target.value })}
+            onChange={(e) => handleChange('rutClinica', e.target.value)}
             className={inputClass}
           />
         </div>
-
         <div>
           <label className="block font-semibold text-gray-700 dark:text-graphite-300 surgical:text-black mb-1">Teléfono Contacto</label>
           <input
             type="text"
             disabled={esSoloLectura}
             value={form.telefono || ''}
-            onChange={(e) => setForm({ ...form, telefono: e.target.value })}
+            onChange={(e) => handleChange('telefono', e.target.value)}
             className={inputClass}
           />
         </div>
-
         <div>
           <label className="block font-semibold text-gray-700 dark:text-graphite-300 surgical:text-black mb-1">Email Oficial</label>
           <input
             type="email"
             disabled={esSoloLectura}
             value={form.emailContacto || ''}
-            onChange={(e) => setForm({ ...form, emailContacto: e.target.value })}
+            onChange={(e) => handleChange('emailContacto', e.target.value)}
             className={inputClass}
           />
         </div>
-
         <div>
           <label className="block font-semibold text-gray-700 dark:text-graphite-300 surgical:text-black mb-1">Ciudad / Región</label>
           <input
             type="text"
             disabled={esSoloLectura}
             value={form.ciudad || ''}
-            onChange={(e) => setForm({ ...form, ciudad: e.target.value })}
+            onChange={(e) => handleChange('ciudad', e.target.value)}
             className={inputClass}
           />
         </div>
@@ -184,7 +188,7 @@ export const DatosClinicaForm: React.FC<DatosClinicaFormProps> = memo(({ datosCl
           type="text"
           disabled={esSoloLectura}
           value={form.direccion || ''}
-          onChange={(e) => setForm({ ...form, direccion: e.target.value })}
+          onChange={(e) => handleChange('direccion', e.target.value)}
           className={inputClass}
         />
       </div>
@@ -195,7 +199,7 @@ export const DatosClinicaForm: React.FC<DatosClinicaFormProps> = memo(({ datosCl
           type="text"
           disabled={esSoloLectura}
           value={(form.eslogan as string) || ''}
-          onChange={(e) => setForm({ ...form, eslogan: e.target.value })}
+          onChange={(e) => handleChange('eslogan', e.target.value)}
           className={inputClass}
         />
       </div>
@@ -242,4 +246,3 @@ export const DatosClinicaForm: React.FC<DatosClinicaFormProps> = memo(({ datosCl
 })
 
 DatosClinicaForm.displayName = 'DatosClinicaForm'
-

@@ -4,6 +4,7 @@ import { Input } from '../../../../shared/ui/ui/Input'
 import { Button } from '../../../../shared/ui/ui/Button'
 import { formatearRut, obtenerErrorRut } from '../../../../shared/utils/validarRut'
 import { rutDuplicado, type Paciente } from '../schemas/pacienteSchema'
+import { markFormDirty, markFormSaved } from '../../../../shared/utils/formDirtyUtils'
 
 export interface NuevoPacienteFormData {
   nombre: string
@@ -51,8 +52,14 @@ export const ModalNuevoPaciente: React.FC<ModalNuevoPacienteProps> = memo(({ alG
   const [rutValido, setRutValido] = useState<boolean>(false)
   const [enviando, setEnviando] = useState<boolean>(false)
 
+  const actualizarCampo = (campo: keyof NuevoPacienteFormData, valor: unknown): void => {
+    markFormDirty()
+    setNuevoPaciente((prev) => ({ ...prev, [campo]: valor }))
+  }
+
   // Validación en tiempo real del RUT
   const handleRutChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    markFormDirty()
     const valor = e.target.value
     setNuevoPaciente(prev => ({ ...prev, rut: valor }))
     
@@ -103,6 +110,7 @@ export const ModalNuevoPaciente: React.FC<ModalNuevoPacienteProps> = memo(({ alG
       edad: nuevoPaciente.edad || '30'
     }
 
+    markFormSaved()
     alGuardar(nuevo)
     setEnviando(false)
   }
@@ -123,7 +131,7 @@ export const ModalNuevoPaciente: React.FC<ModalNuevoPacienteProps> = memo(({ alG
           type="text"
           required
           value={nuevoPaciente.nombre}
-          onChange={(e) => setNuevoPaciente({ ...nuevoPaciente, nombre: e.target.value })}
+          onChange={(e) => actualizarCampo('nombre', e.target.value)}
           placeholder="Ej: Juan Pérez González"
         />
 
@@ -160,7 +168,7 @@ export const ModalNuevoPaciente: React.FC<ModalNuevoPacienteProps> = memo(({ alG
               label="Teléfono"
               type="text"
               value={nuevoPaciente.telefono || ''}
-              onChange={(e) => setNuevoPaciente({ ...nuevoPaciente, telefono: e.target.value })}
+              onChange={(e) => actualizarCampo('telefono', e.target.value)}
               placeholder="+56 9 1234 5678"
             />
           </div>
@@ -172,7 +180,7 @@ export const ModalNuevoPaciente: React.FC<ModalNuevoPacienteProps> = memo(({ alG
               label="Edad"
               type="number"
               value={nuevoPaciente.edad ? String(nuevoPaciente.edad) : ''}
-              onChange={(e) => setNuevoPaciente({ ...nuevoPaciente, edad: e.target.value })}
+              onChange={(e) => actualizarCampo('edad', e.target.value)}
               placeholder="30"
             />
           </div>
@@ -181,7 +189,7 @@ export const ModalNuevoPaciente: React.FC<ModalNuevoPacienteProps> = memo(({ alG
               label="Correo"
               type="email"
               value={nuevoPaciente.email || ''}
-              onChange={(e) => setNuevoPaciente({ ...nuevoPaciente, email: e.target.value })}
+              onChange={(e) => actualizarCampo('email', e.target.value)}
               placeholder="juan@ejemplo.com"
             />
           </div>
@@ -189,7 +197,7 @@ export const ModalNuevoPaciente: React.FC<ModalNuevoPacienteProps> = memo(({ alG
             <label className="block font-semibold text-gray-600 dark:text-graphite-400 uppercase mb-1">Previsión</label>
             <select
               value={nuevoPaciente.prevision || 'Fonasa'}
-              onChange={(e) => setNuevoPaciente({ ...nuevoPaciente, prevision: e.target.value })}
+              onChange={(e) => actualizarCampo('prevision', e.target.value)}
               className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-graphite-600 text-sm bg-white dark:bg-graphite-800"
             >
               <option value="Fonasa">Fonasa</option>
@@ -205,7 +213,7 @@ export const ModalNuevoPaciente: React.FC<ModalNuevoPacienteProps> = memo(({ alG
             data-testid="paciente-alergias"
             type="text"
             value={nuevoPaciente.alergias || ''}
-            onChange={(e) => setNuevoPaciente({ ...nuevoPaciente, alergias: e.target.value })}
+            onChange={(e) => actualizarCampo('alergias', e.target.value)}
             placeholder="Ej: Penicilina, AINEs, Ninguna"
             className="w-full px-3 py-2 rounded-lg border border-red-200 bg-red-50/30 text-sm"
           />
