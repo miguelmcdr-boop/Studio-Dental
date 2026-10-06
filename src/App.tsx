@@ -1,6 +1,9 @@
-import React, { useState, useEffect, Suspense, lazy } from 'react'
+import React, { useState, useEffect, useMemo, Suspense, lazy } from 'react'
 import { LoginScreen } from './shared/ui/LoginScreen'
 import { Sidebar } from './shared/ui/Sidebar'
+import { AtajosTecladoModal } from './shared/ui/AtajosTecladoModal'
+import { useSidebarStore } from './app/stores/useSidebarStore'
+import { useAutoSurgicalMode } from './shared/hooks/useAutoSurgicalMode'
 import { CargandoModulo } from './shared/ui/CargandoModulo'
 import { ErrorBoundary } from './shared/ui/ErrorBoundary' // F6-01
 import { ToastContainer } from './shared/ui/ToastContainer'
@@ -177,17 +180,71 @@ export const App: React.FC = () => {
     onSelectPaciente: (paciente: Paciente) => setPacienteSeleccionado(paciente), // F7-26: seleccionar paciente desde CommandPalette
   })
 
-  // F10-B4: Atajo ⌘K / Ctrl+K para abrir CommandPalette
+  // Blueprint 02: Modo Foco, Atajos y Modo Quirúrgico Automático
+  const focusMode = useSidebarStore((s) => s.focusMode)
+  const setFocusMode = useSidebarStore((s) => s.setFocusMode)
+  const toggleFocusMode = useSidebarStore((s) => s.toggleFocusMode)
+  const [atajosOpen, setAtajosOpen] = useState(false)
+  useAutoSurgicalMode()
+
+  // Blueprint 02: Atajos globales (⌘K, ⌘⇧F, ⌘⇧D, ?, Esc)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent): void => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      const target = e.target as HTMLElement | null
+      const isInput =
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT' ||
+          (target as { isContentEditable?: boolean }).isContentEditable)
+
+      // ⌘K / Ctrl+K: CommandPalette
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault()
         commandPalette.toggle()
+        return
+      }
+
+      // ⌘⇧F / Ctrl+Shift+F: Alternar Modo Foco
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'f') {
+        e.preventDefault()
+        toggleFocusMode()
+        return
+      }
+
+      // ⌘⇧D / Ctrl+Shift+D: Alternar tema
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'd') {
+        e.preventDefault()
+        cycleTheme()
+        return
+      }
+
+      // Esc: Salir de Modo Foco
+      if (e.key === 'Escape' && focusMode) {
+        setFocusMode(false)
+        return
+      }
+
+      // ?: Panel de atajos (cuando no se escribe en formulario)
+      if (e.key === '?' && !isInput) {
+        e.preventDefault()
+        setAtajosOpen(true)
       }
     }
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [commandPalette])
+  }, [commandPalette, toggleFocusMode, setFocusMode, cycleTheme, focusMode])
+
+  // Breadcrumbs dinámicos para TopBar
+  const breadcrumbs = useMemo(() => {
+    if (activeSection === 'Pacientes' && pacienteSeleccionado) {
+      return [
+        { label: 'Pacientes', onClick: () => setPacienteSeleccionado(null) },
+        { label: pacienteSeleccionado.nombre },
+      ]
+    }
+    return [{ label: activeSection }]
+  }, [activeSection, pacienteSeleccionado])
 
   useDataMigration(userProfile)
 
@@ -310,6 +367,22 @@ export const App: React.FC = () => {
       <ToastContainer />
       <AppDialogProvider />
       <CommandPalette {...commandPalette} />
+      <AtajosTecladoModal isOpen={atajosOpen} onClose={() => setAtajosOpen(false)} />
+
+      {/* Botón flotante para salir de Modo Foco */}
+      {focusMode && (
+        <button
+          type="button"
+          onClick={() => setFocusMode(false)}
+          className="fixed top-3 right-4 z-50 flex items-center gap-2 px-3 py-1.5 rounded-full bg-graphite-900/90 text-white text-xs font-semibold shadow-lg hover:bg-graphite-800 transition-all border border-surface cursor-pointer"
+          title="Salir de Modo Foco"
+          aria-label="Salir de Modo Foco"
+        >
+          <span>Salir de Modo Foco</span>
+          <kbd className="px-1.5 py-0.5 text-[10px] bg-graphite-800 rounded font-mono">Esc</kbd>
+        </button>
+      )}
+
       <div className="min-h-screen flex flex-col bg-canvas text-primary-surface font-sans">
         <TopBar
           userProfile={userProfile}
@@ -318,6 +391,8 @@ export const App: React.FC = () => {
           theme={theme}
           onToggleDarkMode={toggleDarkMode}
           onCycleTheme={cycleTheme}
+          breadcrumbs={breadcrumbs}
+          onOpenSearch={() => commandPalette.toggle()}
         />
         <div className="flex flex-1">
           <Sidebar userProfile={userProfile} activeSection={activeSection} setActiveSection={setActiveSection} onLogout={handleLogout} counters={sidebarCounters} />
@@ -342,7 +417,7 @@ export const App: React.FC = () => {
                 </ErrorBoundary>
               )}
 
-              {activeSection === 'Urgencias y GES' && (
+              {(activeSection === 'Urgencias y GES' || activeSection === 'Urgencias GES') && (
                 <UrgenciasGesModulo />
               )}
 
