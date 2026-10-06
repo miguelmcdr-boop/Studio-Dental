@@ -1,12 +1,10 @@
 /**
  * SidebarFooter — Footer unificado del Sidebar (Blueprint 02 + 03)
  *
- * Combina en una sola línea:
- * - Estado de conexión (ConnectionIndicator)
- * - Sesiones activas (DeviceIndicator)
- * - Versión de la app (v1.0.0)
- *
- * Reemplaza la duplicación visual de dos puntos verdes solapados.
+ * Layout de 3 líneas estricto:
+ * 1. ThemeSwitcher (compact o completo)
+ * 2. Conectividad + Dispositivos (en 64px: solo punto de conexión centrado)
+ * 3. Versión de la app (v1.0.0 · DentikOS)
  */
 import React from 'react'
 import { ConnectionIndicator } from './ConnectionIndicator'
@@ -18,19 +16,14 @@ export interface SidebarFooterProps {
 }
 
 export const SidebarFooter: React.FC<SidebarFooterProps> = ({ compact = false }) => (
-  <div className={`px-2 pb-4 space-y-3 ${compact ? 'text-center overflow-hidden' : ''}`}>
-    {/* ThemeSwitcher siempre visible encima */}
+  <div className="px-2 pb-4 space-y-3 overflow-hidden">
     <ThemeSwitcher compact={compact} />
-
-    {/* Línea única combinando conectividad + dispositivos */}
-    <div className={`flex items-center ${compact ? 'flex-col items-center justify-center gap-1.5' : 'justify-between gap-2'}`}>
+    <div className={`flex items-center gap-2 min-w-0 ${compact ? 'justify-center' : 'justify-between'}`}>
       <ConnectionIndicator compact={compact} />
-      <DeviceIndicator compact={compact} />
+      {!compact && <DeviceIndicator compact={compact} />}
     </div>
-
-    {/* Versión de la app */}
     {!compact && (
-      <p className="text-[10px] text-graphite-400 dark:text-graphite-500 text-center">
+      <p className="text-[10px] text-graphite-400 dark:text-graphite-500 text-center truncate">
         v1.0.0 · DentikOS
       </p>
     )}

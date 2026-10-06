@@ -100,31 +100,26 @@ export const ConnectionIndicator: React.FC<ConnectionIndicatorProps> = ({ compac
     return (
       <div
         className="flex items-center justify-center p-1 cursor-pointer select-none"
-        title={`${c.label} · ${c.title}`}
-        aria-label={c.label}
+        title="Conectado"
+        aria-label="Conectado"
       >
-        <div className="relative flex items-center justify-center">
-          <span className={`w-2 h-2 rounded-full ${c.color} shrink-0`} />
-          {estado === 'online' && (
-            <span className={`absolute w-2 h-2 rounded-full ${c.color} animate-ping opacity-75`} />
-          )}
-        </div>
+        <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
       </div>
     )
   }
 
   return (
     <div
-      className={`flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 dark:bg-graphite-800 ${c.text} text-xs`}
+      className={`flex items-center gap-1.5 px-2 py-1 rounded-lg bg-gray-100 dark:bg-graphite-800/60 ${c.text} text-[11px] truncate cursor-pointer select-none`}
       title={c.title}
     >
-      <div className="relative flex items-center">
+      <div className="relative flex items-center shrink-0">
         <span className={`w-2 h-2 rounded-full ${c.color}`} />
         {estado === 'online' && (
           <span className={`absolute w-2 h-2 rounded-full ${c.color} animate-ping opacity-75`} />
         )}
       </div>
-      <span className="font-medium">{c.label}</span>
+      <span className="font-medium truncate">{c.label}</span>
     </div>
   )
 }
