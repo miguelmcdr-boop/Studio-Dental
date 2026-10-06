@@ -8,6 +8,7 @@ vi.mock('../../infrastructure/auth/authService', async (importOriginal) => {
   return {
     ...actual,
     bootstrapClinica: vi.fn(),
+    supabaseSignOut: vi.fn().mockResolvedValue(undefined),
     getClinicaActivaSync: vi.fn(() => 'clinica-123'),
   }
 })
@@ -30,7 +31,7 @@ vi.mock('../../infrastructure/logging/logger', () => ({
   }),
 }))
 
-import { bootstrapClinica } from '../../infrastructure/auth/authService'
+import { bootstrapClinica, supabaseSignOut } from '../../infrastructure/auth/authService'
 import { sedesService } from '../../domains/organization/clinic/services/sedesService'
 
 describe('useBootstrapClinica (4 pasos)', () => {
@@ -206,5 +207,20 @@ describe('useBootstrapClinica (4 pasos)', () => {
     expect(result.current.errorGeneral).toBe('Error de prueba en el servidor')
     expect(result.current.completado).toBe(false)
     expect(result.current.procesando).toBe(false)
+  })
+
+  it('debe cerrar sesión y recargar al cancelar configuración', async () => {
+    const reloadMock = vi.fn()
+    vi.stubGlobal('location', { reload: reloadMock })
+
+    const { result } = renderHook(() => useBootstrapClinica(vi.fn()))
+
+    await act(async () => {
+      await result.current.cancelarConfiguracion()
+    })
+
+    expect(supabaseSignOut).toHaveBeenCalled()
+    expect(reloadMock).toHaveBeenCalled()
+    vi.unstubAllGlobals()
   })
 })
