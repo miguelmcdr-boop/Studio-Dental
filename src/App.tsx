@@ -55,6 +55,7 @@ const ReportesModulo = lazy(() => import('./domains/billing/report').then(m => (
 const DatosClinicaForm = lazy(() => import('./domains/organization/clinic').then(m => ({ default: m.DatosClinicaForm })))
 const AdminVademecumModulo = lazy(() => import('./domains/organization/vademecum').then(m => ({ default: m.AdminVademecumModulo })))
 const GestionMiembrosModulo = lazy(() => import('./domains/organization/team').then(m => ({ default: m.GestionMiembrosModulo })))
+const AdministracionDentikOSModulo = lazy(() => import('./domains/organization/clinic').then(m => ({ default: m.AdministracionDentikOSModulo })))
 
 interface SesionStoreState {
   userProfile: PerfilUsuario | null
@@ -384,15 +385,11 @@ export const App: React.FC = () => {
                 <ReportesModulo />
               )}
 
-              {activeSection === 'Miembros' && (
-                <GestionMiembrosModulo />
+              {(activeSection === 'Administración DentikOS' || activeSection === 'Miembros' || activeSection === 'Configuración') && (
+                <AdministracionDentikOSModulo userProfile={userProfile} />
               )}
 
               {activeSection === 'Vademécum' && <AdminVademecumModulo />}
-
-              {activeSection === 'Configuración' && (
-                <DatosClinicaForm userProfile={userProfile} />
-              )}
 
               {activeSection === 'Pacientes' && (
                 <ErrorBoundary modulo="pacientes" onReset={() => { setPacienteSeleccionado(null); setActiveSection('Dashboard') }}>

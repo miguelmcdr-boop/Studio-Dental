@@ -48,8 +48,8 @@ export const SECCIONES_SIDEBAR: SidebarSeccion[] = [
   {
     label: 'Finanzas',
     items: [
-      { name: 'Presupuestos', icon: FileText },
-      { name: 'Pagos', icon: CreditCard },
+      { name: 'Presupuestos', icon: FileText, permisoRequerido: PERMISOS.VER_FINANZAS },
+      { name: 'Pagos', icon: CreditCard, permisoRequerido: PERMISOS.VER_FINANZAS },
       { name: 'Prestaciones', icon: Stethoscope, permisoRequerido: PERMISOS.EDITAR_PRECIOS },
       { name: 'Finanzas', icon: DollarSign, permisoRequerido: PERMISOS.VER_FINANZAS },
       { name: 'Reportes', icon: BarChart3, permisoRequerido: PERMISOS.VER_REPORTES },
@@ -58,9 +58,8 @@ export const SECCIONES_SIDEBAR: SidebarSeccion[] = [
   {
     label: 'Admin',
     items: [
-      { name: 'Miembros', icon: UsersRound, permisoRequerido: PERMISOS.GESTIONAR_USUARIOS },
+      { name: 'Administración DentikOS', icon: Settings, permisoRequerido: PERMISOS.GESTIONAR_USUARIOS },
       { name: 'Vademécum', icon: Pill, permisoRequerido: PERMISOS.ADMINISTRAR_VADEMECUM },
-      { name: 'Configuración', icon: Settings, permisoRequerido: PERMISOS.VER_CONFIGURACION },
     ],
   },
 ]

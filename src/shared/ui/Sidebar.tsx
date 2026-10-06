@@ -51,7 +51,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   // F7-28: Listener para cambios de tamaño de pantalla
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
     const mql = window.matchMedia('(max-width: 767px)')
     const handleChange = (e: MediaQueryListEvent) => {
       // Solo auto-colapsar al cruzar el breakpoint (no sobreescribir toggle manual)

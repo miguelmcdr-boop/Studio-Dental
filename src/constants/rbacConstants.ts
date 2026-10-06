@@ -29,3 +29,20 @@ export const DESCRIPCIONES_ROLES: Record<RolKey, string> = {
   [ROLES.ASISTENTE]: 'Acceso a módulos clínicos básicos, sin datos financieros',
   [ROLES.RECEPCION]: 'Solo agenda y registro básico de pacientes'
 }
+
+export const MODULOS_SIDEBAR = {
+  DASHBOARD: 'Dashboard',
+  AGENDA: 'Agenda',
+  PACIENTES: 'Pacientes',
+  ODONTOGRAMA: 'Odontograma',
+  PRESUPUESTOS: 'Presupuestos',
+  PAGOS: 'Pagos',
+  INVENTARIO: 'Inventario',
+  ESTERILIZACION: 'Esterilización',
+  COMUNICACIONES: 'Comunicaciones',
+  REPORTES: 'Reportes',
+  ADMINISTRACION: 'Administración DentikOS',
+} as const
+
+export type ModuloSidebar = typeof MODULOS_SIDEBAR[keyof typeof MODULOS_SIDEBAR]
+
