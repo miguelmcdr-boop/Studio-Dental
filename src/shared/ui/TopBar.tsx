@@ -1,52 +1,30 @@
 /**
- * TopBar v2 — App Shell del Design System (F10-B3)
- *
- * F10-B3: identidad consolidada en avatar-menu del TopBar.
- * Botones de logout y dark toggle siempre visibles como accesos rápidos
- * (contratos TopBar.test.jsx preservados) + menú completo al clickear avatar.
- *
- * API (sin cambios vs F7-25):
- *   <TopBar userProfile onLogout darkMode onToggleDarkMode onCambioClinica />
- *
- * Accesibilidad del menú:
- * - role="menu" + role="menuitem" en items
- * - ESC + click fuera cierra
- * - aria-label "Activar modo claro/oscuro" preservado (contrato TopBar.test.jsx:108)
+ * TopBar — Blueprint 02: Breadcrumbs, Acciones contextuales, Búsqueda ⌘K, Selector de Sede y Notificaciones
+ * Oculto automáticamente en Modo Quirúrgico y Modo Foco.
  */
 import React, { useState, useRef, useEffect } from 'react'
-import { LogOut, Moon, Sun, Sparkles, LucideIcon } from 'lucide-react'
+import { LogOut, Search, Bell, ChevronRight, type LucideIcon } from 'lucide-react'
 import { Icon } from './Icon'
 import { Button } from './ui/Button'
 import { Badge } from './ui/Badge'
 import { ClinicaSelector } from './ClinicaSelector'
 import { SelectorSede } from './SelectorSede'
-import { DentikOSLogo } from './brand/DentikOSLogo'
+import { NotificationCenter } from './NotificationCenter'
+import { useNotifications } from '../hooks/useNotifications'
+import { useSidebarStore } from '../../app/stores/useSidebarStore'
 import { NOMBRES_ROLES } from '../../constants/rbacConstants'
 
 export type AppTheme = 'light' | 'dark' | 'surgical'
 
-interface ThemeConfigItem {
-  nextTheme: AppTheme
-  icon: LucideIcon
+export interface BreadcrumbItem {
   label: string
+  onClick?: () => void
 }
 
-const THEME_CONFIG: Record<AppTheme, ThemeConfigItem> = {
-  light: {
-    nextTheme: 'dark',
-    icon: Moon,
-    label: 'Activar modo oscuro',
-  },
-  dark: {
-    nextTheme: 'surgical',
-    icon: Sparkles,
-    label: 'Activar modo quirúrgico',
-  },
-  surgical: {
-    nextTheme: 'light',
-    icon: Sun,
-    label: 'Activar modo claro',
-  },
+export interface ContextualAction {
+  label: string
+  icon: LucideIcon
+  onClick: () => void
 }
 
 export interface TopBarUserProfile {
@@ -64,25 +42,28 @@ export interface TopBarProps {
   onToggleDarkMode?: () => void
   onCycleTheme?: () => void
   onCambioClinica?: (nuevaClinicaId: string) => void
+  breadcrumbs?: BreadcrumbItem[]
+  contextualActions?: ContextualAction[]
+  onOpenSearch?: () => void
 }
 
 export const TopBar: React.FC<TopBarProps> = ({
   userProfile,
   onLogout,
-  darkMode = false,
   theme,
-  onToggleDarkMode,
-  onCycleTheme,
   onCambioClinica,
+  breadcrumbs = [{ label: 'Dashboard' }],
+  contextualActions = [],
+  onOpenSearch,
 }) => {
   const [menuOpen, setMenuOpen] = useState<boolean>(false)
+  const [notifOpen, setNotifOpen] = useState<boolean>(false)
   const menuRef = useRef<HTMLDivElement | null>(null)
   const triggerRef = useRef<HTMLButtonElement | null>(null)
 
-  const currentTheme: AppTheme =
-    (theme as AppTheme) || (darkMode ? 'dark' : 'light')
-  const themeInfo = THEME_CONFIG[currentTheme] || THEME_CONFIG.light
-  const handleToggleTheme = onCycleTheme || onToggleDarkMode
+  const notificaciones = useNotifications()
+  const focusMode = useSidebarStore((s) => s.focusMode)
+  const isSurgical = theme === 'surgical'
 
   const inicial = userProfile?.nombreCompleto
     ? userProfile.nombreCompleto.replace('Dr. ', '').replace('Dra. ', '').charAt(0).toUpperCase()
@@ -93,10 +74,8 @@ export const TopBar: React.FC<TopBarProps> = ({
       ? (NOMBRES_ROLES as Record<string, string>)[userProfile.rol]
       : 'Usuario'
 
-  // Cerrar menú con ESC o click fuera (F6-04 simplificado)
   useEffect(() => {
     if (!menuOpen) return
-
     const onKeyDown = (e: KeyboardEvent): void => {
       if (e.key === 'Escape') {
         setMenuOpen(false)
@@ -108,7 +87,6 @@ export const TopBar: React.FC<TopBarProps> = ({
         setMenuOpen(false)
       }
     }
-
     document.addEventListener('keydown', onKeyDown)
     document.addEventListener('mousedown', onClickOutside)
     return () => {
@@ -117,152 +95,155 @@ export const TopBar: React.FC<TopBarProps> = ({
     }
   }, [menuOpen])
 
+  // TopBar se oculta completamente en Modo Quirúrgico o Modo Foco
+  if (isSurgical || focusMode) return null
+
   const handleLogout = (): void => {
     setMenuOpen(false)
     onLogout?.()
   }
 
   return (
-    <header className="sticky top-0 z-40 bg-white dark:bg-surface surgical:bg-surface border-b border-surface shadow-sm">
-      <div className="flex items-center justify-between px-4 py-2 h-16">
-        {/* Izquierda: Logo DentikOS + ClinicaSelector */}
-        <div className="flex items-center gap-4">
-          <DentikOSLogo
-            variant="horizontal"
-            size="sm"
-            opticalSize="standard"
-            dark={darkMode}
-          />
-
-          <div className="h-8 w-px bg-graphite-200 dark:bg-graphite-700 hidden md:block" />
-
-          <div className="hidden md:flex items-center gap-2">
-            <ClinicaSelector onCambioClinica={onCambioClinica} />
-            <SelectorSede compacto />
-          </div>
-        </div>
-
-        {/* Derecha: Dark mode toggle + Avatar + menú + Logout */}
-        <div className="flex items-center gap-3">
-          {/* Dark / Theme mode toggle (siempre visible, contrato tests) */}
-          {handleToggleTheme && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleToggleTheme}
-              aria-label={themeInfo.label}
-              title={themeInfo.label}
-              className="surgical:min-w-[48px] surgical:min-h-[48px]"
-              data-touch-target="critical"
-            >
-              <Icon icon={themeInfo.icon} size="md" />
-            </Button>
-          )}
-
-          <div className="h-8 w-px bg-graphite-200 dark:bg-graphite-700" />
-
-          {/* Avatar + menú */}
-          <div className="relative" ref={menuRef}>
-            <button
-              ref={triggerRef}
-              type="button"
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="flex items-center gap-2 p-1 rounded-lg hover:bg-graphite-100 dark:hover:bg-graphite-800 transition-colors surgical:min-w-[48px] surgical:min-h-[48px]"
-              aria-haspopup="menu"
-              aria-expanded={menuOpen}
-              aria-label="Menú de usuario"
-              data-touch-target="critical"
-            >
-              <div className="w-9 h-9 bg-graphite-300 dark:bg-graphite-700 rounded-full flex items-center justify-center font-semibold text-graphite-700 dark:text-graphite-200 text-sm">
-                {inicial}
-              </div>
-              <div className="hidden lg:block text-left">
-                <p className="text-sm font-semibold text-graphite-900 dark:text-graphite-50 truncate max-w-[200px]" title={userProfile?.nombreCompleto}>
-                  {userProfile?.nombreCompleto || 'Mi sesión'}
-                </p>
-                <p className="text-xs text-graphite-500 dark:text-graphite-400 truncate" title={`Rol: ${nombreRol}`}>
-                  {nombreRol}
-                </p>
-              </div>
-            </button>
-
-            {/* Dropdown del menú */}
-            {menuOpen && (
-              <div
-                role="menu"
-                className="absolute right-0 mt-2 w-72 bg-surface border border-surface rounded-xl shadow-lg overflow-hidden z-50"
-              >
-                {/* Header del menú: identidad completa */}
-                <div className="px-4 py-3 border-b border-surface">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-graphite-300 dark:bg-graphite-700 rounded-full flex items-center justify-center font-semibold text-graphite-700 dark:text-graphite-200 text-base flex-shrink-0">
-                      {inicial}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-graphite-900 dark:text-graphite-50 truncate" title={userProfile?.nombreCompleto}>
-                        {userProfile?.nombreCompleto || 'Mi sesión'}
-                      </p>
-                      <p className="text-xs text-graphite-500 dark:text-graphite-400 truncate" title={userProfile?.email}>
-                        {userProfile?.email}
-                      </p>
-                      <div className="mt-1">
-                        <Badge size="sm" variant="neutral">{nombreRol}</Badge>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Items del menú (theme toggle en menú) */}
-                <div className="py-1">
-                  {handleToggleTheme && (
-                    <button
-                      role="menuitem"
-                      type="button"
-                      onClick={() => {
-                        handleToggleTheme()
-                        setMenuOpen(false)
-                      }}
-                      aria-label={themeInfo.label}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-graphite-700 dark:text-graphite-200 hover:bg-graphite-100 dark:hover:bg-graphite-700 transition-colors surgical:min-h-[48px]"
-                    >
-                      <Icon icon={themeInfo.icon} size="sm" />
-                      <span className="flex-1 text-left">
-                        {themeInfo.label}
+    <>
+      <header className="sticky top-0 z-40 bg-white dark:bg-surface surgical:bg-surface border-b border-surface shadow-xs transition-all">
+        <div className="flex items-center justify-between px-4 py-2 h-16 gap-3">
+          {/* Izquierda: Breadcrumbs y acciones contextuales */}
+          <div className="flex items-center gap-3 min-w-0">
+            <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-graphite-500 dark:text-graphite-400">
+              {breadcrumbs.map((crumb, idx) => {
+                const isLast = idx === breadcrumbs.length - 1
+                return (
+                  <React.Fragment key={`${crumb.label}-${idx}`}>
+                    {idx > 0 && <ChevronRight size={13} className="text-graphite-400 shrink-0" />}
+                    {isLast ? (
+                      <span className="font-bold text-graphite-900 dark:text-graphite-100 truncate max-w-[180px]">
+                        {crumb.label}
                       </span>
-                    </button>
-                  )}
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={crumb.onClick}
+                        className="hover:text-primary transition-colors truncate max-w-[140px]"
+                      >
+                        {crumb.label}
+                      </button>
+                    )}
+                  </React.Fragment>
+                )
+              })}
+            </nav>
 
-                  <div className="h-px bg-graphite-200 dark:bg-graphite-700 my-1" />
-
-                  <button
-                    role="menuitem"
-                    type="button"
-                    onClick={handleLogout}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-clinical-error hover:bg-clinical-error/10 transition-colors surgical:min-h-[48px]"
+            {contextualActions.length > 0 && (
+              <div className="hidden md:flex items-center gap-2 pl-2 border-l border-surface">
+                {contextualActions.map((action) => (
+                  <Button
+                    key={action.label}
+                    variant="ghost"
+                    size="sm"
+                    onClick={action.onClick}
+                    className="text-xs h-8 px-2.5 gap-1.5"
                   >
-                    <Icon icon={LogOut} size="sm" />
-                    <span className="flex-1 text-left">Cerrar sesión</span>
-                  </button>
-                </div>
+                    <Icon icon={action.icon} size="sm" />
+                    <span>{action.label}</span>
+                  </Button>
+                ))}
               </div>
             )}
           </div>
 
-          {/* Logout button (siempre visible, contrato tests) */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleLogout}
-            aria-label="Cerrar sesión"
-            title="Cerrar sesión"
-            className="text-clinical-error hover:bg-clinical-error/10 surgical:min-w-[48px] surgical:min-h-[48px]"
-            data-touch-target="critical"
-          >
-            <Icon icon={LogOut} size="md" />
-          </Button>
+          {/* Derecha: Buscar ⌘K, Selector Sede, Notificaciones y Avatar */}
+          <div className="flex items-center gap-2.5 shrink-0">
+            {/* Botón Buscar ⌘K */}
+            <button
+              type="button"
+              onClick={onOpenSearch}
+              className="flex items-center gap-2 px-2.5 py-1.5 text-xs text-graphite-500 dark:text-graphite-400 bg-graphite-100 dark:bg-graphite-800/80 hover:bg-graphite-200 dark:hover:bg-graphite-700/80 rounded-lg border border-surface transition-colors"
+              title="Buscar (⌘K)"
+              aria-label="Buscar pacientes y módulos"
+            >
+              <Search size={14} className="text-primary shrink-0" />
+              <span className="hidden sm:inline">Buscar</span>
+              <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono bg-white dark:bg-graphite-900 rounded border border-surface">
+                ⌘K
+              </kbd>
+            </button>
+
+            {/* Selector de Clínica y Sede */}
+            <div className="hidden md:flex items-center gap-1.5">
+              <ClinicaSelector onCambioClinica={onCambioClinica} />
+              <SelectorSede compacto />
+            </div>
+
+            {/* Centro de Notificaciones */}
+            <button
+              type="button"
+              onClick={() => setNotifOpen(true)}
+              aria-label="Centro de notificaciones"
+              className="relative p-2 rounded-lg text-graphite-600 dark:text-graphite-300 hover:bg-graphite-100 dark:hover:bg-graphite-800 transition-colors"
+            >
+              <Bell size={18} />
+              {notificaciones.length > 0 && (
+                <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-primary text-black font-extrabold text-[9px] flex items-center justify-center">
+                  {notificaciones.length > 9 ? '9+' : notificaciones.length}
+                </span>
+              )}
+            </button>
+
+            {/* Avatar + Menú de usuario */}
+            <div className="relative" ref={menuRef}>
+              <button
+                ref={triggerRef}
+                type="button"
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="flex items-center gap-2 p-1 rounded-lg hover:bg-graphite-100 dark:hover:bg-graphite-800 transition-colors"
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
+                aria-label="Menú de usuario"
+              >
+                <div className="w-8 h-8 bg-graphite-200 dark:bg-graphite-800 text-primary font-bold rounded-full flex items-center justify-center text-xs">
+                  {inicial}
+                </div>
+                <div className="hidden lg:block text-left max-w-[130px]">
+                  <p className="text-xs font-semibold text-graphite-900 dark:text-graphite-50 truncate" title={userProfile?.nombreCompleto}>
+                    {userProfile?.nombreCompleto || 'Mi sesión'}
+                  </p>
+                  <p className="text-[10px] text-graphite-500 dark:text-graphite-400 truncate">
+                    {nombreRol}
+                  </p>
+                </div>
+              </button>
+
+              {menuOpen && (
+                <div
+                  role="menu"
+                  className="absolute right-0 mt-2 w-64 bg-surface border border-surface rounded-xl shadow-lg overflow-hidden z-50 py-1"
+                >
+                  <div className="px-4 py-3 border-b border-surface">
+                    <p className="text-xs font-bold text-graphite-900 dark:text-graphite-100 truncate">
+                      {userProfile?.nombreCompleto || 'Mi sesión'}
+                    </p>
+                    <p className="text-[11px] text-graphite-500 truncate">{userProfile?.email}</p>
+                    <Badge size="sm" variant="neutral" className="mt-1">{nombreRol}</Badge>
+                  </div>
+                  <button
+                    role="menuitem"
+                    type="button"
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-clinical-error hover:bg-clinical-error/10 transition-colors"
+                  >
+                    <Icon icon={LogOut} size="sm" />
+                    <span>Cerrar sesión</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+      {/* Drawer de Notificaciones */}
+      <NotificationCenter isOpen={notifOpen} onClose={() => setNotifOpen(false)} />
+    </>
   )
 }
 

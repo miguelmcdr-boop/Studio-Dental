@@ -1,61 +1,69 @@
 /**
- * Tests — TopBar component (F7-25 Fase 4, Iteración 2)
- *
- * Valida logo, usuario, rol, logout, dark mode toggle y ClinicaSelector.
+ * Tests — TopBar component (Blueprint 02)
+ * Valida breadcrumbs, usuario, rol, logout, ClinicaSelector, selector de sede y ocultamiento en modo quirúrgico.
  */
 import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { TopBar } from './TopBar'
 
-// Mock ClinicaSelector (hace llamadas async a authService)
+// Mock ClinicaSelector
 vi.mock('./ClinicaSelector', () => ({
   ClinicaSelector: ({ onCambioClinica }) => (
     <div data-testid="clinica-selector" onClick={onCambioClinica}>
       Clínica Test
     </div>
-  )
+  ),
 }))
 
-describe('TopBar (F7-25)', () => {
+// Mock SelectorSede
+vi.mock('./SelectorSede', () => ({
+  SelectorSede: () => <div data-testid="selector-sede">Sede Central</div>,
+}))
+
+describe('TopBar (Blueprint 02)', () => {
   const mockUserProfile = {
     nombreCompleto: 'Dr. Miguel Díaz',
     email: 'miguel@clinica.com',
-    rol: 'admin'
+    rol: 'admin',
   }
 
   const defaultProps = {
     userProfile: mockUserProfile,
     onLogout: vi.fn(),
-    darkMode: false,
-    onToggleDarkMode: vi.fn(),
-    onCambioClinica: vi.fn()
+    onCambioClinica: vi.fn(),
   }
 
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
-  describe('renderizado básico', () => {
-    it('renderiza el logo oficial DentikOS', () => {
+  describe('renderizado básico y breadcrumbs', () => {
+    it('renderiza breadcrumbs por defecto (Dashboard)', () => {
       render(<TopBar {...defaultProps} />)
-      expect(screen.getByText('Dentik')).toBeInTheDocument()
-      expect(screen.getByText('OS')).toBeInTheDocument()
+      expect(screen.getByText('Dashboard')).toBeInTheDocument()
     })
 
-    it('renderiza el nombre del usuario', () => {
+    it('renderiza breadcrumbs anidados personalizados', () => {
+      const breadcrumbs = [
+        { label: 'Pacientes', onClick: vi.fn() },
+        { label: 'Juan Pérez' },
+      ]
+      render(<TopBar {...defaultProps} breadcrumbs={breadcrumbs} />)
+      expect(screen.getByText('Pacientes')).toBeInTheDocument()
+      expect(screen.getByText('Juan Pérez')).toBeInTheDocument()
+    })
+
+    it('renderiza el nombre y rol del usuario', () => {
       render(<TopBar {...defaultProps} />)
       expect(screen.getByText('Dr. Miguel Díaz')).toBeInTheDocument()
-    })
-
-    it('renderiza el rol del usuario', () => {
-      render(<TopBar {...defaultProps} />)
       expect(screen.getByText('Administrador')).toBeInTheDocument()
     })
 
-    it('renderiza ClinicaSelector', () => {
+    it('renderiza ClinicaSelector y SelectorSede', () => {
       render(<TopBar {...defaultProps} />)
       expect(screen.getByTestId('clinica-selector')).toBeInTheDocument()
+      expect(screen.getByTestId('selector-sede')).toBeInTheDocument()
     })
   })
 
@@ -76,72 +84,38 @@ describe('TopBar (F7-25)', () => {
     })
   })
 
-  describe('botón logout', () => {
-    it('renderiza el botón de logout', () => {
+  describe('botón de logout en menú', () => {
+    it('abre menú al clickear avatar y ejecuta onLogout', () => {
       render(<TopBar {...defaultProps} />)
-      expect(screen.getByRole('button', { name: /cerrar sesión/i })).toBeInTheDocument()
-    })
+      const trigger = screen.getByRole('button', { name: /menú de usuario/i })
+      fireEvent.click(trigger)
 
-    it('llama a onLogout al hacer click', () => {
-      render(<TopBar {...defaultProps} />)
-      fireEvent.click(screen.getByRole('button', { name: /cerrar sesión/i }))
+      const logoutBtn = screen.getByRole('menuitem', { name: /cerrar sesión/i })
+      expect(logoutBtn).toBeInTheDocument()
+      fireEvent.click(logoutBtn)
       expect(defaultProps.onLogout).toHaveBeenCalledTimes(1)
     })
   })
 
-  describe('theme mode toggle (tri-estado)', () => {
-    it('renderiza el toggle cuando onToggleDarkMode está presente', () => {
-      render(<TopBar {...defaultProps} />)
-      expect(screen.getByRole('button', { name: /activar modo oscuro/i })).toBeInTheDocument()
-    })
-
-    it('NO renderiza el toggle cuando onToggleDarkMode y onCycleTheme son undefined', () => {
-      render(<TopBar {...defaultProps} onToggleDarkMode={undefined} onCycleTheme={undefined} />)
-      expect(screen.queryByRole('button', { name: /activar modo/i })).not.toBeInTheDocument()
-    })
-
-    it('llama a onToggleDarkMode al hacer click cuando onCycleTheme no está definido', () => {
-      render(<TopBar {...defaultProps} />)
-      fireEvent.click(screen.getByRole('button', { name: /activar modo oscuro/i }))
-      expect(defaultProps.onToggleDarkMode).toHaveBeenCalledTimes(1)
-    })
-
-    it('llama a onCycleTheme con prioridad al hacer click', () => {
-      const mockCycle = vi.fn()
-      render(<TopBar {...defaultProps} onCycleTheme={mockCycle} />)
-      fireEvent.click(screen.getByRole('button', { name: /activar modo oscuro/i }))
-      expect(mockCycle).toHaveBeenCalledTimes(1)
-      expect(defaultProps.onToggleDarkMode).not.toHaveBeenCalled()
-    })
-
-    it('muestra "Activar modo quirúrgico" cuando darkMode=true o theme="dark"', () => {
-      render(<TopBar {...defaultProps} darkMode={true} />)
-      expect(screen.getByRole('button', { name: /activar modo quirúrgico/i })).toBeInTheDocument()
-    })
-
-    it('muestra "Activar modo claro" cuando theme="surgical"', () => {
-      render(<TopBar {...defaultProps} theme="surgical" />)
-      expect(screen.getByRole('button', { name: /activar modo claro/i })).toBeInTheDocument()
+  describe('modo quirúrgico', () => {
+    it('se oculta completamente cuando theme="surgical"', () => {
+      const { container } = render(<TopBar {...defaultProps} theme="surgical" />)
+      expect(container.querySelector('header')).not.toBeInTheDocument()
     })
   })
 
-  describe('ClinicaSelector', () => {
-    it('pasa onCambioClinica a ClinicaSelector', () => {
-      render(<TopBar {...defaultProps} />)
-      fireEvent.click(screen.getByTestId('clinica-selector'))
-      expect(defaultProps.onCambioClinica).toHaveBeenCalledTimes(1)
-    })
-  })
+  describe('centro de notificaciones y búsqueda', () => {
+    it('renderiza botón de notificaciones y botón de búsqueda ⌘K', () => {
+      const onOpenSearch = vi.fn()
+      render(<TopBar {...defaultProps} onOpenSearch={onOpenSearch} />)
 
-  describe('usuario sin perfil', () => {
-    it('muestra "Mi sesión" si no hay nombreCompleto', () => {
-      render(<TopBar {...defaultProps} userProfile={{}} />)
-      expect(screen.getByText('Mi sesión')).toBeInTheDocument()
-    })
+      const searchBtn = screen.getByRole('button', { name: /buscar pacientes y módulos/i })
+      expect(searchBtn).toBeInTheDocument()
+      fireEvent.click(searchBtn)
+      expect(onOpenSearch).toHaveBeenCalledTimes(1)
 
-    it('muestra "Usuario" si no hay rol', () => {
-      render(<TopBar {...defaultProps} userProfile={{ nombreCompleto: 'Test' }} />)
-      expect(screen.getByText('Usuario')).toBeInTheDocument()
+      const notifBtn = screen.getByRole('button', { name: /centro de notificaciones/i })
+      expect(notifBtn).toBeInTheDocument()
     })
   })
 })
