@@ -113,7 +113,7 @@ export const DispositivosModal: React.FC<DispositivosModalProps> = ({ isOpen, on
                 className="p-2 rounded-lg hover:bg-graphite-100 dark:hover:bg-graphite-800 cursor-pointer"
                 aria-label="Cerrar"
               >
-                <Icon icon={X} size={18} />
+                <Icon icon={X} size="sm" />
               </button>
             </div>
 
@@ -126,7 +126,7 @@ export const DispositivosModal: React.FC<DispositivosModalProps> = ({ isOpen, on
                     className="flex items-start gap-3 p-4 rounded-xl border border-surface hover:border-graphite-300 dark:hover:border-graphite-700 transition-colors"
                   >
                     <div className="w-10 h-10 rounded-lg bg-graphite-100 dark:bg-graphite-800 flex items-center justify-center flex-shrink-0">
-                      <Icon icon={Icono} size={20} />
+                      <Icon icon={Icono} size="md" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
@@ -152,7 +152,7 @@ export const DispositivosModal: React.FC<DispositivosModalProps> = ({ isOpen, on
                         className="text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 cursor-pointer"
                         aria-label={`Cerrar sesión en ${d.nombre}`}
                       >
-                        <Icon icon={LogOut} size={14} />
+                        <Icon icon={LogOut} size="xs" />
                         <span className="ml-1">Cerrar</span>
                       </Button>
                     )}

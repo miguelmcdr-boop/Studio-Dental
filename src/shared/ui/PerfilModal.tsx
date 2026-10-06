@@ -83,7 +83,7 @@ export const PerfilModal: React.FC<PerfilModalProps> = ({
                 className="p-2 rounded-lg hover:bg-graphite-100 dark:hover:bg-graphite-800 cursor-pointer"
                 aria-label="Cerrar"
               >
-                <Icon icon={X} size={18} />
+                <Icon icon={X} size="sm" />
               </button>
             </div>
 

@@ -99,7 +99,7 @@ export const PreferenciasModal: React.FC<PreferenciasModalProps> = ({ isOpen, on
                 className="p-2 rounded-lg hover:bg-graphite-100 dark:hover:bg-graphite-800 cursor-pointer"
                 aria-label="Cerrar"
               >
-                <Icon icon={X} size={18} />
+                <Icon icon={X} size="sm" />
               </button>
             </div>
 
@@ -115,7 +115,7 @@ export const PreferenciasModal: React.FC<PreferenciasModalProps> = ({ isOpen, on
                       : 'text-graphite-500 hover:text-graphite-900 dark:hover:text-graphite-200'
                   }`}
                 >
-                  <Icon icon={tab.icon} size={16} />
+                  <Icon icon={tab.icon} size="sm" />
                   <span>{tab.label}</span>
                 </button>
               ))}
