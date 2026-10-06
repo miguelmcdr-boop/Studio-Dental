@@ -20,7 +20,11 @@ interface StateConfig {
   title: string
 }
 
-export const ConnectionIndicator: React.FC = () => {
+export interface ConnectionIndicatorProps {
+  compact?: boolean
+}
+
+export const ConnectionIndicator: React.FC<ConnectionIndicatorProps> = ({ compact = false }) => {
   const [estado, setEstado] = useState<ConnectionState>('online')
 
   useEffect(() => {
@@ -91,6 +95,23 @@ export const ConnectionIndicator: React.FC = () => {
   }
 
   const c = config[estado] || config.offline
+
+  if (compact) {
+    return (
+      <div
+        className="flex items-center justify-center p-1 cursor-pointer select-none"
+        title={`${c.label} · ${c.title}`}
+        aria-label={c.label}
+      >
+        <div className="relative flex items-center justify-center">
+          <span className={`w-2 h-2 rounded-full ${c.color} shrink-0`} />
+          {estado === 'online' && (
+            <span className={`absolute w-2 h-2 rounded-full ${c.color} animate-ping opacity-75`} />
+          )}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div

@@ -18,13 +18,13 @@ export interface SidebarFooterProps {
 }
 
 export const SidebarFooter: React.FC<SidebarFooterProps> = ({ compact = false }) => (
-  <div className={`px-2 pb-4 space-y-3 ${compact ? 'text-center' : ''}`}>
+  <div className={`px-2 pb-4 space-y-3 ${compact ? 'text-center overflow-hidden' : ''}`}>
     {/* ThemeSwitcher siempre visible encima */}
     <ThemeSwitcher compact={compact} />
 
     {/* Línea única combinando conectividad + dispositivos */}
-    <div className={`flex items-center ${compact ? 'flex-col gap-2' : 'justify-between gap-2'}`}>
-      <ConnectionIndicator />
+    <div className={`flex items-center ${compact ? 'flex-col items-center justify-center gap-1.5' : 'justify-between gap-2'}`}>
+      <ConnectionIndicator compact={compact} />
       <DeviceIndicator compact={compact} />
     </div>
 
