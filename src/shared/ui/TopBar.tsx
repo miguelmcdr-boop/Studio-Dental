@@ -44,7 +44,10 @@ export interface TopBarProps {
   accionPrimaria?: AccionContextualItem | null
   accionesSecundarias?: AccionContextualItem[]
   onLogout?: () => void
+  darkMode?: boolean
   theme?: AppTheme | string
+  onToggleDarkMode?: () => void
+  onCycleTheme?: () => void
   onCambioClinica?: (nuevaClinicaId: string) => void
   onOpenSearch?: () => void
   onOpenAtajos?: () => void
