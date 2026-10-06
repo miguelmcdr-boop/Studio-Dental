@@ -11,6 +11,8 @@ import React from 'react'
 import { MapPin } from 'lucide-react'
 import { useSedes } from '../../domains/organization/clinic/hooks/useSedes'
 import { useSesionStore } from '../../app/stores/sesionStore'
+import { notificationService } from '../../infrastructure/notification/notificationService'
+import { playSound } from '../utils/soundEffects'
 
 export interface SelectorSedeProps {
   onCambioSede?: (sedeId: string) => void
@@ -28,20 +30,25 @@ export const SelectorSede: React.FC<SelectorSedeProps> = ({
   const { sedes = [], sedeActiva, sedeActivaId, cambiarSede } = useSedes()
   const storeCambiarSede = useSesionStore((s) => s.cambiarSede)
 
-  const listaSedes = sedes && sedes.length > 0
-    ? sedes
-    : [{ id: 'sede-principal', nombre: 'Sede Principal' }]
+  if (!sedes || sedes.length <= 1) {
+    return null
+  }
 
+  const listaSedes = sedes
   const valorActivo = sedeActivaId || sedeActiva?.id || listaSedes[0]?.id || ''
 
   const handleSeleccion = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const nuevaSedeId = e.target.value
     cambiarSede(nuevaSedeId)
     storeCambiarSede(nuevaSedeId)
+    const sedeObj = listaSedes.find((s) => (s.id || s.nombre) === nuevaSedeId)
+    const nombreSede = sedeObj?.nombre || nuevaSedeId
+    notificationService.mostrar(`Sede cambiada a ${nombreSede}`, { tipo: 'info' })
+    try { playSound('save') } catch {}
     if (onCambioSede) onCambioSede(nuevaSedeId)
   }
 
-  const statusTitle = sincronizado ? 'Sede activa y sincronizada' : 'Cambio pendiente'
+  const statusTitle = sincronizado ? 'Sede activa y sincronizada' : 'Cambios pendientes de sincronizar'
   const statusIndicator = !sincronizado ? (
     <span
       data-testid="selector-sede-status"

@@ -17,24 +17,7 @@ describe('SelectorSede (Blueprint 03 §04)', () => {
     vi.clearAllMocks()
   })
 
-  it('muestra fallback "Sede Principal" si no hay sedes registradas', () => {
-    vi.mocked(useSedes).mockReturnValue({
-      sedes: [],
-      sedeActiva: null,
-      sedeActivaId: null,
-      cambiarSede: vi.fn(),
-      agregarSede: vi.fn(),
-      editarSede: vi.fn(),
-      eliminarSede: vi.fn(),
-      recargar: vi.fn(),
-    })
-
-    render(<SelectorSede />)
-    expect(screen.getByTestId('selector-sede')).toBeInTheDocument()
-    expect(screen.getByText('Sede Principal')).toBeInTheDocument()
-  })
-
-  it('con 1 sede: pill visible con nombre y combobox interactivo', () => {
+  it('con 0 sedes o 1 sede: selector ausente (retorna null)', () => {
     vi.mocked(useSedes).mockReturnValue({
       sedes: [{ id: 'sede-1', nombre: 'Sede Providencia', direccion: 'Av. Providencia 123', comuna: 'P', region: 'RM', activa: true }],
       sedeActiva: { id: 'sede-1', nombre: 'Sede Providencia', direccion: 'Av. Providencia 123', comuna: 'P', region: 'RM', activa: true },
@@ -46,15 +29,24 @@ describe('SelectorSede (Blueprint 03 §04)', () => {
       recargar: vi.fn(),
     })
 
-    render(<SelectorSede compacto />)
-    expect(screen.getByTestId('selector-sede')).toBeInTheDocument()
-    expect(screen.getByText('Sede Providencia')).toBeInTheDocument()
-    const select = screen.getByRole('combobox')
-    expect(select).toBeInTheDocument()
-    expect(select).toHaveValue('sede-1')
+    const { rerender } = render(<SelectorSede />)
+    expect(screen.queryByTestId('selector-sede')).not.toBeInTheDocument()
+
+    vi.mocked(useSedes).mockReturnValue({
+      sedes: [],
+      sedeActiva: null,
+      sedeActivaId: null,
+      cambiarSede: vi.fn(),
+      agregarSede: vi.fn(),
+      editarSede: vi.fn(),
+      eliminarSede: vi.fn(),
+      recargar: vi.fn(),
+    })
+    rerender(<SelectorSede />)
+    expect(screen.queryByTestId('selector-sede')).not.toBeInTheDocument()
   })
 
-  it('con múltiples sedes: selector interactivo permite cambiar de sede', () => {
+  it('con 2+ sedes: selector presente e interactivo permite cambiar de sede con toast y sonido', () => {
     const cambiarSedeMock = vi.fn()
     vi.mocked(useSedes).mockReturnValue({
       sedes: [
@@ -71,6 +63,7 @@ describe('SelectorSede (Blueprint 03 §04)', () => {
     })
 
     render(<SelectorSede />)
+    expect(screen.getByTestId('selector-sede')).toBeInTheDocument()
     const select = screen.getByRole('combobox')
     expect(select).toBeInTheDocument()
     expect(screen.getByText('Sede Providencia')).toBeInTheDocument()
@@ -80,9 +73,12 @@ describe('SelectorSede (Blueprint 03 §04)', () => {
     expect(cambiarSedeMock).toHaveBeenCalledWith('sede-2')
   })
 
-  it('estado sincronizado (default): pill limpia SIN punto indicador verde', () => {
+  it('estado sincronizado (default): pill limpia SIN punto indicador', () => {
     vi.mocked(useSedes).mockReturnValue({
-      sedes: [{ id: 'sede-1', nombre: 'Sede Providencia', direccion: 'Av. Providencia', comuna: 'C', region: 'RM', activa: true }],
+      sedes: [
+        { id: 'sede-1', nombre: 'Sede Providencia', direccion: 'Av. Providencia', comuna: 'C', region: 'RM', activa: true },
+        { id: 'sede-2', nombre: 'Sede Las Condes', direccion: 'Av. Las Condes', comuna: 'C', region: 'RM', activa: true },
+      ],
       sedeActiva: { id: 'sede-1', nombre: 'Sede Providencia', direccion: 'Av. Providencia', comuna: 'C', region: 'RM', activa: true },
       sedeActivaId: 'sede-1',
       cambiarSede: vi.fn(),
@@ -99,9 +95,12 @@ describe('SelectorSede (Blueprint 03 §04)', () => {
     expect(screen.queryByTestId('selector-sede-status')).not.toBeInTheDocument()
   })
 
-  it('estado no sincronizado (sincronizado=false): muestra punto indicador ámbar de cambio pendiente', () => {
+  it('estado no sincronizado (offline con cola): muestra punto ámbar y tooltip "Cambios pendientes de sincronizar"', () => {
     vi.mocked(useSedes).mockReturnValue({
-      sedes: [{ id: 'sede-1', nombre: 'Sede Providencia', direccion: 'Av. Providencia', comuna: 'C', region: 'RM', activa: true }],
+      sedes: [
+        { id: 'sede-1', nombre: 'Sede Providencia', direccion: 'Av. Providencia', comuna: 'C', region: 'RM', activa: true },
+        { id: 'sede-2', nombre: 'Sede Las Condes', direccion: 'Av. Las Condes', comuna: 'C', region: 'RM', activa: true },
+      ],
       sedeActiva: { id: 'sede-1', nombre: 'Sede Providencia', direccion: 'Av. Providencia', comuna: 'C', region: 'RM', activa: true },
       sedeActivaId: 'sede-1',
       cambiarSede: vi.fn(),
@@ -113,10 +112,10 @@ describe('SelectorSede (Blueprint 03 §04)', () => {
 
     render(<SelectorSede sincronizado={false} />)
     const contenedor = screen.getByTestId('selector-sede')
-    expect(contenedor).toHaveAttribute('aria-label', 'Cambio pendiente')
+    expect(contenedor).toHaveAttribute('aria-label', 'Cambios pendientes de sincronizar')
     const punto = screen.getByTestId('selector-sede-status')
     expect(punto).toBeInTheDocument()
     expect(punto).toHaveClass('bg-amber-400')
-    expect(punto).toHaveAttribute('aria-label', 'Cambio pendiente')
+    expect(punto).toHaveAttribute('aria-label', 'Cambios pendientes de sincronizar')
   })
 })

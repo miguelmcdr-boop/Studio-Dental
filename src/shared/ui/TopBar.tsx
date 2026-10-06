@@ -11,6 +11,7 @@ import { TopBarBreadcrumbs } from './TopBarBreadcrumbs'
 import { TopBarActions, type AccionContextualItem } from './TopBarActions'
 import { TopBarAvatarMenu } from './TopBarAvatarMenu'
 import { useNotifications } from '../hooks/useNotifications'
+import { useSedeSincronizada } from '../hooks/useSedeSincronizada'
 import { useSidebarStore } from '../../app/stores/useSidebarStore'
 import { useTopBarStore, type BreadcrumbItem } from '../../app/stores/useTopBarStore'
 import type { Paciente } from '../../domains/clinical/patient/schemas/pacienteSchema'
@@ -76,6 +77,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   const notificaciones = useNotifications()
   const focusMode = useSidebarStore((s) => s.focusMode)
   const presentationMode = useTopBarStore((s) => s.presentationMode)
+  const sedeSincronizada = useSedeSincronizada()
 
   const isSurgical = theme === 'surgical'
   const acentoColor = ACENTOS_MODULO[activeSection] || '#B88E3A'
@@ -143,7 +145,7 @@ export const TopBar: React.FC<TopBarProps> = ({
               <div className="sr-only" aria-hidden="true">
                 <ClinicaSelector onCambioClinica={onCambioClinica} />
               </div>
-              <SelectorSede compacto />
+              <SelectorSede compacto sincronizado={sedeSincronizada} />
             </div>
 
             {/* Centro de Notificaciones (botón 36px con badge dorado) */}
