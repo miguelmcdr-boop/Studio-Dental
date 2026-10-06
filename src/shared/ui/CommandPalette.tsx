@@ -7,44 +7,25 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Search,
   X,
-  User,
-  Calendar,
-  Layers,
-  Zap,
-  Settings,
-  FileText,
   CornerDownLeft,
 } from 'lucide-react'
-import type { PaletteItem } from '../hooks/useCommandPalette'
+import {
+  PALETTE_CATEGORIA_ICONS,
+  PALETTE_CATEGORIA_LABELS,
+  type PaletteResult,
+} from '../../constants/commandPaletteConstants'
 
 export interface CommandPaletteProps {
   isOpen: boolean
   query: string
   setQuery: (q: string) => void
   selectedIndex: number
-  allResults: PaletteItem[]
+  allResults: PaletteResult[]
   close: () => void
   selectCurrent: () => void
+  handleSelect?: (r: PaletteResult) => void
   moveUp: () => void
   moveDown: () => void
-}
-
-const CATEGORIA_ICONS: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
-  pacientes: User,
-  citas: Calendar,
-  modulos: Layers,
-  acciones: Zap,
-  configuracion: Settings,
-  documentos: FileText,
-}
-
-const CATEGORIA_LABELS: Record<string, string> = {
-  pacientes: 'Pacientes',
-  citas: 'Citas',
-  modulos: 'Módulos',
-  acciones: 'Acciones Rápidas',
-  configuracion: 'Configuración',
-  documentos: 'Documentos',
 }
 
 export const CommandPalette: React.FC<CommandPaletteProps> = ({
@@ -55,6 +36,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   allResults,
   close,
   selectCurrent,
+  handleSelect,
   moveUp,
   moveDown,
 }) => {
@@ -83,7 +65,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       moveUp()
     } else if (e.key === 'Enter') {
       e.preventDefault()
-      selectCurrent()
+      const item = allResults[selectedIndex]
+      if (item && handleSelect) {
+        handleSelect(item)
+      } else {
+        selectCurrent()
+      }
     } else if (e.key === 'Escape') {
       e.preventDefault()
       close()
@@ -154,15 +141,28 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
               ) : (
                 allResults.map((item, idx) => {
                   const isSelected = idx === selectedIndex
-                  const IconComp = CATEGORIA_ICONS[item.categoria] || Search
-                  const catLabel = CATEGORIA_LABELS[item.categoria] || item.categoria
+                  const IconComp =
+                    item.icono ||
+                    PALETTE_CATEGORIA_ICONS[item.tipo] ||
+                    PALETTE_CATEGORIA_ICONS[item.categoria || ''] ||
+                    Search
+                  const catLabel =
+                    PALETTE_CATEGORIA_LABELS[item.tipo] ||
+                    PALETTE_CATEGORIA_LABELS[item.categoria || ''] ||
+                    item.tipo
+                  const description = item.descripcion || item.sublabel
 
                   return (
                     <button
                       key={item.id}
                       ref={(el) => { itemRefs.current[idx] = el }}
                       type="button"
-                      onClick={() => selectCurrent()}
+                      onClick={() => {
+                        if (handleSelect) handleSelect(item)
+                        else if (item.ejecutar) item.ejecutar()
+                        else if (item.action) item.action()
+                        else selectCurrent()
+                      }}
                       className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left transition-all ${
                         isSelected
                           ? 'bg-gold-light/70 dark:bg-graphite-800 text-graphite-900 dark:text-gold-satin shadow-2xs font-semibold'
@@ -181,9 +181,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                         </div>
                         <div className="min-w-0">
                           <p className="text-xs font-bold truncate leading-snug">{item.label}</p>
-                          {item.sublabel && (
+                          {description && (
                             <p className="text-[10px] text-graphite-400 truncate mt-0.5 leading-snug">
-                              {item.sublabel}
+                              {description}
                             </p>
                           )}
                         </div>

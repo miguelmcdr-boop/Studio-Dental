@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, Suspense, lazy } from 'react'
+import React, { useState, useEffect, useMemo, useCallback, Suspense, lazy } from 'react'
 import { LoginScreen } from './shared/ui/LoginScreen'
 import { Sidebar } from './shared/ui/Sidebar'
 import { AtajosTecladoModal } from './shared/ui/AtajosTecladoModal'
@@ -84,6 +84,7 @@ interface DashboardModuloProps {
 
 interface AgendaModuloProps {
   alSeleccionarPaciente: (paciente: Paciente) => void
+  citaSeleccionadaId?: string | number | null
 }
 
 interface PresupuestosModuloProps {
@@ -177,15 +178,6 @@ export const App: React.FC = () => {
     setPacienteSeleccionado
   )
 
-  // F10-B4: CommandPalette con ⌘K (F7-26: + onSelectPaciente)
-  const commandPalette = useCommandPalette({
-    onNavigate: setActiveSection,
-    onCreateCita: () => setActiveSection('Agenda'),
-    onCreatePaciente: () => setActiveSection('Pacientes'),
-    onCreatePresupuesto: () => setActiveSection('Presupuestos'),
-    onSelectPaciente: (paciente: Paciente) => setPacienteSeleccionado(paciente), // F7-26: seleccionar paciente desde CommandPalette
-  })
-
   // Blueprint 02 & 03: Modo Foco, Modo Presentación, Atajos y Modo Quirúrgico
   const focusMode = useSidebarStore((s) => s.focusMode)
   const setFocusMode = useSidebarStore((s) => s.setFocusMode)
@@ -198,7 +190,45 @@ export const App: React.FC = () => {
   const [perfilModalOpen, setPerfilModalOpen] = useState(false)
   const [preferenciasModalOpen, setPreferenciasModalOpen] = useState(false)
   const [dispositivosModalOpen, setDispositivosModalOpen] = useState(false)
+  const [citaSeleccionadaId, setCitaSeleccionadaId] = useState<string | number | null>(null)
   useAutoSurgicalMode()
+
+  const handleOpenCita = useCallback((citaId: string | number) => {
+    setActiveSection('Agenda')
+    setCitaSeleccionadaId(citaId)
+  }, [setActiveSection])
+
+  const handleEjecutarAccion = useCallback((accionId: string) => {
+    if (accionId === 'nueva-cita') {
+      setActiveSection('Agenda')
+    } else if (accionId === 'nuevo-paciente') {
+      setActiveSection('Pacientes')
+    } else if (accionId === 'nuevo-pago') {
+      setActiveSection('Pagos')
+    } else if (accionId === 'exportar-reportes') {
+      setActiveSection('Reportes')
+    }
+  }, [setActiveSection])
+
+  const handleOpenDocumento = useCallback((doc: { tipo: string; id: string | number }) => {
+    if (doc.tipo === 'presupuesto') {
+      setActiveSection('Presupuestos')
+    } else if (doc.tipo === 'receta') {
+      setActiveSection('Vademécum')
+    } else {
+      setActiveSection('Documentos')
+    }
+  }, [setActiveSection])
+
+  // F10-B4: CommandPalette con ⌘K (Navegación omnicanal 6 categorías - HOTFIX 03.1)
+  const commandPalette = useCommandPalette({
+    onNavigate: setActiveSection,
+    onSelectPaciente: (paciente: Paciente) => setPacienteSeleccionado(paciente),
+    onOpenCita: handleOpenCita,
+    onOpenPreferencias: () => setPreferenciasModalOpen(true),
+    onEjecutarAccion: handleEjecutarAccion,
+    onOpenDocumento: handleOpenDocumento,
+  })
 
   // Iniciar timer de atención cuando se abre ficha de paciente
   useEffect(() => {
@@ -492,6 +522,7 @@ export const App: React.FC = () => {
                       setPacienteSeleccionado(paciente)
                       setActiveSection('Pacientes')
                     }}
+                    citaSeleccionadaId={citaSeleccionadaId}
                   />
                 </ErrorBoundary>
               )}
