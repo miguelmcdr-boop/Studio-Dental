@@ -111,7 +111,7 @@ export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ compact = false, c
         }}
         title={`Tema actual: ${currentTheme}`}
         aria-label={`Cambiar tema (actual: ${currentTheme})`}
-        className={`w-9 h-9 rounded-xl flex items-center justify-center bg-graphite-100 dark:bg-graphite-800 text-graphite-700 dark:text-graphite-200 transition-colors cursor-pointer ${className}`}
+        className={`w-9 h-9 mx-auto rounded-xl flex items-center justify-center bg-graphite-100 dark:bg-graphite-800 text-graphite-700 dark:text-graphite-200 transition-colors cursor-pointer shrink-0 ${className}`}
       >
         {currentTheme === 'light' && <Sun size={16} className="text-amber-500" />}
         {currentTheme === 'surgical' && <Sparkles size={16} className="text-primary" />}

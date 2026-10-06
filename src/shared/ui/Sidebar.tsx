@@ -121,7 +121,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <aside
-      className={`${isCollapsed ? 'w-16' : 'w-60'} bg-white dark:bg-graphite-950 surgical:bg-graphite-300 p-3 border-r border-surface ${propMode ? 'h-full' : 'min-h-screen'} flex flex-col justify-between transition-[width] duration-300 select-none print:hidden z-30`}
+      className={`${isCollapsed ? 'w-16 px-2 py-3' : 'w-60 p-3'} bg-white dark:bg-graphite-950 surgical:bg-graphite-300 border-r border-surface ${propMode ? 'h-full' : 'min-h-screen'} flex flex-col justify-between transition-[width] duration-300 select-none print:hidden z-30`}
       role="navigation"
       aria-label="Menú principal"
     >
@@ -221,7 +221,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Footer: SidebarFooter unificado */}
-      <div className="pt-3 border-t border-surface px-1">
+      <div className="pt-3 border-t border-surface px-1 overflow-visible">
         <SidebarFooter compact={isCollapsed} />
       </div>
     </aside>
