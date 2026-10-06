@@ -51,6 +51,9 @@ export interface TopBarProps {
   onCambioClinica?: (nuevaClinicaId: string) => void
   onOpenSearch?: () => void
   onOpenAtajos?: () => void
+  onOpenPerfil?: () => void
+  onOpenPreferencias?: () => void
+  onOpenDispositivos?: () => void
 }
 
 export const TopBar: React.FC<TopBarProps> = ({
@@ -65,6 +68,9 @@ export const TopBar: React.FC<TopBarProps> = ({
   onCambioClinica,
   onOpenSearch,
   onOpenAtajos,
+  onOpenPerfil,
+  onOpenPreferencias,
+  onOpenDispositivos,
 }) => {
   const [notifOpen, setNotifOpen] = useState(false)
   const notificaciones = useNotifications()
@@ -157,6 +163,9 @@ export const TopBar: React.FC<TopBarProps> = ({
               userProfile={userProfile}
               onLogout={onLogout}
               onOpenAtajos={onOpenAtajos}
+              onOpenPerfil={onOpenPerfil}
+              onOpenPreferencias={onOpenPreferencias}
+              onOpenDispositivos={onOpenDispositivos}
             />
           </div>
         </div>

@@ -158,6 +158,35 @@ describe('TopBar (Blueprint 02)', () => {
       expect(screen.getByText('Dispositivos')).toBeInTheDocument()
       expect(screen.getByText('Cerrar sesión')).toBeInTheDocument()
     })
+
+    it('ejecuta los callbacks onOpenPerfil, onOpenPreferencias y onOpenDispositivos al seleccionarlos', () => {
+      const onOpenPerfil = vi.fn()
+      const onOpenPreferencias = vi.fn()
+      const onOpenDispositivos = vi.fn()
+
+      render(
+        <TopBar
+          {...defaultProps}
+          onOpenPerfil={onOpenPerfil}
+          onOpenPreferencias={onOpenPreferencias}
+          onOpenDispositivos={onOpenDispositivos}
+        />
+      )
+
+      const trigger = screen.getByRole('button', { name: /menú de usuario/i })
+      fireEvent.click(trigger)
+
+      fireEvent.click(screen.getByText('Perfil'))
+      expect(onOpenPerfil).toHaveBeenCalledTimes(1)
+
+      fireEvent.click(trigger)
+      fireEvent.click(screen.getByText('Preferencias'))
+      expect(onOpenPreferencias).toHaveBeenCalledTimes(1)
+
+      fireEvent.click(trigger)
+      fireEvent.click(screen.getByText('Dispositivos'))
+      expect(onOpenDispositivos).toHaveBeenCalledTimes(1)
+    })
   })
 })
 

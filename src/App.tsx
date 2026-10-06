@@ -3,6 +3,9 @@ import { LoginScreen } from './shared/ui/LoginScreen'
 import { Sidebar } from './shared/ui/Sidebar'
 import { AtajosTecladoModal } from './shared/ui/AtajosTecladoModal'
 import { ModoPresentacionBar } from './shared/ui/ModoPresentacionBar'
+import { PreferenciasModal } from './shared/ui/PreferenciasModal'
+import { DispositivosModal } from './shared/ui/DispositivosModal'
+import { PerfilModal } from './shared/ui/PerfilModal'
 import { useSidebarStore } from './app/stores/useSidebarStore'
 import { useTopBarStore } from './app/stores/useTopBarStore'
 import { useAutoSurgicalMode } from './shared/hooks/useAutoSurgicalMode'
@@ -192,6 +195,9 @@ export const App: React.FC = () => {
   const startTimer = useTopBarStore((s) => s.startTimer)
   const stopTimer = useTopBarStore((s) => s.stopTimer)
   const [atajosOpen, setAtajosOpen] = useState(false)
+  const [perfilModalOpen, setPerfilModalOpen] = useState(false)
+  const [preferenciasModalOpen, setPreferenciasModalOpen] = useState(false)
+  const [dispositivosModalOpen, setDispositivosModalOpen] = useState(false)
   useAutoSurgicalMode()
 
   // Iniciar timer de atención cuando se abre ficha de paciente
@@ -425,6 +431,9 @@ export const App: React.FC = () => {
       <AppDialogProvider />
       <CommandPalette {...commandPalette} />
       <AtajosTecladoModal isOpen={atajosOpen} onClose={() => setAtajosOpen(false)} />
+      <PerfilModal isOpen={perfilModalOpen} onClose={() => setPerfilModalOpen(false)} />
+      <PreferenciasModal isOpen={preferenciasModalOpen} onClose={() => setPreferenciasModalOpen(false)} />
+      <DispositivosModal isOpen={dispositivosModalOpen} onClose={() => setDispositivosModalOpen(false)} />
       <ModoPresentacionBar
         activo={presentationMode}
         paciente={pacienteSeleccionado}
@@ -460,6 +469,9 @@ export const App: React.FC = () => {
           accionesSecundarias={accionesSecundarias}
           onOpenSearch={() => commandPalette.toggle()}
           onOpenAtajos={() => setAtajosOpen(true)}
+          onOpenPerfil={() => setPerfilModalOpen(true)}
+          onOpenPreferencias={() => setPreferenciasModalOpen(true)}
+          onOpenDispositivos={() => setDispositivosModalOpen(true)}
         />
         <div className="flex flex-1">
           <Sidebar userProfile={userProfile} activeSection={activeSection} setActiveSection={setActiveSection} onLogout={handleLogout} counters={sidebarCounters} />
