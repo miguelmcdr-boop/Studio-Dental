@@ -55,6 +55,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const storeMode = useSidebarStore((s) => s.mode)
   const setMode = useSidebarStore((s) => s.setMode)
+  const preSurgicalMode = useSidebarStore((s) => s.preSurgicalMode)
+  const setPreSurgicalMode = useSidebarStore((s) => s.setPreSurgicalMode)
   const focusMode = useSidebarStore((s) => s.focusMode)
   const { theme } = useDarkMode()
   const { puede } = useRBAC()
@@ -66,9 +68,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const sedeNombre = sedeActiva?.nombre || 'Sede Principal'
 
   useEffect(() => {
-    // Auto-colapsar al activar modo quirúrgico
-    if (theme === 'surgical' && !propMode) setMode('collapsed')
-  }, [theme, setMode, propMode])
+    if (propMode) return
+
+    if (theme === 'surgical') {
+      if (storeMode !== 'collapsed') {
+        setPreSurgicalMode(storeMode)
+        setMode('collapsed')
+      }
+    } else if (preSurgicalMode) {
+      setMode(preSurgicalMode)
+      setPreSurgicalMode(null)
+    }
+  }, [theme, storeMode, preSurgicalMode, setMode, setPreSurgicalMode, propMode])
 
   useEffect(() => {
     if (propMode) return
