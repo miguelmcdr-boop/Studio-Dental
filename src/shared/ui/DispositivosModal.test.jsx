@@ -7,6 +7,37 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { DispositivosModal } from './DispositivosModal'
 
+const { mockDevices } = vi.hoisted(() => ({
+  mockDevices: [
+    {
+      id: 'dev-1',
+      tipo: 'desktop',
+      nombre: 'MacBook Pro — Recepción',
+      navegador: 'Chrome',
+      ubicacion: 'Santiago, Chile',
+      ultimaActividad: 'Ahora mismo',
+      esActual: true,
+    },
+    {
+      id: 'dev-2',
+      tipo: 'tablet',
+      nombre: 'iPad Pro — Box 3',
+      navegador: 'Safari',
+      ubicacion: 'Santiago, Chile',
+      ultimaActividad: 'Hace 15 min',
+      esActual: false,
+    },
+  ],
+}))
+
+vi.mock('../hooks/useSessionDevices', () => ({
+  useSessionDevices: () => ({
+    devices: mockDevices,
+    loading: false,
+    refresh: vi.fn(),
+  }),
+}))
+
 describe('DispositivosModal (Blueprint 03)', () => {
   it('no renderiza nada cuando isOpen es false', () => {
     const { container } = render(<DispositivosModal isOpen={false} onClose={vi.fn()} />)
@@ -18,7 +49,7 @@ describe('DispositivosModal (Blueprint 03)', () => {
 
     expect(screen.getByRole('dialog', { name: /dispositivos activos/i })).toBeInTheDocument()
     expect(screen.getByText(/MacBook Pro — Recepción/)).toBeInTheDocument()
-    expect(screen.getByText('ESTA SESIÓN')).toBeInTheDocument()
+    expect(screen.getByText(/esta sesión/i)).toBeInTheDocument()
     expect(screen.getByText(/iPad Pro — Box 3/)).toBeInTheDocument()
   })
 

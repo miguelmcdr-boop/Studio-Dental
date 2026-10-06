@@ -8,6 +8,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Monitor, Tablet, Smartphone, LogOut } from 'lucide-react'
+import { useSessionDevices, type DeviceSession } from '../hooks/useSessionDevices'
 import { Icon } from './Icon'
 import { Button } from './ui/Button'
 
@@ -16,37 +17,6 @@ export interface DispositivosModalProps {
   onClose: () => void
 }
 
-interface Dispositivo {
-  id: string
-  tipo: 'desktop' | 'tablet' | 'mobile'
-  nombre: string
-  navegador: string
-  ubicacion: string
-  ultimaActividad: string
-  esActual: boolean
-}
-
-const MOCK_DISPOSITIVOS: Dispositivo[] = [
-  {
-    id: '1',
-    tipo: 'desktop',
-    nombre: 'MacBook Pro — Recepción',
-    navegador: 'Chrome 128',
-    ubicacion: 'Santiago, Chile',
-    ultimaActividad: 'Ahora mismo',
-    esActual: true,
-  },
-  {
-    id: '2',
-    tipo: 'tablet',
-    nombre: 'iPad Pro — Box 3',
-    navegador: 'Safari 17',
-    ubicacion: 'Santiago, Chile',
-    ultimaActividad: 'Hace 2 horas',
-    esActual: false,
-  },
-]
-
 const iconoPorTipo = {
   desktop: Monitor,
   tablet: Tablet,
@@ -54,8 +24,13 @@ const iconoPorTipo = {
 }
 
 export const DispositivosModal: React.FC<DispositivosModalProps> = ({ isOpen, onClose }) => {
-  const [dispositivos, setDispositivos] = useState<Dispositivo[]>(MOCK_DISPOSITIVOS)
+  const { devices } = useSessionDevices()
+  const [dispositivos, setDispositivos] = useState<DeviceSession[]>([])
   const modalRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    setDispositivos(devices)
+  }, [devices])
 
   useEffect(() => {
     if (!isOpen) return
