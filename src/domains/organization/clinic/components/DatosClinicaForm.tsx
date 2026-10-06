@@ -1,28 +1,52 @@
-import React, { memo, useState } from 'react'
+import React, { memo, useState, useEffect } from 'react'
 import { convertirImagenADataURL } from '../utils/clinicCalculations'
 import { createLogger } from '../../../../infrastructure/logging/logger'
-import { Lock, Building2 } from 'lucide-react'
+import { Lock, Building2, CheckCircle2 } from 'lucide-react'
 import { CLINICA_DEFAULT, type ClinicaConfig } from '../constants/clinicConstants'
 import { clinicStorageService, type DatosClinicaConfig } from '../services/clinicStorageService'
+import { useSesionStore } from '../../../../app/stores/sesionStore'
 
 const log = createLogger('DatosClinicaForm')
 
 export interface DatosClinicaFormProps {
   datosClinica?: DatosClinicaConfig | ClinicaConfig
   alGuardar?: (datos: DatosClinicaConfig | ClinicaConfig) => void
-  userProfile?: { rol?: string; [key: string]: unknown } | null
+  userProfile?: { rol?: string; clinicaId?: string | null; [key: string]: unknown } | null
 }
 
 export const DatosClinicaForm: React.FC<DatosClinicaFormProps> = memo(({ datosClinica = CLINICA_DEFAULT, alGuardar, userProfile }) => {
+  const clinicaActual = useSesionStore((s) => s.clinicaActual)
+  const clinicaId = clinicaActual || (userProfile?.clinicaId as string | undefined)
+
   const [form, setForm] = useState<DatosClinicaConfig | ClinicaConfig>(() => {
     if (datosClinica && datosClinica !== CLINICA_DEFAULT) return datosClinica
     const guardada = clinicStorageService.obtenerClinica()
     if (guardada && Object.keys(guardada).length > 0) return guardada
     return datosClinica || CLINICA_DEFAULT
   })
+  const [estadoGuardado, setEstadoGuardado] = useState<string | null>(null)
+  const [guardando, setGuardando] = useState(false)
+
+  // Al montar, sincronizar desde Supabase
+  useEffect(() => {
+    let activo = true
+    const guardada = clinicStorageService.obtenerClinica()
+    if (guardada && Object.keys(guardada).length > 0) {
+      setForm((prev) => ({ ...prev, ...guardada }))
+    }
+    if (clinicaId) {
+      Promise.resolve(clinicStorageService.sincronizarClinicaDesdeSupabase(clinicaId))
+        .then((desdeSupa) => {
+          if (activo && desdeSupa) setForm((prev) => ({ ...prev, ...desdeSupa }))
+        })
+        .catch((err: unknown) => {
+          log.warn('Error sincronizando datos de clínica:', err)
+        })
+    }
+    return () => { activo = false }
+  }, [clinicaId])
 
   // F6-C-e: solo el admin puede editar la configuración de clínica.
-  // Los demás miembros ven los datos en modo solo-lectura.
   const esSoloLectura = userProfile?.rol !== 'admin'
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,18 +64,36 @@ export const DatosClinicaForm: React.FC<DatosClinicaFormProps> = memo(({ datosCl
     }
   }
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (esSoloLectura) return
-    clinicStorageService.guardarClinica(form as DatosClinicaConfig)
-    const nuevoNombre = form.nombreClinica?.trim() || ''
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('clinica_actualizada', { detail: { nombre: nuevoNombre } }))
-    }
-    if (alGuardar) {
-      alGuardar(form)
+    if (esSoloLectura || guardando) return
+    setGuardando(true)
+    setEstadoGuardado(null)
+
+    try {
+      if (clinicaId) {
+        const ok = await clinicStorageService.guardarClinicaCompleta(clinicaId, form as DatosClinicaConfig)
+        if (ok) {
+          setEstadoGuardado('Guardado en la nube ✓')
+          if (alGuardar) alGuardar(form)
+        }
+      } else {
+        clinicStorageService.guardarClinica(form as DatosClinicaConfig)
+        const nuevoNombre = form.nombreClinica?.trim() || ''
+        if (typeof window !== 'undefined' && nuevoNombre) {
+          window.dispatchEvent(new CustomEvent('clinica_actualizada', { detail: { nombre: nuevoNombre } }))
+        }
+        setEstadoGuardado('Guardado en la nube ✓')
+        if (alGuardar) alGuardar(form)
+      }
+    } finally {
+      setGuardando(false)
     }
   }
+
+  const inputClass = `w-full p-2.5 rounded-lg border border-surface text-graphite-900 dark:text-graphite-50 focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+    esSoloLectura ? 'bg-gray-100 dark:bg-graphite-900/50 cursor-not-allowed text-gray-500' : 'bg-white dark:bg-graphite-800 surgical:bg-graphite-200'
+  }`
 
   return (
     <form onSubmit={handleSubmit} className="bg-surface border border-surface rounded-2xl p-6 shadow-xs space-y-4 text-xs">
@@ -76,9 +118,7 @@ export const DatosClinicaForm: React.FC<DatosClinicaFormProps> = memo(({ datosCl
             disabled={esSoloLectura}
             value={form.nombreClinica || ''}
             onChange={(e) => setForm({ ...form, nombreClinica: e.target.value })}
-            className={`w-full p-2.5 rounded-lg border border-surface text-graphite-900 dark:text-graphite-50 font-bold focus:outline-none focus:ring-2 focus:ring-primary/40 ${
-              esSoloLectura ? 'bg-gray-100 dark:bg-graphite-900/50 cursor-not-allowed text-gray-500' : 'bg-white dark:bg-graphite-800 surgical:bg-graphite-200'
-            }`}
+            className={`${inputClass} font-bold`}
           />
         </div>
 
@@ -89,9 +129,7 @@ export const DatosClinicaForm: React.FC<DatosClinicaFormProps> = memo(({ datosCl
             disabled={esSoloLectura}
             value={form.razonSocial || ''}
             onChange={(e) => setForm({ ...form, razonSocial: e.target.value })}
-            className={`w-full p-2.5 rounded-lg border border-surface text-graphite-900 dark:text-graphite-50 focus:outline-none focus:ring-2 focus:ring-primary/40 ${
-              esSoloLectura ? 'bg-gray-100 dark:bg-graphite-900/50 cursor-not-allowed text-gray-500' : 'bg-white dark:bg-graphite-800 surgical:bg-graphite-200'
-            }`}
+            className={inputClass}
           />
         </div>
 
@@ -102,9 +140,7 @@ export const DatosClinicaForm: React.FC<DatosClinicaFormProps> = memo(({ datosCl
             disabled={esSoloLectura}
             value={form.rutClinica || ''}
             onChange={(e) => setForm({ ...form, rutClinica: e.target.value })}
-            className={`w-full p-2.5 rounded-lg border border-surface text-graphite-900 dark:text-graphite-50 focus:outline-none focus:ring-2 focus:ring-primary/40 ${
-              esSoloLectura ? 'bg-gray-100 dark:bg-graphite-900/50 cursor-not-allowed text-gray-500' : 'bg-white dark:bg-graphite-800 surgical:bg-graphite-200'
-            }`}
+            className={inputClass}
           />
         </div>
 
@@ -115,9 +151,7 @@ export const DatosClinicaForm: React.FC<DatosClinicaFormProps> = memo(({ datosCl
             disabled={esSoloLectura}
             value={form.telefono || ''}
             onChange={(e) => setForm({ ...form, telefono: e.target.value })}
-            className={`w-full p-2.5 rounded-lg border border-surface text-graphite-900 dark:text-graphite-50 focus:outline-none focus:ring-2 focus:ring-primary/40 ${
-              esSoloLectura ? 'bg-gray-100 dark:bg-graphite-900/50 cursor-not-allowed text-gray-500' : 'bg-white dark:bg-graphite-800 surgical:bg-graphite-200'
-            }`}
+            className={inputClass}
           />
         </div>
 
@@ -128,9 +162,7 @@ export const DatosClinicaForm: React.FC<DatosClinicaFormProps> = memo(({ datosCl
             disabled={esSoloLectura}
             value={form.emailContacto || ''}
             onChange={(e) => setForm({ ...form, emailContacto: e.target.value })}
-            className={`w-full p-2.5 rounded-lg border border-surface text-graphite-900 dark:text-graphite-50 focus:outline-none focus:ring-2 focus:ring-primary/40 ${
-              esSoloLectura ? 'bg-gray-100 dark:bg-graphite-900/50 cursor-not-allowed text-gray-500' : 'bg-white dark:bg-graphite-800 surgical:bg-graphite-200'
-            }`}
+            className={inputClass}
           />
         </div>
 
@@ -141,9 +173,7 @@ export const DatosClinicaForm: React.FC<DatosClinicaFormProps> = memo(({ datosCl
             disabled={esSoloLectura}
             value={form.ciudad || ''}
             onChange={(e) => setForm({ ...form, ciudad: e.target.value })}
-            className={`w-full p-2.5 rounded-lg border border-surface text-graphite-900 dark:text-graphite-50 focus:outline-none focus:ring-2 focus:ring-primary/40 ${
-              esSoloLectura ? 'bg-gray-100 dark:bg-graphite-900/50 cursor-not-allowed text-gray-500' : 'bg-white dark:bg-graphite-800 surgical:bg-graphite-200'
-            }`}
+            className={inputClass}
           />
         </div>
       </div>
@@ -155,9 +185,7 @@ export const DatosClinicaForm: React.FC<DatosClinicaFormProps> = memo(({ datosCl
           disabled={esSoloLectura}
           value={form.direccion || ''}
           onChange={(e) => setForm({ ...form, direccion: e.target.value })}
-          className={`w-full p-2.5 rounded-lg border border-surface text-graphite-900 dark:text-graphite-50 focus:outline-none focus:ring-2 focus:ring-primary/40 ${
-            esSoloLectura ? 'bg-gray-100 dark:bg-graphite-900/50 cursor-not-allowed text-gray-500' : 'bg-white dark:bg-graphite-800 surgical:bg-graphite-200'
-          }`}
+          className={inputClass}
         />
       </div>
 
@@ -168,9 +196,7 @@ export const DatosClinicaForm: React.FC<DatosClinicaFormProps> = memo(({ datosCl
           disabled={esSoloLectura}
           value={(form.eslogan as string) || ''}
           onChange={(e) => setForm({ ...form, eslogan: e.target.value })}
-          className={`w-full p-2.5 rounded-lg border border-surface text-graphite-900 dark:text-graphite-50 focus:outline-none focus:ring-2 focus:ring-primary/40 ${
-            esSoloLectura ? 'bg-gray-100 dark:bg-graphite-900/50 cursor-not-allowed text-gray-500' : 'bg-white dark:bg-graphite-800 surgical:bg-graphite-200'
-          }`}
+          className={inputClass}
         />
       </div>
 
@@ -193,12 +219,21 @@ export const DatosClinicaForm: React.FC<DatosClinicaFormProps> = memo(({ datosCl
       </div>
 
       {!esSoloLectura && (
-        <div className="flex justify-end pt-3 border-t border-surface">
+        <div className="flex items-center justify-between pt-3 border-t border-surface">
+          <div>
+            {estadoGuardado && (
+              <span className="text-emerald-600 dark:text-emerald-400 font-semibold text-xs inline-flex items-center gap-1.5">
+                <CheckCircle2 size={14} />
+                {estadoGuardado}
+              </span>
+            )}
+          </div>
           <button
             type="submit"
-            className="px-4 py-2 bg-primary text-white rounded-lg font-bold hover:bg-primary-dark transition cursor-pointer"
+            disabled={guardando}
+            className="px-4 py-2 bg-primary text-white rounded-lg font-bold hover:bg-primary-dark transition cursor-pointer disabled:opacity-50"
           >
-            Guardar Configuración Clínica
+            {guardando ? 'Guardando...' : 'Guardar Configuración Clínica'}
           </button>
         </div>
       )}
@@ -207,3 +242,4 @@ export const DatosClinicaForm: React.FC<DatosClinicaFormProps> = memo(({ datosCl
 })
 
 DatosClinicaForm.displayName = 'DatosClinicaForm'
+
