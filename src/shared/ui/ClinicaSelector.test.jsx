@@ -7,7 +7,8 @@ import { ClinicaSelector } from './ClinicaSelector'
 vi.mock('../../infrastructure/auth/authService', () => ({
   listarMisClinicas: vi.fn(),
   setClinicaActiva: vi.fn(),
-  getClinicaActiva: vi.fn()
+  getClinicaActiva: vi.fn(),
+  getClinicaActivaSync: vi.fn().mockReturnValue('clinica-test')
 }))
 
 vi.mock('../../infrastructure/supabase/invalidarCacheCambioClinica', () => ({

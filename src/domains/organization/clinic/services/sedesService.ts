@@ -1,4 +1,5 @@
 import { createTenantRepository } from '../../../../infrastructure/storage/localStorageRepository'
+import { getClinicaActivaSync } from '../../../../infrastructure/auth/authService'
 import { createLogger } from '../../../../infrastructure/logging/logger'
 import { type Sede, sedeSchema } from '../schemas/sedeSchema'
 
@@ -12,10 +13,10 @@ const sedeActivaRepo = createTenantRepository<string | null>(KEY_SEDE_ACTIVA, nu
 export const sedesService = {
   obtenerSedes: (): Sede[] => {
     try {
+      if (!getClinicaActivaSync()) return []
       const data = sedesRepo.obtener([])
       return Array.isArray(data) ? data : []
-    } catch (e) {
-      log.error('Error al obtener sedes:', e)
+    } catch {
       return []
     }
   },
@@ -91,6 +92,7 @@ export const sedesService = {
 
   obtenerSedeActiva: (): string | null => {
     try {
+      if (!getClinicaActivaSync()) return null
       const id = sedeActivaRepo.obtener(null)
       if (id) return id
       const sedes = sedesService.obtenerSedes()

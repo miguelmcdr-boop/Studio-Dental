@@ -19,6 +19,7 @@ import { Icon } from './Icon'
 import { Button } from './ui/Button'
 import { Badge } from './ui/Badge'
 import { ClinicaSelector } from './ClinicaSelector'
+import { SelectorSede } from './SelectorSede'
 import { DentikOSLogo } from './brand/DentikOSLogo'
 import { NOMBRES_ROLES } from '../../constants/rbacConstants'
 
@@ -135,8 +136,9 @@ export const TopBar: React.FC<TopBarProps> = ({
 
           <div className="h-8 w-px bg-graphite-200 dark:bg-graphite-700 hidden md:block" />
 
-          <div className="hidden md:block">
+          <div className="hidden md:flex items-center gap-2">
             <ClinicaSelector onCambioClinica={onCambioClinica} />
+            <SelectorSede compacto />
           </div>
         </div>
 

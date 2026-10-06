@@ -7,6 +7,7 @@ import {
 } from '../../infrastructure/auth/authService'
 import { createLogger } from '../../infrastructure/logging/logger'
 import { invalidarCacheCambioClinica } from '../../infrastructure/supabase/invalidarCacheCambioClinica'
+import { SelectorSede } from './SelectorSede'
 
 const log = createLogger('ClinicaSelector')
 
@@ -174,6 +175,9 @@ export const ClinicaSelector: React.FC<ClinicaSelectorProps> = ({ onCambioClinic
             {clinicas[0].nombre}
           </span>
         </div>
+        <div className="mt-1.5">
+          <SelectorSede compacto />
+        </div>
       </div>
     )
   }
@@ -194,6 +198,9 @@ export const ClinicaSelector: React.FC<ClinicaSelectorProps> = ({ onCambioClinic
           </option>
         ))}
       </select>
+      <div className="mt-1.5">
+        <SelectorSede compacto />
+      </div>
       {cambiando && (
         <div className="text-[11px] text-primary font-bold mt-1 animate-pulse">Cambiando clínica...</div>
       )}

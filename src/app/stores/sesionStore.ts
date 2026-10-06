@@ -33,7 +33,10 @@ export interface PacienteReciente {
 
 export interface SesionStore {
   userProfile: UserProfileSession | null
+  clinicaActual: string | null
+  sedeActual: string | null
   login: (profile: UserProfileSession) => void
+  cambiarSede: (sedeId: string) => void
   logout: () => Promise<void>
   actualizarPerfil: (profile: Partial<UserProfileSession> & Record<string, unknown>) => void
   agregarPacienteReciente: (paciente?: { id?: string | number; nombre?: string; rut?: string; [key: string]: unknown } | null) => void
@@ -75,6 +78,8 @@ const cargarPerfilActivo = (): UserProfileSession | null => {
  */
 export const useSesionStore = create<SesionStore>((set) => ({
   userProfile: cargarPerfilActivo(),
+  clinicaActual: (cargarPerfilActivo()?.clinicaId as string) || null,
+  sedeActual: typeof localStorage !== 'undefined' ? localStorage.getItem('clinica_sede_activa') : null,
 
   login: (profile: UserProfileSession): void => {
     try {
@@ -99,7 +104,21 @@ export const useSesionStore = create<SesionStore>((set) => ({
         : obtenerRolPorDefecto()
     }
 
-    set({ userProfile: perfilNormalizado })
+    set({
+      userProfile: perfilNormalizado,
+      clinicaActual: (perfilNormalizado.clinicaId as string) || null,
+    })
+  },
+
+  cambiarSede: (sedeId: string): void => {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('clinica_sede_activa', sedeId)
+      }
+    } catch (e: unknown) {
+      log.error('Error al guardar sede activa en storage:', e)
+    }
+    set({ sedeActual: sedeId })
   },
 
   logout: async (): Promise<void> => {
