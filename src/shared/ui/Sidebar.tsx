@@ -6,9 +6,7 @@ import React, { useMemo, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useRBAC } from '../hooks/useRBAC'
-import { ConnectionIndicator } from './ConnectionIndicator'
-import { DeviceIndicator } from './DeviceIndicator'
-import { ThemeSwitcher } from './ThemeSwitcher'
+import { SidebarFooter } from './SidebarFooter'
 import { Icon } from './Icon'
 import { Badge } from './ui/Badge'
 import { DentikOSLogo } from './brand/DentikOSLogo'
@@ -203,11 +201,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </motion.nav>
       </div>
 
-      {/* Footer: ThemeSwitcher + DeviceIndicator + ConnectionIndicator */}
-      <div className="pt-3 border-t border-surface space-y-2 px-1">
-        <ThemeSwitcher compact={isCollapsed} />
-        <DeviceIndicator compact={isCollapsed} />
-        <ConnectionIndicator />
+      {/* Footer: SidebarFooter unificado */}
+      <div className="pt-3 border-t border-surface px-1">
+        <SidebarFooter compact={isCollapsed} />
       </div>
     </aside>
   )
