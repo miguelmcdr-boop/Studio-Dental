@@ -86,4 +86,100 @@ describe('CommandPalette (Blueprint 03)', () => {
     fireEvent.keyDown(input, { key: 'Escape' })
     expect(defaultProps.close).toHaveBeenCalled()
   })
+
+  // Regresiones Workstream 3 — Navegación Omnicanal
+  it('seleccionar resultado de módulo llama onNavigate con el nombre', () => {
+    const onNavigate = vi.fn()
+    const handleSelect = vi.fn((item) => item.ejecutar())
+    const moduloItem = {
+      id: 'mod-agenda',
+      label: 'Agenda',
+      tipo: 'modulo',
+      ejecutar: () => onNavigate('Agenda'),
+    }
+
+    render(
+      <CommandPalette
+        {...defaultProps}
+        allResults={[moduloItem]}
+        handleSelect={handleSelect}
+      />
+    )
+
+    fireEvent.click(screen.getByText('Agenda'))
+    expect(handleSelect).toHaveBeenCalledWith(moduloItem)
+    expect(onNavigate).toHaveBeenCalledWith('Agenda')
+  })
+
+  it("seleccionar acción 'nueva-cita' navega a Agenda", () => {
+    const onNavigate = vi.fn()
+    const handleSelect = vi.fn((item) => item.ejecutar())
+    const accionItem = {
+      id: 'nueva-cita',
+      label: 'Nueva cita',
+      tipo: 'accion',
+      ejecutar: () => onNavigate('Agenda'),
+    }
+
+    render(
+      <CommandPalette
+        {...defaultProps}
+        allResults={[accionItem]}
+        handleSelect={handleSelect}
+      />
+    )
+
+    fireEvent.click(screen.getByText('Nueva cita'))
+    expect(handleSelect).toHaveBeenCalledWith(accionItem)
+    expect(onNavigate).toHaveBeenCalledWith('Agenda')
+  })
+
+  it('Enter sobre resultado de módulo tiene el mismo comportamiento que click', () => {
+    const onNavigate = vi.fn()
+    const handleSelect = vi.fn((item) => item.ejecutar())
+    const moduloItem = {
+      id: 'mod-pacientes',
+      label: 'Pacientes',
+      tipo: 'modulo',
+      ejecutar: () => onNavigate('Pacientes'),
+    }
+
+    render(
+      <CommandPalette
+        {...defaultProps}
+        allResults={[moduloItem]}
+        selectedIndex={0}
+        handleSelect={handleSelect}
+      />
+    )
+
+    const input = screen.getByRole('textbox', { name: /entrada de búsqueda/i })
+    fireEvent.keyDown(input, { key: 'Enter' })
+
+    expect(handleSelect).toHaveBeenCalledWith(moduloItem)
+    expect(onNavigate).toHaveBeenCalledWith('Pacientes')
+  })
+
+  it("seleccionar configuración 'tema-oscuro' abre preferencias o cambia tema", () => {
+    const onOpenPreferencias = vi.fn()
+    const handleSelect = vi.fn((item) => item.ejecutar())
+    const configItem = {
+      id: 'tema-oscuro',
+      label: 'Tema Oscuro',
+      tipo: 'configuracion',
+      ejecutar: () => onOpenPreferencias(),
+    }
+
+    render(
+      <CommandPalette
+        {...defaultProps}
+        allResults={[configItem]}
+        handleSelect={handleSelect}
+      />
+    )
+
+    fireEvent.click(screen.getByText('Tema Oscuro'))
+    expect(handleSelect).toHaveBeenCalledWith(configItem)
+    expect(onOpenPreferencias).toHaveBeenCalled()
+  })
 })
