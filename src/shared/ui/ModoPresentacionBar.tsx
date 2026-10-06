@@ -43,14 +43,19 @@ export const ModoPresentacionBar: React.FC<ModoPresentacionBarProps> = ({
 
           {/* Centro/Derecha: Paciente + Botón Salir */}
           <div className="flex items-center gap-4">
-            {paciente && (
+            {paciente ? (
               <span className="text-xs font-medium text-graphite-700 dark:text-graphite-300">
                 {paciente.nombre} {paciente.edad ? `· ${paciente.edad} años` : ''}
+              </span>
+            ) : (
+              <span className="text-xs text-graphite-500 dark:text-graphite-400">
+                Sin paciente seleccionado
               </span>
             )}
             <button
               type="button"
               onClick={onSalir}
+              aria-label="Salir del modo presentación"
               className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-graphite-100 hover:bg-graphite-200 dark:bg-graphite-800 dark:hover:bg-graphite-700 text-graphite-900 dark:text-graphite-100 transition-colors border border-surface cursor-pointer"
               title="Salir de Modo Presentación"
             >

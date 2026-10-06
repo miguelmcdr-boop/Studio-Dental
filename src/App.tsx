@@ -2,8 +2,11 @@ import React, { useState, useEffect, useMemo, Suspense, lazy } from 'react'
 import { LoginScreen } from './shared/ui/LoginScreen'
 import { Sidebar } from './shared/ui/Sidebar'
 import { AtajosTecladoModal } from './shared/ui/AtajosTecladoModal'
+import { ModoPresentacionBar } from './shared/ui/ModoPresentacionBar'
 import { useSidebarStore } from './app/stores/useSidebarStore'
+import { useTopBarStore } from './app/stores/useTopBarStore'
 import { useAutoSurgicalMode } from './shared/hooks/useAutoSurgicalMode'
+import { ACCIONES_POR_MODULO } from './constants/topBarActionsConstants'
 import { CargandoModulo } from './shared/ui/CargandoModulo'
 import { ErrorBoundary } from './shared/ui/ErrorBoundary' // F6-01
 import { ToastContainer } from './shared/ui/ToastContainer'
@@ -180,14 +183,24 @@ export const App: React.FC = () => {
     onSelectPaciente: (paciente: Paciente) => setPacienteSeleccionado(paciente), // F7-26: seleccionar paciente desde CommandPalette
   })
 
-  // Blueprint 02: Modo Foco, Atajos y Modo Quirúrgico Automático
+  // Blueprint 02 & 03: Modo Foco, Modo Presentación, Atajos y Modo Quirúrgico
   const focusMode = useSidebarStore((s) => s.focusMode)
   const setFocusMode = useSidebarStore((s) => s.setFocusMode)
   const toggleFocusMode = useSidebarStore((s) => s.toggleFocusMode)
+  const presentationMode = useTopBarStore((s) => s.presentationMode)
+  const setPresentationMode = useTopBarStore((s) => s.setPresentationMode)
+  const startTimer = useTopBarStore((s) => s.startTimer)
+  const stopTimer = useTopBarStore((s) => s.stopTimer)
   const [atajosOpen, setAtajosOpen] = useState(false)
   useAutoSurgicalMode()
 
-  // Blueprint 02: Atajos globales (⌘K, ⌘⇧F, ⌘⇧D, ?, Esc)
+  // Iniciar timer de atención cuando se abre ficha de paciente
+  useEffect(() => {
+    if (pacienteSeleccionado) startTimer()
+    else stopTimer()
+  }, [pacienteSeleccionado, startTimer, stopTimer])
+
+  // Blueprint 02 & 03: Atajos globales (⌘K, ⌘⇧F, ⌘⇧M, ⌘⇧D, ?, Esc)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent): void => {
       const target = e.target as HTMLElement | null
@@ -212,6 +225,13 @@ export const App: React.FC = () => {
         return
       }
 
+      // ⌘⇧M / Ctrl+Shift+M: Alternar Modo Presentación
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'm') {
+        e.preventDefault()
+        setPresentationMode(!presentationMode)
+        return
+      }
+
       // ⌘⇧D / Ctrl+Shift+D: Alternar tema
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'd') {
         e.preventDefault()
@@ -219,9 +239,10 @@ export const App: React.FC = () => {
         return
       }
 
-      // Esc: Salir de Modo Foco
-      if (e.key === 'Escape' && focusMode) {
-        setFocusMode(false)
+      // Esc: Salir de Modo Foco o Presentación
+      if (e.key === 'Escape') {
+        if (presentationMode) setPresentationMode(false)
+        if (focusMode) setFocusMode(false)
         return
       }
 
@@ -233,7 +254,43 @@ export const App: React.FC = () => {
     }
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [commandPalette, toggleFocusMode, setFocusMode, cycleTheme, focusMode])
+  }, [commandPalette, toggleFocusMode, setFocusMode, presentationMode, setPresentationMode, cycleTheme, focusMode])
+
+  // Acciones contextuales por módulo del Blueprint 03
+  const accionesConfig = ACCIONES_POR_MODULO[activeSection]
+  const accionPrimaria = useMemo(() => {
+    if (!accionesConfig?.primaria) return null
+    const mapAction: Record<string, () => void> = {
+      crearCita: () => setActiveSection('Agenda'),
+      crearPaciente: () => setActiveSection('Pacientes'),
+      crearPresupuesto: () => setActiveSection('Presupuestos'),
+      registrarPago: () => setActiveSection('Pagos'),
+      nuevoItem: () => setActiveSection('Inventario'),
+      nuevoCiclo: () => setActiveSection('Esterilización'),
+      ingresoGes: () => setActiveSection('Urgencias GES'),
+      buscarFarmaco: () => setActiveSection('Vademécum'),
+    }
+    return {
+      label: accionesConfig.primaria.label,
+      icon: accionesConfig.primaria.icon,
+      onClick: mapAction[accionesConfig.primaria.actionKey] || (() => {}),
+    }
+  }, [accionesConfig, setActiveSection])
+
+  const accionesSecundarias = useMemo(() => {
+    if (!accionesConfig?.secundarias) return []
+    return accionesConfig.secundarias.map((sec) => ({
+      label: sec.label,
+      icon: sec.icon,
+      onClick: () => {
+        if (sec.actionKey === 'crearPaciente') setActiveSection('Pacientes')
+        else if (sec.actionKey === 'abrirReportes') setActiveSection('Reportes')
+        else if (sec.actionKey === 'crearPresupuesto') setActiveSection('Presupuestos')
+        else if (sec.actionKey === 'ajusteStock') setActiveSection('Inventario')
+        else if (sec.actionKey === 'garantias') setActiveSection('Urgencias GES')
+      },
+    }))
+  }, [accionesConfig, setActiveSection])
 
   // Breadcrumbs dinámicos para TopBar
   const breadcrumbs = useMemo(() => {
@@ -368,6 +425,11 @@ export const App: React.FC = () => {
       <AppDialogProvider />
       <CommandPalette {...commandPalette} />
       <AtajosTecladoModal isOpen={atajosOpen} onClose={() => setAtajosOpen(false)} />
+      <ModoPresentacionBar
+        activo={presentationMode}
+        paciente={pacienteSeleccionado}
+        onSalir={() => setPresentationMode(false)}
+      />
 
       {/* Botón flotante para salir de Modo Foco */}
       {focusMode && (
@@ -386,13 +448,18 @@ export const App: React.FC = () => {
       <div className="min-h-screen flex flex-col bg-canvas text-primary-surface font-sans">
         <TopBar
           userProfile={userProfile}
+          activeSection={activeSection}
+          pacienteSeleccionado={pacienteSeleccionado}
           onLogout={handleLogout}
           darkMode={darkMode}
           theme={theme}
           onToggleDarkMode={toggleDarkMode}
           onCycleTheme={cycleTheme}
           breadcrumbs={breadcrumbs}
+          accionPrimaria={accionPrimaria}
+          accionesSecundarias={accionesSecundarias}
           onOpenSearch={() => commandPalette.toggle()}
+          onOpenAtajos={() => setAtajosOpen(true)}
         />
         <div className="flex flex-1">
           <Sidebar userProfile={userProfile} activeSection={activeSection} setActiveSection={setActiveSection} onLogout={handleLogout} counters={sidebarCounters} />

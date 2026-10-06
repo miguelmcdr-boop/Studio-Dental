@@ -39,6 +39,7 @@ const GRUPOS_ATAJOS: AtajoGrupo[] = [
     icono: Eye,
     items: [
       { teclas: ['⌘', '⇧', 'F'], descripcion: 'Alternar Modo Foco quirúrgico' },
+      { teclas: ['⌘', '⇧', 'M'], descripcion: 'Alternar Modo Presentación (pacientes)' },
       { teclas: ['⌘', '⇧', 'D'], descripcion: 'Alternar tema (Claro / Quirúrgico / Oscuro)' },
     ],
   },
