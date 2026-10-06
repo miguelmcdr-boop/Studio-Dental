@@ -112,7 +112,7 @@ export const usePresupuestoForm = ({
   const guardarPlanTratamiento = useCallback(async (descuento = 0): Promise<TreatmentPlanResult> => {
     return createTreatmentPlan({
       pacienteId: paciente.id,
-      prestaciones: itemsPresupuesto.map((i) => ({ prestacionId: i.id, piezaDental: i.piezaDental, cantidad: 1 })),
+      prestaciones: itemsPresupuesto.map((i) => ({ prestacionId: i.id, piezaDental: typeof i.piezaDental === 'string' ? i.piezaDental : undefined, cantidad: 1 })),
       convenioId: convenioAplicado,
       descuento,
     })

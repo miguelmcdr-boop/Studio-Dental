@@ -156,7 +156,7 @@ export const DatosClinicaForm: React.FC<DatosClinicaFormProps> = memo(({ datosCl
         <input
           type="text"
           disabled={esSoloLectura}
-          value={form.eslogan || ''}
+          value={(form.eslogan as string) || ''}
           onChange={(e) => setForm({ ...form, eslogan: e.target.value })}
           className={`w-full p-2.5 rounded-lg border border-surface text-graphite-900 dark:text-graphite-50 focus:outline-none focus:ring-2 focus:ring-primary/40 ${
             esSoloLectura ? 'bg-gray-100 dark:bg-graphite-900/50 cursor-not-allowed text-gray-500' : 'bg-white dark:bg-graphite-800 surgical:bg-graphite-200'

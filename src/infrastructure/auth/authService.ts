@@ -883,3 +883,77 @@ export const bootstrapClinica = async (datos: BootstrapClinicaDatos): Promise<Bo
     return { success: false, error: msg }
   }
 }
+
+// ---------------------------------------------------------------------------
+// F7-Blueprint01: Recuperación de contraseña y verificación de email
+// ---------------------------------------------------------------------------
+
+export const solicitarRecuperacionContrasena = async (
+  email: string
+): Promise<{ success: boolean; error?: string }> => {
+  if (!USE_SUPABASE || !supabase) {
+    return { success: false, error: 'Supabase no configurado' }
+  }
+  try {
+    const redirectUrl = typeof window !== 'undefined'
+      ? `${window.location.origin}#reset-password`
+      : undefined
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+      redirectTo: redirectUrl,
+    })
+    if (error) {
+      log.warn('Error en solicitarRecuperacionContrasena:', error.message)
+      return { success: false, error: error.message }
+    }
+    return { success: true }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    log.error('Excepción en solicitarRecuperacionContrasena:', msg)
+    return { success: false, error: msg }
+  }
+}
+
+export const actualizarContrasena = async (
+  nuevaContrasena: string
+): Promise<{ success: boolean; error?: string }> => {
+  if (!USE_SUPABASE || !supabase) {
+    return { success: false, error: 'Supabase no configurado' }
+  }
+  try {
+    const { error } = await supabase.auth.updateUser({
+      password: nuevaContrasena,
+    })
+    if (error) {
+      log.warn('Error en actualizarContrasena:', error.message)
+      return { success: false, error: error.message }
+    }
+    return { success: true }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    log.error('Excepción en actualizarContrasena:', msg)
+    return { success: false, error: msg }
+  }
+}
+
+export const reenviarEmailVerificacion = async (
+  email: string
+): Promise<{ success: boolean; error?: string }> => {
+  if (!USE_SUPABASE || !supabase) {
+    return { success: false, error: 'Supabase no configurado' }
+  }
+  try {
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: email.trim().toLowerCase(),
+    })
+    if (error) {
+      log.warn('Error reenviando verificación:', error.message)
+      return { success: false, error: error.message }
+    }
+    return { success: true }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    log.error('Excepción en reenviarEmailVerificacion:', msg)
+    return { success: false, error: msg }
+  }
+}

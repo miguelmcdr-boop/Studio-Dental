@@ -166,8 +166,8 @@ export async function updateTreatmentPlan(
   const convenio = updates.convenioId !== undefined ? updates.convenioId : existente.convenio || 'Particular'
   const descuento = updates.descuento !== undefined ? updates.descuento : existente.descuento || 0
 
-  let items = existente.items
-  let totalOriginal = existente.totalOriginal || existente.total || 0
+  let items = existente.items || []
+  let totalOriginal = Number(existente.totalOriginal || existente.total || 0)
 
   if (updates.prestaciones) {
     const catalogo = prestacionesStorageService.obtenerPrestaciones()
@@ -208,12 +208,12 @@ export async function updateTreatmentPlan(
 
   return {
     presupuestoId,
-    pacienteId,
+    pacienteId: pacienteId || '',
     totalOriginal,
     totalConDescuento,
     descuentoPorcentaje: Number(descuento) || 0,
     convenioAplicado: convenio,
-    items: items.map((i: any) => ({
+    items: (items || []).map((i: any) => ({
       prestacionId: i.id,
       nombre: i.prestacion,
       precioUnitario: i.valor,
