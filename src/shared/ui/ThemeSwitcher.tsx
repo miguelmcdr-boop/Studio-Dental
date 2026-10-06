@@ -5,8 +5,7 @@
 import React, { useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { Sun, Sparkles, Moon } from 'lucide-react'
-import { useSidebarStore, type Theme } from '../../app/stores/useSidebarStore'
-import { useDarkMode } from '../hooks/useDarkMode'
+import { useDarkMode, type Theme } from '../hooks/useDarkMode'
 
 const playThemeSound = () => {
   if (typeof window === 'undefined') return
@@ -48,17 +47,12 @@ export interface ThemeSwitcherProps {
 }
 
 export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ compact = false, className = '' }) => {
-  const storeTheme = useSidebarStore((s) => s.theme)
-  const setStoreTheme = useSidebarStore((s) => s.setTheme)
-  const { theme: hookTheme, setTheme: setHookTheme } = useDarkMode()
-
-  const currentTheme: Theme = (storeTheme || hookTheme || 'light') as Theme
+  const { theme: currentTheme, setTheme } = useDarkMode()
 
   const handleSelectTheme = useCallback((targetTheme: Theme) => {
     playThemeSound()
-    setStoreTheme(targetTheme)
-    setHookTheme(targetTheme)
-  }, [setStoreTheme, setHookTheme])
+    setTheme(targetTheme)
+  }, [setTheme])
 
   // Posición del círculo deslizante según tema
   const getThumbOffset = (t: Theme): string => {

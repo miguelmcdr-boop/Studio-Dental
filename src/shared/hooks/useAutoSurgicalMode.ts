@@ -5,10 +5,10 @@
 import { useEffect, useRef } from 'react'
 import { agendaStorageService } from '../../domains/operations/agenda/services/agendaStorageService'
 import { notificationService } from '../../infrastructure/notification/notificationService'
-import { useSidebarStore } from '../../app/stores/useSidebarStore'
+import { useDarkMode } from './useDarkMode'
 
 export const useAutoSurgicalMode = (): void => {
-  const theme = useSidebarStore((s) => s.theme)
+  const { theme } = useDarkMode()
   const notificadoRef = useRef<boolean>(false)
 
   useEffect(() => {

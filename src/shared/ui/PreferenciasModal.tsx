@@ -12,8 +12,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Palette, Languages, Bell, Accessibility } from 'lucide-react'
-import { useSidebarStore } from '../../app/stores/useSidebarStore'
-import type { Theme } from '../../app/stores/useSidebarStore'
+import { useDarkMode, type Theme } from '../hooks/useDarkMode'
 import { Icon } from './Icon'
 import { Button } from './ui/Button'
 
@@ -40,8 +39,7 @@ const TABS: Tab[] = [
 export const PreferenciasModal: React.FC<PreferenciasModalProps> = ({ isOpen, onClose }) => {
   const [tabActiva, setTabActiva] = useState<TabId>('tema')
   const modalRef = useRef<HTMLDivElement>(null)
-  const theme = useSidebarStore((s) => s.theme)
-  const setTheme = useSidebarStore((s) => s.setTheme)
+  const { theme, setTheme } = useDarkMode()
 
   // Cerrar con Esc
   useEffect(() => {
