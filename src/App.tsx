@@ -448,7 +448,14 @@ export const App: React.FC = () => {
   // F7-11b: Pantalla de verificación mientras se determina bootstrapNecesario
   if (bootstrapNecesario === null && userProfile) return <VerificandoCuenta />
 
-  if (bootstrapNecesario) return <BootstrapClinica onComplete={() => window.location.reload()} />
+  if (bootstrapNecesario) {
+    return (
+      <>
+        <AppDialogProvider />
+        <BootstrapClinica onComplete={() => window.location.reload()} />
+      </>
+    )
+  }
 
   // F7-11: Invitación pendiente
   if (invitacionPendiente) return <AceptarInvitacion onAceptarExitoso={() => window.location.reload()} />

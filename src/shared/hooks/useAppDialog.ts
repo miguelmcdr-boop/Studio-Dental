@@ -29,6 +29,7 @@ export type DialogVariant = 'info' | 'warning' | 'danger' | 'success' | 'error'
 export interface ConfirmDialogConfig {
   title: string
   description?: string
+  message?: string
   variant?: 'info' | 'warning' | 'danger'
   confirmText?: string
   cancelText?: string
@@ -37,6 +38,7 @@ export interface ConfirmDialogConfig {
 export interface AlertDialogConfig {
   title: string
   description?: string
+  message?: string
   variant?: DialogVariant
   confirmText?: string
 }
@@ -60,6 +62,7 @@ export const useAppDialog = (): UseAppDialogReturn => {
     ({
       title,
       description,
+      message,
       variant = 'warning',
       confirmText = 'Confirmar',
       cancelText = 'Cancelar',
@@ -67,7 +70,7 @@ export const useAppDialog = (): UseAppDialogReturn => {
       return openDialog({
         type: 'confirm',
         title,
-        description,
+        description: description || message,
         variant,
         confirmText,
         cancelText,
@@ -83,13 +86,14 @@ export const useAppDialog = (): UseAppDialogReturn => {
     ({
       title,
       description,
+      message,
       variant = 'info',
       confirmText = 'Entendido',
     }: AlertDialogConfig): Promise<void> => {
       return openDialog({
         type: 'alert',
         title,
-        description,
+        description: description || message,
         variant,
         confirmText,
       }) as Promise<void>
