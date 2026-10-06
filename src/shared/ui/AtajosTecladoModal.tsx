@@ -155,12 +155,12 @@ export const AtajosTecladoModal: React.FC<AtajosTecladoModalProps> = ({ isOpen, 
             </div>
 
             {/* Footer */}
-            <div className="px-5 py-3 border-t border-surface bg-graphite-50/50 dark:bg-graphite-900/30 flex items-center justify-between text-[11px] text-graphite-500">
-              <span>Presiona <kbd className="px-1 py-0.5 rounded bg-surface font-mono">?</kbd> en cualquier pantalla</span>
+            <div className="px-5 py-3 border-t border-surface bg-graphite-50/50 dark:bg-graphite-900/30 flex flex-col sm:flex-row sm:items-center justify-between text-[11px] text-graphite-500 gap-1.5">
+              <span>Presiona <kbd className="px-1 py-0.5 rounded bg-surface font-mono">?</kbd> en cualquier pantalla · Dev: <code className="text-primary font-mono text-[10px]">__dentikosNotify('critica', 'msg')</code></span>
               <button
                 type="button"
                 onClick={onClose}
-                className="font-semibold text-primary hover:underline"
+                className="font-semibold text-primary hover:underline self-end sm:self-auto cursor-pointer"
               >
                 Entendido
               </button>
