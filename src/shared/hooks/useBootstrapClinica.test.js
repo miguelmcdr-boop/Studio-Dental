@@ -1,11 +1,24 @@
-import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useBootstrapClinica } from './useBootstrapClinica'
 
-// Mock de authService
-vi.mock('../../infrastructure/auth/authService', () => ({
-  bootstrapClinica: vi.fn()
+// Mock de authService preservando getClinicaActivaSync
+vi.mock('../../infrastructure/auth/authService', async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    bootstrapClinica: vi.fn(),
+    getClinicaActivaSync: vi.fn(() => 'clinica-123'),
+  }
+})
+
+// Mock de sedesService
+vi.mock('../../domains/organization/clinic/services/sedesService', () => ({
+  sedesService: {
+    guardarSedes: vi.fn(),
+    establecerSedeActiva: vi.fn(),
+    obtenerSedes: vi.fn(() => []),
+  },
 }))
 
 // Mock de logger
@@ -13,213 +26,185 @@ vi.mock('../../infrastructure/logging/logger', () => ({
   createLogger: () => ({
     info: vi.fn(),
     error: vi.fn(),
-    warn: vi.fn()
-  })
+    warn: vi.fn(),
+  }),
 }))
 
 import { bootstrapClinica } from '../../infrastructure/auth/authService'
+import { sedesService } from '../../domains/organization/clinic/services/sedesService'
 
-describe('useBootstrapClinica', () => {
+describe('useBootstrapClinica (4 pasos)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
-  it('debe inicializar en paso 1 con datos vacíos', () => {
+  it('debe inicializar en paso 1 con tipo clínica y datos vacíos', () => {
     const { result } = renderHook(() => useBootstrapClinica(vi.fn()))
 
     expect(result.current.paso).toBe(1)
+    expect(result.current.tipoActividad).toBe('clinica')
     expect(result.current.datos.nombre).toBe('')
-    expect(result.current.datos.rutEmpresa).toBe('')
     expect(result.current.procesando).toBe(false)
     expect(result.current.errorGeneral).toBeNull()
+    expect(result.current.completado).toBe(false)
   })
 
-  it('debe actualizar campos correctamente', () => {
+  it('debe permitir cambiar tipo de actividad en paso 1', () => {
     const { result } = renderHook(() => useBootstrapClinica(vi.fn()))
 
     act(() => {
-      result.current.actualizarCampo('nombre', 'Clínica Test')
+      result.current.setTipoActividad('individual')
     })
 
-    expect(result.current.datos.nombre).toBe('Clínica Test')
+    expect(result.current.tipoActividad).toBe('individual')
   })
 
-  it('debe validar nombre vacío en paso 1', () => {
+  it('debe avanzar de paso 1 a paso 2 sin validación de datos', () => {
     const { result } = renderHook(() => useBootstrapClinica(vi.fn()))
-
-    act(() => {
-      result.current.avanzarPaso()
-    })
-
-    expect(result.current.paso).toBe(1) // No avanza
-    expect(result.current.errores.nombre).toContain('3 caracteres')
-  })
-
-  it('debe validar nombre muy corto en paso 1', () => {
-    const { result } = renderHook(() => useBootstrapClinica(vi.fn()))
-
-    act(() => {
-      result.current.actualizarCampo('nombre', 'AB')
-    })
-
-    act(() => {
-      result.current.avanzarPaso()
-    })
-
-    expect(result.current.paso).toBe(1)
-    expect(result.current.errores.nombre).toContain('3 caracteres')
-  })
-
-  it('debe avanzar a paso 2 con nombre válido', () => {
-    const { result } = renderHook(() => useBootstrapClinica(vi.fn()))
-
-    act(() => {
-      result.current.actualizarCampo('nombre', 'Clínica Test')
-    })
 
     act(() => {
       result.current.avanzarPaso()
     })
 
     expect(result.current.paso).toBe(2)
-    expect(result.current.errores.nombre).toBeUndefined()
   })
 
-  it('debe validar RUT chileno inválido en paso 2', () => {
+  it('debe validar nombre y dirección en paso 2', () => {
+    const { result } = renderHook(() => useBootstrapClinica(vi.fn()))
+
+    // Paso 1 -> Paso 2
+    act(() => {
+      result.current.avanzarPaso()
+    })
+    expect(result.current.paso).toBe(2)
+
+    // Intenta avanzar sin datos
+    act(() => {
+      result.current.avanzarPaso()
+    })
+    expect(result.current.paso).toBe(2)
+    expect(result.current.errores.nombre).toContain('3 caracteres')
+    expect(result.current.errores.direccion).toContain('obligatoria')
+  })
+
+  it('debe avanzar a paso 3 con nombre y dirección válidos', () => {
     const { result } = renderHook(() => useBootstrapClinica(vi.fn()))
 
     act(() => {
-      result.current.actualizarCampo('nombre', 'Clínica Test')
+      result.current.avanzarPaso() // a paso 2
     })
 
     act(() => {
-      result.current.avanzarPaso()
+      result.current.actualizarCampo('nombre', 'Clínica Odontológica Central')
+      result.current.actualizarCampo('direccion', 'Av. Providencia 1234')
     })
 
     act(() => {
-      result.current.actualizarCampo('rutEmpresa', '12.345.678-9') // RUT inválido
+      result.current.avanzarPaso() // a paso 3
     })
 
-    act(() => {
-      result.current.avanzarPaso()
-    })
-
-    expect(result.current.paso).toBe(2) // No avanza
-    expect(result.current.errores.rutEmpresa).toBe('RUT inválido')
+    expect(result.current.paso).toBe(3)
+    expect(result.current.sedes.length).toBeGreaterThan(0)
   })
 
-  it('debe aceptar RUT chileno válido en paso 2', () => {
+  it('debe permitir agregar y eliminar sedes en paso 3', () => {
     const { result } = renderHook(() => useBootstrapClinica(vi.fn()))
 
     act(() => {
-      result.current.actualizarCampo('nombre', 'Clínica Test')
+      result.current.agregarSede({
+        nombre: 'Sucursal Las Condes',
+        direccion: 'Apoquindo 4500',
+        comuna: 'Las Condes',
+        region: 'Metropolitana',
+        activa: true,
+      })
     })
+
+    expect(result.current.sedes).toHaveLength(1)
+    expect(result.current.sedes[0].nombre).toBe('Sucursal Las Condes')
 
     act(() => {
-      result.current.avanzarPaso()
+      result.current.eliminarSede(0)
     })
 
-    act(() => {
-      result.current.actualizarCampo('rutEmpresa', '11.111.111-1') // RUT válido (módulo 11: 11*1+11*1+11*1+11*1+11*1+11*1+11*1 = 77, 11-(77%11)=0, dv=0 pero usamos 1 para test)
-    })
-
-    act(() => {
-      result.current.avanzarPaso()
-    })
-
-    expect(result.current.paso).toBe(3) // Avanza a paso 3
+    expect(result.current.sedes).toHaveLength(0)
   })
 
-  it('debe retroceder de paso 2 a paso 1', () => {
+  it('debe permitir agregar y eliminar miembros en paso 4', () => {
     const { result } = renderHook(() => useBootstrapClinica(vi.fn()))
 
     act(() => {
-      result.current.actualizarCampo('nombre', 'Clínica Test')
+      result.current.agregarMiembro({
+        email: 'colega@clinica.cl',
+        rol: 'dentista',
+        sedes: ['Sede Principal'],
+      })
     })
+
+    expect(result.current.equipo).toHaveLength(1)
+    expect(result.current.equipo[0].email).toBe('colega@clinica.cl')
 
     act(() => {
-      result.current.avanzarPaso()
+      result.current.eliminarMiembro(0)
     })
+
+    expect(result.current.equipo).toHaveLength(0)
+  })
+
+  it('debe retroceder pasos correctamente', () => {
+    const { result } = renderHook(() => useBootstrapClinica(vi.fn()))
 
     act(() => {
-      result.current.retrocederPaso()
+      result.current.avanzarPaso() // a paso 2
     })
+    expect(result.current.paso).toBe(2)
 
+    act(() => {
+      result.current.retrocederPaso() // a paso 1
+    })
     expect(result.current.paso).toBe(1)
   })
 
-  it('debe crear clínica exitosamente en paso 3', async () => {
+  it('debe crear clínica y sedes exitosamente en handleSubmit', async () => {
     bootstrapClinica.mockResolvedValue({ success: true, clinicaId: 'clinica-123' })
     const onComplete = vi.fn()
 
     const { result } = renderHook(() => useBootstrapClinica(onComplete))
 
-    await act(async () => {
-      result.current.actualizarCampo('nombre', 'Clínica Test')
+    act(() => {
+      result.current.actualizarCampo('nombre', 'Clínica Dental Pro')
+      result.current.actualizarCampo('direccion', 'Calle Principal 100')
     })
 
     await act(async () => {
-      result.current.avanzarPaso()
+      await result.current.handleSubmit()
     })
 
-    await act(async () => {
-      result.current.avanzarPaso()
-    })
-
-    await act(async () => {
-      result.current.handleSubmit({ preventDefault: vi.fn() })
-    })
-
-    expect(bootstrapClinica).toHaveBeenCalledWith({
-      nombre: 'Clínica Test',
-      rutEmpresa: '',
-      direccion: '',
-      telefono: '',
-      emailContacto: ''
-    })
+    expect(bootstrapClinica).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nombre: 'Clínica Dental Pro',
+        direccion: 'Calle Principal 100',
+      })
+    )
+    expect(sedesService.guardarSedes).toHaveBeenCalled()
+    expect(result.current.completado).toBe(true)
     expect(result.current.procesando).toBe(false)
   })
 
-  it('debe manejar error del servidor', async () => {
-    bootstrapClinica.mockResolvedValue({ 
-      success: false, 
-      error: 'Ya existe una clínica con este RUT' 
+  it('debe manejar error al fallar bootstrapClinica', async () => {
+    bootstrapClinica.mockResolvedValue({
+      success: false,
+      error: 'Error de prueba en el servidor',
     })
 
     const { result } = renderHook(() => useBootstrapClinica(vi.fn()))
 
     await act(async () => {
-      result.current.actualizarCampo('nombre', 'Clínica Test')
+      await result.current.handleSubmit()
     })
 
-    await act(async () => {
-      result.current.avanzarPaso()
-    })
-
-    await act(async () => {
-      result.current.avanzarPaso()
-    })
-
-    await act(async () => {
-      result.current.handleSubmit({ preventDefault: vi.fn() })
-    })
-
-    expect(result.current.errorGeneral).toBe('Ya existe una clínica con este RUT')
-  })
-
-  it('debe limpiar error al editar campo', () => {
-    const { result } = renderHook(() => useBootstrapClinica(vi.fn()))
-
-    act(() => {
-      result.current.avanzarPaso() // Genera error de nombre
-    })
-
-    expect(result.current.errores.nombre).toBeDefined()
-
-    act(() => {
-      result.current.actualizarCampo('nombre', 'Clínica Test')
-    })
-
-    expect(result.current.errores.nombre).toBeNull()
+    expect(result.current.errorGeneral).toBe('Error de prueba en el servidor')
+    expect(result.current.completado).toBe(false)
+    expect(result.current.procesando).toBe(false)
   })
 })
