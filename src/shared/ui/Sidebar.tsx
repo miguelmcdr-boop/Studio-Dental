@@ -9,7 +9,7 @@ import { SidebarHeader } from './SidebarHeader'
 import { SidebarFooter } from './SidebarFooter'
 import { Icon } from './Icon'
 import { Badge } from './ui/Badge'
-import { useSidebarStore } from '../../app/stores/useSidebarStore'
+import { useSidebarStore, type SidebarMode } from '../../app/stores/useSidebarStore'
 import { useDarkMode } from '../hooks/useDarkMode'
 import { useSedes } from '../../domains/organization/clinic/hooks/useSedes'
 import { SECCIONES_SIDEBAR, type SidebarItem, type SidebarSeccion } from '../../constants/sidebarConstants'
@@ -43,6 +43,7 @@ export interface SidebarProps {
   setActiveSection: (section: string) => void
   onLogout?: () => void
   counters?: SidebarCountersReturn | Record<string, number | undefined>
+  mode?: SidebarMode
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -50,33 +51,48 @@ export const Sidebar: React.FC<SidebarProps> = ({
   activeSection,
   setActiveSection,
   counters = {},
+  mode: propMode,
 }) => {
-  const mode = useSidebarStore((s) => s.mode)
+  const storeMode = useSidebarStore((s) => s.mode)
   const setMode = useSidebarStore((s) => s.setMode)
   const focusMode = useSidebarStore((s) => s.focusMode)
   const { theme } = useDarkMode()
   const { puede } = useRBAC()
   const { sedeActiva } = useSedes()
 
+  const mode = propMode ?? storeMode
   const isCollapsed = mode === 'collapsed'
   const clinicaNombre = typeof userProfile?.clinicaNombre === 'string' ? userProfile.clinicaNombre : 'Studio Dental'
   const sedeNombre = sedeActiva?.nombre || 'Sede Principal'
 
   useEffect(() => {
     // Auto-colapsar al activar modo quirúrgico
-    if (theme === 'surgical') setMode('collapsed')
-  }, [theme, setMode])
+    if (theme === 'surgical' && !propMode) setMode('collapsed')
+  }, [theme, setMode, propMode])
 
   useEffect(() => {
+    if (propMode) return
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
-    const mql = window.matchMedia('(max-width: 1024px)')
-    const handleChange = (e: MediaQueryListEvent | MediaQueryList) => {
-      if (e.matches) setMode('collapsed')
+
+    const mqlMobile = window.matchMedia('(max-width: 767px)')
+    const mqlTablet = window.matchMedia('(min-width: 768px) and (max-width: 1024px)')
+
+    const handleMedia = () => {
+      if (mqlMobile.matches) {
+        setMode('hidden')
+      } else if (mqlTablet.matches) {
+        setMode('collapsed')
+      }
     }
-    handleChange(mql)
-    mql.addEventListener('change', handleChange)
-    return () => mql.removeEventListener('change', handleChange)
-  }, [setMode])
+
+    handleMedia()
+    mqlMobile.addEventListener('change', handleMedia)
+    mqlTablet.addEventListener('change', handleMedia)
+    return () => {
+      mqlMobile.removeEventListener('change', handleMedia)
+      mqlTablet.removeEventListener('change', handleMedia)
+    }
+  }, [setMode, propMode])
 
   const seccionesVisibles = useMemo((): SidebarSeccion[] => (
     SECCIONES_SIDEBAR.map((sec) => ({
@@ -90,11 +106,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
     setActiveSection(name)
   }, [setActiveSection])
 
-  if (focusMode) return null
+  if (focusMode || mode === 'hidden') return null
 
   return (
     <aside
-      className={`${isCollapsed ? 'w-16' : 'w-60'} bg-white dark:bg-graphite-950 surgical:bg-graphite-300 p-3 border-r border-surface min-h-screen flex flex-col justify-between transition-[width] duration-300 select-none print:hidden z-30`}
+      className={`${isCollapsed ? 'w-16' : 'w-60'} bg-white dark:bg-graphite-950 surgical:bg-graphite-300 p-3 border-r border-surface ${propMode ? 'h-full' : 'min-h-screen'} flex flex-col justify-between transition-[width] duration-300 select-none print:hidden z-30`}
       role="navigation"
       aria-label="Menú principal"
     >

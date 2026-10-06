@@ -52,6 +52,7 @@ export interface TopBarProps {
   onOpenPerfil?: () => void
   onOpenPreferencias?: () => void
   onOpenDispositivos?: () => void
+  hamburger?: React.ReactNode
 }
 
 export const TopBar: React.FC<TopBarProps> = ({
@@ -69,6 +70,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   onOpenPerfil,
   onOpenPreferencias,
   onOpenDispositivos,
+  hamburger,
 }) => {
   const [notifOpen, setNotifOpen] = useState(false)
   const notificaciones = useNotifications()
@@ -101,6 +103,7 @@ export const TopBar: React.FC<TopBarProps> = ({
         <div className="flex items-center justify-between px-4 h-14 md:h-[56px] gap-3">
           {/* Zona Izquierda 40%: Breadcrumbs, Timer e isDirty */}
           <div className="flex items-center gap-3 w-[40%] min-w-0">
+            {hamburger}
             <TopBarBreadcrumbs
               items={breadcrumbs}
               pacienteId={pacienteSeleccionado?.id ? String(pacienteSeleccionado.id) : null}

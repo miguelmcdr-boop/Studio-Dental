@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo, useCallback, Suspense, lazy } from 'react'
 import { LoginScreen } from './shared/ui/LoginScreen'
 import { Sidebar } from './shared/ui/Sidebar'
+import { MobileHamburger } from './shared/ui/MobileHamburger'
+import { SidebarMobileOverlay } from './shared/ui/SidebarMobileOverlay'
 import { AtajosTecladoModal } from './shared/ui/AtajosTecladoModal'
 import { ModoPresentacionBar } from './shared/ui/ModoPresentacionBar'
 import { PreferenciasModal } from './shared/ui/PreferenciasModal'
@@ -507,9 +509,11 @@ export const App: React.FC = () => {
           onOpenPerfil={() => setPerfilModalOpen(true)}
           onOpenPreferencias={() => setPreferenciasModalOpen(true)}
           onOpenDispositivos={() => setDispositivosModalOpen(true)}
+          hamburger={<MobileHamburger />}
         />
         <div className="flex flex-1">
           <Sidebar userProfile={userProfile} activeSection={activeSection} setActiveSection={setActiveSection} onLogout={handleLogout} counters={sidebarCounters} />
+          <SidebarMobileOverlay userProfile={userProfile} activeSection={activeSection} setActiveSection={setActiveSection} onLogout={handleLogout} counters={sidebarCounters} />
 
           <main className="flex-1 p-8 print:p-0 overflow-x-hidden">
             <Suspense fallback={<CargandoModulo />}>
