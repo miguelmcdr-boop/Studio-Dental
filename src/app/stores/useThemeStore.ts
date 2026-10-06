@@ -13,20 +13,17 @@ export const aplicarClasesDocumento = (t: Theme): void => {
   })
 }
 
-const getInit = (): Theme => {
-  if (typeof localStorage === 'undefined') return 'light'
-  try {
-    const raw = localStorage.getItem('dentikos_theme')
-    if (raw === 'light' || raw === 'dark' || raw === 'surgical') return raw
-    const parsed = raw ? (JSON.parse(raw) as { state?: { theme?: Theme } }) : null
-    if (parsed?.state?.theme && THEMES.includes(parsed.state.theme)) return parsed.state.theme
-    if (localStorage.getItem('darkMode') === 'true') return 'dark'
-  } catch {}
-  return 'light'
+const themeStorage = {
+  getItem: (k: string) => {
+    if (typeof localStorage === 'undefined') return null
+    const raw = localStorage.getItem(k) || (localStorage.getItem('darkMode') === 'true' ? 'dark' : null)
+    if (!raw) return null
+    if (THEMES.includes(raw as Theme)) return { state: { theme: raw as Theme } }
+    try { return (JSON.parse(raw)?.state?.theme ? JSON.parse(raw) : null) } catch { return null }
+  },
+  setItem: (k: string, v: { state: { theme: Theme } }) => { if (typeof localStorage !== 'undefined') localStorage.setItem(k, v.state.theme) },
+  removeItem: (k: string) => { if (typeof localStorage !== 'undefined') localStorage.removeItem(k) },
 }
-
-const init = getInit()
-if (typeof document !== 'undefined') aplicarClasesDocumento(init)
 
 export interface ThemeState {
   theme: Theme
@@ -37,14 +34,14 @@ export interface ThemeState {
 export const useThemeStore = create<ThemeState>()(
   persist(
     (set, get) => ({
-      theme: init,
+      theme: (themeStorage.getItem('dentikos_theme')?.state?.theme as Theme) || 'light',
       setTheme: (t) => { if (THEMES.includes(t)) { aplicarClasesDocumento(t); set({ theme: t }) } },
       cycleTheme: () => {
         const next = THEMES[(THEMES.indexOf(get().theme) + 1) % THEMES.length]
-        aplicarClasesDocumento(next)
-        set({ theme: next })
+        aplicarClasesDocumento(next); set({ theme: next })
       },
     }),
-    { name: 'dentikos_theme', onRehydrateStorage: () => (s) => { if (s?.theme) aplicarClasesDocumento(s.theme) } }
+    { name: 'dentikos_theme', storage: themeStorage, onRehydrateStorage: () => (s) => { if (s?.theme) aplicarClasesDocumento(s.theme) } }
   )
 )
+if (typeof document !== 'undefined') aplicarClasesDocumento(useThemeStore.getState().theme)

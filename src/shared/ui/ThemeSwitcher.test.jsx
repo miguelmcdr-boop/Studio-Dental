@@ -2,10 +2,12 @@ import React from 'react'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { ThemeSwitcher } from './ThemeSwitcher'
+import { useThemeStore } from '../../app/stores/useThemeStore'
 
 describe('ThemeSwitcher (Blueprint 02)', () => {
   beforeEach(() => {
     localStorage.setItem('dentikos_theme', 'light')
+    useThemeStore.setState({ theme: 'light' })
     document.documentElement.classList.remove('dark', 'theme-surgical')
   })
 
