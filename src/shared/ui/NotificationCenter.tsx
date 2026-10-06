@@ -1,10 +1,11 @@
 /**
- * NotificationCenter — Centro de Notificaciones lateral de 320px (Blueprint 02)
- * Slide-in con Framer Motion (250ms), agrupación: Críticas / Operativas / Informativas
+ * NotificationCenter — Centro de Notificaciones lateral de 320px (Blueprint 03)
+ * Slide-in Framer Motion 250ms, 3 severidades: Crítica (#E11D48), Operativa (#0D9488), Informativa (#D97706)
+ * "Marcar todas" limpia operativas e informativas, preservando críticas activas.
  */
 import React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Bell, AlertTriangle, Info, CheckCircle2, Trash2 } from 'lucide-react'
+import { X, Bell, AlertTriangle, CheckCircle2, Info, CheckCheck } from 'lucide-react'
 import { notificationService, type NotificationItem } from '../../infrastructure/notification/notificationService'
 import { useNotifications } from '../hooks/useNotifications'
 
@@ -16,41 +17,44 @@ export interface NotificationCenterProps {
 export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose }) => {
   const notificaciones = useNotifications()
 
+  // 3 severidades del Blueprint 03
   const criticas = notificaciones.filter((n) => n.tipo === 'error')
-  const operativas = notificaciones.filter((n) => n.tipo === 'warning' || n.tipo === 'info')
+  const operativas = notificaciones.filter((n) => n.tipo === 'info' || n.tipo === 'warning')
   const informativas = notificaciones.filter((n) => n.tipo === 'success')
 
   const handleDismiss = (id: string) => {
     notificationService.ocultar(id)
   }
 
-  const handleClearAll = () => {
-    notificationService.limpiar()
+  // Marcar todas leídas / descartar masivo (excepto críticas, que requieren resolución explícita)
+  const handleMarcarTodas = () => {
+    const aDescartar = notificaciones.filter((n) => n.tipo !== 'error')
+    aDescartar.forEach((n) => notificationService.ocultar(n.id))
   }
 
-  const renderItem = (item: NotificationItem) => {
-    const isCritical = item.tipo === 'error'
-    const isWarning = item.tipo === 'warning'
-    const isSuccess = item.tipo === 'success'
+  const renderItem = (item: NotificationItem, severidad: 'critica' | 'operativa' | 'informativa') => {
+    const isCritica = severidad === 'critica'
+    const isOperativa = severidad === 'operativa'
 
     return (
       <div
         key={item.id}
         className={`p-3 rounded-xl border transition-all relative flex items-start gap-2.5 ${
-          isCritical
-            ? 'bg-rose-50/60 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800/50'
-            : isWarning
-            ? 'bg-amber-50/60 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/50'
-            : isSuccess
-            ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/50'
-            : 'bg-graphite-50 dark:bg-graphite-900 border-surface'
+          isCritica
+            ? 'bg-rose-50/70 dark:bg-rose-950/30 border-[#E11D48]/40'
+            : isOperativa
+            ? 'bg-teal-50/70 dark:bg-teal-950/30 border-[#0D9488]/40'
+            : 'bg-amber-50/70 dark:bg-amber-950/30 border-[#D97706]/40'
         }`}
       >
-        <div className="mt-0.5 flex-shrink-0">
-          {isCritical && <AlertTriangle size={15} className="text-rose-600 dark:text-rose-400" />}
-          {isWarning && <AlertTriangle size={15} className="text-amber-600 dark:text-amber-400" />}
-          {isSuccess && <CheckCircle2 size={15} className="text-emerald-600 dark:text-emerald-400" />}
-          {!isCritical && !isWarning && !isSuccess && <Info size={15} className="text-primary" />}
+        <div className="mt-0.5 shrink-0">
+          {isCritica ? (
+            <AlertTriangle size={15} className="text-[#E11D48]" />
+          ) : isOperativa ? (
+            <CheckCircle2 size={15} className="text-[#0D9488]" />
+          ) : (
+            <Info size={15} className="text-[#D97706]" />
+          )}
         </div>
 
         <div className="flex-1 min-w-0 pr-4">
@@ -68,9 +72,11 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
         </div>
 
         <button
+          type="button"
           onClick={() => handleDismiss(item.id)}
-          className="absolute top-2.5 right-2.5 text-graphite-400 hover:text-graphite-700 dark:hover:text-graphite-200 p-1"
+          className="absolute top-2.5 right-2.5 text-graphite-400 hover:text-graphite-700 dark:hover:text-graphite-200 p-1 cursor-pointer"
           aria-label="Descartar notificación"
+          title="Descartar"
         >
           <X size={12} />
         </button>
@@ -82,7 +88,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
+          {/* Backdrop blur */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.4 }}
@@ -93,11 +99,11 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
             aria-hidden="true"
           />
 
-          {/* Panel lateral 320px */}
+          {/* Panel lateral 320px con slide-in */}
           <motion.aside
-            initial={{ x: '100%' }}
+            initial={{ x: 320 }}
             animate={{ x: 0 }}
-            exit={{ x: '100%' }}
+            exit={{ x: 320 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
             className="fixed top-0 right-0 h-full w-[320px] bg-white dark:bg-graphite-950 border-l border-surface shadow-2xl z-50 flex flex-col"
             role="dialog"
@@ -108,9 +114,9 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
             <div className="p-4 border-b border-surface flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Bell size={18} className="text-primary" />
-                <h3 className="font-bold text-sm text-graphite-900 dark:text-graphite-100">
+                <h2 className="font-bold text-sm text-graphite-900 dark:text-graphite-100">
                   Notificaciones
-                </h3>
+                </h2>
                 {notificaciones.length > 0 && (
                   <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-primary/20 text-champagne-700 dark:text-gold-satin">
                     {notificaciones.length}
@@ -119,27 +125,30 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
               </div>
 
               <div className="flex items-center gap-1">
-                {notificaciones.length > 0 && (
+                {operativas.length + informativas.length > 0 && (
                   <button
-                    onClick={handleClearAll}
-                    title="Limpiar todas"
-                    aria-label="Limpiar todas las notificaciones"
-                    className="p-1.5 text-graphite-400 hover:text-rose-500 rounded-lg transition-colors"
+                    type="button"
+                    onClick={handleMarcarTodas}
+                    title="Marcar todas como leídas (excepto críticas)"
+                    aria-label="Marcar todas como leídas"
+                    className="p-1.5 text-graphite-400 hover:text-primary rounded-lg transition-colors cursor-pointer flex items-center gap-1 text-[11px]"
                   >
-                    <Trash2 size={15} />
+                    <CheckCheck size={14} />
+                    <span className="hidden sm:inline">Marcar todas</span>
                   </button>
                 )}
                 <button
+                  type="button"
                   onClick={onClose}
                   aria-label="Cerrar notificaciones"
-                  className="p-1.5 text-graphite-400 hover:text-graphite-800 dark:hover:text-graphite-200 rounded-lg transition-colors"
+                  className="p-1.5 text-graphite-400 hover:text-graphite-800 dark:hover:text-graphite-200 rounded-lg transition-colors cursor-pointer"
                 >
                   <X size={16} />
                 </button>
               </div>
             </div>
 
-            {/* Lista agrupada */}
+            {/* Lista agrupada en 3 severidades */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {notificaciones.length === 0 ? (
                 <div className="h-64 flex flex-col items-center justify-center text-center p-4 text-graphite-400 dark:text-graphite-500">
@@ -149,30 +158,36 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
                 </div>
               ) : (
                 <>
+                  {/* Severidad Crítica */}
                   {criticas.length > 0 && (
                     <div className="space-y-2">
-                      <p className="text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider">
-                        Críticas ({criticas.length})
-                      </p>
-                      {criticas.map(renderItem)}
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-[#E11D48] uppercase tracking-wider">
+                          Críticas ({criticas.length})
+                        </span>
+                        <span className="text-[9px] text-graphite-400">Atención inmediata</span>
+                      </div>
+                      {criticas.map((item) => renderItem(item, 'critica'))}
                     </div>
                   )}
 
+                  {/* Severidad Operativa */}
                   {operativas.length > 0 && (
                     <div className="space-y-2">
-                      <p className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
+                      <span className="text-[10px] font-bold text-[#0D9488] uppercase tracking-wider">
                         Operativas ({operativas.length})
-                      </p>
-                      {operativas.map(renderItem)}
+                      </span>
+                      {operativas.map((item) => renderItem(item, 'operativa'))}
                     </div>
                   )}
 
+                  {/* Severidad Informativa */}
                   {informativas.length > 0 && (
                     <div className="space-y-2">
-                      <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                      <span className="text-[10px] font-bold text-[#D97706] uppercase tracking-wider">
                         Informativas ({informativas.length})
-                      </p>
-                      {informativas.map(renderItem)}
+                      </span>
+                      {informativas.map((item) => renderItem(item, 'informativa'))}
                     </div>
                   )}
                 </>
