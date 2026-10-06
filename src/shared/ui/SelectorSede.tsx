@@ -42,17 +42,19 @@ export const SelectorSede: React.FC<SelectorSedeProps> = ({
   }
 
   const statusTitle = sincronizado ? 'Sede activa y sincronizada' : 'Cambio pendiente'
-  const statusIndicator = (
+  const statusIndicator = !sincronizado ? (
     <span
-      className={`w-2 h-2 rounded-full shrink-0 ${sincronizado ? 'bg-[#0D9488]' : 'bg-amber-400'}`}
+      data-testid="selector-sede-status"
+      className="w-2 h-2 rounded-full shrink-0 bg-amber-400"
       title={statusTitle}
       aria-label={statusTitle}
     />
-  )
+  ) : null
 
   return (
     <div
       data-testid="selector-sede"
+      aria-label={statusTitle}
       className={`relative inline-flex items-center gap-1.5 h-8 ${compacto ? 'max-w-[160px]' : 'max-w-[200px]'} shrink-0 ${className}`}
     >
       {statusIndicator}

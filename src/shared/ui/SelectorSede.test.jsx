@@ -79,4 +79,44 @@ describe('SelectorSede (Blueprint 03 §04)', () => {
     fireEvent.change(select, { target: { value: 'sede-2' } })
     expect(cambiarSedeMock).toHaveBeenCalledWith('sede-2')
   })
+
+  it('estado sincronizado (default): pill limpia SIN punto indicador verde', () => {
+    vi.mocked(useSedes).mockReturnValue({
+      sedes: [{ id: 'sede-1', nombre: 'Sede Providencia', direccion: 'Av. Providencia', comuna: 'C', region: 'RM', activa: true }],
+      sedeActiva: { id: 'sede-1', nombre: 'Sede Providencia', direccion: 'Av. Providencia', comuna: 'C', region: 'RM', activa: true },
+      sedeActivaId: 'sede-1',
+      cambiarSede: vi.fn(),
+      agregarSede: vi.fn(),
+      editarSede: vi.fn(),
+      eliminarSede: vi.fn(),
+      recargar: vi.fn(),
+    })
+
+    render(<SelectorSede sincronizado={true} />)
+    const contenedor = screen.getByTestId('selector-sede')
+    expect(contenedor).toBeInTheDocument()
+    expect(contenedor).toHaveAttribute('aria-label', 'Sede activa y sincronizada')
+    expect(screen.queryByTestId('selector-sede-status')).not.toBeInTheDocument()
+  })
+
+  it('estado no sincronizado (sincronizado=false): muestra punto indicador ámbar de cambio pendiente', () => {
+    vi.mocked(useSedes).mockReturnValue({
+      sedes: [{ id: 'sede-1', nombre: 'Sede Providencia', direccion: 'Av. Providencia', comuna: 'C', region: 'RM', activa: true }],
+      sedeActiva: { id: 'sede-1', nombre: 'Sede Providencia', direccion: 'Av. Providencia', comuna: 'C', region: 'RM', activa: true },
+      sedeActivaId: 'sede-1',
+      cambiarSede: vi.fn(),
+      agregarSede: vi.fn(),
+      editarSede: vi.fn(),
+      eliminarSede: vi.fn(),
+      recargar: vi.fn(),
+    })
+
+    render(<SelectorSede sincronizado={false} />)
+    const contenedor = screen.getByTestId('selector-sede')
+    expect(contenedor).toHaveAttribute('aria-label', 'Cambio pendiente')
+    const punto = screen.getByTestId('selector-sede-status')
+    expect(punto).toBeInTheDocument()
+    expect(punto).toHaveClass('bg-amber-400')
+    expect(punto).toHaveAttribute('aria-label', 'Cambio pendiente')
+  })
 })
