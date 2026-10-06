@@ -1,34 +1,28 @@
 /**
- * useCommandPalette — Estado y lógica de la CommandPalette (F10-B4)
- *
- * Gestiona:
- * - Estado abierto/cerrado
- * - Búsqueda fuzzy en pacientes (nombre/RUT)
- * - Filtrado de módulos por RBAC
- * - Navegación con teclado (↑↓ Enter Esc)
- * - Atajo global ⌘K / Ctrl+K
+ * useCommandPalette — Hook omnicanal con 6 categorías del Blueprint 03
+ * Pacientes, Citas, Módulos, Acciones, Configuración y Documentos
  */
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { usePacientesStore } from '../../app/stores/pacientesStore'
+import { useSesionStore } from '../../app/stores/sesionStore'
+import { useSidebarStore } from '../../app/stores/useSidebarStore'
+import { useTopBarStore } from '../../app/stores/useTopBarStore'
 import { useRBAC } from './useRBAC'
-import { useSesionStore } from '../../app/stores/sesionStore' // F7-26: historial de pacientes recientes
 import { SECCIONES_SIDEBAR, type SidebarItem } from '../../constants/sidebarConstants'
+import { agendaStorageService } from '../../domains/operations/agenda/services/agendaStorageService'
+import { fuzzyMatch } from '../utils/fuzzyMatch'
+import { playSound } from '../utils/soundEffects'
 import type { Paciente } from '../../domains/clinical/patient/schemas/pacienteSchema'
-import { createLogger } from '../../infrastructure/logging/logger'
 
-const log = createLogger('useCommandPalette')
+export type CategoriaPalette = 'pacientes' | 'citas' | 'modulos' | 'acciones' | 'configuracion' | 'documentos'
 
-const normalizeText = (text: string | null | undefined): string => {
-  return (text || '')
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // Remove accents
-}
-
-const fuzzyMatch = (text: string | null | undefined, query: string): boolean => {
-  const normalizedText = normalizeText(text)
-  const normalizedQuery = normalizeText(query)
-  return normalizedText.includes(normalizedQuery)
+export interface PaletteItem {
+  id: string
+  label: string
+  sublabel?: string
+  categoria: CategoriaPalette
+  iconName?: string
+  action: () => void
 }
 
 export interface UseCommandPaletteProps {
@@ -37,34 +31,7 @@ export interface UseCommandPaletteProps {
   onCreatePaciente?: () => void
   onCreatePresupuesto?: () => void
   onSelectPaciente?: (paciente: Paciente) => void
-}
-
-export interface AccionRapida {
-  id: string
-  label: string
-  icon: string
-  action?: () => void
-}
-
-export type CommandPaletteResult =
-  | { type: 'paciente'; data: Paciente }
-  | { type: 'modulo'; data: SidebarItem }
-  | { type: 'accion'; data: AccionRapida }
-
-export interface UseCommandPaletteReturn {
-  isOpen: boolean
-  query: string
-  setQuery: (query: string) => void
-  selectedIndex: number
-  pacientesFiltrados: Paciente[]
-  modulosFiltrados: SidebarItem[]
-  accionesRapidas: AccionRapida[]
-  open: () => void
-  close: () => void
-  toggle: () => void
-  selectCurrent: () => void
-  moveUp: () => void
-  moveDown: () => void
+  onOpenAtajos?: () => void
 }
 
 export const useCommandPalette = ({
@@ -73,116 +40,146 @@ export const useCommandPalette = ({
   onCreatePaciente,
   onCreatePresupuesto,
   onSelectPaciente,
-}: UseCommandPaletteProps): UseCommandPaletteReturn => {
-  const [isOpen, setIsOpen] = useState<boolean>(false)
-  const [query, setQuery] = useState<string>('')
-  const [selectedIndex, setSelectedIndex] = useState<number>(0)
-  const pacientes = usePacientesStore((state: { pacientes: Paciente[] }) => state.pacientes)
+  onOpenAtajos,
+}: UseCommandPaletteProps) => {
+  const [isOpen, setIsOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const [selectedIndex, setSelectedIndex] = useState(0)
+
+  const pacientes = usePacientesStore((s) => s.pacientes)
   const { puede } = useRBAC()
+  const toggleFocusMode = useSidebarStore((s) => s.toggleFocusMode)
+  const setPresentationMode = useTopBarStore((s) => s.setPresentationMode)
 
-  // F7-26: Búsqueda de pacientes (top 5)
-  // Cuando no hay query, mostrar pacientes recientes (últimos 5 visitados)
-  // Cuando hay query, hacer búsqueda fuzzy por nombre/RUT
-  const pacientesFiltrados = useMemo((): Paciente[] => {
-    if (!query.trim()) {
-      // Mostrar recientes si existen, sino primeros 5 del store
-      const sesionState = useSesionStore.getState() as {
-        obtenerPacientesRecientes: () => { id: string | number }[]
-      }
-      const recientes = sesionState.obtenerPacientesRecientes?.() || []
-      const recientesIds = new Set(recientes.map(r => r.id))
-      if (recientesIds.size > 0) {
-        // Pacientes que están en recientes, en el orden de recientes
-        const recientesConDatos = recientes
-          .map(r => (pacientes || []).find(p => p.id === r.id))
-          .filter((p): p is Paciente => Boolean(p))
-        if (recientesConDatos.length > 0) return recientesConDatos.slice(0, 5)
-      }
-      return (pacientes || []).slice(0, 5)
-    }
-    return (pacientes || [])
-      .filter(p => fuzzyMatch(p.nombre, query) || fuzzyMatch(p.rut, query))
-      .slice(0, 5)
-  }, [pacientes, query])
+  // 1. Pacientes (top 4)
+  const pacientesItems = useMemo((): PaletteItem[] => {
+    const lista = !query.trim() ? (pacientes || []).slice(0, 4) : (pacientes || []).filter(
+      (p) => fuzzyMatch(p.nombre, query) || fuzzyMatch(p.rut, query) || fuzzyMatch(p.telefono != null ? String(p.telefono) : '', query)
+    ).slice(0, 4)
 
-  // Módulos filtrados por RBAC
-  const modulosFiltrados = useMemo((): SidebarItem[] => {
-    const todosLosItems: SidebarItem[] = SECCIONES_SIDEBAR.flatMap(seccion => seccion.items)
-    const permitidos = todosLosItems.filter(item => !item.permisoRequerido || puede(item.permisoRequerido))
-    
-    if (!query.trim()) return permitidos
-    return permitidos.filter(item => fuzzyMatch(item.name, query))
-  }, [puede, query])
+    return lista.map((p) => ({
+      id: `pac-${p.id}`,
+      label: p.nombre,
+      sublabel: `RUT: ${p.rut || 'S/R'} · Tel: ${p.telefono != null ? String(p.telefono) : 'S/T'}`,
+      categoria: 'pacientes',
+      action: () => {
+        onNavigate?.('Pacientes')
+        onSelectPaciente?.(p)
+        const sesion = useSesionStore.getState() as { agregarPacienteReciente?: (pac: Paciente) => void }
+        sesion.agregarPacienteReciente?.(p)
+      },
+    }))
+  }, [pacientes, query, onNavigate, onSelectPaciente])
 
-  // Acciones rápidas (fijas)
-  const accionesRapidas = useMemo((): AccionRapida[] => {
-    const acciones: AccionRapida[] = [
-      { id: 'nueva-cita', label: 'Nueva cita', icon: 'Calendar', action: onCreateCita },
-      { id: 'nuevo-paciente', label: 'Nuevo paciente', icon: 'User', action: onCreatePaciente },
-      { id: 'nuevo-presupuesto', label: 'Nuevo presupuesto', icon: 'DollarSign', action: onCreatePresupuesto },
+  // 2. Citas (top 3)
+  const citasItems = useMemo((): PaletteItem[] => {
+    let citas: Array<{ id?: string | number; pacienteNombre?: string; motivo?: string; fecha?: string; hora?: string; horaInicio?: string }> = []
+    try {
+      citas = agendaStorageService.obtenerCitas() || []
+    } catch { citas = [] }
+
+    const filtradas = !query.trim() ? citas.slice(0, 3) : citas.filter(
+      (c) => fuzzyMatch(c.pacienteNombre, query) || fuzzyMatch(c.motivo, query)
+    ).slice(0, 3)
+
+    return filtradas.map((c) => ({
+      id: `cita-${c.id || Math.random()}`,
+      label: c.pacienteNombre ? `Cita: ${c.pacienteNombre}` : `Cita: ${c.motivo || 'General'}`,
+      sublabel: `${c.fecha || ''} a las ${c.hora || c.horaInicio || ''} · ${c.motivo || ''}`,
+      categoria: 'citas',
+      action: () => onNavigate?.('Agenda'),
+    }))
+  }, [query, onNavigate])
+
+  // 3. Módulos
+  const modulosItems = useMemo((): PaletteItem[] => {
+    const permitidos = SECCIONES_SIDEBAR.flatMap((s) => s.items).filter(
+      (item) => !item.permisoRequerido || puede(item.permisoRequerido)
+    )
+    const filtrados = !query.trim() ? permitidos.slice(0, 5) : permitidos.filter(
+      (m) => fuzzyMatch(m.name, query) || (m.slug && fuzzyMatch(m.slug, query))
+    )
+
+    return filtrados.map((m) => ({
+      id: `mod-${m.slug}`,
+      label: m.name,
+      sublabel: 'Navegación directa',
+      categoria: 'modulos',
+      action: () => onNavigate?.(m.name),
+    }))
+  }, [puede, query, onNavigate])
+
+  // 4. Acciones directas
+  const accionesItems = useMemo((): PaletteItem[] => {
+    const list: PaletteItem[] = [
+      { id: 'acc-cita', label: 'Nueva cita médica', sublabel: 'Agendar cita en box', categoria: 'acciones', action: () => onCreateCita?.() },
+      { id: 'acc-pac', label: 'Nuevo paciente', sublabel: 'Ficha de ingreso rápido', categoria: 'acciones', action: () => onCreatePaciente?.() },
+      { id: 'acc-pres', label: 'Nuevo presupuesto', sublabel: 'Plan de tratamiento', categoria: 'acciones', action: () => onCreatePresupuesto?.() },
     ]
-    if (!query.trim()) return acciones
-    return acciones.filter(a => fuzzyMatch(a.label, query))
+    return !query.trim() ? list : list.filter((a) => fuzzyMatch(a.label, query))
   }, [query, onCreateCita, onCreatePaciente, onCreatePresupuesto])
 
-  // Lista plana de todos los resultados (para navegación con teclado)
-  const allResults = useMemo((): CommandPaletteResult[] => [
-    ...pacientesFiltrados.map((p): CommandPaletteResult => ({ type: 'paciente', data: p })),
-    ...modulosFiltrados.map((m): CommandPaletteResult => ({ type: 'modulo', data: m })),
-    ...accionesRapidas.map((a): CommandPaletteResult => ({ type: 'accion', data: a })),
-  ], [pacientesFiltrados, modulosFiltrados, accionesRapidas])
+  // 5. Configuración
+  const configItems = useMemo((): PaletteItem[] => {
+    const list: PaletteItem[] = [
+      { id: 'cfg-foco', label: 'Alternar Modo Foco', sublabel: 'Atajo ⌘⇧F', categoria: 'configuracion', action: () => toggleFocusMode() },
+      { id: 'cfg-pres', label: 'Modo Presentación Paciente', sublabel: 'Atajo ⌘⇧M', categoria: 'configuracion', action: () => setPresentationMode(true) },
+      { id: 'cfg-atajos', label: 'Ver Atajos de Teclado', sublabel: 'Atajo ?', categoria: 'configuracion', action: () => onOpenAtajos?.() },
+    ]
+    return !query.trim() ? list : list.filter((c) => fuzzyMatch(c.label, query))
+  }, [query, toggleFocusMode, setPresentationMode, onOpenAtajos])
 
-  // Reset selectedIndex cuando cambian los resultados
-  useEffect(() => {
-    setSelectedIndex(0)
-  }, [allResults.length])
+  // 6. Documentos
+  const docsItems = useMemo((): PaletteItem[] => {
+    const list: PaletteItem[] = [
+      { id: 'doc-presup', label: 'Presupuestos clínicos', sublabel: 'Planes comerciales', categoria: 'documentos', action: () => onNavigate?.('Presupuestos') },
+      { id: 'doc-recetas', label: 'Recetas & Vademécum', sublabel: 'Fármacos oficiales', categoria: 'documentos', action: () => onNavigate?.('Vademécum') },
+    ]
+    return !query.trim() ? list : list.filter((d) => fuzzyMatch(d.label, query))
+  }, [query, onNavigate])
 
-  const open = useCallback((): void => {
+  // Todos los resultados unificados
+  const allResults = useMemo((): PaletteItem[] => [
+    ...pacientesItems,
+    ...citasItems,
+    ...modulosItems,
+    ...accionesItems,
+    ...configItems,
+    ...docsItems,
+  ], [pacientesItems, citasItems, modulosItems, accionesItems, configItems, docsItems])
+
+  useEffect(() => { setSelectedIndex(0) }, [allResults.length])
+
+  const open = useCallback(() => {
+    playSound('openPalette')
     setIsOpen(true)
     setQuery('')
   }, [])
 
-  const close = useCallback((): void => {
+  const close = useCallback(() => {
     setIsOpen(false)
     setQuery('')
   }, [])
 
-  const toggle = useCallback((): void => {
+  const toggle = useCallback(() => {
     if (isOpen) close()
     else open()
   }, [isOpen, open, close])
 
-  const selectCurrent = useCallback((): void => {
-    const result = allResults[selectedIndex]
-    if (!result) return
+  const selectCurrent = useCallback(() => {
+    const item = allResults[selectedIndex]
+    if (!item) return
+    playSound('selectResult')
+    item.action()
+    close()
+  }, [allResults, selectedIndex, close])
 
-    try {
-      if (result.type === 'paciente') {
-        onNavigate?.('Pacientes')
-        // F7-26: seleccionar paciente específico y guardar en recientes
-        onSelectPaciente?.(result.data)
-        const sesionState = useSesionStore.getState() as {
-          agregarPacienteReciente: (paciente: Paciente) => void
-        }
-        sesionState.agregarPacienteReciente?.(result.data)
-      } else if (result.type === 'modulo') {
-        onNavigate?.(result.data.name)
-      } else if (result.type === 'accion') {
-        result.data.action?.()
-      }
-      close()
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e)
-      log.error('Error al ejecutar comando:', msg)
-    }
-  }, [allResults, selectedIndex, onNavigate, onSelectPaciente, close])
-
-  const moveUp = useCallback((): void => {
-    setSelectedIndex(prev => (prev > 0 ? prev - 1 : allResults.length - 1))
+  const moveUp = useCallback(() => {
+    setSelectedIndex((prev) => (prev > 0 ? prev - 1 : allResults.length - 1))
   }, [allResults.length])
 
-  const moveDown = useCallback((): void => {
-    setSelectedIndex(prev => (prev < allResults.length - 1 ? prev + 1 : 0))
+  const moveDown = useCallback(() => {
+    setSelectedIndex((prev) => (prev < allResults.length - 1 ? prev + 1 : 0))
   }, [allResults.length])
 
   return {
@@ -190,9 +187,8 @@ export const useCommandPalette = ({
     query,
     setQuery,
     selectedIndex,
-    pacientesFiltrados,
-    modulosFiltrados,
-    accionesRapidas,
+    setSelectedIndex,
+    allResults,
     open,
     close,
     toggle,
