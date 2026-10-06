@@ -6,6 +6,7 @@
  */
 import { createTenantRepository } from '../../../../infrastructure/storage/localStorageRepository'
 import { supabase, USE_SUPABASE } from '../../../../infrastructure/supabase/supabaseClient'
+import { notificationService } from '../../../../infrastructure/notification/notificationService'
 import { createLogger } from '../../../../infrastructure/logging/logger'
 
 const log = createLogger('clinicStorageService')
@@ -29,7 +30,7 @@ export interface DatosClinicaConfig {
 export interface ClinicStorageServiceAPI {
   obtenerClinica: (defaults?: DatosClinicaConfig) => DatosClinicaConfig | undefined
   guardarClinica: (datos: DatosClinicaConfig) => void
-  guardarClinicaCompleta: (clinicaId: string, datos: DatosClinicaConfig) => Promise<void>
+  guardarClinicaCompleta: (clinicaId: string, datos: DatosClinicaConfig) => Promise<boolean>
   sincronizarClinicaDesdeSupabase: (clinicaId: string) => Promise<DatosClinicaConfig | null>
   migrarClinicaSiNecesario: (clinicaId: string) => Promise<boolean>
 }
@@ -98,27 +99,37 @@ const obtenerClinicaDesdeSupabase = async (clinicaId?: string | null): Promise<D
   }
 }
 
-const guardarClinicaEnSupabase = async (clinicaId: string, datos: DatosClinicaConfig): Promise<boolean> => {
-  if (!USE_SUPABASE || !supabase || !clinicaId) return false
+const guardarClinicaEnSupabase = async (
+  clinicaId: string,
+  datos: DatosClinicaConfig
+): Promise<{ success: boolean; status?: number; error?: string }> => {
+  if (!USE_SUPABASE || !supabase || !clinicaId) return { success: true }
 
   try {
     const paraInsert = transformarParaSupabase(datos)
-    if (!paraInsert) return false
+    if (!paraInsert) return { success: false, error: 'Sin datos para actualizar' }
 
-    const { error } = await supabase
+    const { data, error, status } = await supabase
       .from('clinicas')
       .update(paraInsert)
       .eq('id', clinicaId)
+      .select('id, nombre')
 
     if (error) {
       log.error('Error guardando clínica en Supabase:', error.message)
-      return false
+      const es403 = status === 403 || error.code === '42501' || error.message.toLowerCase().includes('policy')
+      return { success: false, status: es403 ? 403 : (status || 400), error: error.message }
     }
 
-    return true
+    if (!data || data.length === 0) {
+      log.warn('F7-RLS: 0 filas actualizadas al guardar clínica (requiere rol admin)')
+      return { success: false, status: 403, error: 'Solo administradores pueden editar datos de la clínica' }
+    }
+
+    return { success: true }
   } catch (e: unknown) {
     log.error('Excepción guardando clínica:', e)
-    return false
+    return { success: false, status: 500, error: String(e) }
   }
 }
 
@@ -138,10 +149,10 @@ const migrarClinicaASupabase = async (clinicaId: string): Promise<boolean> => {
     if (existente?.nombre) return false
 
     const ok = await guardarClinicaEnSupabase(clinicaId, datosLocal)
-    if (ok) {
+    if (ok.success) {
       log.info('Datos de clínica migrados a Supabase')
     }
-    return ok
+    return ok.success
   } catch (e: unknown) {
     log.error('Error migrando clínica:', e)
     return false
@@ -154,14 +165,27 @@ export const clinicStorageService: ClinicStorageServiceAPI = {
   guardarClinica: (datos) => clinicaRepo.guardar(datos),
 
   guardarClinicaCompleta: async (clinicaId, datos) => {
+    const res = await guardarClinicaEnSupabase(clinicaId, datos)
+    if (!res.success) {
+      if (res.status === 403 || res.error?.includes('administrador') || res.error?.includes('403') || res.error?.includes('policy')) {
+        notificationService.mostrar('Solo administradores pueden editar datos de la clínica', { tipo: 'error' })
+      }
+      return false
+    }
     clinicaRepo.guardar(datos)
-    await guardarClinicaEnSupabase(clinicaId, datos)
+    if (typeof window !== 'undefined' && datos.nombreClinica) {
+      window.dispatchEvent(new CustomEvent('clinica_actualizada', { detail: { nombre: datos.nombreClinica } }))
+    }
+    return true
   },
 
   sincronizarClinicaDesdeSupabase: async (clinicaId) => {
     const datos = await obtenerClinicaDesdeSupabase(clinicaId)
     if (datos) {
       clinicaRepo.guardar(datos)
+      if (typeof window !== 'undefined' && datos.nombreClinica) {
+        window.dispatchEvent(new CustomEvent('clinica_actualizada', { detail: { nombre: datos.nombreClinica } }))
+      }
     }
     return datos
   },

@@ -1,9 +1,10 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import {
   obtenerNombreClinica,
+  sincronizarDesdeSupabase,
+  guardarClinicaCompleta,
   suscribirNombre,
   notificarCambioClinica,
-  EVENT_CLINICA_ACTUALIZADA,
 } from './clinicaActivaService'
 import { clinicStorageService } from './clinicStorageService'
 import { useSesionStore } from '../../../../app/stores/sesionStore'
@@ -11,6 +12,8 @@ import { useSesionStore } from '../../../../app/stores/sesionStore'
 vi.mock('./clinicStorageService', () => ({
   clinicStorageService: {
     obtenerClinica: vi.fn(),
+    sincronizarClinicaDesdeSupabase: vi.fn(),
+    guardarClinicaCompleta: vi.fn(),
   },
 }))
 
@@ -32,20 +35,36 @@ describe('clinicaActivaService', () => {
     expect(obtenerNombreClinica()).toBe('Clínica Dental Los Andes')
   })
 
-  it('usa fallback de perfil si clinicStorageService está vacío', () => {
+  it('devuelve null y dispara sincronización async si clinicStorageService está vacío', () => {
     vi.mocked(clinicStorageService.obtenerClinica).mockReturnValue(undefined)
+    vi.mocked(clinicStorageService.sincronizarClinicaDesdeSupabase).mockResolvedValue({
+      nombreClinica: 'Clínica Sincronizada',
+    })
     useSesionStore.setState({
-      userProfile: { email: 'admin@test.cl', clinicaNombre: 'Consulta Doctor Gómez' },
+      clinicaActual: 'clinica-123',
     })
 
-    expect(obtenerNombreClinica()).toBe('Consulta Doctor Gómez')
+    const resultado = obtenerNombreClinica()
+    expect(resultado).toBeNull()
+    expect(clinicStorageService.sincronizarClinicaDesdeSupabase).toHaveBeenCalledWith('clinica-123')
   })
 
-  it('usa fallback final "Mi Consulta" cuando no hay clínica en storage ni perfil', () => {
-    vi.mocked(clinicStorageService.obtenerClinica).mockReturnValue(undefined)
-    useSesionStore.setState({ userProfile: null })
+  it('sincronizarDesdeSupabase recupera y formatea el nombre', async () => {
+    vi.mocked(clinicStorageService.sincronizarClinicaDesdeSupabase).mockResolvedValue({
+      nombreClinica: '  Clínica Central  ',
+    })
 
-    expect(obtenerNombreClinica()).toBe('Mi Consulta')
+    const res = await sincronizarDesdeSupabase('clinica-abc')
+    expect(clinicStorageService.sincronizarClinicaDesdeSupabase).toHaveBeenCalledWith('clinica-abc')
+    expect(res).toBe('Clínica Central')
+  })
+
+  it('guardarClinicaCompleta delega en clinicStorageService', async () => {
+    vi.mocked(clinicStorageService.guardarClinicaCompleta).mockResolvedValue(true)
+
+    const ok = await guardarClinicaCompleta('clinica-abc', { nombreClinica: 'Nueva' })
+    expect(clinicStorageService.guardarClinicaCompleta).toHaveBeenCalledWith('clinica-abc', { nombreClinica: 'Nueva' })
+    expect(ok).toBe(true)
   })
 
   it('suscribirNombre y notificarCambioClinica sincronizan a los suscriptores', () => {
