@@ -1,10 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useDarkMode } from './useDarkMode'
+import { useThemeStore } from '../../app/stores/useThemeStore'
 
-describe('useDarkMode con soporte de Modo Quirúrgico', () => {
+describe('useDarkMode con soporte de Modo Quirúrgico y Store Compartido', () => {
   beforeEach(() => {
     localStorage.clear()
+    useThemeStore.setState({ theme: 'light' })
     document.documentElement.className = ''
   })
 
@@ -25,7 +27,6 @@ describe('useDarkMode con soporte de Modo Quirúrgico', () => {
     expect(result.current.theme).toBe('dark')
     expect(result.current.darkMode).toBe(true)
     expect(document.documentElement.classList.contains('dark')).toBe(true)
-    expect(localStorage.getItem('dentikos_theme')).toBe('dark')
   })
 
   it('permite activar explícitamente el modo quirúrgico (theme-surgical)', () => {
@@ -38,7 +39,6 @@ describe('useDarkMode con soporte de Modo Quirúrgico', () => {
     expect(result.current.darkMode).toBe(false)
     expect(document.documentElement.classList.contains('theme-surgical')).toBe(true)
     expect(document.documentElement.classList.contains('dark')).toBe(false)
-    expect(localStorage.getItem('dentikos_theme')).toBe('surgical')
   })
 
   it('permite ciclar entre light -> dark -> surgical -> light', () => {
@@ -66,5 +66,21 @@ describe('useDarkMode con soporte de Modo Quirúrgico', () => {
     expect(result.current.theme).toBe('light')
     expect(document.documentElement.classList.contains('dark')).toBe(false)
     expect(document.documentElement.classList.contains('theme-surgical')).toBe(false)
+  })
+
+  it('sincroniza el estado del tema reactivamente entre diferentes instancias', () => {
+    const { result: hookA } = renderHook(() => useDarkMode())
+    const { result: hookB } = renderHook(() => useDarkMode())
+
+    expect(hookA.current.theme).toBe('light')
+    expect(hookB.current.theme).toBe('light')
+
+    act(() => {
+      hookA.current.setTheme('surgical')
+    })
+
+    expect(hookA.current.theme).toBe('surgical')
+    expect(hookB.current.theme).toBe('surgical')
+    expect(hookB.current.isSurgical).toBe(true)
   })
 })
