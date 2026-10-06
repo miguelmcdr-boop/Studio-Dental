@@ -67,7 +67,7 @@ export const TopBarAvatarMenu: React.FC<TopBarAvatarMenuProps> = ({
   const SECCIONES = [
     {
       id: 'perfil',
-      label: 'Perfil Profesional',
+      label: 'Perfil',
       icon: User,
       onClick: () => {
         setIsOpen(false)
@@ -105,7 +105,7 @@ export const TopBarAvatarMenu: React.FC<TopBarAvatarMenuProps> = ({
     },
     {
       id: 'dispositivos',
-      label: 'Dispositivos (2 activos)',
+      label: 'Dispositivos',
       icon: Smartphone,
       onClick: () => {
         setIsOpen(false)
