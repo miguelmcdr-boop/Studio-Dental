@@ -1,0 +1,201 @@
+/**
+ * NotificationCenter — Centro de Notificaciones lateral de 320px (Blueprint 03)
+ * Slide-in Framer Motion 250ms, 3 severidades: Crítica (#E11D48), Operativa (#0D9488), Informativa (#D97706)
+ * "Marcar todas" limpia operativas e informativas, preservando críticas activas.
+ */
+import React from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { X, Bell, AlertTriangle, CheckCircle2, Info, CheckCheck } from 'lucide-react'
+import { notificationService, type NotificationItem } from '../../infrastructure/notification/notificationService'
+import { useNotifications } from '../hooks/useNotifications'
+
+export interface NotificationCenterProps {
+  isOpen: boolean
+  onClose: () => void
+}
+
+export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose }) => {
+  const notificaciones = useNotifications()
+
+  // 3 severidades del Blueprint 03
+  const criticas = notificaciones.filter((n) => n.tipo === 'error')
+  const operativas = notificaciones.filter((n) => n.tipo === 'info' || n.tipo === 'warning')
+  const informativas = notificaciones.filter((n) => n.tipo === 'success')
+
+  const handleDismiss = (id: string) => {
+    notificationService.ocultar(id)
+  }
+
+  // Marcar todas leídas / descartar masivo (excepto críticas, que requieren resolución explícita)
+  const handleMarcarTodas = () => {
+    const aDescartar = notificaciones.filter((n) => n.tipo !== 'error')
+    aDescartar.forEach((n) => notificationService.ocultar(n.id))
+  }
+
+  const renderItem = (item: NotificationItem, severidad: 'critica' | 'operativa' | 'informativa') => {
+    const isCritica = severidad === 'critica'
+    const isOperativa = severidad === 'operativa'
+
+    return (
+      <div
+        key={item.id}
+        className={`p-3 rounded-xl border transition-all relative flex items-start gap-2.5 ${
+          isCritica
+            ? 'bg-rose-50/70 dark:bg-rose-950/30 border-[#E11D48]/40'
+            : isOperativa
+            ? 'bg-teal-50/70 dark:bg-teal-950/30 border-[#0D9488]/40'
+            : 'bg-amber-50/70 dark:bg-amber-950/30 border-[#D97706]/40'
+        }`}
+      >
+        <div className="mt-0.5 shrink-0">
+          {isCritica ? (
+            <AlertTriangle size={15} className="text-[#E11D48]" />
+          ) : isOperativa ? (
+            <CheckCircle2 size={15} className="text-[#0D9488]" />
+          ) : (
+            <Info size={15} className="text-[#D97706]" />
+          )}
+        </div>
+
+        <div className="flex-1 min-w-0 pr-4">
+          {item.titulo && (
+            <p className="text-xs font-bold text-graphite-900 dark:text-graphite-100 truncate">
+              {item.titulo}
+            </p>
+          )}
+          <p className="text-xs text-graphite-700 dark:text-graphite-300 leading-relaxed break-words">
+            {item.mensaje}
+          </p>
+          <span className="text-[10px] text-graphite-400 mt-1 block">
+            {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </span>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => handleDismiss(item.id)}
+          className="absolute top-2.5 right-2.5 text-graphite-400 hover:text-graphite-700 dark:hover:text-graphite-200 p-1 cursor-pointer"
+          aria-label="Descartar notificación"
+          title="Descartar"
+        >
+          <X size={12} />
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop blur */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.4 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={onClose}
+            className="fixed inset-0 bg-black/50 z-50 backdrop-blur-xs"
+            aria-hidden="true"
+          />
+
+          {/* Panel lateral 320px con slide-in */}
+          <motion.aside
+            initial={{ x: 320 }}
+            animate={{ x: 0 }}
+            exit={{ x: 320 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed top-0 right-0 h-full w-[320px] bg-white dark:bg-graphite-950 border-l border-surface shadow-2xl z-50 flex flex-col"
+            role="dialog"
+            aria-label="Centro de notificaciones"
+            data-testid="notification-center-drawer"
+          >
+            {/* Header */}
+            <div className="p-4 border-b border-surface flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Bell size={18} className="text-primary" />
+                <h2 className="font-bold text-sm text-graphite-900 dark:text-graphite-100">
+                  Notificaciones
+                </h2>
+                {notificaciones.length > 0 && (
+                  <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-primary/20 text-champagne-700 dark:text-gold-satin">
+                    {notificaciones.length}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-1">
+                {operativas.length + informativas.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleMarcarTodas}
+                    title="Marcar todas como leídas (excepto críticas)"
+                    aria-label="Marcar todas como leídas"
+                    className="p-1.5 text-graphite-400 hover:text-primary rounded-lg transition-colors cursor-pointer flex items-center gap-1 text-[11px]"
+                  >
+                    <CheckCheck size={14} />
+                    <span className="hidden sm:inline">Marcar todas</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={onClose}
+                  aria-label="Cerrar notificaciones"
+                  className="p-1.5 text-graphite-400 hover:text-graphite-800 dark:hover:text-graphite-200 rounded-lg transition-colors cursor-pointer"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+
+            {/* Lista agrupada en 3 severidades */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {notificaciones.length === 0 ? (
+                <div className="h-64 flex flex-col items-center justify-center text-center p-4 text-graphite-400 dark:text-graphite-500">
+                  <Bell size={32} className="mb-2 opacity-30 stroke-1" />
+                  <p className="text-xs font-semibold">Sin notificaciones pendientes</p>
+                  <p className="text-[11px] mt-1">Tu clínica y agenda están al día.</p>
+                </div>
+              ) : (
+                <>
+                  {/* Severidad Crítica */}
+                  {criticas.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-[#E11D48] uppercase tracking-wider">
+                          Críticas ({criticas.length})
+                        </span>
+                        <span className="text-[9px] text-graphite-400">Atención inmediata</span>
+                      </div>
+                      {criticas.map((item) => renderItem(item, 'critica'))}
+                    </div>
+                  )}
+
+                  {/* Severidad Operativa */}
+                  {operativas.length > 0 && (
+                    <div className="space-y-2">
+                      <span className="text-[10px] font-bold text-[#0D9488] uppercase tracking-wider">
+                        Operativas ({operativas.length})
+                      </span>
+                      {operativas.map((item) => renderItem(item, 'operativa'))}
+                    </div>
+                  )}
+
+                  {/* Severidad Informativa */}
+                  {informativas.length > 0 && (
+                    <div className="space-y-2">
+                      <span className="text-[10px] font-bold text-[#D97706] uppercase tracking-wider">
+                        Informativas ({informativas.length})
+                      </span>
+                      {informativas.map((item) => renderItem(item, 'informativa'))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </motion.aside>
+        </>
+      )}
+    </AnimatePresence>
+  )
+}

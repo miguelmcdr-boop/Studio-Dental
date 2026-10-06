@@ -1,0 +1,230 @@
+import React, { memo, useState, useMemo } from 'react'
+import { Baby, Heart, AlertTriangle, Ban } from 'lucide-react'
+import { calcularDosisAnestesiaCompleta, listarAnestesicosDisponibles } from '../../../../shared/utils/anestesiaCalculations'
+import { esCardiopata, esPediatria, parseEdad } from '../utils/anestesiaHelpers'
+import { CONFIG_ESTADO } from '../constants/anestesiaConstants'
+import type { Paciente } from '../schemas/pacienteSchema'
+
+export interface CalculadoraAnestesiaSectionProps {
+  paciente?: (Paciente & { [key: string]: unknown }) | null
+}
+
+export const CalculadoraAnestesiaSection: React.FC<CalculadoraAnestesiaSectionProps> = memo(({ paciente }) => {
+  // Sin valor por defecto para peso: Fail-Safe Clinical Default
+  const [pesoPaciente, setPesoPaciente] = useState<string | number>(paciente?.peso ?? '')
+  const [tipoAnestesicoCalc, setTipoAnestesicoCalc] = useState<string | number>('lidocaina')
+  const [esEmbarazo, setEsEmbarazo] = useState<boolean>(false)
+
+  // Fix #2: Poblar dropdown dinámicamente desde Supabase
+  const anestesicos = useMemo(() => listarAnestesicosDisponibles(), [])
+
+  const edadPaciente = paciente?.edad ?? null
+  const enfermedadesPaciente = paciente?.enfermedades ?? ''
+  const edadNumerica = parseEdad(edadPaciente)
+  const esPediatriaPaciente = esPediatria(edadPaciente)
+  const esCardiopataPaciente = esCardiopata(enfermedadesPaciente)
+
+  // ─── Cálculo enriquecido (F7-01: reemplaza calcularTubosAnestesia) ───
+  const resultadoAnestesia = useMemo(() => {
+    return calcularDosisAnestesiaCompleta({
+      peso: pesoPaciente,
+      tipoAnestesico: tipoAnestesicoCalc,
+      esPediatria: esPediatriaPaciente,
+      esCardiopata: esCardiopataPaciente,
+      esEmbarazo,
+      edad: edadNumerica ?? undefined
+    })
+  }, [pesoPaciente, tipoAnestesicoCalc, esEmbarazo, edadNumerica, esPediatriaPaciente, esCardiopataPaciente])
+
+  const estado = resultadoAnestesia.estado
+  const esOk = estado === 'OK'
+  const advertencias = resultadoAnestesia.advertencias || []
+  const config = CONFIG_ESTADO[estado as keyof typeof CONFIG_ESTADO] || CONFIG_ESTADO.DATOS_INCOMPLETOS
+
+  return (
+    <div className="bg-white dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-2xl p-6 print:hidden space-y-6">
+      {/* ─── Header ─── */}
+      <div className="border-b pb-3">
+        <h3 className="font-bold text-sm text-gray-900 dark:text-graphite-50 uppercase tracking-wider">
+          Calculadora de Dosis Máxima de Anestesia Local
+        </h3>
+        <p className="text-xs text-gray-500 dark:text-graphite-400 flex flex-wrap gap-x-2 gap-y-1 mt-1">
+          <span>Cálculo de seguridad que considera edad, peso, cardiopatía y embarazo.</span>
+          {esPediatriaPaciente && (
+            <span className="font-bold text-amber-700"><span className="inline-flex items-center gap-1"><Baby size={14} />Dosis pediátrica</span></span>
+          )}
+          {esCardiopataPaciente && (
+            <span className="font-bold text-red-700"><span className="inline-flex items-center gap-1"><Heart size={14} />Cardiopatía detectada</span></span>
+          )}
+          {esEmbarazo && (
+            <span className="font-bold text-pink-700"><span className="inline-flex items-center gap-1"><Baby size={14} />Embarazo activo</span></span>
+          )}
+        </p>
+      </div>
+
+      {/* ─── Datos contextuales del paciente ─── */}
+      {((edadPaciente !== null && edadPaciente !== '') || enfermedadesPaciente) && (
+        <div className="bg-gray-50 dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-xl p-3 text-xs space-y-1">
+          <div className="font-semibold text-gray-700 dark:text-graphite-300 text-[11px] uppercase tracking-wider mb-1">
+            Datos clínicos del paciente
+          </div>
+          {edadPaciente !== null && edadPaciente !== '' && (
+            <div className="flex gap-2">
+              <span className="font-semibold text-gray-600 dark:text-graphite-400">Edad:</span>
+              <span className="text-gray-900 dark:text-graphite-50">
+                {String(edadPaciente)} años
+                {esPediatriaPaciente && <span className="text-amber-700 ml-1">(dosis pediátrica)</span>}
+              </span>
+            </div>
+          )}
+          {enfermedadesPaciente && (
+            <div className="flex gap-2">
+              <span className="font-semibold text-gray-600 dark:text-graphite-400">Enfermedades:</span>
+              <span className="text-gray-900 dark:text-graphite-50">{enfermedadesPaciente}</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* ─── Formulario ─── */}
+        <div className="space-y-4 text-xs">
+          <div>
+            <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1" htmlFor="anestesia-peso">
+              Peso del Paciente (Kg)
+            </label>
+            <input
+              id="anestesia-peso"
+              data-testid="anestesia-peso"
+              type="number"
+              value={pesoPaciente}
+              onChange={(e) => setPesoPaciente(e.target.value)}
+              placeholder="Ingrese el peso del paciente"
+              className={`w-full p-2.5 rounded-xl border font-bold text-sm ${
+                !esOk ? 'border-amber-400 bg-amber-50' : 'border-gray-300 dark:border-graphite-600'
+              }`}
+            />
+          </div>
+
+          <div>
+            <label className="block font-semibold text-gray-700 dark:text-graphite-300 mb-1" htmlFor="anestesia-tipo">
+              Tipo de Anestésico Local
+            </label>
+            <select
+              id="anestesia-tipo"
+              data-testid="anestesia-tipo"
+              value={tipoAnestesicoCalc}
+              onChange={(e) => setTipoAnestesicoCalc(Number(e.target.value))}
+              className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-graphite-600 font-semibold bg-white dark:bg-graphite-800"
+            >
+              {anestesicos.map((a) => (
+                <option key={a.numero} value={a.numero}>
+                  {a.nombreGenerico} ({a.contenidoPorUnidad_mg} mg/tubo — Máx {a.dosisMaxAdulto_mgPorKg} mg/kg)
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2 p-3 bg-pink-50 border border-pink-200 rounded-xl">
+            <input
+              id="anestesia-embarazo"
+              data-testid="anestesia-embarazo"
+              type="checkbox"
+              checked={esEmbarazo}
+              onChange={(e) => setEsEmbarazo(e.target.checked)}
+              className="w-4 h-4 cursor-pointer"
+            />
+            <label htmlFor="anestesia-embarazo" className="font-semibold text-pink-900 text-xs cursor-pointer">
+              Paciente embarazada (aplicar precauciones adicionales)
+            </label>
+          </div>
+        </div>
+
+        {/* ─── Resultado ─── */}
+        {esOk ? (
+          <div
+            data-testid="anestesia-resultado-ok"
+            className={`p-6 ${config.bg} border ${config.border} rounded-2xl flex flex-col justify-center text-center`}
+          >
+            <span className={`text-xs uppercase font-bold ${config.text} block mb-1`}>
+              {config.label}
+            </span>
+            <span className="text-3xl font-extrabold text-blue-900">
+              {resultadoAnestesia.calculos?.tubosMaximo} Tubos
+            </span>
+            <span className="text-xs font-semibold text-blue-700 mt-1">
+              Dosis máxima: {resultadoAnestesia.calculos?.mgMaximo} mg
+            </span>
+            {resultadoAnestesia.calculos?.dosisPorKgUsada === 'pediatrica' && (
+              <span className="text-[11px] text-amber-700 mt-2 font-semibold">
+                <span className="inline-flex items-center gap-1"><AlertTriangle size={14} />Dosis pediátrica aplicada</span> ({(resultadoAnestesia.calculos as { mgPorKg?: number })?.mgPorKg ?? ''} mg/kg)
+              </span>
+            )}
+            {resultadoAnestesia.calculos?.dosisPorKgUsada === 'adulta_fallback' && (
+              <span className="text-[11px] text-amber-700 mt-2 font-semibold">
+                <span className="inline-flex items-center gap-1"><AlertTriangle size={14} />Dosis adulta aplicada</span> (pediátrica no disponible)
+              </span>
+            )}
+          </div>
+        ) : (
+          <div
+            data-testid="anestesia-resultado-restrictivo"
+            className={`p-6 ${config.bg} border-2 ${config.border} rounded-2xl flex flex-col justify-center text-center gap-1`}
+          >
+            <span className={`text-xs uppercase font-bold ${config.text} block`}>
+              {config.label}
+            </span>
+            <span className="text-sm font-semibold text-amber-700">
+              {resultadoAnestesia.mensaje}
+            </span>
+            <span className="text-[11px] text-amber-600 mt-1">
+              No se muestra ninguna dosis hasta cumplir todos los requisitos clínicos.
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* ─── Advertencias / Contraindicaciones (independientes del estado) ─── */}
+      {advertencias.length > 0 && (
+        <div
+          data-testid="anestesia-advertencias"
+          className="bg-red-50 border-2 border-red-300 rounded-2xl p-4 space-y-2"
+        >
+          <div className="text-xs font-bold text-red-900 uppercase tracking-wider">
+            <span className="inline-flex items-center gap-1"><Ban size={14} />Contraindicaciones detectadas</span>
+          </div>
+          {advertencias.map((adv, idx) => (
+            <div key={idx} className="text-sm text-red-800 font-semibold">
+              {adv}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ─── Información del anestésico ─── */}
+      {resultadoAnestesia.anestesiaInfo && (
+        <div className="bg-gray-50 dark:bg-graphite-800 border border-gray-200 dark:border-graphite-700 rounded-xl p-3 text-xs">
+          <div className="font-semibold text-gray-700 dark:text-graphite-300 text-[11px] uppercase tracking-wider mb-1">
+            Anestésico seleccionado
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-gray-900 dark:text-graphite-50">
+            <div>
+              <span className="font-semibold text-gray-600 dark:text-graphite-400 block md:inline md:mr-1">Nombre:</span>
+              {resultadoAnestesia.anestesiaInfo.nombreGenerico}
+            </div>
+            <div>
+              <span className="font-semibold text-gray-600 dark:text-graphite-400 block md:inline md:mr-1">Familia:</span>
+              {resultadoAnestesia.anestesiaInfo.familia}
+            </div>
+            <div>
+              <span className="font-semibold text-gray-600 dark:text-graphite-400 block md:inline md:mr-1">Presentación:</span>
+              {resultadoAnestesia.anestesiaInfo.presentacion}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+})
+
+CalculadoraAnestesiaSection.displayName = 'CalculadoraAnestesiaSection'

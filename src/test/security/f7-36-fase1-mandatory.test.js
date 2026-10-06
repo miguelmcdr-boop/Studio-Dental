@@ -23,8 +23,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 let clinicaActivaActual = null
 
 // Mock de authService — getClinicaActiva como función síncrona mockeable
-vi.mock('../../services/authService', () => ({
+vi.mock('../../infrastructure/auth/authService', () => ({
   getClinicaActiva: vi.fn(() => clinicaActivaActual),
+  getClinicaActivaSync: vi.fn(() => clinicaActivaActual),
   setClinicaActiva: vi.fn(async (id) => {
     clinicaActivaActual = id
   }),
@@ -33,7 +34,7 @@ vi.mock('../../services/authService', () => ({
 }))
 
 // Mock de supabaseClient — evita llamadas reales a Supabase
-vi.mock('../../services/supabaseClient', () => ({
+vi.mock('../../infrastructure/supabase/supabaseClient', () => ({
   supabase: {
     from: vi.fn(() => ({
       select: vi.fn(() => ({
@@ -52,7 +53,7 @@ vi.mock('../../services/supabaseClient', () => ({
 }))
 
 // Mock de logger — evita ruido en tests
-vi.mock('../../services/logger', () => ({
+vi.mock('../../infrastructure/logging/logger', () => ({
   createLogger: () => ({
     info: vi.fn(),
     warn: vi.fn(),
@@ -64,7 +65,7 @@ vi.mock('../../services/logger', () => ({
 // F7-36 FIX: Mock de stores Zustand para evitar que se inicialicen con
 // SEED_PACIENTES_DEMO al ser importados (lo que contaminaba la caché
 // de pacientesStorageService con Camila Silva y Carlos Mendoza).
-vi.mock('../../store/pacientesStore', () => ({
+vi.mock('../../app/stores/pacientesStore', () => ({
   usePacientesStore: {
     getState: vi.fn(() => ({ pacientes: [], setPacientes: vi.fn() })),
     setState: vi.fn(),
@@ -72,7 +73,7 @@ vi.mock('../../store/pacientesStore', () => ({
   },
 }))
 
-vi.mock('../../store/prestacionesStore', () => ({
+vi.mock('../../app/stores/prestacionesStore', () => ({
   usePrestacionesStore: {
     getState: vi.fn(() => ({ prestaciones: [], setPrestaciones: vi.fn() })),
     setState: vi.fn(),
@@ -80,7 +81,7 @@ vi.mock('../../store/prestacionesStore', () => ({
   },
 }))
 
-vi.mock('../../store/sesionStore', () => ({
+vi.mock('../../app/stores/sesionStore', () => ({
   useSesionStore: {
     getState: vi.fn(() => ({ userProfile: { clinicaId: clinicaActivaActual } })),
     setState: vi.fn(),
@@ -120,11 +121,11 @@ const simularReload = async () => {
   vi.resetModules()
 
   // Re-importar servicios (se inicializan frescos)
-  const pacMod = await import('../../modules/pacientes/services/pacientesStorageService.js')
-  const agMod = await import('../../modules/agenda/services/agendaStorageService.js')
-  const adjMod = await import('../../services/adjuntosStorageService.js')
-  const invMod = await import('../../services/invalidarCacheCambioClinica.js')
-  const tcMod = await import('../../services/tenantCache.js')
+  const pacMod = await import('../../domains/clinical/patient/services/pacientesStorageService.js')
+  const agMod = await import('../../domains/operations/agenda/services/agendaStorageService.js')
+  const adjMod = await import('../../infrastructure/storage/adjuntosStorageService.js')
+  const invMod = await import('../../infrastructure/supabase/invalidarCacheCambioClinica.js')
+  const tcMod = await import('../../infrastructure/tenant/tenantCache.js')
 
   // Asegurar que la clínica sigue siendo la misma
   clinicaActivaActual = clinicaPrevia
@@ -180,21 +181,21 @@ describe('F7-36 FASE 1 — 5 tests obligatorios de aislamiento multi-tenant', ()
     configurarClinica('clinica-A')
 
     // 5. Cargar servicios dinámicamente (respetan mocks arriba)
-    const pacMod = await import('../../modules/pacientes/services/pacientesStorageService.js')
+    const pacMod = await import('../../domains/clinical/patient/services/pacientesStorageService.js')
     pacientesStorageService = pacMod.pacientesStorageService
 
-    const agMod = await import('../../modules/agenda/services/agendaStorageService.js')
+    const agMod = await import('../../domains/operations/agenda/services/agendaStorageService.js')
     agendaStorageService = agMod.agendaStorageService
 
-    const adjMod = await import('../../services/adjuntosStorageService.js')
+    const adjMod = await import('../../infrastructure/storage/adjuntosStorageService.js')
     guardarAdjunto = adjMod.guardarAdjunto
     obtenerAdjuntosPorPaciente = adjMod.obtenerAdjuntosPorPaciente
     cerrarDB = adjMod.cerrarDB
 
-    const invMod = await import('../../services/invalidarCacheCambioClinica.js')
+    const invMod = await import('../../infrastructure/supabase/invalidarCacheCambioClinica.js')
     invalidarCacheCambioClinica = invMod.invalidarCacheCambioClinica
 
-    const tcMod = await import('../../services/tenantCache.js')
+    const tcMod = await import('../../infrastructure/tenant/tenantCache.js')
     tenantCache = tcMod.tenantCache
 
     // 6. Resetear el caché en memoria del storageService guardando array vacío.

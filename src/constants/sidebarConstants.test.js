@@ -1,22 +1,24 @@
 import { describe, it, expect } from 'vitest'
 import { SECCIONES_SIDEBAR } from './sidebarConstants'
 
-describe('sidebarConstants', () => {
-  it('contiene 4 secciones principales', () => {
-    expect(SECCIONES_SIDEBAR).toHaveLength(4)
+describe('sidebarConstants (Blueprint 02)', () => {
+  it('contiene 5 secciones principales', () => {
+    expect(SECCIONES_SIDEBAR).toHaveLength(5)
     expect(SECCIONES_SIDEBAR.map(s => s.label)).toEqual([
-      'Clínica',
-      'Operaciones',
-      'Finanzas',
-      'Admin',
+      'ENTRADA DIARIA',
+      'PRÁCTICA SANITARIA',
+      'GESTIÓN FINANCIERA',
+      'LOGÍSTICA OPERATIVA',
+      'GESTIÓN',
     ])
   })
 
-  it('todos los items tienen nombre e icono', () => {
+  it('todos los items tienen nombre, icono y slug', () => {
     SECCIONES_SIDEBAR.forEach(seccion => {
       expect(seccion.items.length).toBeGreaterThan(0)
       seccion.items.forEach(item => {
         expect(typeof item.name).toBe('string')
+        expect(typeof item.slug).toBe('string')
         expect(item.icon).toBeDefined()
       })
     })

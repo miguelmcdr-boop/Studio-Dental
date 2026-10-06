@@ -14,7 +14,7 @@ import {
   MIME_TYPES_POR_CATEGORIA,
   validarArchivo,
   MAX_TAMANO_BYTES,
-} from '../../modules/pacientes/hooks/useArchivosClinicos.mimeValidation';
+} from '../../domains/clinical/patient/hooks/useArchivosClinicos.mimeValidation';
 
 const PERMISOS_ADMIN = {
   puedeSubir: true,

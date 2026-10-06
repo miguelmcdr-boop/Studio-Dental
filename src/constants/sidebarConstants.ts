@@ -1,12 +1,12 @@
 /**
- * SECCIONES_SIDEBAR — Navegación agrupada del Sidebar (F10-B2 / Migración TypeScript)
- * Permisos RBAC idénticos al menú original (F3-05).
+ * SECCIONES_SIDEBAR — 5 Categorías Core del Blueprint 02
+ * Permisos RBAC alineados y Odontograma/Presupuestos derivados a la ficha del paciente.
  */
 import type { LucideIcon } from 'lucide-react'
 import {
   Calendar, LayoutDashboard, Users, Siren, Mail,
-  Sparkles, FlaskConical, Package, Stethoscope, DollarSign, BarChart3,
-  UsersRound, Pill, Settings, FileText, CreditCard
+  FlaskConical, Package, BarChart3,
+  Pill, Settings, CreditCard
 } from 'lucide-react'
 import { PERMISOS } from './rbacConstants'
 import type { Permiso } from './rbacConstantsBase'
@@ -16,6 +16,7 @@ export type CounterVariant = 'info' | 'warning' | 'error' | 'success'
 export interface SidebarItem {
   name: string
   icon: LucideIcon
+  slug: string
   permisoRequerido?: Permiso
   counterKey?: string
   counterVariant?: CounterVariant
@@ -23,44 +24,50 @@ export interface SidebarItem {
 
 export interface SidebarSeccion {
   label: string
+  categoria: 'PRINCIPAL' | 'CLINICO' | 'FINANZAS' | 'OPERACIONES' | 'ADMIN'
   items: SidebarItem[]
 }
 
 export const SECCIONES_SIDEBAR: SidebarSeccion[] = [
   {
-    label: 'Clínica',
+    label: 'ENTRADA DIARIA', // Categoría 01
+    categoria: 'PRINCIPAL',
     items: [
-      { name: 'Agenda', icon: Calendar, counterKey: 'agenda', counterVariant: 'info' },
-      { name: 'Dashboard', icon: LayoutDashboard },
-      { name: 'Pacientes', icon: Users, counterKey: 'papelera', counterVariant: 'warning' },
-      { name: 'Urgencias y GES', icon: Siren },
-      { name: 'Comunicaciones', icon: Mail },
+      { name: 'Dashboard', icon: LayoutDashboard, slug: 'dashboard' },
+      { name: 'Agenda', icon: Calendar, slug: 'agenda', counterKey: 'agendaSinConfirmar', counterVariant: 'info' },
+      { name: 'Pacientes', icon: Users, slug: 'pacientes', counterKey: 'papelera', counterVariant: 'warning' },
     ],
   },
   {
-    label: 'Operaciones',
+    label: 'PRÁCTICA SANITARIA', // Categoría 02
+    categoria: 'CLINICO',
     items: [
-      { name: 'Esterilización', icon: Sparkles, permisoRequerido: PERMISOS.VER_ESTERILIZACION },
-      { name: 'Laboratorio', icon: FlaskConical, permisoRequerido: PERMISOS.VER_LABORATORIO },
-      { name: 'Inventario', icon: Package, permisoRequerido: PERMISOS.VER_INVENTARIO, counterKey: 'inventario', counterVariant: 'error' },
+      { name: 'Esterilización', icon: FlaskConical, slug: 'esterilizacion', permisoRequerido: PERMISOS.VER_ESTERILIZACION, counterKey: 'esterilizacionPendiente', counterVariant: 'warning' },
+      { name: 'Urgencias GES', icon: Siren, slug: 'urgencias-ges', permisoRequerido: PERMISOS.VER_URGENCIAS_GES },
+      { name: 'Vademécum', icon: Pill, slug: 'vademecum', permisoRequerido: PERMISOS.VER_VADEMECUM },
     ],
   },
   {
-    label: 'Finanzas',
+    label: 'GESTIÓN FINANCIERA', // Categoría 03
+    categoria: 'FINANZAS',
     items: [
-      { name: 'Presupuestos', icon: FileText },
-      { name: 'Pagos', icon: CreditCard },
-      { name: 'Prestaciones', icon: Stethoscope, permisoRequerido: PERMISOS.EDITAR_PRECIOS },
-      { name: 'Finanzas', icon: DollarSign, permisoRequerido: PERMISOS.VER_FINANZAS },
-      { name: 'Reportes', icon: BarChart3, permisoRequerido: PERMISOS.VER_REPORTES },
+      { name: 'Pagos', icon: CreditCard, slug: 'pagos', permisoRequerido: PERMISOS.VER_FINANZAS, counterKey: 'pagosVencidos', counterVariant: 'error' },
+      { name: 'Reportes', icon: BarChart3, slug: 'reportes', permisoRequerido: PERMISOS.VER_REPORTES },
     ],
   },
   {
-    label: 'Admin',
+    label: 'LOGÍSTICA OPERATIVA', // Categoría 04
+    categoria: 'OPERACIONES',
     items: [
-      { name: 'Miembros', icon: UsersRound, permisoRequerido: PERMISOS.GESTIONAR_USUARIOS },
-      { name: 'Vademécum', icon: Pill, permisoRequerido: PERMISOS.ADMINISTRAR_VADEMECUM },
-      { name: 'Configuración', icon: Settings, permisoRequerido: PERMISOS.VER_CONFIGURACION },
+      { name: 'Inventario', icon: Package, slug: 'inventario', permisoRequerido: PERMISOS.VER_INVENTARIO, counterKey: 'inventarioBajo', counterVariant: 'error' },
+      { name: 'Comunicaciones', icon: Mail, slug: 'comunicaciones', counterKey: 'mensajesNoLeidos', counterVariant: 'info' },
+    ],
+  },
+  {
+    label: 'GESTIÓN', // Categoría 05 — SOLO ADMIN
+    categoria: 'ADMIN',
+    items: [
+      { name: 'Administración DentikOS', icon: Settings, slug: 'admin', permisoRequerido: PERMISOS.GESTIONAR_USUARIOS },
     ],
   },
 ]

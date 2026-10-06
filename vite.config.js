@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
-import { debeCachearSupabase } from './src/utils/supabaseCacheFilter.ts'
+import { debeCachearSupabase } from './src/shared/utils/supabaseCacheFilter.ts'
 
 export default defineConfig({
   plugins: [
@@ -28,6 +28,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         // F6-J: fallback a index.html si falla la navegacion (cold-start offline)
         navigateFallback: '/index.html',
         // Excluir endpoints de Supabase del fallback (son API, no rutas)

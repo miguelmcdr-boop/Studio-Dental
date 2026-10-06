@@ -142,7 +142,6 @@ function verificarTamanos() {
 function verificarBarrerasPublicas() {
   const modulesDir = path.join(SRC, 'modules')
   if (!fs.existsSync(modulesDir)) {
-    violations.push('📁 [ESTRUCTURA] No existe el directorio src/modules/')
     return
   }
   
@@ -197,31 +196,33 @@ function verificarExportDefault() {
 // ─────────────────────────────────────────────────────────────
 
 function verificarCapasServices() {
-  const servicesDir = path.join(SRC, 'services')
-  if (!fs.existsSync(servicesDir)) return
-  
-  const archivos = listarArchivos(servicesDir, ['.js', '.jsx'])
-  
-  for (const archivo of archivos) {
-    const rel = rutaRelativa(archivo)
+  const dirs = [path.join(SRC, 'services'), path.join(SRC, 'infrastructure')]
+  for (const servicesDir of dirs) {
+    if (!fs.existsSync(servicesDir)) continue
     
-    // Excepciones legítimas: migraciones (F4-02)
-    if (rel.startsWith('src/services/migrations/')) {
-      continue
-    }
+    const archivos = listarArchivos(servicesDir, ['.js', '.jsx'])
     
-    const content = fs.readFileSync(archivo, 'utf-8')
-    const lineas = content.split(String.fromCharCode(10))
-    for (const linea of lineas) {
-      if (/from\s+['"].*\/components\//.test(linea)) {
-        violations.push(
-          `🔀 [CAPAS: services → components] ${rel} - ${linea.trim()}`
-        )
+    for (const archivo of archivos) {
+      const rel = rutaRelativa(archivo)
+      
+      // Excepciones legítimas: migraciones (F4-02)
+      if (rel.startsWith('src/services/migrations/') || rel.startsWith('src/infrastructure/supabase/migrations/')) {
+        continue
       }
-      if (/from\s+['"].*\/hooks\//.test(linea)) {
-        violations.push(
-          `🔀 [CAPAS: services → hooks] ${rel} - ${linea.trim()}`
-        )
+      
+      const content = fs.readFileSync(archivo, 'utf-8')
+      const lineas = content.split(String.fromCharCode(10))
+      for (const linea of lineas) {
+        if (/from\s+['"].*\/components\//.test(linea) || /from\s+['"].*\/shared\/ui\//.test(linea)) {
+          violations.push(
+            `🔀 [CAPAS: infrastructure → components] ${rel} - ${linea.trim()}`
+          )
+        }
+        if (/from\s+['"].*\/hooks\//.test(linea) || /from\s+['"].*\/shared\/hooks\//.test(linea)) {
+          violations.push(
+            `🔀 [CAPAS: infrastructure → hooks] ${rel} - ${linea.trim()}`
+          )
+        }
       }
     }
   }
@@ -233,28 +234,30 @@ function verificarCapasServices() {
 // ─────────────────────────────────────────────────────────────
 
 function verificarSupabaseEnComponents() {
-  const componentsDir = path.join(SRC, 'components')
-  if (!fs.existsSync(componentsDir)) return
-  
-  const archivos = listarArchivos(componentsDir, ['.js', '.jsx'])
-  
-  for (const archivo of archivos) {
-    const rel = rutaRelativa(archivo)
+  const dirs = [path.join(SRC, 'components'), path.join(SRC, 'shared', 'ui')]
+  for (const componentsDir of dirs) {
+    if (!fs.existsSync(componentsDir)) continue
     
-    // Excepciones documentadas en allowlist con justificación
-    if (rel === 'src/components/ConnectionIndicator.jsx') {
-      // Legítimo: componente de UI que muestra estado de conexión
-      continue
-    }
+    const archivos = listarArchivos(componentsDir, ['.js', '.jsx'])
     
-    const content2 = fs.readFileSync(archivo, 'utf-8')
-    const lineas = content2.split(String.fromCharCode(10))
-    for (const linea of lineas) {
-      if (/from\s+['"].*supabaseClient['"]/.test(linea) ||
-          /from\s+['"]@supabase\/supabase-js['"]/.test(linea)) {
-        violations.push(
-          `🔀 [CAPAS: component → Supabase directo] ${rel} - ${linea.trim()}`
-        )
+    for (const archivo of archivos) {
+      const rel = rutaRelativa(archivo)
+      
+      // Excepciones documentadas en allowlist con justificación
+      if (rel === 'src/components/ConnectionIndicator.jsx' || rel === 'src/shared/ui/ConnectionIndicator.jsx') {
+        // Legítimo: componente de UI que muestra estado de conexión
+        continue
+      }
+      
+      const content2 = fs.readFileSync(archivo, 'utf-8')
+      const lineas = content2.split(String.fromCharCode(10))
+      for (const linea of lineas) {
+        if (/from\s+['"].*supabaseClient['"]/.test(linea) ||
+            /from\s+['"]@supabase\/supabase-js['"]/.test(linea)) {
+          violations.push(
+            `🔀 [CAPAS: component → Supabase directo] ${rel} - ${linea.trim()}`
+          )
+        }
       }
     }
   }
