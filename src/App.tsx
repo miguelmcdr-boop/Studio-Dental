@@ -499,8 +499,6 @@ export const App: React.FC = () => {
           onLogout={handleLogout}
           darkMode={darkMode}
           theme={theme}
-          onToggleDarkMode={toggleDarkMode}
-          onCycleTheme={cycleTheme}
           breadcrumbs={breadcrumbs}
           accionPrimaria={accionPrimaria}
           accionesSecundarias={accionesSecundarias}
