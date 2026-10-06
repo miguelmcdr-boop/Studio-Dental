@@ -53,9 +53,9 @@ export const useNombreClinica = (perfilNombre?: unknown): string => {
   useEffect(() => {
     if (!clinicaActual) return
 
-    const unsubscribeRealtime = suscribirRealtimeClinica(clinicaActual, (datosActualizados) => {
-      if (datosActualizados.nombreClinica) {
-        setNombre(datosActualizados.nombreClinica.trim())
+    const unsubscribeRealtime = suscribirRealtimeClinica(clinicaActual, (nuevoNombre) => {
+      if (nuevoNombre && typeof nuevoNombre === 'string') {
+        setNombre(nuevoNombre.trim())
       }
     })
 

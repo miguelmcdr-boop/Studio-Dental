@@ -89,7 +89,7 @@ describe('useNombreClinica', () => {
 
     act(() => {
       if (callbackRealtime) {
-        callbackRealtime({ nombreClinica: 'Nombre Vía Realtime' })
+        callbackRealtime('Nombre Vía Realtime')
       }
     })
 

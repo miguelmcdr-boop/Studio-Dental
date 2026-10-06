@@ -40,7 +40,7 @@ export const suscribirRealtimeClinica = (
     if (typeof window !== 'undefined') window.addEventListener('focus', handleFocus)
 
     return () => {
-      try { supabase.removeChannel(canal) } catch {}
+      try { supabase?.removeChannel(canal) } catch {}
       if (typeof window !== 'undefined') window.removeEventListener('focus', handleFocus)
     }
   } catch {
