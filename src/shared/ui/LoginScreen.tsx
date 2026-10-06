@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import {
   supabaseSignIn,
   supabaseSignUp,
@@ -6,13 +6,13 @@ import {
   type PerfilUsuario,
 } from '../../infrastructure/auth/authService'
 import { construirUserProfile } from '../../infrastructure/clinical-data/userProfileBuilder'
-import { NOMBRES_ROLES } from '../../constants/rbacConstants'
 import { obtenerRolPorDefecto } from '../../infrastructure/auth/rbacService'
 import { createLogger } from '../../infrastructure/logging/logger'
 import { Button } from './ui/Button'
 import { Input } from './ui/Input'
 import { LoginBrandBanner } from './LoginBrandBanner'
 import { RecuperarContrasena } from './RecuperarContrasena'
+import { RegistroForm } from './RegistroForm'
 import { useLoginStates, type EstadoLogin } from '../hooks/useLoginStates'
 import { useDarkMode } from '../hooks/useDarkMode'
 import { Eye, EyeOff, Lock, RefreshCw, AlertTriangle, Globe } from 'lucide-react'
@@ -46,14 +46,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
   const [idioma, setIdioma] = useState<'ES' | 'EN'>('ES')
 
   const { theme, setTheme } = useDarkMode()
-  const {
-    estado,
-    errorMsg,
-    setEstado,
-    setErrorMsg,
-    resetearFallosLogin,
-    procesarErrorAuth,
-  } = useLoginStates({ email, password })
+  const { estado, errorMsg, setEstado, setErrorMsg, resetearFallosLogin, procesarErrorAuth } =
+    useLoginStates({ email, password })
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.location.hash.includes('reset-password')) {
@@ -61,13 +55,33 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
     }
   }, [])
 
-  const handleRecordarmeToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Escape cancela el flujo de registro
+  const handleCancelarRegistro = useCallback((): void => {
+    setIsFirstTime(false)
+    setEmail('')
+    setPassword('')
+    setNombreCompleto('')
+    setRut('')
+    setEspecialidad('')
+    setErrorMsg('')
+  }, [setErrorMsg])
+
+  useEffect(() => {
+    if (!isFirstTime) return
+    const handleEsc = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') handleCancelarRegistro()
+    }
+    document.addEventListener('keydown', handleEsc)
+    return () => document.removeEventListener('keydown', handleEsc)
+  }, [isFirstTime, handleCancelarRegistro])
+
+  const handleRecordarmeToggle = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const checked = e.target.checked
     setRecordarme(checked)
     if (!checked && typeof localStorage !== 'undefined') localStorage.removeItem(REMEMBER_KEY)
   }
 
-  const handleReenviarVerificacion = async () => {
+  const handleReenviarVerificacion = async (): Promise<void> => {
     if (!email.trim()) return
     const res = await reenviarEmailVerificacion(email.trim())
     if (res.success) setErrorMsg('Correo de verificación reenviado.')
@@ -91,7 +105,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
         nombreCompleto: nombreCompleto || 'Profesional Dental',
         rut: rut || '',
         especialidad: especialidad || 'Cirujano Dentista',
-        rol: rol,
+        rol,
       }
 
       if (isFirstTime) {
@@ -189,46 +203,17 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
               </div>
 
               {isFirstTime && (
-                <div className="space-y-3 pt-2 border-t border-slate-800 animate-fade-in">
-                  <input
-                    type="text"
-                    required
-                    value={nombreCompleto}
-                    id="login-nombre"
-                    placeholder="Nombre Completo"
-                    onChange={(e) => setNombreCompleto(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-700 bg-slate-900 text-xs text-white"
-                  />
-                  <div className="grid grid-cols-2 gap-2">
-                    <input
-                      type="text"
-                      value={rut}
-                      id="login-rut"
-                      placeholder="RUT / Licencia"
-                      onChange={(e) => setRut(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-700 bg-slate-900 text-xs text-white"
-                    />
-                    <input
-                      type="text"
-                      value={especialidad}
-                      id="login-especialidad"
-                      placeholder="Especialidad"
-                      onChange={(e) => setEspecialidad(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-700 bg-slate-900 text-xs text-white"
-                    />
-                  </div>
-                  <select
-                    id="login-rol"
-                    data-testid="login-rol"
-                    value={rol}
-                    onChange={(e) => setRol(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-700 bg-slate-900 text-xs text-white"
-                  >
-                    {Object.entries(NOMBRES_ROLES).map(([val, label]) => (
-                      <option key={val} value={val}>{label}</option>
-                    ))}
-                  </select>
-                </div>
+                <RegistroForm
+                  nombreCompleto={nombreCompleto}
+                  rut={rut}
+                  especialidad={especialidad}
+                  rol={rol}
+                  onNombreCompleto={setNombreCompleto}
+                  onRut={setRut}
+                  onEspecialidad={setEspecialidad}
+                  onRol={setRol}
+                  onVolver={handleCancelarRegistro}
+                />
               )}
 
               <div className="flex items-center justify-between text-xs pt-1">
@@ -299,38 +284,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
           <div className="pt-6 mt-6 border-t border-slate-800/80 space-y-3">
             <div className="flex items-center justify-between text-xs text-slate-400">
               <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => setTheme('light')}
-                  className={`px-2 py-0.5 rounded text-[11px] ${theme === 'light' ? 'bg-[#D4AF37] text-black font-semibold' : 'hover:text-white'}`}
-                >
-                  Claro
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setTheme('dark')}
-                  className={`px-2 py-0.5 rounded text-[11px] ${theme === 'dark' ? 'bg-[#D4AF37] text-black font-semibold' : 'hover:text-white'}`}
-                >
-                  Oscuro
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setTheme('surgical')}
-                  className={`px-2 py-0.5 rounded text-[11px] ${theme === 'surgical' ? 'bg-cyan-400 text-black font-semibold' : 'hover:text-white'}`}
-                >
-                  Quirúrgico
-                </button>
+                <button type="button" onClick={() => setTheme('light')} className={`px-2 py-0.5 rounded text-[11px] ${theme === 'light' ? 'bg-[#D4AF37] text-black font-semibold' : 'hover:text-white'}`}>Claro</button>
+                <button type="button" onClick={() => setTheme('dark')} className={`px-2 py-0.5 rounded text-[11px] ${theme === 'dark' ? 'bg-[#D4AF37] text-black font-semibold' : 'hover:text-white'}`}>Oscuro</button>
+                <button type="button" onClick={() => setTheme('surgical')} className={`px-2 py-0.5 rounded text-[11px] ${theme === 'surgical' ? 'bg-cyan-400 text-black font-semibold' : 'hover:text-white'}`}>Quirúrgico</button>
               </div>
-
-              <button
-                type="button"
-                onClick={() => setIdioma(idioma === 'ES' ? 'EN' : 'ES')}
-                className="inline-flex items-center gap-1 text-[11px] hover:text-white"
-              >
+              <button type="button" onClick={() => setIdioma(idioma === 'ES' ? 'EN' : 'ES')} className="inline-flex items-center gap-1 text-[11px] hover:text-white">
                 <Globe size={12} /> {idioma}
               </button>
             </div>
-
             <div className="flex items-center justify-between text-[11px] text-slate-500">
               <span>© 2026 DentikOS</span>
               <div className="flex gap-2">
