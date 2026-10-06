@@ -127,6 +127,28 @@ describe('Sidebar - Matriz de Permisos Blueprint 02', () => {
     expect(screen.getByText('Clínica Sonrisa Perfecta')).toBeInTheDocument()
   })
 
+  it('muestra fallback "Mi Consulta" y se actualiza en vivo ante evento clinica_actualizada', () => {
+    vi.mocked(useRBAC).mockReturnValue({
+      rol: ROLES.ADMIN,
+      esAdmin: true,
+      puede: vi.fn().mockReturnValue(true),
+      tieneAlguno: vi.fn().mockReturnValue(true),
+      es: vi.fn().mockReturnValue(true),
+      permisos: Object.values(PERMISOS),
+    })
+
+    const { act } = require('@testing-library/react')
+    render(<Sidebar activeSection="Dashboard" setActiveSection={vi.fn()} />)
+
+    expect(screen.getByText('Mi Consulta')).toBeInTheDocument()
+
+    act(() => {
+      window.dispatchEvent(new CustomEvent('clinica_actualizada', { detail: { nombre: 'Clínica Las Condes VIP' } }))
+    })
+
+    expect(screen.getByText('Clínica Las Condes VIP')).toBeInTheDocument()
+  })
+
   it('Modo Quirúrgico: auto-colapsa el Sidebar y restaura el modo previo al salir', () => {
     vi.mocked(useRBAC).mockReturnValue({
       rol: ROLES.ADMIN,

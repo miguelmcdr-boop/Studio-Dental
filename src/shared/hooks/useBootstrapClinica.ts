@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import type React from 'react'
 import { bootstrapClinica, supabaseSignOut } from '../../infrastructure/auth/authService'
 import { sedesService } from '../../domains/organization/clinic/services/sedesService'
+import { useSesionStore } from '../../app/stores/sesionStore'
 import { createLogger } from '../../infrastructure/logging/logger'
 import { useBootstrapSedes, crearSedePrincipal } from './useBootstrapSedes'
 import type {
@@ -88,6 +89,11 @@ export const useBootstrapClinica = (
         setErrorGeneral(res.error || 'Error al crear la clínica')
         setProcesando(false)
         return
+      }
+      const nombreElegido = datos.nombre.trim()
+      useSesionStore.getState().actualizarPerfil({ clinicaNombre: nombreElegido })
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('clinica_actualizada', { detail: { nombre: nombreElegido } }))
       }
       const sedesAGuardar = sedes.length > 0 ? sedes : [crearSedePrincipal(datos)]
       sedesService.guardarSedes(sedesAGuardar)

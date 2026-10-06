@@ -11,6 +11,7 @@ import { Icon } from './Icon'
 import { Badge } from './ui/Badge'
 import { useSidebarStore, type SidebarMode } from '../../app/stores/useSidebarStore'
 import { useDarkMode } from '../hooks/useDarkMode'
+import { useNombreClinica } from '../hooks/useNombreClinica'
 import { useSedes } from '../../domains/organization/clinic/hooks/useSedes'
 import { SECCIONES_SIDEBAR, type SidebarItem, type SidebarSeccion } from '../../constants/sidebarConstants'
 import type { PerfilUsuario } from '../../infrastructure/auth/authService'
@@ -64,7 +65,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const mode = propMode ?? storeMode
   const isCollapsed = mode === 'collapsed'
-  const clinicaNombre = typeof userProfile?.clinicaNombre === 'string' ? userProfile.clinicaNombre : 'Studio Dental'
+  const clinicaNombre = useNombreClinica(userProfile?.clinicaNombre)
   const sedeNombre = sedeActiva?.nombre || 'Sede Principal'
 
   useEffect(() => {

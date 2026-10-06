@@ -3,7 +3,7 @@ import { convertirImagenADataURL } from '../utils/clinicCalculations'
 import { createLogger } from '../../../../infrastructure/logging/logger'
 import { Lock, Building2 } from 'lucide-react'
 import { CLINICA_DEFAULT, type ClinicaConfig } from '../constants/clinicConstants'
-import type { DatosClinicaConfig } from '../services/clinicStorageService'
+import { clinicStorageService, type DatosClinicaConfig } from '../services/clinicStorageService'
 
 const log = createLogger('DatosClinicaForm')
 
@@ -14,7 +14,12 @@ export interface DatosClinicaFormProps {
 }
 
 export const DatosClinicaForm: React.FC<DatosClinicaFormProps> = memo(({ datosClinica = CLINICA_DEFAULT, alGuardar, userProfile }) => {
-  const [form, setForm] = useState<DatosClinicaConfig | ClinicaConfig>({ ...(datosClinica || CLINICA_DEFAULT) })
+  const [form, setForm] = useState<DatosClinicaConfig | ClinicaConfig>(() => {
+    if (datosClinica && datosClinica !== CLINICA_DEFAULT) return datosClinica
+    const guardada = clinicStorageService.obtenerClinica()
+    if (guardada && Object.keys(guardada).length > 0) return guardada
+    return datosClinica || CLINICA_DEFAULT
+  })
 
   // F6-C-e: solo el admin puede editar la configuración de clínica.
   // Los demás miembros ven los datos en modo solo-lectura.
@@ -38,6 +43,11 @@ export const DatosClinicaForm: React.FC<DatosClinicaFormProps> = memo(({ datosCl
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (esSoloLectura) return
+    clinicStorageService.guardarClinica(form as DatosClinicaConfig)
+    const nuevoNombre = form.nombreClinica?.trim() || ''
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('clinica_actualizada', { detail: { nombre: nuevoNombre } }))
+    }
     if (alGuardar) {
       alGuardar(form)
     }
