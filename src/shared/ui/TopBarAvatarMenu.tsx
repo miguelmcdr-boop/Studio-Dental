@@ -129,22 +129,24 @@ export const TopBarAvatarMenu: React.FC<TopBarAvatarMenuProps> = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 p-1 rounded-lg hover:bg-graphite-100 dark:hover:bg-graphite-800 transition-colors"
+        className="p-0.5 rounded-full hover:ring-2 hover:ring-primary/40 transition-all cursor-pointer shrink-0"
         aria-haspopup="menu"
         aria-expanded={isOpen}
         aria-label="Menú de usuario"
+        title={userProfile?.nombreCompleto || 'Mi sesión'}
       >
-        <div className="w-8 h-8 bg-graphite-200 dark:bg-graphite-800 text-primary font-bold rounded-full flex items-center justify-center text-xs">
-          {inicial}
+        {/* Círculo 32px con iniciales + borde gradiente dorado */}
+        <div
+          className="w-8 h-8 rounded-full p-[1.5px] flex items-center justify-center shadow-xs"
+          style={{ background: 'linear-gradient(135deg, #E5C378 0%, #B88E3A 100%)' }}
+        >
+          <div className="w-full h-full bg-white dark:bg-graphite-900 text-primary font-bold rounded-full flex items-center justify-center text-xs">
+            {inicial}
+          </div>
         </div>
-        <div className="hidden lg:block text-left max-w-[130px]">
-          <p className="text-xs font-semibold text-graphite-900 dark:text-graphite-50 truncate" title={userProfile?.nombreCompleto}>
-            {userProfile?.nombreCompleto || 'Mi sesión'}
-          </p>
-          <p className="text-[10px] text-graphite-500 dark:text-graphite-400 truncate">
-            {nombreRol}
-          </p>
-        </div>
+        {/* Accesibilidad y contrato de testing */}
+        <span className="sr-only">{userProfile?.nombreCompleto || 'Mi sesión'}</span>
+        <span className="sr-only">{nombreRol}</span>
       </button>
 
       {isOpen && (
@@ -154,6 +156,11 @@ export const TopBarAvatarMenu: React.FC<TopBarAvatarMenuProps> = ({
         >
           {/* Header Identidad */}
           <div className="px-4 py-3 border-b border-surface">
+            {Boolean(userProfile?.clinicaNombre) && (
+              <p className="text-[10px] font-bold text-primary uppercase tracking-wider mb-1 truncate">
+                {String(userProfile?.clinicaNombre)}
+              </p>
+            )}
             <p className="text-xs font-bold text-graphite-900 dark:text-graphite-100 truncate">
               {userProfile?.nombreCompleto || 'Mi sesión'}
             </p>

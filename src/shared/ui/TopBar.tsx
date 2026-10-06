@@ -128,31 +128,33 @@ export const TopBar: React.FC<TopBarProps> = ({
             </button>
           </div>
 
-          {/* Zona Derecha 30%: Acciones contextuales, Sede, Notificaciones y Avatar */}
+          {/* Zona Derecha 30%: Acciones contextuales, Pill Sede, Bell 36px y Avatar 32px */}
           <div className="flex items-center justify-end gap-2 w-[30%] shrink-0">
             {/* Acciones contextuales (primaria dorada + menú ⋯) */}
             <TopBarActions
               primaria={accionPrimaria}
               secundarias={accionesSecundarias}
-              className="hidden sm:flex"
+              className="hidden lg:flex"
             />
 
-            {/* Selector de Sede */}
-            <div className="hidden md:flex items-center gap-1.5 pl-1.5 border-l border-surface">
-              <ClinicaSelector onCambioClinica={onCambioClinica} />
+            {/* Pill Sede compacta (alto 32px, max-w-[160px]) */}
+            <div className="hidden md:flex items-center shrink-0">
+              <div className="sr-only" aria-hidden="true">
+                <ClinicaSelector onCambioClinica={onCambioClinica} />
+              </div>
               <SelectorSede compacto />
             </div>
 
-            {/* Centro de Notificaciones */}
+            {/* Centro de Notificaciones (botón 36px con badge dorado) */}
             <button
               type="button"
               onClick={() => setNotifOpen(true)}
               aria-label="Centro de notificaciones"
-              className="relative p-1.5 rounded-lg text-graphite-600 dark:text-graphite-300 hover:bg-graphite-100 dark:hover:bg-graphite-800 transition-colors cursor-pointer"
+              className="relative w-9 h-9 flex items-center justify-center rounded-lg text-graphite-600 dark:text-graphite-300 hover:bg-graphite-100 dark:hover:bg-graphite-800 transition-colors cursor-pointer shrink-0"
             >
-              <Bell size={17} />
+              <Bell size={18} />
               {notificaciones.length > 0 && (
-                <span className="absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-primary text-black font-extrabold text-[8px] flex items-center justify-center">
+                <span className="absolute top-1 right-1 min-w-[14px] h-3.5 px-0.5 rounded-full bg-primary text-black font-extrabold text-[8px] flex items-center justify-center shadow-xs">
                   {notificaciones.length > 9 ? '9+' : notificaciones.length}
                 </span>
               )}
