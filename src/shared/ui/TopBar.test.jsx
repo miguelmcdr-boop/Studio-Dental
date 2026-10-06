@@ -118,4 +118,46 @@ describe('TopBar (Blueprint 02)', () => {
       expect(notifBtn).toBeInTheDocument()
     })
   })
+
+  describe('acciones contextuales (Blueprint 03)', () => {
+    it('renderiza acción primaria y secundarias', () => {
+      const onPrimaryClick = vi.fn()
+      const accionPrimaria = { label: 'Nueva cita', onClick: onPrimaryClick }
+      const accionesSecundarias = [{ label: 'Nuevo paciente', onClick: vi.fn() }]
+
+      render(
+        <TopBar
+          {...defaultProps}
+          accionPrimaria={accionPrimaria}
+          accionesSecundarias={accionesSecundarias}
+        />
+      )
+
+      const primaryBtn = screen.getByRole('button', { name: /nueva cita/i })
+      expect(primaryBtn).toBeInTheDocument()
+      fireEvent.click(primaryBtn)
+      expect(onPrimaryClick).toHaveBeenCalledTimes(1)
+
+      const moreBtn = screen.getByRole('button', { name: /más acciones contextuales/i })
+      expect(moreBtn).toBeInTheDocument()
+      fireEvent.click(moreBtn)
+      expect(screen.getByText('Nuevo paciente')).toBeInTheDocument()
+    })
+  })
+
+  describe('avatar con 6 secciones (Blueprint 03)', () => {
+    it('despliega las 6 secciones requeridas al abrir el menú', () => {
+      render(<TopBar {...defaultProps} />)
+      const trigger = screen.getByRole('button', { name: /menú de usuario/i })
+      fireEvent.click(trigger)
+
+      expect(screen.getByText('Perfil')).toBeInTheDocument()
+      expect(screen.getByText('Preferencias')).toBeInTheDocument()
+      expect(screen.getByText('Panel de Atajos')).toBeInTheDocument()
+      expect(screen.getByText('Modo Foco')).toBeInTheDocument()
+      expect(screen.getByText('Dispositivos')).toBeInTheDocument()
+      expect(screen.getByText('Cerrar sesión')).toBeInTheDocument()
+    })
+  })
 })
+
