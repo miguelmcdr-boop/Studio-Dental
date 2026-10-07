@@ -11,6 +11,8 @@ import { TopBarBreadcrumbs } from './TopBarBreadcrumbs'
 import { TopBarActions, type AccionContextualItem } from './TopBarActions'
 import { TopBarAvatarMenu } from './TopBarAvatarMenu'
 import { useNotifications } from '../hooks/useNotifications'
+import { useSedeSincronizada } from '../hooks/useSedeSincronizada'
+import { useContextualIntelligence } from '../hooks/useContextualIntelligence'
 import { useSidebarStore } from '../../app/stores/useSidebarStore'
 import { useTopBarStore, type BreadcrumbItem } from '../../app/stores/useTopBarStore'
 import type { Paciente } from '../../domains/clinical/patient/schemas/pacienteSchema'
@@ -76,21 +78,11 @@ export const TopBar: React.FC<TopBarProps> = ({
   const notificaciones = useNotifications()
   const focusMode = useSidebarStore((s) => s.focusMode)
   const presentationMode = useTopBarStore((s) => s.presentationMode)
+  const sedeSincronizada = useSedeSincronizada()
+  const contextualMessage = useContextualIntelligence(pacienteSeleccionado)
 
   const isSurgical = theme === 'surgical'
   const acentoColor = ACENTOS_MODULO[activeSection] || '#B88E3A'
-
-  // Mensaje contextual inteligente según hora y módulo
-  const mensajeContextual = useMemo(() => {
-    if (pacienteSeleccionado) return `${pacienteSeleccionado.nombre} — Ficha activa`
-    const hour = new Date().getHours()
-    if (activeSection === 'Agenda') {
-      if (hour >= 8 && hour < 12) return 'Agenda — Citas de la mañana'
-      if (hour >= 12 && hour < 18) return 'Agenda — Jornada de la tarde'
-      return 'Agenda — Cierre de jornada'
-    }
-    return ''
-  }, [activeSection, pacienteSeleccionado])
 
   if (isSurgical || focusMode || presentationMode) return null
 
@@ -101,16 +93,24 @@ export const TopBar: React.FC<TopBarProps> = ({
         <div className="h-[2px] w-full shrink-0 transition-colors" style={{ backgroundColor: acentoColor }} />
 
         <div className="flex items-center justify-between px-4 h-14 md:h-[56px] gap-3">
-          {/* Zona Izquierda 40%: Breadcrumbs, Timer e isDirty */}
+          {/* Zona Izquierda 40%: Breadcrumbs, Timer, isDirty y Contextual Intelligence */}
           <div className="flex items-center gap-3 w-[40%] min-w-0">
             {hamburger}
             <TopBarBreadcrumbs
               items={breadcrumbs}
               pacienteId={pacienteSeleccionado?.id ? String(pacienteSeleccionado.id) : null}
             />
+            {contextualMessage && (
+              <span
+                data-testid="topbar-contextual-message"
+                className="hidden md:inline text-[11px] text-[#94A3B8] truncate shrink-0 max-w-[200px]"
+              >
+                {contextualMessage}
+              </span>
+            )}
           </div>
 
-          {/* Zona Centro 30%: Búsqueda ⌘K + Contextual Intelligence */}
+          {/* Zona Centro 30%: Búsqueda ⌘K */}
           <div className="flex items-center justify-center gap-2 w-[30%]">
             <button
               type="button"
@@ -121,7 +121,7 @@ export const TopBar: React.FC<TopBarProps> = ({
             >
               <div className="flex items-center gap-1.5 truncate">
                 <Search size={13} className="text-primary shrink-0" />
-                <span className="truncate">{mensajeContextual || 'Buscar...'}</span>
+                <span className="truncate">Buscar...</span>
               </div>
               <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-white dark:bg-graphite-900 rounded border border-surface shadow-2xs shrink-0">
                 ⌘K
@@ -143,7 +143,7 @@ export const TopBar: React.FC<TopBarProps> = ({
               <div className="sr-only" aria-hidden="true">
                 <ClinicaSelector onCambioClinica={onCambioClinica} />
               </div>
-              <SelectorSede compacto />
+              <SelectorSede compacto sincronizado={sedeSincronizada} />
             </div>
 
             {/* Centro de Notificaciones (botón 36px con badge dorado) */}

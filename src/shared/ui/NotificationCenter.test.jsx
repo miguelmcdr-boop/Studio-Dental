@@ -54,4 +54,16 @@ describe('NotificationCenter (Blueprint 03)', () => {
     fireEvent.click(closeBtn)
     expect(onClose).toHaveBeenCalledTimes(1)
   })
+
+  it('click individual marca leída con opacity 0.5', () => {
+    notificationService.mostrar('Mensaje de prueba', { tipo: 'info', titulo: 'Operativa' })
+
+    render(<NotificationCenter isOpen={true} onClose={vi.fn()} />)
+    const card = screen.getByText('Mensaje de prueba').closest('.cursor-pointer')
+    expect(card).toHaveClass('opacity-100')
+
+    fireEvent.click(card)
+    expect(card).toHaveClass('opacity-50')
+  })
 })
+

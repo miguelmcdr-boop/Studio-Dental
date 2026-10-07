@@ -7,13 +7,15 @@ import { Check } from 'lucide-react'
 import { useTopBarStore, type BreadcrumbItem } from '../../app/stores/useTopBarStore'
 import { playSound } from '../utils/soundEffects'
 
+import { useGuardadoState } from '../hooks/useGuardadoState'
+
 export interface TopBarBreadcrumbsProps {
   items: BreadcrumbItem[]
   pacienteId?: string | null
 }
 
 export const TopBarBreadcrumbs: React.FC<TopBarBreadcrumbsProps> = ({ items, pacienteId }) => {
-  const isDirty = useTopBarStore((s) => s.isDirty)
+  const guardadoStatus = useGuardadoState()
   const timerStart = useTopBarStore((s) => s.timerStart)
   const [elapsed, setElapsed] = useState(0)
 
@@ -89,16 +91,18 @@ export const TopBarBreadcrumbs: React.FC<TopBarBreadcrumbsProps> = ({ items, pac
         </span>
       )}
 
-      {/* Estado de guardado isDirty */}
-      {isDirty ? (
-        <div className="flex items-center gap-1 text-[11px] text-amber-600 dark:text-amber-400 shrink-0">
+      {/* Estado derivado de guardado (BP03 §08 Feature 3) */}
+      {guardadoStatus === 'dirty' && (
+        <div data-testid="topbar-dirty-indicator" className="flex items-center gap-1.5 text-[11px] text-amber-600 dark:text-amber-400 shrink-0">
           <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
           <span className="hidden lg:inline">Cambios sin guardar</span>
         </div>
-      ) : (
-        <div className="hidden lg:flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 shrink-0">
-          <Check size={12} className="text-emerald-500" />
-          <span>Guardado</span>
+      )}
+
+      {guardadoStatus === 'saved' && (
+        <div data-testid="topbar-saved-indicator" className="flex items-center gap-1 text-[11px] text-[#0D9488] dark:text-teal-400 shrink-0 transition-opacity duration-300">
+          <Check size={12} className="text-[#0D9488]" />
+          <span className="hidden lg:inline">Guardado</span>
         </div>
       )}
     </div>

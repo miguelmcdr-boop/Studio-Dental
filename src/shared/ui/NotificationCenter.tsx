@@ -3,7 +3,7 @@
  * Slide-in Framer Motion 250ms, 3 severidades: Crítica (#E11D48), Operativa (#0D9488), Informativa (#D97706)
  * "Marcar todas" limpia operativas e informativas, preservando críticas activas.
  */
-import React from 'react'
+import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Bell, AlertTriangle, CheckCircle2, Info, CheckCheck } from 'lucide-react'
 import { notificationService, type NotificationItem } from '../../infrastructure/notification/notificationService'
@@ -22,8 +22,19 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
   const operativas = notificaciones.filter((n) => n.tipo === 'info' || n.tipo === 'warning')
   const informativas = notificaciones.filter((n) => n.tipo === 'success')
 
+  const [leidas, setLeidas] = useState<Set<string>>(new Set())
+
   const handleDismiss = (id: string) => {
     notificationService.ocultar(id)
+  }
+
+  const handleToggleLeida = (id: string) => {
+    setLeidas((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
   }
 
   // Marcar todas leídas / descartar masivo (excepto críticas, que requieren resolución explícita)
@@ -35,11 +46,15 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
   const renderItem = (item: NotificationItem, severidad: 'critica' | 'operativa' | 'informativa') => {
     const isCritica = severidad === 'critica'
     const isOperativa = severidad === 'operativa'
+    const isLeida = leidas.has(item.id)
 
     return (
       <div
         key={item.id}
-        className={`p-3 rounded-xl border transition-all relative flex items-start gap-2.5 ${
+        onClick={() => handleToggleLeida(item.id)}
+        className={`p-3 rounded-xl border transition-all relative flex items-start gap-2.5 cursor-pointer ${
+          isLeida ? 'opacity-50' : 'opacity-100'
+        } ${
           isCritica
             ? 'bg-rose-50/70 dark:bg-rose-950/30 border-[#E11D48]/40'
             : isOperativa
@@ -73,7 +88,10 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
 
         <button
           type="button"
-          onClick={() => handleDismiss(item.id)}
+          onClick={(e) => {
+            e.stopPropagation()
+            handleDismiss(item.id)
+          }}
           className="absolute top-2.5 right-2.5 text-graphite-400 hover:text-graphite-700 dark:hover:text-graphite-200 p-1 cursor-pointer"
           aria-label="Descartar notificación"
           title="Descartar"

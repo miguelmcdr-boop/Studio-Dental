@@ -300,7 +300,11 @@ export const App: React.FC = () => {
     if (!accionesConfig?.primaria) return null
     const mapAction: Record<string, () => void> = {
       crearCita: () => setActiveSection('Agenda'),
-      crearPaciente: () => setActiveSection('Pacientes'),
+      crearPaciente: () => {
+        setActiveSection('Pacientes')
+        setPacienteSeleccionado(null)
+        setTimeout(() => window.dispatchEvent(new CustomEvent('abrir_nuevo_paciente')), 50)
+      },
       crearPresupuesto: () => setActiveSection('Presupuestos'),
       registrarPago: () => setActiveSection('Pagos'),
       nuevoItem: () => setActiveSection('Inventario'),
@@ -313,7 +317,7 @@ export const App: React.FC = () => {
       icon: accionesConfig.primaria.icon,
       onClick: mapAction[accionesConfig.primaria.actionKey] || (() => {}),
     }
-  }, [accionesConfig, setActiveSection])
+  }, [accionesConfig, setActiveSection, setPacienteSeleccionado])
 
   const accionesSecundarias = useMemo(() => {
     if (!accionesConfig?.secundarias) return []
@@ -321,14 +325,24 @@ export const App: React.FC = () => {
       label: sec.label,
       icon: sec.icon,
       onClick: () => {
-        if (sec.actionKey === 'crearPaciente') setActiveSection('Pacientes')
-        else if (sec.actionKey === 'abrirReportes') setActiveSection('Reportes')
-        else if (sec.actionKey === 'crearPresupuesto') setActiveSection('Presupuestos')
-        else if (sec.actionKey === 'ajusteStock') setActiveSection('Inventario')
-        else if (sec.actionKey === 'garantias') setActiveSection('Urgencias GES')
+        if (sec.actionKey === 'crearPaciente') {
+          setActiveSection('Pacientes')
+          setPacienteSeleccionado(null)
+          setTimeout(() => window.dispatchEvent(new CustomEvent('abrir_nuevo_paciente')), 50)
+        } else if (sec.actionKey === 'crearCita') {
+          setActiveSection('Agenda')
+        } else if (sec.actionKey === 'abrirReportes') {
+          setActiveSection('Reportes')
+        } else if (sec.actionKey === 'crearPresupuesto') {
+          setActiveSection('Presupuestos')
+        } else if (sec.actionKey === 'ajusteStock') {
+          setActiveSection('Inventario')
+        } else if (sec.actionKey === 'garantias') {
+          setActiveSection('Urgencias GES')
+        }
       },
     }))
-  }, [accionesConfig, setActiveSection])
+  }, [accionesConfig, setActiveSection, setPacienteSeleccionado])
 
   // Breadcrumbs dinámicos para TopBar
   const breadcrumbs = useMemo(() => {

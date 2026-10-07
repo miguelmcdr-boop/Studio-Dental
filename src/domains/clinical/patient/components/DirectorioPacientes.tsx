@@ -15,7 +15,7 @@
  * - Filtros por nombre/RUT
  * - RBAC para papelera
  */
-import React, { memo, useState, useMemo } from 'react'
+import React, { memo, useState, useEffect, useMemo } from 'react'
 import { Trash2, Plus, Search, Users, FileText } from 'lucide-react'
 import { Button } from '../../../../shared/ui/ui/Button'
 import { Input } from '../../../../shared/ui/ui/Input'
@@ -47,6 +47,12 @@ export const DirectorioPacientes: React.FC<DirectorioPacientesProps> = memo(({
   const [busqueda, setBusqueda] = useState<string>('')
   const [mostrarModalNuevo, setMostrarModalNuevo] = useState<boolean>(false)
   const [mostrarPapelera, setMostrarPapelera] = useState<boolean>(false)
+
+  useEffect(() => {
+    const handleAbrirModal = () => setMostrarModalNuevo(true)
+    window.addEventListener('abrir_nuevo_paciente', handleAbrirModal)
+    return () => window.removeEventListener('abrir_nuevo_paciente', handleAbrirModal)
+  }, [])
 
   // F6-L: Papelera de reciclaje (solo admin)
   const { puede } = useRBAC()

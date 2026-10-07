@@ -35,10 +35,10 @@ export interface AccionesPorModuloConfig {
 
 export const ACCIONES_POR_MODULO: Record<string, AccionesPorModuloConfig> = {
   Dashboard: {
-    primaria: { label: 'Nueva cita', icon: Calendar, actionKey: 'crearCita' },
+    primaria: { label: 'Nuevo paciente', icon: UserPlus, actionKey: 'crearPaciente' },
     secundarias: [
-      { label: 'Nuevo paciente', icon: UserPlus, actionKey: 'crearPaciente' },
-      { label: 'Reportes clínicos', icon: BarChart3, actionKey: 'abrirReportes' },
+      { label: 'Nueva cita', icon: Calendar, actionKey: 'crearCita' },
+      { label: 'Reportes', icon: BarChart3, actionKey: 'abrirReportes' },
     ],
   },
   Agenda: {

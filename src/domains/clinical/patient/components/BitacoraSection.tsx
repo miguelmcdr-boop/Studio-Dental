@@ -4,6 +4,7 @@ import { evolucionesStorageService, type EvolucionClinicaLocal } from '../servic
 import { useDictadoVoz } from '../hooks/useDictadoVoz'
 import { createLogger } from '../../../../infrastructure/logging/logger'
 import { useAppDialog } from '../../../../shared/hooks/useAppDialog'
+import { markFormDirty, markFormSaved } from '../../../../shared/utils/formDirtyUtils'
 
 const log = createLogger('BitacoraSection')
 
@@ -51,6 +52,7 @@ export const BitacoraSection: React.FC<BitacoraSectionProps> = memo(({ pacienteI
       log.warn('Error guardando evoluciones:', err)
     })
 
+    markFormSaved()
     setTextoNuevaEvolucion('')
     setLoteAutoclave('')
   }
@@ -122,7 +124,10 @@ export const BitacoraSection: React.FC<BitacoraSectionProps> = memo(({ pacienteI
           required
           placeholder="Escribe el detalle de la evolución clínica, tratamiento realizado, pieza intervenida, anestesia o hallazgos..."
           value={textoNuevaEvolucion}
-          onChange={(e) => setTextoNuevaEvolucion(e.target.value)}
+          onChange={(e) => {
+            markFormDirty()
+            setTextoNuevaEvolucion(e.target.value)
+          }}
           className="w-full p-3 rounded-xl border border-surface bg-graphite-50 dark:bg-graphite-950 surgical:bg-white text-gray-900 dark:text-graphite-50 surgical:text-black focus:outline-none focus:border-gold-solid font-medium"
         />
 
@@ -133,7 +138,10 @@ export const BitacoraSection: React.FC<BitacoraSectionProps> = memo(({ pacienteI
               type="text"
               placeholder="Ej: LOTE-2026-0804-01"
               value={loteAutoclave}
-              onChange={(e) => setLoteAutoclave(e.target.value)}
+              onChange={(e) => {
+                markFormDirty()
+                setLoteAutoclave(e.target.value)
+              }}
               className="px-3 py-1.5 border border-surface rounded-lg bg-graphite-50 dark:bg-graphite-950 surgical:bg-white text-gray-900 dark:text-graphite-50 surgical:text-black text-xs w-48 font-bold tabular-nums"
             />
           </div>

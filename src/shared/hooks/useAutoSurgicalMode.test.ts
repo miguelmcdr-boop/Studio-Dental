@@ -4,6 +4,7 @@ import { useAutoSurgicalMode } from './useAutoSurgicalMode'
 import { agendaStorageService } from '../../domains/operations/agenda/services/agendaStorageService'
 import { notificationService } from '../../infrastructure/notification/notificationService'
 import { useSidebarStore } from '../../app/stores/useSidebarStore'
+import { useThemeStore } from '../../app/stores/useThemeStore'
 
 vi.mock('../../domains/operations/agenda/services/agendaStorageService', () => ({
   agendaStorageService: {
@@ -16,6 +17,7 @@ describe('useAutoSurgicalMode (Blueprint 02)', () => {
     vi.clearAllMocks()
     notificationService.limpiar()
     useSidebarStore.setState({ theme: 'light' })
+    useThemeStore.setState({ theme: 'light' })
   })
 
   it('no notifica si no hay citas próximas de cirugía', () => {
@@ -29,7 +31,10 @@ describe('useAutoSurgicalMode (Blueprint 02)', () => {
   it('notifica si hay cirugía programada dentro de los próximos 15 minutos', () => {
     const ahora = new Date()
     const citaPronta = new Date(ahora.getTime() + 10 * 60 * 1000)
-    const fecha = citaPronta.toISOString().split('T')[0]
+    const anio = citaPronta.getFullYear()
+    const mes = String(citaPronta.getMonth() + 1).padStart(2, '0')
+    const dia = String(citaPronta.getDate()).padStart(2, '0')
+    const fecha = `${anio}-${mes}-${dia}`
     const hora = citaPronta.toTimeString().slice(0, 5)
 
     vi.mocked(agendaStorageService.obtenerCitas).mockReturnValue([
